@@ -57,9 +57,9 @@ export const antigravityData = {
 
   // Stage 4: Interactive Client Folders Showcase (Folder per Client + Hasil Kerjaan)
   stage4: {
-    headline: "Our vision for any creative technology.",
-    description: "Every piece of art tells a story. Echoes of expression allow artists and designers to showcase their personal journeys and client campaigns through their work.",
-    tools: ["Figma", "Blender", "After Effects", "Midjourney", "Octane", "Motion"],
+    headline: "Creative Work. Real-World Thinking.",
+    description: "From brand campaigns to digital experiences, I combine design, motion, and AI-driven workflows to create purposeful visuals for brands and businesses.",
+    tools: ["Figma", "Blender", "After Effects", "Adobe Creative Cloud", "Affinity", "GPT", "Google AI Studio", "Magnific AI"],
     
     // Client Folders (Masing-masing punya hasil kerjaan di dalamnya)
     clients: [

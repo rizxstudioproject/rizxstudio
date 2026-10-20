@@ -427,7 +427,7 @@ export default function Projects() {
           <div className="max-w-md text-center lg:text-left">
             <div className="inline-flex items-center gap-2 mb-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-[11px] text-cyan-400 font-mono tracking-widest uppercase">CLIENT PRODUCTIONS</span>
+              <span className="text-[11px] text-cyan-400 font-mono tracking-widest uppercase">PROFESSIONAL EXPERIENCE</span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2 sm:mb-3 leading-tight">
               {stage4.headline}
