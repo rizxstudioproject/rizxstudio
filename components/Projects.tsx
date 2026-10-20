@@ -38,11 +38,10 @@ export default function Projects() {
   // Track scroll and touch drag progress through this pinned container
   const updateProgress = () => {
     if (!containerRef.current) return;
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const containerTop = containerRef.current.offsetTop;
-    const totalScroll = containerRef.current.offsetHeight - window.innerHeight;
+    const rect = containerRef.current.getBoundingClientRect();
+    const totalScroll = rect.height - window.innerHeight;
     if (totalScroll <= 0) return;
-    const progress = Math.max(0, Math.min(1, (scrollTop - containerTop) / totalScroll));
+    const progress = Math.max(0, Math.min(1, -rect.top / totalScroll));
     setScrollProgress(progress);
   };
 
@@ -85,7 +84,7 @@ export default function Projects() {
     <section
       id="projects"
       ref={containerRef}
-      className="relative w-full h-[280vh] sm:h-[380vh] md:h-[500vh] bg-[#0a0a0a] text-white"
+      className="relative w-full h-[350vh] sm:h-[450vh] md:h-[500vh] bg-[#0a0a0a] text-white"
     >
       {/* Sticky Fullscreen Viewport Canvas */}
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ willChange: "transform" }}>

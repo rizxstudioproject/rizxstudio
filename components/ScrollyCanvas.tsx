@@ -144,17 +144,16 @@ export default function ScrollyCanvas() {
     };
   }, [renderFrame]);
 
-  // Fast and layout-reflow-free progress calculator
+  // Accurate progress calculator via viewport-relative bounds
   const updateProgress = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const containerTop = container.offsetTop;
+    const rect = container.getBoundingClientRect();
     const maxScrollable = container.offsetHeight - window.innerHeight;
     if (maxScrollable <= 0) return;
 
-    const currentScroll = scrollTop - containerTop;
+    const currentScroll = -rect.top;
     const progress = Math.max(0, Math.min(1, currentScroll / maxScrollable));
 
     setScrollProgress(progress);
