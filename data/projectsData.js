@@ -44,7 +44,7 @@ export const antigravityData = {
     classTag: "CLASS BY REATHA C. PHELAN",
     headline: "Gateway to artist people.",
     heroCard: {
-      image: "/assets/antigravity/hero-large.webp",
+      image: "/assets/antigravity/hero-large.jpg",
       title: "Cinematic Visual Storytelling",
       category: "Creative Direction & AI Film",
       aspectRatio: "16:9",
