@@ -144,16 +144,17 @@ export default function ScrollyCanvas() {
     };
   }, [renderFrame]);
 
-  // Shared progress calculator (used by both scroll and touch handlers)
+  // Fast and layout-reflow-free progress calculator
   const updateProgress = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const rect = container.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const containerTop = container.offsetTop;
     const maxScrollable = container.offsetHeight - window.innerHeight;
     if (maxScrollable <= 0) return;
 
-    const currentScroll = -rect.top;
+    const currentScroll = scrollTop - containerTop;
     const progress = Math.max(0, Math.min(1, currentScroll / maxScrollable));
 
     setScrollProgress(progress);
@@ -168,49 +169,26 @@ export default function ScrollyCanvas() {
     }
   }, [renderFrame]);
 
-  // Scroll tracking — works on both desktop and mobile
+  // Real-time tracking on both scroll and touch drag
   useEffect(() => {
-    let ticking = false;
-
-    const onScroll = () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(() => {
-          updateProgress();
-          ticking = false;
-        });
-      }
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
-    updateProgress(); // initial frame
-
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, [updateProgress]);
-
-  // Mobile touch: directly calculate progress during touchmove
-  // (bypasses requestAnimationFrame which iOS Safari may throttle during momentum scroll)
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const onTouchMove = () => {
+    const handleScrollOrTouch = () => {
       updateProgress();
     };
 
-    container.addEventListener("touchmove", onTouchMove, { passive: true });
+    window.addEventListener("scroll", handleScrollOrTouch, { passive: true });
+    window.addEventListener("touchmove", handleScrollOrTouch, { passive: true });
+    updateProgress(); // initial frame
 
     return () => {
-      container.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("scroll", handleScrollOrTouch);
+      window.removeEventListener("touchmove", handleScrollOrTouch);
     };
   }, [updateProgress]);
 
   return (
     <div
       ref={containerRef}
-      className="relative h-[500vh] w-full bg-[#0a0a0a]"
+      className="relative h-[250vh] sm:h-[350vh] md:h-[500vh] w-full bg-[#0a0a0a]"
       id="hero-scrolly"
     >
       <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0a0a0a]" style={{ willChange: "transform" }}>

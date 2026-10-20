@@ -35,40 +35,24 @@ export default function Projects() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-  // Track scroll progress through this pinned container
+  // Track scroll and touch drag progress through this pinned container
+  const updateProgress = () => {
+    if (!containerRef.current) return;
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const containerTop = containerRef.current.offsetTop;
+    const totalScroll = containerRef.current.offsetHeight - window.innerHeight;
+    if (totalScroll <= 0) return;
+    const progress = Math.max(0, Math.min(1, (scrollTop - containerTop) / totalScroll));
+    setScrollProgress(progress);
+  };
+
   useEffect(() => {
-    const handleScroll = () => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const totalScroll = rect.height - window.innerHeight;
-      if (totalScroll <= 0) return;
-      const progress = Math.max(0, Math.min(1, -rect.top / totalScroll));
-      setScrollProgress(progress);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Mobile touch: directly recalculate progress during touchmove
-  // iOS Safari throttles rAF during momentum scroll, so we update synchronously
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const onTouchMove = () => {
-      const rect = container.getBoundingClientRect();
-      const totalScroll = rect.height - window.innerHeight;
-      if (totalScroll <= 0) return;
-      const progress = Math.max(0, Math.min(1, -rect.top / totalScroll));
-      setScrollProgress(progress);
-    };
-
-    container.addEventListener("touchmove", onTouchMove, { passive: true });
-
+    window.addEventListener("scroll", updateProgress, { passive: true });
+    window.addEventListener("touchmove", updateProgress, { passive: true });
+    updateProgress();
     return () => {
-      container.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("scroll", updateProgress);
+      window.removeEventListener("touchmove", updateProgress);
     };
   }, []);
 
@@ -101,7 +85,7 @@ export default function Projects() {
     <section
       id="projects"
       ref={containerRef}
-      className="relative w-full h-[400vh] sm:h-[450vh] md:h-[500vh] bg-[#0a0a0a] text-white"
+      className="relative w-full h-[280vh] sm:h-[380vh] md:h-[500vh] bg-[#0a0a0a] text-white"
     >
       {/* Sticky Fullscreen Viewport Canvas */}
       <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ willChange: "transform" }}>
@@ -114,7 +98,7 @@ export default function Projects() {
             (Active: 0.00 -> 0.28)
            ======================================================== */}
         <div
-          className="absolute inset-0 flex flex-col items-center justify-between py-16 sm:py-20 md:py-16 px-4 transition-all duration-700 ease-out"
+          className="absolute inset-0 flex flex-col items-center justify-between py-16 sm:py-20 md:py-16 px-4"
           style={{
             opacity: scrollProgress < 0.25 ? 1 : Math.max(0, 1 - (scrollProgress - 0.25) / 0.05),
             transform: `translate3d(0, ${scrollProgress < 0.25 ? 0 : -(scrollProgress - 0.25) * 350}px, 0)`,
@@ -201,7 +185,9 @@ export default function Projects() {
                       clientName: card.category,
                     })
                   }
-                  className="absolute w-36 sm:w-48 md:w-60 aspect-square rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-neutral-900/95 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer transition-transform duration-300 ease-out"
+                  className={`absolute w-36 sm:w-48 md:w-60 aspect-square rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-neutral-900/95 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer ${
+                    isHovered ? "transition-transform duration-200 ease-out" : ""
+                  }`}
                   style={{
                     zIndex: isHovered ? 50 : 10 + i,
                     transform: `translate3d(${currentX}px, ${
@@ -249,7 +235,7 @@ export default function Projects() {
             (Active: 0.28 -> 0.52)
            ======================================================== */}
         <div
-          className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-10 my-auto transition-all duration-700 ease-out"
+          className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-10 my-auto"
           style={{
             opacity:
               scrollProgress < 0.28
@@ -360,7 +346,7 @@ export default function Projects() {
             (Active: 0.52 -> 0.74)
            ======================================================== */}
         <div
-          className="absolute inset-0 max-w-4xl mx-auto flex flex-col justify-center px-4 sm:px-8 my-auto transition-all duration-700 ease-out"
+          className="absolute inset-0 max-w-4xl mx-auto flex flex-col justify-center px-4 sm:px-8 my-auto"
           style={{
             opacity:
               scrollProgress < 0.52
@@ -436,7 +422,7 @@ export default function Projects() {
            ======================================================== */}
         <div
           id="client-productions"
-          className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 my-auto transition-all duration-700 ease-out"
+          className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 my-auto"
           style={{
             opacity: scrollProgress < 0.74 ? 0 : Math.min(1, (scrollProgress - 0.74) / 0.05),
             transform: `translate3d(0, ${scrollProgress < 0.74 ? 50 : 0}px, 0)`,
