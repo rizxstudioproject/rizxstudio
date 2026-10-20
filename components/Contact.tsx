@@ -63,13 +63,17 @@ export default function Contact() {
         {/* ── DESKTOP LAYOUT (md and above) ── */}
         <div className="hidden md:flex items-center justify-between px-0">
           {/* Left: Logo + copyright */}
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             <button
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="text-base font-black tracking-widest text-white uppercase hover:opacity-70 transition-opacity text-left"
+              className="hover:opacity-70 transition-opacity text-left w-fit"
+              aria-label="Back to top"
             >
-              <span>FOMY</span>
-              <span className="text-neutral-500">.</span>
+              <img
+                src="/brand-logo.png"
+                alt="Logo"
+                className="h-7 w-auto object-contain"
+              />
             </button>
             <span className="text-[10px] text-neutral-600 tracking-wider">
               &copy; {new Date().getFullYear()} FOMY R. — ALL RIGHTS RESERVED.
@@ -111,10 +115,14 @@ export default function Contact() {
         <div className="flex md:hidden flex-col items-center justify-center gap-5 text-center">
           <button
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            className="text-lg font-black tracking-widest text-white uppercase hover:opacity-80 transition-opacity"
+            className="hover:opacity-80 transition-opacity flex items-center justify-center"
+            aria-label="Back to top"
           >
-            <span>FOMY</span>
-            <span className="text-neutral-500">.</span>
+            <img
+              src="/brand-logo.png"
+              alt="Logo"
+              className="h-8 w-auto object-contain"
+            />
           </button>
 
           <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-400 text-[11px]">

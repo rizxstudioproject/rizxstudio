@@ -82,10 +82,14 @@ export default function Navbar() {
               setMobileMenuOpen(false);
               window.scrollTo({ top: 0, behavior: "smooth" });
             }}
-            className="text-lg sm:text-xl font-black tracking-widest text-white uppercase flex items-center hover:opacity-80 transition-opacity"
+            className="flex items-center hover:opacity-80 transition-opacity"
+            aria-label="Back to top"
           >
-            <span>FOMY</span>
-            <span className="text-neutral-500">.</span>
+            <img
+              src="/brand-logo.png"
+              alt="Logo"
+              className="h-8 sm:h-9 w-auto object-contain"
+            />
           </button>
 
           {/* Center: Navigation Links (Desktop) */}
