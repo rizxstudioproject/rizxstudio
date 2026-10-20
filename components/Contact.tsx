@@ -57,46 +57,99 @@ export default function Contact() {
       </SpotlightCard>
 
       {/* Footer Bottom Bar matching reference screenshot */}
-      <div className="pt-8 border-t border-white/5 flex flex-col items-center justify-center gap-6 text-xs text-neutral-500 font-mono text-center">
-        <button
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="text-lg sm:text-xl font-black tracking-widest text-white uppercase hover:opacity-80 transition-opacity"
-        >
-          <span>FOMY</span>
-          <span className="text-neutral-500">.</span>
-        </button>
+      {/* Footer Bottom Bar — Mobile: centered stack | Desktop: 3-column row */}
+      <div className="pt-8 border-t border-white/5 text-xs text-neutral-500 font-mono">
 
-        <div className="flex flex-wrap items-center justify-center gap-5 sm:gap-7 text-neutral-400 text-[11px] sm:text-xs">
-          <a href="#clients" className="hover:text-white transition-colors uppercase">Clients</a>
-          <a href="#projects" className="hover:text-white transition-colors uppercase">Work</a>
-          <a href="#about" className="hover:text-white transition-colors uppercase">About Me</a>
-          <a href="#contact" className="hover:text-white transition-colors uppercase">Contact</a>
+        {/* ── DESKTOP LAYOUT (md and above) ── */}
+        <div className="hidden md:flex items-center justify-between px-0">
+          {/* Left: Logo + copyright */}
+          <div className="flex flex-col gap-1">
+            <button
+              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+              className="text-base font-black tracking-widest text-white uppercase hover:opacity-70 transition-opacity text-left"
+            >
+              <span>FOMY</span>
+              <span className="text-neutral-500">.</span>
+            </button>
+            <span className="text-[10px] text-neutral-600 tracking-wider">
+              &copy; {new Date().getFullYear()} FOMY R. — ALL RIGHTS RESERVED.
+            </span>
+          </div>
+
+          {/* Center: Nav links */}
+          <div className="flex items-center gap-7 text-neutral-400 text-[11px]">
+            <a href="#clients" className="hover:text-white transition-colors uppercase tracking-widest">Clients</a>
+            <a href="#projects" className="hover:text-white transition-colors uppercase tracking-widest">Work</a>
+            <a href="#about" className="hover:text-white transition-colors uppercase tracking-widest">About Me</a>
+            <a href="#contact" className="hover:text-white transition-colors uppercase tracking-widest">Contact</a>
+          </div>
+
+          {/* Right: Social icons */}
+          <div className="flex items-center gap-2 text-neutral-400">
+            <a
+              href="https://www.instagram.com/rizxstudio/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram Profile"
+              className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+            >
+              <FaInstagram className="w-4 h-4" />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/rizxstudio/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn Profile"
+              className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+            >
+              <FaLinkedinIn className="w-4 h-4" />
+            </a>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4 text-neutral-400">
-          <a
-            href="https://www.instagram.com/rizxstudio/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="Instagram Profile"
-            className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+        {/* ── MOBILE LAYOUT (below md) ── */}
+        <div className="flex md:hidden flex-col items-center justify-center gap-5 text-center">
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="text-lg font-black tracking-widest text-white uppercase hover:opacity-80 transition-opacity"
           >
-            <FaInstagram className="w-4 h-4" />
-          </a>
-          <a
-            href="https://www.linkedin.com/in/rizxstudio/"
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label="LinkedIn Profile"
-            className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
-          >
-            <FaLinkedinIn className="w-4 h-4" />
-          </a>
+            <span>FOMY</span>
+            <span className="text-neutral-500">.</span>
+          </button>
+
+          <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-400 text-[11px]">
+            <a href="#clients" className="hover:text-white transition-colors uppercase">Clients</a>
+            <a href="#projects" className="hover:text-white transition-colors uppercase">Work</a>
+            <a href="#about" className="hover:text-white transition-colors uppercase">About Me</a>
+            <a href="#contact" className="hover:text-white transition-colors uppercase">Contact</a>
+          </div>
+
+          <div className="flex items-center gap-4 text-neutral-400">
+            <a
+              href="https://www.instagram.com/rizxstudio/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram Profile"
+              className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+            >
+              <FaInstagram className="w-4 h-4" />
+            </a>
+            <a
+              href="https://www.linkedin.com/in/rizxstudio/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn Profile"
+              className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+            >
+              <FaLinkedinIn className="w-4 h-4" />
+            </a>
+          </div>
+
+          <div className="text-[10px] text-neutral-600 tracking-wider">
+            &copy; {new Date().getFullYear()} FOMY R. — ALL RIGHTS RESERVED.
+          </div>
         </div>
 
-        <div className="text-[10px] sm:text-xs text-neutral-600 tracking-wider">
-          &copy; {new Date().getFullYear()} FOMY R. — ALL RIGHTS RESERVED.
-        </div>
       </div>
     </footer>
   );
