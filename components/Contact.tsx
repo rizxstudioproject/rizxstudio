@@ -2,8 +2,8 @@
 
 import React from "react";
 import SpotlightCard from "./SpotlightCard";
-import { FaInstagram, FaLinkedinIn } from "react-icons/fa6";
-import { HiArrowUpRight, HiOutlineEnvelope } from "react-icons/hi2";
+import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
+import { HiArrowUpRight } from "react-icons/hi2";
 
 export default function Contact() {
   return (
@@ -13,15 +13,14 @@ export default function Contact() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-mono tracking-widest uppercase text-emerald-400 mb-4 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Available for select commissions</span>
+              <span>Open to Creative Opportunities</span>
             </div>
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
-              Let&apos;s build something <br className="hidden sm:inline" />
-              <span className="text-neutral-400 font-light italic">extraordinary</span> together.
+              Let&apos;s create something <br className="hidden sm:inline" />
+              <span className="text-neutral-400 font-light italic">meaningful</span> together.
             </h2>
             <p className="text-neutral-400 text-sm sm:text-base font-light leading-relaxed">
-              Whether you are launching an AI-powered advertising campaign, establishing a flagship brand identity,
-              or engineering cinematic video and UI/UX—let&apos;s collaborate to realize your creative ambitions.
+              Have a project in mind? Let&apos;s connect and explore how design, motion, and AI-driven visuals can bring your ideas to life.
             </p>
           </div>
 
@@ -32,8 +31,8 @@ export default function Contact() {
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.2)] text-center"
             >
-              <HiOutlineEnvelope className="w-4 h-4" />
-              <span>SAY HELLO</span>
+              <FaWhatsapp className="w-4 h-4" />
+              <span>WHATSAPP</span>
             </a>
             <a
               href="https://www.instagram.com/rizxstudio/"
