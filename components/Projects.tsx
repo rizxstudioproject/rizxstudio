@@ -343,11 +343,11 @@ export default function Projects() {
           {/* Overlapping Dense Deck with Badges */}
           <div className="relative w-full max-w-sm sm:max-w-md h-[220px] sm:h-[300px] md:h-[360px] flex items-center justify-center">
             {/* Badges */}
-            <div className="absolute top-0 left-4 z-40 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-[#9A2D23] text-white border border-red-700 shadow-md">
-              @howard
+            <div className="absolute top-0 left-4 z-40 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-[#14AF9E] text-white border border-[#14AF9E]/80 shadow-md">
+              @rizx
             </div>
             <div className="absolute top-4 right-4 z-40 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-md">
-              @robin
+              @malaka
             </div>
 
             {/* Overlapping Dense Cards */}

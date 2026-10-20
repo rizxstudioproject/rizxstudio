@@ -28,8 +28,8 @@ export const antigravityData = {
       "AI Visuals",
     ],
     badges: [
-      { id: 1, text: "@howard", color: "bg-[#9A2D23] text-white border-red-800" },
-      { id: 2, text: "@robin", color: "bg-neutral-800 text-white border-neutral-700" },
+      { id: 1, text: "@rizx", color: "bg-[#14AF9E] text-white border-[#14AF9E]" },
+      { id: 2, text: "@malaka", color: "bg-neutral-800 text-white border-neutral-700" },
     ],
     overlappingCards: [
       { id: "o1", title: "Branding", image: "/assets/antigravity/selected-brand-identity.jpg", offset: -90, rotate: -8 },
