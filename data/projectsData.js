@@ -20,27 +20,26 @@ export const antigravityData = {
 
   // Stage 2: AI-Driven Designer Showcase (Left Text + Right Overlapping Dense Deck)
   stage2: {
-    categoryTag: "DESIGN · MOTION · AI",
-    headline: "AI-Driven Designer | Ads, UI/UX & Motion | Performance-Focused Visuals for Global Brands",
-    description: "Senior Graphic Designer and Digital Artist with experience in brand identity, visual campaigns, UI/UX, motion graphics, and AI-assisted image editing. Combining creative direction, visual storytelling, and analytical thinking to craft impactful digital experiences.",
+    categoryTag: "AI-DRIVEN CREATIVE",
+    headline: "Design. Motion. AI.",
+    description: "Senior Graphic Designer & Digital Artist crafting impactful brand visuals, motion graphics, and digital experiences for global brands.",
     primaryButtonText: "Explore My Work",
     skillLabels: [
-      "Branding & Identity",
-      "Motion Graphics",
+      "Branding",
+      "Motion",
       "3D Design",
-      "UI/UX Design",
-      "Video Editing",
-      "AI Image Editing",
+      "UI/UX",
+      "AI Visuals",
     ],
     badges: [
       { id: 1, text: "@howard", color: "bg-[#9A2D23] text-white border-red-800" },
       { id: 2, text: "@robin", color: "bg-neutral-800 text-white border-neutral-700" },
     ],
     overlappingCards: [
-      { id: "o1", title: "Branding & Identity", image: "/assets/antigravity/card-1.webp", offset: -90, rotate: -8 },
-      { id: "o2", title: "Motion Graphics", image: "/assets/antigravity/card-2.webp", offset: -30, rotate: -3 },
-      { id: "o3", title: "UI/UX Design", image: "/assets/antigravity/card-3.webp", offset: 30, rotate: 3 },
-      { id: "o4", title: "AI Image Editing", image: "/assets/antigravity/card-4.webp", offset: 90, rotate: 7 },
+      { id: "o1", title: "Branding", image: "/assets/antigravity/card-1.webp", offset: -90, rotate: -8 },
+      { id: "o2", title: "Motion", image: "/assets/antigravity/card-2.webp", offset: -30, rotate: -3 },
+      { id: "o3", title: "UI/UX", image: "/assets/antigravity/card-3.webp", offset: 30, rotate: 3 },
+      { id: "o4", title: "AI Visuals", image: "/assets/antigravity/card-4.webp", offset: 90, rotate: 7 },
     ],
   },
 

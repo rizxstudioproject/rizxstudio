@@ -198,24 +198,24 @@ export default function Projects() {
           }}
         >
           {/* Text Block */}
-          <div className="max-w-lg text-center lg:text-left pt-12 lg:pt-0">
-            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-orange-400 mb-2 block">
+          <div className="max-w-lg text-center lg:text-left pt-10 lg:pt-0">
+            <span className="text-[11px] font-mono uppercase tracking-[0.25em] text-[#00A389] mb-3 block font-semibold">
               {stage2.categoryTag}
             </span>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight">
               {stage2.headline}
             </h2>
-            <p className="text-xs sm:text-sm text-neutral-400 font-light leading-relaxed mb-4 sm:mb-6 line-clamp-3 sm:line-clamp-none">
+            <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed mb-6 max-w-md mx-auto lg:mx-0">
               {stage2.description}
             </p>
 
-            {/* Project Frame Labels / Skills */}
+            {/* Project Frame Labels / Skills: 5 Compact Tags */}
             {stage2.skillLabels && (
-              <div className="flex flex-wrap justify-center lg:justify-start gap-1.5 sm:gap-2 mb-6">
+              <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-8">
                 {stage2.skillLabels.map((skill, sIdx) => (
                   <span
                     key={sIdx}
-                    className="px-2.5 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[10px] sm:text-[11px] font-mono text-neutral-300"
+                    className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#00A389]/40 hover:text-white transition-colors"
                   >
                     {skill}
                   </span>
@@ -223,7 +223,8 @@ export default function Projects() {
               </div>
             )}
 
-            <div className="flex items-center justify-center lg:justify-start gap-3">
+            {/* Single Primary CTA Button */}
+            <div className="flex items-center justify-center lg:justify-start">
               <a
                 href="#projects"
                 onClick={() => {
@@ -233,15 +234,9 @@ export default function Projects() {
                     window.scrollTo({ top, behavior: "smooth" });
                   }
                 }}
-                className="px-6 py-3 rounded-full bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                className="px-7 py-3 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_25px_rgba(255,255,255,0.2)] active:scale-95"
               >
                 {stage2.primaryButtonText || "Explore My Work"}
-              </a>
-              <a
-                href="#about"
-                className="px-5 py-3 rounded-full bg-white/[0.04] border border-white/10 text-neutral-300 hover:text-white text-xs sm:text-sm font-medium transition-all"
-              >
-                Read more
               </a>
             </div>
           </div>
