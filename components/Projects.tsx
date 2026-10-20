@@ -51,36 +51,23 @@ export default function Projects() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Mobile touch swipe → scroll forwarding for sticky section
+  // Mobile touch: directly recalculate progress during touchmove
+  // iOS Safari throttles rAF during momentum scroll, so we update synchronously
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    let touchStartY = 0;
-    let touchStartScrollY = 0;
-
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-      touchStartScrollY = window.scrollY;
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
+    const onTouchMove = () => {
       const rect = container.getBoundingClientRect();
-      // Only act while sticky section is pinned (rect.top === 0 means sticky is active)
-      if (rect.top > 10 || rect.bottom < window.innerHeight - 10) return;
-
-      const deltaY = touchStartY - e.touches[0].clientY;
-      window.scrollTo({
-        top: touchStartScrollY + deltaY * 2,
-        behavior: "instant" as ScrollBehavior,
-      });
+      const totalScroll = rect.height - window.innerHeight;
+      if (totalScroll <= 0) return;
+      const progress = Math.max(0, Math.min(1, -rect.top / totalScroll));
+      setScrollProgress(progress);
     };
 
-    container.addEventListener("touchstart", onTouchStart, { passive: true });
     container.addEventListener("touchmove", onTouchMove, { passive: true });
 
     return () => {
-      container.removeEventListener("touchstart", onTouchStart);
       container.removeEventListener("touchmove", onTouchMove);
     };
   }, []);
@@ -115,10 +102,9 @@ export default function Projects() {
       id="projects"
       ref={containerRef}
       className="relative w-full h-[400vh] sm:h-[450vh] md:h-[500vh] bg-[#0a0a0a] text-white"
-      style={{ touchAction: "pan-y" }}
     >
       {/* Sticky Fullscreen Viewport Canvas */}
-      <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ touchAction: "pan-y" }}>
+      <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ willChange: "transform" }}>
         
         {/* Ambient Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] md:w-[800px] h-[60vh] bg-gradient-to-r from-orange-500/[0.03] via-cyan-500/[0.03] to-purple-500/[0.03] blur-[140px] pointer-events-none rounded-full" />

@@ -144,104 +144,76 @@ export default function ScrollyCanvas() {
     };
   }, [renderFrame]);
 
-  // High-performance scroll tracking via requestAnimationFrame
+  // Shared progress calculator (used by both scroll and touch handlers)
+  const updateProgress = useCallback(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const rect = container.getBoundingClientRect();
+    const maxScrollable = container.offsetHeight - window.innerHeight;
+    if (maxScrollable <= 0) return;
+
+    const currentScroll = -rect.top;
+    const progress = Math.max(0, Math.min(1, currentScroll / maxScrollable));
+
+    setScrollProgress(progress);
+
+    const frameIndex = Math.min(
+      TOTAL_FRAMES - 1,
+      Math.max(0, Math.floor(progress * (TOTAL_FRAMES - 1)))
+    );
+
+    if (frameIndex !== currentFrameIndexRef.current) {
+      renderFrame(frameIndex);
+    }
+  }, [renderFrame]);
+
+  // Scroll tracking — works on both desktop and mobile
   useEffect(() => {
-    let animationFrameId: number;
+    let ticking = false;
 
     const onScroll = () => {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = requestAnimationFrame(() => {
-        const container = containerRef.current;
-        if (!container) return;
-
-        const rect = container.getBoundingClientRect();
-        const maxScrollable = container.offsetHeight - window.innerHeight;
-        if (maxScrollable <= 0) return;
-
-        const currentScroll = -rect.top;
-        const progress = Math.max(0, Math.min(1, currentScroll / maxScrollable));
-
-        setScrollProgress(progress);
-
-        const frameIndex = Math.min(
-          TOTAL_FRAMES - 1,
-          Math.max(0, Math.floor(progress * (TOTAL_FRAMES - 1)))
-        );
-
-        if (frameIndex !== currentFrameIndexRef.current) {
-          renderFrame(frameIndex);
-        }
-      });
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateProgress();
+          ticking = false;
+        });
+      }
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
-    // Run once on mount to establish initial frame
-    onScroll();
+    updateProgress(); // initial frame
 
     return () => {
       window.removeEventListener("scroll", onScroll);
-      cancelAnimationFrame(animationFrameId);
     };
-  }, [renderFrame]);
+  }, [updateProgress]);
 
-  // Mobile touch swipe → scroll forwarding
+  // Mobile touch: directly calculate progress during touchmove
+  // (bypasses requestAnimationFrame which iOS Safari may throttle during momentum scroll)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    let touchStartY = 0;
-    let touchStartScrollY = 0;
-    let isSwiping = false;
-
-    const onTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-      touchStartScrollY = window.scrollY;
-      isSwiping = true;
+    const onTouchMove = () => {
+      updateProgress();
     };
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (!isSwiping) return;
-      const rect = container.getBoundingClientRect();
-      // Only intercept when hero section is in viewport
-      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-
-      const deltaY = touchStartY - e.touches[0].clientY;
-      const maxScrollable = container.offsetHeight - window.innerHeight;
-      if (maxScrollable <= 0) return;
-
-      // Only handle if we're within the sticky section range
-      const containerScrollStart = container.offsetTop;
-      const containerScrollEnd = containerScrollStart + maxScrollable;
-      const currentScroll = window.scrollY;
-
-      if (currentScroll >= containerScrollStart - window.innerHeight && currentScroll <= containerScrollEnd + window.innerHeight) {
-        window.scrollTo({ top: touchStartScrollY + deltaY * 1.5, behavior: "instant" as ScrollBehavior });
-      }
-    };
-
-    const onTouchEnd = () => {
-      isSwiping = false;
-    };
-
-    container.addEventListener("touchstart", onTouchStart, { passive: true });
     container.addEventListener("touchmove", onTouchMove, { passive: true });
-    container.addEventListener("touchend", onTouchEnd, { passive: true });
 
     return () => {
-      container.removeEventListener("touchstart", onTouchStart);
       container.removeEventListener("touchmove", onTouchMove);
-      container.removeEventListener("touchend", onTouchEnd);
     };
-  }, []);
+  }, [updateProgress]);
 
   return (
     <div
       ref={containerRef}
       className="relative h-[500vh] w-full bg-[#0a0a0a]"
       id="hero-scrolly"
-      style={{ touchAction: "pan-y" }}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0a0a0a]" style={{ touchAction: "pan-y" }}>
+      <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0a0a0a]" style={{ willChange: "transform" }}>
         {/* Canvas for image sequence */}
         <canvas
           ref={canvasRef}

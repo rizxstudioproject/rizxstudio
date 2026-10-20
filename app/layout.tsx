@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark scroll-smooth">
+    <html lang="en" className="dark">
       <body className="bg-[#0a0a0a] text-neutral-300 selection:bg-white/20 selection:text-white antialiased min-h-screen relative">
         {/* Subtle cinematic ambient glow / film grain */}
         <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-40" />

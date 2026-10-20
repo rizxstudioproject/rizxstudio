@@ -10,10 +10,17 @@
 }
 
 html {
-  scroll-behavior: smooth;
   background-color: #0a0a0a;
   color: #d4d4d4;
   /* Crucial: DO NOT add overflow-x: hidden here because it cancels position: sticky on children */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* scroll-smooth only on desktop — it can interfere with iOS touch momentum */
+@media (min-width: 768px) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -25,8 +32,6 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Mobile: allow vertical touch scroll natively */
-  touch-action: pan-y;
   overscroll-behavior-y: none;
 }
 
