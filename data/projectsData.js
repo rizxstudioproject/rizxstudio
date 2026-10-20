@@ -2,19 +2,15 @@ export const antigravityData = {
   // Stage 1: Initial Reveal & Fan-out
   stage1: {
     badge: "03 / SELECTED WORKS",
-    headline: "A place to display your masterpiece.",
-    subheadline: "Artists can display their masterpieces, and clients can discover high-impact visual design & creative execution.",
-    floatingBadges: [
-      { id: 1, text: "@coplin", color: "bg-blue-600 text-white border-blue-500", top: "16%", left: "12%" },
-      { id: 2, text: "@howard", color: "bg-[#9A2D23] text-white border-red-800", top: "8%", left: "48%" },
-      { id: 3, text: "@andrea", color: "bg-[#2E7D5B] text-white border-emerald-600", top: "16%", right: "12%" },
-    ],
+    headline: "A Range of Work. One Creative Vision.",
+    subheadline: "Explore selected projects across branding, motion, digital design, and AI-driven visuals—shaped by different briefs, teams, and creative challenges.",
+    floatingBadges: [],
     deckCards: [
-      { id: "d1", title: "Abstract Collage", category: "Art Direction", image: "/assets/antigravity/card-1.webp", gradient: "from-red-600/60 to-black" },
-      { id: "d2", title: "Blue Typo Monogram", category: "Visual Identity", image: "/assets/antigravity/card-2.webp", gradient: "from-blue-600/60 to-black" },
-      { id: "d3", title: "Yellow Package Box", category: "Branding", image: "/assets/antigravity/card-3.webp", gradient: "from-amber-500/60 to-black" },
-      { id: "d4", title: "3D Character Run", category: "3D & Motion", image: "/assets/antigravity/card-4.webp", gradient: "from-pink-500/60 to-black" },
-      { id: "d5", title: "Route 66 Pop Art", category: "Campaign Visual", image: "/assets/antigravity/card-5.webp", gradient: "from-cyan-500/60 to-black" },
+      { id: "d1", title: "Brand Identity", category: "Brand Identity", image: "/assets/antigravity/card-1.webp", gradient: "from-red-600/60 to-black" },
+      { id: "d2", title: "Campaign Visuals", category: "Campaign Visuals", image: "/assets/antigravity/card-2.webp", gradient: "from-blue-600/60 to-black" },
+      { id: "d3", title: "Motion Graphics", category: "Motion Graphics", image: "/assets/antigravity/card-3.webp", gradient: "from-amber-500/60 to-black" },
+      { id: "d4", title: "3D Design", category: "3D Design", image: "/assets/antigravity/card-4.webp", gradient: "from-pink-500/60 to-black" },
+      { id: "d5", title: "UI/UX Design", category: "UI/UX Design", image: "/assets/antigravity/card-5.webp", gradient: "from-cyan-500/60 to-black" },
     ],
   },
 

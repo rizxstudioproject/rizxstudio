@@ -117,7 +117,7 @@ export default function Projects() {
           {/* Cards Stage: Starts at center, fans out smoothly */}
           <div className="relative w-full max-w-5xl h-[260px] sm:h-[320px] md:h-[380px] flex items-center justify-center my-auto">
             {/* Floating Badges */}
-            {stage1.floatingBadges.map((badge, bIdx) => {
+            {stage1.floatingBadges.length > 0 && stage1.floatingBadges.map((badge: { id: number; text: string; color: string; top?: string; left?: string; right?: string }, bIdx: number) => {
               const badgeOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.05) / 0.1));
               return (
                 <div
@@ -177,7 +177,7 @@ export default function Projects() {
                         image: card.image,
                         aspect: "1:1",
                       },
-                      clientName: "Selected Masterpiece",
+                      clientName: card.category,
                     })
                   }
                   className="absolute w-36 sm:w-48 md:w-60 aspect-square rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-neutral-900/95 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer transition-transform duration-300 ease-out"
@@ -209,7 +209,7 @@ export default function Projects() {
 
                     <div className="relative z-10">
                       <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight truncate">{card.title}</h3>
-                      <p className="text-[9px] text-neutral-400 font-mono">Masterpiece</p>
+                      <p className="text-[9px] text-neutral-400 font-mono">{card.category}</p>
                     </div>
                   </div>
                 </div>
