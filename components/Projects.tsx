@@ -2,222 +2,190 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { antigravityData } from "@/data/projectsData";
+import { HiArrowUpRight } from "react-icons/hi2";
 
 export default function Projects() {
   const { headerPrompts, floatingBadges, projects } = antigravityData;
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-  const [activeBadge, setActiveBadge] = useState<number | null>(null);
 
-  // Smooth mouse tracking for repulsion physics & 3D tilt
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      if (rect.top < window.innerHeight && rect.bottom > 0) {
-        // Normalized -1 to 1 from container center
-        const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const y = ((e.clientY - rect.top) / rect.height) * 2 - 1;
-        setMousePos({ x, y });
-      }
+    const handleScroll = () => {
+      if (!sectionRef.current) return;
+      const rect = sectionRef.current.getBoundingClientRect();
+      const windowHeight = window.innerHeight;
+      
+      // Calculate progress of this 250vh section through viewport (0 to 1)
+      const totalScrollable = rect.height - windowHeight;
+      if (totalScrollable <= 0) return;
+      
+      const currentScroll = -rect.top;
+      const progress = Math.max(0, Math.min(1, currentScroll / totalScrollable));
+      setScrollProgress(progress);
     };
 
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Total cards count
+  const N = projects.length; // 7 cards
+  const centerIdx = Math.floor(N / 2); // index 3 is center
 
   return (
     <section
       id="projects"
-      ref={containerRef}
-      className="relative w-full overflow-hidden py-28 px-4 sm:px-6 lg:px-8 bg-[#F6F6F6] text-[#121212] select-none"
+      ref={sectionRef}
+      className="relative w-full h-[250vh] bg-[#0a0a0a] text-white"
     >
-      {/* 1. Pallet Ross Massive Background Watermark */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-        <h1 className="text-[20vw] font-black tracking-tighter text-black/[0.035] leading-none transform -translate-y-6">
-          PORTFOLIO
-        </h1>
-      </div>
+      {/* Sticky Stage Container (Viewport pinned) */}
+      <div className="sticky top-0 h-screen w-full flex flex-col items-center justify-between py-12 px-4 sm:px-8 overflow-hidden select-none">
+        
+        {/* Subtle Ambient Radial Lighting in Deep Dark Space */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[500px] bg-gradient-to-r from-orange-500/[0.04] via-cyan-500/[0.03] to-purple-500/[0.04] blur-[150px] pointer-events-none rounded-full" />
 
-      {/* 2. Header & Prompt Metadata */}
-      <div className="max-w-4xl mx-auto relative z-10 text-center mb-12 sm:mb-16">
-        <div className="inline-flex items-center gap-2 mb-4">
-          <span className="px-3.5 py-1 rounded-full text-[11px] font-mono font-medium uppercase tracking-[0.2em] bg-black/[0.04] border border-black/10 text-neutral-600 shadow-sm">
-            ✦ {headerPrompts.badge || "Antigravity Showcase"}
+        {/* 1. Header & Text (Matches Pallet Ross exact layout) */}
+        <div className="relative z-30 flex flex-col items-center text-center mt-4 sm:mt-8 max-w-4xl px-4">
+          <span className="text-[11px] font-mono uppercase tracking-[0.3em] text-neutral-500 mb-3">
+            {headerPrompts.badge || "03 / SELECTED WORKS"}
           </span>
+          <h2 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-[1.08]">
+            {headerPrompts.headline}
+          </h2>
+          <p className="text-xs sm:text-sm md:text-base text-neutral-400 font-light mt-3 max-w-xl mx-auto leading-relaxed">
+            {headerPrompts.subheadline}
+          </p>
         </div>
-        <h2 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-[#111111] leading-[1.08]">
-          {headerPrompts.headline}
-        </h2>
-        <p className="text-sm sm:text-base md:text-lg text-neutral-500 font-normal mt-4 max-w-xl mx-auto leading-relaxed">
-          {headerPrompts.subheadline}
-        </p>
-      </div>
 
-      {/* 3. Interactive Stage Container (Pallet Ross Framed Canvas) */}
-      <div className="relative max-w-6xl mx-auto min-h-[580px] sm:h-[600px] md:h-[640px] rounded-[36px] border border-black/[0.08] bg-white/70 backdrop-blur-xl shadow-[0_20px_70px_-20px_rgba(0,0,0,0.07)] overflow-hidden flex items-center justify-center p-6 sm:p-12">
-        {/* Subtle grid pattern inside stage */}
-        <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
-
-        {/* Floating Badges with Pallet Ross Physics Repulsion */}
-        {floatingBadges.map((badge, idx) => {
-          const isSelected = activeBadge === badge.id;
-          // Calculate badge coordinates and repulsion response
-          const positions = [
-            { top: "14%", left: "10%" },
-            { top: "20%", right: "12%" },
-            { bottom: "16%", left: "14%" },
-            { bottom: "18%", right: "10%" },
-          ];
-          const pos = positions[idx % positions.length];
-          const repulsionFactor = (idx + 1) * 12;
-
-          return (
-            <div
-              key={badge.id}
-              onClick={() => setActiveBadge(isSelected ? null : badge.id)}
-              className={`floating-pill absolute z-30 px-4 py-2 rounded-full text-xs font-semibold tracking-wide cursor-pointer transition-all duration-300 backdrop-blur-md shadow-md ${
-                isSelected
-                  ? "bg-black text-white shadow-xl scale-110"
-                  : "bg-white/95 text-neutral-700 border border-black/10 hover:border-black/30 hover:scale-105 hover:shadow-lg"
-              }`}
-              style={{
-                ...pos,
-                transform: `translate3d(${mousePos.x * repulsionFactor}px, ${
-                  mousePos.y * repulsionFactor
-                }px, 0)`,
-                animation: `gentle-drift ${4 + idx}s ease-in-out infinite alternate`,
-                animationDelay: `${idx * 0.5}s`,
-              }}
-            >
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] opacity-60">✦</span>
-                <span>{badge.text}</span>
-              </div>
-            </div>
-          );
-        })}
-
-        {/* 4. Pallet Ross Cards Trio (Overlapping, Tilted, Physics Stacking) */}
-        <div className="cards-stage relative z-20 flex flex-wrap md:flex-nowrap justify-center items-center gap-6 sm:gap-8 my-auto">
-          {projects.map((project, idx) => {
-            const isCenterHero = project.aspectRatio === "1:1" || project.isHero;
-            const isHovered = hoveredCard === project.id;
-
-            // Dynamics: tilt angle and translation for the cards fan-out
-            let baseRotate = 0;
-            let baseYOffset = 0;
-            let widthClass = "w-64 sm:w-72";
-
-            if (project.aspectRatio === "4:5") {
-              baseRotate = -7;
-              baseYOffset = 16;
-              widthClass = "w-60 sm:w-68";
-            } else if (project.aspectRatio === "1:1") {
-              baseRotate = 0;
-              baseYOffset = -18;
-              widthClass = "w-68 sm:w-80";
-            } else {
-              baseRotate = 7;
-              baseYOffset = 20;
-              widthClass = "w-64 sm:w-72";
-            }
-
-            // Repulsion tilt from mouse cursor
-            const cardRepelX = mousePos.x * (idx === 1 ? -15 : 18);
-            const cardRepelY = mousePos.y * 15;
-
+        {/* 2. Interactive Fan-out Deck Stage */}
+        <div className="relative w-full flex-1 flex items-center justify-center my-auto min-h-[360px] sm:min-h-[440px]">
+          
+          {/* Floating Speech-Bubble Badges (Coplin, Howard, Andrea, Robin) */}
+          {floatingBadges.map((badge, bIdx) => {
+            // Badges fade in as cards fan out
+            const badgeOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.25) / 0.4));
+            
+            // Positioning above the cards
+            const badgePositions = [
+              "top-6 sm:top-10 left-[8%] sm:left-[16%]",
+              "top-2 sm:top-4 left-[46%] -translate-x-1/2",
+              "top-6 sm:top-10 right-[8%] sm:right-[16%]",
+              "bottom-4 right-[20%]",
+            ];
+            
             return (
               <div
-                key={project.id}
-                onMouseEnter={() => setHoveredCard(project.id)}
-                onMouseLeave={() => setHoveredCard(null)}
-                className={`pallet-card group relative transition-all duration-500 ease-out cursor-pointer rounded-3xl p-3.5 bg-white border border-black/[0.08] shadow-[0_15px_45px_-10px_rgba(0,0,0,0.12)] hover:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.22)] ${widthClass} ${
-                  isCenterHero ? "z-20 border-black/20" : "z-10"
-                }`}
+                key={badge.id}
+                className={`absolute ${badgePositions[bIdx % badgePositions.length]} z-40 transition-all duration-500`}
                 style={{
-                  transform: `translate3d(${cardRepelX}px, ${
-                    baseYOffset + cardRepelY
-                  }px, 0) rotate(${isHovered ? 0 : baseRotate}deg) scale(${
-                    isHovered ? 1.06 : 1
-                  })`,
-                  animation: `card-hover-drift ${5 + idx}s ease-in-out infinite alternate`,
-                  animationDelay: `${idx * 0.4}s`,
+                  opacity: badgeOpacity,
+                  transform: `translateY(${(1 - badgeOpacity) * 20}px) scale(${badgeOpacity > 0.1 ? 1 : 0.8})`,
+                  pointerEvents: badgeOpacity > 0.5 ? "auto" : "none",
                 }}
               >
-                {/* Media Aspect Window */}
                 <div
-                  className={`w-full rounded-2xl overflow-hidden mb-3.5 bg-[#EFEFEF] relative flex items-center justify-center transition-all ${
-                    project.aspectRatio === "4:5"
-                      ? "aspect-[4/5]"
-                      : project.aspectRatio === "1:1"
-                      ? "aspect-square"
-                      : "aspect-video"
-                  }`}
+                  className={`relative px-4 py-1.5 rounded-full text-xs font-semibold shadow-lg border backdrop-blur-md cursor-default select-none ${badge.color}`}
                 >
-                  {/* Subtle inner shadow overlay */}
-                  <div className="absolute inset-0 z-10 pointer-events-none rounded-2xl shadow-[inset_0_0_20px_rgba(0,0,0,0.04)]" />
-
-                  <img
-                    src={project.coverImage}
-                    alt={project.promptTitle}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      target.style.display = "none";
-                      if (target.parentElement) {
-                        target.parentElement.innerHTML = `
-                          <div class="w-full h-full flex flex-col items-center justify-center p-5 bg-gradient-to-br from-neutral-100 via-neutral-200 to-neutral-300 text-neutral-800 text-center">
-                            <span class="text-xs font-mono font-bold tracking-widest uppercase text-neutral-400 mb-1">Pallet Ross</span>
-                            <span class="text-base font-bold tracking-tight text-neutral-900">${project.promptTitle}</span>
-                            <span class="text-[11px] font-mono text-neutral-500 mt-1">${project.promptCategory} • ${project.aspectRatio}</span>
-                          </div>
-                        `;
-                      }
-                    }}
-                  />
-
-                  {/* Year Tag Pill */}
-                  <div className="absolute top-3 left-3 z-20 px-2.5 py-1 rounded-full bg-white/90 backdrop-blur-md border border-black/5 text-[10px] font-mono font-semibold text-neutral-700 shadow-sm">
-                    {project.year || "2026"}
-                  </div>
-                </div>
-
-                {/* Card Caption / Meta Bar */}
-                <div className="flex justify-between items-center px-1.5 py-1">
-                  <div>
-                    <h3 className="font-bold text-sm sm:text-base tracking-tight text-[#111111] group-hover:text-black">
-                      {project.promptTitle}
-                    </h3>
-                    <p className="text-[11px] text-neutral-500 font-medium tracking-wide">
-                      {project.promptCategory}
-                    </p>
-                  </div>
-
-                  <div className="w-8 h-8 rounded-full bg-neutral-100 group-hover:bg-black group-hover:text-white transition-all duration-300 flex items-center justify-center shadow-sm">
-                    <span className="text-xs font-bold leading-none transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">
-                      ↗
-                    </span>
-                  </div>
+                  <span>{badge.text}</span>
+                  {/* Speech bubble tail pointer */}
+                  <div className="absolute -bottom-1 left-4 w-2 h-2 rotate-45 bg-inherit border-r border-b border-inherit" />
                 </div>
               </div>
             );
           })}
-        </div>
-      </div>
 
-      {/* Physics & Drift Keyframes */}
-      <style>{`
-        @keyframes gentle-drift {
-          0% { transform: translateY(0px); }
-          100% { transform: translateY(-8px); }
-        }
-        @keyframes card-hover-drift {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(0, -6px, 0); }
-        }
-      `}</style>
+          {/* Cards Deck */}
+          <div className="relative w-full max-w-5xl h-[340px] sm:h-[400px] flex items-center justify-center">
+            {projects.map((card, i) => {
+              const distFromCenter = i - centerIdx; // -3, -2, -1, 0, 1, 2, 3
+              
+              // Phase 1 (0 to 0.15): Single card / Stacked tightly in center
+              // Phase 2 (0.15 to 0.85): Fans out horizontally into a curved hand
+              const fanProgress = Math.max(0, Math.min(1, (scrollProgress - 0.1) / 0.7));
+              
+              // Target transforms when fully fanned out
+              const targetX = distFromCenter * 115; // px horizontal separation
+              const targetRotate = distFromCenter * 5.5; // arc tilt angle
+              // Arc curvature: outer cards dip downwards slightly
+              const targetY = Math.abs(distFromCenter) * 14;
+
+              // Current interpolated values
+              const currentX = targetX * fanProgress;
+              const currentRotate = targetRotate * fanProgress;
+              const currentY = targetY * fanProgress;
+
+              const isHovered = hoveredCard === card.id;
+
+              return (
+                <div
+                  key={card.id}
+                  onMouseEnter={() => setHoveredCard(card.id)}
+                  onMouseLeave={() => setHoveredCard(null)}
+                  className={`absolute w-44 sm:w-56 md:w-64 aspect-square rounded-2xl sm:rounded-3xl p-3 sm:p-4 bg-neutral-900/90 border ${
+                    card.borderAccent || "border-white/10"
+                  } shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer transition-transform duration-300 ease-out`}
+                  style={{
+                    zIndex: isHovered ? 50 : 10 + i,
+                    transform: `translate3d(${currentX}px, ${
+                      currentY + (isHovered ? -24 : 0)
+                    }px, 0) rotate(${isHovered ? 0 : currentRotate}deg) scale(${
+                      isHovered ? 1.08 : 1
+                    })`,
+                  }}
+                >
+                  {/* Artwork / Poster Inside Card */}
+                  <div
+                    className={`relative w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-gradient-to-br ${card.gradient} flex flex-col justify-between p-3 sm:p-4 border border-white/10`}
+                  >
+                    {/* Top Tag */}
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md text-[9px] sm:text-[10px] font-mono tracking-wider text-neutral-300 uppercase border border-white/10">
+                        {card.category}
+                      </span>
+                      <span className="w-5 h-5 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-[10px] text-white">
+                        ↗
+                      </span>
+                    </div>
+
+                    {/* Bottom Title */}
+                    <div>
+                      <h3 className="text-xs sm:text-sm md:text-base font-bold text-white tracking-tight drop-shadow-md">
+                        {card.title}
+                      </h3>
+                      <p className="text-[10px] sm:text-[11px] text-neutral-300/80 font-mono mt-0.5">
+                        Selected Masterpiece
+                      </p>
+                    </div>
+
+                    {/* Subtle Sheen Highlight */}
+                    <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/[0.04] to-white/[0.12] pointer-events-none" />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 3. Bottom Action CTA Bar (Join / Read more matching video) */}
+        <div className="relative z-30 flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mb-2">
+          <a
+            href="mailto:contact@fomyr.com"
+            className="inline-flex items-center justify-center gap-2 px-7 py-3 rounded-full bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-all shadow-[0_0_25px_rgba(255,255,255,0.15)]"
+          >
+            <span>Explore Masterpieces</span>
+            <HiArrowUpRight className="w-3.5 h-3.5" />
+          </a>
+          <a
+            href="#contact"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full bg-white/[0.04] border border-white/10 text-neutral-400 hover:text-white hover:bg-white/[0.08] text-xs sm:text-sm font-medium transition-all"
+          >
+            <span>Collaborate With Me</span>
+          </a>
+        </div>
+
+      </div>
     </section>
   );
 }
