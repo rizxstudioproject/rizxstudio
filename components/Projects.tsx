@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { antigravityData } from "@/data/projectsData";
-import { HiXMark, HiArrowUpRight } from "react-icons/hi2";
+import { HiXMark, HiArrowUpRight, HiFolder } from "react-icons/hi2";
 
 interface WorkItem {
   id: string;
@@ -521,7 +521,7 @@ export default function Projects() {
                         : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] border border-white/5"
                     }`}
                   >
-                    <span>📁</span>
+                    <HiFolder className="w-3.5 h-3.5 text-[#14AF9E] shrink-0" />
                     <span>{client.clientName}</span>
                     <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/10 text-neutral-800" : "bg-white/10 text-neutral-500"}`}>
                       {client.works.length}
@@ -535,6 +535,7 @@ export default function Projects() {
             <div className="flex items-center justify-between mb-3 px-1">
               <div>
                 <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                  <HiFolder className="w-4 h-4 text-[#14AF9E] shrink-0" />
                   <span>{activeClientData.clientName} Archive</span>
                 </h4>
                 <p className="text-[10px] text-neutral-400 font-mono">
