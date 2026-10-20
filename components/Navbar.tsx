@@ -113,7 +113,7 @@ export default function Navbar() {
           {/* Desktop Socials */}
           <div className="hidden sm:flex items-center gap-2.5">
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/rizxstudio/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram Profile"
@@ -123,7 +123,7 @@ export default function Navbar() {
               <span className="font-mono text-[11px]">Instagram</span>
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/rizxstudio/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn Profile"
@@ -184,7 +184,7 @@ export default function Navbar() {
           {/* Mobile Social Links in Drawer */}
           <div className="flex items-center gap-3 pt-3 border-t border-white/10">
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/rizxstudio/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-neutral-300 text-xs"
@@ -193,7 +193,7 @@ export default function Navbar() {
               <span>Instagram</span>
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/rizxstudio/"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-neutral-300 text-xs"

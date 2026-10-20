@@ -27,14 +27,16 @@ export default function Contact() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full lg:w-auto">
             <a
-              href="mailto:contact@fomyr.com"
+              href="https://wa.me/6282381769146"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.2)] text-center"
             >
               <HiOutlineEnvelope className="w-4 h-4" />
               <span>SAY HELLO</span>
             </a>
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/rizxstudio/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center"
@@ -43,7 +45,7 @@ export default function Contact() {
               <span>INSTAGRAM</span>
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://www.linkedin.com/in/rizxstudio/"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center"
@@ -74,7 +76,7 @@ export default function Contact() {
 
         <div className="flex items-center gap-4 text-neutral-400">
           <a
-            href="https://instagram.com"
+            href="https://www.instagram.com/rizxstudio/"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram Profile"
@@ -83,7 +85,7 @@ export default function Contact() {
             <FaInstagram className="w-4 h-4" />
           </a>
           <a
-            href="https://linkedin.com"
+            href="https://www.linkedin.com/in/rizxstudio/"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn Profile"
