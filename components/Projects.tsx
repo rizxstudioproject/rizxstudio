@@ -8,8 +8,8 @@ export default function Projects() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"Business" | "Personal">("Business");
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedClient, setSelectedClient] = useState<string>(stage4.clients[0].id);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -35,6 +35,8 @@ export default function Projects() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const activeClientData = stage4.clients.find((c) => c.id === selectedClient) || stage4.clients[0];
 
   return (
     <section
@@ -105,11 +107,10 @@ export default function Projects() {
             {stage1.deckCards.map((card, i) => {
               const N = stage1.deckCards.length;
               const centerIndex = Math.floor(N / 2);
-              const distFromCenter = i - centerIndex; // -2, -1, 0, 1, 2
+              const distFromCenter = i - centerIndex;
               
               const fanProgress = Math.max(0, Math.min(1, (scrollProgress - 0.03) / 0.18));
               
-              // Mobile spread is more compact so it doesn't clip
               const spreadMultiplier = isMobile ? 55 : 135;
               const rotateMultiplier = isMobile ? 4.5 : 7;
               const yMultiplier = isMobile ? 8 : 16;
@@ -320,11 +321,12 @@ export default function Projects() {
         </div>
 
         {/* ========================================================
-            STAGE 4: Our Vision & Grid of Client Work Gallery
+            STAGE 4: Interactive Client Folders Showcase
+            (Folders per client + karya di dalamnya)
             (Active: 0.74 -> 1.00)
            ======================================================== */}
         <div
-          className="absolute inset-0 max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 my-auto transition-all duration-700 ease-out"
+          className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 my-auto transition-all duration-700 ease-out"
           style={{
             opacity: scrollProgress < 0.74 ? 0 : Math.min(1, (scrollProgress - 0.74) / 0.05),
             transform: `translate3d(0, ${scrollProgress < 0.74 ? 50 : 0}px, 0)`,
@@ -334,7 +336,10 @@ export default function Projects() {
         >
           {/* Left Text Block */}
           <div className="max-w-md text-center lg:text-left">
-            <span className="text-xs text-cyan-400 font-mono mb-1 block">✦ VISION</span>
+            <div className="inline-flex items-center gap-2 mb-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="text-[11px] text-cyan-400 font-mono tracking-widest uppercase">CLIENT PRODUCTIONS</span>
+            </div>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2 sm:mb-3 leading-tight">
               {stage4.headline}
             </h2>
@@ -344,7 +349,7 @@ export default function Projects() {
             
             {/* Tool tags */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-1.5 sm:gap-2">
-              {["Figma", "Blender", "After Effects", "Midjourney", "Octane"].map((tool, idx) => (
+              {stage4.tools.map((tool, idx) => (
                 <span key={idx} className="px-2.5 py-0.5 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-mono text-neutral-400">
                   {tool}
                 </span>
@@ -352,54 +357,77 @@ export default function Projects() {
             </div>
           </div>
 
-          {/* Right Folder Tab View (Business / Personal) with Grid */}
-          <div className="w-full max-w-sm sm:max-w-md bg-neutral-900/90 border border-white/10 rounded-2xl p-3 sm:p-4 shadow-xl backdrop-blur-xl">
-            {/* Folder Header Tabs */}
-            <div className="flex items-center justify-between border-b border-white/10 pb-2.5 mb-3">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setActiveTab("Business")}
-                  className={`text-xs sm:text-sm font-bold transition-colors ${
-                    activeTab === "Business" ? "text-white" : "text-neutral-500"
-                  }`}
-                >
-                  Business
-                </button>
-                <button
-                  onClick={() => setActiveTab("Personal")}
-                  className={`text-xs sm:text-sm font-bold transition-colors ${
-                    activeTab === "Personal" ? "text-white" : "text-neutral-500"
-                  }`}
-                >
-                  Personal
-                </button>
+          {/* Right: Client Folder Interactive Vault */}
+          <div className="w-full max-w-md sm:max-w-lg bg-neutral-900/95 border border-white/10 rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
+            {/* Client Folder Pills Selector */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none border-b border-white/10">
+              {stage4.clients.map((client) => {
+                const isSelected = selectedClient === client.id;
+                return (
+                  <button
+                    key={client.id}
+                    onClick={() => setSelectedClient(client.id)}
+                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium whitespace-nowrap transition-all duration-300 ${
+                      isSelected
+                        ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)] font-bold scale-105"
+                        : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] border border-white/5"
+                    }`}
+                  >
+                    <span>📁</span>
+                    <span>{client.clientName}</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/10 text-neutral-800" : "bg-white/10 text-neutral-500"}`}>
+                      {client.works.length}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Folder Header Info */}
+            <div className="flex items-center justify-between mb-3 px-1">
+              <div>
+                <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                  <span>{activeClientData.clientName} Archive</span>
+                </h4>
+                <p className="text-[10px] text-neutral-400 font-mono">
+                  {activeClientData.category}
+                </p>
               </div>
-              <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-neutral-400 border border-white/5">
-                + Works
+              <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">
+                {activeClientData.works.length} deliverables
               </span>
             </div>
 
-            {/* Grid of Work */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-2.5">
-              {stage4.clientProjects
-                .filter((p) => p.tag === activeTab)
-                .slice(0, 6)
-                .map((proj) => (
-                  <div
-                    key={proj.id}
-                    className="group relative aspect-[4/5] rounded-lg sm:rounded-xl overflow-hidden bg-neutral-950 border border-white/5"
-                  >
-                    <img
-                      src={proj.image}
-                      alt={proj.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <div className="absolute bottom-1 left-1 right-1 text-[8px] sm:text-[9px] font-bold text-white truncate">
-                      {proj.title}
-                    </div>
+            {/* Client Works Grid within Active Folder */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[260px] sm:max-h-[300px] overflow-y-auto pr-1">
+              {activeClientData.works.map((work) => (
+                <div
+                  key={work.id}
+                  className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-white/20 transition-all cursor-pointer aspect-square"
+                >
+                  <img
+                    src={work.image}
+                    alt={work.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                  
+                  {/* Aspect Badge */}
+                  <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[9px] font-mono text-neutral-300 border border-white/10">
+                    {work.aspect}
                   </div>
-                ))}
+
+                  {/* Work Title & Type */}
+                  <div className="absolute bottom-2 left-2 right-2 z-10">
+                    <h5 className="text-[11px] sm:text-xs font-bold text-white truncate drop-shadow-md">
+                      {work.title}
+                    </h5>
+                    <p className="text-[9px] text-neutral-400 font-mono truncate">
+                      {work.type}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
