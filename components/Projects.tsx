@@ -1,194 +1,231 @@
 "use client";
 
-import React from "react";
-import SpotlightCard from "./SpotlightCard";
-import {
-  SiFramer,
-  SiTailwindcss,
-  SiReact,
-  SiTypescript,
-} from "react-icons/si";
-import { FaGithub } from "react-icons/fa6";
-import {
-  HiArrowUpRight,
-  HiSparkles,
-  HiPaintBrush,
-  HiVideoCamera,
-  HiCubeTransparent,
-} from "react-icons/hi2";
-
-interface Project {
-  name: string;
-  formattedText: string;
-  category: string;
-  year: string;
-  demoUrl: string;
-  repoUrl: string;
-  gradient: string;
-  tags: { name: string; icon: React.ReactNode }[];
-}
-
-const PROJECTS: Project[] = [
-  {
-    name: "Lumina AI Advertising",
-    formattedText:
-      "[Lumina AI Advertising]: High-impact multimodal advertising campaign combining generative diffusion models with dynamic personalized video synthesis for global retail brands. Directed the visual concept, AI workflow pipeline, and motion design as Lead Creative Designer.",
-    category: "AI Advertising / Generative Video",
-    year: "2024",
-    demoUrl: "https://lumina-ad.demo",
-    repoUrl: "https://github.com",
-    gradient: "from-blue-600/20 via-indigo-600/10 to-transparent",
-    tags: [
-      { name: "AI Advertising", icon: <HiSparkles className="w-3.5 h-3.5 text-amber-300" /> },
-      { name: "Video Production", icon: <HiVideoCamera className="w-3.5 h-3.5 text-purple-400" /> },
-      { name: "Motion Graphics", icon: <SiFramer className="w-3.5 h-3.5 text-pink-400" /> },
-      { name: "Creative Direction", icon: <HiPaintBrush className="w-3.5 h-3.5 text-blue-400" /> },
-    ],
-  },
-  {
-    name: "NeuroBrand Architecture",
-    formattedText:
-      "[NeuroBrand Architecture]: Dynamic brand identity system and generative vector asset suite for next-generation AI enterprise platforms. Crafted the comprehensive visual language, design tokens, and motion guidelines as Principal Brand Designer.",
-    category: "Branding / Graphic Design",
-    year: "2024",
-    demoUrl: "https://neurobrand.demo",
-    repoUrl: "https://github.com",
-    gradient: "from-purple-600/20 via-pink-600/10 to-transparent",
-    tags: [
-      { name: "Brand Identity", icon: <HiPaintBrush className="w-3.5 h-3.5 text-pink-400" /> },
-      { name: "Design System", icon: <HiCubeTransparent className="w-3.5 h-3.5 text-cyan-300" /> },
-      { name: "Typography", icon: <SiReact className="w-3.5 h-3.5 text-white" /> },
-      { name: "Visual Identity", icon: <HiSparkles className="w-3.5 h-3.5 text-amber-300" /> },
-    ],
-  },
-  {
-    name: "Aether Spatial UI/UX",
-    formattedText:
-      "[Aether Spatial UI/UX]: Ultra-minimalist spatial interface and gesture-driven design system for next-gen interactive display surfaces. Led user experience architecture, cinematic prototypes, and tactile micro-interactions as Senior UI/UX Designer.",
-    category: "UI/UX / Interaction Design",
-    year: "2023",
-    demoUrl: "https://aether-ui.demo",
-    repoUrl: "https://github.com",
-    gradient: "from-emerald-600/20 via-teal-600/10 to-transparent",
-    tags: [
-      { name: "UI/UX Architecture", icon: <HiCubeTransparent className="w-3.5 h-3.5 text-emerald-400" /> },
-      { name: "Framer Motion", icon: <SiFramer className="w-3.5 h-3.5 text-pink-400" /> },
-      { name: "Tailwind CSS", icon: <SiTailwindcss className="w-3.5 h-3.5 text-cyan-400" /> },
-      { name: "Prototyping", icon: <SiTypescript className="w-3.5 h-3.5 text-blue-400" /> },
-    ],
-  },
-  {
-    name: "Vortex Generative Motion",
-    formattedText:
-      "[Vortex Generative Motion]: AI-assisted commercial motion graphics and cinematic 3D trailer production pipeline for experiential product reveals. Produced and directed creative storytelling, neural grading, and sound-reactive motion sequences.",
-    category: "Motion Graphics / Video Production",
-    year: "2023",
-    demoUrl: "https://vortex-motion.demo",
-    repoUrl: "https://github.com",
-    gradient: "from-amber-600/20 via-orange-600/10 to-transparent",
-    tags: [
-      { name: "Motion Graphics", icon: <HiVideoCamera className="w-3.5 h-3.5 text-amber-400" /> },
-      { name: "AI Video", icon: <HiSparkles className="w-3.5 h-3.5 text-purple-400" /> },
-      { name: "Post-Production", icon: <HiPaintBrush className="w-3.5 h-3.5 text-pink-400" /> },
-      { name: "3D Animation", icon: <HiCubeTransparent className="w-3.5 h-3.5 text-cyan-300" /> },
-    ],
-  },
-];
+import React, { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import { antigravityData } from "@/data/projectsData";
+import { HiArrowUpRight } from "react-icons/hi2";
 
 export default function Projects() {
+  const { headerPrompts, floatingBadges, projects } = antigravityData;
+  const [pinnedBadge, setPinnedBadge] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  // Subtle interactive parallax based on mouse position
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        const x = (e.clientX - rect.left) / rect.width - 0.5;
+        const y = (e.clientY - rect.top) / rect.height - 0.5;
+        setMousePos({ x, y });
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
+  const getAspectClass = (ratio: string) => {
+    switch (ratio) {
+      case "4:5":
+        return "aspect-[4/5]";
+      case "1:1":
+        return "aspect-square";
+      case "16:9":
+        return "aspect-[16/9]";
+      default:
+        return "aspect-square";
+    }
+  };
+
   return (
-    <section id="projects" className="relative py-28 px-6 md:px-16 lg:px-24 max-w-7xl mx-auto">
-      {/* Section Header */}
-      <div className="flex flex-col mb-16">
-        <span className="text-xs font-mono uppercase tracking-widest text-neutral-500 mb-2">
-          03 / Selected Works
-        </span>
-        <h2 className="text-3xl sm:text-5xl font-light tracking-tight text-white">
-          Case Studies &amp; Productions
+    <section
+      id="projects"
+      ref={containerRef}
+      className="relative py-28 px-4 sm:px-8 lg:px-16 max-w-7xl mx-auto overflow-hidden"
+    >
+      {/* Background Ambient Gravity Wells */}
+      <div
+        className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-cyan-500/[0.04] blur-[140px] pointer-events-none rounded-full transition-transform duration-700 ease-out"
+        style={{
+          transform: `translate3d(${mousePos.x * 40}px, ${mousePos.y * 40}px, 0)`,
+        }}
+      />
+      <div
+        className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-purple-500/[0.03] blur-[160px] pointer-events-none rounded-full transition-transform duration-700 ease-out"
+        style={{
+          transform: `translate3d(${mousePos.x * -50}px, ${mousePos.y * -50}px, 0)`,
+        }}
+      />
+
+      {/* 1. Header & Text Section */}
+      <div className="flex flex-col mb-12 sm:mb-16">
+        <div className="inline-flex items-center gap-2 mb-3 self-start">
+          <span className="px-3.5 py-1 rounded-full text-[11px] font-mono tracking-widest uppercase bg-white/[0.04] border border-white/10 text-cyan-300 backdrop-blur-md">
+            ✦ {headerPrompts.badge}
+          </span>
+        </div>
+
+        <h2 className="text-3xl sm:text-5xl md:text-6xl font-light tracking-tight text-white mb-3">
+          {headerPrompts.headline}
         </h2>
-        <div className="w-12 h-px bg-white/20 mt-4" />
+        <p className="text-sm sm:text-base md:text-lg font-light text-neutral-400 max-w-2xl leading-relaxed">
+          {headerPrompts.subheadline}
+        </p>
+        <div className="w-16 h-px bg-gradient-to-r from-cyan-400/40 via-white/20 to-transparent mt-6" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {PROJECTS.map((project, idx) => (
-          <SpotlightCard key={idx} className="p-8 sm:p-10 flex flex-col justify-between">
-            <div>
-              {/* Card Header */}
-              <div className="flex items-center justify-between text-xs font-mono text-neutral-400 uppercase tracking-wider mb-6">
-                <span className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/5">
-                  {project.category}
+      {/* 2. Interactive Floating Badges Zone */}
+      <div className="relative mb-12 py-3 px-2 flex flex-wrap items-center gap-3 sm:gap-4 select-none">
+        {floatingBadges.map((badge, idx) => {
+          const isPinned = pinnedBadge === badge.id;
+          const floatOffset = (idx % 3) * 2;
+          const duration = 4 + (idx % 4);
+
+          return (
+            <button
+              key={badge.id}
+              onClick={() => setPinnedBadge(isPinned ? null : badge.id)}
+              style={{
+                animation: isPinned
+                  ? "none"
+                  : `float-badge ${duration}s ease-in-out infinite alternate`,
+                animationDelay: `${idx * 0.4}s`,
+                transform: `translate3d(${mousePos.x * (idx + 1) * 8}px, ${
+                  mousePos.y * (idx + 1) * 8
+                }px, 0)`,
+              }}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs sm:text-sm font-mono tracking-wide transition-all duration-300 cursor-pointer backdrop-blur-md ${
+                isPinned
+                  ? "bg-cyan-500/20 text-cyan-200 border-cyan-400/50 shadow-[0_0_20px_rgba(6,182,212,0.3)] ring-1 ring-cyan-400/30 scale-105"
+                  : "bg-white/[0.03] text-neutral-300 border border-white/10 hover:border-white/25 hover:bg-white/[0.07] hover:text-white"
+              }`}
+            >
+              <span>{badge.text}</span>
+              <span className="text-[10px] text-neutral-500 opacity-60">
+                {isPinned ? "📌" : "✦"}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 3. Antigravity Cards Grid with 4:5, 1:1, and 16:9 Aspect Ratios */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+        {projects.map((proj, idx) => {
+          const aspectClass = getAspectClass(proj.aspectRatio);
+          // Hero cards get prominent spans
+          const colSpan =
+            proj.aspectRatio === "16:9"
+              ? "lg:col-span-12"
+              : proj.isHero
+              ? "lg:col-span-6"
+              : "lg:col-span-6";
+
+          const floatSpeed = 6 + (idx % 3) * 2;
+          const delay = idx * 0.7;
+
+          return (
+            <div
+              key={proj.id}
+              className={`${colSpan} group relative flex flex-col justify-between rounded-3xl bg-white/[0.02] border border-white/[0.08] p-6 sm:p-8 backdrop-blur-sm transition-all duration-500 hover:border-white/25 hover:bg-white/[0.04] hover:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]`}
+              style={{
+                animation: `antigravity-float ${floatSpeed}s ease-in-out infinite alternate`,
+                animationDelay: `${delay}s`,
+                transform: `translate3d(${mousePos.x * ((idx % 3) + 1) * 10}px, ${
+                  mousePos.y * ((idx % 3) + 1) * 10
+                }px, 0)`,
+              }}
+            >
+              {/* Card Meta Top */}
+              <div className="flex items-center justify-between text-xs font-mono uppercase tracking-wider mb-5 text-neutral-400">
+                <span className="px-3 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[11px] text-neutral-300">
+                  {proj.promptCategory}
                 </span>
-                <span className="text-neutral-500">{project.year}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-neutral-500 font-mono text-[11px]">
+                    [{proj.aspectRatio}]
+                  </span>
+                  <span className="text-neutral-500">{proj.year}</span>
+                </div>
               </div>
 
-              {/* Graphical Preview Panel */}
+              {/* Aspect Ratio Responsive Preview Window */}
               <div
-                className={`relative w-full h-48 rounded-xl overflow-hidden mb-6 bg-gradient-to-br ${project.gradient} border border-white/5 flex items-center justify-center`}
+                className={`relative w-full ${aspectClass} rounded-2xl overflow-hidden mb-6 bg-gradient-to-br ${
+                  proj.gradient || "from-blue-600/20 via-cyan-600/10 to-transparent"
+                } border border-white/10 flex items-center justify-center group-hover:border-white/20 transition-all duration-500`}
               >
-                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-                <div className="relative z-10 flex flex-col items-center gap-2">
-                  <span className="text-lg font-light text-white tracking-wider">
-                    {project.name}
+                {/* Fallback Artwork Display when static image is loading or custom */}
+                <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] group-hover:bg-black/20 transition-colors" />
+
+                <div className="relative z-10 flex flex-col items-center text-center p-6 gap-2">
+                  <span className="text-xl sm:text-2xl font-light text-white tracking-wide group-hover:scale-105 transition-transform duration-300">
+                    {proj.promptTitle}
                   </span>
                   <span className="text-[10px] font-mono tracking-widest text-neutral-400 uppercase">
-                    Production Showcase
+                    {proj.promptCategory} — {proj.aspectRatio}
                   </span>
                 </div>
-                <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400/80 animate-pulse" />
-                  <span className="text-[10px] font-mono text-neutral-400">FEATURED</span>
-                </div>
+
+                {/* Hero Badge Pin */}
+                {proj.isHero && (
+                  <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    <span className="text-[9px] font-mono text-cyan-200 uppercase tracking-widest">
+                      FEATURED
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {/* Formatted project text as requested */}
+              {/* Title & Description */}
               <div className="mb-6">
-                <p className="text-sm sm:text-base font-light text-neutral-300 leading-relaxed">
-                  <span className="text-white font-medium">[{project.name}]:</span>{" "}
-                  {project.formattedText.replace(`[${project.name}]: `, "")}
+                <h3 className="text-lg sm:text-xl font-medium text-white mb-2 flex items-center justify-between">
+                  <span>{proj.promptTitle}</span>
+                  <a
+                    href={proj.linkUrl}
+                    className="p-2 rounded-full bg-white/[0.04] border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors"
+                    aria-label={`Open ${proj.promptTitle}`}
+                  >
+                    <HiArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </a>
+                </h3>
+                <p className="text-xs sm:text-sm font-light text-neutral-400 leading-relaxed">
+                  {proj.description}
                 </p>
               </div>
-            </div>
 
-            <div>
-              {/* Tech Stack Pills with react-icons */}
-              <div className="flex flex-wrap gap-2 pt-6 border-t border-white/5 mb-6">
-                {project.tags.map((tag, tIdx) => (
+              {/* Tags Stack */}
+              <div className="flex flex-wrap gap-2 pt-4 border-t border-white/5">
+                {proj.tags?.map((tag, tIdx) => (
                   <span
                     key={tIdx}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/[0.03] border border-white/5 text-xs text-neutral-300"
+                    className="text-[11px] font-mono px-2.5 py-1 rounded-md bg-white/[0.02] border border-white/5 text-neutral-400"
                   >
-                    {tag.icon}
-                    <span>{tag.name}</span>
+                    #{tag}
                   </span>
                 ))}
               </div>
-
-              {/* Action Links */}
-              <div className="flex items-center gap-4 text-xs font-medium">
-                <a
-                  href={project.demoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-white hover:text-neutral-200 transition-colors group/link"
-                >
-                  <span>View Case Study</span>
-                  <HiArrowUpRight className="w-3.5 h-3.5 transition-transform group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5" />
-                </a>
-                <span className="text-neutral-600">•</span>
-                <a
-                  href={project.repoUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 text-neutral-400 hover:text-white transition-colors"
-                >
-                  <FaGithub className="w-3.5 h-3.5" />
-                  <span>Project Assets</span>
-                </a>
-              </div>
             </div>
-          </SpotlightCard>
-        ))}
+          );
+        })}
       </div>
+
+      {/* Floating Keyframes */}
+      <style>{`
+        @keyframes antigravity-float {
+          0% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-8px) rotate(0.4deg); }
+          100% { transform: translateY(0px) rotate(0deg); }
+        }
+        @keyframes float-badge {
+          0% { transform: translateY(0px); }
+          100% { transform: translateY(-5px); }
+        }
+      `}</style>
     </section>
   );
 }
