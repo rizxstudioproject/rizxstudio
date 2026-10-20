@@ -13,7 +13,8 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 40);
 
-      const sections = ["clients", "projects", "about", "contact"];
+      // Section order: clients -> about -> projects -> contact
+      const sections = ["clients", "about", "projects", "contact"];
       const scrollPos = window.scrollY + 200;
 
       for (const sectionId of sections) {
@@ -82,20 +83,20 @@ export default function Navbar() {
             Clients
           </button>
           <button
-            onClick={() => scrollTo("projects")}
-            className={`transition-colors duration-200 hover:text-white ${
-              activeSection === "projects" ? "text-white" : "text-neutral-400"
-            }`}
-          >
-            Work
-          </button>
-          <button
             onClick={() => scrollTo("about")}
             className={`transition-colors duration-200 hover:text-white ${
               activeSection === "about" ? "text-white" : "text-neutral-400"
             }`}
           >
             About Me
+          </button>
+          <button
+            onClick={() => scrollTo("projects")}
+            className={`transition-colors duration-200 hover:text-white ${
+              activeSection === "projects" ? "text-white" : "text-neutral-400"
+            }`}
+          >
+            Work
           </button>
           <button
             onClick={() => scrollTo("contact")}
@@ -162,16 +163,16 @@ export default function Navbar() {
             Clients
           </button>
           <button
-            onClick={() => scrollTo("projects")}
-            className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
-          >
-            Work
-          </button>
-          <button
             onClick={() => scrollTo("about")}
             className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
           >
             About Me
+          </button>
+          <button
+            onClick={() => scrollTo("projects")}
+            className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+          >
+            Work
           </button>
           <button
             onClick={() => scrollTo("contact")}

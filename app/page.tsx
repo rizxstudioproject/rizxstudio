@@ -2,8 +2,8 @@ import React from "react";
 import Navbar from "@/components/Navbar";
 import ScrollyCanvas from "@/components/ScrollyCanvas";
 import ClientLogos from "@/components/ClientLogos";
-import Projects from "@/components/Projects";
 import About from "@/components/About";
+import Projects from "@/components/Projects";
 import Contact from "@/components/Contact";
 
 export default function Home() {
@@ -24,11 +24,11 @@ export default function Home() {
         {/* 1. Running Client Logos */}
         <ClientLogos />
 
-        {/* 2. Work / Selected Works */}
-        <Projects />
-
-        {/* 3. About Me / WHO AM I */}
+        {/* 2. About Me / WHO AM I (Tepat setelah Running Logo) */}
         <About />
+
+        {/* 3. Work / Selected Works (Pallet Ross Interactive Showcase) */}
+        <Projects />
 
         {/* 4. Contact Footer */}
         <Contact />
