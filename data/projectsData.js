@@ -6,11 +6,11 @@ export const antigravityData = {
     subheadline: "Explore selected projects across branding, motion, digital design, and AI-driven visuals—shaped by different briefs, teams, and creative challenges.",
     floatingBadges: [],
     deckCards: [
-      { id: "d1", title: "Brand Identity", category: "Brand Identity", image: "/assets/antigravity/card-1.webp", gradient: "from-red-600/60 to-black" },
-      { id: "d2", title: "Campaign Visuals", category: "Campaign Visuals", image: "/assets/antigravity/card-2.webp", gradient: "from-blue-600/60 to-black" },
-      { id: "d3", title: "Motion Graphics", category: "Motion Graphics", image: "/assets/antigravity/card-3.webp", gradient: "from-amber-500/60 to-black" },
-      { id: "d4", title: "3D Design", category: "3D Design", image: "/assets/antigravity/card-4.webp", gradient: "from-pink-500/60 to-black" },
-      { id: "d5", title: "UI/UX Design", category: "UI/UX Design", image: "/assets/antigravity/card-5.webp", gradient: "from-cyan-500/60 to-black" },
+      { id: "d1", title: "Brand Identity", category: "Brand Identity", image: "/assets/antigravity/selected-brand-identity.jpg", gradient: "from-red-600/60 to-black" },
+      { id: "d2", title: "Campaign Visuals", category: "Campaign Visuals", image: "/assets/antigravity/selected-campaign-visuals.jpg", gradient: "from-blue-600/60 to-black" },
+      { id: "d3", title: "Motion Graphics", category: "Motion Graphics", image: "/assets/antigravity/selected-motion-graphics.jpg", gradient: "from-amber-500/60 to-black" },
+      { id: "d4", title: "3D Design", category: "3D Design", image: "/assets/antigravity/selected-3d-design.jpg", gradient: "from-pink-500/60 to-black" },
+      { id: "d5", title: "UI/UX Design", category: "UI/UX Design", image: "/assets/antigravity/selected-uiux-design.jpg", gradient: "from-cyan-500/60 to-black" },
     ],
   },
 
@@ -32,10 +32,10 @@ export const antigravityData = {
       { id: 2, text: "@robin", color: "bg-neutral-800 text-white border-neutral-700" },
     ],
     overlappingCards: [
-      { id: "o1", title: "Branding", image: "/assets/antigravity/card-1.webp", offset: -90, rotate: -8 },
-      { id: "o2", title: "Motion", image: "/assets/antigravity/card-2.webp", offset: -30, rotate: -3 },
-      { id: "o3", title: "UI/UX", image: "/assets/antigravity/card-3.webp", offset: 30, rotate: 3 },
-      { id: "o4", title: "AI Visuals", image: "/assets/antigravity/card-4.webp", offset: 90, rotate: 7 },
+      { id: "o1", title: "Branding", image: "/assets/antigravity/selected-brand-identity.jpg", offset: -90, rotate: -8 },
+      { id: "o2", title: "Motion", image: "/assets/antigravity/selected-motion-graphics.jpg", offset: -30, rotate: -3 },
+      { id: "o3", title: "UI/UX", image: "/assets/antigravity/selected-uiux-design.jpg", offset: 30, rotate: 3 },
+      { id: "o4", title: "AI Visuals", image: "/assets/antigravity/selected-3d-design.jpg", offset: 90, rotate: 7 },
     ],
   },
 
