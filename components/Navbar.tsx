@@ -127,7 +127,7 @@ export default function Navbar() {
           {/* Right: Social Links (Desktop) & Hamburger Button (Mobile) */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Desktop Socials */}
-            <div className="hidden sm:flex items-center gap-2.5">
+            <div className="hidden md:flex items-center gap-2.5">
               <a
                 href="https://www.instagram.com/rizxstudio/"
                 target="_blank"
@@ -150,16 +150,24 @@ export default function Navbar() {
               </a>
             </div>
 
-            {/* Mobile Hamburger Toggle Button - High Contrast & Clearly Visible */}
+            {/* Mobile Hamburger Toggle Button - Bold & 100% Guaranteed Visible */}
             <button
+              type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle Mobile Menu"
-              className="md:hidden flex items-center justify-center w-10 h-10 rounded-full bg-white/15 hover:bg-white/25 border border-white/30 text-white shadow-xl backdrop-blur-md active:scale-90 transition-all"
+              className="md:hidden flex items-center justify-center w-11 h-11 rounded-full bg-neutral-900/90 hover:bg-neutral-800 border border-white/30 text-white shadow-2xl backdrop-blur-md active:scale-90 transition-all shrink-0 cursor-pointer"
             >
               {mobileMenuOpen ? (
-                <HiXMark className="w-5 h-5 text-white" />
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
               ) : (
-                <HiBars3 className="w-5 h-5 text-white" />
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="7" x2="20" y2="7"></line>
+                  <line x1="4" y1="12" x2="20" y2="12"></line>
+                  <line x1="4" y1="17" x2="20" y2="17"></line>
+                </svg>
               )}
             </button>
           </div>
