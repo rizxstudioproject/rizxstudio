@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { antigravityData } from "@/data/projectsData";
 import { HiXMark, HiArrowUpRight } from "react-icons/hi2";
 
@@ -12,6 +12,15 @@ interface WorkItem {
   aspect: string;
 }
 
+interface ModalItem {
+  id: string;
+  title: string;
+  type: string;
+  image: string;
+  aspect: string;
+  clientName: string;
+}
+
 export default function Projects() {
   const { stage1, stage2, stage3, stage4 } = antigravityData;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,12 +28,6 @@ export default function Projects() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>(stage4.clients[0].id);
-
-  // Modal Lightbox state
-  const [activeModalWork, setActiveModalWork] = useState<{
-    work: WorkItem;
-    clientName: string;
-  } | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -55,16 +58,61 @@ export default function Projects() {
     };
   }, []);
 
-  // Close modal on Escape key
+  // Modal Lightbox state with multiple items & active index
+  const [modalData, setModalData] = useState<{
+    items: ModalItem[];
+    currentIndex: number;
+  } | null>(null);
+
+  const touchStartXRef = useRef<number | null>(null);
+
+  const handlePrevWork = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setModalData((prev) => {
+      if (!prev || prev.items.length <= 1) return prev;
+      const newIndex = (prev.currentIndex - 1 + prev.items.length) % prev.items.length;
+      return { ...prev, currentIndex: newIndex };
+    });
+  }, []);
+
+  const handleNextWork = useCallback((e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setModalData((prev) => {
+      if (!prev || prev.items.length <= 1) return prev;
+      const newIndex = (prev.currentIndex + 1) % prev.items.length;
+      return { ...prev, currentIndex: newIndex };
+    });
+  }, []);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartXRef.current === null) return;
+    const diff = e.changedTouches[0].clientX - touchStartXRef.current;
+    if (diff > 50) {
+      handlePrevWork();
+    } else if (diff < -50) {
+      handleNextWork();
+    }
+    touchStartXRef.current = null;
+  };
+
+  // Keyboard navigation: Escape to close, Left/Right arrows for before/after
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        setActiveModalWork(null);
+        setModalData(null);
+      } else if (e.key === "ArrowLeft") {
+        handlePrevWork();
+      } else if (e.key === "ArrowRight") {
+        handleNextWork();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [handlePrevWork, handleNextWork]);
 
   const scrollToClientStage = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -173,15 +221,16 @@ export default function Projects() {
                   onMouseEnter={() => setHoveredCard(card.id)}
                   onMouseLeave={() => setHoveredCard(null)}
                   onClick={() =>
-                    setActiveModalWork({
-                      work: {
-                        id: card.id,
-                        title: card.title,
-                        type: card.category,
-                        image: card.image,
+                    setModalData({
+                      items: stage1.deckCards.map((c) => ({
+                        id: c.id,
+                        title: c.title,
+                        type: c.category,
+                        image: c.image,
                         aspect: "1:1",
-                      },
-                      clientName: card.category,
+                        clientName: "Selected Works",
+                      })),
+                      currentIndex: i,
                     })
                   }
                   className={`absolute w-36 sm:w-48 md:w-60 aspect-square rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-neutral-900/95 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer ${
@@ -310,15 +359,16 @@ export default function Projects() {
                 <div
                   key={card.id}
                   onClick={() =>
-                    setActiveModalWork({
-                      work: {
-                        id: card.id,
-                        title: card.title,
+                    setModalData({
+                      items: stage2.overlappingCards.map((c) => ({
+                        id: c.id,
+                        title: c.title,
                         type: "AI & Motion Visual",
-                        image: card.image,
+                        image: c.image,
                         aspect: "1:1",
-                      },
-                      clientName: "Design & Motion Archive",
+                        clientName: "Design & Motion Archive",
+                      })),
+                      currentIndex: idx,
                     })
                   }
                   className="absolute w-36 sm:w-48 md:w-56 aspect-square rounded-2xl p-2.5 bg-neutral-900 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md transition-all duration-300 hover:scale-105 hover:-translate-y-3 cursor-pointer"
@@ -376,15 +426,18 @@ export default function Projects() {
           {/* Large Aspect Card */}
           <div
             onClick={() =>
-              setActiveModalWork({
-                work: {
-                  id: "hero-showcase",
-                  title: stage3.heroCard.title,
-                  type: stage3.heroCard.category,
-                  image: stage3.heroCard.image,
-                  aspect: "16:9",
-                },
-                clientName: "Flagship Showcase",
+              setModalData({
+                items: [
+                  {
+                    id: "hero-showcase",
+                    title: stage3.heroCard.title,
+                    type: stage3.heroCard.category,
+                    image: stage3.heroCard.image,
+                    aspect: "16:9",
+                    clientName: "Flagship Showcase",
+                  },
+                ],
+                currentIndex: 0,
               })
             }
             className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-neutral-900 group cursor-pointer"
@@ -495,13 +548,16 @@ export default function Projects() {
 
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[260px] sm:max-h-[300px] overflow-y-auto pr-1">
-              {activeClientData.works.map((work) => (
+              {activeClientData.works.map((work, wIdx) => (
                 <div
                   key={work.id}
                   onClick={() =>
-                    setActiveModalWork({
-                      work,
-                      clientName: activeClientData.clientName,
+                    setModalData({
+                      items: activeClientData.works.map((w) => ({
+                        ...w,
+                        clientName: activeClientData.clientName,
+                      })),
+                      currentIndex: wIdx,
                     })
                   }
                   className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-cyan-400/50 transition-all cursor-pointer aspect-square hover:scale-[1.02]"
@@ -542,59 +598,152 @@ export default function Projects() {
 
       {/* ========================================================
           FULLSCREEN IMAGE LIGHTBOX MODAL POPUP
-          (Opens when clicking any work/card)
+          (Opens when clicking any work/card with Before/After navigation)
          ======================================================== */}
-      {activeModalWork && (
-        <div
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-2xl animate-fade-in"
-          onClick={() => setActiveModalWork(null)}
-        >
-          {/* Close Button */}
-          <button
-            onClick={() => setActiveModalWork(null)}
-            className="absolute top-6 right-6 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95"
-            aria-label="Close modal"
-          >
-            <HiXMark className="w-6 h-6" />
-          </button>
+      {modalData && modalData.items.length > 0 && (
+        (() => {
+          const currentWork = modalData.items[modalData.currentIndex];
+          const hasMultiple = modalData.items.length > 1;
 
-          {/* Modal Container */}
-          <div
-            className="relative max-w-4xl max-h-[90vh] w-full bg-neutral-950 border border-white/15 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Image Preview Box */}
-            <div className="relative w-full flex-1 max-h-[70vh] bg-black flex items-center justify-center p-2">
-              <img
-                src={activeModalWork.work.image}
-                alt={activeModalWork.work.title}
-                className="max-h-[68vh] w-auto max-w-full object-contain rounded-2xl"
-              />
-            </div>
-
-            {/* Modal Footer Caption */}
-            <div className="p-5 sm:p-6 bg-neutral-900 border-t border-white/10 flex items-center justify-between gap-4">
-              <div>
-                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-cyan-400 block mb-1">
-                  {activeModalWork.clientName} • {activeModalWork.work.aspect}
-                </span>
-                <h3 className="text-base sm:text-xl font-bold text-white">
-                  {activeModalWork.work.title}
-                </h3>
-                <p className="text-xs text-neutral-400 font-mono mt-0.5">
-                  {activeModalWork.work.type}
-                </p>
-              </div>
-
+          return (
+            <div
+              className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-black/90 backdrop-blur-2xl animate-fade-in"
+              onClick={() => setModalData(null)}
+            >
+              {/* Close Button */}
               <button
-                onClick={() => setActiveModalWork(null)}
-                className="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-colors"
+                type="button"
+                onClick={() => setModalData(null)}
+                className="absolute top-4 right-4 sm:top-6 sm:right-6 z-[110] p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 cursor-pointer"
+                aria-label="Close modal"
               >
-                Close Preview
+                <HiXMark className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
+
+              {/* Modal Container */}
+              <div
+                className="relative max-w-4xl max-h-[92vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Image Preview Box with Before / After Floating Arrows */}
+                <div
+                  className="relative w-full flex-1 max-h-[68vh] min-h-[280px] bg-black flex items-center justify-center p-2 select-none overflow-hidden"
+                  onTouchStart={handleTouchStart}
+                  onTouchEnd={handleTouchEnd}
+                >
+                  {/* Before / Previous Arrow */}
+                  {hasMultiple && (
+                    <button
+                      type="button"
+                      onClick={handlePrevWork}
+                      aria-label="Previous work (Before)"
+                      className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
+                    >
+                      <svg
+                        className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                      </svg>
+                    </button>
+                  )}
+
+                  {/* Main Image */}
+                  <img
+                    key={currentWork.id}
+                    src={currentWork.image}
+                    alt={currentWork.title}
+                    className="max-h-[66vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300"
+                  />
+
+                  {/* After / Next Arrow */}
+                  {hasMultiple && (
+                    <button
+                      type="button"
+                      onClick={handleNextWork}
+                      aria-label="Next work (After)"
+                      className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
+                    >
+                      <svg
+                        className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-0.5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                {/* Modal Footer Caption with Counter & Actions */}
+                <div className="p-4 sm:p-6 bg-neutral-900 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-cyan-400 block mb-1">
+                      {currentWork.clientName} • {currentWork.aspect}
+                    </span>
+                    <h3 className="text-base sm:text-xl font-bold text-white">
+                      {currentWork.title}
+                    </h3>
+                    <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                      {currentWork.type}
+                    </p>
+                  </div>
+
+                  {/* Controls: Counter & Before/After Buttons & Close */}
+                  <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+                    {hasMultiple && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-neutral-400 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/5">
+                          {modalData.currentIndex + 1} / {modalData.items.length}
+                        </span>
+
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={handlePrevWork}
+                            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                            aria-label="Previous work (Before)"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="15 18 9 12 15 6"></polyline>
+                            </svg>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleNextWork}
+                            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                            aria-label="Next work (After)"
+                          >
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="9 18 15 12 9 6"></polyline>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setModalData(null)}
+                      className="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0"
+                    >
+                      Close Preview
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()
       )}
     </section>
   );
