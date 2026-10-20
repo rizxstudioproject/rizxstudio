@@ -25,6 +25,9 @@ body {
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Mobile: allow vertical touch scroll natively */
+  touch-action: pan-y;
+  overscroll-behavior-y: none;
 }
 
 /* Custom Deep Space Scrollbar */

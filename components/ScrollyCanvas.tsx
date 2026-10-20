@@ -184,13 +184,64 @@ export default function ScrollyCanvas() {
     };
   }, [renderFrame]);
 
+  // Mobile touch swipe → scroll forwarding
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    let touchStartY = 0;
+    let touchStartScrollY = 0;
+    let isSwiping = false;
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+      touchStartScrollY = window.scrollY;
+      isSwiping = true;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isSwiping) return;
+      const rect = container.getBoundingClientRect();
+      // Only intercept when hero section is in viewport
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+
+      const deltaY = touchStartY - e.touches[0].clientY;
+      const maxScrollable = container.offsetHeight - window.innerHeight;
+      if (maxScrollable <= 0) return;
+
+      // Only handle if we're within the sticky section range
+      const containerScrollStart = container.offsetTop;
+      const containerScrollEnd = containerScrollStart + maxScrollable;
+      const currentScroll = window.scrollY;
+
+      if (currentScroll >= containerScrollStart - window.innerHeight && currentScroll <= containerScrollEnd + window.innerHeight) {
+        window.scrollTo({ top: touchStartScrollY + deltaY * 1.5, behavior: "instant" as ScrollBehavior });
+      }
+    };
+
+    const onTouchEnd = () => {
+      isSwiping = false;
+    };
+
+    container.addEventListener("touchstart", onTouchStart, { passive: true });
+    container.addEventListener("touchmove", onTouchMove, { passive: true });
+    container.addEventListener("touchend", onTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener("touchstart", onTouchStart);
+      container.removeEventListener("touchmove", onTouchMove);
+      container.removeEventListener("touchend", onTouchEnd);
+    };
+  }, []);
+
   return (
     <div
       ref={containerRef}
       className="relative h-[500vh] w-full bg-[#0a0a0a]"
       id="hero-scrolly"
+      style={{ touchAction: "pan-y" }}
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0a0a0a]">
+      <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0a0a0a]" style={{ touchAction: "pan-y" }}>
         {/* Canvas for image sequence */}
         <canvas
           ref={canvasRef}
