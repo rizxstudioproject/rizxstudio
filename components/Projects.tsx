@@ -2,6 +2,15 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { antigravityData } from "@/data/projectsData";
+import { HiXMark, HiArrowUpRight } from "react-icons/hi2";
+
+interface WorkItem {
+  id: string;
+  title: string;
+  type: string;
+  image: string;
+  aspect: string;
+}
 
 export default function Projects() {
   const { stage1, stage2, stage3, stage4 } = antigravityData;
@@ -10,6 +19,12 @@ export default function Projects() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>(stage4.clients[0].id);
+
+  // Modal Lightbox state
+  const [activeModalWork, setActiveModalWork] = useState<{
+    work: WorkItem;
+    clientName: string;
+  } | null>(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -35,6 +50,29 @@ export default function Projects() {
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Close modal on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveModalWork(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const scrollToClientStage = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const stageTop = rect.top + scrollTop;
+    const totalHeight = rect.height - window.innerHeight;
+    // Scroll directly to 0.88 progress where Client Folders are fully visible and centered
+    const targetY = stageTop + totalHeight * 0.88;
+    window.scrollTo({ top: targetY, behavior: "smooth" });
+  };
 
   const activeClientData = stage4.clients.find((c) => c.id === selectedClient) || stage4.clients[0];
 
@@ -130,6 +168,18 @@ export default function Projects() {
                   key={card.id}
                   onMouseEnter={() => setHoveredCard(card.id)}
                   onMouseLeave={() => setHoveredCard(null)}
+                  onClick={() =>
+                    setActiveModalWork({
+                      work: {
+                        id: card.id,
+                        title: card.title,
+                        type: card.category,
+                        image: card.image,
+                        aspect: "1:1",
+                      },
+                      clientName: "Selected Masterpiece",
+                    })
+                  }
                   className="absolute w-36 sm:w-48 md:w-60 aspect-square rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-neutral-900/95 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer transition-transform duration-300 ease-out"
                   style={{
                     zIndex: isHovered ? 50 : 10 + i,
@@ -223,21 +273,15 @@ export default function Projects() {
               </div>
             )}
 
-            {/* Single Primary CTA Button */}
+            {/* Single Primary CTA Button -> Scrolls directly to Client Productions stage */}
             <div className="flex items-center justify-center lg:justify-start">
-              <a
-                href="#projects"
-                onClick={() => {
-                  const el = document.getElementById("projects");
-                  if (el) {
-                    const top = el.offsetTop + window.innerHeight * 3;
-                    window.scrollTo({ top, behavior: "smooth" });
-                  }
-                }}
-                className="px-7 py-3 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_25px_rgba(255,255,255,0.2)] active:scale-95"
+              <button
+                onClick={scrollToClientStage}
+                className="px-7 py-3 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_25px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-2 cursor-pointer"
               >
-                {stage2.primaryButtonText || "Explore My Work"}
-              </a>
+                <span>{stage2.primaryButtonText || "Explore My Work"}</span>
+                <HiArrowUpRight className="w-4 h-4 rotate-45" />
+              </button>
             </div>
           </div>
 
@@ -259,7 +303,19 @@ export default function Projects() {
               return (
                 <div
                   key={card.id}
-                  className="absolute w-36 sm:w-48 md:w-56 aspect-square rounded-2xl p-2.5 bg-neutral-900 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md transition-all duration-300"
+                  onClick={() =>
+                    setActiveModalWork({
+                      work: {
+                        id: card.id,
+                        title: card.title,
+                        type: "AI & Motion Visual",
+                        image: card.image,
+                        aspect: "1:1",
+                      },
+                      clientName: "Design & Motion Archive",
+                    })
+                  }
+                  className="absolute w-36 sm:w-48 md:w-56 aspect-square rounded-2xl p-2.5 bg-neutral-900 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md transition-all duration-300 hover:scale-105 hover:-translate-y-3 cursor-pointer"
                   style={{
                     zIndex: 10 + idx,
                     transform: `translate3d(${xPos}px, ${idx * 4}px, 0) rotate(${card.rotate}deg)`,
@@ -312,11 +368,25 @@ export default function Projects() {
           </div>
 
           {/* Large Aspect Card */}
-          <div className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-neutral-900 group">
+          <div
+            onClick={() =>
+              setActiveModalWork({
+                work: {
+                  id: "hero-showcase",
+                  title: stage3.heroCard.title,
+                  type: stage3.heroCard.category,
+                  image: stage3.heroCard.image,
+                  aspect: "16:9",
+                },
+                clientName: "Flagship Showcase",
+              })
+            }
+            className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-neutral-900 group cursor-pointer"
+          >
             <img
               src={stage3.heroCard.image}
               alt={stage3.heroCard.title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
             
@@ -330,8 +400,9 @@ export default function Projects() {
             </div>
 
             <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-8">
-              <span className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-[11px] sm:text-xs">
-                Watch
+              <span className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-[11px] sm:text-xs flex items-center gap-1.5">
+                <span>View Full</span>
+                <HiArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
@@ -343,6 +414,7 @@ export default function Projects() {
             (Active: 0.74 -> 1.00)
            ======================================================== */}
         <div
+          id="client-productions"
           className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 my-auto transition-all duration-700 ease-out"
           style={{
             opacity: scrollProgress < 0.74 ? 0 : Math.min(1, (scrollProgress - 0.74) / 0.05),
@@ -415,12 +487,18 @@ export default function Projects() {
               </span>
             </div>
 
-            {/* Client Works Grid within Active Folder */}
+            {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[260px] sm:max-h-[300px] overflow-y-auto pr-1">
               {activeClientData.works.map((work) => (
                 <div
                   key={work.id}
-                  className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-white/20 transition-all cursor-pointer aspect-square"
+                  onClick={() =>
+                    setActiveModalWork({
+                      work,
+                      clientName: activeClientData.clientName,
+                    })
+                  }
+                  className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-cyan-400/50 transition-all cursor-pointer aspect-square hover:scale-[1.02]"
                 >
                   <img
                     src={work.image}
@@ -432,6 +510,11 @@ export default function Projects() {
                   {/* Aspect Badge */}
                   <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[9px] font-mono text-neutral-300 border border-white/10">
                     {work.aspect}
+                  </div>
+
+                  {/* Expand icon on hover */}
+                  <div className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    ↗
                   </div>
 
                   {/* Work Title & Type */}
@@ -450,6 +533,63 @@ export default function Projects() {
         </div>
 
       </div>
+
+      {/* ========================================================
+          FULLSCREEN IMAGE LIGHTBOX MODAL POPUP
+          (Opens when clicking any work/card)
+         ======================================================== */}
+      {activeModalWork && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 bg-black/90 backdrop-blur-2xl animate-fade-in"
+          onClick={() => setActiveModalWork(null)}
+        >
+          {/* Close Button */}
+          <button
+            onClick={() => setActiveModalWork(null)}
+            className="absolute top-6 right-6 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95"
+            aria-label="Close modal"
+          >
+            <HiXMark className="w-6 h-6" />
+          </button>
+
+          {/* Modal Container */}
+          <div
+            className="relative max-w-4xl max-h-[90vh] w-full bg-neutral-950 border border-white/15 rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Image Preview Box */}
+            <div className="relative w-full flex-1 max-h-[70vh] bg-black flex items-center justify-center p-2">
+              <img
+                src={activeModalWork.work.image}
+                alt={activeModalWork.work.title}
+                className="max-h-[68vh] w-auto max-w-full object-contain rounded-2xl"
+              />
+            </div>
+
+            {/* Modal Footer Caption */}
+            <div className="p-5 sm:p-6 bg-neutral-900 border-t border-white/10 flex items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-cyan-400 block mb-1">
+                  {activeModalWork.clientName} • {activeModalWork.work.aspect}
+                </span>
+                <h3 className="text-base sm:text-xl font-bold text-white">
+                  {activeModalWork.work.title}
+                </h3>
+                <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                  {activeModalWork.work.type}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setActiveModalWork(null)}
+                className="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-colors"
+              >
+                Close Preview
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
