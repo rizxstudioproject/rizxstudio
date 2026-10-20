@@ -87,10 +87,10 @@ export default function About() {
             </div>
             <h3 className="text-lg font-light text-white mb-2">Disciplines</h3>
             <div className="flex flex-wrap gap-1.5 mt-3">
-              {["AI Advertising", "Branding", "UI/UX", "Motion Graphics", "Video Production"].map((tag, i) => (
+              {["AI Advertising", "Branding", "UI/UX", "Motion Graphics", "Video Production", "Vibe Coding"].map((tag, i) => (
                 <span
                   key={i}
-                  className="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[11px] font-mono text-neutral-300"
+                  className="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[11px] font-mono text-neutral-300 hover:border-emerald-400/30 hover:text-white transition-colors"
                 >
                   {tag}
                 </span>
