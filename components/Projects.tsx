@@ -654,13 +654,29 @@ export default function Projects() {
                     </button>
                   )}
 
-                  {/* Main Image */}
-                  <img
-                    key={currentWork.id}
-                    src={currentWork.image}
-                    alt={currentWork.title}
-                    className="max-h-[66vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300"
-                  />
+                {/* Main Image */}
+                  <div className="relative select-none">
+                    <img
+                      key={currentWork.id}
+                      src={currentWork.image}
+                      alt={currentWork.title}
+                      className="max-h-[66vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none"
+                      draggable={false}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                    {/* Transparent shield: stops right-click "Save Image As" and drag */}
+                    <div
+                      className="absolute inset-0 rounded-xl sm:rounded-2xl z-10 cursor-default"
+                      onContextMenu={(e) => e.preventDefault()}
+                      draggable={false}
+                    />
+                    {/* Subtle Watermark */}
+                    <div className="absolute bottom-3 right-4 z-20 pointer-events-none select-none">
+                      <span className="text-[9px] font-mono tracking-widest uppercase text-white/20">
+                        © RIZX STUDIO
+                      </span>
+                    </div>
+                  </div>
 
                   {/* After / Next Arrow */}
                   {hasMultiple && (
