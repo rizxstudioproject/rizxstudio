@@ -87,7 +87,7 @@ export default function Projects() {
       className="relative w-full h-[350vh] sm:h-[450vh] md:h-[500vh] bg-[#0a0a0a] text-white"
     >
       {/* Sticky Fullscreen Viewport Canvas */}
-      <div className="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ willChange: "transform" }}>
+      <div className="sticky top-0 h-screen h-[100dvh] w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ willChange: "transform" }}>
         
         {/* Ambient Glow */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[90vw] md:w-[800px] h-[60vh] bg-gradient-to-r from-orange-500/[0.03] via-cyan-500/[0.03] to-purple-500/[0.03] blur-[140px] pointer-events-none rounded-full" />
@@ -97,7 +97,7 @@ export default function Projects() {
             (Active: 0.00 -> 0.28)
            ======================================================== */}
         <div
-          className="absolute inset-0 flex flex-col items-center justify-between py-16 sm:py-20 md:py-16 px-4"
+          className="absolute inset-0 flex flex-col items-center justify-between py-12 sm:py-20 md:py-16 pt-14 sm:pt-20 px-4"
           style={{
             opacity: scrollProgress < 0.25 ? 1 : Math.max(0, 1 - (scrollProgress - 0.25) / 0.05),
             transform: `translate3d(0, ${scrollProgress < 0.25 ? 0 : -(scrollProgress - 0.25) * 350}px, 0)`,

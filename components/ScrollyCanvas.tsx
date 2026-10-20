@@ -187,10 +187,10 @@ export default function ScrollyCanvas() {
   return (
     <div
       ref={containerRef}
-      className="relative h-[450vh] md:h-[500vh] w-full bg-[#0a0a0a]"
+      className="relative h-[500vh] w-full bg-[#0a0a0a]"
       id="hero-scrolly"
     >
-      <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0a0a0a]" style={{ willChange: "transform" }}>
+      <div className="sticky top-0 h-screen h-[100dvh] w-full overflow-hidden bg-[#0a0a0a]" style={{ willChange: "transform" }}>
         {/* Canvas for image sequence */}
         <canvas
           ref={canvasRef}

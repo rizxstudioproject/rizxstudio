@@ -13,92 +13,98 @@ export default function Overlay({ progress }: OverlayProps) {
 
   useEffect(() => {
     // ==========================================
-    // SECTION 1 (0% to 8% scroll):
+    // SECTION 1 (0% to 26% scroll):
     // "Fomy Rizky." + "<AI-Powered Creative Designer/>"
-    // Fades out promptly so the user sees the portrait rotating
+    // Dedicated section: User absorbs hero introduction as portrait starts moving
     // ==========================================
     if (section1Ref.current) {
-      if (progress <= 0.08) {
-        const factor = Math.max(0, Math.min(1, progress / 0.08));
+      if (progress <= 0.16) {
+        // Fully visible during initial interaction
+        const factor = Math.max(0, Math.min(1, progress / 0.16));
+        section1Ref.current.style.opacity = "1";
+        section1Ref.current.style.transform = `translate3d(0, ${(-12 * factor).toFixed(2)}px, 0)`;
+        section1Ref.current.style.visibility = "visible";
+      } else if (progress <= 0.26) {
+        // Smoothly fade out before Section 2 begins
+        const factor = (progress - 0.16) / (0.26 - 0.16);
         const opacity = (1 - factor).toFixed(4);
-        const y = (-12 * factor).toFixed(2);
         section1Ref.current.style.opacity = opacity;
-        section1Ref.current.style.transform = `translate3d(0, ${y}vh, 0)`;
+        section1Ref.current.style.transform = `translate3d(0, ${(-12 - 20 * factor).toFixed(2)}px, 0)`;
         section1Ref.current.style.visibility = Number(opacity) <= 0.001 ? "hidden" : "visible";
       } else {
         section1Ref.current.style.opacity = "0";
-        section1Ref.current.style.transform = `translate3d(0, -12vh, 0)`;
         section1Ref.current.style.visibility = "hidden";
       }
     }
 
     // ==========================================
-    // SECTION 2 (10% to 45% scroll):
-    // Left-aligned "Results-driven creative." (Matching reference Image 5)
+    // SECTION 2 (30% to 62% scroll):
+    // Left-aligned "Results-driven creative."
+    // Dedicated section: In -> Long Hold -> Out
     // ==========================================
     if (section2Ref.current) {
-      if (progress >= 0.1 && progress <= 0.45) {
+      if (progress >= 0.30 && progress <= 0.62) {
         let opacity = 0;
         let y = 0;
 
-        if (progress < 0.18) {
-          // Fade in and float up from +8vh to 0vh
-          const factor = (progress - 0.1) / (0.18 - 0.1);
+        if (progress < 0.38) {
+          // Gentle fade in floating up 24px
+          const factor = (progress - 0.30) / (0.38 - 0.30);
           opacity = factor;
-          y = 8 * (1 - factor);
-        } else if (progress <= 0.35) {
-          // Pinned comfortably while portrait rotates
+          y = 24 * (1 - factor);
+        } else if (progress <= 0.54) {
+          // Stable hold: plenty of scroll room to read comfortably without cutoff
           opacity = 1;
           y = 0;
         } else {
-          // Fade out and float up to -8vh
-          const factor = (progress - 0.35) / (0.45 - 0.35);
+          // Gentle fade out floating up 24px
+          const factor = (progress - 0.54) / (0.62 - 0.54);
           opacity = 1 - factor;
-          y = -8 * factor;
+          y = -24 * factor;
         }
 
         opacity = Math.max(0, Math.min(1, opacity));
         section2Ref.current.style.opacity = opacity.toFixed(4);
-        section2Ref.current.style.transform = `translate3d(0, ${y.toFixed(2)}vh, 0)`;
+        section2Ref.current.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
         section2Ref.current.style.visibility = opacity <= 0.001 ? "hidden" : "visible";
       } else {
         section2Ref.current.style.opacity = "0";
-        section2Ref.current.style.transform =
-          progress < 0.1 ? "translate3d(0, 8vh, 0)" : "translate3d(0, -8vh, 0)";
         section2Ref.current.style.visibility = "hidden";
       }
     }
 
     // ==========================================
-    // SECTION 3 (50% to 85% scroll):
-    // Right-aligned "Bridging design & intelligence."
+    // SECTION 3 (65% to 98% scroll):
+    // Right-aligned "Creative meets AI."
+    // Dedicated section: In -> Long Hold -> Out
     // ==========================================
     if (section3Ref.current) {
-      if (progress >= 0.5 && progress <= 0.85) {
+      if (progress >= 0.65 && progress <= 0.98) {
         let opacity = 0;
         let y = 0;
 
-        if (progress < 0.58) {
-          const factor = (progress - 0.5) / (0.58 - 0.5);
+        if (progress < 0.73) {
+          // Gentle fade in floating up 24px
+          const factor = (progress - 0.65) / (0.73 - 0.65);
           opacity = factor;
-          y = 8 * (1 - factor);
-        } else if (progress <= 0.72) {
+          y = 24 * (1 - factor);
+        } else if (progress <= 0.90) {
+          // Stable hold: plenty of scroll room to read comfortably without cutoff
           opacity = 1;
           y = 0;
         } else {
-          const factor = (progress - 0.72) / (0.85 - 0.72);
+          // Gentle fade out floating up 24px
+          const factor = (progress - 0.90) / (0.98 - 0.90);
           opacity = 1 - factor;
-          y = -8 * factor;
+          y = -24 * factor;
         }
 
         opacity = Math.max(0, Math.min(1, opacity));
         section3Ref.current.style.opacity = opacity.toFixed(4);
-        section3Ref.current.style.transform = `translate3d(0, ${y.toFixed(2)}vh, 0)`;
+        section3Ref.current.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
         section3Ref.current.style.visibility = opacity <= 0.001 ? "hidden" : "visible";
       } else {
         section3Ref.current.style.opacity = "0";
-        section3Ref.current.style.transform =
-          progress < 0.5 ? "translate3d(0, 8vh, 0)" : "translate3d(0, -8vh, 0)";
         section3Ref.current.style.visibility = "hidden";
       }
     }
@@ -111,10 +117,10 @@ export default function Overlay({ progress }: OverlayProps) {
         ref={section1Ref}
         style={{
           opacity: 1,
-          transform: "translate3d(0, 0vh, 0)",
+          transform: "translate3d(0, 0px, 0)",
           willChange: "transform, opacity",
         }}
-        className="absolute inset-x-0 top-[50%] -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 transition-none"
+        className="absolute inset-x-0 top-[48%] sm:top-[50%] -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 transition-none"
       >
         <h1 className="text-3xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-tight">
           Fomy Rizky<span className="text-neutral-500 font-normal">.</span>
@@ -139,17 +145,17 @@ export default function Overlay({ progress }: OverlayProps) {
         ref={section2Ref}
         style={{
           opacity: 0,
-          transform: "translate3d(0, 8vh, 0)",
+          transform: "translate3d(0, 24px, 0)",
           willChange: "transform, opacity",
           visibility: "hidden",
         }}
-        className="absolute inset-x-0 px-6 sm:px-0 sm:left-12 md:left-16 lg:left-24 top-[50%] -translate-y-1/2 sm:max-w-xl md:max-w-2xl text-left flex flex-col justify-center transition-none"
+        className="absolute inset-x-0 px-6 sm:px-0 sm:left-12 md:left-16 lg:left-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left flex flex-col justify-center transition-none"
       >
-        <h2 className="text-2xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-2 sm:mb-4 leading-[1.1]">
+        <h2 className="text-2xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-2 sm:mb-4 leading-[1.15]">
           Results-driven<br />
           <span className="text-neutral-400">creative</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-xs sm:text-xl text-neutral-300 font-light leading-relaxed max-w-sm sm:max-w-lg">
+        <p className="text-xs sm:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
           Combining 11 years of creative expertise with AI-powered workflows to produce impactful visuals, distinctive brand identities, and high-performing digital campaigns.
         </p>
       </div>
@@ -159,17 +165,17 @@ export default function Overlay({ progress }: OverlayProps) {
         ref={section3Ref}
         style={{
           opacity: 0,
-          transform: "translate3d(0, 8vh, 0)",
+          transform: "translate3d(0, 24px, 0)",
           willChange: "transform, opacity",
           visibility: "hidden",
         }}
-        className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[50%] -translate-y-1/2 sm:max-w-xl md:max-w-2xl text-left sm:text-right flex flex-col items-start sm:items-end justify-center transition-none"
+        className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left sm:text-right flex flex-col items-start sm:items-end justify-center transition-none"
       >
-        <h2 className="text-2xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-2 sm:mb-4 leading-[1.1]">
+        <h2 className="text-2xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-2 sm:mb-4 leading-[1.15]">
           Creative<br />
           <span className="text-neutral-400">meets AI</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-xs sm:text-xl text-neutral-300 font-light leading-relaxed max-w-sm sm:max-w-lg">
+        <p className="text-xs sm:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
           Where human creativity and intelligent technology converge — crafting visuals, brands, and campaigns that move people and perform at scale.
         </p>
       </div>
