@@ -48,8 +48,8 @@ export default function Navbar() {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-black/60 backdrop-blur-xl border-b border-white/5 py-3.5 px-6 sm:px-12"
-          : "bg-transparent py-5 px-6 sm:px-12"
+          ? "bg-black/75 backdrop-blur-xl border-b border-white/5 py-3 px-4 sm:px-12"
+          : "bg-transparent py-4 sm:py-5 px-4 sm:px-12"
       }`}
     >
       <nav
@@ -59,7 +59,7 @@ export default function Navbar() {
         {/* Left: Brand Logo */}
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="text-lg sm:text-xl font-black tracking-widest text-white uppercase flex items-center hover:opacity-80 transition-opacity"
+          className="text-base sm:text-xl font-black tracking-widest text-white uppercase flex items-center hover:opacity-80 transition-opacity"
         >
           <span>FOMY</span>
           <span className="text-neutral-500">.</span>
@@ -101,25 +101,27 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Right: Instagram & LinkedIn links (No download resume button) */}
-        <div className="flex items-center gap-4 text-neutral-300">
+        {/* Right: Instagram & LinkedIn links (Matching reference clean pill style) */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <a
             href="https://instagram.com"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram Profile"
-            className="p-2 rounded-full transition-colors hover:text-white hover:bg-white/5"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white text-xs transition-all"
           >
-            <FaInstagram className="w-4 h-4 sm:w-5 sm:h-5" />
+            <FaInstagram className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline font-mono text-[11px]">Instagram</span>
           </a>
           <a
             href="https://linkedin.com"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn Profile"
-            className="p-2 rounded-full transition-colors hover:text-white hover:bg-white/5"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white text-xs transition-all"
           >
-            <FaLinkedinIn className="w-4 h-4 sm:w-5 sm:h-5" />
+            <FaLinkedinIn className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline font-mono text-[11px]">LinkedIn</span>
           </a>
         </div>
       </nav>

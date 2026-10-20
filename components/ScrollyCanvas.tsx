@@ -59,7 +59,7 @@ export default function ScrollyCanvas() {
     ctx.save();
     ctx.scale(dpr, dpr);
 
-    // High performance object-cover math
+    // High performance object-cover math with mobile head/face framing
     const imgWidth = img.naturalWidth;
     const imgHeight = img.naturalHeight;
     const imgRatio = imgWidth / imgHeight;
@@ -76,6 +76,10 @@ export default function ScrollyCanvas() {
     } else {
       drawWidth = height * imgRatio;
       offsetX = (width - drawWidth) / 2;
+      // On narrow mobile screens, bias slightly so the subject's face is centered and prominent
+      if (width < 640) {
+        offsetY = -height * 0.02;
+      }
     }
 
     // Fill background with deep space dark before drawing

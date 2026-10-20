@@ -114,21 +114,21 @@ export default function Overlay({ progress }: OverlayProps) {
           transform: "translate3d(0, 0vh, 0)",
           willChange: "transform, opacity",
         }}
-        className="absolute inset-x-0 top-[48%] sm:top-[52%] -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 transition-none"
+        className="absolute inset-x-0 top-[52%] sm:top-[50%] -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 transition-none"
       >
-        <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-none">
+        <h1 className="text-4xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-none whitespace-nowrap">
           Fomy Rizky<span className="text-neutral-500 font-normal">.</span>
         </h1>
-        <p className="text-xs sm:text-sm md:text-base font-mono tracking-widest text-neutral-400 mt-2 sm:mt-3">
+        <p className="text-[11px] sm:text-sm md:text-base font-mono tracking-widest text-neutral-400 mt-2 sm:mt-3">
           &lt;AI-Powered Creative Designer/&gt;
         </p>
 
         {/* Minimalist mouse scroll indicator matching reference */}
-        <div className="flex flex-col items-center gap-2 mt-8 sm:mt-12">
-          <div className="w-5 h-9 rounded-full border-2 border-neutral-400/50 flex justify-center pt-1.5">
+        <div className="flex flex-col items-center gap-2 mt-6 sm:mt-12">
+          <div className="w-4 h-8 sm:w-5 sm:h-9 rounded-full border-2 border-neutral-400/50 flex justify-center pt-1.5">
             <span className="w-1 h-2 rounded-full bg-neutral-300 animate-bounce" />
           </div>
-          <span className="text-[10px] sm:text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
+          <span className="text-[9px] sm:text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
             SCROLL
           </span>
         </div>
@@ -143,13 +143,13 @@ export default function Overlay({ progress }: OverlayProps) {
           willChange: "transform, opacity",
           visibility: "hidden",
         }}
-        className="absolute left-6 md:left-16 lg:left-24 top-[50%] -translate-y-1/2 max-w-2xl text-left flex flex-col justify-center transition-none px-4"
+        className="absolute inset-x-0 px-6 sm:px-0 sm:left-12 md:left-16 lg:left-24 top-[56%] sm:top-[50%] -translate-y-1/2 sm:max-w-xl md:max-w-2xl text-left flex flex-col justify-center transition-none"
       >
-        <h2 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-4 leading-[1.05]">
+        <h2 className="text-3xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-[1.08]">
           Results-driven<br />
           <span className="text-neutral-400">creative</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-base sm:text-xl text-neutral-300 font-light leading-relaxed max-w-lg">
+        <p className="text-sm sm:text-xl text-neutral-300 font-light leading-relaxed max-w-lg">
           Combining 11 years of creative expertise with AI-powered workflows to produce impactful visuals, distinctive brand identities, and high-performing digital campaigns.
         </p>
       </div>
@@ -163,13 +163,13 @@ export default function Overlay({ progress }: OverlayProps) {
           willChange: "transform, opacity",
           visibility: "hidden",
         }}
-        className="absolute right-6 md:right-16 lg:right-24 top-[50%] -translate-y-1/2 max-w-2xl text-right flex flex-col items-end justify-center transition-none px-4"
+        className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[56%] sm:top-[50%] -translate-y-1/2 sm:max-w-xl md:max-w-2xl text-left sm:text-right flex flex-col items-start sm:items-end justify-center transition-none"
       >
-        <h2 className="text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-4 leading-[1.05]">
+        <h2 className="text-3xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-[1.08]">
           Creative<br />
           <span className="text-neutral-400">meets AI</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-base sm:text-xl text-neutral-300 font-light leading-relaxed max-w-lg">
+        <p className="text-sm sm:text-xl text-neutral-300 font-light leading-relaxed max-w-lg">
           Where human creativity and intelligent technology converge — crafting visuals, brands, and campaigns that move people and perform at scale.
         </p>
       </div>
