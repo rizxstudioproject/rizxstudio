@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: "/og-image-square.png",
-        width: 1024,
-        height: 1024,
+        width: 1000,
+        height: 1000,
         alt: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
       },
     ],
