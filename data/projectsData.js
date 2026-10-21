@@ -57,7 +57,7 @@ export const antigravityData = {
     description: "From brand campaigns to digital experiences, I combine design, motion, and AI-driven workflows to create purposeful visuals for brands and businesses.",
     tools: ["Figma", "Blender", "After Effects", "Adobe Creative Cloud", "Affinity", "GPT", "Google AI Studio", "Magnific AI"],
     
-    // Client Folders (Masing-masing punya hasil kerjaan di dalamnya)
+    // Client Folders (Hanya brand aktif yang memiliki karya riil)
     clients: [
       {
         id: "client-kia",
@@ -93,57 +93,6 @@ export const antigravityData = {
           { id: "hya-8", title: "Hyashop Catalog 1960", type: "Promotional Asset", image: "/works/client-Hyashop/1960.jpg", aspect: "4:5" },
           { id: "hya-9", title: "Hyashop Catalog 1962", type: "Promotional Asset", image: "/works/client-Hyashop/1962.jpg", aspect: "4:5" },
           { id: "hya-10", title: "Hyashop Catalog 1963", type: "Promotional Asset", image: "/works/client-Hyashop/1963.jpg", aspect: "4:5" },
-        ],
-      },
-      {
-        id: "client-tokopedia",
-        clientName: "Tokopedia",
-        category: "E-Commerce Campaign",
-        logo: "/logos/logo_01.svg",
-        color: "from-emerald-600/30 via-teal-900/20 to-neutral-900",
-        itemsCount: 4,
-        works: [
-          { id: "w-t1", title: "Mega Sale Visuals", type: "Social Ad", image: "/assets/antigravity/card-1.webp", aspect: "4:5" },
-          { id: "w-t2", title: "App Promo Motion", type: "Motion Graphic", image: "/assets/antigravity/card-2.webp", aspect: "1:1" },
-          { id: "w-t3", title: "Brand Identity Asset", type: "Vector System", image: "/assets/antigravity/card-3.webp", aspect: "4:5" },
-          { id: "w-t4", title: "Campaign Key Visual", type: "Art Direction", image: "/assets/antigravity/card-4.webp", aspect: "16:9" },
-        ],
-      },
-      {
-        id: "client-samsung",
-        clientName: "Samsung",
-        category: "Consumer Electronics",
-        logo: "/logos/logo_03.svg",
-        color: "from-blue-600/30 via-indigo-900/20 to-neutral-900",
-        itemsCount: 3,
-        works: [
-          { id: "w-s1", title: "Galaxy Flagship 3D", type: "3D Product Render", image: "/assets/antigravity/card-4.webp", aspect: "1:1" },
-          { id: "w-s2", title: "Digital Ad Banner", type: "Performance Ad", image: "/assets/antigravity/card-5.webp", aspect: "4:5" },
-          { id: "w-s3", title: "Event Launch Visual", type: "Key Visual", image: "/assets/antigravity/card-1.webp", aspect: "16:9" },
-        ],
-      },
-      {
-        id: "client-11st",
-        clientName: "11ST",
-        category: "Global Retail",
-        logo: "/logos/logo_02.svg",
-        color: "from-red-600/30 via-rose-900/20 to-neutral-900",
-        itemsCount: 2,
-        works: [
-          { id: "w-11-1", title: "Holiday Festival", type: "Social Media Campaign", image: "/assets/antigravity/card-2.webp", aspect: "1:1" },
-          { id: "w-11-2", title: "Discount Typography", type: "Graphic Design", image: "/assets/antigravity/card-3.webp", aspect: "4:5" },
-        ],
-      },
-      {
-        id: "client-bukopin",
-        clientName: "KB Bukopin",
-        category: "Banking & Finance",
-        logo: "/logos/logo_20.svg",
-        color: "from-amber-600/30 via-yellow-900/20 to-neutral-900",
-        itemsCount: 2,
-        works: [
-          { id: "w-b1", title: "Financial App UI", type: "Mobile UI/UX", image: "/assets/antigravity/card-1.webp", aspect: "1:1" },
-          { id: "w-b2", title: "Digital Banking Video", type: "Motion Prototype", image: "/assets/antigravity/card-4.webp", aspect: "4:5" },
         ],
       },
     ],

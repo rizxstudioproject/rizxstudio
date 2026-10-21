@@ -40,16 +40,23 @@ export default function ContentGuard() {
       }
     };
 
-    // ── 3. Blur portfolio images when window loses focus ─────────────────────
-    // This defeats screen-recorder apps and snipping tools that need
-    // the window to be active/in-focus to capture a clean screenshot.
+    // ── 3. Blur portfolio images when window loses focus or page is hidden ───
+    // Defeats screen-recorder apps, snipping tools, and mobile control center recordings
     const blurOnHide = () => {
-      document.body.style.filter = "blur(12px)";
+      document.body.style.filter = "blur(16px)";
       document.body.style.transition = "filter 0.15s ease";
     };
 
     const unblurOnShow = () => {
       document.body.style.filter = "none";
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        blurOnHide();
+      } else {
+        unblurOnShow();
+      }
     };
 
     // ── 4. Block image drag ───────────────────────────────────────────────────
@@ -65,6 +72,7 @@ export default function ContentGuard() {
     document.addEventListener("keydown", blockShortcuts);
     window.addEventListener("blur", blurOnHide);
     window.addEventListener("focus", unblurOnShow);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
     document.addEventListener("dragstart", blockDrag);
 
     return () => {
@@ -72,6 +80,7 @@ export default function ContentGuard() {
       document.removeEventListener("keydown", blockShortcuts);
       window.removeEventListener("blur", blurOnHide);
       window.removeEventListener("focus", unblurOnShow);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       document.removeEventListener("dragstart", blockDrag);
     };
   }, []);

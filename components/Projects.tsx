@@ -670,9 +670,22 @@ export default function Projects() {
                       onContextMenu={(e) => e.preventDefault()}
                       draggable={false}
                     />
-                    {/* Subtle Watermark */}
+
+                    {/* Security Center Watermark: prevents unauthorized screenshot reuse */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-20 overflow-hidden">
+                      <div className="flex flex-col items-center justify-center opacity-25 rotate-[-22deg] select-none scale-90 sm:scale-100">
+                        <span className="text-xl sm:text-2xl md:text-3xl font-black font-mono tracking-[0.25em] uppercase text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] whitespace-nowrap">
+                          RIZX STUDIO
+                        </span>
+                        <span className="text-[9px] sm:text-[11px] font-mono tracking-[0.3em] uppercase text-neutral-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] mt-1 whitespace-nowrap">
+                          CONFIDENTIAL • ALL RIGHTS RESERVED
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Corner Copyright Stamp */}
                     <div className="absolute bottom-3 right-4 z-20 pointer-events-none select-none">
-                      <span className="text-[9px] font-mono tracking-widest uppercase text-white/20">
+                      <span className="text-[9px] sm:text-[10px] font-mono tracking-widest uppercase text-white/30 bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm border border-white/5">
                         © RIZX STUDIO
                       </span>
                     </div>
