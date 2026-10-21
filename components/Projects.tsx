@@ -27,6 +27,7 @@ interface WorkItem {
   challenge?: string;
   solution?: string;
   tools?: string[];
+  isClientWork?: boolean;
 }
 
 interface ModalItem extends WorkItem {
@@ -426,6 +427,7 @@ export default function Projects() {
                         image: c.image,
                         aspect: "1:1",
                         clientName: "Selected Works",
+                        isClientWork: false,
                       })),
                       currentIndex: i,
                     })
@@ -564,6 +566,7 @@ export default function Projects() {
                         image: c.image,
                         aspect: "1:1",
                         clientName: "Design & Motion Archive",
+                        isClientWork: false,
                       })),
                       currentIndex: idx,
                     })
@@ -632,6 +635,7 @@ export default function Projects() {
                     image: stage3.heroCard.image,
                     aspect: "16:9",
                     clientName: "Flagship Showcase",
+                    isClientWork: false,
                   },
                 ],
                 currentIndex: 0,
@@ -754,6 +758,7 @@ export default function Projects() {
                       items: activeClientData.works.map((w) => ({
                         ...w,
                         clientName: activeClientData.clientName,
+                        isClientWork: true,
                       })),
                       currentIndex: wIdx,
                     })
@@ -869,11 +874,13 @@ export default function Projects() {
                     />
                   </div>
 
-                  {/* Scroll Down Indicator Cue */}
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-neutral-400">
-                    <span>{t("projects.scrollhint")}</span>
-                    <span className="animate-bounce">↓</span>
-                  </div>
+                  {/* Scroll Down Indicator Cue (Only for client works that have case study details below) */}
+                  {currentWork.isClientWork && (
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-neutral-400">
+                      <span>{t("projects.scrollhint")}</span>
+                      <span className="animate-bounce">↓</span>
+                    </div>
+                  )}
 
                   {/* After / Next Arrow */}
                   {hasMultiple && (
@@ -898,129 +905,187 @@ export default function Projects() {
                   )}
                 </div>
 
-                {/* AI Project Case Study Brief (Placed below the full-scale image, scrolled down naturally) */}
-                {(() => {
-                  const caseStudy = getCaseStudy(currentWork, lang);
+                {/* Conditional Popup Footer: Full Case Study ONLY for Client Works; Clean Compact Caption for others */}
+                {currentWork.isClientWork ? (
+                  /* AI Project Case Study Brief (Only for Client Projects in Stage 4) */
+                  (() => {
+                    const caseStudy = getCaseStudy(currentWork, lang);
 
-                  return (
-                    <div className="p-5 sm:p-8 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-t border-white/10 space-y-5 shrink-0">
-                      {/* Top Header: Brand Badge & Title */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                            <span className="px-2.5 py-0.5 rounded-full bg-[#14AF9E]/15 text-[#14AF9E] border border-[#14AF9E]/30 text-[10px] font-mono font-bold tracking-wider uppercase">
-                              {caseStudy.brand}
-                            </span>
-                            {caseStudy.year && (
-                              <span className="px-2 py-0.5 rounded-full bg-white/5 text-neutral-300 border border-white/10 text-[10px] font-mono">
-                                {caseStudy.year}
+                    return (
+                      <div className="p-5 sm:p-8 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-t border-white/10 space-y-5 shrink-0">
+                        {/* Top Header: Brand Badge & Title */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                              <span className="px-2.5 py-0.5 rounded-full bg-[#14AF9E]/15 text-[#14AF9E] border border-[#14AF9E]/30 text-[10px] font-mono font-bold tracking-wider uppercase">
+                                {caseStudy.brand}
                               </span>
+                              {caseStudy.year && (
+                                <span className="px-2 py-0.5 rounded-full bg-white/5 text-neutral-300 border border-white/10 text-[10px] font-mono">
+                                  {caseStudy.year}
+                                </span>
+                              )}
+                              <span className="text-[10px] font-mono text-neutral-400">
+                                {currentWork.aspect} • {currentWork.type}
+                              </span>
+                            </div>
+                            <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
+                              {currentWork.title}
+                            </h3>
+                            {caseStudy.brief && (
+                              <p className="text-xs text-neutral-400 font-sans mt-1 leading-relaxed max-w-2xl">
+                                {caseStudy.brief}
+                              </p>
                             )}
-                            <span className="text-[10px] font-mono text-neutral-400">
-                              {currentWork.aspect} • {currentWork.type}
-                            </span>
                           </div>
-                          <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
-                            {currentWork.title}
-                          </h3>
-                          {caseStudy.brief && (
-                            <p className="text-xs text-neutral-400 font-sans mt-1 leading-relaxed max-w-2xl">
-                              {caseStudy.brief}
-                            </p>
+
+                          {/* Counter & Mini Navigation */}
+                          {hasMultiple && (
+                            <div className="flex items-center gap-2 self-start sm:self-auto">
+                              <span className="text-xs font-mono text-neutral-400 px-3 py-1 rounded-full bg-white/[0.04] border border-white/5">
+                                {modalData.currentIndex + 1} / {modalData.items.length}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <button
+                                  type="button"
+                                  onClick={handlePrevWork}
+                                  className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                                  aria-label="Previous work"
+                                >
+                                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                  </svg>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleNextWork}
+                                  className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                                  aria-label="Next work"
+                                >
+                                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                  </svg>
+                                </button>
+                              </div>
+                            </div>
                           )}
                         </div>
 
-                        {/* Counter & Mini Navigation */}
-                        {hasMultiple && (
-                          <div className="flex items-center gap-2 self-start sm:self-auto">
-                            <span className="text-xs font-mono text-neutral-400 px-3 py-1 rounded-full bg-white/[0.04] border border-white/5">
-                              {modalData.currentIndex + 1} / {modalData.items.length}
-                            </span>
-                            <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={handlePrevWork}
-                                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
-                                aria-label="Previous work"
-                              >
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="15 18 9 12 15 6"></polyline>
-                                </svg>
-                              </button>
-                              <button
-                                type="button"
-                                onClick={handleNextWork}
-                                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
-                                aria-label="Next work"
-                              >
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                  <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg>
-                              </button>
+                        {/* 2-Box Grid: Tantangan (Kesulitan) vs Jalan Keluar (Solusi) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                          {/* Tantangan / Kesulitan */}
+                          <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-amber-500/20 transition-all">
+                            <div className="flex items-center gap-1.5 text-amber-400 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
+                              <HiExclamationTriangle className="w-3.5 h-3.5 shrink-0" />
+                              <span>{t("casestudy.challenge.label")}</span>
                             </div>
+                            <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
+                              {caseStudy.challenge}
+                            </p>
+                          </div>
+
+                          {/* Jalan Keluar / Solusi */}
+                          <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-[#14AF9E]/30 transition-all">
+                            <div className="flex items-center gap-1.5 text-[#14AF9E] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
+                              <HiCheckCircle className="w-3.5 h-3.5 shrink-0" />
+                              <span>{t("casestudy.solution.label")}</span>
+                            </div>
+                            <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
+                              {caseStudy.solution}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Role & Approach */}
+                        {caseStudy.role && (
+                          <div className="px-3.5 py-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-400">
+                            <span className="text-[#14AF9E] font-mono font-semibold uppercase text-[10px] tracking-wider">
+                              {t("projects.role")}
+                            </span>
+                            <span>{caseStudy.role}</span>
                           </div>
                         )}
-                      </div>
 
-                      {/* 2-Box Grid: Tantangan (Kesulitan) vs Jalan Keluar (Solusi) */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-                        {/* Tantangan / Kesulitan */}
-                        <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-amber-500/20 transition-all">
-                          <div className="flex items-center gap-1.5 text-amber-400 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
-                            <HiExclamationTriangle className="w-3.5 h-3.5 shrink-0" />
-                            <span>{t("casestudy.challenge.label")}</span>
+                        {/* Tools Digunakan (Icon Tool Saja) & Close Button */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/5">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-semibold">
+                              {t("projects.tools")}
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {caseStudy.tools.map((t, idx) => (
+                                <ToolBadge key={idx} tool={t} />
+                              ))}
+                            </div>
                           </div>
-                          <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
-                            {caseStudy.challenge}
-                          </p>
-                        </div>
 
-                        {/* Jalan Keluar / Solusi */}
-                        <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-[#14AF9E]/30 transition-all">
-                          <div className="flex items-center gap-1.5 text-[#14AF9E] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
-                            <HiCheckCircle className="w-3.5 h-3.5 shrink-0" />
-                            <span>{t("casestudy.solution.label")}</span>
-                          </div>
-                          <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
-                            {caseStudy.solution}
-                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setModalData(null)}
+                            className="px-5 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0 self-end sm:self-auto"
+                          >
+                            {t("projects.close")}
+                          </button>
                         </div>
                       </div>
+                    );
+                  })()
+                ) : (
+                  /* Compact Clean Caption for Non-Client Works (Stage 1, 2, 3) */
+                  <div className="p-4 sm:p-6 bg-neutral-950 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
+                    <div>
+                      <span className="text-[10px] font-mono text-[#14AF9E] tracking-widest uppercase block mb-1">
+                        {currentWork.clientName}
+                      </span>
+                      <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
+                        {currentWork.title}
+                      </h3>
+                      <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                        {currentWork.type}
+                      </p>
+                    </div>
 
-                      {/* Role & Approach */}
-                      {caseStudy.role && (
-                        <div className="px-3.5 py-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-400">
-                          <span className="text-[#14AF9E] font-mono font-semibold uppercase text-[10px] tracking-wider">
-                            {t("projects.role")}
+                    <div className="flex items-center gap-3 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
+                      {hasMultiple && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-mono text-neutral-400 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/5">
+                            {modalData.currentIndex + 1} / {modalData.items.length}
                           </span>
-                          <span>{caseStudy.role}</span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={handlePrevWork}
+                              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                              aria-label="Previous work"
+                            >
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="15 18 9 12 15 6"></polyline>
+                              </svg>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleNextWork}
+                              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                              aria-label="Next work"
+                            >
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="9 18 15 12 9 6"></polyline>
+                              </svg>
+                            </button>
+                          </div>
                         </div>
                       )}
 
-                      {/* Tools Digunakan (Icon Tool Saja) & Close Button */}
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/5">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-semibold">
-                            {t("projects.tools")}
-                          </span>
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {caseStudy.tools.map((t, idx) => (
-                              <ToolBadge key={idx} tool={t} />
-                            ))}
-                          </div>
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setModalData(null)}
-                          className="px-5 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0 self-end sm:self-auto"
-                        >
-                          {t("projects.close")}
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setModalData(null)}
+                        className="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0"
+                      >
+                        {t("projects.close")}
+                      </button>
                     </div>
-                  );
-                })()}
+                  </div>
+                )}
               </div>
             </div>
           );
