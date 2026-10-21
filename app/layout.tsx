@@ -18,6 +18,14 @@ export const metadata: Metadata = {
     "Video Production",
     "Generative AI",
   ],
+  icons: {
+    icon: [
+      { url: "/brand-logo.png", sizes: "any" },
+      { url: "/brand-logo.png", type: "image/png" },
+    ],
+    shortcut: "/brand-logo.png",
+    apple: "/brand-logo.png",
+  },
 };
 
 export default function RootLayout({
