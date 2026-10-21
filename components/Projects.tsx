@@ -202,20 +202,20 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       brand: work.brand || work.clientName || "Burger King",
       year: work.year || "2026",
       brief: isId
-        ? "Mengembangkan materi kampanye iklan digital dan promosi berdaya tarik tinggi untuk Burger King, menonjolkan menu andalan melalui visual yang menggugah selera dan tipografi berani."
-        : "Develop high-impact digital advertising and promotional campaigns for Burger King, highlighting signature menu items through mouthwatering visuals and bold typography.",
+        ? "Kampanye Back-to-School Burger King menampilkan koleksi Where's Charlie? — iklan digital bergaya bermain yang menggabungkan karakter ikonik dengan promosi menu pilihan."
+        : "Back-to-school campaign for Burger King featuring the Where's Charlie? collection, blending playful character-driven visuals with menu promotions across digital ad formats.",
       approach: isId
-        ? "Menggabungkan komposisi visual kuliner dinamis dengan warna khas merek, pencahayaan kontras, dan tata letak promosi energetik untuk saluran iklan digital."
-        : "Combine dynamic food photography compositions with bold brand colors, high-contrast lighting, and energetic promotional layouts designed for social and digital ad channels.",
+        ? "Mengintegrasikan karakter Where's Charlie? ke dalam format iklan digital yang energetik dengan komposisi penuh warna, tipografi cerita, dan hierarki pesan promosi yang jelas."
+        : "Integrated the Where's Charlie? character into energetic digital ad formats with vibrant compositions, story-driven typography, and a clear promotional messaging hierarchy.",
       role: isId
-        ? "Desain periklanan kreatif, retouching visual, desain tata letak promosi, dan produksi aset kampanye digital."
-        : "Creative advertising design, visual retouching, promotional layout design, and digital campaign asset production.",
+        ? "Pengarahan seni, desain layout iklan digital, integrasi karakter merek, dan produksi aset kampanye multi-format."
+        : "Art direction, digital ad layout design, brand character integration, and multi-format campaign asset production.",
       challenge: isId
-        ? "Memastikan visual produk makanan tampak menggugah selera, autentik, dan langsung dikenali sembari memuat hierarki teks promo secara rapi."
-        : "Ensuring food visuals look appetizing, authentic, and instantly recognizable while fitting strict promotional text and discount messaging hierarchies.",
+        ? "Menyeimbangkan daya tarik karakter bermain dengan pesan promosi menu yang kuat dalam satu layout iklan digital yang kohesif."
+        : "Balancing playful character appeal with strong menu promotional messaging within a single cohesive digital ad layout.",
       solution: isId
-        ? "Merancang template promosi terstruktur dengan fokus utama pada produk dan aksen lencana promo yang mendorong ketertarikan klik pengguna."
-        : "Crafted balanced promotional templates with strong focal points on the product and punchy badge designs that maximize click-through engagement.",
+        ? "Mendesain komposisi berlapis yang menempatkan karakter sebagai titik perhatian utama sambil memandu mata pemirsa menuju pesan promo secara alami."
+        : "Designed layered compositions that placed the character as the primary focal point while naturally guiding the viewer's eye toward the promotional message.",
       tools: ["photoshop", "figma", "ai"],
     };
   }
@@ -225,20 +225,20 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       brand: work.brand || work.clientName || "Permifast",
       year: work.year || "2026",
       brief: isId
-        ? "Membuat seri kampanye visual modern untuk Permifast, memperkenalkan layanan dan solusinya melalui grafis digital yang bersih, terpercaya, dan profesional."
-        : "Create a modern visual campaign series for Permifast, presenting its services and solutions through clean, reliable, and professional digital graphics.",
+        ? "Kampanye digital giveaway SIM untuk Permifast — mempromosikan program pemberian SIM gratis melalui visual digital yang jelas, menarik, dan mendorong partisipasi audiens."
+        : "Driving licence giveaway digital campaign for Permifast, promoting a free SIM card giveaway programme through clear, engaging visuals designed to drive audience participation.",
       approach: isId
-        ? "Menerapkan pembingkaian geometris yang rapi, poin data terstruktur, dan palet warna korporat modern untuk mengomunikasikan kecepatan dan kemudahan."
-        : "Apply sleek geometric framing, clear data points, and a modern corporate color palette to convey speed, trust, and simplicity.",
+        ? "Menggunakan visual berdaya tarik tinggi dengan tipografi besar yang menegaskan penawaran utama, layout bersih yang memandu pengguna, dan elemen visual yang menciptakan urgensi."
+        : "Used high-impact visuals with bold typography emphasising the key offer, clean layouts guiding the user journey, and visual cues that create urgency and excitement.",
       role: isId
-        ? "Pengarahan seni, desain tata letak digital, framing visual, dan pembuatan aset kampanye berbagai format."
-        : "Art direction, digital layout design, visual framing, and multi-format campaign asset generation.",
+        ? "Desain kampanye digital, tata letak promosi giveaway, pengarahan seni, dan produksi aset iklan media sosial."
+        : "Digital campaign design, giveaway promotional layout, art direction, and social media ad asset production.",
       challenge: isId
-        ? "Mengubah konsep layanan regulasi dan teknis menjadi kartu kampanye digital yang menarik secara visual dan mudah dipahami."
-        : "Transforming technical and regulatory service concepts into visually engaging and easily digestible digital campaign cards.",
+        ? "Mengkomunikasikan detail program giveaway secara akurat sambil tetap mempertahankan daya tarik visual yang kuat dan mendorong konversi audiens."
+        : "Communicating the giveaway programme details accurately while maintaining strong visual appeal and driving audience conversion.",
       solution: isId
-        ? "Mendesain tata letak berdaya kontras tinggi dengan tipografi tegas dan penanda visual yang mengarahkan pandangan audiens secara runtut."
-        : "Designed high-contrast hero layouts with sharp typography and visual anchors that clearly guide the viewer's eye.",
+        ? "Merancang hierarki visual yang menonjolkan benefit utama di bagian atas, diikuti detail syarat yang ringkas dan CTA yang tegas."
+        : "Crafted a visual hierarchy that surfaced the primary benefit upfront, followed by concise programme details and a strong call-to-action.",
       tools: ["figma", "photoshop"],
     };
   }
@@ -248,20 +248,20 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       brand: work.brand || work.clientName || "Xeilos",
       year: work.year || "2026",
       brief: isId
-        ? "Memproduksi rangkaian aset iklan media sosial dan visual merek menyeluruh untuk Xeilos, membangun impresi digital yang khas dan futuristik."
-        : "Produce a comprehensive suite of social media advertising assets and brand visuals for Xeilos, establishing a distinctive and futuristic digital presence.",
+        ? "Kampanye iklan digital Trading Summit untuk Xeilos — membangun awareness acara dan mendorong pendaftaran melalui serangkaian aset visual media sosial bertema profesional dan futuristik."
+        : "Trading Summit digital advertising campaign for Xeilos, building event awareness and driving registrations through a series of professional, forward-looking social media visual assets.",
       approach: isId
-        ? "Memanfaatkan estetika bertema gelap, aksen visual bercahaya, dan komposisi bujur sangkar 1:1 yang dioptimalkan untuk engagement media sosial."
-        : "Utilize dark-mode aesthetics, glowing accents, cybernetic motifs, and balanced 1:1 square compositions tailored for maximum social feed engagement.",
+        ? "Menggabungkan estetika gelap premium dengan tipografi besar, visual data pasar, dan elemen desain acara untuk mengomunikasikan otoritas dan eksklusivitas Trading Summit."
+        : "Combined premium dark aesthetics with bold typography, market data visuals, and event design elements to communicate the authority and exclusivity of the Trading Summit.",
       role: isId
-        ? "Pengembangan konsep kreatif, branding visual, produksi materi iklan media sosial, dan penyesuaian format 9 karya kreatif."
-        : "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
+        ? "Pengarahan kreatif, desain aset iklan acara, branding visual Trading Summit, dan produksi konten media sosial multi-format."
+        : "Creative direction, event ad asset design, Trading Summit visual branding, and multi-format social media content production.",
       challenge: isId
-        ? "Menjaga keberagaman gaya dari 9 aset promosi yang berbeda sembari mempertahankan konsistensi identitas merek."
-        : "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
+        ? "Menyampaikan pesan profesional dan informatif tentang acara trading dengan tetap mempertahankan daya tarik visual yang kuat untuk menarik audiens trader dan investor."
+        : "Conveying a professional and informative event message while maintaining strong visual appeal to attract a trader and investor audience.",
       solution: isId
-        ? "Menetapkan grid desain terpadu, paduan warna gelap beraksen kontras, dan penataan tipografi yang kokoh di seluruh variasi iklan."
-        : "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
+        ? "Mendesain komposisi visual yang menempatkan identitas acara sebagai elemen dominan, didukung data dan informasi pembicara sebagai social proof yang memperkuat kepercayaan."
+        : "Designed visual compositions placing the event identity as the dominant element, supported by speaker information and data-driven social proof to reinforce credibility.",
       tools: ["photoshop", "figma"],
     };
   }
