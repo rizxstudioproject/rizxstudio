@@ -2,7 +2,15 @@
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { antigravityData } from "@/data/projectsData";
-import { HiXMark, HiArrowUpRight, HiFolder } from "react-icons/hi2";
+import {
+  HiXMark,
+  HiArrowUpRight,
+  HiFolder,
+  HiSparkles,
+  HiExclamationTriangle,
+  HiCheckCircle,
+} from "react-icons/hi2";
+import { SiBlender, SiFigma, SiCinema4D } from "react-icons/si";
 
 interface WorkItem {
   id: string;
@@ -10,15 +18,178 @@ interface WorkItem {
   type: string;
   image: string;
   aspect: string;
+  brand?: string;
+  challenge?: string;
+  solution?: string;
+  tools?: string[];
 }
 
-interface ModalItem {
-  id: string;
-  title: string;
-  type: string;
-  image: string;
-  aspect: string;
+interface ModalItem extends WorkItem {
   clientName: string;
+}
+
+/**
+ * ToolBadge — Visual icon badges for creative tools
+ */
+function ToolBadge({ tool }: { tool: string }) {
+  const normalized = tool.toLowerCase().trim();
+
+  if (normalized === "photoshop" || normalized === "ps") {
+    return (
+      <div
+        title="Adobe Photoshop"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#001E36] border border-[#31A8FF]/40 text-[#31A8FF] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#31A8FF] text-[#001E36] font-black text-[10px] flex items-center justify-center font-mono">
+          Ps
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Photoshop
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "illustrator" || normalized === "ai") {
+    return (
+      <div
+        title="Adobe Illustrator"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#330000] border border-[#FF9A00]/40 text-[#FF9A00] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#FF9A00] text-[#330000] font-black text-[10px] flex items-center justify-center font-mono">
+          Ai
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Illustrator
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "aftereffects" || normalized === "ae") {
+    return (
+      <div
+        title="Adobe After Effects"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00005B] border border-[#9999FF]/40 text-[#9999FF] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#9999FF] text-[#00005B] font-black text-[10px] flex items-center justify-center font-mono">
+          Ae
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          After Effects
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "blender") {
+    return (
+      <div
+        title="Blender 3D"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#EA7600]/15 border border-[#EA7600]/40 text-[#EA7600] shadow-sm select-none"
+      >
+        <SiBlender className="w-3.5 h-3.5 text-[#EA7600]" />
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Blender 3D
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "figma") {
+    return (
+      <div
+        title="Figma"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/15 text-[#F24E1E] shadow-sm select-none"
+      >
+        <SiFigma className="w-3 h-3 text-[#F24E1E]" />
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Figma
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "cinema4d" || normalized === "c4d") {
+    return (
+      <div
+        title="Cinema 4D"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-400/40 text-blue-300 shadow-sm select-none"
+      >
+        <SiCinema4D className="w-3.5 h-3.5 text-blue-400" />
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Cinema 4D
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "midjourney") {
+    return (
+      <div
+        title="Midjourney AI"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/40 text-cyan-300 shadow-sm select-none"
+      >
+        <HiSparkles className="w-3 h-3 text-cyan-400" />
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Midjourney
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "magnific") {
+    return (
+      <div
+        title="Magnific AI"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14AF9E]/10 border border-[#14AF9E]/40 text-[#14AF9E] shadow-sm select-none"
+      >
+        <HiSparkles className="w-3 h-3 text-[#14AF9E]" />
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Magnific AI
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-neutral-300 select-none">
+      <span className="text-[10px] font-mono capitalize">{tool}</span>
+    </div>
+  );
+}
+
+/**
+ * Intelligent AI Case Study Fallback
+ */
+function getCaseStudy(work: ModalItem) {
+  if (work.challenge && work.solution && work.tools && work.tools.length > 0) {
+    return {
+      brand: work.brand || work.clientName || "Brand Client",
+      challenge: work.challenge,
+      solution: work.solution,
+      tools: work.tools,
+    };
+  }
+
+  const title = (work.title || "").toLowerCase();
+  const type = (work.type || "").toLowerCase();
+
+  if (title.includes("kia") || type.includes("automotive")) {
+    return {
+      brand: work.brand || work.clientName || "KIA Motors",
+      challenge: "Visualisasi kendaraan konsep masa depan tanpa ketersediaan unit fisik asli atau pemotretan studio nyata.",
+      solution: "Generasi render konsep AI presisi tinggi dipadukan dengan teknik digital compositing dan reflection mapping otomotif.",
+      tools: ["photoshop", "illustrator", "blender", "midjourney"],
+    };
+  }
+
+  return {
+    brand: work.brand || work.clientName || "Hyashop",
+    challenge: "Mempertahankan estetika lookbook komersial berkualitas tinggi dengan format vertikal ramah smartphone.",
+    solution: "Penerapan sistem layout modular terintegrasi dengan generative retouching dan color grading presisi.",
+    tools: ["photoshop", "figma", "illustrator", "magnific"],
+  };
 }
 
 export default function Projects() {
@@ -623,12 +794,12 @@ export default function Projects() {
 
               {/* Modal Container */}
               <div
-                className="relative max-w-4xl max-h-[92vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+                className="relative max-w-4xl max-h-[92vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col scrollbar-thin scrollbar-thumb-white/10"
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Image Preview Box with Before / After Floating Arrows */}
                 <div
-                  className="relative w-full flex-1 max-h-[68vh] min-h-[280px] bg-black flex items-center justify-center p-2 select-none overflow-hidden"
+                  className="relative w-full max-h-[50vh] sm:max-h-[56vh] min-h-[220px] bg-black flex items-center justify-center p-2 sm:p-4 select-none overflow-hidden"
                   onTouchStart={handleTouchStart}
                   onTouchEnd={handleTouchEnd}
                 >
@@ -654,13 +825,13 @@ export default function Projects() {
                     </button>
                   )}
 
-                {/* Main Image */}
+                  {/* Main Image */}
                   <div className="relative select-none">
                     <img
                       key={currentWork.id}
                       src={currentWork.image}
                       alt={currentWork.title}
-                      className="max-h-[66vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none"
+                      className="max-h-[48vh] sm:max-h-[52vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none"
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
                     />
@@ -764,62 +935,109 @@ export default function Projects() {
                   )}
                 </div>
 
-                {/* Modal Footer Caption with Counter & Actions */}
-                <div className="p-4 sm:p-6 bg-neutral-900 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-cyan-400 block mb-1">
-                      {currentWork.clientName} • {currentWork.aspect}
-                    </span>
-                    <h3 className="text-base sm:text-xl font-bold text-white">
-                      {currentWork.title}
-                    </h3>
-                    <p className="text-xs text-neutral-400 font-mono mt-0.5">
-                      {currentWork.type}
-                    </p>
-                  </div>
+                {/* AI Project Case Study Brief (Brand, Challenge, Solution, Tools) */}
+                {(() => {
+                  const caseStudy = getCaseStudy(currentWork);
 
-                  {/* Controls: Counter & Before/After Buttons & Close */}
-                  <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
-                    {hasMultiple && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-mono text-neutral-400 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/5">
-                          {modalData.currentIndex + 1} / {modalData.items.length}
-                        </span>
+                  return (
+                    <div className="p-4 sm:p-6 bg-gradient-to-b from-neutral-900/90 to-neutral-950 border-t border-white/10 space-y-4">
+                      {/* Top Header: Brand Badge & Title */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1.5">
+                            <span className="px-2.5 py-0.5 rounded-full bg-[#14AF9E]/15 text-[#14AF9E] border border-[#14AF9E]/30 text-[10px] font-mono font-bold tracking-wider uppercase">
+                              {caseStudy.brand}
+                            </span>
+                            <span className="text-[10px] font-mono text-neutral-400">
+                              {currentWork.aspect} • {currentWork.type}
+                            </span>
+                          </div>
+                          <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
+                            {currentWork.title}
+                          </h3>
+                        </div>
 
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={handlePrevWork}
-                            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
-                            aria-label="Previous work (Before)"
-                          >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="15 18 9 12 15 6"></polyline>
-                            </svg>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleNextWork}
-                            className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
-                            aria-label="Next work (After)"
-                          >
-                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="9 18 15 12 9 6"></polyline>
-                            </svg>
-                          </button>
+                        {/* Counter & Mini Navigation */}
+                        {hasMultiple && (
+                          <div className="flex items-center gap-2 self-start sm:self-auto">
+                            <span className="text-xs font-mono text-neutral-400 px-3 py-1 rounded-full bg-white/[0.04] border border-white/5">
+                              {modalData.currentIndex + 1} / {modalData.items.length}
+                            </span>
+                            <div className="flex items-center gap-1">
+                              <button
+                                type="button"
+                                onClick={handlePrevWork}
+                                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                                aria-label="Previous work"
+                              >
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="15 18 9 12 15 6"></polyline>
+                                </svg>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleNextWork}
+                                className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                                aria-label="Next work"
+                              >
+                                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 2-Box Grid: Tantangan (Kesulitan) vs Jalan Keluar (Solusi) */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+                        {/* Tantangan / Kesulitan */}
+                        <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-amber-500/20 transition-all">
+                          <div className="flex items-center gap-1.5 text-amber-400 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
+                            <HiExclamationTriangle className="w-3.5 h-3.5 shrink-0" />
+                            <span>Tantangan / Kesulitan</span>
+                          </div>
+                          <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
+                            {caseStudy.challenge}
+                          </p>
+                        </div>
+
+                        {/* Jalan Keluar / Solusi */}
+                        <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-[#14AF9E]/30 transition-all">
+                          <div className="flex items-center gap-1.5 text-[#14AF9E] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
+                            <HiCheckCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span>Jalan Keluar / Solusi</span>
+                          </div>
+                          <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
+                            {caseStudy.solution}
+                          </p>
                         </div>
                       </div>
-                    )}
 
-                    <button
-                      type="button"
-                      onClick={() => setModalData(null)}
-                      className="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-xs sm:text-sm hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0"
-                    >
-                      Close Preview
-                    </button>
-                  </div>
-                </div>
+                      {/* Tools Digunakan (Icon Tool Saja) & Close Button */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-semibold">
+                            Tools Digunakan:
+                          </span>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {caseStudy.tools.map((t, idx) => (
+                              <ToolBadge key={idx} tool={t} />
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setModalData(null)}
+                          className="px-5 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0 self-end sm:self-auto"
+                        >
+                          Close Preview
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );
