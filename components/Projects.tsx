@@ -396,7 +396,7 @@ export default function Projects() {
             (Active: 0.00 -> 0.28)
            ======================================================== */}
         <div
-          className="absolute inset-0 flex flex-col items-center justify-between py-12 sm:py-20 md:py-16 pt-14 sm:pt-20 px-4"
+          className="absolute inset-0 flex flex-col items-center justify-between py-8 sm:py-14 md:py-12 pt-10 sm:pt-14 md:pt-14 px-4"
           style={{
             opacity: scrollProgress < 0.25 ? 1 : Math.max(0, 1 - (scrollProgress - 0.25) / 0.05),
             transform: `translate3d(0, ${scrollProgress < 0.25 ? 0 : -(scrollProgress - 0.25) * 350}px, 0)`,
@@ -405,20 +405,20 @@ export default function Projects() {
           }}
         >
           {/* Header */}
-          <div className="relative z-30 flex flex-col items-center text-center mt-2 max-w-5xl px-2">
-            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-neutral-500 mb-2">
+          <div className="relative z-30 flex flex-col items-center text-center mt-1 sm:mt-2 max-w-4xl px-2 mb-2 sm:mb-4">
+            <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] mb-2 font-semibold">
               {t("projects.stage1.badge")}
             </span>
-            <h2 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-tight">
+            <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-tight">
               {t("projects.stage1.headline")}
             </h2>
-            <p className="text-[11px] sm:text-xs md:text-sm text-neutral-400 font-light mt-2 max-w-md md:max-w-[880px] lg:max-w-[920px] mx-auto leading-relaxed">
+            <p className="text-xs sm:text-sm md:text-base text-neutral-300 font-light mt-3 sm:mt-4 max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed text-balance">
               {t("projects.stage1.subheadline")}
             </p>
           </div>
 
           {/* Cards Stage: Starts at center, fans out smoothly */}
-          <div className="relative w-full max-w-5xl h-[260px] sm:h-[320px] md:h-[380px] flex items-center justify-center my-auto">
+          <div className="relative w-full max-w-5xl h-[220px] sm:h-[280px] md:h-[320px] flex items-center justify-center my-auto">
             {/* Floating Badges */}
             {stage1.floatingBadges.length > 0 && stage1.floatingBadges.map((badge: { id: number; text: string; color: string; top?: string; left?: string; right?: string }, bIdx: number) => {
               const badgeOpacity = Math.max(0, Math.min(1, (scrollProgress - 0.05) / 0.1));
@@ -435,7 +435,7 @@ export default function Projects() {
                   }}
                 >
                   <div
-                    className={`relative px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-semibold shadow-lg border backdrop-blur-md ${badge.color}`}
+                    className={`relative px-3 sm:px-4 py-1 sm:py-1.5 rounded-full text-xs font-semibold shadow-lg border backdrop-blur-md ${badge.color}`}
                   >
                     <span>{badge.text}</span>
                     <div className="absolute -bottom-1 left-3 w-1.5 h-1.5 rotate-45 bg-inherit border-r border-b border-inherit" />
@@ -489,7 +489,7 @@ export default function Projects() {
                       currentIndex: i,
                     })
                   }
-                  className={`absolute w-36 sm:w-48 md:w-60 aspect-square rounded-2xl sm:rounded-3xl p-2 sm:p-3 bg-neutral-900/95 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer ${
+                  className={`absolute w-36 sm:w-44 md:w-52 aspect-square rounded-2xl sm:rounded-3xl p-2 sm:p-2.5 bg-neutral-900/95 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-md cursor-pointer ${
                     isHovered ? "transition-transform duration-200 ease-out" : ""
                   }`}
                   style={{
@@ -501,7 +501,7 @@ export default function Projects() {
                     })`,
                   }}
                 >
-                  <div className="relative w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-950 flex flex-col justify-between p-2.5 sm:p-3.5 border border-white/5">
+                  <div className="relative w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-950 flex flex-col justify-between p-2.5 sm:p-3 border border-white/5">
                     <img
                       src={card.image}
                       alt={cardInfo.title}
@@ -510,17 +510,17 @@ export default function Projects() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                     
                     <div className="relative z-10 flex items-center justify-between">
-                      <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[8px] sm:text-[9px] font-mono uppercase tracking-wider text-neutral-300 border border-white/10 truncate max-w-[80px]">
+                      <span className="px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono uppercase tracking-wider text-neutral-200 border border-white/10 truncate max-w-[90px]">
                         {cardInfo.category}
                       </span>
-                      <span className="w-4 h-4 rounded-full bg-black/50 text-[9px] flex items-center justify-center text-white">
+                      <span className="w-5 h-5 rounded-full bg-black/50 text-xs flex items-center justify-center text-white">
                         ↗
                       </span>
                     </div>
 
                     <div className="relative z-10">
-                      <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight truncate">{cardInfo.title}</h3>
-                      <p className="text-[9px] text-neutral-400 font-mono">{cardInfo.category}</p>
+                      <h3 className="text-xs sm:text-base font-bold text-white tracking-tight truncate">{cardInfo.title}</h3>
+                      <p className="text-[11px] sm:text-xs text-neutral-300 font-mono">{cardInfo.category}</p>
                     </div>
                   </div>
                 </div>
@@ -528,7 +528,7 @@ export default function Projects() {
             })}
           </div>
 
-          <div className="relative z-30 text-[10px] sm:text-xs text-neutral-500 font-mono flex items-center gap-1.5 mb-2">
+          <div className="relative z-30 text-xs sm:text-xs text-neutral-400 font-mono flex items-center gap-1.5 mb-2">
             <span>{t("projects.stage1.scroll")}</span>
             <span className="animate-bounce">↓</span>
           </div>
@@ -560,7 +560,7 @@ export default function Projects() {
         >
           {/* Text Block */}
           <div className="max-w-lg text-center lg:text-left pt-10 lg:pt-0">
-            <span className="text-[11px] font-mono uppercase tracking-[0.25em] text-[#00A389] mb-3 block font-semibold">
+            <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#00A389] mb-3 block font-semibold">
               {t("projects.stage2.tag")}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight">
@@ -600,10 +600,10 @@ export default function Projects() {
           {/* Overlapping Dense Deck with Badges */}
           <div className="relative w-full max-w-sm sm:max-w-md h-[220px] sm:h-[300px] md:h-[360px] flex items-center justify-center">
             {/* Badges */}
-            <div className="absolute top-0 left-4 z-40 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-[#14AF9E] text-white border border-[#14AF9E]/80 shadow-md">
+            <div className="absolute top-0 left-4 z-40 px-3 py-1 rounded-full text-xs font-semibold bg-[#14AF9E] text-white border border-[#14AF9E]/80 shadow-md">
               @rizx
             </div>
-            <div className="absolute top-4 right-4 z-40 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-md">
+            <div className="absolute top-4 right-4 z-40 px-3 py-1 rounded-full text-xs font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-md">
               @malaka
             </div>
 
@@ -639,7 +639,7 @@ export default function Projects() {
                   <div className="w-full h-full rounded-xl overflow-hidden bg-neutral-950 relative border border-white/5">
                     <img src={card.image} alt={cardTitle} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <div className="absolute bottom-2 left-2 right-2 text-[10px] sm:text-xs font-bold text-white truncate">
+                    <div className="absolute bottom-2 left-2 right-2 text-xs sm:text-sm font-bold text-white truncate">
                       {cardTitle}
                     </div>
                   </div>
@@ -674,7 +674,7 @@ export default function Projects() {
           }}
         >
           <div className="mb-4 sm:mb-6 text-center sm:text-left">
-            <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-neutral-500 block mb-1">
+            <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] block mb-1.5 font-semibold">
               {t("projects.stage3.tag")}
             </span>
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
@@ -710,16 +710,16 @@ export default function Projects() {
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
             
             <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-8 flex flex-col">
-              <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-cyan-400 mb-0.5">
+              <span className="text-xs sm:text-xs font-mono uppercase tracking-widest text-cyan-400 mb-1 font-semibold">
                 {t("projects.stage3.card.category")}
               </span>
-              <h3 className="text-sm sm:text-xl font-bold text-white">
+              <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white">
                 {t("projects.stage3.card.title")}
               </h3>
             </div>
 
             <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-8">
-              <span className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-[11px] sm:text-xs flex items-center gap-1.5">
+              <span className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-xs sm:text-xs flex items-center gap-1.5">
                 <span>{t("projects.stage3.card.btn")}</span>
                 <HiArrowUpRight className="w-3.5 h-3.5" />
               </span>
@@ -746,21 +746,21 @@ export default function Projects() {
           <div className="max-w-md text-center lg:text-left">
             <div className="inline-flex items-center gap-2 mb-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-[11px] text-cyan-400 font-mono tracking-widest uppercase">
+              <span className="text-xs sm:text-xs text-cyan-400 font-mono tracking-widest uppercase font-semibold">
                 {t("projects.stage4.badge")}
               </span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2 sm:mb-3 leading-tight">
               {t("projects.stage4.headline")}
             </h2>
-            <p className="text-[11px] sm:text-xs md:text-sm text-neutral-400 font-light leading-relaxed mb-4 line-clamp-3 sm:line-clamp-none">
+            <p className="text-xs sm:text-sm md:text-base text-neutral-300 font-light leading-relaxed mb-4">
               {t("projects.stage4.desc")}
             </p>
             
             {/* Tool tags */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-1.5 sm:gap-2">
               {stage4.tools.map((tool, idx) => (
-                <span key={idx} className="px-2.5 py-0.5 rounded-full bg-white/[0.03] border border-white/5 text-[10px] font-mono text-neutral-400">
+                <span key={idx} className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200">
                   {tool}
                 </span>
               ))}
@@ -785,7 +785,7 @@ export default function Projects() {
                   >
                     <HiFolder className="w-3.5 h-3.5 text-[#14AF9E] shrink-0" />
                     <span>{client.clientName}</span>
-                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${isSelected ? "bg-black/10 text-neutral-800" : "bg-white/10 text-neutral-500"}`}>
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${isSelected ? "bg-black/10 text-neutral-800" : "bg-white/10 text-neutral-400"}`}>
                       {client.works.length}
                     </span>
                   </button>
@@ -796,15 +796,15 @@ export default function Projects() {
             {/* Folder Header Info */}
             <div className="flex items-center justify-between mb-3 px-1">
               <div>
-                <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
+                <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
                   <HiFolder className="w-4 h-4 text-[#14AF9E] shrink-0" />
                   <span>{isId ? `Arsip ${activeClientData.clientName}` : `${activeClientData.clientName} Archive`}</span>
                 </h4>
-                <p className="text-[10px] text-neutral-400 font-mono">
+                <p className="text-xs text-neutral-300 font-mono">
                   {getClientCategory(activeClientData.category, isId)}
                 </p>
               </div>
-              <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">
+              <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">
                 {activeClientData.works.length} {t("projects.stage4.deliverables")}
               </span>
             </div>
@@ -841,21 +841,21 @@ export default function Projects() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                     
                     {/* Aspect Badge */}
-                    <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[9px] font-mono text-neutral-300 border border-white/10">
+                    <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono text-neutral-200 border border-white/10">
                       {work.aspect}
                     </div>
 
                     {/* Expand icon on hover */}
-                    <div className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
                       ↗
                     </div>
 
                     {/* Work Title & Type */}
                     <div className="absolute bottom-2 left-2 right-2 z-10">
-                      <h5 className="text-[11px] sm:text-xs font-bold text-white truncate drop-shadow-md">
+                      <h5 className="text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">
                         {localizedWork.title}
                       </h5>
-                      <p className="text-[9px] text-neutral-400 font-mono truncate">
+                      <p className="text-[11px] sm:text-xs text-neutral-300 font-mono truncate">
                         {localizedWork.type}
                       </p>
                     </div>

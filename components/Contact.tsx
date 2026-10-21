@@ -83,7 +83,7 @@ export default function Contact() {
           </div>
 
           {/* Center: Nav links */}
-          <div className="flex items-center gap-7 text-neutral-400 text-[11px]">
+          <div className="flex items-center gap-7 text-neutral-400 text-xs">
             <a href="#clients" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.clients")}</a>
             <a href="#projects" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.work")}</a>
             <a href="#about" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.about")}</a>
@@ -102,7 +102,7 @@ export default function Contact() {
           <div className="flex items-center gap-4">
             {/* Footer Language Toggle */}
             <div className="flex items-center gap-2">
-              <span className="text-[10px] text-neutral-500 uppercase">{t("contact.lang.label")}</span>
+              <span className="text-xs text-neutral-400 font-mono uppercase">{t("contact.lang.label")}</span>
               <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
                 <button
                   type="button"
@@ -168,24 +168,24 @@ export default function Contact() {
             />
           </button>
 
-          <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-400 text-[11px]">
-            <a href="#clients" className="hover:text-white transition-colors uppercase">{t("contact.footer.clients")}</a>
-            <a href="#projects" className="hover:text-white transition-colors uppercase">{t("contact.footer.work")}</a>
-            <a href="#about" className="hover:text-white transition-colors uppercase">{t("contact.footer.about")}</a>
+          <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-300 text-xs">
+            <a href="#clients" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.clients")}</a>
+            <a href="#projects" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.work")}</a>
+            <a href="#about" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.about")}</a>
             <a
               href="https://wa.me/6282381769146"
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-[#14AF9E] text-neutral-300 transition-colors uppercase font-semibold"
+              className="hover:text-[#14AF9E] text-white transition-colors uppercase font-semibold tracking-wider"
             >
               {t("contact.footer.contact")} ↗
             </a>
           </div>
 
           {/* Mobile Footer Language Toggle */}
-          <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono py-1">
-            <span className="text-[10px] text-neutral-500 uppercase">{t("contact.lang.label")}</span>
-            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px]">
+          <div className="flex items-center gap-2 text-xs text-neutral-300 font-mono py-1">
+            <span className="text-xs text-neutral-400 uppercase">{t("contact.lang.label")}</span>
+            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-xs">
               <button
                 type="button"
                 onClick={() => setLang("en")}
@@ -232,7 +232,7 @@ export default function Contact() {
             </a>
           </div>
 
-          <div className="text-[10px] text-neutral-600 tracking-wider">
+          <div className="text-xs text-neutral-500 tracking-wider">
             &copy; {new Date().getFullYear()} FOMY R. — {t("contact.footer.rights")}
           </div>
         </div>

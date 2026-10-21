@@ -68,7 +68,7 @@ export default function About() {
               <span className="text-[#14AF9E] block font-black text-2xl sm:text-4xl tracking-tight">
                 {t("about.stat1.num")}
               </span>
-              <span className="text-neutral-400 uppercase tracking-wider text-[10px] sm:text-xs mt-1 block">
+              <span className="text-neutral-400 uppercase tracking-wider text-xs sm:text-xs mt-1 block">
                 {t("about.stat1.label")}
               </span>
             </div>
@@ -76,7 +76,7 @@ export default function About() {
               <span className="text-white block font-black text-2xl sm:text-4xl tracking-tight">
                 {t("about.stat2.num")}
               </span>
-              <span className="text-neutral-400 uppercase tracking-wider text-[10px] sm:text-xs mt-1 block">
+              <span className="text-neutral-400 uppercase tracking-wider text-xs sm:text-xs mt-1 block">
                 {t("about.stat2.label")}
               </span>
             </div>
@@ -84,7 +84,7 @@ export default function About() {
               <span className="text-white block font-black text-2xl sm:text-4xl tracking-tight">
                 {t("about.stat3.num")}
               </span>
-              <span className="text-neutral-400 uppercase tracking-wider text-[10px] sm:text-xs mt-1 block">
+              <span className="text-neutral-400 uppercase tracking-wider text-xs sm:text-xs mt-1 block">
                 {t("about.stat3.label")}
               </span>
             </div>
@@ -98,7 +98,7 @@ export default function About() {
               <HiSparkles className="w-5 h-5 text-amber-300" />
             </div>
             <h3 className="text-lg font-light text-white mb-2">{t("about.card1.title")}</h3>
-            <p className="text-xs sm:text-sm text-neutral-400 font-light leading-relaxed">
+            <p className="text-sm text-neutral-300 font-light leading-relaxed">
               {t("about.card1.body")}
             </p>
           </SpotlightCard>
@@ -108,7 +108,7 @@ export default function About() {
               <HiGlobeAmericas className="w-5 h-5 text-[#14AF9E]" />
             </div>
             <h3 className="text-lg font-light text-white mb-2">{t("about.card2.title")}</h3>
-            <p className="text-xs sm:text-sm text-neutral-400 font-light leading-relaxed">
+            <p className="text-sm text-neutral-300 font-light leading-relaxed">
               {t("about.card2.body")}
             </p>
           </SpotlightCard>
@@ -118,11 +118,11 @@ export default function About() {
               <HiCheckBadge className="w-5 h-5 text-emerald-400" />
             </div>
             <h3 className="text-lg font-light text-white mb-2">{t("about.card3.title")}</h3>
-            <div className="flex flex-wrap gap-1.5 mt-3">
+            <div className="flex flex-wrap gap-2 mt-3">
               {disciplines[lang].map((tag, i) => (
                 <span
                   key={i}
-                  className="px-2.5 py-1 rounded-full bg-white/[0.03] border border-white/5 text-[11px] font-mono text-neutral-300 hover:border-[#14AF9E]/40 hover:text-white transition-colors"
+                  className="px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#14AF9E]/40 hover:text-white transition-colors"
                 >
                   {tag}
                 </span>

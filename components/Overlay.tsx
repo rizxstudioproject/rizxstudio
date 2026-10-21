@@ -127,7 +127,7 @@ export default function Overlay({ progress }: OverlayProps) {
         <h1 className="text-3xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-tight">
           Fomy R<span className="text-neutral-500 font-normal">.</span>
         </h1>
-        <p className="text-[11px] sm:text-sm md:text-base font-mono tracking-widest text-neutral-400 mt-1 sm:mt-3">
+        <p className="text-sm sm:text-base font-mono tracking-widest text-neutral-300 mt-2 sm:mt-3">
           {t("hero.role")}
         </p>
 
@@ -136,7 +136,7 @@ export default function Overlay({ progress }: OverlayProps) {
           <div className="w-4 h-7 sm:w-5 sm:h-9 rounded-full border-2 border-neutral-400/50 flex justify-center pt-1.5">
             <span className="w-1 h-2 rounded-full bg-neutral-300 animate-bounce" />
           </div>
-          <span className="text-[9px] sm:text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
+          <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
             {t("hero.scroll")}
           </span>
         </div>
@@ -157,7 +157,7 @@ export default function Overlay({ progress }: OverlayProps) {
           {t("hero.section2.headline1")}<br />
           <span className="text-neutral-400">{t("hero.section2.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-xs sm:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
+        <p className="text-sm sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
           {t("hero.section2.body")}
         </p>
       </div>
@@ -177,7 +177,7 @@ export default function Overlay({ progress }: OverlayProps) {
           {t("hero.section3.headline1")}<br />
           <span className="text-neutral-400">{t("hero.section3.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-xs sm:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
+        <p className="text-sm sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
           {t("hero.section3.body")}
         </p>
       </div>

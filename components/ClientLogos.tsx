@@ -75,7 +75,7 @@ export default function ClientLogos() {
 
       {/* Label */}
       <div className="mb-10 text-center px-4">
-        <span className="text-[11px] font-mono uppercase tracking-[0.3em] text-neutral-500">
+        <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-neutral-400 font-semibold">
           {t("clients.subtitle")}
         </span>
       </div>
