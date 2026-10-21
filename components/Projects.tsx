@@ -172,8 +172,9 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
   const isId = lang === "id";
   const title = (work.title || "").toLowerCase();
   const type = (work.type || "").toLowerCase();
+  const brand = (work.brand || work.clientName || "").toLowerCase();
 
-  if (title.includes("kia") || type.includes("automotive")) {
+  if (title.includes("kia") || type.includes("automotive") || brand.includes("kia")) {
     return {
       brand: work.brand || work.clientName || "KIA Dufour",
       year: work.year || "2026",
@@ -193,6 +194,75 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
         ? "Mengembangkan prompt berbasis referensi presisi dan menyempurnakan hasil akhir untuk menjaga akurasi bentuk mobil, konsistensi visual, dan estetika otomotif mewah."
         : "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
       tools: ["figma", "photoshop", "magnific"],
+    };
+  }
+
+  if (brand.includes("burger king") || title.includes("burger")) {
+    return {
+      brand: work.brand || work.clientName || "Burger King",
+      year: work.year || "2026",
+      brief: isId
+        ? "Mengembangkan materi kampanye iklan digital dan promosi berdaya tarik tinggi untuk Burger King, menonjolkan menu andalan melalui visual yang menggugah selera dan tipografi berani."
+        : "Develop high-impact digital advertising and promotional campaigns for Burger King, highlighting signature menu items through mouthwatering visuals and bold typography.",
+      approach: isId
+        ? "Menggabungkan komposisi visual kuliner dinamis dengan warna khas merek, pencahayaan kontras, dan tata letak promosi energetik untuk saluran iklan digital."
+        : "Combine dynamic food photography compositions with bold brand colors, high-contrast lighting, and energetic promotional layouts designed for social and digital ad channels.",
+      role: isId
+        ? "Desain periklanan kreatif, retouching visual, desain tata letak promosi, dan produksi aset kampanye digital."
+        : "Creative advertising design, visual retouching, promotional layout design, and digital campaign asset production.",
+      challenge: isId
+        ? "Memastikan visual produk makanan tampak menggugah selera, autentik, dan langsung dikenali sembari memuat hierarki teks promo secara rapi."
+        : "Ensuring food visuals look appetizing, authentic, and instantly recognizable while fitting strict promotional text and discount messaging hierarchies.",
+      solution: isId
+        ? "Merancang template promosi terstruktur dengan fokus utama pada produk dan aksen lencana promo yang mendorong ketertarikan klik pengguna."
+        : "Crafted balanced promotional templates with strong focal points on the product and punchy badge designs that maximize click-through engagement.",
+      tools: ["photoshop", "figma", "ai"],
+    };
+  }
+
+  if (brand.includes("permifast") || title.includes("permifast")) {
+    return {
+      brand: work.brand || work.clientName || "Permifast",
+      year: work.year || "2026",
+      brief: isId
+        ? "Membuat seri kampanye visual modern untuk Permifast, memperkenalkan layanan dan solusinya melalui grafis digital yang bersih, terpercaya, dan profesional."
+        : "Create a modern visual campaign series for Permifast, presenting its services and solutions through clean, reliable, and professional digital graphics.",
+      approach: isId
+        ? "Menerapkan pembingkaian geometris yang rapi, poin data terstruktur, dan palet warna korporat modern untuk mengomunikasikan kecepatan dan kemudahan."
+        : "Apply sleek geometric framing, clear data points, and a modern corporate color palette to convey speed, trust, and simplicity.",
+      role: isId
+        ? "Pengarahan seni, desain tata letak digital, framing visual, dan pembuatan aset kampanye berbagai format."
+        : "Art direction, digital layout design, visual framing, and multi-format campaign asset generation.",
+      challenge: isId
+        ? "Mengubah konsep layanan regulasi dan teknis menjadi kartu kampanye digital yang menarik secara visual dan mudah dipahami."
+        : "Transforming technical and regulatory service concepts into visually engaging and easily digestible digital campaign cards.",
+      solution: isId
+        ? "Mendesain tata letak berdaya kontras tinggi dengan tipografi tegas dan penanda visual yang mengarahkan pandangan audiens secara runtut."
+        : "Designed high-contrast hero layouts with sharp typography and visual anchors that clearly guide the viewer's eye.",
+      tools: ["figma", "photoshop"],
+    };
+  }
+
+  if (brand.includes("xeilos") || title.includes("xeilos")) {
+    return {
+      brand: work.brand || work.clientName || "Xeilos",
+      year: work.year || "2026",
+      brief: isId
+        ? "Memproduksi rangkaian aset iklan media sosial dan visual merek menyeluruh untuk Xeilos, membangun impresi digital yang khas dan futuristik."
+        : "Produce a comprehensive suite of social media advertising assets and brand visuals for Xeilos, establishing a distinctive and futuristic digital presence.",
+      approach: isId
+        ? "Memanfaatkan estetika bertema gelap, aksen visual bercahaya, dan komposisi bujur sangkar 1:1 yang dioptimalkan untuk engagement media sosial."
+        : "Utilize dark-mode aesthetics, glowing accents, cybernetic motifs, and balanced 1:1 square compositions tailored for maximum social feed engagement.",
+      role: isId
+        ? "Pengembangan konsep kreatif, branding visual, produksi materi iklan media sosial, dan penyesuaian format 9 karya kreatif."
+        : "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
+      challenge: isId
+        ? "Menjaga keberagaman gaya dari 9 aset promosi yang berbeda sembari mempertahankan konsistensi identitas merek."
+        : "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
+      solution: isId
+        ? "Menetapkan grid desain terpadu, paduan warna gelap beraksen kontras, dan penataan tipografi yang kokoh di seluruh variasi iklan."
+        : "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
+      tools: ["photoshop", "figma"],
     };
   }
 
@@ -243,7 +313,9 @@ const getStage2CardTitle = (card: { id: string; title: string }, isId: boolean) 
 
 const getClientCategory = (cat: string, isId: boolean) => {
   if (!isId) return cat;
-  return cat.replace("Digital Campaign", "Kampanye Digital");
+  return cat
+    .replace("Digital Campaign", "Kampanye Digital")
+    .replace("Brand Visuals & Ads", "Visual Merek & Iklan");
 };
 
 const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) => {
@@ -255,6 +327,14 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
     localizedTitle = localizedTitle.replace("Digital Campaign Catalog", "Katalog Kampanye Digital");
   } else if (localizedTitle.startsWith("Digital Campaign")) {
     localizedTitle = localizedTitle.replace("Digital Campaign", "Kampanye Digital");
+  } else if (localizedTitle.startsWith("Burger King — Campaign Ad")) {
+    localizedTitle = localizedTitle.replace("Campaign Ad", "Iklan Kampanye");
+  } else if (localizedTitle.startsWith("Permifast — Promotional Visual")) {
+    localizedTitle = localizedTitle.replace("Promotional Visual", "Visual Promosi");
+  } else if (localizedTitle.startsWith("Xeilos — Campaign Asset")) {
+    localizedTitle = localizedTitle.replace("Campaign Asset", "Aset Kampanye");
+  } else if (localizedTitle.startsWith("Xeilos — Brand Visual")) {
+    localizedTitle = localizedTitle.replace("Brand Visual", "Visual Merek");
   }
 
   let localizedType = work.type;
@@ -263,6 +343,10 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
     "Digital Campaign": "Kampanye Digital",
     "Digital Campaign Editorial": "Editorial Kampanye Digital",
     "Campaign Catalog Asset": "Aset Katalog Kampanye",
+    "Digital Advertising Campaign": "Kampanye Iklan Digital",
+    "Digital Product Campaign": "Kampanye Produk Digital",
+    "Social Media & Brand Ad": "Iklan Media Sosial & Merek",
+    "Brand Identity Asset": "Aset Identitas Merek",
   };
   if (typeMap[work.type]) {
     localizedType = typeMap[work.type];

@@ -101,8 +101,7 @@ export default function Contact() {
           {/* Right: Language Switcher + Social icons */}
           <div className="flex items-center gap-4">
             {/* Footer Language Toggle */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-neutral-400 font-mono uppercase">{t("contact.lang.label")}</span>
+            <div className="flex items-center">
               <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
                 <button
                   type="button"
@@ -183,8 +182,7 @@ export default function Contact() {
           </div>
 
           {/* Mobile Footer Language Toggle */}
-          <div className="flex items-center gap-2 text-xs text-neutral-300 font-mono py-1">
-            <span className="text-xs text-neutral-400 uppercase">{t("contact.lang.label")}</span>
+          <div className="flex items-center text-xs text-neutral-300 font-mono py-1">
             <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-xs">
               <button
                 type="button"
