@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FaInstagram, FaLinkedinIn } from "react-icons/fa6";
+import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
+import { useLang } from "@/context/LanguageContext";
 
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState<string>("");
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollProgressPercent, setScrollProgressPercent] = useState(0);
+  const { lang, setLang, t } = useLang();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -100,7 +102,7 @@ export default function Navbar() {
                 activeSection === "clients" ? "text-white" : "text-neutral-400"
               }`}
             >
-              Clients
+              {t("nav.clients")}
             </button>
             <button
               onClick={() => scrollTo("about")}
@@ -108,7 +110,7 @@ export default function Navbar() {
                 activeSection === "about" ? "text-white" : "text-neutral-400"
               }`}
             >
-              About Me
+              {t("nav.about")}
             </button>
             <button
               onClick={() => scrollTo("projects")}
@@ -116,20 +118,49 @@ export default function Navbar() {
                 activeSection === "projects" ? "text-white" : "text-neutral-400"
               }`}
             >
-              Work
+              {t("nav.work")}
             </button>
-            <button
-              onClick={() => scrollTo("contact")}
-              className={`transition-colors duration-200 hover:text-white ${
-                activeSection === "contact" ? "text-white" : "text-neutral-400"
-              }`}
+            <a
+              href="https://wa.me/6282381769146"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 transition-colors duration-200 text-neutral-400 hover:text-[#14AF9E]"
             >
-              Contact
-            </button>
+              <span>{t("nav.contact")}</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#14AF9E] animate-pulse" />
+            </a>
           </div>
 
-          {/* Right: Social Links (Desktop) & Hamburger Button (Mobile) */}
+          {/* Right: Language Switcher + Social Links (Desktop) & Hamburger Button (Mobile) */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Language Toggle — Desktop & Mobile */}
+            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
+              <button
+                type="button"
+                onClick={() => setLang("en")}
+                className={`px-2.5 py-1 transition-all cursor-pointer ${
+                  lang === "en"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                aria-label="Switch to English"
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang("id")}
+                className={`px-2.5 py-1 transition-all cursor-pointer ${
+                  lang === "id"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                aria-label="Switch to Indonesian"
+              >
+                ID
+              </button>
+            </div>
+
             {/* Desktop Socials */}
             <div className="hidden md:flex items-center gap-2.5">
               <a
@@ -188,26 +219,64 @@ export default function Navbar() {
             onClick={() => scrollTo("clients")}
             className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
           >
-            Clients
+            {t("nav.clients")}
           </button>
           <button
             onClick={() => scrollTo("about")}
             className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
           >
-            About Me
+            {t("nav.about")}
           </button>
           <button
             onClick={() => scrollTo("projects")}
             className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
           >
-            Work
+            {t("nav.work")}
           </button>
-          <button
-            onClick={() => scrollTo("contact")}
-            className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+
+          {/* Contact Direct WhatsApp Link in Mobile Drawer */}
+          <a
+            href="https://wa.me/6282381769146"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center justify-between py-2.5 px-3.5 rounded-xl bg-[#14AF9E]/15 border border-[#14AF9E]/30 text-white font-medium text-sm hover:bg-[#14AF9E]/25 transition-all mt-1"
           >
-            Contact
-          </button>
+            <span className="flex items-center gap-2">
+              <FaWhatsapp className="w-4 h-4 text-[#14AF9E]" />
+              <span>{t("nav.contact")} (WhatsApp)</span>
+            </span>
+            <span className="text-[11px] font-mono text-[#14AF9E] font-semibold">Direct ↗</span>
+          </a>
+
+          {/* Mobile Language Switcher Row in Drawer */}
+          <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-neutral-400 font-mono">
+            <span>Language:</span>
+            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px]">
+              <button
+                type="button"
+                onClick={() => setLang("en")}
+                className={`px-3 py-1 transition-all ${
+                  lang === "en"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                EN (English)
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang("id")}
+                className={`px-3 py-1 transition-all ${
+                  lang === "id"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                ID (Indonesia)
+              </button>
+            </div>
+          </div>
 
           {/* Mobile Social Links in Drawer */}
           <div className="flex items-center gap-3 pt-3 border-t border-white/10">

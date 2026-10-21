@@ -4,8 +4,11 @@ import React from "react";
 import SpotlightCard from "./SpotlightCard";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { HiArrowUpRight } from "react-icons/hi2";
+import { useLang } from "@/context/LanguageContext";
 
 export default function Contact() {
+  const { t, lang, setLang } = useLang();
+
   return (
     <footer id="contact" className="relative pt-20 pb-16 px-4 sm:px-12 lg:px-24 max-w-7xl mx-auto">
       <SpotlightCard className="p-8 sm:p-14 lg:p-16 mb-16 sm:mb-20">
@@ -13,14 +16,14 @@ export default function Contact() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-mono tracking-widest uppercase text-emerald-400 mb-4 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Open to Creative Opportunities</span>
+              <span>{t("contact.badge")}</span>
             </div>
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
-              Let&apos;s create something <br className="hidden sm:inline" />
-              <span className="text-neutral-400 font-light italic">meaningful</span> together.
+              {t("contact.headline1")} <br className="hidden sm:inline" />
+              <span className="text-neutral-400 font-light italic">{t("contact.headline2")}</span> {t("contact.headline3")}
             </h2>
             <p className="text-neutral-400 text-sm sm:text-base font-light leading-relaxed">
-              Have a project in mind? Let&apos;s connect and explore how design, motion, and AI-driven visuals can bring your ideas to life.
+              {t("contact.body")}
             </p>
           </div>
 
@@ -56,7 +59,6 @@ export default function Contact() {
         </div>
       </SpotlightCard>
 
-      {/* Footer Bottom Bar matching reference screenshot */}
       {/* Footer Bottom Bar — Mobile: centered stack | Desktop: 3-column row */}
       <div className="pt-8 border-t border-white/5 text-xs text-neutral-500 font-mono">
 
@@ -76,38 +78,79 @@ export default function Contact() {
               />
             </button>
             <span className="text-[10px] text-neutral-600 tracking-wider">
-              &copy; {new Date().getFullYear()} FOMY R. — ALL RIGHTS RESERVED.
+              &copy; {new Date().getFullYear()} FOMY R. — {t("contact.footer.rights")}
             </span>
           </div>
 
           {/* Center: Nav links */}
           <div className="flex items-center gap-7 text-neutral-400 text-[11px]">
-            <a href="#clients" className="hover:text-white transition-colors uppercase tracking-widest">Clients</a>
-            <a href="#projects" className="hover:text-white transition-colors uppercase tracking-widest">Work</a>
-            <a href="#about" className="hover:text-white transition-colors uppercase tracking-widest">About Me</a>
-            <a href="#contact" className="hover:text-white transition-colors uppercase tracking-widest">Contact</a>
+            <a href="#clients" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.clients")}</a>
+            <a href="#projects" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.work")}</a>
+            <a href="#about" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.about")}</a>
+            <a
+              href="https://wa.me/6282381769146"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#14AF9E] text-neutral-300 transition-colors uppercase tracking-widest flex items-center gap-1 font-semibold"
+            >
+              <span>{t("contact.footer.contact")}</span>
+              <span className="text-[10px] text-[#14AF9E]">↗</span>
+            </a>
           </div>
 
-          {/* Right: Social icons */}
-          <div className="flex items-center gap-2 text-neutral-400">
-            <a
-              href="https://www.instagram.com/rizxstudio/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram Profile"
-              className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <FaInstagram className="w-4 h-4" />
-            </a>
-            <a
-              href="https://www.linkedin.com/in/rizxstudio/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn Profile"
-              className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <FaLinkedinIn className="w-4 h-4" />
-            </a>
+          {/* Right: Language Switcher + Social icons */}
+          <div className="flex items-center gap-4">
+            {/* Footer Language Toggle */}
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-neutral-500 uppercase">{t("contact.lang.label")}</span>
+              <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
+                <button
+                  type="button"
+                  onClick={() => setLang("en")}
+                  className={`px-2.5 py-1 transition-all cursor-pointer ${
+                    lang === "en"
+                      ? "bg-[#14AF9E] text-white font-bold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                  aria-label="English"
+                >
+                  EN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLang("id")}
+                  className={`px-2.5 py-1 transition-all cursor-pointer ${
+                    lang === "id"
+                      ? "bg-[#14AF9E] text-white font-bold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                  aria-label="Indonesia"
+                >
+                  ID
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 text-neutral-400 border-l border-white/10 pl-3">
+              <a
+                href="https://www.instagram.com/rizxstudio/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Instagram Profile"
+                className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <FaInstagram className="w-4 h-4" />
+              </a>
+              <a
+                href="https://www.linkedin.com/in/rizxstudio/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="LinkedIn Profile"
+                className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <FaLinkedinIn className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
 
@@ -126,10 +169,46 @@ export default function Contact() {
           </button>
 
           <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-400 text-[11px]">
-            <a href="#clients" className="hover:text-white transition-colors uppercase">Clients</a>
-            <a href="#projects" className="hover:text-white transition-colors uppercase">Work</a>
-            <a href="#about" className="hover:text-white transition-colors uppercase">About Me</a>
-            <a href="#contact" className="hover:text-white transition-colors uppercase">Contact</a>
+            <a href="#clients" className="hover:text-white transition-colors uppercase">{t("contact.footer.clients")}</a>
+            <a href="#projects" className="hover:text-white transition-colors uppercase">{t("contact.footer.work")}</a>
+            <a href="#about" className="hover:text-white transition-colors uppercase">{t("contact.footer.about")}</a>
+            <a
+              href="https://wa.me/6282381769146"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-[#14AF9E] text-neutral-300 transition-colors uppercase font-semibold"
+            >
+              {t("contact.footer.contact")} ↗
+            </a>
+          </div>
+
+          {/* Mobile Footer Language Toggle */}
+          <div className="flex items-center gap-2 text-xs text-neutral-400 font-mono py-1">
+            <span className="text-[10px] text-neutral-500 uppercase">{t("contact.lang.label")}</span>
+            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px]">
+              <button
+                type="button"
+                onClick={() => setLang("en")}
+                className={`px-3 py-1 transition-all ${
+                  lang === "en"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang("id")}
+                className={`px-3 py-1 transition-all ${
+                  lang === "id"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                ID
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-4 text-neutral-400">
@@ -154,7 +233,7 @@ export default function Contact() {
           </div>
 
           <div className="text-[10px] text-neutral-600 tracking-wider">
-            &copy; {new Date().getFullYear()} FOMY R. — ALL RIGHTS RESERVED.
+            &copy; {new Date().getFullYear()} FOMY R. — {t("contact.footer.rights")}
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
+import { useLang } from "@/context/LanguageContext";
 
 interface OverlayProps {
   progress: number;
@@ -10,6 +11,7 @@ export default function Overlay({ progress }: OverlayProps) {
   const section1Ref = useRef<HTMLDivElement>(null);
   const section2Ref = useRef<HTMLDivElement>(null);
   const section3Ref = useRef<HTMLDivElement>(null);
+  const { t } = useLang();
 
   useEffect(() => {
     // ==========================================
@@ -126,7 +128,7 @@ export default function Overlay({ progress }: OverlayProps) {
           Fomy Rizky<span className="text-neutral-500 font-normal">.</span>
         </h1>
         <p className="text-[11px] sm:text-sm md:text-base font-mono tracking-widest text-neutral-400 mt-1 sm:mt-3">
-          &lt;AI-Powered Creative Designer/&gt;
+          {t("hero.role")}
         </p>
 
         {/* Minimalist mouse scroll indicator matching reference */}
@@ -135,7 +137,7 @@ export default function Overlay({ progress }: OverlayProps) {
             <span className="w-1 h-2 rounded-full bg-neutral-300 animate-bounce" />
           </div>
           <span className="text-[9px] sm:text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
-            SCROLL
+            {t("hero.scroll")}
           </span>
         </div>
       </div>
@@ -152,11 +154,11 @@ export default function Overlay({ progress }: OverlayProps) {
         className="absolute inset-x-0 px-6 sm:px-0 sm:left-12 md:left-16 lg:left-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left flex flex-col justify-center transition-none"
       >
         <h2 className="text-2xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-2 sm:mb-4 leading-[1.15]">
-          Results-driven<br />
-          <span className="text-neutral-400">creative</span><span className="text-neutral-500 font-normal">.</span>
+          {t("hero.section2.headline1")}<br />
+          <span className="text-neutral-400">{t("hero.section2.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
         <p className="text-xs sm:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
-          Combining 11 years of creative expertise with AI-powered workflows to produce impactful visuals, distinctive brand identities, and high-performing digital campaigns.
+          {t("hero.section2.body")}
         </p>
       </div>
 
@@ -172,11 +174,11 @@ export default function Overlay({ progress }: OverlayProps) {
         className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left sm:text-right flex flex-col items-start sm:items-end justify-center transition-none"
       >
         <h2 className="text-2xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-2 sm:mb-4 leading-[1.15]">
-          Creative<br />
-          <span className="text-neutral-400">meets AI</span><span className="text-neutral-500 font-normal">.</span>
+          {t("hero.section3.headline1")}<br />
+          <span className="text-neutral-400">{t("hero.section3.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
         <p className="text-xs sm:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
-          Where human creativity and intelligent technology converge — crafting visuals, brands, and campaigns that move people and perform at scale.
+          {t("hero.section3.body")}
         </p>
       </div>
     </div>

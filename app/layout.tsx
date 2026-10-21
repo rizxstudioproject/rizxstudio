@@ -1,23 +1,50 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import ContentGuard from "@/components/ContentGuard";
+import { LanguageProvider } from "@/context/LanguageContext";
 
 export const metadata: Metadata = {
-  title: "Fomy R — AI-Powered Creative Designer | Antigravity Portfolio",
+  metadataBase: new URL("https://rizxstudio.com"),
+  title: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
   description:
-    "Flawless, cinematic scrollytelling portfolio of Fomy R — AI-Powered Creative Designer with 10+ years experience specializing in AI advertising, branding, UI/UX, motion graphics, video, and AI-assisted creative production.",
+    "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
   keywords: [
+    "Rizxstudio",
+    "FOMY",
     "Fomy R",
-    "Fomy Rizky",
-    "AI-Powered Creative Designer",
-    "AI Advertising",
-    "Graphic Design",
+    "Creative Designer",
+    "Motion Specialist",
+    "Digital Advertising",
     "Branding",
-    "UI/UX",
+    "UI/UX Design",
     "Motion Graphics",
     "Video Production",
-    "Generative AI",
+    "Creative Production",
   ],
+  openGraph: {
+    title: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
+    description:
+      "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
+    url: "https://rizxstudio.com",
+    siteName: "Rizxstudio",
+    locale: "en_US",
+    type: "website",
+    images: [
+      {
+        url: "/brand-logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Rizxstudio",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
+    description:
+      "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
+    images: ["/brand-logo.png"],
+  },
   icons: {
     icon: [
       { url: "/icon.png", sizes: "any" },
@@ -40,7 +67,9 @@ export default function RootLayout({
         <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-40" />
         {/* Multi-layer content protection: anti-rightclick, anti-drag, anti-snip */}
         <ContentGuard />
-        {children}
+        <LanguageProvider>
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

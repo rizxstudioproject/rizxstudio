@@ -11,6 +11,7 @@ import {
   HiCheckCircle,
 } from "react-icons/hi2";
 import { SiBlender, SiFigma, SiCinema4D } from "react-icons/si";
+import { useLang } from "@/context/LanguageContext";
 
 interface WorkItem {
   id: string;
@@ -164,46 +165,54 @@ function ToolBadge({ tool }: { tool: string }) {
 }
 
 /**
- * Intelligent AI Case Study Fallback
+ * Intelligent AI Case Study Fallback with Bilingual Support (EN & ID)
  */
-function getCaseStudy(work: ModalItem) {
-  if (work.challenge && work.solution && work.tools && work.tools.length > 0) {
-    return {
-      brand: work.brand || work.clientName || "Brand Client",
-      year: work.year || "2026",
-      brief: work.brief || "",
-      approach: work.approach || "",
-      role: work.role || "",
-      challenge: work.challenge,
-      solution: work.solution,
-      tools: work.tools,
-    };
-  }
-
+function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
+  const isId = lang === "id";
   const title = (work.title || "").toLowerCase();
   const type = (work.type || "").toLowerCase();
 
   if (title.includes("kia") || type.includes("automotive")) {
     return {
-      brand: work.brand || work.clientName || "KIA Motors",
+      brand: work.brand || work.clientName || "KIA Dufour",
       year: work.year || "2026",
-      brief: "Develop high-impact automotive visuals for future EV concept campaigns.",
-      approach: "Integrate precision AI concept rendering with automotive reflection grading.",
-      role: "Creative Direction, AI generation & Photoshop digital compositing.",
-      challenge: "Visualisasi kendaraan konsep masa depan tanpa ketersediaan unit fisik asli atau pemotretan studio nyata.",
-      solution: "Generasi render konsep AI presisi tinggi dipadukan dengan teknik digital compositing dan reflection mapping otomotif.",
-      tools: ["photoshop", "illustrator", "blender", "midjourney"],
+      brief: isId
+        ? "Pengembangan rangkaian kampanye digital untuk KIA Dufour, menampilkan EV2, PBV, dan Sportage melalui visual otomotif premium dan pesan promosi terarah."
+        : "Develop a series of digital campaigns for KIA Dufour, showcasing the EV2, PBV, and Sportage through premium automotive visuals and promotional messaging.",
+      approach: isId
+        ? "Menggabungkan citra otomotif berbasis AI dengan arsitektur modern, pencahayaan sinematik, dan tipografi bersih."
+        : "Combine AI-generated automotive imagery with modern architectural settings, cinematic lighting, and clean typography to create a cohesive campaign across multiple vehicle models.",
+      role: isId
+        ? "Pengarahan seni (art direction), pengembangan prompt AI, generasi visual, dan tata letak kampanye di Photoshop & Figma."
+        : "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
+      challenge: isId
+        ? "Menerjemahkan referensi unit kendaraan dari klien menjadi visual suasana realistis berbasis AI dengan tetap menjaga keaslian detail khas tiap model."
+        : "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each model’s defining details.",
+      solution: isId
+        ? "Mengembangkan prompt berbasis referensi presisi dan menyempurnakan hasil akhir untuk menjaga akurasi bentuk mobil, konsistensi visual, dan estetika otomotif mewah."
+        : "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
+      tools: ["figma", "photoshop", "magnific"],
     };
   }
 
   return {
     brand: work.brand || work.clientName || "HYASHOP",
     year: work.year || "2026",
-    brief: "Develop a series of digital campaigns showcasing HYASHOP’s aesthetic and beauty products through premium, professional visuals.",
-    approach: "Combine AI-assisted imagery with refined art direction, warm neutral tones, and clean typography to create a cohesive visual identity across product categories.",
-    role: "Visual development, AI image generation, art direction, and campaign layout design using Magnific AI and Figma.",
-    challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
-    solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
+    brief: isId
+      ? "Mengembangkan rangkaian kampanye digital yang menampilkan produk estetika dan kecantikan HYASHOP melalui visual premium dan profesional."
+      : "Develop a series of digital campaigns showcasing HYASHOP’s aesthetic and beauty products through premium, professional visuals.",
+    approach: isId
+      ? "Menggabungkan citra berbantuan AI dengan pengarahan seni yang matang, nuansa netral hangat, dan tipografi bersih."
+      : "Combine AI-assisted imagery with refined art direction, warm neutral tones, and clean typography to create a cohesive visual identity across product categories.",
+    role: isId
+      ? "Pengembangan visual, generasi citra AI, pengarahan seni (art direction), dan desain tata letak kampanye di Magnific AI & Figma."
+      : "Visual development, AI image generation, art direction, and campaign layout design using Magnific AI and Figma.",
+    challenge: isId
+      ? "Menyeimbangkan beragam kategori produk dengan estetika merek yang konsisten sembari menjaga akurasi detail produk."
+      : "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
+    solution: isId
+      ? "Menciptakan sistem kampanye terpadu melalui komposisi terkontrol, citra realistis, dan hierarki visual yang jelas."
+      : "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
     tools: ["figma", "magnific"],
   };
 }
@@ -215,6 +224,7 @@ export default function Projects() {
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>(stage4.clients[0].id);
+  const { t, lang } = useLang();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -861,7 +871,7 @@ export default function Projects() {
 
                   {/* Scroll Down Indicator Cue */}
                   <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-neutral-400">
-                    <span>Project Brief & Details Below</span>
+                    <span>{t("projects.scrollhint")}</span>
                     <span className="animate-bounce">↓</span>
                   </div>
 
@@ -890,7 +900,7 @@ export default function Projects() {
 
                 {/* AI Project Case Study Brief (Placed below the full-scale image, scrolled down naturally) */}
                 {(() => {
-                  const caseStudy = getCaseStudy(currentWork);
+                  const caseStudy = getCaseStudy(currentWork, lang);
 
                   return (
                     <div className="p-5 sm:p-8 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-t border-white/10 space-y-5 shrink-0">
@@ -958,7 +968,7 @@ export default function Projects() {
                         <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-amber-500/20 transition-all">
                           <div className="flex items-center gap-1.5 text-amber-400 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
                             <HiExclamationTriangle className="w-3.5 h-3.5 shrink-0" />
-                            <span>Tantangan / Kesulitan</span>
+                            <span>{t("casestudy.challenge.label")}</span>
                           </div>
                           <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
                             {caseStudy.challenge}
@@ -969,7 +979,7 @@ export default function Projects() {
                         <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-[#14AF9E]/30 transition-all">
                           <div className="flex items-center gap-1.5 text-[#14AF9E] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
                             <HiCheckCircle className="w-3.5 h-3.5 shrink-0" />
-                            <span>Jalan Keluar / Solusi</span>
+                            <span>{t("casestudy.solution.label")}</span>
                           </div>
                           <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
                             {caseStudy.solution}
@@ -981,7 +991,7 @@ export default function Projects() {
                       {caseStudy.role && (
                         <div className="px-3.5 py-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-400">
                           <span className="text-[#14AF9E] font-mono font-semibold uppercase text-[10px] tracking-wider">
-                            Role:
+                            {t("projects.role")}
                           </span>
                           <span>{caseStudy.role}</span>
                         </div>
@@ -991,7 +1001,7 @@ export default function Projects() {
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/5">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-semibold">
-                            Tools Digunakan:
+                            {t("projects.tools")}
                           </span>
                           <div className="flex flex-wrap items-center gap-1.5">
                             {caseStudy.tools.map((t, idx) => (
@@ -1005,7 +1015,7 @@ export default function Projects() {
                           onClick={() => setModalData(null)}
                           className="px-5 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0 self-end sm:self-auto"
                         >
-                          Close Preview
+                          {t("projects.close")}
                         </button>
                       </div>
                     </div>
