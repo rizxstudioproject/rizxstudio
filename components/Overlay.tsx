@@ -124,25 +124,25 @@ export default function Overlay({ progress }: OverlayProps) {
         }}
         className="absolute inset-x-0 top-[48%] sm:top-[50%] -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 transition-none"
       >
-        <h1 className="text-3xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-tight">
+        <h1 className="text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-tight">
           Fomy R<span className="text-neutral-500 font-normal">.</span>
         </h1>
-        <p className="text-sm sm:text-base font-mono tracking-widest text-neutral-300 mt-2 sm:mt-3">
+        <p className="text-sm sm:text-base font-mono tracking-wider sm:tracking-widest text-neutral-300 mt-2 sm:mt-3">
           {t("hero.role")}
         </p>
 
         {/* Minimalist mouse scroll indicator matching reference */}
-        <div className="flex flex-col items-center gap-2 mt-5 sm:mt-12">
-          <div className="w-4 h-7 sm:w-5 sm:h-9 rounded-full border-2 border-neutral-400/50 flex justify-center pt-1.5">
+        <div className="flex flex-col items-center gap-2 mt-6 sm:mt-12">
+          <div className="w-5 h-8 sm:w-5 sm:h-9 rounded-full border-2 border-neutral-400/60 flex justify-center pt-1.5">
             <span className="w-1 h-2 rounded-full bg-neutral-300 animate-bounce" />
           </div>
-          <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
+          <span className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
             {t("hero.scroll")}
           </span>
         </div>
       </div>
 
-      {/* SECTION 2: Left aligned (Matching reference Image 5 "Results-driven engineer.") */}
+      {/* SECTION 2: Left aligned (Matching reference "Results-driven engineer.") */}
       <div
         ref={section2Ref}
         style={{
@@ -153,16 +153,16 @@ export default function Overlay({ progress }: OverlayProps) {
         }}
         className="absolute inset-x-0 px-6 sm:px-0 sm:left-12 md:left-16 lg:left-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left flex flex-col justify-center transition-none"
       >
-        <h2 className="text-2xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-2 sm:mb-4 leading-[1.15]">
+        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-[1.15]">
           {t("hero.section2.headline1")}<br />
-          <span className="text-neutral-400">{t("hero.section2.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
+          <span className="text-neutral-400 font-bold">{t("hero.section2.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-sm sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
+        <p className="text-base sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
           {t("hero.section2.body")}
         </p>
       </div>
 
-      {/* SECTION 3: Right aligned */}
+      {/* SECTION 3: Right aligned (Matching reference "AI & Automation Developer.") */}
       <div
         ref={section3Ref}
         style={{
@@ -171,13 +171,13 @@ export default function Overlay({ progress }: OverlayProps) {
           willChange: "transform, opacity",
           visibility: "hidden",
         }}
-        className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left sm:text-right flex flex-col items-start sm:items-end justify-center transition-none"
+        className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-right flex flex-col items-end justify-center transition-none ml-auto"
       >
-        <h2 className="text-2xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-2 sm:mb-4 leading-[1.15]">
+        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-[1.15]">
           {t("hero.section3.headline1")}<br />
-          <span className="text-neutral-400">{t("hero.section3.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
+          <span className="text-neutral-400 font-bold">{t("hero.section3.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-sm sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
+        <p className="text-base sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg text-right">
           {t("hero.section3.body")}
         </p>
       </div>

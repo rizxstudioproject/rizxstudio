@@ -412,7 +412,7 @@ export default function Projects() {
             <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-tight">
               {t("projects.stage1.headline")}
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-neutral-300 font-light mt-3 sm:mt-4 max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed text-balance">
+            <p className="text-sm sm:text-base md:text-lg text-neutral-300 font-light mt-3 sm:mt-4 max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed text-balance">
               {t("projects.stage1.subheadline")}
             </p>
           </div>
@@ -753,7 +753,7 @@ export default function Projects() {
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2 sm:mb-3 leading-tight">
               {t("projects.stage4.headline")}
             </h2>
-            <p className="text-xs sm:text-sm md:text-base text-neutral-300 font-light leading-relaxed mb-4">
+            <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed mb-4">
               {t("projects.stage4.desc")}
             </p>
             

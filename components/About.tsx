@@ -51,7 +51,7 @@ export default function About() {
               </h3>
 
               {/* Paragraph 1 */}
-              <p className="text-neutral-300 text-sm sm:text-base md:text-lg leading-relaxed font-light">
+              <p className="text-neutral-300 text-[15px] sm:text-base md:text-lg leading-relaxed font-light">
                 {t("about.para1")}
               </p>
 
@@ -103,7 +103,7 @@ export default function About() {
               <HiGlobeAmericas className="w-5 h-5 text-[#14AF9E]" />
             </div>
             <h3 className="text-base sm:text-lg font-medium text-white mb-2">{t("about.card2.title")}</h3>
-            <p className="text-xs sm:text-sm text-neutral-300 font-light leading-relaxed">
+            <p className="text-sm text-neutral-300 font-light leading-relaxed">
               {t("about.card2.body")}
             </p>
           </SpotlightCard>
