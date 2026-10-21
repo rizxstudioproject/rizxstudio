@@ -266,6 +266,75 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
     };
   }
 
+  if (brand.includes("adl") || title.includes("adl")) {
+    return {
+      brand: work.brand || work.clientName || "ADL - Finance",
+      year: work.year || "2026",
+      brief: isId
+        ? "Kampanye pemasaran digital strategis untuk ADL Finance, mengomunikasikan perencanaan keuangan, kepercayaan investasi, dan solusi pengelolaan kekayaan cerdas."
+        : "Strategic digital marketing campaign for ADL Finance, communicating financial planning, investment trust, and smart wealth management solutions.",
+      approach: isId
+        ? "Estetika korporat modern menggabungkan tipografi tegas, palet gelap premium, dan data visual terstruktur untuk menyampaikan keamanan dan pertumbuhan finansial."
+        : "Modern corporate aesthetics combining crisp typography, premium dark palettes, and structured visual data points to convey security and financial growth.",
+      role: isId
+        ? "Pengarahan seni, desain tata letak kampanye finansial, branding visual, dan produksi aset digital di Figma & Photoshop."
+        : "Art direction, financial campaign layout design, visual branding, and multi-asset digital production in Figma & Photoshop.",
+      challenge: isId
+        ? "Menyajikan topik finansial yang kompleks secara jelas dan kredibel di berbagai penempatan iklan digital."
+        : "Presenting complex financial topics with clarity and high visual trust across varied digital ad placements.",
+      solution: isId
+        ? "Mengembangkan sistem visual kredibel dengan hierarki headline yang bersih, warna aksen finansial, dan tata letak promosi yang terarah."
+        : "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
+      tools: ["figma", "photoshop"],
+    };
+  }
+
+  if (brand.includes("eduf") || title.includes("eduf")) {
+    return {
+      brand: work.brand || work.clientName || "EDUF - Education",
+      year: work.year || "2026",
+      brief: isId
+        ? "Kampanye promosi digital multi-platform untuk EDUF, mendorong keterlibatan siswa dan partisipasi acara pendidikan internasional."
+        : "Multi-platform digital promotional campaign for EDUF, driving student engagement and event participation for global education opportunities.",
+      approach: isId
+        ? "Tata letak dinamis dan ramah generasi muda dengan aksen gradasi cerah, tipografi energetik, dan ajakan bertindak yang jelas untuk audiens pelajar."
+        : "Dynamic, youth-centric layouts featuring vibrant gradient treatments, energetic typography, and clear calls-to-action tailored for student demographics.",
+      role: isId
+        ? "Pengarahan visual kreatif, desain promosi acara, adaptasi iklan media sosial, dan produksi aset kampanye."
+        : "Creative visual direction, event promo design, social media ad formatting, and campaign asset production.",
+      challenge: isId
+        ? "Menangkap antusiasme calon mahasiswa sembari menjaga informasi penting pendaftaran acara tetap mudah terbaca."
+        : "Capturing the enthusiasm of prospective students while keeping essential event registration details readily legible.",
+      solution: isId
+        ? "Menciptakan titik fokus berdaya kontras tinggi dengan lencana acara yang menonjol dan blok teks terstruktur yang mendorong pendaftaran."
+        : "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
+      tools: ["photoshop", "figma"],
+    };
+  }
+
+  if (brand.includes("withings") || title.includes("withings")) {
+    return {
+      brand: work.brand || work.clientName || "Withings - Health Tech",
+      year: work.year || "2026",
+      brief: isId
+        ? "Kampanye media sosial elegan untuk Withings, menampilkan ekosistem kesehatan terhubung dan perangkat pintar melalui visual gaya hidup modern."
+        : "Sleek social media campaign for Withings, showcasing its connected health ecosystem and precision smart devices through modern lifestyle visuals.",
+      approach: isId
+        ? "Prinsip desain Skandinavia minimalis dengan pembingkaian 1:1 bujur sangkar, overlay antarmuka halus, dan fokus fotografi produk premium."
+        : "Minimalist Scandinavian design principles with clean 1:1 square framing, subtle interface overlays, and refined product photography focus.",
+      role: isId
+        ? "Desain periklanan digital, retouching visual produk, kurasi aset feed media sosial, dan pengelolaan konsistensi merek."
+        : "Digital advertising design, product visual retouching, social feed asset curation, and brand consistency management.",
+      challenge: isId
+        ? "Menonjolkan teknologi medis mutakhir sekaligus keanggunan gaya hidup sehari-hari dalam format bujur sangkar media sosial."
+        : "Highlighting both sophisticated medical-grade technology and everyday lifestyle elegance within compact square social formats.",
+      solution: isId
+        ? "Memanfaatkan ruang bernapas yang seimbang, bayangan halus, dan sorotan data ringkas yang menekankan kesehatan harian yang mudah."
+        : "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
+      tools: ["figma", "photoshop"],
+    };
+  }
+
   return {
     brand: work.brand || work.clientName || "HYASHOP",
     year: work.year || "2026",
@@ -335,6 +404,12 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
     localizedTitle = localizedTitle.replace("Campaign Asset", "Aset Kampanye");
   } else if (localizedTitle.startsWith("Xeilos — Brand Visual")) {
     localizedTitle = localizedTitle.replace("Brand Visual", "Visual Merek");
+  } else if (localizedTitle.startsWith("ADL Finance — Campaign")) {
+    localizedTitle = localizedTitle.replace("Campaign", "Kampanye");
+  } else if (localizedTitle.startsWith("EDUF — Promo Visual")) {
+    localizedTitle = localizedTitle.replace("Promo Visual", "Visual Promosi");
+  } else if (localizedTitle.startsWith("Withings — Smart Health")) {
+    localizedTitle = localizedTitle.replace("Smart Health", "Kesehatan Pintar");
   }
 
   let localizedType = work.type;
@@ -347,6 +422,9 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
     "Digital Product Campaign": "Kampanye Produk Digital",
     "Social Media & Brand Ad": "Iklan Media Sosial & Merek",
     "Brand Identity Asset": "Aset Identitas Merek",
+    "Digital Financial Campaign": "Kampanye Finansial Digital",
+    "Education Campaign Asset": "Aset Kampanye Edukasi",
+    "Social Media Health Ad": "Iklan Kesehatan Media Sosial",
   };
   if (typeMap[work.type]) {
     localizedType = typeMap[work.type];
