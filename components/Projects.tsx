@@ -671,22 +671,72 @@ export default function Projects() {
                       draggable={false}
                     />
 
-                    {/* Security Center Watermark: prevents unauthorized screenshot reuse */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-20 overflow-hidden">
-                      <div className="flex flex-col items-center justify-center opacity-25 rotate-[-22deg] select-none scale-90 sm:scale-100">
-                        <span className="text-xl sm:text-2xl md:text-3xl font-black font-mono tracking-[0.25em] uppercase text-white/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] whitespace-nowrap">
-                          RIZX STUDIO
-                        </span>
-                        <span className="text-[9px] sm:text-[11px] font-mono tracking-[0.3em] uppercase text-neutral-300 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)] mt-1 whitespace-nowrap">
-                          CONFIDENTIAL • ALL RIGHTS RESERVED
-                        </span>
+                    {/* Security Tiled Diagonal Watermark Grid: Industry-standard anti-theft protection (like Shutterstock / Getty) */}
+                    <div className="absolute inset-0 pointer-events-none select-none z-20 overflow-hidden rounded-xl sm:rounded-2xl">
+                      {/* Repeating Diagonal Watermark SVG Pattern */}
+                      <svg className="absolute inset-0 w-full h-full opacity-20" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <pattern
+                            id="rizx-watermark-pattern"
+                            width="260"
+                            height="160"
+                            patternUnits="userSpaceOnUse"
+                            patternTransform="rotate(-25)"
+                          >
+                            <text
+                              x="20"
+                              y="50"
+                              fill="#ffffff"
+                              fontSize="13"
+                              fontWeight="900"
+                              fontFamily="monospace"
+                              letterSpacing="0.25em"
+                            >
+                              RIZX STUDIO
+                            </text>
+                            <text
+                              x="20"
+                              y="75"
+                              fill="#14AF9E"
+                              fontSize="9"
+                              fontWeight="700"
+                              fontFamily="monospace"
+                              letterSpacing="0.2em"
+                            >
+                              DO NOT DUPLICATE
+                            </text>
+                            <text
+                              x="20"
+                              y="130"
+                              fill="#aaaaaa"
+                              fontSize="8"
+                              fontFamily="monospace"
+                              letterSpacing="0.15em"
+                            >
+                              rizxstudio.com
+                            </text>
+                          </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#rizx-watermark-pattern)" />
+                      </svg>
+
+                      {/* Center Prominent Studio Seal */}
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="flex flex-col items-center justify-center opacity-30 rotate-[-18deg] select-none scale-90 sm:scale-100 p-4 rounded-2xl border border-white/20 bg-black/30 backdrop-blur-[2px]">
+                          <span className="text-xl sm:text-2xl md:text-3xl font-black font-mono tracking-[0.3em] uppercase text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] whitespace-nowrap">
+                            RIZX STUDIO
+                          </span>
+                          <span className="text-[9px] sm:text-[11px] font-mono tracking-[0.35em] uppercase text-[#14AF9E] drop-shadow-[0_1px_4px_rgba(0,0,0,0.9)] mt-1.5 whitespace-nowrap font-bold">
+                            PROTECTED PORTFOLIO • PROPRIETARY
+                          </span>
+                        </div>
                       </div>
                     </div>
 
                     {/* Corner Copyright Stamp */}
                     <div className="absolute bottom-3 right-4 z-20 pointer-events-none select-none">
-                      <span className="text-[9px] sm:text-[10px] font-mono tracking-widest uppercase text-white/30 bg-black/40 px-2 py-0.5 rounded backdrop-blur-sm border border-white/5">
-                        © RIZX STUDIO
+                      <span className="text-[9px] sm:text-[10px] font-mono tracking-widest uppercase text-white/50 bg-black/60 px-2.5 py-1 rounded-md backdrop-blur-md border border-white/10 shadow-lg">
+                        © RIZX STUDIO • ALL RIGHTS RESERVED
                       </span>
                     </div>
                   </div>

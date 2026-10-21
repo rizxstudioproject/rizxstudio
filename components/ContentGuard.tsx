@@ -41,14 +41,47 @@ export default function ContentGuard() {
       }
     };
 
-    // ── 3. Blur portfolio images when window loses focus or page is hidden ───
-    // Defeats screen-recorder apps, snipping tools, and mobile control center recordings
+    // ── Shared Security Shield DOM Element ──────────────────────────────────
+    let multiTouchTimer: NodeJS.Timeout | null = null;
+
+    const createShield = () => {
+      let shield = document.getElementById("anti-screenshot-shield");
+      if (!shield) {
+        shield = document.createElement("div");
+        shield.id = "anti-screenshot-shield";
+        shield.style.cssText =
+          "position:fixed;inset:0;z-index:99999999;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ffffff;font-family:monospace;pointer-events:none;opacity:0;transition:opacity 0.05s ease;";
+        shield.innerHTML = `
+          <div style="text-align:center;padding:24px;border:1px solid rgba(20,175,158,0.3);border-radius:12px;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);max-width:320px;">
+            <div style="width:40px;height:40px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(20,175,158,0.15);color:#14AF9E;font-size:20px;font-weight:bold;">
+              !
+            </div>
+            <div style="font-size:18px;font-weight:900;letter-spacing:0.25em;color:#14AF9E;margin-bottom:6px;">RIZX STUDIO</div>
+            <div style="font-size:10px;font-weight:700;letter-spacing:0.2em;color:#f87171;margin-bottom:4px;">SCREENSHOT / RECORDING BLOCKED</div>
+            <div style="font-size:9px;letter-spacing:0.15em;color:#888888;text-transform:uppercase;">Protected Artwork & Proprietary Design</div>
+          </div>
+        `;
+        document.body.appendChild(shield);
+      }
+      return shield;
+    };
+
+    // ── 3. Blur & Shield when window loses focus or page is hidden ──────────
+    // Defeats screen-recorder floating widgets, notification drawer pulls, snipping tools
     const blurOnHide = () => {
-      document.body.style.filter = "blur(16px)";
-      document.body.style.transition = "filter 0.15s ease";
+      const shield = createShield();
+      shield.style.opacity = "1";
+      shield.style.pointerEvents = "auto";
+      document.body.style.filter = "blur(32px) brightness(0.1)";
+      document.body.style.transition = "filter 0.05s ease";
     };
 
     const unblurOnShow = () => {
+      const shield = document.getElementById("anti-screenshot-shield");
+      if (shield) {
+        shield.style.opacity = "0";
+        shield.style.pointerEvents = "none";
+      }
       document.body.style.filter = "none";
     };
 
@@ -70,30 +103,6 @@ export default function ContentGuard() {
 
     // ── 5. Block 3-Finger Mobile Screenshot Gesture ───────────────────────────
     // Detects multi-touch swipe down/tap used by Android (Xiaomi, Oppo, Vivo, Samsung, etc.)
-    let multiTouchTimer: NodeJS.Timeout | null = null;
-
-    const createShield = () => {
-      let shield = document.getElementById("anti-screenshot-shield");
-      if (!shield) {
-        shield = document.createElement("div");
-        shield.id = "anti-screenshot-shield";
-        shield.style.cssText =
-          "position:fixed;inset:0;z-index:99999999;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ffffff;font-family:monospace;pointer-events:none;opacity:0;transition:opacity 0.05s ease;";
-        shield.innerHTML = `
-          <div style="text-align:center;padding:24px;border:1px solid rgba(20,175,158,0.3);border-radius:12px;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);max-width:320px;">
-            <div style="width:40px;height:40px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(20,175,158,0.15);color:#14AF9E;font-size:20px;font-weight:bold;">
-              !
-            </div>
-            <div style="font-size:18px;font-weight:900;letter-spacing:0.25em;color:#14AF9E;margin-bottom:6px;">RIZX STUDIO</div>
-            <div style="font-size:10px;font-weight:700;letter-spacing:0.2em;color:#f87171;margin-bottom:4px;">SCREENSHOT DETECTED</div>
-            <div style="font-size:9px;letter-spacing:0.15em;color:#888888;text-transform:uppercase;">Protected Artwork & Proprietary Design</div>
-          </div>
-        `;
-        document.body.appendChild(shield);
-      }
-      return shield;
-    };
-
     const triggerBlackout = () => {
       if (multiTouchTimer) {
         clearTimeout(multiTouchTimer);
