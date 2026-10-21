@@ -810,12 +810,12 @@ export default function Projects() {
 
               {/* Modal Container */}
               <div
-                className="relative max-w-4xl max-h-[92vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col scrollbar-thin scrollbar-thumb-white/10"
+                className="relative max-w-5xl max-h-[94vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col scrollbar-thin scrollbar-thumb-white/10"
                 onClick={(e) => e.stopPropagation()}
               >
-                {/* Image Preview Box with Before / After Floating Arrows */}
+                {/* Full-Scale Hero Image Preview Box (Artwork is never shrunk) */}
                 <div
-                  className="relative w-full max-h-[50vh] sm:max-h-[56vh] min-h-[220px] bg-black flex items-center justify-center p-2 sm:p-4 select-none overflow-hidden"
+                  className="relative w-full min-h-[68vh] sm:min-h-[75vh] md:min-h-[80vh] bg-black flex items-center justify-center p-3 sm:p-6 select-none shrink-0 overflow-hidden"
                   onTouchStart={handleTouchStart}
                   onTouchEnd={handleTouchEnd}
                 >
@@ -825,7 +825,7 @@ export default function Projects() {
                       type="button"
                       onClick={handlePrevWork}
                       aria-label="Previous work (Before)"
-                      className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
+                      className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
                     >
                       <svg
                         className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5"
@@ -841,13 +841,13 @@ export default function Projects() {
                     </button>
                   )}
 
-                  {/* Main Image */}
-                  <div className="relative select-none">
+                  {/* Main Large Visual Artwork */}
+                  <div className="relative select-none flex items-center justify-center">
                     <img
                       key={currentWork.id}
                       src={currentWork.image}
                       alt={currentWork.title}
-                      className="max-h-[48vh] sm:max-h-[52vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none"
+                      className="max-h-[66vh] sm:max-h-[74vh] md:max-h-[78vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
                       draggable={false}
                       onContextMenu={(e) => e.preventDefault()}
                     />
@@ -928,13 +928,19 @@ export default function Projects() {
                     </div>
                   </div>
 
+                  {/* Scroll Down Indicator Cue */}
+                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-neutral-400">
+                    <span>Project Brief & Details Below</span>
+                    <span className="animate-bounce">↓</span>
+                  </div>
+
                   {/* After / Next Arrow */}
                   {hasMultiple && (
                     <button
                       type="button"
                       onClick={handleNextWork}
                       aria-label="Next work (After)"
-                      className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
+                      className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
                     >
                       <svg
                         className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-0.5"
@@ -951,12 +957,12 @@ export default function Projects() {
                   )}
                 </div>
 
-                {/* AI Project Case Study Brief (Brand, Challenge, Solution, Tools) */}
+                {/* AI Project Case Study Brief (Placed below the full-scale image, scrolled down naturally) */}
                 {(() => {
                   const caseStudy = getCaseStudy(currentWork);
 
                   return (
-                    <div className="p-4 sm:p-6 bg-gradient-to-b from-neutral-900/90 to-neutral-950 border-t border-white/10 space-y-4">
+                    <div className="p-5 sm:p-8 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-t border-white/10 space-y-5 shrink-0">
                       {/* Top Header: Brand Badge & Title */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
