@@ -10,7 +10,7 @@ import {
   HiExclamationTriangle,
   HiCheckCircle,
 } from "react-icons/hi2";
-import { SiBlender, SiFigma, SiCinema4D } from "react-icons/si";
+import { SiBlender, SiFigma, SiCinema4D, SiGooglegemini } from "react-icons/si";
 import { useLang } from "@/context/LanguageContext";
 
 interface WorkItem {
@@ -144,7 +144,7 @@ function ToolBadge({ tool }: { tool: string }) {
     );
   }
 
-  if (normalized === "magnific") {
+  if (normalized === "magnific" || normalized === "magnific ai") {
     return (
       <div
         title="Magnific AI"
@@ -153,6 +153,36 @@ function ToolBadge({ tool }: { tool: string }) {
         <HiSparkles className="w-3 h-3 text-[#14AF9E]" />
         <span className="text-[10px] font-mono font-medium text-neutral-300">
           Magnific AI
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "gpt" || normalized === "chatgpt" || normalized === "openai") {
+    return (
+      <div
+        title="ChatGPT / GPT-4"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#10A37F]/15 border border-[#10A37F]/40 text-[#10A37F] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#10A37F] text-white font-black text-[8px] flex items-center justify-center font-mono">
+          GPT
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          ChatGPT
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "gemini" || normalized === "google gemini") {
+    return (
+      <div
+        title="Google Gemini"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-400/40 text-indigo-300 shadow-sm select-none"
+      >
+        <SiGooglegemini className="w-3.5 h-3.5 text-[#799FFF]" />
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Gemini
         </span>
       </div>
     );
@@ -193,7 +223,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       solution: isId
         ? "Mengembangkan prompt berbasis referensi presisi dan menyempurnakan hasil akhir untuk menjaga akurasi bentuk mobil, konsistensi visual, dan estetika otomotif mewah."
         : "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
-      tools: ["figma", "photoshop", "magnific"],
+      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -216,7 +246,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       solution: isId
         ? "Mendesain komposisi berlapis yang menempatkan karakter sebagai titik perhatian utama sambil memandu mata pemirsa menuju pesan promo secara alami."
         : "Designed layered compositions that placed the character as the primary focal point while naturally guiding the viewer's eye toward the promotional message.",
-      tools: ["photoshop", "figma", "ai"],
+      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -239,7 +269,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       solution: isId
         ? "Merancang hierarki visual yang menonjolkan benefit utama di bagian atas, diikuti detail syarat yang ringkas dan CTA yang tegas."
         : "Crafted a visual hierarchy that surfaced the primary benefit upfront, followed by concise programme details and a strong call-to-action.",
-      tools: ["figma", "photoshop"],
+      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -262,7 +292,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       solution: isId
         ? "Mendesain komposisi visual yang menempatkan identitas acara sebagai elemen dominan, didukung data dan informasi pembicara sebagai social proof yang memperkuat kepercayaan."
         : "Designed visual compositions placing the event identity as the dominant element, supported by speaker information and data-driven social proof to reinforce credibility.",
-      tools: ["photoshop", "figma"],
+      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -285,7 +315,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       solution: isId
         ? "Mengembangkan sistem visual kredibel dengan hierarki headline yang bersih, warna aksen finansial, dan tata letak promosi yang terarah."
         : "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
-      tools: ["figma", "photoshop"],
+      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -308,7 +338,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       solution: isId
         ? "Menciptakan titik fokus berdaya kontras tinggi dengan lencana acara yang menonjol dan blok teks terstruktur yang mendorong pendaftaran."
         : "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
-      tools: ["photoshop", "figma"],
+      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -331,7 +361,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       solution: isId
         ? "Memanfaatkan ruang bernapas yang seimbang, bayangan halus, dan sorotan data ringkas yang menekankan kesehatan harian yang mudah."
         : "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
-      tools: ["figma", "photoshop"],
+      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -353,7 +383,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
     solution: isId
       ? "Menciptakan sistem kampanye terpadu melalui komposisi terkontrol, citra realistis, dan hierarki visual yang jelas."
       : "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-    tools: ["figma", "magnific"],
+    tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
   };
 }
 

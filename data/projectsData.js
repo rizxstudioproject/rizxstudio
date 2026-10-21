@@ -55,7 +55,7 @@ export const antigravityData = {
   stage4: {
     headline: "Creative Work. Real-World Thinking.",
     description: "From brand campaigns to digital experiences, I combine design, motion, and AI-driven workflows to create purposeful visuals for brands and businesses.",
-    tools: ["Figma", "Blender", "After Effects", "Adobe Creative Cloud", "Affinity", "GPT", "Google AI Studio", "Magnific AI"],
+    tools: ["Figma", "Photoshop", "Magnific AI", "GPT", "Gemini"],
     
     // Client Folders (Hanya brand aktif yang memiliki karya riil)
     clients: [
@@ -80,7 +80,7 @@ export const antigravityData = {
             role: "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
             challenge: "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each model’s defining details.",
             solution: "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
-            tools: ["figma", "photoshop", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "kia-2",
@@ -95,7 +95,7 @@ export const antigravityData = {
             role: "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
             challenge: "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each model’s defining details.",
             solution: "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
-            tools: ["figma", "photoshop", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "kia-3",
@@ -110,7 +110,7 @@ export const antigravityData = {
             role: "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
             challenge: "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each model’s defining details.",
             solution: "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
-            tools: ["figma", "photoshop", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "kia-4",
@@ -125,7 +125,7 @@ export const antigravityData = {
             role: "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
             challenge: "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each model’s defining details.",
             solution: "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
-            tools: ["figma", "photoshop", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "kia-5",
@@ -140,7 +140,7 @@ export const antigravityData = {
             role: "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
             challenge: "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each model’s defining details.",
             solution: "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
-            tools: ["figma", "photoshop", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "kia-6",
@@ -155,7 +155,7 @@ export const antigravityData = {
             role: "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
             challenge: "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each model’s defining details.",
             solution: "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
-            tools: ["figma", "photoshop", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
         ],
       },
@@ -180,7 +180,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-2",
@@ -195,7 +195,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-3",
@@ -210,7 +210,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-4",
@@ -225,7 +225,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-5",
@@ -240,7 +240,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-6",
@@ -255,7 +255,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-7",
@@ -270,7 +270,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-8",
@@ -285,7 +285,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-9",
@@ -300,7 +300,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "hya-10",
@@ -315,7 +315,7 @@ export const antigravityData = {
             role: "Visual development, AI image generation, art direction, and campaign layout design.",
             challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
             solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-            tools: ["figma", "magnific"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
         ],
       },
@@ -340,7 +340,7 @@ export const antigravityData = {
             role: "Art direction, digital ad layout design, brand character integration, and multi-format campaign asset production.",
             challenge: "Balancing playful character appeal with strong menu promotional messaging within a single cohesive digital ad layout.",
             solution: "Designed layered compositions that placed the character as the primary focal point while naturally guiding the viewer's eye toward the promotional message.",
-            tools: ["photoshop", "figma", "ai"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "bk-2",
@@ -355,7 +355,7 @@ export const antigravityData = {
             role: "Creative advertising design, visual retouching, promotional layout design, and digital campaign asset production.",
             challenge: "Ensuring food visuals look appetizing, authentic, and instantly recognizable while fitting strict promotional text and discount messaging hierarchies.",
             solution: "Crafted balanced promotional templates with strong focal points on the product and punchy badge designs that maximize click-through engagement.",
-            tools: ["photoshop", "figma", "ai"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "bk-3",
@@ -370,7 +370,7 @@ export const antigravityData = {
             role: "Creative advertising design, visual retouching, promotional layout design, and digital campaign asset production.",
             challenge: "Ensuring food visuals look appetizing, authentic, and instantly recognizable while fitting strict promotional text and discount messaging hierarchies.",
             solution: "Crafted balanced promotional templates with strong focal points on the product and punchy badge designs that maximize click-through engagement.",
-            tools: ["photoshop", "figma", "ai"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
         ],
       },
@@ -395,7 +395,7 @@ export const antigravityData = {
             role: "Digital campaign design, giveaway promotional layout, art direction, and social media ad asset production.",
             challenge: "Communicating the giveaway programme details accurately while maintaining strong visual appeal and driving audience conversion.",
             solution: "Crafted a visual hierarchy that surfaced the primary benefit upfront, followed by concise programme details and a strong call-to-action.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "permi-2",
@@ -410,7 +410,7 @@ export const antigravityData = {
             role: "Art direction, digital layout design, visual framing, and multi-format campaign asset generation.",
             challenge: "Transforming technical and regulatory service concepts into visually engaging and easily digestible digital campaign cards.",
             solution: "Designed high-contrast hero layouts with sharp typography and visual anchors that clearly guide the viewer's eye.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "permi-3",
@@ -425,7 +425,7 @@ export const antigravityData = {
             role: "Art direction, digital layout design, visual framing, and multi-format campaign asset generation.",
             challenge: "Transforming technical and regulatory service concepts into visually engaging and easily digestible digital campaign cards.",
             solution: "Designed high-contrast hero layouts with sharp typography and visual anchors that clearly guide the viewer's eye.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
         ],
       },
@@ -450,7 +450,7 @@ export const antigravityData = {
             role: "Creative direction, event ad asset design, Trading Summit visual branding, and multi-format social media content production.",
             challenge: "Conveying a professional and informative event message while maintaining strong visual appeal to attract a trader and investor audience.",
             solution: "Designed visual compositions placing the event identity as the dominant element, supported by speaker information and data-driven social proof to reinforce credibility.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "xeilos-2",
@@ -465,7 +465,7 @@ export const antigravityData = {
             role: "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
             challenge: "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
             solution: "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "xeilos-3",
@@ -480,7 +480,7 @@ export const antigravityData = {
             role: "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
             challenge: "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
             solution: "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "xeilos-4",
@@ -495,7 +495,7 @@ export const antigravityData = {
             role: "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
             challenge: "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
             solution: "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "xeilos-5",
@@ -510,7 +510,7 @@ export const antigravityData = {
             role: "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
             challenge: "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
             solution: "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "xeilos-6",
@@ -525,7 +525,7 @@ export const antigravityData = {
             role: "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
             challenge: "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
             solution: "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "xeilos-7",
@@ -540,7 +540,7 @@ export const antigravityData = {
             role: "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
             challenge: "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
             solution: "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "xeilos-8",
@@ -555,7 +555,7 @@ export const antigravityData = {
             role: "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
             challenge: "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
             solution: "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "xeilos-9",
@@ -570,7 +570,7 @@ export const antigravityData = {
             role: "Creative concept development, visual branding, social ad production, and digital asset formatting across 9 individual creative deliverables.",
             challenge: "Maintaining visual variety across 9 unique promotional assets while ensuring brand consistency and unmistakable identity.",
             solution: "Established a unified design grid, complementary neon/dark palettes, and bold typographic treatments across all ad variations.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
         ],
       },
@@ -595,7 +595,7 @@ export const antigravityData = {
             role: "Art direction, financial campaign layout design, visual branding, and multi-asset digital production in Figma & Photoshop.",
             challenge: "Presenting complex financial topics with clarity and high visual trust across varied digital ad placements.",
             solution: "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "adl-2",
@@ -610,7 +610,7 @@ export const antigravityData = {
             role: "Art direction, financial campaign layout design, visual branding, and multi-asset digital production in Figma & Photoshop.",
             challenge: "Presenting complex financial topics with clarity and high visual trust across varied digital ad placements.",
             solution: "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "adl-3",
@@ -625,7 +625,7 @@ export const antigravityData = {
             role: "Art direction, financial campaign layout design, visual branding, and multi-asset digital production in Figma & Photoshop.",
             challenge: "Presenting complex financial topics with clarity and high visual trust across varied digital ad placements.",
             solution: "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "adl-4",
@@ -640,7 +640,7 @@ export const antigravityData = {
             role: "Art direction, financial campaign layout design, visual branding, and multi-asset digital production in Figma & Photoshop.",
             challenge: "Presenting complex financial topics with clarity and high visual trust across varied digital ad placements.",
             solution: "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "adl-5",
@@ -655,7 +655,7 @@ export const antigravityData = {
             role: "Art direction, financial campaign layout design, visual branding, and multi-asset digital production in Figma & Photoshop.",
             challenge: "Presenting complex financial topics with clarity and high visual trust across varied digital ad placements.",
             solution: "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "adl-6",
@@ -670,7 +670,7 @@ export const antigravityData = {
             role: "Art direction, financial campaign layout design, visual branding, and multi-asset digital production in Figma & Photoshop.",
             challenge: "Presenting complex financial topics with clarity and high visual trust across varied digital ad placements.",
             solution: "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
         ],
       },
@@ -695,7 +695,7 @@ export const antigravityData = {
             role: "Creative visual direction, event promo design, social media ad formatting, and campaign asset production.",
             challenge: "Capturing the enthusiasm of prospective students while keeping essential event registration details readily legible.",
             solution: "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "eduf-2",
@@ -710,7 +710,7 @@ export const antigravityData = {
             role: "Creative visual direction, event promo design, social media ad formatting, and campaign asset production.",
             challenge: "Capturing the enthusiasm of prospective students while keeping essential event registration details readily legible.",
             solution: "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "eduf-3",
@@ -725,7 +725,7 @@ export const antigravityData = {
             role: "Creative visual direction, event promo design, social media ad formatting, and campaign asset production.",
             challenge: "Capturing the enthusiasm of prospective students while keeping essential event registration details readily legible.",
             solution: "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "eduf-4",
@@ -740,7 +740,7 @@ export const antigravityData = {
             role: "Creative visual direction, event promo design, social media ad formatting, and campaign asset production.",
             challenge: "Capturing the enthusiasm of prospective students while keeping essential event registration details readily legible.",
             solution: "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "eduf-5",
@@ -755,7 +755,7 @@ export const antigravityData = {
             role: "Creative visual direction, event promo design, social media ad formatting, and campaign asset production.",
             challenge: "Capturing the enthusiasm of prospective students while keeping essential event registration details readily legible.",
             solution: "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "eduf-6",
@@ -770,7 +770,7 @@ export const antigravityData = {
             role: "Creative visual direction, event promo design, social media ad formatting, and campaign asset production.",
             challenge: "Capturing the enthusiasm of prospective students while keeping essential event registration details readily legible.",
             solution: "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
-            tools: ["photoshop", "figma"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
         ],
       },
@@ -795,7 +795,7 @@ export const antigravityData = {
             role: "Digital advertising design, product visual retouching, social feed asset curation, and brand consistency management.",
             challenge: "Highlighting both sophisticated medical-grade technology and everyday lifestyle elegance within compact square social formats.",
             solution: "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "with-2",
@@ -810,7 +810,7 @@ export const antigravityData = {
             role: "Digital advertising design, product visual retouching, social feed asset curation, and brand consistency management.",
             challenge: "Highlighting both sophisticated medical-grade technology and everyday lifestyle elegance within compact square social formats.",
             solution: "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "with-3",
@@ -825,7 +825,7 @@ export const antigravityData = {
             role: "Digital advertising design, product visual retouching, social feed asset curation, and brand consistency management.",
             challenge: "Highlighting both sophisticated medical-grade technology and everyday lifestyle elegance within compact square social formats.",
             solution: "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "with-4",
@@ -840,7 +840,7 @@ export const antigravityData = {
             role: "Digital advertising design, product visual retouching, social feed asset curation, and brand consistency management.",
             challenge: "Highlighting both sophisticated medical-grade technology and everyday lifestyle elegance within compact square social formats.",
             solution: "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "with-5",
@@ -855,7 +855,7 @@ export const antigravityData = {
             role: "Digital advertising design, product visual retouching, social feed asset curation, and brand consistency management.",
             challenge: "Highlighting both sophisticated medical-grade technology and everyday lifestyle elegance within compact square social formats.",
             solution: "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
           {
             id: "with-6",
@@ -870,7 +870,7 @@ export const antigravityData = {
             role: "Digital advertising design, product visual retouching, social feed asset curation, and brand consistency management.",
             challenge: "Highlighting both sophisticated medical-grade technology and everyday lifestyle elegance within compact square social formats.",
             solution: "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
-            tools: ["figma", "photoshop"],
+            tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
           },
         ],
       },
