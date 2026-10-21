@@ -19,6 +19,10 @@ interface WorkItem {
   image: string;
   aspect: string;
   brand?: string;
+  year?: string;
+  brief?: string;
+  approach?: string;
+  role?: string;
   challenge?: string;
   solution?: string;
   tools?: string[];
@@ -166,6 +170,10 @@ function getCaseStudy(work: ModalItem) {
   if (work.challenge && work.solution && work.tools && work.tools.length > 0) {
     return {
       brand: work.brand || work.clientName || "Brand Client",
+      year: work.year || "2026",
+      brief: work.brief || "",
+      approach: work.approach || "",
+      role: work.role || "",
       challenge: work.challenge,
       solution: work.solution,
       tools: work.tools,
@@ -178,6 +186,10 @@ function getCaseStudy(work: ModalItem) {
   if (title.includes("kia") || type.includes("automotive")) {
     return {
       brand: work.brand || work.clientName || "KIA Motors",
+      year: work.year || "2026",
+      brief: "Develop high-impact automotive visuals for future EV concept campaigns.",
+      approach: "Integrate precision AI concept rendering with automotive reflection grading.",
+      role: "Creative Direction, AI generation & Photoshop digital compositing.",
       challenge: "Visualisasi kendaraan konsep masa depan tanpa ketersediaan unit fisik asli atau pemotretan studio nyata.",
       solution: "Generasi render konsep AI presisi tinggi dipadukan dengan teknik digital compositing dan reflection mapping otomotif.",
       tools: ["photoshop", "illustrator", "blender", "midjourney"],
@@ -185,10 +197,14 @@ function getCaseStudy(work: ModalItem) {
   }
 
   return {
-    brand: work.brand || work.clientName || "Hyashop",
-    challenge: "Mempertahankan estetika lookbook komersial berkualitas tinggi dengan format vertikal ramah smartphone.",
-    solution: "Penerapan sistem layout modular terintegrasi dengan generative retouching dan color grading presisi.",
-    tools: ["photoshop", "figma", "illustrator", "magnific"],
+    brand: work.brand || work.clientName || "HYASHOP",
+    year: work.year || "2026",
+    brief: "Develop a series of digital campaigns showcasing HYASHOP’s aesthetic and beauty products through premium, professional visuals.",
+    approach: "Combine AI-assisted imagery with refined art direction, warm neutral tones, and clean typography to create a cohesive visual identity across product categories.",
+    role: "Visual development, AI image generation, art direction, and campaign layout design using Magnific AI and Figma.",
+    challenge: "Balance diverse product categories with a consistent brand aesthetic while maintaining product accuracy.",
+    solution: "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
+    tools: ["figma", "magnific"],
   };
 }
 
@@ -944,10 +960,15 @@ export default function Projects() {
                       {/* Top Header: Brand Badge & Title */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div>
-                          <div className="flex items-center gap-2 mb-1.5">
+                          <div className="flex flex-wrap items-center gap-2 mb-1.5">
                             <span className="px-2.5 py-0.5 rounded-full bg-[#14AF9E]/15 text-[#14AF9E] border border-[#14AF9E]/30 text-[10px] font-mono font-bold tracking-wider uppercase">
                               {caseStudy.brand}
                             </span>
+                            {caseStudy.year && (
+                              <span className="px-2 py-0.5 rounded-full bg-white/5 text-neutral-300 border border-white/10 text-[10px] font-mono">
+                                {caseStudy.year}
+                              </span>
+                            )}
                             <span className="text-[10px] font-mono text-neutral-400">
                               {currentWork.aspect} • {currentWork.type}
                             </span>
@@ -955,6 +976,11 @@ export default function Projects() {
                           <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
                             {currentWork.title}
                           </h3>
+                          {caseStudy.brief && (
+                            <p className="text-xs text-neutral-400 font-sans mt-1 leading-relaxed max-w-2xl">
+                              {caseStudy.brief}
+                            </p>
+                          )}
                         </div>
 
                         {/* Counter & Mini Navigation */}
@@ -1013,6 +1039,16 @@ export default function Projects() {
                           </p>
                         </div>
                       </div>
+
+                      {/* Role & Approach */}
+                      {caseStudy.role && (
+                        <div className="px-3.5 py-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-400">
+                          <span className="text-[#14AF9E] font-mono font-semibold uppercase text-[10px] tracking-wider">
+                            Role:
+                          </span>
+                          <span>{caseStudy.role}</span>
+                        </div>
+                      )}
 
                       {/* Tools Digunakan (Icon Tool Saja) & Close Button */}
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/5">
