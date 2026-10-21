@@ -27,7 +27,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     "nav.langLabel": "Language:",
 
     // Overlay / Hero
-    "hero.role": "<Creative Designer & Motion Specialist/>",
+    "hero.role": "AI-Powered Creative Designer",
     "hero.scroll": "SCROLL",
     "hero.section2.headline1": "Results-driven",
     "hero.section2.headline2": "creative",
@@ -40,7 +40,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     "clients.subtitle": "Selected Clients & Creative Collaborations",
 
     // About Me (User's Exact Copy)
-    "about.eyebrow": "## WHO AM I",
+    "about.eyebrow": "WHO AM I",
     "about.title": "About Me",
     "about.headline": "Creative Designer & Motion Specialist | 11+ Years | Agency & Global Brands",
     "about.para1": "With 11+ years in creative design, I’ve evolved alongside the industry, combining strong design fundamentals with modern creative workflows to deliver impactful visuals for agencies and global brands.",
@@ -60,7 +60,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     // Projects / Works - Stage 1
     "projects.stage1.badge": "SELECTED WORKS",
     "projects.stage1.headline": "A Range of Work. One Creative Vision.",
-    "projects.stage1.subheadline": "Explore selected projects across branding, motion, digital design, and AI-driven visuals—shaped by different briefs, teams, and creative challenges.",
+    "projects.stage1.subheadline": "Explore selected projects across branding, motion, digital design, and AI-driven visuals, shaped by different briefs, teams, and creative challenges.",
     "projects.stage1.scroll": "Scroll down",
 
     // Projects / Works - Stage 2
@@ -70,10 +70,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     "projects.stage2.btn": "Explore My Work",
 
     // Projects / Works - Stage 3
-    "projects.stage3.tag": "CLASS BY REATHA C. PHELAN",
-    "projects.stage3.headline": "Gateway to artist people.",
-    "projects.stage3.card.title": "Cinematic Visual Storytelling",
-    "projects.stage3.card.category": "Creative Direction & AI Film",
+    "projects.stage3.tag": "CREATIVE JOURNEY | 2012 TO PRESENT",
+    "projects.stage3.headline": "A journey shaped by creativity and change.",
+    "projects.stage3.card.title": "From Visual Craft to Technology",
+    "projects.stage3.card.category": "VISUAL CRAFT | DIGITAL | AI",
     "projects.stage3.card.btn": "View Full",
 
     // Projects / Works - Stage 4
@@ -117,7 +117,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     "nav.langLabel": "Pilihan Bahasa:",
 
     // Overlay / Hero
-    "hero.role": "<Desainer Kreatif & Spesialis Motion/>",
+    "hero.role": "Desainer Kreatif Berbasis AI",
     "hero.scroll": "GULIR",
     "hero.section2.headline1": "Kreatif yang",
     "hero.section2.headline2": "berorientasi hasil",
@@ -130,7 +130,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     "clients.subtitle": "Klien Terpilih & Kolaborasi Kreatif",
 
     // About Me (User's Exact Copy in ID)
-    "about.eyebrow": "## SIAPA SAYA",
+    "about.eyebrow": "SIAPA SAYA",
     "about.title": "Tentang Saya",
     "about.headline": "Desainer Kreatif & Spesialis Motion | 11+ Tahun | Agensi & Brand Global",
     "about.para1": "Dengan 11+ tahun dalam desain kreatif, saya telah berkembang bersama industri, menggabungkan dasar-dasar desain yang kuat dengan alur kerja kreatif modern untuk menghadirkan visual yang berdampak bagi agensi dan brand global.",
@@ -150,7 +150,7 @@ export const translations: Record<Lang, Record<string, string>> = {
     // Projects / Works - Stage 1
     "projects.stage1.badge": "KARYA TERPILIH",
     "projects.stage1.headline": "Ragam Karya. Satu Visi Kreatif.",
-    "projects.stage1.subheadline": "Jelajahi proyek pilihan di bidang branding, motion, desain digital, dan visual berbasis AI—yang dibentuk oleh beragam brief, tim, dan tantangan kreatif.",
+    "projects.stage1.subheadline": "Jelajahi proyek pilihan di bidang branding, motion, desain digital, dan visual berbasis AI, yang dibentuk oleh beragam brief, tim, dan tantangan kreatif.",
     "projects.stage1.scroll": "Gulir ke bawah",
 
     // Projects / Works - Stage 2
@@ -160,10 +160,10 @@ export const translations: Record<Lang, Record<string, string>> = {
     "projects.stage2.btn": "Jelajahi Karya Saya",
 
     // Projects / Works - Stage 3
-    "projects.stage3.tag": "KELAS OLEH REATHA C. PHELAN",
-    "projects.stage3.headline": "Gerbang menuju insan kreatif.",
-    "projects.stage3.card.title": "Penceritaan Visual Sinematik",
-    "projects.stage3.card.category": "Pengarahan Kreatif & Film AI",
+    "projects.stage3.tag": "PERJALANAN KREATIF | 2012 HINGGA SEKARANG",
+    "projects.stage3.headline": "Perjalanan yang dibentuk oleh kreativitas dan perubahan.",
+    "projects.stage3.card.title": "Dari Karya Visual Menuju Teknologi",
+    "projects.stage3.card.category": "KARYA VISUAL | DIGITAL | AI",
     "projects.stage3.card.btn": "Lihat Penuh",
 
     // Projects / Works - Stage 4

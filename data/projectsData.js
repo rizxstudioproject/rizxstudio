@@ -3,7 +3,7 @@ export const antigravityData = {
   stage1: {
     badge: "SELECTED WORKS",
     headline: "A Range of Work. One Creative Vision.",
-    subheadline: "Explore selected projects across branding, motion, digital design, and AI-driven visuals—shaped by different briefs, teams, and creative challenges.",
+    subheadline: "Explore selected projects across branding, motion, digital design, and AI-driven visuals, shaped by different briefs, teams, and creative challenges.",
     floatingBadges: [],
     deckCards: [
       { id: "d1", title: "Brand Identity", category: "Brand Identity", image: "/assets/antigravity/selected-brand-identity.jpg", gradient: "from-red-600/60 to-black" },
@@ -39,14 +39,14 @@ export const antigravityData = {
     ],
   },
 
-  // Stage 3: Gateway to Artist People (Large Cinematic Hero Showcase Card)
+  // Stage 3: Featured Project Hero Banner (Creative Journey)
   stage3: {
-    classTag: "CLASS BY REATHA C. PHELAN",
-    headline: "Gateway to artist people.",
+    classTag: "CREATIVE JOURNEY | 2012 TO PRESENT",
+    headline: "A journey shaped by creativity and change.",
     heroCard: {
       image: "/assets/antigravity/hero-large.jpg",
-      title: "Cinematic Visual Storytelling",
-      category: "Creative Direction & AI Film",
+      title: "From Visual Craft to Technology",
+      category: "VISUAL CRAFT | DIGITAL | AI",
       aspectRatio: "16:9",
     },
   },

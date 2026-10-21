@@ -125,7 +125,7 @@ export default function Overlay({ progress }: OverlayProps) {
         className="absolute inset-x-0 top-[48%] sm:top-[50%] -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 transition-none"
       >
         <h1 className="text-3xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-tight">
-          Fomy Rizky<span className="text-neutral-500 font-normal">.</span>
+          Fomy R<span className="text-neutral-500 font-normal">.</span>
         </h1>
         <p className="text-[11px] sm:text-sm md:text-base font-mono tracking-widest text-neutral-400 mt-1 sm:mt-3">
           {t("hero.role")}

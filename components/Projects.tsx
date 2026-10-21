@@ -405,14 +405,14 @@ export default function Projects() {
           }}
         >
           {/* Header */}
-          <div className="relative z-30 flex flex-col items-center text-center mt-2 max-w-3xl px-2">
+          <div className="relative z-30 flex flex-col items-center text-center mt-2 max-w-5xl px-2">
             <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-neutral-500 mb-2">
               {t("projects.stage1.badge")}
             </span>
             <h2 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-tight">
               {t("projects.stage1.headline")}
             </h2>
-            <p className="text-[11px] sm:text-xs md:text-sm text-neutral-400 font-light mt-2 max-w-md mx-auto leading-relaxed">
+            <p className="text-[11px] sm:text-xs md:text-sm text-neutral-400 font-light mt-2 max-w-md md:max-w-[880px] lg:max-w-[920px] mx-auto leading-relaxed">
               {t("projects.stage1.subheadline")}
             </p>
           </div>
