@@ -1,7 +1,7 @@
 export const antigravityData = {
   // Stage 1: Initial Reveal & Fan-out
   stage1: {
-    badge: "03 / SELECTED WORKS",
+    badge: "SELECTED WORKS",
     headline: "A Range of Work. One Creative Vision.",
     subheadline: "Explore selected projects across branding, motion, digital design, and AI-driven visuals—shaped by different briefs, teams, and creative challenges.",
     floatingBadges: [],
