@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { useLang } from "@/context/LanguageContext";
 
 // SVG Logos uploaded by user in public/logos/
 const CLIENT_LOGOS_ROW_1 = [
@@ -61,6 +62,8 @@ function LogoItem({ logo }: { logo: { file: string; alt: string; width: number; 
 }
 
 export default function ClientLogos() {
+  const { t } = useLang();
+
   return (
     <section
       id="clients"
@@ -73,7 +76,7 @@ export default function ClientLogos() {
       {/* Label */}
       <div className="mb-10 text-center px-4">
         <span className="text-[11px] font-mono uppercase tracking-[0.3em] text-neutral-500">
-          Selected Clients &amp; Creative Collaborations
+          {t("clients.subtitle")}
         </span>
       </div>
 

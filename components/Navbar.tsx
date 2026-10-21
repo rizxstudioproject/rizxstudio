@@ -246,12 +246,12 @@ export default function Navbar() {
               <FaWhatsapp className="w-4 h-4 text-[#14AF9E]" />
               <span>{t("nav.contact")} (WhatsApp)</span>
             </span>
-            <span className="text-[11px] font-mono text-[#14AF9E] font-semibold">Direct ↗</span>
+            <span className="text-[11px] font-mono text-[#14AF9E] font-semibold">{t("nav.direct")}</span>
           </a>
 
           {/* Mobile Language Switcher Row in Drawer */}
           <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-neutral-400 font-mono">
-            <span>Language:</span>
+            <span>{t("nav.langLabel")}</span>
             <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px]">
               <button
                 type="button"

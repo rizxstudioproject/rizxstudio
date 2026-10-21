@@ -18,7 +18,7 @@ export default function About() {
       "Video Production",
     ],
     id: [
-      "Creative Direction",
+      "Pengarahan Kreatif",
       "Motion Graphics",
       "Branding & Identitas",
       "Desain UI/UX",

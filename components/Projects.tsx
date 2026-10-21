@@ -184,7 +184,7 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
         ? "Menggabungkan citra otomotif berbasis AI dengan arsitektur modern, pencahayaan sinematik, dan tipografi bersih."
         : "Combine AI-generated automotive imagery with modern architectural settings, cinematic lighting, and clean typography to create a cohesive campaign across multiple vehicle models.",
       role: isId
-        ? "Pengarahan seni (art direction), pengembangan prompt AI, generasi visual, dan tata letak kampanye di Photoshop & Figma."
+        ? "Pengarahan seni, perancangan prompt AI, pembuatan visual, dan desain tata letak kampanye di Photoshop & Figma."
         : "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
       challenge: isId
         ? "Menerjemahkan referensi unit kendaraan dari klien menjadi visual suasana realistis berbasis AI dengan tetap menjaga keaslian detail khas tiap model."
@@ -203,10 +203,10 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       ? "Mengembangkan rangkaian kampanye digital yang menampilkan produk estetika dan kecantikan HYASHOP melalui visual premium dan profesional."
       : "Develop a series of digital campaigns showcasing HYASHOP’s aesthetic and beauty products through premium, professional visuals.",
     approach: isId
-      ? "Menggabungkan citra berbantuan AI dengan pengarahan seni yang matang, nuansa netral hangat, dan tipografi bersih."
+      ? "Menggabungkan citra berbantuan AI dengan pengarahan seni yang matang, nuansa netral hangat, dan tipografi bersih untuk menciptakan identitas visual yang konsisten."
       : "Combine AI-assisted imagery with refined art direction, warm neutral tones, and clean typography to create a cohesive visual identity across product categories.",
     role: isId
-      ? "Pengembangan visual, generasi citra AI, pengarahan seni (art direction), dan desain tata letak kampanye di Magnific AI & Figma."
+      ? "Pengembangan visual, generasi citra AI, pengarahan seni, dan desain tata letak kampanye di Figma & Magnific AI."
       : "Visual development, AI image generation, art direction, and campaign layout design using Magnific AI and Figma.",
     challenge: isId
       ? "Menyeimbangkan beragam kategori produk dengan estetika merek yang konsisten sembari menjaga akurasi detail produk."
@@ -218,6 +218,58 @@ function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
   };
 }
 
+const getDeckCardInfo = (card: { id: string; title: string; category: string }, isId: boolean) => {
+  if (!isId) return { title: card.title, category: card.category };
+  const map: Record<string, { title: string; category: string }> = {
+    d1: { title: "Identitas Merek", category: "Identitas Merek" },
+    d2: { title: "Visual Kampanye", category: "Visual Kampanye" },
+    d3: { title: "Motion Graphics", category: "Motion Graphics" },
+    d4: { title: "Desain 3D", category: "Desain 3D" },
+    d5: { title: "Desain UI/UX", category: "Desain UI/UX" },
+  };
+  return map[card.id] || { title: card.title, category: card.category };
+};
+
+const getStage2CardTitle = (card: { id: string; title: string }, isId: boolean) => {
+  if (!isId) return card.title;
+  const map: Record<string, string> = {
+    o1: "Branding",
+    o2: "Motion",
+    o3: "UI/UX",
+    o4: "Visual AI",
+  };
+  return map[card.id] || card.title;
+};
+
+const getClientCategory = (cat: string, isId: boolean) => {
+  if (!isId) return cat;
+  return cat.replace("Digital Campaign", "Kampanye Digital");
+};
+
+const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) => {
+  if (!isId) return { title: work.title, type: work.type };
+  let localizedTitle = work.title;
+  if (localizedTitle.startsWith("Digital Campaign Editorial")) {
+    localizedTitle = localizedTitle.replace("Digital Campaign Editorial", "Editorial Kampanye Digital");
+  } else if (localizedTitle.startsWith("Digital Campaign Catalog")) {
+    localizedTitle = localizedTitle.replace("Digital Campaign Catalog", "Katalog Kampanye Digital");
+  } else if (localizedTitle.startsWith("Digital Campaign")) {
+    localizedTitle = localizedTitle.replace("Digital Campaign", "Kampanye Digital");
+  }
+
+  let localizedType = work.type;
+  const typeMap: Record<string, string> = {
+    "Digital Automotive Campaign": "Kampanye Otomotif Digital",
+    "Digital Campaign": "Kampanye Digital",
+    "Digital Campaign Editorial": "Editorial Kampanye Digital",
+    "Campaign Catalog Asset": "Aset Katalog Kampanye",
+  };
+  if (typeMap[work.type]) {
+    localizedType = typeMap[work.type];
+  }
+  return { title: localizedTitle, type: localizedType };
+};
+
 export default function Projects() {
   const { stage1, stage2, stage3, stage4 } = antigravityData;
   const containerRef = useRef<HTMLDivElement>(null);
@@ -226,6 +278,7 @@ export default function Projects() {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>(stage4.clients[0].id);
   const { t, lang } = useLang();
+  const isId = lang === "id";
 
   useEffect(() => {
     const checkMobile = () => {
@@ -354,13 +407,13 @@ export default function Projects() {
           {/* Header */}
           <div className="relative z-30 flex flex-col items-center text-center mt-2 max-w-3xl px-2">
             <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-neutral-500 mb-2">
-              {stage1.badge}
+              {t("projects.stage1.badge")}
             </span>
             <h2 className="text-2xl sm:text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-white leading-tight">
-              {stage1.headline}
+              {t("projects.stage1.headline")}
             </h2>
             <p className="text-[11px] sm:text-xs md:text-sm text-neutral-400 font-light mt-2 max-w-md mx-auto leading-relaxed">
-              {stage1.subheadline}
+              {t("projects.stage1.subheadline")}
             </p>
           </div>
 
@@ -412,6 +465,7 @@ export default function Projects() {
               const currentY = targetY * fanProgress;
 
               const isHovered = hoveredCard === card.id;
+              const cardInfo = getDeckCardInfo(card, isId);
 
               return (
                 <div
@@ -420,15 +474,18 @@ export default function Projects() {
                   onMouseLeave={() => setHoveredCard(null)}
                   onClick={() =>
                     setModalData({
-                      items: stage1.deckCards.map((c) => ({
-                        id: c.id,
-                        title: c.title,
-                        type: c.category,
-                        image: c.image,
-                        aspect: "1:1",
-                        clientName: "Selected Works",
-                        isClientWork: false,
-                      })),
+                      items: stage1.deckCards.map((c) => {
+                        const info = getDeckCardInfo(c, isId);
+                        return {
+                          id: c.id,
+                          title: info.title,
+                          type: info.category,
+                          image: c.image,
+                          aspect: "1:1",
+                          clientName: isId ? "Karya Terpilih" : "Selected Works",
+                          isClientWork: false,
+                        };
+                      }),
                       currentIndex: i,
                     })
                   }
@@ -447,14 +504,14 @@ export default function Projects() {
                   <div className="relative w-full h-full rounded-xl sm:rounded-2xl overflow-hidden bg-neutral-950 flex flex-col justify-between p-2.5 sm:p-3.5 border border-white/5">
                     <img
                       src={card.image}
-                      alt={card.title}
+                      alt={cardInfo.title}
                       className="absolute inset-0 w-full h-full object-cover opacity-60"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                     
                     <div className="relative z-10 flex items-center justify-between">
                       <span className="px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[8px] sm:text-[9px] font-mono uppercase tracking-wider text-neutral-300 border border-white/10 truncate max-w-[80px]">
-                        {card.category}
+                        {cardInfo.category}
                       </span>
                       <span className="w-4 h-4 rounded-full bg-black/50 text-[9px] flex items-center justify-center text-white">
                         ↗
@@ -462,8 +519,8 @@ export default function Projects() {
                     </div>
 
                     <div className="relative z-10">
-                      <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight truncate">{card.title}</h3>
-                      <p className="text-[9px] text-neutral-400 font-mono">{card.category}</p>
+                      <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight truncate">{cardInfo.title}</h3>
+                      <p className="text-[9px] text-neutral-400 font-mono">{cardInfo.category}</p>
                     </div>
                   </div>
                 </div>
@@ -472,7 +529,7 @@ export default function Projects() {
           </div>
 
           <div className="relative z-30 text-[10px] sm:text-xs text-neutral-500 font-mono flex items-center gap-1.5 mb-2">
-            <span>Scroll down</span>
+            <span>{t("projects.stage1.scroll")}</span>
             <span className="animate-bounce">↓</span>
           </div>
         </div>
@@ -504,28 +561,29 @@ export default function Projects() {
           {/* Text Block */}
           <div className="max-w-lg text-center lg:text-left pt-10 lg:pt-0">
             <span className="text-[11px] font-mono uppercase tracking-[0.25em] text-[#00A389] mb-3 block font-semibold">
-              {stage2.categoryTag}
+              {t("projects.stage2.tag")}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight">
-              {stage2.headline}
+              {t("projects.stage2.headline")}
             </h2>
             <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed mb-6 max-w-md mx-auto lg:mx-0">
-              {stage2.description}
+              {t("projects.stage2.desc")}
             </p>
 
             {/* Project Frame Labels / Skills: 5 Compact Tags */}
-            {stage2.skillLabels && (
-              <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-8">
-                {stage2.skillLabels.map((skill, sIdx) => (
-                  <span
-                    key={sIdx}
-                    className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#00A389]/40 hover:text-white transition-colors"
-                  >
-                    {skill}
-                  </span>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-8">
+              {(isId
+                ? ["Branding", "Motion", "Desain 3D", "UI/UX", "Visual AI"]
+                : ["Branding", "Motion", "3D Design", "UI/UX", "AI Visuals"]
+              ).map((skill, sIdx) => (
+                <span
+                  key={sIdx}
+                  className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#00A389]/40 hover:text-white transition-colors"
+                >
+                  {skill}
+                </span>
+              ))}
+            </div>
 
             {/* Single Primary CTA Button -> Scrolls directly to Client Productions stage */}
             <div className="flex items-center justify-center lg:justify-start">
@@ -533,7 +591,7 @@ export default function Projects() {
                 onClick={scrollToClientStage}
                 className="px-7 py-3 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_25px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-2 cursor-pointer"
               >
-                <span>{stage2.primaryButtonText || "Explore My Work"}</span>
+                <span>{t("projects.stage2.btn")}</span>
                 <HiArrowUpRight className="w-4 h-4 rotate-45" />
               </button>
             </div>
@@ -553,6 +611,7 @@ export default function Projects() {
             {stage2.overlappingCards.map((card, idx) => {
               const offsetMultiplier = isMobile ? 32 : 55;
               const xPos = (idx - 1.5) * offsetMultiplier;
+              const cardTitle = getStage2CardTitle(card, isId);
 
               return (
                 <div
@@ -561,11 +620,11 @@ export default function Projects() {
                     setModalData({
                       items: stage2.overlappingCards.map((c) => ({
                         id: c.id,
-                        title: c.title,
-                        type: "AI & Motion Visual",
+                        title: getStage2CardTitle(c, isId),
+                        type: isId ? "Visual AI & Motion" : "AI & Motion Visual",
                         image: c.image,
                         aspect: "1:1",
-                        clientName: "Design & Motion Archive",
+                        clientName: isId ? "Arsip Desain & Motion" : "Design & Motion Archive",
                         isClientWork: false,
                       })),
                       currentIndex: idx,
@@ -578,10 +637,10 @@ export default function Projects() {
                   }}
                 >
                   <div className="w-full h-full rounded-xl overflow-hidden bg-neutral-950 relative border border-white/5">
-                    <img src={card.image} alt={card.title} className="w-full h-full object-cover" />
+                    <img src={card.image} alt={cardTitle} className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                     <div className="absolute bottom-2 left-2 right-2 text-[10px] sm:text-xs font-bold text-white truncate">
-                      {card.title}
+                      {cardTitle}
                     </div>
                   </div>
                 </div>
@@ -616,10 +675,10 @@ export default function Projects() {
         >
           <div className="mb-4 sm:mb-6 text-center sm:text-left">
             <span className="text-[10px] sm:text-[11px] font-mono uppercase tracking-[0.25em] text-neutral-500 block mb-1">
-              {stage3.classTag}
+              {t("projects.stage3.tag")}
             </span>
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
-              {stage3.headline}
+              {t("projects.stage3.headline")}
             </h2>
           </div>
 
@@ -630,11 +689,11 @@ export default function Projects() {
                 items: [
                   {
                     id: "hero-showcase",
-                    title: stage3.heroCard.title,
-                    type: stage3.heroCard.category,
+                    title: t("projects.stage3.card.title"),
+                    type: t("projects.stage3.card.category"),
                     image: stage3.heroCard.image,
                     aspect: "16:9",
-                    clientName: "Flagship Showcase",
+                    clientName: isId ? "Karya Unggulan" : "Flagship Showcase",
                     isClientWork: false,
                   },
                 ],
@@ -645,23 +704,23 @@ export default function Projects() {
           >
             <img
               src={stage3.heroCard.image}
-              alt={stage3.heroCard.title}
+              alt={t("projects.stage3.card.title")}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
             
             <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-8 flex flex-col">
               <span className="text-[10px] sm:text-xs font-mono uppercase tracking-widest text-cyan-400 mb-0.5">
-                {stage3.heroCard.category}
+                {t("projects.stage3.card.category")}
               </span>
               <h3 className="text-sm sm:text-xl font-bold text-white">
-                {stage3.heroCard.title}
+                {t("projects.stage3.card.title")}
               </h3>
             </div>
 
             <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-8">
               <span className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-[11px] sm:text-xs flex items-center gap-1.5">
-                <span>View Full</span>
+                <span>{t("projects.stage3.card.btn")}</span>
                 <HiArrowUpRight className="w-3.5 h-3.5" />
               </span>
             </div>
@@ -687,13 +746,15 @@ export default function Projects() {
           <div className="max-w-md text-center lg:text-left">
             <div className="inline-flex items-center gap-2 mb-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-[11px] text-cyan-400 font-mono tracking-widest uppercase">PROFESSIONAL EXPERIENCE</span>
+              <span className="text-[11px] text-cyan-400 font-mono tracking-widest uppercase">
+                {t("projects.stage4.badge")}
+              </span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2 sm:mb-3 leading-tight">
-              {stage4.headline}
+              {t("projects.stage4.headline")}
             </h2>
             <p className="text-[11px] sm:text-xs md:text-sm text-neutral-400 font-light leading-relaxed mb-4 line-clamp-3 sm:line-clamp-none">
-              {stage4.description}
+              {t("projects.stage4.desc")}
             </p>
             
             {/* Tool tags */}
@@ -737,62 +798,70 @@ export default function Projects() {
               <div>
                 <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5">
                   <HiFolder className="w-4 h-4 text-[#14AF9E] shrink-0" />
-                  <span>{activeClientData.clientName} Archive</span>
+                  <span>{isId ? `Arsip ${activeClientData.clientName}` : `${activeClientData.clientName} Archive`}</span>
                 </h4>
                 <p className="text-[10px] text-neutral-400 font-mono">
-                  {activeClientData.category}
+                  {getClientCategory(activeClientData.category, isId)}
                 </p>
               </div>
               <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">
-                {activeClientData.works.length} deliverables
+                {activeClientData.works.length} {t("projects.stage4.deliverables")}
               </span>
             </div>
 
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[260px] sm:max-h-[300px] overflow-y-auto pr-1">
-              {activeClientData.works.map((work, wIdx) => (
-                <div
-                  key={work.id}
-                  onClick={() =>
-                    setModalData({
-                      items: activeClientData.works.map((w) => ({
-                        ...w,
-                        clientName: activeClientData.clientName,
-                        isClientWork: true,
-                      })),
-                      currentIndex: wIdx,
-                    })
-                  }
-                  className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-cyan-400/50 transition-all cursor-pointer aspect-square hover:scale-[1.02]"
-                >
-                  <img
-                    src={work.image}
-                    alt={work.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-                  
-                  {/* Aspect Badge */}
-                  <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[9px] font-mono text-neutral-300 border border-white/10">
-                    {work.aspect}
-                  </div>
+              {activeClientData.works.map((work, wIdx) => {
+                const localizedWork = getWorkLocalized(work, isId);
+                return (
+                  <div
+                    key={work.id}
+                    onClick={() =>
+                      setModalData({
+                        items: activeClientData.works.map((w) => {
+                          const loc = getWorkLocalized(w, isId);
+                          return {
+                            ...w,
+                            title: loc.title,
+                            type: loc.type,
+                            clientName: activeClientData.clientName,
+                            isClientWork: true,
+                          };
+                        }),
+                        currentIndex: wIdx,
+                      })
+                    }
+                    className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-cyan-400/50 transition-all cursor-pointer aspect-square hover:scale-[1.02]"
+                  >
+                    <img
+                      src={work.image}
+                      alt={localizedWork.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                    
+                    {/* Aspect Badge */}
+                    <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[9px] font-mono text-neutral-300 border border-white/10">
+                      {work.aspect}
+                    </div>
 
-                  {/* Expand icon on hover */}
-                  <div className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                    ↗
-                  </div>
+                    {/* Expand icon on hover */}
+                    <div className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                      ↗
+                    </div>
 
-                  {/* Work Title & Type */}
-                  <div className="absolute bottom-2 left-2 right-2 z-10">
-                    <h5 className="text-[11px] sm:text-xs font-bold text-white truncate drop-shadow-md">
-                      {work.title}
-                    </h5>
-                    <p className="text-[9px] text-neutral-400 font-mono truncate">
-                      {work.type}
-                    </p>
+                    {/* Work Title & Type */}
+                    <div className="absolute bottom-2 left-2 right-2 z-10">
+                      <h5 className="text-[11px] sm:text-xs font-bold text-white truncate drop-shadow-md">
+                        {localizedWork.title}
+                      </h5>
+                      <p className="text-[9px] text-neutral-400 font-mono truncate">
+                        {localizedWork.type}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
