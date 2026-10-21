@@ -31,9 +31,9 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: "/og-image-square.png",
         width: 1024,
-        height: 537,
+        height: 1024,
         alt: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
       },
     ],
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     title: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
     description:
       "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
-    images: ["/og-image.png"],
+    images: ["/og-image-square.png"],
   },
   icons: {
     icon: [
