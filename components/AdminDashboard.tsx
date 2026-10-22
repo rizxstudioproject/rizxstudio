@@ -24,6 +24,7 @@ import {
   HiKey,
   HiLockClosed,
   HiEnvelope,
+  HiBars3,
 } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
@@ -72,6 +73,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [activeTab, setActiveTab] = useState<
     "clients" | "hero-works" | "client-logos" | "about" | "flagship" | "account"
   >("clients");
+
+  // Mobile Navigation Drawer State
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Admin Account & Password Management State
   const { lang, setLang } = useLang();
@@ -1007,18 +1011,33 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               if (onClose) onClose();
               else setIsAdminMode(false);
             }}
-            className="flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
+            className="hidden sm:flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
           >
             <HiEye className="w-4 h-4" />
             <span>{isId ? "Lihat Web Publik" : "View Public Web"}</span>
+          </button>
+
+          {/* Mobile Hamburger Burger Button */}
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="sm:hidden flex items-center justify-center w-8 h-8 rounded-xl bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30 transition-all active:scale-90 cursor-pointer"
+            aria-label="Toggle Navigation Menu"
+            title="Menu Navigasi"
+          >
+            {isMobileMenuOpen ? (
+              <HiXMark className="w-5 h-5 stroke-[2.5]" />
+            ) : (
+              <HiBars3 className="w-5 h-5 stroke-[2.5]" />
+            )}
           </button>
         </div>
       </header>
 
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 w-full max-w-5xl mx-auto mb-8 backdrop-blur-md overflow-x-auto">
+        {/* Navigation Tabs (Desktop View: Horizontal Strip, Hidden on Mobile) */}
+        <div className="hidden sm:flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 w-full max-w-5xl mx-auto mb-8 backdrop-blur-md overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("clients")}
@@ -1095,6 +1114,30 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           >
             <HiKey className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">{isId ? "6. Sandi & Akun" : "6. Password & Account"}</span>
+          </button>
+        </div>
+
+        {/* Mobile Navigation Indicator Bar (Active Tab Pill + Hamburger Reminder) */}
+        <div className="sm:hidden mb-6 flex items-center justify-between p-2.5 rounded-2xl bg-neutral-900/90 border border-white/10 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-[#14AF9E] animate-pulse" />
+            <span className="text-xs font-mono font-semibold text-neutral-300">
+              {activeTab === "clients" && (isId ? "1. Portofolio" : "1. Portfolio")}
+              {activeTab === "hero-works" && (isId ? "2. Hero & Karya" : "2. Hero & Works")}
+              {activeTab === "client-logos" && (isId ? "3. Logo Klien" : "3. Client Logos")}
+              {activeTab === "about" && (isId ? "4. Tentang Saya" : "4. About Me")}
+              {activeTab === "flagship" && (isId ? "5. Video YouTube" : "5. YouTube Video")}
+              {activeTab === "account" && (isId ? "6. Sandi & Akun" : "6. Password & Account")}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#14AF9E]/15 border border-[#14AF9E]/30 text-[#14AF9E] text-xs font-mono font-semibold transition-all active:scale-95 cursor-pointer"
+          >
+            <HiBars3 className="w-3.5 h-3.5" />
+            <span>Menu Tab</span>
           </button>
         </div>
 
@@ -3868,6 +3911,140 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </button>
                 </div>
               </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Navigation Drawer Modal (Burger Menu) */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-[110] flex flex-col justify-end sm:hidden bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, y: "100%" }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 250 }}
+              className="w-full bg-[#0d0e14] border-t border-white/15 rounded-t-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4"
+            >
+              {/* Drawer Header */}
+              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-[#14AF9E]/20 flex items-center justify-center text-[#14AF9E]">
+                    <HiBars3 className="w-4 h-4 stroke-[2]" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Menu Navigasi Panel Admin</h3>
+                    <p className="text-[10px] font-mono text-neutral-400">Pilih tab pengaturan di bawah</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                >
+                  <HiXMark className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Navigation Items List */}
+              <div className="space-y-1.5 pt-1">
+                {[
+                  {
+                    id: "clients" as const,
+                    label: isId ? "1. Manajemen Portofolio & Folder" : "1. Portfolio & Folders",
+                    sub: isId ? "Kelola brand & upload karya" : "Manage brands & upload works",
+                    icon: HiFolder,
+                  },
+                  {
+                    id: "hero-works" as const,
+                    label: isId ? "2. Hero & Karya Unggulan" : "2. Hero & Selected Works",
+                    sub: isId ? "Teks hero, skill tags & kartu" : "Hero text, skill tags & cards",
+                    icon: HiSparkles,
+                  },
+                  {
+                    id: "client-logos" as const,
+                    label: isId ? "3. Logo Klien Marquee" : "3. Client Logos Marquee",
+                    sub: isId ? "Daftar logo brand partner berjalan" : "Moving partner logo strip",
+                    icon: HiTag,
+                  },
+                  {
+                    id: "about" as const,
+                    label: isId ? "4. Tentang Saya (About Me)" : "4. About Me Section",
+                    sub: isId ? "Narasi bio, statistik & disiplin" : "Bio narrative, stats & skills",
+                    icon: HiUser,
+                  },
+                  {
+                    id: "flagship" as const,
+                    label: isId ? "5. Video Flagship YouTube" : "5. Flagship YouTube Video",
+                    sub: isId ? "Embed video karya sinematik" : "Embed cinematic showcase",
+                    icon: HiVideoCamera,
+                  },
+                  {
+                    id: "account" as const,
+                    label: isId ? "6. Sandi & Keamanan Akun" : "6. Password & Account Security",
+                    sub: isId ? "Ganti username, password & email" : "Update user, pass & recovery email",
+                    icon: HiKey,
+                  },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  const isSelected = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab(item.id);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full p-3.5 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
+                        isSelected
+                          ? "bg-[#14AF9E] text-black border-[#14AF9E] shadow-lg shadow-[#14AF9E]/25 font-bold"
+                          : "bg-neutral-900/60 hover:bg-neutral-900 text-neutral-300 border-white/10"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                            isSelected ? "bg-black/15 text-black" : "bg-white/5 text-[#14AF9E]"
+                          }`}
+                        >
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold leading-tight">{item.label}</p>
+                          <p
+                            className={`text-[10px] mt-0.5 leading-tight ${
+                              isSelected ? "text-neutral-900 font-medium" : "text-neutral-400 font-mono"
+                            }`}
+                          >
+                            {item.sub}
+                          </p>
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="w-2 h-2 rounded-full bg-black shrink-0" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* View Public Web Shortcut in Mobile Drawer */}
+              <div className="pt-2 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    if (onClose) onClose();
+                    else setIsAdminMode(false);
+                  }}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer"
+                >
+                  <HiEye className="w-4 h-4" />
+                  <span>{isId ? "Lihat Web Publik ↗" : "View Public Web ↗"}</span>
+                </button>
+              </div>
             </motion.div>
           </div>
         )}
