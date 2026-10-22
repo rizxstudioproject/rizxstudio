@@ -473,6 +473,7 @@ export default function Projects() {
   const stage4 = { ...allData.stage4, clients: contextClients };
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const folderScrollRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -1003,7 +1004,7 @@ export default function Projects() {
            ======================================================== */}
         <div
           id="client-productions"
-          className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 my-auto"
+          className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 pt-16 sm:pt-20 lg:pt-14 pb-4 sm:pb-8 my-auto"
           style={{
             opacity: scrollProgress < 0.74 ? 0 : Math.min(1, (scrollProgress - 0.74) / 0.05),
             transform: `translate3d(0, ${scrollProgress < 0.74 ? 50 : 0}px, 0)`,
@@ -1037,29 +1038,78 @@ export default function Projects() {
           </div>
 
           {/* Right: Client Folder Interactive Vault */}
-          <div className="w-full max-w-md sm:max-w-lg bg-neutral-900/95 border border-white/10 rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-xl">
-            {/* Client Folder Pills Selector */}
-            <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 scrollbar-none border-b border-white/10">
-              {stage4.clients.map((client) => {
-                const isSelected = selectedClient === client.id;
-                return (
+          <div className="w-full max-w-md sm:max-w-lg bg-neutral-900/95 border border-white/10 rounded-3xl p-3.5 sm:p-4 shadow-2xl backdrop-blur-xl flex flex-col max-h-[calc(100vh-140px)] sm:max-h-[calc(100vh-120px)]">
+            {/* Client Folder Pills Selector with Navigation Arrows & Horizontal Scroll */}
+            <div className="mb-3 pb-2.5 border-b border-white/10">
+              <div className="flex items-center justify-between mb-1.5 px-0.5">
+                <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-1.5">
+                  <HiFolder className="w-3.5 h-3.5 text-[#14AF9E]" />
+                  <span>{isId ? "Folder Klien" : "Client Folders"} ({stage4.clients.length})</span>
+                  <span className="text-neutral-500 font-normal lowercase tracking-normal">• {isId ? "geser ↔" : "scroll ↔"}</span>
+                </span>
+                
+                {/* Arrow buttons for easy horizontal scrolling */}
+                <div className="flex items-center gap-1">
                   <button
-                    key={client.id}
-                    onClick={() => setSelectedClient(client.id)}
-                    className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium whitespace-nowrap transition-all duration-300 ${
-                      isSelected
-                        ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)] font-bold scale-105"
-                        : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] border border-white/5"
-                    }`}
+                    type="button"
+                    onClick={() => {
+                      if (folderScrollRef.current) {
+                        folderScrollRef.current.scrollBy({ left: -160, behavior: "smooth" });
+                      }
+                    }}
+                    className="p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95"
+                    title={isId ? "Geser ke folder sebelumnya" : "Scroll left"}
+                    aria-label="Scroll folders left"
                   >
-                    <HiFolder className="w-3.5 h-3.5 text-[#14AF9E] shrink-0" />
-                    <span>{client.clientName}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${isSelected ? "bg-black/10 text-neutral-800" : "bg-white/10 text-neutral-400"}`}>
-                      {client.works.length}
-                    </span>
+                    <span>←</span>
                   </button>
-                );
-              })}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (folderScrollRef.current) {
+                        folderScrollRef.current.scrollBy({ left: 160, behavior: "smooth" });
+                      }
+                    }}
+                    className="p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95"
+                    title={isId ? "Geser ke folder berikutnya" : "Scroll right"}
+                    aria-label="Scroll folders right"
+                  >
+                    <span>→</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Scrollable Pills Row */}
+              <div
+                ref={folderScrollRef}
+                onWheel={(e) => {
+                  if (folderScrollRef.current && Math.abs(e.deltaY) > 0) {
+                    folderScrollRef.current.scrollLeft += e.deltaY;
+                  }
+                }}
+                className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent scroll-smooth select-none"
+              >
+                {stage4.clients.map((client) => {
+                  const isSelected = selectedClient === client.id;
+                  return (
+                    <button
+                      key={client.id}
+                      onClick={() => setSelectedClient(client.id)}
+                      className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-mono font-medium whitespace-nowrap transition-all duration-300 cursor-pointer ${
+                        isSelected
+                          ? "bg-white text-black shadow-[0_0_15px_rgba(255,255,255,0.3)] font-bold scale-105"
+                          : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] border border-white/5"
+                      }`}
+                    >
+                      <HiFolder className="w-3.5 h-3.5 text-[#14AF9E] shrink-0" />
+                      <span>{client.clientName}</span>
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isSelected ? "bg-black/10 text-neutral-800 font-bold" : "bg-white/10 text-neutral-400"}`}>
+                        {client.works.length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* Folder Header Info */}
@@ -1081,7 +1131,7 @@ export default function Projects() {
             {/* Brand Description Panel — REMOVED from folder view, shown only inside modal popup */}
 
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[320px] sm:max-h-[380px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto pr-1">
               {activeClientData.works.map((work, wIdx) => {
                 const localizedWork = getWorkLocalized(work, isId);
                 return (
