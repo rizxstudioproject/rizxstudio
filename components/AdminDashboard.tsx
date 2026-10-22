@@ -71,6 +71,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
   // Admin Account & Password Management State
   const { lang, setLang } = useLang();
+  const isId = lang === "id";
   const [adminUser, setAdminUser] = useState("admin");
   const [adminPass, setAdminPass] = useState("");
   const [adminConfirmPass, setAdminConfirmPass] = useState("");
@@ -846,7 +847,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-base font-bold text-white tracking-wide">
-                Rizx Studio — Admin Dashboard
+                Rizx Studio Admin Dashboard
               </h1>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border flex items-center gap-1 ${
@@ -860,7 +861,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </span>
             </div>
             <p className="text-[11px] text-neutral-400 font-mono hidden sm:block">
-              Setiap kali klik Simpan / Upload, data langsung otomatis update ke web publik rizxstudio.com
+              {isId
+                ? "Setiap kali klik Simpan / Upload, data langsung otomatis update ke web publik rizxstudio.com"
+                : "Changes are automatically updated to live site rizxstudio.com upon saving or uploading"}
             </p>
           </div>
         </div>
@@ -872,7 +875,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               type="button"
               onClick={() => {
                 setLang("en");
-                showToast("Bahasa web diatur ke: English (Icon 🇺🇸)");
+                showToast("Language changed to: English (🇺🇸)");
               }}
               className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${
                 lang === "en"
@@ -888,7 +891,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               type="button"
               onClick={() => {
                 setLang("id");
-                showToast("Bahasa web diatur ke: Bahasa Indonesia (Icon 🇮🇩)");
+                showToast("Bahasa diatur ke: Bahasa Indonesia (🇮🇩)");
               }}
               className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${
                 lang === "id"
@@ -906,7 +909,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             type="button"
             onClick={handleFullReset}
             className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-white/10 text-xs font-mono transition-colors cursor-pointer"
-            title="Reset seluruh modifikasi ke data default"
+            title={isId ? "Reset seluruh modifikasi ke data default" : "Reset all modifications to default data"}
           >
             <HiArrowPath className="w-3.5 h-3.5" />
             <span>Reset</span>
@@ -916,10 +919,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             type="button"
             onClick={adminLogout}
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono transition-colors cursor-pointer"
-            title="Keluar dari sesi Admin"
+            title={isId ? "Keluar dari sesi Admin" : "Logout from Admin session"}
           >
             <HiArrowRightOnRectangle className="w-3.5 h-3.5" />
-            <span>Logout</span>
+            <span>{isId ? "Keluar" : "Logout"}</span>
           </button>
 
           <button
@@ -931,7 +934,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
           >
             <HiEye className="w-4 h-4" />
-            <span>Lihat Public Web</span>
+            <span>{isId ? "Lihat Web Publik" : "View Public Web"}</span>
           </button>
         </div>
       </header>
@@ -950,7 +953,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiFolder className="w-4 h-4 shrink-0" />
-            <span>1. Portofolio</span>
+            <span>{isId ? "1. Portofolio" : "1. Portfolio"}</span>
           </button>
 
           <button
@@ -963,7 +966,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiSparkles className="w-4 h-4 shrink-0" />
-            <span>2. Hero & Works</span>
+            <span>{isId ? "2. Hero & Karya" : "2. Hero & Works"}</span>
           </button>
 
           <button
@@ -976,7 +979,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiTag className="w-4 h-4 shrink-0" />
-            <span>3. Logo Klien</span>
+            <span>{isId ? "3. Logo Klien" : "3. Client Logos"}</span>
           </button>
 
           <button
@@ -989,7 +992,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiUser className="w-4 h-4 shrink-0" />
-            <span>4. About Me</span>
+            <span>{isId ? "4. Tentang Saya" : "4. About Me"}</span>
           </button>
 
           <button
@@ -1002,7 +1005,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiVideoCamera className="w-4 h-4 shrink-0" />
-            <span>5. Video YouTube</span>
+            <span>{isId ? "5. Video YouTube" : "5. YouTube Video"}</span>
           </button>
 
           <button
@@ -1015,7 +1018,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiKey className="w-4 h-4 shrink-0" />
-            <span>6. Sandi & Akun</span>
+            <span>{isId ? "6. Sandi & Akun" : "6. Password & Account"}</span>
           </button>
         </div>
 
@@ -1030,13 +1033,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
               <span className="text-[11px] font-mono tracking-widest text-cyan-400 uppercase font-semibold block mb-1">
-                FOLDER MANAGEMENT & MY WORK ASSETS
+                {isId ? "MANAJEMEN FOLDER & PORTOFOLIO" : "FOLDER MANAGEMENT & PORTFOLIO"}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Manajemen Folder & Portofolio (Format: client - [Nama Brand])
+                {isId ? "Manajemen Folder & Portofolio (Format: client - [Nama Brand])" : "Folder & Portfolio Management (Format: client - [Brand Name])"}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
-                Pilih folder klien di bawah untuk mengupload gambar portofolio baru, menghapus karya (ikon silang X di sudut gambar), dan mengedit narasi brand. Perubahan langsung tersimpan dan tampil di public website.
+                {isId
+                  ? "Pilih folder klien di bawah untuk mengupload gambar portofolio baru, menghapus karya (ikon silang X di sudut gambar), dan mengedit narasi brand. Perubahan langsung tersimpan dan tampil di public website."
+                  : "Select a client folder below to upload new portfolio images, delete works (X icon on top-right), and edit brand stories. Changes are saved and updated live."}
               </p>
             </div>
 
@@ -1044,7 +1049,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
-                  Daftar Folder Klien ({clients.length} Brand):
+                  {isId ? `Daftar Folder Klien (${clients.length} Brand):` : `Client Folder List (${clients.length} Brands):`}
                 </span>
                 <button
                   type="button"
@@ -1052,7 +1057,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#14AF9E]/15 hover:bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/35 text-xs font-mono font-semibold transition-all cursor-pointer hover:scale-105 active:scale-95"
                 >
                   <HiFolderPlus className="w-4 h-4" />
-                  <span>Buat Folder Baru</span>
+                  <span>{isId ? "Buat Folder Baru" : "Create New Folder"}</span>
                 </button>
               </div>
 
@@ -1080,7 +1085,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 : "bg-white/5 text-neutral-400"
                             }`}
                           >
-                            {client.works?.length || 0} Karya
+                            {client.works?.length || 0} {isId ? "Karya" : "Works"}
                           </span>
                           <div className="flex items-center gap-1">
                             <HiFolder
@@ -1255,16 +1260,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
                     <div>
                       <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                        MY WORK ASSETS Â· FOLDER {selectedClient.clientName.toUpperCase()}
+                        {isId ? "ASET PORTOFOLIO" : "PORTFOLIO ASSETS"} · FOLDER {selectedClient.clientName.toUpperCase()}
                       </span>
                       <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                        <span>Galeri Gambar Portofolio</span>
+                        <span>{isId ? "Galeri Gambar Portofolio" : "Portfolio Image Gallery"}</span>
                         <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-mono">
-                          {selectedClient.works?.length || 0} Item
+                          {selectedClient.works?.length || 0} {isId ? "Item" : "Items"}
                         </span>
                       </h3>
                       <p className="text-xs text-neutral-400 mt-0.5">
-                        Klik tombol tanda silang (X) di sudut kanan atas pada gambar untuk menghapusnya langsung dari web portofolio.
+                        {isId
+                          ? "Klik tombol tanda silang (X) di sudut kanan atas pada gambar untuk menghapusnya langsung dari web portofolio."
+                          : "Click the (X) cross icon on top-right of an image to remove it directly from the portfolio."}
                       </p>
                     </div>
 
@@ -1274,7 +1281,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer shrink-0"
                     >
                       <HiArrowUpTray className="w-4 h-4" />
-                      <span>Add New Portfolio Image</span>
+                      <span>{isId ? "Tambah Gambar Portofolio" : "Add New Portfolio Image"}</span>
                     </button>
                   </div>
 
@@ -1365,10 +1372,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="p-10 rounded-2xl bg-neutral-950/80 border border-dashed border-white/15 text-center flex flex-col items-center justify-center">
                       <HiPhoto className="w-12 h-12 text-neutral-600 mb-2" />
                       <p className="text-sm font-semibold text-neutral-300">
-                        Belum ada gambar di folder {selectedClient.clientName}
+                        {isId
+                          ? `Belum ada gambar di folder ${selectedClient.clientName}`
+                          : `No images yet in folder ${selectedClient.clientName}`}
                       </p>
                       <p className="text-xs text-neutral-500 mt-1 max-w-sm">
-                        Klik tombol "Add New Portfolio Image" di atas untuk menambahkan visual kampanye ke folder ini.
+                        {isId
+                          ? `Klik tombol "Tambah Gambar Portofolio" di atas untuk menambahkan visual kampanye ke folder ini.`
+                          : `Click "Add New Portfolio Image" above to add campaign visuals to this folder.`}
                       </p>
                     </div>
                   )}
@@ -1562,7 +1573,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#14AF9E]"
                         />
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (Â°):</span>
+                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (°):</span>
                           <input
                             type="number"
                             value={card.rotate}
@@ -1877,7 +1888,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onClick={handleCancelHeroWorks}
                   className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
                 >
-                  Batal (Cancel)
+                  {isId ? "Batal" : "Cancel"}
                 </button>
                 <button
                   type="button"
@@ -1885,7 +1896,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <HiCheck className="w-4 h-4" />
-                  <span>Simpan Update</span>
+                  <span>{isId ? "Simpan Update" : "Save Changes"}</span>
                 </button>
               </div>
             </div>
@@ -2170,7 +2181,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onClick={handleCancelClientLogos}
                   className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
                 >
-                  Batal (Cancel)
+                  {isId ? "Batal" : "Cancel"}
                 </button>
                 <button
                   type="button"
@@ -2178,7 +2189,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <HiCheck className="w-4 h-4" />
-                  <span>Simpan Update</span>
+                  <span>{isId ? "Simpan Update" : "Save Changes"}</span>
                 </button>
               </div>
             </div>
@@ -2211,7 +2222,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                    BAGIAN 1 Â· HEADER & NARASI UTAMA
+                    BAGIAN 1 · HEADER & NARASI UTAMA
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Judul & Deskripsi Utama Profil
@@ -2277,7 +2288,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                    BAGIAN 2 Â· FILOSOFI INTI
+                    BAGIAN 2 · FILOSOFI INTI
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Quote & Core Philosophy
@@ -2317,7 +2328,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                    BAGIAN 3 Â· STATISTIK PENGALAMAN
+                    BAGIAN 3 · STATISTIK PENGALAMAN
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     3 Angka Prestasi & Pengalaman
@@ -2394,7 +2405,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                    BAGIAN 4 Â· KARTU SAMPING (SIDEBAR CARDS)
+                    BAGIAN 4 · KARTU SAMPING (SIDEBAR CARDS)
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Kolaborasi Global & Disiplin Keahlian
@@ -2474,7 +2485,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer"
                 >
                   <HiCheck className="w-4 h-4" />
-                  <span>Simpan Perubahan About Me & Update Web</span>
+                  <span>{isId ? "Simpan Perubahan About Me & Update Web" : "Save About Me Changes & Update Web"}</span>
                 </button>
 
                 <button
@@ -2482,7 +2493,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onClick={handleResetAbout}
                   className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                 >
-                  Reset Form
+                  {isId ? "Batal" : "Cancel"}
                 </button>
               </div>
             </form>
@@ -2686,14 +2697,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-400 hover:from-[#119889] hover:to-cyan-300 text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all active:scale-95 cursor-pointer"
                     >
                       <HiCheck className="w-4 h-4" />
-                      <span>Simpan & Buka Langsung di Web ↗</span>
+                      <span>{isId ? "Simpan & Buka Langsung di Web ↗" : "Save & Open on Web ↗"}</span>
                     </button>
 
                     <button
                       type="submit"
                       className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium text-xs sm:text-sm border border-white/10 transition-all active:scale-95 cursor-pointer"
                     >
-                      <span>Simpan Saja</span>
+                      <span>{isId ? "Simpan Saja" : "Save Only"}</span>
                     </button>
 
                     <button
@@ -2702,7 +2713,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all cursor-pointer"
                     >
                       <HiTrash className="w-4 h-4" />
-                      <span>Hapus Video</span>
+                      <span>{isId ? "Hapus Video" : "Remove Video"}</span>
                     </button>
                   </div>
                 </form>
@@ -2808,10 +2819,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 ADMIN SECURITY & CREDENTIALS
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Pengaturan Akun, Ganti Password & Email Verifikasi
+                {isId ? "Pengaturan Akun, Ganti Password & Email Verifikasi" : "Account Settings, Password Change & Recovery Email"}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
-                Kelola kredensial login Admin Panel. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun baru di URL rahasia <code className="text-[#14AF9E] font-mono">?login=secret</code>.
+                {isId
+                  ? "Kelola kredensial login Admin Panel. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun baru di URL rahasia "
+                  : "Manage Admin Panel credentials. Changes update live in Supabase Cloud & LocalStorage for logging in at the secret URL "}
+                <code className="text-[#14AF9E] font-mono">?login=secret</code>.
               </p>
             </div>
 
@@ -2822,7 +2836,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {/* Username */}
                   <div>
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                      USERNAME ADMIN <span className="text-[#14AF9E]">*</span>
+                      {isId ? "USERNAME ADMIN" : "ADMIN USERNAME"} <span className="text-[#14AF9E]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -2838,14 +2852,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <HiUser className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     </div>
                     <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
-                      Username untuk login ke admin panel dashboard.
+                      {isId ? "Username untuk login ke admin panel dashboard." : "Username for logging into the admin panel dashboard."}
                     </span>
                   </div>
 
                   {/* Recovery Email */}
                   <div>
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                      EMAIL RECOVERY / VERIFIKASI <span className="text-[#14AF9E]">*</span>
+                      {isId ? "EMAIL RECOVERY / VERIFIKASI" : "RECOVERY / VERIFICATION EMAIL"} <span className="text-[#14AF9E]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -2858,21 +2872,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <HiEnvelope className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     </div>
                     <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
-                      Kode OTP verifikasi saat lupa password akan dikirim ke email ini.
+                      {isId
+                        ? "Kode OTP verifikasi saat lupa password akan dikirim ke email ini."
+                        : "Verification OTP codes for password recovery will be sent to this email."}
                     </span>
                   </div>
 
                   {/* Password Baru */}
                   <div className="pt-2 border-t border-white/10">
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                      GANTI PASSWORD BARU (KOSONGKAN JIKA TIDAK INGIN MENGUBAH)
+                      {isId ? "GANTI PASSWORD BARU (KOSONGKAN JIKA TIDAK INGIN MENGUBAH)" : "CHANGE PASSWORD (LEAVE BLANK TO KEEP UNCHANGED)"}
                     </label>
                     <div className="relative">
                       <input
                         type={showAdminPass ? "text" : "password"}
                         value={adminPass}
                         onChange={(e) => setAdminPass(e.target.value)}
-                        placeholder="Ketik password baru (minimal 6 karakter)"
+                        placeholder={isId ? "Ketik password baru (minimal 6 karakter)" : "Enter new password (min. 6 characters)"}
                         className="w-full px-4 py-3 pr-12 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
                       />
                       <button
@@ -2890,13 +2906,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {adminPass && (
                     <div>
                       <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                        KONFIRMASI PASSWORD BARU <span className="text-[#14AF9E]">*</span>
+                        {isId ? "KONFIRMASI PASSWORD BARU" : "CONFIRM NEW PASSWORD"} <span className="text-[#14AF9E]">*</span>
                       </label>
                       <input
                         type={showAdminPass ? "text" : "password"}
                         value={adminConfirmPass}
                         onChange={(e) => setAdminConfirmPass(e.target.value)}
-                        placeholder="Ulangi password baru yang sama"
+                        placeholder={isId ? "Ulangi password baru yang sama" : "Repeat the same new password"}
                         className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
                       />
                     </div>
@@ -2910,7 +2926,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       <HiCheck className="w-4 h-4" />
-                      <span>{isSavingAccount ? "Menyimpan ke Cloud…" : "Simpan Perubahan Akun"}</span>
+                      <span>{isSavingAccount ? (isId ? "Menyimpan ke Cloud…" : "Saving to Cloud…") : (isId ? "Simpan Perubahan Akun" : "Save Account Changes")}</span>
                     </button>
                   </div>
                 </form>
@@ -2989,10 +3005,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   FOLDER: client - {selectedClient?.clientName}
                 </span>
                 <h3 className="text-xl font-bold text-white">
-                  Upload Gambar Portofolio
+                  {isId ? "Upload Gambar Portofolio" : "Upload Portfolio Image"}
                 </h3>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Gambar yang diupload akan langsung tersimpan dan muncul di galeri publik folder klien ini.
+                  {isId
+                    ? "Gambar yang diupload akan langsung tersimpan dan muncul di galeri publik folder klien ini."
+                    : "Uploaded image will be saved and displayed live in this client folder's public gallery."}
                 </p>
               </div>
 
@@ -3000,7 +3018,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* File Dropzone / Selector */}
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    File Gambar (JPG, PNG, WEBP) <span className="text-cyan-400">*</span>
+                    {isId ? "File Gambar (JPG, PNG, WEBP)" : "Image File (JPG, PNG, WEBP)"} <span className="text-cyan-400">*</span>
                   </label>
                   <input
                     ref={fileInputRef}
@@ -3021,17 +3039,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           className="max-h-48 w-auto mx-auto rounded-xl object-contain border border-white/15 shadow-md"
                         />
                         <p className="text-xs text-cyan-400 font-mono">
-                          Klik untuk mengganti gambar
+                          {isId ? "Klik untuk mengganti gambar" : "Click to replace image"}
                         </p>
                       </div>
                     ) : (
                       <div className="py-4 space-y-2">
                         <HiArrowUpTray className="w-10 h-10 text-neutral-500 group-hover:text-[#14AF9E] mx-auto transition-colors" />
                         <p className="text-xs sm:text-sm font-semibold text-neutral-300">
-                          Klik untuk memilih file gambar
+                          {isId ? "Klik untuk memilih file gambar" : "Click to select image file"}
                         </p>
                         <p className="text-[11px] text-neutral-500 font-mono">
-                          Mendukung PNG, JPG, JPEG, WEBP
+                          {isId ? "Mendukung PNG, JPG, JPEG, WEBP" : "Supports PNG, JPG, JPEG, WEBP"}
                         </p>
                       </div>
                     )}
@@ -3147,7 +3165,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiCheck className="w-4 h-4" />
-                    <span>Upload & Tambahkan ke Web</span>
+                    <span>{isId ? "Upload & Tambahkan ke Web" : "Upload & Add to Web"}</span>
                   </button>
 
                   <button
@@ -3159,7 +3177,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                   >
-                    Batal
+                    {isId ? "Batal" : "Cancel"}
                   </button>
                 </div>
               </form>
@@ -3205,7 +3223,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     Edit Detail: {editingWork.title}
                   </h3>
                   <p className="text-xs text-neutral-400">
-                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> Â· Perubahan langsung aktif di popup Case Study web publik.
+                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> · {isId ? "Perubahan langsung aktif di popup Case Study web publik." : "Changes update live in public Case Study popup."}
                   </p>
                 </div>
               </div>
@@ -3298,7 +3316,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-mono text-amber-400 font-medium mb-1.5 flex items-center gap-1.5">
-                      <span>âš ï¸</span>
+                      <span>⚠️</span>
                       <span>Tantangan (Challenge)</span>
                     </label>
                     <textarea
@@ -3312,7 +3330,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   <div>
                     <label className="block text-xs font-mono text-[#14AF9E] font-medium mb-1.5 flex items-center gap-1.5">
-                      <span>âœ…</span>
+                      <span>✅</span>
                       <span>Solusi & Pendekatan (Solution)</span>
                     </label>
                     <textarea
@@ -3399,14 +3417,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
                   >
                     <HiCheck className="w-4 h-4" />
-                    <span>Simpan Perubahan & Update Web</span>
+                    <span>{isId ? "Simpan Perubahan & Update Web" : "Save Changes & Update Web"}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingWork(null)}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                   >
-                    Batal
+                    {isId ? "Batal" : "Cancel"}
                   </button>
                 </div>
               </form>
@@ -3441,23 +3459,25 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <span className="text-[10px] font-mono uppercase tracking-widest text-[#14AF9E] font-semibold block mb-1">
                   FOLDER MANAGEMENT
                 </span>
-                <h3 className="text-xl font-bold text-white">Buat Folder Klien Baru</h3>
+                <h3 className="text-xl font-bold text-white">{isId ? "Buat Folder Klien Baru" : "Create New Client Folder"}</h3>
                 <p className="text-xs text-neutral-400 mt-1">
-                  Folder baru akan langsung tampil di panel My Work & galeri publik website.
+                  {isId
+                    ? "Folder baru akan langsung tampil di panel My Work & galeri publik website."
+                    : "New folder will immediately appear in the My Work panel & public gallery."}
                 </p>
               </div>
 
               <form onSubmit={handleAddFolder} className="space-y-4">
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    Nama Brand / Klien <span className="text-cyan-400">*</span>
+                    {isId ? "Nama Brand / Klien" : "Brand / Client Name"} <span className="text-cyan-400">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
-                    placeholder="Contoh: Nike, Samsung, Local Brand Co."
+                    placeholder={isId ? "Contoh: Nike, Samsung, Local Brand Co." : "Example: Nike, Samsung, Local Brand Co."}
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
                     autoFocus
                   />
@@ -3470,13 +3490,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    Kategori / Tipe Kolaborasi
+                    {isId ? "Kategori / Tipe Kolaborasi" : "Category / Collaboration Type"}
                   </label>
                   <input
                     type="text"
                     value={newFolderCategory}
                     onChange={(e) => setNewFolderCategory(e.target.value)}
-                    placeholder="Contoh: Brand Visuals & Ads, Digital Campaign"
+                    placeholder={isId ? "Contoh: Brand Visuals & Ads, Digital Campaign" : "Example: Brand Visuals & Ads, Digital Campaign"}
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
                   />
                 </div>
@@ -3484,7 +3504,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* Tahun kolaborasi */}
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    Tahun Kolaborasi
+                    {isId ? "Tahun Kolaborasi" : "Collaboration Year"}
                   </label>
                   <input
                     type="number"
@@ -3504,7 +3524,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiFolderPlus className="w-4 h-4" />
-                    <span>Buat Folder</span>
+                    <span>{isId ? "Buat Folder" : "Create Folder"}</span>
                   </button>
                   <button
                     type="button"
@@ -3516,7 +3536,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-colors cursor-pointer"
                   >
-                    Batal
+                    {isId ? "Batal" : "Cancel"}
                   </button>
                 </div>
               </form>
