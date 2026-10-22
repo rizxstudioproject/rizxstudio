@@ -1116,18 +1116,18 @@ export default function Projects() {
                   <span className="text-neutral-500 font-normal lowercase tracking-normal">• {isId ? "geser ↔" : "scroll ↔"}</span>
                 </span>
                 
-                {/* Arrow buttons for easy horizontal scrolling */}
+                {/* Arrow buttons: Scroll to start / end of client folders */}
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => {
                       if (folderScrollRef.current) {
-                        folderScrollRef.current.scrollBy({ left: -160, behavior: "smooth" });
+                        folderScrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
                       }
                     }}
                     className="p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95"
-                    title={isId ? "Geser ke folder sebelumnya" : "Scroll left"}
-                    aria-label="Scroll folders left"
+                    title={isId ? "Kembali ke awal folder" : "Scroll to start"}
+                    aria-label="Scroll to first folder"
                   >
                     <span>←</span>
                   </button>
@@ -1135,12 +1135,15 @@ export default function Projects() {
                     type="button"
                     onClick={() => {
                       if (folderScrollRef.current) {
-                        folderScrollRef.current.scrollBy({ left: 160, behavior: "smooth" });
+                        folderScrollRef.current.scrollTo({
+                          left: folderScrollRef.current.scrollWidth,
+                          behavior: "smooth",
+                        });
                       }
                     }}
                     className="p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95"
-                    title={isId ? "Geser ke folder berikutnya" : "Scroll right"}
-                    aria-label="Scroll folders right"
+                    title={isId ? "Langsung ke akhir folder" : "Scroll to end"}
+                    aria-label="Scroll to last folder"
                   >
                     <span>→</span>
                   </button>
