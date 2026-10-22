@@ -74,11 +74,11 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
           {/* Logo + badge */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-2xl bg-white p-1.5 border border-white/20 shadow-[0_0_25px_rgba(20,175,158,0.3)] flex items-center justify-center shrink-0 overflow-hidden">
+              <div className="w-10 h-10 rounded-2xl overflow-hidden shadow-[0_0_25px_rgba(20,175,158,0.3)] shrink-0">
                 <img
                   src="/brand-logo.png"
                   alt="Rizx Studio Logo"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover"
                 />
               </div>
               <div>
