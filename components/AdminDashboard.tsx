@@ -582,11 +582,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             {client.works?.length || 0} Karya
                           </span>
                           <div className="flex items-center gap-1">
-                            {client.isCustom && (
-                              <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-[#14AF9E]/20 text-[#14AF9E] border border-[#14AF9E]/30">
-                                CUSTOM
-                              </span>
-                            )}
                             <HiFolder
                               className={`w-4 h-4 ${isSelected ? "text-[#14AF9E]" : "text-neutral-500"}`}
                             />
