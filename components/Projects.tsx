@@ -1007,17 +1007,28 @@ export default function Projects() {
           <div className="relative w-full max-w-sm sm:max-w-md h-[220px] sm:h-[300px] md:h-[360px] flex items-center justify-center">
             {/* Scroll-driven blooming / fan-out factor for stage 2 */}
             {(() => {
+              // On mobile the section enters view sooner (stacked layout, less scroll room)
+              // so we use a lower start threshold and wider window
+              const bloomStart = isMobile ? 0.30 : 0.28;
+              const bloomWindow = isMobile ? 0.12 : 0.14;
+
               // Blooming progress for Stage 2 (spreads gently as user reaches & scrolls stage 2)
-              const bloomProgress = Math.max(0, Math.min(1, (scrollProgress - 0.28) / 0.14));
-              const bloomMultiplier = 1 + bloomProgress * 0.45; // up to 45% spread
+              const bloomProgress = Math.max(0, Math.min(1, (scrollProgress - bloomStart) / bloomWindow));
+              const bloomMultiplier = 1 + bloomProgress * (isMobile ? 0.35 : 0.45);
               const bloomRotateMultiplier = 1 + bloomProgress * 0.5;
 
               // Badges emerge from behind the cards
-              const badge1Y = (1 - bloomProgress) * 35 - 12; // starts hidden behind card (y: +23px), floats up to -12px
+              // Mobile: container is 220px tall; start badges buried at ~90px, float to ~8px
+              // Desktop: container is 360px tall; start at +23px above midpoint, float to -12px
+              const b1Start = isMobile ? 90 : 23;
+              const b1End = isMobile ? 8 : -12;
+              const badge1Y = b1End + (1 - bloomProgress) * (b1Start - b1End);
               const badge1Scale = 0.6 + bloomProgress * 0.4;
               const badge1Opacity = Math.max(0, Math.min(1, (bloomProgress - 0.1) / 0.4));
 
-              const badge2Y = (1 - bloomProgress) * 40 - 10;
+              const b2Start = isMobile ? 95 : 30;
+              const b2End = isMobile ? 10 : -10;
+              const badge2Y = b2End + (1 - bloomProgress) * (b2Start - b2End);
               const badge2Scale = 0.6 + bloomProgress * 0.4;
               const badge2Opacity = Math.max(0, Math.min(1, (bloomProgress - 0.15) / 0.4));
 
@@ -1033,7 +1044,7 @@ export default function Projects() {
                             top: `${badge1Y}px`,
                             transform: `scale(${badge1Scale}) rotate(-6deg)`,
                             opacity: badge1Opacity,
-                            zIndex: 5, // Behind front cards (z: 10+)
+                            zIndex: isMobile ? 20 : 5, // On mobile show above cards; desktop behind front cards
                           }}
                         >
                           <span className="flex items-center gap-1">
@@ -1049,7 +1060,7 @@ export default function Projects() {
                             top: `${badge2Y}px`,
                             transform: `scale(${badge2Scale}) rotate(6deg)`,
                             opacity: badge2Opacity,
-                            zIndex: 5, // Behind front cards (z: 10+)
+                            zIndex: isMobile ? 20 : 5, // On mobile show above cards; desktop behind front cards
                           }}
                         >
                           <span className="flex items-center gap-1">
