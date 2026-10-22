@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
@@ -10,7 +10,43 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollProgressPercent, setScrollProgressPercent] = useState(0);
+  const [isVisible, setIsVisible] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { lang, setLang, t } = useLang();
+
+  const resetHideTimer = useCallback(() => {
+    setIsVisible(true);
+    if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    hideTimerRef.current = setTimeout(() => {
+      setIsVisible(false);
+    }, 2800);
+  }, []);
+
+  useEffect(() => {
+    resetHideTimer();
+
+    const handleUserActivity = () => {
+      resetHideTimer();
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (e.clientY <= 90) {
+        setIsVisible(true);
+      }
+    };
+
+    window.addEventListener("scroll", handleUserActivity, { passive: true });
+    window.addEventListener("touchstart", handleUserActivity, { passive: true });
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      window.removeEventListener("scroll", handleUserActivity);
+      window.removeEventListener("touchstart", handleUserActivity);
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, [resetHideTimer]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -59,8 +95,23 @@ export default function Navbar() {
     }
   };
 
+  const shouldShow = isVisible || isHovered || mobileMenuOpen;
+
   return (
     <>
+      {/* Top Edge Hover/Touch Sensor to show navbar when cursor/touch is near top */}
+      <div
+        className="fixed top-0 left-0 right-0 h-5 z-[49] pointer-events-auto"
+        onMouseEnter={() => {
+          setIsVisible(true);
+          resetHideTimer();
+        }}
+        onTouchStart={() => {
+          setIsVisible(true);
+          resetHideTimer();
+        }}
+      />
+
       {/* Top Scroll Speed / Progress Line Indicator */}
       <div
         className="navbar-progress-bar fixed top-0 left-0 h-[2.5px] bg-gradient-to-r from-cyan-400 via-[#00A389] to-white z-[60] pointer-events-none transition-all duration-75 shadow-[0_0_8px_rgba(0,163,137,0.8)]"
@@ -68,7 +119,20 @@ export default function Navbar() {
       />
 
       <header
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => {
+          setIsHovered(false);
+          resetHideTimer();
+        }}
+        onTouchStart={() => {
+          setIsVisible(true);
+          resetHideTimer();
+        }}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out ${
+          shouldShow
+            ? "translate-y-0 opacity-100 pointer-events-auto"
+            : "-translate-y-full opacity-0 pointer-events-none"
+        } ${
           scrolled || mobileMenuOpen
             ? "bg-black/90 backdrop-blur-xl border-b border-white/10 py-3 px-4 sm:px-12"
             : "bg-transparent py-4 sm:py-5 px-4 sm:px-12"

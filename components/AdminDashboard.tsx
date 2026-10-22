@@ -908,21 +908,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           <button
             type="button"
             onClick={handleFullReset}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-white/10 text-xs font-mono transition-colors cursor-pointer"
+            className="flex items-center justify-center w-8 h-8 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-white/10 transition-all cursor-pointer hover:scale-105 active:scale-95"
             title={isId ? "Reset seluruh modifikasi ke data default" : "Reset all modifications to default data"}
+            aria-label="Reset"
           >
-            <HiArrowPath className="w-3.5 h-3.5" />
-            <span>Reset</span>
+            <HiArrowPath className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={adminLogout}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono transition-colors cursor-pointer"
-            title={isId ? "Keluar dari sesi Admin" : "Logout from Admin session"}
+            className="flex items-center justify-center w-8 h-8 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-white/10 transition-all cursor-pointer hover:scale-105 active:scale-95"
+            title={isId ? "Keluar dari sesi Admin (Logout)" : "Logout from Admin session"}
+            aria-label="Logout"
           >
-            <HiArrowRightOnRectangle className="w-3.5 h-3.5" />
-            <span>{isId ? "Keluar" : "Logout"}</span>
+            <HiArrowRightOnRectangle className="w-4 h-4" />
           </button>
 
           <button
@@ -942,83 +942,83 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
         {/* Navigation Tabs */}
-        <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 max-w-4xl mx-auto mb-8 backdrop-blur-md">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 w-full max-w-5xl mx-auto mb-8 backdrop-blur-md overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("clients")}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "clients"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <HiFolder className="w-4 h-4 shrink-0" />
-            <span>{isId ? "1. Portofolio" : "1. Portfolio"}</span>
+            <span className="whitespace-nowrap">{isId ? "1. Portofolio" : "1. Portfolio"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("hero-works")}
-            className={`flex-1 min-w-[140px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "hero-works"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <HiSparkles className="w-4 h-4 shrink-0" />
-            <span>{isId ? "2. Hero & Karya" : "2. Hero & Works"}</span>
+            <span className="whitespace-nowrap">{isId ? "2. Hero & Karya" : "2. Hero & Works"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("client-logos")}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "client-logos"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <HiTag className="w-4 h-4 shrink-0" />
-            <span>{isId ? "3. Logo Klien" : "3. Client Logos"}</span>
+            <span className="whitespace-nowrap">{isId ? "3. Logo Klien" : "3. Client Logos"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("about")}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "about"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <HiUser className="w-4 h-4 shrink-0" />
-            <span>{isId ? "4. Tentang Saya" : "4. About Me"}</span>
+            <span className="whitespace-nowrap">{isId ? "4. Tentang Saya" : "4. About Me"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("flagship")}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "flagship"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <HiVideoCamera className="w-4 h-4 shrink-0" />
-            <span>{isId ? "5. Video YouTube" : "5. YouTube Video"}</span>
+            <span className="whitespace-nowrap">{isId ? "5. Video YouTube" : "5. YouTube Video"}</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("account")}
-            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "account"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <HiKey className="w-4 h-4 shrink-0" />
-            <span>{isId ? "6. Sandi & Akun" : "6. Password & Account"}</span>
+            <span className="whitespace-nowrap">{isId ? "6. Sandi & Akun" : "6. Password & Account"}</span>
           </button>
         </div>
 
