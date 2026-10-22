@@ -76,6 +76,149 @@ export const defaultAboutData: AboutData = {
   ],
 };
 
+export interface DeckCardItem {
+  id: string;
+  title: string;
+  category: string;
+  image: string;
+  gradient?: string;
+}
+
+export interface OverlappingCardItem {
+  id: string;
+  title: string;
+  image: string;
+  rotate: number;
+}
+
+export interface HeroWorksData {
+  stage1Badge: string;
+  stage1Headline: string;
+  stage1Subheadline: string;
+  stage1ScrollText: string;
+  deckCards: DeckCardItem[];
+
+  stage2Tag: string;
+  stage2Headline: string;
+  stage2Desc: string;
+  stage2BtnText: string;
+  stage2Skills: string[];
+  stage2Badges: Array<{ id: string | number; text: string; color?: string }>;
+  overlappingCards: OverlappingCardItem[];
+}
+
+export const defaultHeroWorksData: HeroWorksData = {
+  stage1Badge: "SELECTED WORKS",
+  stage1Headline: "A Range of Work. One Creative Vision.",
+  stage1Subheadline:
+    "Explore selected projects across branding, motion, digital design, and AI-driven visuals, shaped by different briefs, teams, and creative challenges.",
+  stage1ScrollText: "Scroll down ↓",
+  deckCards: [
+    {
+      id: "d1",
+      title: "Brand Identity",
+      category: "Brand Identity",
+      image: "/assets/antigravity/selected-brand-identity.jpg",
+      gradient: "from-red-600/60 to-black",
+    },
+    {
+      id: "d2",
+      title: "Campaign Visuals",
+      category: "Campaign Visuals",
+      image: "/assets/antigravity/selected-campaign-visuals.jpg",
+      gradient: "from-blue-600/60 to-black",
+    },
+    {
+      id: "d3",
+      title: "Motion Graphics",
+      category: "Motion Graphics",
+      image: "/assets/antigravity/selected-motion-graphics.jpg",
+      gradient: "from-amber-500/60 to-black",
+    },
+    {
+      id: "d4",
+      title: "3D Design",
+      category: "3D Design",
+      image: "/assets/antigravity/selected-3d-design.jpg",
+      gradient: "from-pink-500/60 to-black",
+    },
+    {
+      id: "d5",
+      title: "UI/UX Design",
+      category: "UI/UX Design",
+      image: "/assets/antigravity/selected-uiux-design.jpg",
+      gradient: "from-cyan-500/60 to-black",
+    },
+  ],
+  stage2Tag: "AI-DRIVEN CREATIVE",
+  stage2Headline: "Design. Motion. AI.",
+  stage2Desc:
+    "Senior Graphic Designer & Digital Artist crafting impactful brand visuals, motion graphics, and digital experiences for global brands.",
+  stage2BtnText: "Explore My Work",
+  stage2Skills: ["Branding", "Motion", "3D Design", "UI/UX", "AI Visuals"],
+  stage2Badges: [
+    { id: 1, text: "@rizx", color: "bg-[#14AF9E] text-white border-[#14AF9E]" },
+    { id: 2, text: "@malaka", color: "bg-neutral-800 text-white border-neutral-700" },
+  ],
+  overlappingCards: [
+    { id: "o1", title: "Branding", image: "/assets/antigravity/selected-brand-identity.jpg", rotate: -8 },
+    { id: "o2", title: "Motion", image: "/assets/antigravity/selected-motion-graphics.jpg", rotate: -3 },
+    { id: "o3", title: "UI/UX", image: "/assets/antigravity/selected-uiux-design.jpg", rotate: 3 },
+    { id: "o4", title: "AI Visuals", image: "/assets/antigravity/selected-3d-design.jpg", rotate: 7 },
+  ],
+};
+
+export interface ClientLogoItem {
+  id: string;
+  name: string;
+  file: string;
+  row: 1 | 2;
+}
+
+export interface ClientLogosData {
+  subtitle: string;
+  logos: ClientLogoItem[];
+}
+
+export const defaultClientLogosData: ClientLogosData = {
+  subtitle: "Selected Clients & Creative Collaborations",
+  logos: [
+    { id: "cl-1", name: "Tokopedia", file: "/logos/logo_01.svg", row: 1 },
+    { id: "cl-2", name: "11ST", file: "/logos/logo_02.svg", row: 1 },
+    { id: "cl-3", name: "Samsung", file: "/logos/logo_03.svg", row: 1 },
+    { id: "cl-4", name: "Nexon", file: "/logos/logo_04.svg", row: 1 },
+    { id: "cl-5", name: "Client", file: "/logos/logo_05.svg", row: 1 },
+    { id: "cl-6", name: "TruCarbon", file: "/logos/logo_06.svg", row: 1 },
+    { id: "cl-7", name: "Client", file: "/logos/logo_07.svg", row: 1 },
+    { id: "cl-8", name: "Client", file: "/logos/logo_07-1.svg", row: 1 },
+    { id: "cl-9", name: "Client", file: "/logos/logo_08.svg", row: 1 },
+    { id: "cl-10", name: "SuperSmart", file: "/logos/logo_09.svg", row: 1 },
+    { id: "cl-11", name: "Asian Trust Capital", file: "/logos/logo_10.svg", row: 1 },
+    { id: "cl-12", name: "Client", file: "/logos/logo_11.svg", row: 1 },
+    { id: "cl-13", name: "Client", file: "/logos/logo_12.svg", row: 1 },
+    { id: "cl-14", name: "Client", file: "/logos/logo_13.svg", row: 1 },
+    { id: "cl-15", name: "EDUF", file: "/logos/logo_14.svg", row: 1 },
+    { id: "cl-16", name: "Client", file: "/logos/logo_15.svg", row: 1 },
+    { id: "cl-17", name: "Client", file: "/logos/logo_16.svg", row: 2 },
+    { id: "cl-18", name: "Client", file: "/logos/logo_17.svg", row: 2 },
+    { id: "cl-19", name: "Client", file: "/logos/logo_18.svg", row: 2 },
+    { id: "cl-20", name: "Client", file: "/logos/logo_19.svg", row: 2 },
+    { id: "cl-21", name: "KB Bukopin", file: "/logos/logo_20.svg", row: 2 },
+    { id: "cl-22", name: "Burger King", file: "/logos/logo_21.svg", row: 2 },
+    { id: "cl-23", name: "Client", file: "/logos/logo_22.svg", row: 2 },
+    { id: "cl-24", name: "Withings", file: "/logos/logo_23.svg", row: 2 },
+    { id: "cl-25", name: "Client", file: "/logos/logo_24.svg", row: 2 },
+    { id: "cl-26", name: "Client", file: "/logos/logo_25.svg", row: 2 },
+    { id: "cl-27", name: "LINE", file: "/logos/logo_26.svg", row: 2 },
+    { id: "cl-28", name: "Client", file: "/logos/logo_26-1.svg", row: 2 },
+    { id: "cl-29", name: "Kotra", file: "/logos/logo_27.svg", row: 2 },
+    { id: "cl-30", name: "WebToon", file: "/logos/logo_28.svg", row: 2 },
+    { id: "cl-31", name: "Shortiz", file: "/logos/logo_29.svg", row: 2 },
+    { id: "cl-32", name: "iLOTTE", file: "/logos/logo_30.svg", row: 2 },
+    { id: "cl-33", name: "Client", file: "/logos/logo_31.svg", row: 2 },
+  ],
+};
+
 interface PortfolioDataContextType {
   stage3: {
     classTag: string;
@@ -84,6 +227,8 @@ interface PortfolioDataContextType {
   };
   clients: ClientItem[];
   about: AboutData;
+  heroWorks: HeroWorksData;
+  clientLogos: ClientLogosData;
   allData: typeof antigravityData;
   updateStage3Video: (params: {
     youtubeUrl: string;
@@ -103,6 +248,8 @@ interface PortfolioDataContextType {
   addClientFolder: (folder: { clientName: string; category: string; description?: string }) => void;
   deleteClientFolder: (clientId: string) => void;
   updateAboutData: (newData: Partial<AboutData>) => void;
+  updateHeroWorksData: (newData: Partial<HeroWorksData>) => void;
+  updateClientLogosData: (newData: Partial<ClientLogosData>) => void;
   resetPortfolioData: () => void;
   isAdminMode: boolean;
   setIsAdminMode: (open: boolean) => void;
@@ -137,6 +284,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [stage3, setStage3] = useState(antigravityData.stage3);
   const [clients, setClients] = useState<ClientItem[]>(antigravityData.stage4.clients as ClientItem[]);
   const [about, setAbout] = useState<AboutData>(defaultAboutData);
+  const [heroWorks, setHeroWorks] = useState<HeroWorksData>(defaultHeroWorksData);
+  const [clientLogos, setClientLogos] = useState<ClientLogosData>(defaultClientLogosData);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isCloudSyncActive, setIsCloudSyncActive] = useState(isSupabaseConfigured);
@@ -174,11 +323,19 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
   // Helper to persist current state to LocalStorage
   const persistState = useCallback(
-    (newStage3: typeof stage3, newClients: ClientItem[], newAbout?: AboutData) => {
+    (
+      newStage3: typeof stage3,
+      newClients: ClientItem[],
+      newAbout?: AboutData,
+      newHeroWorks?: HeroWorksData,
+      newClientLogos?: ClientLogosData
+    ) => {
       try {
         const payload = {
           stage3: newStage3,
           about: newAbout || about,
+          heroWorks: newHeroWorks || heroWorks,
+          clientLogos: newClientLogos || clientLogos,
           clients: newClients.map((c) => ({
             id: c.id,
             clientName: c.clientName,
@@ -198,7 +355,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         console.warn("Failed to persist portfolio overrides to localStorage:", err);
       }
     },
-    [about]
+    [about, heroWorks, clientLogos]
   );
 
   // Initialize: First from LocalStorage for instant render, then from Supabase if configured
@@ -270,6 +427,20 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             ...parsed.about,
           });
         }
+
+        if (parsed.heroWorks) {
+          setHeroWorks({
+            ...defaultHeroWorksData,
+            ...parsed.heroWorks,
+          });
+        }
+
+        if (parsed.clientLogos) {
+          setClientLogos({
+            ...defaultClientLogosData,
+            ...parsed.clientLogos,
+          });
+        }
       }
 
       const session = sessionStorage.getItem(SESSION_KEY);
@@ -329,8 +500,37 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               } catch (_) {}
             }
 
-            // Exclude site-about-section from client folders list
-            const regularClientRows = clientRows.filter((r) => r.client_id !== "site-about-section");
+            // Extract Hero & Works Section config from Supabase
+            const heroWorksRow = clientRows.find((r) => r.client_id === "site-hero-works");
+            if (heroWorksRow && heroWorksRow.description) {
+              try {
+                const parsedHero = JSON.parse(heroWorksRow.description);
+                setHeroWorks({
+                  ...defaultHeroWorksData,
+                  ...parsedHero,
+                });
+              } catch (_) {}
+            }
+
+            // Extract Client Logos config from Supabase
+            const clientLogosRow = clientRows.find((r) => r.client_id === "site-client-logos");
+            if (clientLogosRow && clientLogosRow.description) {
+              try {
+                const parsedLogos = JSON.parse(clientLogosRow.description);
+                setClientLogos({
+                  ...defaultClientLogosData,
+                  ...parsedLogos,
+                });
+              } catch (_) {}
+            }
+
+            // Exclude site-about-section, site-hero-works, and site-client-logos from regular client folders list
+            const regularClientRows = clientRows.filter(
+              (r) =>
+                r.client_id !== "site-about-section" &&
+                r.client_id !== "site-hero-works" &&
+                r.client_id !== "site-client-logos"
+            );
 
             const defaultClients = antigravityData.stage4.clients;
             const defaultIds = new Set(defaultClients.map((d) => d.id));
@@ -685,7 +885,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setAbout(updatedAbout);
-      persistState(stage3, clients, updatedAbout);
+      persistState(stage3, clients, updatedAbout, heroWorks, clientLogos);
 
       if (isSupabaseConfigured && supabase) {
         try {
@@ -701,7 +901,61 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
     },
-    [about, stage3, clients, persistState]
+    [about, stage3, clients, heroWorks, clientLogos, persistState]
+  );
+
+  // Update Hero & Selected Works Section
+  const updateHeroWorksData = useCallback(
+    async (newData: Partial<HeroWorksData>) => {
+      const updated: HeroWorksData = {
+        ...heroWorks,
+        ...newData,
+      };
+      setHeroWorks(updated);
+      persistState(stage3, clients, about, updated, clientLogos);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("client_descriptions").upsert({
+            client_id: "site-hero-works",
+            client_name: "Hero & Selected Works",
+            category: "Site Section Config",
+            description: JSON.stringify(updated),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.warn("Supabase hero works update notice:", err);
+        }
+      }
+    },
+    [heroWorks, stage3, clients, about, clientLogos, persistState]
+  );
+
+  // Update Client Logos Marquee Section
+  const updateClientLogosData = useCallback(
+    async (newData: Partial<ClientLogosData>) => {
+      const updated: ClientLogosData = {
+        ...clientLogos,
+        ...newData,
+      };
+      setClientLogos(updated);
+      persistState(stage3, clients, about, heroWorks, updated);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("client_descriptions").upsert({
+            client_id: "site-client-logos",
+            client_name: "Client Logos Marquee",
+            category: "Site Section Config",
+            description: JSON.stringify(updated),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.warn("Supabase client logos update notice:", err);
+        }
+      }
+    },
+    [clientLogos, stage3, clients, about, heroWorks, persistState]
   );
 
   // Reset all overrides back to default projectsData
@@ -769,6 +1023,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         stage3,
         clients,
         about,
+        heroWorks,
+        clientLogos,
         allData,
         updateStage3Video,
         removeStage3Video,
@@ -779,6 +1035,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         addClientFolder,
         deleteClientFolder,
         updateAboutData,
+        updateHeroWorksData,
+        updateClientLogosData,
         resetPortfolioData,
         isAdminMode,
         setIsAdminMode,

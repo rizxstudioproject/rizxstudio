@@ -27,6 +27,11 @@ import {
   extractYouTubeId,
   ClientItem,
   defaultAboutData,
+  defaultHeroWorksData,
+  defaultClientLogosData,
+  DeckCardItem,
+  OverlappingCardItem,
+  ClientLogoItem,
 } from "@/context/PortfolioDataContext";
 import { getCaseStudy } from "@/components/Projects";
 
@@ -35,6 +40,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     stage3,
     clients,
     about,
+    heroWorks,
+    clientLogos,
+    updateHeroWorksData,
+    updateClientLogosData,
     updateAboutData,
     updateStage3Video,
     removeStage3Video,
@@ -50,8 +59,112 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     isCloudSyncActive,
   } = usePortfolioData();
 
-  // Active Tab: 'clients' (Portfolio & Folders) | 'about' (About Me Section) | 'flagship' (YouTube Video)
-  const [activeTab, setActiveTab] = useState<"clients" | "about" | "flagship">("clients");
+  // Active Tab: 'clients' | 'hero-works' | 'client-logos' | 'about' | 'flagship'
+  const [activeTab, setActiveTab] = useState<
+    "clients" | "hero-works" | "client-logos" | "about" | "flagship"
+  >("clients");
+
+  // ==========================================
+  // Hero & Selected Works Form States
+  // ==========================================
+  const [hwStage1Badge, setHwStage1Badge] = useState(
+    heroWorks?.stage1Badge || defaultHeroWorksData.stage1Badge
+  );
+  const [hwStage1Headline, setHwStage1Headline] = useState(
+    heroWorks?.stage1Headline || defaultHeroWorksData.stage1Headline
+  );
+  const [hwStage1Subheadline, setHwStage1Subheadline] = useState(
+    heroWorks?.stage1Subheadline || defaultHeroWorksData.stage1Subheadline
+  );
+  const [hwStage1ScrollText, setHwStage1ScrollText] = useState(
+    heroWorks?.stage1ScrollText || defaultHeroWorksData.stage1ScrollText
+  );
+  const [hwDeckCards, setHwDeckCards] = useState<DeckCardItem[]>(
+    heroWorks?.deckCards || defaultHeroWorksData.deckCards
+  );
+
+  const [hwStage2Tag, setHwStage2Tag] = useState(
+    heroWorks?.stage2Tag || defaultHeroWorksData.stage2Tag
+  );
+  const [hwStage2Headline, setHwStage2Headline] = useState(
+    heroWorks?.stage2Headline || defaultHeroWorksData.stage2Headline
+  );
+  const [hwStage2Desc, setHwStage2Desc] = useState(
+    heroWorks?.stage2Desc || defaultHeroWorksData.stage2Desc
+  );
+  const [hwStage2BtnText, setHwStage2BtnText] = useState(
+    heroWorks?.stage2BtnText || defaultHeroWorksData.stage2BtnText
+  );
+  const [hwStage2Skills, setHwStage2Skills] = useState(
+    heroWorks?.stage2Skills
+      ? heroWorks.stage2Skills.join(", ")
+      : defaultHeroWorksData.stage2Skills.join(", ")
+  );
+  const [hwStage2Badges, setHwStage2Badges] = useState(
+    heroWorks?.stage2Badges
+      ? heroWorks.stage2Badges.map((b) => b.text).join(", ")
+      : defaultHeroWorksData.stage2Badges.map((b) => b.text).join(", ")
+  );
+  const [hwOverlappingCards, setHwOverlappingCards] = useState<OverlappingCardItem[]>(
+    heroWorks?.overlappingCards || defaultHeroWorksData.overlappingCards
+  );
+
+  // New Deck Card Inputs
+  const [newDeckTitle, setNewDeckTitle] = useState("");
+  const [newDeckCategory, setNewDeckCategory] = useState("");
+  const [newDeckImage, setNewDeckImage] = useState("");
+
+  // New Overlapping Card Inputs
+  const [newOverTitle, setNewOverTitle] = useState("");
+  const [newOverRotate, setNewOverRotate] = useState("-5");
+  const [newOverImage, setNewOverImage] = useState("");
+
+  // Sync Hero & Works when cloud data updates
+  useEffect(() => {
+    if (heroWorks) {
+      setHwStage1Badge(heroWorks.stage1Badge || defaultHeroWorksData.stage1Badge);
+      setHwStage1Headline(heroWorks.stage1Headline || defaultHeroWorksData.stage1Headline);
+      setHwStage1Subheadline(heroWorks.stage1Subheadline || defaultHeroWorksData.stage1Subheadline);
+      setHwStage1ScrollText(heroWorks.stage1ScrollText || defaultHeroWorksData.stage1ScrollText);
+      setHwDeckCards(heroWorks.deckCards || defaultHeroWorksData.deckCards);
+
+      setHwStage2Tag(heroWorks.stage2Tag || defaultHeroWorksData.stage2Tag);
+      setHwStage2Headline(heroWorks.stage2Headline || defaultHeroWorksData.stage2Headline);
+      setHwStage2Desc(heroWorks.stage2Desc || defaultHeroWorksData.stage2Desc);
+      setHwStage2BtnText(heroWorks.stage2BtnText || defaultHeroWorksData.stage2BtnText);
+      setHwStage2Skills(
+        heroWorks.stage2Skills
+          ? heroWorks.stage2Skills.join(", ")
+          : defaultHeroWorksData.stage2Skills.join(", ")
+      );
+      setHwStage2Badges(
+        heroWorks.stage2Badges
+          ? heroWorks.stage2Badges.map((b) => b.text).join(", ")
+          : defaultHeroWorksData.stage2Badges.map((b) => b.text).join(", ")
+      );
+      setHwOverlappingCards(heroWorks.overlappingCards || defaultHeroWorksData.overlappingCards);
+    }
+  }, [heroWorks]);
+
+  // ==========================================
+  // Client Logos Marquee Form States
+  // ==========================================
+  const [clSubtitle, setClSubtitle] = useState(
+    clientLogos?.subtitle || defaultClientLogosData.subtitle
+  );
+  const [clLogos, setClLogos] = useState<ClientLogoItem[]>(
+    clientLogos?.logos || defaultClientLogosData.logos
+  );
+  const [newLogoName, setNewLogoName] = useState("");
+  const [newLogoRow, setNewLogoRow] = useState<1 | 2>(1);
+  const [newLogoFile, setNewLogoFile] = useState("");
+
+  useEffect(() => {
+    if (clientLogos) {
+      setClSubtitle(clientLogos.subtitle || defaultClientLogosData.subtitle);
+      setClLogos(clientLogos.logos || defaultClientLogosData.logos);
+    }
+  }, [clientLogos]);
 
   // About Me Section Form States
   const [aboutEyebrow, setAboutEyebrow] = useState(about?.eyebrow || defaultAboutData.eyebrow);
@@ -141,6 +254,171 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setAboutCollabDesc(defaultAboutData.collabDesc);
     setAboutDisciplinesTitle(defaultAboutData.disciplinesTitle);
     setAboutDisciplinesInput(defaultAboutData.disciplines.join(", "));
+  };
+
+  // Helper file reader for image uploads
+  const handleGenericImageFile = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    callback: (dataUrl: string) => void
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      callback(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ==========================================
+  // Handlers for Hero & Selected Works
+  // ==========================================
+  const handleSaveHeroWorks = async () => {
+    const parsedSkills = hwStage2Skills
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const parsedBadges = hwStage2Badges
+      .split(",")
+      .map((b, i) => ({
+        id: i + 1,
+        text: b.trim(),
+        color:
+          i === 0
+            ? "bg-[#14AF9E] text-white border-[#14AF9E]"
+            : "bg-neutral-800 text-white border-neutral-700",
+      }))
+      .filter((b) => b.text.length > 0);
+
+    await updateHeroWorksData({
+      stage1Badge: hwStage1Badge.trim(),
+      stage1Headline: hwStage1Headline.trim(),
+      stage1Subheadline: hwStage1Subheadline.trim(),
+      stage1ScrollText: hwStage1ScrollText.trim(),
+      deckCards: hwDeckCards,
+      stage2Tag: hwStage2Tag.trim(),
+      stage2Headline: hwStage2Headline.trim(),
+      stage2Desc: hwStage2Desc.trim(),
+      stage2BtnText: hwStage2BtnText.trim(),
+      stage2Skills: parsedSkills,
+      stage2Badges: parsedBadges,
+      overlappingCards: hwOverlappingCards,
+    });
+    showToast("Berhasil: Seluruh teks & gambar Hero serta Selected Works berhasil disimpan!");
+  };
+
+  const handleCancelHeroWorks = () => {
+    if (heroWorks) {
+      setHwStage1Badge(heroWorks.stage1Badge || defaultHeroWorksData.stage1Badge);
+      setHwStage1Headline(heroWorks.stage1Headline || defaultHeroWorksData.stage1Headline);
+      setHwStage1Subheadline(heroWorks.stage1Subheadline || defaultHeroWorksData.stage1Subheadline);
+      setHwStage1ScrollText(heroWorks.stage1ScrollText || defaultHeroWorksData.stage1ScrollText);
+      setHwDeckCards(heroWorks.deckCards || defaultHeroWorksData.deckCards);
+
+      setHwStage2Tag(heroWorks.stage2Tag || defaultHeroWorksData.stage2Tag);
+      setHwStage2Headline(heroWorks.stage2Headline || defaultHeroWorksData.stage2Headline);
+      setHwStage2Desc(heroWorks.stage2Desc || defaultHeroWorksData.stage2Desc);
+      setHwStage2BtnText(heroWorks.stage2BtnText || defaultHeroWorksData.stage2BtnText);
+      setHwStage2Skills(
+        heroWorks.stage2Skills
+          ? heroWorks.stage2Skills.join(", ")
+          : defaultHeroWorksData.stage2Skills.join(", ")
+      );
+      setHwStage2Badges(
+        heroWorks.stage2Badges
+          ? heroWorks.stage2Badges.map((b) => b.text).join(", ")
+          : defaultHeroWorksData.stage2Badges.map((b) => b.text).join(", ")
+      );
+      setHwOverlappingCards(heroWorks.overlappingCards || defaultHeroWorksData.overlappingCards);
+    }
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
+  };
+
+  const handleAddDeckCard = () => {
+    if (!newDeckImage) {
+      showToast("Peringatan: Silakan pilih gambar untuk kartu terlebih dahulu.");
+      return;
+    }
+    const newCard: DeckCardItem = {
+      id: `d-${Date.now()}`,
+      title: newDeckTitle.trim() || "Creative Visual",
+      category: newDeckCategory.trim() || "Digital Design",
+      image: newDeckImage,
+    };
+    setHwDeckCards((prev) => [...prev, newCard]);
+    setNewDeckTitle("");
+    setNewDeckCategory("");
+    setNewDeckImage("");
+    showToast("Kartu baru ditambahkan ke daftar Selected Works! Klik 'Simpan Update' untuk mengaktifkan.");
+  };
+
+  const handleDeleteDeckCard = (id: string) => {
+    setHwDeckCards((prev) => prev.filter((c) => c.id !== id));
+    showToast("Kartu dihapus dari daftar. Klik 'Simpan Update' untuk menerapkan.");
+  };
+
+  const handleAddOverlappingCard = () => {
+    if (!newOverImage) {
+      showToast("Peringatan: Silakan pilih gambar untuk kartu terlebih dahulu.");
+      return;
+    }
+    const newCard: OverlappingCardItem = {
+      id: `o-${Date.now()}`,
+      title: newOverTitle.trim() || "Creative Design",
+      image: newOverImage,
+      rotate: parseFloat(newOverRotate) || 0,
+    };
+    setHwOverlappingCards((prev) => [...prev, newCard]);
+    setNewOverTitle("");
+    setNewOverRotate("0");
+    setNewOverImage("");
+    showToast("Kartu baru ditambahkan ke Hero! Klik 'Simpan Update' untuk mengaktifkan.");
+  };
+
+  const handleDeleteOverlappingCard = (id: string) => {
+    setHwOverlappingCards((prev) => prev.filter((c) => c.id !== id));
+    showToast("Kartu dihapus dari daftar. Klik 'Simpan Update' untuk menerapkan.");
+  };
+
+  // ==========================================
+  // Handlers for Client Logos Marquee
+  // ==========================================
+  const handleSaveClientLogos = async () => {
+    await updateClientLogosData({
+      subtitle: clSubtitle.trim(),
+      logos: clLogos,
+    });
+    showToast("Berhasil: Seluruh Logo Klien & Subtitle berhasil disimpan!");
+  };
+
+  const handleCancelClientLogos = () => {
+    if (clientLogos) {
+      setClSubtitle(clientLogos.subtitle || defaultClientLogosData.subtitle);
+      setClLogos(clientLogos.logos || defaultClientLogosData.logos);
+    }
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
+  };
+
+  const handleAddClientLogo = () => {
+    if (!newLogoFile) {
+      showToast("Peringatan: Silakan pilih file gambar/logo terlebih dahulu.");
+      return;
+    }
+    const newLogo: ClientLogoItem = {
+      id: `cl-${Date.now()}`,
+      name: newLogoName.trim() || "Client",
+      file: newLogoFile,
+      row: newLogoRow,
+    };
+    setClLogos((prev) => [...prev, newLogo]);
+    setNewLogoName("");
+    setNewLogoFile("");
+    showToast(`Logo "${newLogo.name}" ditambahkan ke Baris ${newLogoRow}! Klik 'Simpan Update' untuk mengaktifkan.`);
+  };
+
+  const handleDeleteClientLogo = (id: string) => {
+    setClLogos((prev) => prev.filter((l) => l.id !== id));
+    showToast("Logo dihapus dari marquee. Klik 'Simpan Update' untuk menerapkan.");
   };
 
   // Tab 1: Flagship Showcase Video State
@@ -588,44 +866,70 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 max-w-2xl mx-auto mb-8 backdrop-blur-md">
+        <div className="flex flex-wrap items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 max-w-4xl mx-auto mb-8 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setActiveTab("clients")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === "clients"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
-            <HiFolder className="w-4 h-4" />
-            <span>1. Portofolio & Folder</span>
+            <HiFolder className="w-4 h-4 shrink-0" />
+            <span>1. Portofolio</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("hero-works")}
+            className={`flex-1 min-w-[140px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+              activeTab === "hero-works"
+                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
+                : "text-neutral-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <HiSparkles className="w-4 h-4 shrink-0" />
+            <span>2. Hero & Works</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("client-logos")}
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+              activeTab === "client-logos"
+                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
+                : "text-neutral-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <HiTag className="w-4 h-4 shrink-0" />
+            <span>3. Logo Klien</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("about")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === "about"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
-            <HiUser className="w-4 h-4" />
-            <span>2. Section About Me</span>
+            <HiUser className="w-4 h-4 shrink-0" />
+            <span>4. About Me</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("flagship")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === "flagship"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
-            <HiVideoCamera className="w-4 h-4" />
-            <span>3. Video YouTube</span>
+            <HiVideoCamera className="w-4 h-4 shrink-0" />
+            <span>5. Video YouTube</span>
           </button>
         </div>
 
@@ -985,6 +1289,804 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* ========================================================
+            TAB 2: HERO & SELECTED WORKS SECTION MANAGEMENT
+           ======================================================== */}
+        {activeTab === "hero-works" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-8"
+          >
+            {/* Header Explainer */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+                SECTION CONTROL: HERO & SELECTED WORKS
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                Editor Section Hero (Design. Motion. AI.) & Selected Works
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+                Edit seluruh teks headline, subheadline, tags, tombol CTA, serta tambah, ganti, atau hapus gambar kartu preview bertumpuk dan melengkung secara fleksibel.
+              </p>
+            </div>
+
+            {/* SECTION 2: HERO ("Design. Motion. AI.") */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#14AF9E]/15 border border-[#14AF9E]/30 flex items-center justify-center text-[#14AF9E]">
+                    <HiSparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-white">
+                      1. Section Hero (Overview & AI-Driven Creative)
+                    </h3>
+                    <p className="text-xs text-neutral-400">
+                      Teks dan kartu preview bertumpuk di layar Stage 2
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Category Tag (Atas)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2Tag}
+                    onChange={(e) => setHwStage2Tag(e.target.value)}
+                    placeholder="AI-DRIVEN CREATIVE"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Headline Utama
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2Headline}
+                    onChange={(e) => setHwStage2Headline(e.target.value)}
+                    placeholder="Design. Motion. AI."
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Deskripsi Hero
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={hwStage2Desc}
+                    onChange={(e) => setHwStage2Desc(e.target.value)}
+                    placeholder="Senior Graphic Designer & Digital Artist..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Teks Tombol CTA
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2BtnText}
+                    onChange={(e) => setHwStage2BtnText(e.target.value)}
+                    placeholder="Explore My Work"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Badge Pegangan / Handle (Pisahkan koma)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2Badges}
+                    onChange={(e) => setHwStage2Badges(e.target.value)}
+                    placeholder="@rizx, @malaka"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Daftar Pill / Skill Tags (Pisahkan koma)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2Skills}
+                    onChange={(e) => setHwStage2Skills(e.target.value)}
+                    placeholder="Branding, Motion, 3D Design, UI/UX, AI Visuals"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+              </div>
+
+              {/* Overlapping Cards Management */}
+              <div className="pt-4 border-t border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-white">
+                      Kartu Gambar Bertumpuk (Overlapping Cards)
+                    </h4>
+                    <p className="text-xs text-neutral-400">
+                      Tumpukan kartu yang tampil di samping kanan tulisan hero
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-neutral-400">
+                    Total: {hwOverlappingCards.length} Kartu
+                  </span>
+                </div>
+
+                {/* Grid Existing Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {hwOverlappingCards.map((card, idx) => (
+                    <div
+                      key={card.id || idx}
+                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 space-y-2.5 flex flex-col justify-between"
+                    >
+                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black border border-white/10 group">
+                        <img
+                          src={card.image}
+                          alt={card.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-xs text-white font-medium gap-1">
+                          <HiArrowUpTray className="w-5 h-5 text-[#14AF9E]" />
+                          <span>Ganti Gambar</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              handleGenericImageFile(e, (dataUrl) => {
+                                setHwOverlappingCards((prev) =>
+                                  prev.map((c, i) => (i === idx ? { ...c, image: dataUrl } : c))
+                                );
+                                showToast(`Gambar kartu "${card.title}" diganti.`);
+                              })
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <input
+                          type="text"
+                          value={card.title}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setHwOverlappingCards((prev) =>
+                              prev.map((c, i) => (i === idx ? { ...c, title: val } : c))
+                            );
+                          }}
+                          placeholder="Judul Kartu"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#14AF9E]"
+                        />
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (°):</span>
+                          <input
+                            type="number"
+                            value={card.rotate}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setHwOverlappingCards((prev) =>
+                                prev.map((c, i) => (i === idx ? { ...c, rotate: val } : c))
+                              );
+                            }}
+                            className="w-16 px-2 py-1 rounded bg-neutral-900 border border-white/10 text-white text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOverlappingCard(card.id)}
+                        className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <HiTrash className="w-3.5 h-3.5" />
+                        <span>Hapus Kartu</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Form Tambah Kartu Baru */}
+                <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <HiPlus className="w-4 h-4 text-[#14AF9E]" />
+                    <span>Tambah Kartu Hero Baru</span>
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      value={newOverTitle}
+                      onChange={(e) => setNewOverTitle(e.target.value)}
+                      placeholder="Judul Kartu (contoh: 3D Visual)"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#14AF9E]"
+                    />
+                    <input
+                      type="number"
+                      value={newOverRotate}
+                      onChange={(e) => setNewOverRotate(e.target.value)}
+                      placeholder="Rotasi derajat (contoh: 5)"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#14AF9E]"
+                    />
+                    <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
+                      <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
+                      <span className="truncate">
+                        {newOverImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          handleGenericImageFile(e, (dataUrl) => setNewOverImage(dataUrl))
+                        }
+                      />
+                    </label>
+                  </div>
+                  {newOverImage && (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={newOverImage}
+                        alt="Preview"
+                        className="w-12 h-12 rounded-lg object-cover border border-white/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddOverlappingCard}
+                        className="px-4 py-2 rounded-xl bg-[#14AF9E] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
+                      >
+                        + Masukkan Kartu ke Hero
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 1: SELECTED WORKS ("A Range of Work. One Creative Vision.") */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#14AF9E]/15 border border-[#14AF9E]/30 flex items-center justify-center text-[#14AF9E]">
+                    <HiFolder className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-white">
+                      2. Section Selected Works (Layar Awal & Fan-out Cards)
+                    </h3>
+                    <p className="text-xs text-neutral-400">
+                      Teks headline besar dan 5 kartu melengkung di Stage 1
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Badge Kecil (Atas)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage1Badge}
+                    onChange={(e) => setHwStage1Badge(e.target.value)}
+                    placeholder="SELECTED WORKS"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Headline Besar
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage1Headline}
+                    onChange={(e) => setHwStage1Headline(e.target.value)}
+                    placeholder="A Range of Work. One Creative Vision."
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Subheadline Paragraf
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={hwStage1Subheadline}
+                    onChange={(e) => setHwStage1Subheadline(e.target.value)}
+                    placeholder="Explore selected projects across branding, motion..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Teks Hint Scroll (Bawah)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage1ScrollText}
+                    onChange={(e) => setHwStage1ScrollText(e.target.value)}
+                    placeholder="Scroll down ↓"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+              </div>
+
+              {/* Deck Cards Management */}
+              <div className="pt-4 border-t border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-white">
+                      Kartu Preview Melengkung (Deck Cards Fan-out)
+                    </h4>
+                    <p className="text-xs text-neutral-400">
+                      Kartu-kartu yang mekar dan menyebar melengkung saat halaman di-scroll
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-neutral-400">
+                    Total: {hwDeckCards.length} Kartu
+                  </span>
+                </div>
+
+                {/* Grid Existing Deck Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {hwDeckCards.map((card, idx) => (
+                    <div
+                      key={card.id || idx}
+                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 space-y-2.5 flex flex-col justify-between"
+                    >
+                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black border border-white/10 group">
+                        <img
+                          src={card.image}
+                          alt={card.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-xs text-white font-medium gap-1">
+                          <HiArrowUpTray className="w-5 h-5 text-[#14AF9E]" />
+                          <span>Ganti Gambar</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              handleGenericImageFile(e, (dataUrl) => {
+                                setHwDeckCards((prev) =>
+                                  prev.map((c, i) => (i === idx ? { ...c, image: dataUrl } : c))
+                                );
+                                showToast(`Gambar kartu "${card.title}" diganti.`);
+                              })
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <input
+                          type="text"
+                          value={card.title}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setHwDeckCards((prev) =>
+                              prev.map((c, i) => (i === idx ? { ...c, title: val } : c))
+                            );
+                          }}
+                          placeholder="Judul"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#14AF9E]"
+                        />
+                        <input
+                          type="text"
+                          value={card.category}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setHwDeckCards((prev) =>
+                              prev.map((c, i) => (i === idx ? { ...c, category: val } : c))
+                            );
+                          }}
+                          placeholder="Kategori"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#14AF9E]"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDeckCard(card.id)}
+                        className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <HiTrash className="w-3.5 h-3.5" />
+                        <span>Hapus Kartu</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Form Tambah Kartu Deck Baru */}
+                <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <HiPlus className="w-4 h-4 text-[#14AF9E]" />
+                    <span>Tambah Kartu Deck Baru</span>
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      value={newDeckTitle}
+                      onChange={(e) => setNewDeckTitle(e.target.value)}
+                      placeholder="Judul (contoh: Motion Design)"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#14AF9E]"
+                    />
+                    <input
+                      type="text"
+                      value={newDeckCategory}
+                      onChange={(e) => setNewDeckCategory(e.target.value)}
+                      placeholder="Kategori (contoh: 3D & AI)"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#14AF9E]"
+                    />
+                    <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
+                      <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
+                      <span className="truncate">
+                        {newDeckImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          handleGenericImageFile(e, (dataUrl) => setNewDeckImage(dataUrl))
+                        }
+                      />
+                    </label>
+                  </div>
+                  {newDeckImage && (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={newDeckImage}
+                        alt="Preview"
+                        className="w-12 h-12 rounded-lg object-cover border border-white/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddDeckCard}
+                        className="px-4 py-2 rounded-xl bg-[#14AF9E] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
+                      >
+                        + Masukkan Kartu ke Selected Works
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ACTION BAR: BATAL & SIMPAN UPDATE */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/15 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 sticky bottom-4 z-30 shadow-2xl">
+              <div>
+                <p className="text-sm font-bold text-white">
+                  Simpan Perubahan Hero & Selected Works
+                </p>
+                <p className="text-xs text-neutral-400">
+                  Perubahan akan langsung aktif di web publik dan tersinkron ke cloud.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelHeroWorks}
+                  className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
+                >
+                  Batal (Cancel)
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveHeroWorks}
+                  className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <HiCheck className="w-4 h-4" />
+                  <span>Simpan Update</span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* ========================================================
+            TAB 3: CLIENT LOGOS MARQUEE MANAGEMENT
+           ======================================================== */}
+        {activeTab === "client-logos" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-8"
+          >
+            {/* Header Explainer */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+                SECTION CONTROL: LOGO KLIEN (MARQUEE)
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                Editor Logo Klien & Subtitle Marquee
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+                Kelola tulisan judul serta logo-logo brand klien yang berjalan di section logo. Anda bisa menambah logo baru, mengganti nama, memindahkan baris, atau menghapus logo.
+              </p>
+            </div>
+
+            {/* Subtitle Form */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <HiTag className="w-4 h-4 text-[#14AF9E]" />
+                <span>Tulisan Subtitle / Judul Marquee</span>
+              </h3>
+              <div className="space-y-1.5 max-w-xl">
+                <input
+                  type="text"
+                  value={clSubtitle}
+                  onChange={(e) => setClSubtitle(e.target.value)}
+                  placeholder="SELECTED CLIENTS & CREATIVE COLLABORATIONS"
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                />
+                <p className="text-[11px] text-neutral-500 font-mono">
+                  Teks ini tampil di atas marquee logo di website publik.
+                </p>
+              </div>
+            </div>
+
+            {/* Form Tambah Logo Klien Baru */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <HiPlus className="w-4 h-4 text-[#14AF9E]" />
+                <span>Tambah Logo Klien Baru ke Marquee</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Nama Klien / Brand
+                  </label>
+                  <input
+                    type="text"
+                    value={newLogoName}
+                    onChange={(e) => setNewLogoName(e.target.value)}
+                    placeholder="Contoh: Apple, Google, Nike"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Posisi Baris Marquee
+                  </label>
+                  <select
+                    value={newLogoRow}
+                    onChange={(e) => setNewLogoRow(parseInt(e.target.value) as 1 | 2)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  >
+                    <option value={1}>Baris 1 (Scroll ke Kiri)</option>
+                    <option value={2}>Baris 2 (Scroll ke Kanan)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    File Logo (SVG / PNG / WebP)
+                  </label>
+                  <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/15">
+                    <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
+                    <span className="truncate">
+                      {newLogoFile ? "✓ Logo Dipilih" : "Pilih File Logo"}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*,.svg"
+                      className="hidden"
+                      onChange={(e) =>
+                        handleGenericImageFile(e, (dataUrl) => setNewLogoFile(dataUrl))
+                      }
+                    />
+                  </label>
+                </div>
+              </div>
+
+              {newLogoFile && (
+                <div className="flex items-center gap-4 pt-2">
+                  <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center">
+                    <img
+                      src={newLogoFile}
+                      alt="Preview"
+                      className="h-8 max-w-[120px] object-contain invert brightness-0"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddClientLogo}
+                    className="px-5 py-2.5 rounded-xl bg-[#14AF9E] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md"
+                  >
+                    + Tambahkan ke Baris {newLogoRow}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* List Logos: Baris 1 & Baris 2 */}
+            <div className="space-y-6">
+              {/* Row 1 */}
+              <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+                    <span>Baris 1 — Scroll Bergerak ke Kiri</span>
+                  </h3>
+                  <span className="text-xs font-mono text-neutral-400">
+                    {clLogos.filter((l) => l.row === 1).length} Logo
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {clLogos
+                    .filter((l) => l.row === 1)
+                    .map((logo) => (
+                      <div
+                        key={logo.id}
+                        className="p-3 rounded-xl bg-neutral-950 border border-white/10 flex flex-col items-center justify-between gap-2.5 group relative"
+                      >
+                        <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
+                          <img
+                            src={logo.file}
+                            alt={logo.name}
+                            className="max-h-7 max-w-full object-contain"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={logo.name}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setClLogos((prev) =>
+                              prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
+                            );
+                          }}
+                          className="w-full text-center px-1.5 py-1 rounded bg-neutral-900 border border-white/10 text-white text-[11px] font-mono focus:outline-none focus:border-[#14AF9E]"
+                        />
+                        <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
+                          <button
+                            type="button"
+                            title="Pindah ke Baris 2"
+                            onClick={() => {
+                              setClLogos((prev) =>
+                                prev.map((l) => (l.id === logo.id ? { ...l, row: 2 } : l))
+                              );
+                              showToast(`Logo "${logo.name}" dipindah ke Baris 2.`);
+                            }}
+                            className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors"
+                          >
+                            ↓ Baris 2
+                          </button>
+                          <button
+                            type="button"
+                            title="Hapus Logo"
+                            onClick={() => handleDeleteClientLogo(logo.id)}
+                            className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors"
+                          >
+                            <HiTrash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Row 2 */}
+              <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                    <span>Baris 2 — Scroll Bergerak ke Kanan</span>
+                  </h3>
+                  <span className="text-xs font-mono text-neutral-400">
+                    {clLogos.filter((l) => l.row === 2).length} Logo
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                  {clLogos
+                    .filter((l) => l.row === 2)
+                    .map((logo) => (
+                      <div
+                        key={logo.id}
+                        className="p-3 rounded-xl bg-neutral-950 border border-white/10 flex flex-col items-center justify-between gap-2.5 group relative"
+                      >
+                        <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
+                          <img
+                            src={logo.file}
+                            alt={logo.name}
+                            className="max-h-7 max-w-full object-contain"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={logo.name}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setClLogos((prev) =>
+                              prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
+                            );
+                          }}
+                          className="w-full text-center px-1.5 py-1 rounded bg-neutral-900 border border-white/10 text-white text-[11px] font-mono focus:outline-none focus:border-[#14AF9E]"
+                        />
+                        <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
+                          <button
+                            type="button"
+                            title="Pindah ke Baris 1"
+                            onClick={() => {
+                              setClLogos((prev) =>
+                                prev.map((l) => (l.id === logo.id ? { ...l, row: 1 } : l))
+                              );
+                              showToast(`Logo "${logo.name}" dipindah ke Baris 1.`);
+                            }}
+                            className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors"
+                          >
+                            ↑ Baris 1
+                          </button>
+                          <button
+                            type="button"
+                            title="Hapus Logo"
+                            onClick={() => handleDeleteClientLogo(logo.id)}
+                            className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors"
+                          >
+                            <HiTrash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+            {/* ACTION BAR: BATAL & SIMPAN UPDATE */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/15 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 sticky bottom-4 z-30 shadow-2xl">
+              <div>
+                <p className="text-sm font-bold text-white">
+                  Simpan Perubahan Logo Klien Marquee
+                </p>
+                <p className="text-xs text-neutral-400">
+                  Perubahan akan langsung aktif di web publik dan tersinkron ke cloud.
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancelClientLogos}
+                  className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
+                >
+                  Batal (Cancel)
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveClientLogos}
+                  className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <HiCheck className="w-4 h-4" />
+                  <span>Simpan Update</span>
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
 

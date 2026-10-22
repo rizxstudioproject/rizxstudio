@@ -483,9 +483,39 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
 };
 
 export default function Projects() {
-  const { stage1, stage2 } = antigravityData;
-  // Use context for stage3 & stage4 to pick up live edits from Admin Dashboard
-  const { stage3, clients: contextClients, allData } = usePortfolioData();
+  const { stage1: defaultStage1, stage2: defaultStage2 } = antigravityData;
+  // Use context for live edits from Admin Dashboard
+  const { stage3, clients: contextClients, allData, heroWorks } = usePortfolioData();
+  const stage1 = {
+    ...defaultStage1,
+    badge: heroWorks?.stage1Badge || defaultStage1.badge,
+    headline: heroWorks?.stage1Headline || defaultStage1.headline,
+    subheadline: heroWorks?.stage1Subheadline || defaultStage1.subheadline,
+    scrollText: heroWorks?.stage1ScrollText || "Scroll down ↓",
+    deckCards:
+      heroWorks?.deckCards && heroWorks.deckCards.length > 0
+        ? heroWorks.deckCards
+        : defaultStage1.deckCards,
+  };
+  const stage2 = {
+    ...defaultStage2,
+    categoryTag: heroWorks?.stage2Tag || defaultStage2.categoryTag,
+    headline: heroWorks?.stage2Headline || defaultStage2.headline,
+    description: heroWorks?.stage2Desc || defaultStage2.description,
+    primaryButtonText: heroWorks?.stage2BtnText || defaultStage2.primaryButtonText,
+    skillLabels:
+      heroWorks?.stage2Skills && heroWorks.stage2Skills.length > 0
+        ? heroWorks.stage2Skills
+        : defaultStage2.skillLabels,
+    badges:
+      heroWorks?.stage2Badges && heroWorks.stage2Badges.length > 0
+        ? heroWorks.stage2Badges
+        : defaultStage2.badges,
+    overlappingCards:
+      heroWorks?.overlappingCards && heroWorks.overlappingCards.length > 0
+        ? heroWorks.overlappingCards
+        : defaultStage2.overlappingCards,
+  };
   const stage4 = { ...allData.stage4, clients: contextClients };
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -679,13 +709,13 @@ export default function Projects() {
           {/* Header */}
           <div className="relative z-30 flex flex-col items-center text-center mt-1 sm:mt-2 max-w-4xl px-2 mb-2 sm:mb-4">
             <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] mb-2 font-semibold">
-              {t("projects.stage1.badge")}
+              {stage1.badge}
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-tight">
-              {t("projects.stage1.headline")}
+              {stage1.headline}
             </h2>
             <p className="text-sm sm:text-base md:text-lg text-neutral-300 font-light mt-3 sm:mt-4 max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed text-balance">
-              {t("projects.stage1.subheadline")}
+              {stage1.subheadline}
             </p>
           </div>
 
@@ -801,7 +831,7 @@ export default function Projects() {
           </div>
 
           <div className="relative z-30 text-xs sm:text-xs text-neutral-400 font-mono flex items-center gap-1.5 mb-2">
-            <span>{t("projects.stage1.scroll")}</span>
+            <span>{stage1.scrollText || t("projects.stage1.scroll")}</span>
             <span className="animate-bounce">↓</span>
           </div>
         </div>
@@ -833,21 +863,18 @@ export default function Projects() {
           {/* Text Block */}
           <div className="max-w-lg text-center lg:text-left pt-10 lg:pt-0">
             <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#00A389] mb-3 block font-semibold">
-              {t("projects.stage2.tag")}
+              {stage2.categoryTag}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight">
-              {t("projects.stage2.headline")}
+              {stage2.headline}
             </h2>
             <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed mb-6 max-w-md mx-auto lg:mx-0">
-              {t("projects.stage2.desc")}
+              {stage2.description}
             </p>
 
             {/* Project Frame Labels / Skills: 5 Compact Tags */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-8">
-              {(isId
-                ? ["Branding", "Motion", "Desain 3D", "UI/UX", "Visual AI"]
-                : ["Branding", "Motion", "3D Design", "UI/UX", "AI Visuals"]
-              ).map((skill, sIdx) => (
+              {stage2.skillLabels.map((skill, sIdx) => (
                 <span
                   key={sIdx}
                   className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#00A389]/40 hover:text-white transition-colors"
@@ -863,7 +890,7 @@ export default function Projects() {
                 onClick={scrollToClientStage}
                 className="px-7 py-3 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_25px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-2 cursor-pointer"
               >
-                <span>{t("projects.stage2.btn")}</span>
+                <span>{stage2.primaryButtonText}</span>
                 <HiArrowUpRight className="w-4 h-4 rotate-45" />
               </button>
             </div>
@@ -872,12 +899,20 @@ export default function Projects() {
           {/* Overlapping Dense Deck with Badges */}
           <div className="relative w-full max-w-sm sm:max-w-md h-[220px] sm:h-[300px] md:h-[360px] flex items-center justify-center">
             {/* Badges */}
-            <div className="absolute top-0 left-4 z-40 px-3 py-1 rounded-full text-xs font-semibold bg-[#14AF9E] text-white border border-[#14AF9E]/80 shadow-md">
-              @rizx
-            </div>
-            <div className="absolute top-4 right-4 z-40 px-3 py-1 rounded-full text-xs font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-md">
-              @malaka
-            </div>
+            {stage2.badges && stage2.badges.length > 0 && (
+              <>
+                {stage2.badges[0] && (
+                  <div className="absolute top-0 left-4 z-40 px-3 py-1 rounded-full text-xs font-semibold bg-[#14AF9E] text-white border border-[#14AF9E]/80 shadow-md">
+                    {stage2.badges[0].text}
+                  </div>
+                )}
+                {stage2.badges[1] && (
+                  <div className="absolute top-4 right-4 z-40 px-3 py-1 rounded-full text-xs font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-md">
+                    {stage2.badges[1].text}
+                  </div>
+                )}
+              </>
+            )}
 
             {/* Overlapping Dense Cards */}
             {stage2.overlappingCards.map((card, idx) => {
