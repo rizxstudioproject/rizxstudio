@@ -596,7 +596,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [uploadPreview, setUploadPreview] = useState<string | null>(null);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadType, setUploadType] = useState("Digital Campaign");
-  const [uploadAspect, setUploadAspect] = useState<"4:5" | "1:1" | "16:9">("4:5");
+  const [uploadAspect, setUploadAspect] = useState<"4:5" | "1:1" | "16:9" | "9:16">("4:5");
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear().toString());
   // Tool tags for upload — comma-separated input
   const [uploadToolsInput, setUploadToolsInput] = useState("Figma, Photoshop, Magnific AI");
@@ -607,7 +607,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [editWorkTitle, setEditWorkTitle] = useState("");
   const [editWorkType, setEditWorkType] = useState("");
   const [editWorkYear, setEditWorkYear] = useState("");
-  const [editWorkAspect, setEditWorkAspect] = useState<"4:5" | "1:1" | "16:9">("4:5");
+  const [editWorkAspect, setEditWorkAspect] = useState<"4:5" | "1:1" | "16:9" | "9:16">("4:5");
   const [editWorkBrief, setEditWorkBrief] = useState("");
   const [editWorkChallenge, setEditWorkChallenge] = useState("");
   const [editWorkSolution, setEditWorkSolution] = useState("");
@@ -3330,21 +3330,27 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
                     Rasio Aspek Tampilan
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(["4:5", "1:1", "16:9"] as const).map((ratio) => (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {(["4:5", "1:1", "16:9", "9:16"] as const).map((ratio) => (
                       <button
                         key={ratio}
                         type="button"
                         onClick={() => setUploadAspect(ratio)}
-                        className={`py-2 px-3 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer ${
+                        className={`py-2 px-2.5 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer text-center ${
                           uploadAspect === ratio
                             ? "bg-[#14AF9E] text-black border-[#14AF9E] shadow-sm"
                             : "bg-neutral-950 text-neutral-400 border-white/10 hover:text-white"
                         }`}
                       >
                         {ratio}
-                        <span className="block text-[10px] font-normal opacity-80">
-                          {ratio === "4:5" ? "Portrait" : ratio === "1:1" ? "Square" : "Landscape"}
+                        <span className="block text-[10px] font-normal opacity-85">
+                          {ratio === "4:5"
+                            ? "Portrait"
+                            : ratio === "1:1"
+                            ? "Square"
+                            : ratio === "16:9"
+                            ? "Landscape"
+                            : "IG Story"}
                         </span>
                       </button>
                     ))}
@@ -3504,19 +3510,28 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
                       Rasio Aspek Gambar
                     </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {(["4:5", "1:1", "16:9"] as const).map((asp) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
+                      {(["4:5", "1:1", "16:9", "9:16"] as const).map((asp) => (
                         <button
                           key={asp}
                           type="button"
                           onClick={() => setEditWorkAspect(asp)}
-                          className={`py-2 px-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
+                          className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer text-center ${
                             editWorkAspect === asp
                               ? "bg-cyan-500/20 border border-cyan-400 text-cyan-300"
                               : "bg-neutral-950 border border-white/10 text-neutral-400 hover:text-white"
                           }`}
                         >
-                          {asp}
+                          <span>{asp}</span>
+                          <span className="block text-[9px] font-normal opacity-75">
+                            {asp === "4:5"
+                              ? "Portrait"
+                              : asp === "1:1"
+                              ? "Square"
+                              : asp === "16:9"
+                              ? "Landscape"
+                              : "IG Story"}
+                          </span>
                         </button>
                       ))}
                     </div>
