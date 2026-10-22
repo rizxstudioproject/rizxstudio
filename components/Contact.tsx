@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import SpotlightCard from "./SpotlightCard";
@@ -59,10 +59,10 @@ export default function Contact() {
         </div>
       </SpotlightCard>
 
-      {/* Footer Bottom Bar â€” Mobile: centered stack | Desktop: 3-column row */}
+      {/* Footer Bottom Bar — Mobile: centered stack | Desktop: 3-column row */}
       <div className="pt-8 border-t border-white/5 text-xs text-neutral-500 font-mono">
 
-        {/* â”€â”€ DESKTOP LAYOUT (md and above) â”€â”€ */}
+        {/* ── DESKTOP LAYOUT (md and above) ── */}
         <div className="hidden md:flex items-center justify-between px-0">
           {/* Left: copyright */}
           <div>
@@ -83,7 +83,7 @@ export default function Contact() {
               className="hover:text-[#14AF9E] text-neutral-300 transition-colors uppercase tracking-widest flex items-center gap-1 font-semibold"
             >
               <span>{t("contact.footer.contact")}</span>
-              <span className="text-[10px] text-[#14AF9E]">â†—</span>
+              <span className="text-[10px] text-[#14AF9E]">↗</span>
             </a>
           </div>
 
@@ -142,7 +142,7 @@ export default function Contact() {
           </div>
         </div>
 
-        {/* â”€â”€ MOBILE LAYOUT (below md) â”€â”€ */}
+        {/* ── MOBILE LAYOUT (below md) ── */}
         <div className="flex md:hidden flex-col items-center justify-center gap-5 text-center">
           <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-300 text-xs">
             <a href="#clients" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.clients")}</a>
@@ -154,7 +154,7 @@ export default function Contact() {
               rel="noopener noreferrer"
               className="hover:text-[#14AF9E] text-white transition-colors uppercase font-semibold tracking-wider"
             >
-              {t("contact.footer.contact")} â†—
+              {t("contact.footer.contact")} ↗
             </a>
           </div>
 
