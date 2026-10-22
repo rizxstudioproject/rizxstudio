@@ -52,6 +52,7 @@ interface PortfolioDataContextType {
   removeStage3Video: () => void;
   updateClientDescription: (clientId: string, description: string, tools?: string[]) => void;
   addClientWork: (clientId: string, newWork: any) => void;
+  updateClientWork: (clientId: string, updatedWork: any) => void;
   deleteClientWork: (clientId: string, workId: string) => void;
   addClientFolder: (folder: { clientName: string; category: string; description?: string }) => void;
   deleteClientFolder: (clientId: string) => void;
@@ -255,40 +256,71 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             .select("*");
 
           if (!clientsError && clientRows && Array.isArray(clientRows)) {
-            setClients((prev) => {
-              // 1. Update existing clients with cloud data
-              const updated = prev.map((c) => {
-                const match = clientRows.find((r) => r.client_id === c.id);
-                if (!match) return c;
-                const cloudWorks = Array.isArray(match.works) && match.works.length > 0 ? match.works : c.works;
-                return {
-                  ...c,
-                  description: match.description !== undefined ? match.description : c.description,
-                  tools: Array.isArray(match.tools) && match.tools.length > 0 ? match.tools : c.tools,
-                  works: cloudWorks,
-                  itemsCount: cloudWorks.length,
-                };
-              });
+            const defaultClients = antigravityData.stage4.clients;
+            const defaultIds = new Set(defaultClients.map((d) => d.id));
 
-              // 2. Append any cloud-only custom folders not already in local state
-              const existingIds = new Set(prev.map((c) => c.id));
-              const cloudOnlyCustom: ClientItem[] = clientRows
-                .filter((r) => !existingIds.has(r.client_id) && r.is_custom !== false)
-                .map((r) => ({
+            // Helper to parse description JSON or plain text
+            const parseRowData = (row: any, fallbackClient?: any) => {
+              let text = "";
+              let tools: string[] = fallbackClient?.tools || [];
+              let works: any[] = fallbackClient?.works || [];
+              let isCustom = fallbackClient?.isCustom || false;
+
+              if (row && row.description) {
+                if (typeof row.description === "string" && row.description.startsWith("{")) {
+                  try {
+                    const parsed = JSON.parse(row.description);
+                    text = parsed.text !== undefined ? parsed.text : row.description;
+                    if (Array.isArray(parsed.tools) && parsed.tools.length > 0) tools = parsed.tools;
+                    if (Array.isArray(parsed.works) && parsed.works.length > 0) works = parsed.works;
+                    if (parsed.isCustom !== undefined) isCustom = parsed.isCustom;
+                  } catch (_) {
+                    text = row.description;
+                  }
+                } else {
+                  text = row.description;
+                }
+              }
+              if (Array.isArray(row.tools) && row.tools.length > 0) tools = row.tools;
+              if (Array.isArray(row.works) && row.works.length > 0) works = row.works;
+
+              return { text, tools, works, isCustom };
+            };
+
+            // 1. Update existing default clients
+            const mergedDefaults = defaultClients.map((d) => {
+              const match = clientRows.find((r) => r.client_id === d.id);
+              if (!match) return d;
+              const parsed = parseRowData(match, d);
+              return {
+                ...d,
+                description: parsed.text,
+                tools: parsed.tools,
+                works: parsed.works,
+                itemsCount: parsed.works.length,
+              };
+            });
+
+            // 2. Extract cloud-only custom folders (rows not in defaultClients)
+            const cloudCustoms: ClientItem[] = clientRows
+              .filter((r) => !defaultIds.has(r.client_id))
+              .map((r) => {
+                const parsed = parseRowData(r);
+                return {
                   id: r.client_id,
                   clientName: r.client_name || r.client_id,
                   category: r.category || `Portfolio — ${r.client_name || r.client_id}`,
                   logo: "",
                   color: "from-[#14AF9E]/20 via-neutral-900/40 to-neutral-900",
-                  itemsCount: Array.isArray(r.works) ? r.works.length : 0,
-                  description: r.description || "",
-                  tools: Array.isArray(r.tools) ? r.tools : [],
-                  works: Array.isArray(r.works) ? r.works : [],
+                  itemsCount: parsed.works.length,
+                  description: parsed.text,
+                  tools: parsed.tools,
+                  works: parsed.works,
                   isCustom: true,
-                }));
+                };
+              });
 
-              return [...updated, ...cloudOnlyCustom];
-            });
+            setClients([...(mergedDefaults as ClientItem[]), ...cloudCustoms]);
           }
 
           setIsCloudSyncActive(true);
@@ -394,6 +426,28 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     }
   }, [stage3, clients, persistState]);
 
+  // Helper to sync client data to Supabase using only available columns
+  const syncClientToCloud = useCallback(async (clientItem: ClientItem) => {
+    if (!isSupabaseConfigured || !supabase) return;
+    try {
+      const descPayload = JSON.stringify({
+        text: clientItem.description || "",
+        tools: clientItem.tools || [],
+        works: clientItem.works || [],
+        isCustom: Boolean(clientItem.isCustom),
+      });
+      await supabase.from("client_descriptions").upsert({
+        client_id: clientItem.id,
+        client_name: clientItem.clientName,
+        category: clientItem.category || `Portfolio — ${clientItem.clientName}`,
+        description: descPayload,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn("Supabase client sync error:", err);
+    }
+  }, []);
+
   // Update Client / Brand Description & Tools Used
   const updateClientDescription = useCallback(
     async (clientId: string, description: string, tools?: string[]) => {
@@ -410,26 +464,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       setClients(updatedClients);
       persistState(stage3, updatedClients);
 
-      // Async sync to Supabase if configured
-      if (isSupabaseConfigured && supabase) {
-        const client = supabase;
-        try {
-          const clientObj = updatedClients.find((c) => c.id === clientId);
-          await client.from("client_descriptions").upsert({
-            client_id: clientId,
-            client_name: clientObj ? clientObj.clientName : clientId,
-            category: clientObj ? clientObj.category : "",
-            description: description,
-            tools: clientObj?.tools || [],
-            works: clientObj?.works || [],
-            updated_at: new Date().toISOString(),
-          });
-        } catch (err) {
-          console.error("Supabase client_descriptions sync error:", err);
-        }
+      const clientObj = updatedClients.find((c) => c.id === clientId);
+      if (clientObj) {
+        syncClientToCloud(clientObj);
       }
     },
-    [stage3, clients, persistState]
+    [stage3, clients, persistState, syncClientToCloud]
   );
 
   // Add a new portfolio work item to a client folder
@@ -450,24 +490,39 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       setClients(updatedClients);
       persistState(stage3, updatedClients);
 
-      if (isSupabaseConfigured && supabase) {
-        const client = supabase;
-        try {
-          const clientObj = updatedClients.find((c) => c.id === clientId);
-          await client.from("client_descriptions").upsert({
-            client_id: clientId,
-            client_name: clientObj ? clientObj.clientName : clientId,
-            category: clientObj ? clientObj.category : "",
-            description: clientObj?.description || "",
-            works: clientObj?.works || [],
-            updated_at: new Date().toISOString(),
-          });
-        } catch (err) {
-          console.warn("Supabase add work sync notice:", err);
-        }
+      const clientObj = updatedClients.find((c) => c.id === clientId);
+      if (clientObj) {
+        syncClientToCloud(clientObj);
       }
     },
-    [stage3, clients, persistState]
+    [stage3, clients, persistState, syncClientToCloud]
+  );
+
+  // Update an existing portfolio work item (case study details: brief, challenge, solution, role, tools, title, etc.)
+  const updateClientWork = useCallback(
+    async (clientId: string, updatedWork: any) => {
+      const updatedClients = clients.map((client) => {
+        if (client.id === clientId) {
+          const updatedWorks = (client.works || []).map((w: any) =>
+            w.id === updatedWork.id ? { ...w, ...updatedWork } : w
+          );
+          return {
+            ...client,
+            works: updatedWorks,
+          };
+        }
+        return client;
+      });
+
+      setClients(updatedClients);
+      persistState(stage3, updatedClients);
+
+      const clientObj = updatedClients.find((c) => c.id === clientId);
+      if (clientObj) {
+        syncClientToCloud(clientObj);
+      }
+    },
+    [stage3, clients, persistState, syncClientToCloud]
   );
 
   // Delete a portfolio work item from a client folder
@@ -488,24 +543,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       setClients(updatedClients);
       persistState(stage3, updatedClients);
 
-      if (isSupabaseConfigured && supabase) {
-        const client = supabase;
-        try {
-          const clientObj = updatedClients.find((c) => c.id === clientId);
-          await client.from("client_descriptions").upsert({
-            client_id: clientId,
-            client_name: clientObj ? clientObj.clientName : clientId,
-            category: clientObj ? clientObj.category : "",
-            description: clientObj?.description || "",
-            works: clientObj?.works || [],
-            updated_at: new Date().toISOString(),
-          });
-        } catch (err) {
-          console.warn("Supabase delete work sync notice:", err);
-        }
+      const clientObj = updatedClients.find((c) => c.id === clientId);
+      if (clientObj) {
+        syncClientToCloud(clientObj);
       }
     },
-    [stage3, clients, persistState]
+    [stage3, clients, persistState, syncClientToCloud]
   );
 
   // Add a new custom client folder (admin-created)
@@ -528,25 +571,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       setClients(updatedClients);
       persistState(stage3, updatedClients);
 
-      if (isSupabaseConfigured && supabase) {
-        const client = supabase;
-        try {
-          await client.from("client_descriptions").upsert({
-            client_id: newId,
-            client_name: folder.clientName,
-            category: folder.category || `Portfolio — ${folder.clientName}`,
-            description: folder.description || "",
-            tools: [],
-            works: [],
-            is_custom: true,
-            updated_at: new Date().toISOString(),
-          });
-        } catch (err) {
-          console.warn("Supabase add folder sync notice:", err);
-        }
-      }
+      syncClientToCloud(newClient);
     },
-    [stage3, clients, persistState]
+    [stage3, clients, persistState, syncClientToCloud]
   );
 
   // Delete a client folder entirely (all folders can be deleted by admin)
@@ -557,9 +584,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       persistState(stage3, updatedClients);
 
       if (isSupabaseConfigured && supabase) {
-        const client = supabase;
         try {
-          await client.from("client_descriptions").delete().eq("client_id", clientId);
+          await supabase.from("client_descriptions").delete().eq("client_id", clientId);
         } catch (err) {
           console.warn("Supabase delete folder sync notice:", err);
         }
@@ -637,6 +663,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         removeStage3Video,
         updateClientDescription,
         addClientWork,
+        updateClientWork,
         deleteClientWork,
         addClientFolder,
         deleteClientFolder,

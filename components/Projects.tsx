@@ -202,8 +202,23 @@ function ToolBadge({ tool }: { tool: string }) {
 /**
  * Intelligent AI Case Study Fallback with Bilingual Support (EN & ID)
  */
-function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
+export function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
   const isId = lang === "id";
+
+  // Priority 1: If work has customized case study fields from Admin, return them directly!
+  if (work.challenge || work.solution || work.brief || work.role) {
+    return {
+      brand: work.brand || work.clientName || "Brand",
+      year: work.year || "2026",
+      brief: work.brief || "",
+      approach: work.approach || work.solution || "",
+      role: work.role || "",
+      challenge: work.challenge || "",
+      solution: work.solution || "",
+      tools: work.tools && work.tools.length > 0 ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
+    };
+  }
+
   const title = (work.title || "").toLowerCase();
   const type = (work.type || "").toLowerCase();
   const brand = (work.brand || work.clientName || "").toLowerCase();

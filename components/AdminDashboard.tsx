@@ -26,6 +26,7 @@ import {
   extractYouTubeId,
   ClientItem,
 } from "@/context/PortfolioDataContext";
+import { getCaseStudy } from "@/components/Projects";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -35,6 +36,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     removeStage3Video,
     updateClientDescription,
     addClientWork,
+    updateClientWork,
     deleteClientWork,
     addClientFolder,
     deleteClientFolder,
@@ -102,6 +104,90 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   // Tool tags for upload — comma-separated input
   const [uploadToolsInput, setUploadToolsInput] = useState("Figma, Photoshop, Magnific AI");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Edit Work & Case Study Modal State
+  const [editingWork, setEditingWork] = useState<any | null>(null);
+  const [editWorkTitle, setEditWorkTitle] = useState("");
+  const [editWorkType, setEditWorkType] = useState("");
+  const [editWorkYear, setEditWorkYear] = useState("");
+  const [editWorkAspect, setEditWorkAspect] = useState<"4:5" | "1:1" | "16:9">("4:5");
+  const [editWorkBrief, setEditWorkBrief] = useState("");
+  const [editWorkChallenge, setEditWorkChallenge] = useState("");
+  const [editWorkSolution, setEditWorkSolution] = useState("");
+  const [editWorkRole, setEditWorkRole] = useState("");
+  const [editWorkToolsInput, setEditWorkToolsInput] = useState("");
+
+  // Helper to open edit modal pre-filled with existing or default case study
+  const handleOpenEditWork = (work: any) => {
+    const defaultStudy = getCaseStudy(
+      {
+        ...work,
+        clientName: selectedClient?.clientName || "Brand",
+      },
+      "en"
+    );
+
+    setEditingWork(work);
+    setEditWorkTitle(work.title || defaultStudy.brand || "");
+    setEditWorkType(work.type || "Digital Campaign");
+    setEditWorkYear(work.year || defaultStudy.year || "2026");
+    setEditWorkAspect(work.aspect || "4:5");
+    setEditWorkBrief(work.brief || defaultStudy.brief || "");
+    setEditWorkChallenge(work.challenge || defaultStudy.challenge || "");
+    setEditWorkSolution(work.solution || defaultStudy.solution || "");
+    setEditWorkRole(work.role || defaultStudy.role || "");
+
+    const initialTools =
+      work.tools && work.tools.length > 0
+        ? work.tools
+        : selectedClient?.tools && selectedClient.tools.length > 0
+        ? selectedClient.tools
+        : defaultStudy.tools || ["figma", "photoshop", "magnific", "gpt", "gemini"];
+
+    setEditWorkToolsInput(Array.isArray(initialTools) ? initialTools.join(", ") : initialTools);
+  };
+
+  const toggleEditToolChip = (toolName: string) => {
+    const currentList = editWorkToolsInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const exists = currentList.some((t) => t.toLowerCase() === toolName.toLowerCase());
+    let nextList: string[];
+    if (exists) {
+      nextList = currentList.filter((t) => t.toLowerCase() !== toolName.toLowerCase());
+    } else {
+      nextList = [...currentList, toolName];
+    }
+    setEditWorkToolsInput(nextList.join(", "));
+  };
+
+  const handleSaveEditWork = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingWork || !selectedClient) return;
+
+    const parsedTools = editWorkToolsInput
+      .split(",")
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+
+    const updatedWork = {
+      ...editingWork,
+      title: editWorkTitle.trim(),
+      type: editWorkType.trim(),
+      year: editWorkYear.trim(),
+      aspect: editWorkAspect,
+      brief: editWorkBrief.trim(),
+      challenge: editWorkChallenge.trim(),
+      solution: editWorkSolution.trim(),
+      role: editWorkRole.trim(),
+      tools: parsedTools,
+    };
+
+    updateClientWork(selectedClient.id, updatedWork);
+    showToast(`Detail karya & case study "${updatedWork.title}" berhasil disimpan & langsung aktif di web!`);
+    setEditingWork(null);
+  };
 
   // Toast notification state
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -705,6 +791,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             key={work.id}
                             className="group relative rounded-2xl overflow-hidden bg-neutral-950 border border-white/10 hover:border-cyan-400/50 transition-all shadow-lg flex flex-col"
                           >
+                            {/* TOMBOL EDIT CASE STUDY: Icon Pensil di Sebelah Tombol X */}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenEditWork(work);
+                              }}
+                              className="absolute top-2.5 right-11 z-20 w-7 h-7 rounded-full bg-cyan-600/90 hover:bg-cyan-500 text-white flex items-center justify-center shadow-2xl transition-all duration-200 hover:scale-115 active:scale-90 cursor-pointer"
+                              title={`Edit detail & case study "${work.title}"`}
+                            >
+                              <HiPencilSquare className="w-3.5 h-3.5" />
+                            </button>
+
                             {/* TOMBOL HAPUS GAMBAR: Tanda X Silang di Pojok Kanan Atas */}
                             <button
                               type="button"
@@ -749,6 +848,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                   {work.title}
                                 </h4>
                               </div>
+                            </div>
+
+                            {/* Edit Case Study Action Bar at bottom of card */}
+                            <div className="p-2 bg-neutral-900/90 border-t border-white/10 flex items-center justify-between gap-1">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenEditWork(work)}
+                                className="w-full py-1.5 px-2 text-[11px] font-mono font-semibold text-cyan-300 hover:text-white flex items-center justify-center gap-1.5 bg-cyan-950/40 hover:bg-cyan-900/50 border border-cyan-500/30 rounded-lg transition-colors cursor-pointer"
+                              >
+                                <HiPencilSquare className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>Edit Case Study</span>
+                              </button>
                             </div>
                           </div>
                         );
@@ -1273,6 +1384,253 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       setUploadPreview(null);
                       setUploadFile(null);
                     }}
+                    className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: EDIT KARYA & DETAIL CASE STUDY */}
+      <AnimatePresence>
+        {editingWork && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 bg-black/85 backdrop-blur-md overflow-y-auto">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative w-full max-w-2xl bg-[#0e1015] border border-cyan-500/30 rounded-3xl p-5 sm:p-7 shadow-2xl my-auto max-h-[92vh] flex flex-col"
+            >
+              {/* Close Button (X) */}
+              <button
+                type="button"
+                onClick={() => setEditingWork(null)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-10"
+                aria-label="Tutup form edit"
+              >
+                <HiXMark className="w-5 h-5" />
+              </button>
+
+              {/* Modal Header */}
+              <div className="flex items-center gap-3.5 pb-4 border-b border-white/10 shrink-0">
+                <div className="w-12 h-14 rounded-xl overflow-hidden bg-neutral-900 border border-white/15 shrink-0">
+                  <img
+                    src={editingWork.image}
+                    alt={editingWork.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold block">
+                    CASE STUDY & DETAIL EDITOR
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    Edit Detail: {editingWork.title}
+                  </h3>
+                  <p className="text-xs text-neutral-400">
+                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> · Perubahan langsung aktif di popup Case Study web publik.
+                  </p>
+                </div>
+              </div>
+
+              {/* Modal Body: Scrollable Form */}
+              <form onSubmit={handleSaveEditWork} className="space-y-4 pt-4 overflow-y-auto pr-1">
+                {/* 1. Judul & Kategori */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Judul Karya <span className="text-cyan-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={editWorkTitle}
+                      onChange={(e) => setEditWorkTitle(e.target.value)}
+                      placeholder="Contoh: Promo Visual 13"
+                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all font-sans"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Kategori / Format Karya
+                    </label>
+                    <input
+                      type="text"
+                      value={editWorkType}
+                      onChange={(e) => setEditWorkType(e.target.value)}
+                      placeholder="Contoh: Education Campaign Asset, 3D Key Visual"
+                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all font-sans"
+                    />
+                  </div>
+                </div>
+
+                {/* 2. Tahun & Rasio Aspek */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Tahun Rilis
+                    </label>
+                    <input
+                      type="text"
+                      value={editWorkYear}
+                      onChange={(e) => setEditWorkYear(e.target.value)}
+                      placeholder="2026"
+                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-cyan-400 transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Rasio Aspek Gambar
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["4:5", "1:1", "16:9"] as const).map((asp) => (
+                        <button
+                          key={asp}
+                          type="button"
+                          onClick={() => setEditWorkAspect(asp)}
+                          className={`py-2 px-2 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
+                            editWorkAspect === asp
+                              ? "bg-cyan-500/20 border border-cyan-400 text-cyan-300"
+                              : "bg-neutral-950 border border-white/10 text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          {asp}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Brief / Overview */}
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    Brief / Ringkasan Deskripsi Karya
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={editWorkBrief}
+                    onChange={(e) => setEditWorkBrief(e.target.value)}
+                    placeholder="Tuliskan gambaran umum kampanye atau tujuan visual ini..."
+                    className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all resize-none leading-relaxed"
+                  />
+                </div>
+
+                {/* 4. Tantangan (Challenge) & Solusi (Solution) */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-mono text-amber-400 font-medium mb-1.5 flex items-center gap-1.5">
+                      <span>⚠️</span>
+                      <span>Tantangan (Challenge)</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editWorkChallenge}
+                      onChange={(e) => setEditWorkChallenge(e.target.value)}
+                      placeholder="Kesulitan atau tantangan teknis dalam proyek ini..."
+                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-amber-500/30 text-white text-xs sm:text-sm focus:outline-none focus:border-amber-400 transition-all resize-none leading-relaxed"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-[#14AF9E] font-medium mb-1.5 flex items-center gap-1.5">
+                      <span>✅</span>
+                      <span>Solusi & Pendekatan (Solution)</span>
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={editWorkSolution}
+                      onChange={(e) => setEditWorkSolution(e.target.value)}
+                      placeholder="Solusi kreatif atau teknis yang diimplementasikan..."
+                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-[#14AF9E]/30 text-white text-xs sm:text-sm focus:outline-none focus:border-[#14AF9E] transition-all resize-none leading-relaxed"
+                    />
+                  </div>
+                </div>
+
+                {/* 5. Role / Peran Kreatif */}
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    Role / Peran Kreatif
+                  </label>
+                  <input
+                    type="text"
+                    value={editWorkRole}
+                    onChange={(e) => setEditWorkRole(e.target.value)}
+                    placeholder="Contoh: Creative visual direction, event promo design, AI art generation"
+                    className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all"
+                  />
+                </div>
+
+                {/* 6. Tools Used */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-mono text-neutral-300 font-medium">
+                      Tools Digunakan (Pisahkan dengan koma)
+                    </label>
+                    <span className="text-[10px] font-mono text-neutral-400">
+                      Klik tag di bawah untuk toggle
+                    </span>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={editWorkToolsInput}
+                    onChange={(e) => setEditWorkToolsInput(e.target.value)}
+                    placeholder="figma, photoshop, magnific, gpt, gemini"
+                    className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-cyan-400 transition-all mb-2"
+                  />
+
+                  {/* Clickable Tool Tag Pills */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {[
+                      { name: "figma", label: "Figma" },
+                      { name: "photoshop", label: "Photoshop" },
+                      { name: "magnific", label: "Magnific AI" },
+                      { name: "gpt", label: "ChatGPT" },
+                      { name: "gemini", label: "Gemini" },
+                      { name: "blender", label: "Blender 3D" },
+                      { name: "illustrator", label: "Illustrator" },
+                      { name: "aftereffects", label: "After Effects" },
+                      { name: "midjourney", label: "Midjourney" },
+                    ].map((tool) => {
+                      const isSelected = editWorkToolsInput
+                        .toLowerCase()
+                        .includes(tool.name.toLowerCase());
+                      return (
+                        <button
+                          key={tool.name}
+                          type="button"
+                          onClick={() => toggleEditToolChip(tool.name)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer ${
+                            isSelected
+                              ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-sm"
+                              : "bg-white/5 text-neutral-400 hover:text-white border border-white/10"
+                          }`}
+                        >
+                          {isSelected ? `✓ ${tool.label}` : `+ ${tool.label}`}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3 pt-3 border-t border-white/10 shrink-0">
+                  <button
+                    type="submit"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
+                  >
+                    <HiCheck className="w-4 h-4" />
+                    <span>Simpan Perubahan & Update Web</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingWork(null)}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                   >
                     Batal
