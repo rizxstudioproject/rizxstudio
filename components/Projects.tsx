@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { antigravityData } from "@/data/projectsData";
 import {
   HiXMark,
@@ -494,10 +495,12 @@ export default function Projects() {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>(stage4.clients[0].id);
   const [flagshipMode, setFlagshipMode] = useState<"video" | "image">("video");
+  const [mounted, setMounted] = useState(false);
   const { t, lang } = useLang();
   const isId = lang === "id";
 
   useEffect(() => {
+    setMounted(true);
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -581,6 +584,18 @@ export default function Projects() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handlePrevWork, handleNextWork]);
+
+  // Lock body scroll when modal is open to ensure clean viewport presentation
+  useEffect(() => {
+    if (modalData) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [modalData]);
 
   const scrollToClientStage = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -1209,98 +1224,101 @@ export default function Projects() {
           FULLSCREEN IMAGE LIGHTBOX MODAL POPUP
           (Opens when clicking any work/card with Before/After navigation)
          ======================================================== */}
-      {modalData && modalData.items.length > 0 && (
-        (() => {
-          const currentWork = modalData.items[modalData.currentIndex];
-          const hasMultiple = modalData.items.length > 1;
+      {mounted && modalData && modalData.items.length > 0 &&
+        createPortal(
+          (() => {
+            const currentWork = modalData.items[modalData.currentIndex];
+            const hasMultiple = modalData.items.length > 1;
 
-          return (
-            <div
-              className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-6 md:p-8 bg-black/90 backdrop-blur-2xl animate-fade-in"
-              onClick={() => setModalData(null)}
-            >
-              {/* Close Button */}
-              <button
-                type="button"
-                onClick={() => setModalData(null)}
-                className="absolute top-4 right-4 sm:top-6 sm:right-6 z-[110] p-2.5 sm:p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all active:scale-95 cursor-pointer"
-                aria-label="Close modal"
-              >
-                <HiXMark className="w-5 h-5 sm:w-6 sm:h-6" />
-              </button>
-
-              {/* Modal Container */}
+            return (
               <div
-                className="relative max-w-5xl max-h-[94vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col scrollbar-thin scrollbar-thumb-white/10"
-                onClick={(e) => e.stopPropagation()}
+                className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/95 backdrop-blur-2xl animate-fade-in"
+                onClick={() => setModalData(null)}
               >
-                {/* Tombol X Close di Pojok Kanan Atas pada Image Popup */}
+                {/* Floating Screen Close Button (Clean X without circular frame) */}
                 <button
                   type="button"
                   onClick={() => setModalData(null)}
-                  className="absolute top-3 right-3 sm:top-5 sm:right-5 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-neutral-900/85 hover:bg-neutral-800 text-white border border-white/20 shadow-2xl backdrop-blur-md flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
-                  aria-label="Tutup popup"
+                  className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[10000] p-2 text-white/70 hover:text-white transition-colors cursor-pointer group"
+                  aria-label="Tutup"
                   title="Tutup (Esc)"
                 >
-                  <HiXMark className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5] group-hover:rotate-90 transition-transform duration-200" />
+                  <HiXMark className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2] transition-transform duration-200 group-hover:scale-110" />
                 </button>
-                {/* Full-Scale Hero Image Preview Box (Artwork is never shrunk) */}
-                <div
-                  className="relative w-full min-h-[68vh] sm:min-h-[75vh] md:min-h-[80vh] bg-black flex items-center justify-center p-3 sm:p-6 select-none shrink-0 overflow-hidden"
-                  onTouchStart={handleTouchStart}
-                  onTouchEnd={handleTouchEnd}
-                >
-                  {/* Before / Previous Arrow */}
-                  {hasMultiple && (
-                    <button
-                      type="button"
-                      onClick={handlePrevWork}
-                      aria-label="Previous work (Before)"
-                      className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
-                    >
-                      <svg
-                        className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="15 18 9 12 15 6"></polyline>
-                      </svg>
-                    </button>
-                  )}
 
-                  {/* Main Large Visual Artwork or Interactive YouTube Player */}
-                  {currentWork.id === "hero-showcase" || currentWork.videoId ? (
-                    <div className="relative w-full max-w-4xl aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
-                      <iframe
-                        src={`https://www.youtube.com/embed/${currentWork.videoId || stage3?.heroCard?.videoId || "dQw4w9WgXcQ"}?autoplay=1&rel=0&modestbranding=1`}
-                        title={currentWork.title}
-                        className="w-full h-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowFullScreen
-                      />
-                    </div>
-                  ) : (
-                    <div className="relative select-none flex items-center justify-center">
-                      <img
-                        key={currentWork.id}
-                        src={currentWork.image}
-                        alt={currentWork.title}
-                        className="max-h-[66vh] sm:max-h-[74vh] md:max-h-[78vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
-                        draggable={false}
-                        onContextMenu={(e) => e.preventDefault()}
-                      />
-                      {/* Transparent shield: stops right-click "Save Image As" and drag */}
-                      <div
-                        className="absolute inset-0 rounded-xl sm:rounded-2xl z-10 cursor-default"
-                        onContextMenu={(e) => e.preventDefault()}
-                        draggable={false}
-                      />
-                    </div>
-                  )}
+                {/* Modal Container */}
+                <div
+                  className="relative max-w-5xl max-h-[92vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col no-scrollbar"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {/* Clean X Close on Top Right of Popup (Tanpa frame bulat, ukuran pas & elegan) */}
+                  <button
+                    type="button"
+                    onClick={() => setModalData(null)}
+                    className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 p-2 text-white/70 hover:text-white transition-colors cursor-pointer group"
+                    aria-label="Tutup popup"
+                    title="Tutup (Esc)"
+                  >
+                    <HiXMark className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2] transition-transform duration-200 group-hover:scale-110" />
+                  </button>
+
+                  {/* Full-Scale Hero Image Preview Box (Artwork is never shrunk or cropped) */}
+                  <div
+                    className="relative w-full bg-black flex items-center justify-center p-3 sm:p-6 select-none shrink-0"
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                    {/* Before / Previous Arrow */}
+                    {hasMultiple && (
+                      <button
+                        type="button"
+                        onClick={handlePrevWork}
+                        aria-label="Previous work (Before)"
+                        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
+                      >
+                        <svg
+                          className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                      </button>
+                    )}
+
+                    {/* Main Large Visual Artwork or Interactive YouTube Player */}
+                    {currentWork.id === "hero-showcase" || currentWork.videoId ? (
+                      <div className="relative w-full max-w-4xl aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+                        <iframe
+                          src={`https://www.youtube.com/embed/${currentWork.videoId || stage3?.heroCard?.videoId || "dQw4w9WgXcQ"}?autoplay=1&rel=0&modestbranding=1`}
+                          title={currentWork.title}
+                          className="w-full h-full border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : (
+                      <div className="relative select-none flex items-center justify-center max-w-full">
+                        <img
+                          key={currentWork.id}
+                          src={currentWork.image}
+                          alt={currentWork.title}
+                          className="max-h-[66vh] sm:max-h-[72vh] md:max-h-[74vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
+                          draggable={false}
+                          onContextMenu={(e) => e.preventDefault()}
+                        />
+                        {/* Transparent shield: stops right-click "Save Image As" and drag */}
+                        <div
+                          className="absolute inset-0 rounded-xl sm:rounded-2xl z-10 cursor-default"
+                          onContextMenu={(e) => e.preventDefault()}
+                          draggable={false}
+                        />
+                      </div>
+                    )}
 
                   {/* Scroll Down Indicator Cue (Only for client works that have case study details below) */}
                   {currentWork.isClientWork && (
@@ -1548,7 +1566,8 @@ export default function Projects() {
               </div>
             </div>
           );
-        })()
+        })(),
+        document.body
       )}
     </section>
   );
