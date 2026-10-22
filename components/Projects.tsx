@@ -585,14 +585,17 @@ export default function Projects() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handlePrevWork, handleNextWork]);
 
-  // Lock body scroll when modal is open to ensure clean viewport presentation
+  // Lock body scroll and add modal-open class when modal is open to ensure clean viewport presentation
   useEffect(() => {
     if (modalData) {
+      document.body.classList.add("modal-open");
       document.body.style.overflow = "hidden";
     } else {
+      document.body.classList.remove("modal-open");
       document.body.style.overflow = "";
     }
     return () => {
+      document.body.classList.remove("modal-open");
       document.body.style.overflow = "";
     };
   }, [modalData]);
@@ -1235,17 +1238,6 @@ export default function Projects() {
                 className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/95 backdrop-blur-2xl animate-fade-in"
                 onClick={() => setModalData(null)}
               >
-                {/* Floating Screen Close Button (Clean X without circular frame) */}
-                <button
-                  type="button"
-                  onClick={() => setModalData(null)}
-                  className="fixed top-4 right-4 sm:top-6 sm:right-6 z-[10000] p-2 text-white/70 hover:text-white transition-colors cursor-pointer group"
-                  aria-label="Tutup"
-                  title="Tutup (Esc)"
-                >
-                  <HiXMark className="w-6 h-6 sm:w-7 sm:h-7 stroke-[2] transition-transform duration-200 group-hover:scale-110" />
-                </button>
-
                 {/* Modal Container */}
                 <div
                   className="relative max-w-5xl max-h-[92vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col no-scrollbar"

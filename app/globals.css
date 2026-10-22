@@ -64,6 +64,15 @@ body {
   background: rgba(255, 255, 255, 0.28);
 }
 
+/* When modal lightbox is open, hide navbar and floating buttons completely */
+body.modal-open header,
+body.modal-open .navbar-progress-bar,
+body.modal-open .scroll-to-top-btn {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar {
   display: none !important;

@@ -63,7 +63,7 @@ export default function Navbar() {
     <>
       {/* Top Scroll Speed / Progress Line Indicator */}
       <div
-        className="fixed top-0 left-0 h-[2.5px] bg-gradient-to-r from-cyan-400 via-[#00A389] to-white z-[60] pointer-events-none transition-all duration-75 shadow-[0_0_8px_rgba(0,163,137,0.8)]"
+        className="navbar-progress-bar fixed top-0 left-0 h-[2.5px] bg-gradient-to-r from-cyan-400 via-[#00A389] to-white z-[60] pointer-events-none transition-all duration-75 shadow-[0_0_8px_rgba(0,163,137,0.8)]"
         style={{ width: `${scrollProgressPercent}%` }}
       />
 
@@ -308,7 +308,7 @@ export default function Navbar() {
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
         aria-label="Scroll back to top"
-        className="md:hidden fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-neutral-900/90 border border-white/20 text-white flex items-center justify-center shadow-2xl backdrop-blur-md active:scale-90 transition-all hover:border-[#00A389]/60"
+        className="scroll-to-top-btn md:hidden fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full bg-neutral-900/90 border border-white/20 text-white flex items-center justify-center shadow-2xl backdrop-blur-md active:scale-90 transition-all hover:border-[#00A389]/60"
       >
         <HiArrowUp className="w-5 h-5 text-white" />
       </button>
