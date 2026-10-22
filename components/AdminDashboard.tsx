@@ -60,6 +60,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     updateClientWork,
     deleteClientWork,
     addClientFolder,
+    updateClientFolder,
     deleteClientFolder,
     resetPortfolioData,
     setIsAdminMode,
@@ -565,6 +566,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [newFolderName, setNewFolderName] = useState("");
   const [newFolderCategory, setNewFolderCategory] = useState("");
   const [newFolderYear, setNewFolderYear] = useState(new Date().getFullYear().toString());
+
+  // Edit Brand / Folder Name Modal State
+  const [editingFolder, setEditingFolder] = useState<ClientItem | null>(null);
+  const [editFolderName, setEditFolderName] = useState("");
+  const [editFolderCategory, setEditFolderCategory] = useState("");
+
+  const handleOpenEditFolder = (folder: ClientItem) => {
+    setEditingFolder(folder);
+    setEditFolderName(folder.clientName);
+    setEditFolderCategory(folder.category || `Portfolio — ${folder.clientName}`);
+  };
+
+  const handleSaveEditFolder = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingFolder || !editFolderName.trim()) return;
+
+    updateClientFolder(editingFolder.id, {
+      clientName: editFolderName.trim(),
+      category: editFolderCategory.trim(),
+    });
+    showToast(isId ? `Nama brand berhasil diubah menjadi "${editFolderName.trim()}"!` : `Brand name updated to "${editFolderName.trim()}"!`);
+    setEditingFolder(null);
+  };
 
   // Upload Form Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -1282,18 +1306,34 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         </div>
                       </button>
 
-                      {/* Delete folder button — visible on hover for ALL folders */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteFolder(client);
-                        }}
-                        className="absolute -top-2 -right-2 z-20 w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover/folder:opacity-100 scale-75 group-hover/folder:scale-100 cursor-pointer"
-                        title={`Hapus folder ${client.clientName}`}
-                      >
-                        <HiXMark className="w-3.5 h-3.5" />
-                      </button>
+                      {/* Action buttons: Edit brand name & Delete folder */}
+                      <div className="absolute -top-2 -right-2 z-20 flex items-center gap-1 opacity-0 group-hover/folder:opacity-100 transition-all">
+                        {/* Edit brand name button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEditFolder(client);
+                          }}
+                          className="w-6 h-6 rounded-full bg-cyan-600/90 hover:bg-cyan-500 text-white flex items-center justify-center shadow-lg transition-all scale-75 group-hover/folder:scale-100 cursor-pointer"
+                          title={isId ? `Edit nama brand ${client.clientName}` : `Edit brand name ${client.clientName}`}
+                        >
+                          <HiPencilSquare className="w-3.5 h-3.5" />
+                        </button>
+
+                        {/* Delete folder button */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteFolder(client);
+                          }}
+                          className="w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-all scale-75 group-hover/folder:scale-100 cursor-pointer"
+                          title={isId ? `Hapus folder ${client.clientName}` : `Delete folder ${client.clientName}`}
+                        >
+                          <HiXMark className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -1308,10 +1348,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <form onSubmit={handleSaveClientDescription} className="space-y-4">
                     <div className="flex items-center justify-between pb-3 border-b border-white/10">
                       <div>
-                        <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block font-semibold">
-                          FOLDER: client - {selectedClient.clientName}
-                        </span>
-                        <h3 className="text-base font-bold text-white">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest block font-semibold">
+                            FOLDER: client - {selectedClient.clientName}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditFolder(selectedClient)}
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[10px] font-mono border border-cyan-500/20 transition-colors cursor-pointer"
+                            title={isId ? "Edit nama brand ini" : "Edit this brand name"}
+                          >
+                            <HiPencilSquare className="w-3 h-3" />
+                            <span>{isId ? "Ubah Nama Brand" : "Rename Brand"}</span>
+                          </button>
+                        </div>
+                        <h3 className="text-base font-bold text-white mt-0.5">
                           {isId ? "Edit Deskripsi & Penjelasan Brand" : "Edit Brand Description & Overview"}
                         </h3>
                       </div>
@@ -3708,6 +3759,94 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       setNewFolderCategory("");
                       setNewFolderYear(new Date().getFullYear().toString());
                     }}
+                    className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-colors cursor-pointer"
+                  >
+                    {isId ? "Batal" : "Cancel"}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: EDIT NAMA BRAND / FOLDER */}
+      <AnimatePresence>
+        {editingFolder && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="relative w-full max-w-md bg-[#0e1015] border border-cyan-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl"
+            >
+              <button
+                type="button"
+                onClick={() => setEditingFolder(null)}
+                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+              >
+                <HiXMark className="w-5 h-5" />
+              </button>
+
+              <div className="mb-5">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold block mb-1">
+                  FOLDER: client - {editingFolder.clientName}
+                </span>
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  <HiPencilSquare className="w-5 h-5 text-cyan-400" />
+                  <span>{isId ? "Edit Nama Brand" : "Edit Brand Name"}</span>
+                </h3>
+                <p className="text-xs text-neutral-400 mt-1">
+                  {isId
+                    ? "Ubah nama brand ini. Nama baru akan otomatis diperbarui di kartu admin, tag folder (client - [Nama]), dan web publik."
+                    : "Update this brand name. The new name will reflect across admin cards, folder tags (client - [Name]), and public web."}
+                </p>
+              </div>
+
+              <form onSubmit={handleSaveEditFolder} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    {isId ? "Nama Brand" : "Brand Name"} <span className="text-cyan-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={editFolderName}
+                    onChange={(e) => setEditFolderName(e.target.value)}
+                    placeholder="Contoh: Nike, Apple, dsb"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-cyan-400 transition-all font-semibold"
+                  />
+                  <span className="text-[11px] font-mono text-neutral-500 mt-1 block">
+                    {isId ? "Format di kartu akan menjadi: " : "Card format will be: "}
+                    <code className="text-cyan-400">client - {editFolderName.trim() || editingFolder.clientName}</code>
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    {isId ? "Kategori / Sub-judul Portfolio" : "Category / Subtitle"}
+                  </label>
+                  <input
+                    type="text"
+                    value={editFolderCategory}
+                    onChange={(e) => setEditFolderCategory(e.target.value)}
+                    placeholder={`Portfolio — ${editFolderName.trim() || editingFolder.clientName}`}
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-cyan-400 transition-all"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 pt-2">
+                  <button
+                    type="submit"
+                    disabled={!editFolderName.trim()}
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#14AF9E] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <HiCheck className="w-4 h-4" />
+                    <span>{isId ? "Simpan Perubahan Nama" : "Save Brand Name"}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingFolder(null)}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-colors cursor-pointer"
                   >
                     {isId ? "Batal" : "Cancel"}

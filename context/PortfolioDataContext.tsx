@@ -262,6 +262,7 @@ interface PortfolioDataContextType {
   updateClientWork: (clientId: string, updatedWork: any) => void;
   deleteClientWork: (clientId: string, workId: string) => void;
   addClientFolder: (folder: { clientName: string; category: string; description?: string }) => void;
+  updateClientFolder: (clientId: string, updates: { clientName: string; category?: string }) => void;
   deleteClientFolder: (clientId: string) => void;
   updateAboutData: (newData: Partial<AboutData>) => void;
   updateHeroWorksData: (newData: Partial<HeroWorksData>) => void;
@@ -412,6 +413,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             if (!saved) return defaultClient;
             return {
               ...defaultClient,
+              clientName: saved.clientName || defaultClient.clientName,
+              category: saved.category || defaultClient.category,
               description: saved.description !== undefined ? saved.description : defaultClient.description,
               tools: Array.isArray(saved.tools) ? saved.tools : (defaultClient as any).tools,
               works: Array.isArray(saved.works) && saved.works.length > 0 ? saved.works : defaultClient.works,
@@ -622,6 +625,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               const parsed = parseRowData(match, d);
               return {
                 ...d,
+                clientName: match.client_name || d.clientName,
+                category: match.category || d.category,
                 description: parsed.text,
                 tools: parsed.tools,
                 works: parsed.works,
@@ -911,6 +916,35 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [stage3, clients, persistState, syncClientToCloud]
   );
 
+  // Edit / Rename an existing client folder
+  const updateClientFolder = useCallback(
+    async (clientId: string, updates: { clientName: string; category?: string }) => {
+      const updatedClients = clients.map((c) => {
+        if (c.id === clientId) {
+          const newName = updates.clientName.trim();
+          const newCategory = updates.category !== undefined && updates.category.trim() !== ""
+            ? updates.category.trim()
+            : `Portfolio — ${newName}`;
+          return {
+            ...c,
+            clientName: newName,
+            category: newCategory,
+          };
+        }
+        return c;
+      });
+
+      setClients(updatedClients);
+      persistState(stage3, updatedClients);
+
+      const clientObj = updatedClients.find((c) => c.id === clientId);
+      if (clientObj) {
+        syncClientToCloud(clientObj);
+      }
+    },
+    [stage3, clients, persistState, syncClientToCloud]
+  );
+
   // Delete a client folder entirely (all folders can be deleted by admin)
   const deleteClientFolder = useCallback(
     async (clientId: string) => {
@@ -1117,6 +1151,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         updateClientWork,
         deleteClientWork,
         addClientFolder,
+        updateClientFolder,
         deleteClientFolder,
         updateAboutData,
         updateHeroWorksData,
