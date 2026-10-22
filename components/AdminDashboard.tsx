@@ -379,7 +379,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       );
       setHwOverlappingCards(heroWorks.overlappingCards || defaultHeroWorksData.overlappingCards);
     }
-    showToast("Perubahan dibatalkan â€” form dikembalikan ke data tersimpan.");
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
   };
 
   const handleAddDeckCard = () => {
@@ -444,7 +444,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setClSubtitle(clientLogos.subtitle || defaultClientLogosData.subtitle);
       setClLogos(clientLogos.logos || defaultClientLogosData.logos);
     }
-    showToast("Perubahan dibatalkan â€” form dikembalikan ke data tersimpan.");
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
   };
 
   const handleAddClientLogo = () => {
@@ -479,7 +479,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [videoClassTag, setVideoClassTag] = useState(stage3.classTag || "CREATIVE JOURNEY | 2012 TO PRESENT");
   const [videoDescription, setVideoDescription] = useState(
     stage3.heroCard.description ||
-      "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology â€” pushing the boundaries of creative digital experiences."
+      "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences."
   );
   const [videoEnabled, setVideoEnabled] = useState(stage3.heroCard.isVideoEnabled !== false);
 
@@ -521,7 +521,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [uploadType, setUploadType] = useState("Digital Campaign");
   const [uploadAspect, setUploadAspect] = useState<"4:5" | "1:1" | "16:9">("4:5");
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear().toString());
-  // Tool tags for upload â€” comma-separated input
+  // Tool tags for upload — comma-separated input
   const [uploadToolsInput, setUploadToolsInput] = useState("Figma, Photoshop, Magnific AI");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -798,7 +798,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
     addClientFolder({
       clientName: newFolderName.trim(),
-      category: newFolderCategory.trim() || `Portfolio â€” ${newFolderName.trim()}`,
+      category: newFolderCategory.trim() || `Portfolio — ${newFolderName.trim()}`,
       description: "",
     });
     showToast(`Folder "client - ${newFolderName.trim()}" berhasil dibuat!`);
@@ -846,7 +846,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-base font-bold text-white tracking-wide">
-                Rizx Studio â€” Admin Dashboard
+                Rizx Studio — Admin Dashboard
               </h1>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border flex items-center gap-1 ${
@@ -920,17 +920,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           >
             <HiArrowRightOnRectangle className="w-3.5 h-3.5" />
             <span>Logout</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleJumpToFlagshipWeb}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#14AF9E]/15 hover:bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/35 text-xs font-mono transition-all cursor-pointer hover:scale-105 active:scale-95"
-            title="Lompat langsung ke pemutar video Flagship Showcase di web"
-          >
-            <HiVideoCamera className="w-4 h-4 text-[#14AF9E]" />
-            <span className="hidden sm:inline font-semibold">Tonton Video di Web â†—</span>
-            <span className="sm:hidden font-semibold">Video â†—</span>
           </button>
 
           <button
@@ -1063,7 +1052,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#14AF9E]/15 hover:bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/35 text-xs font-mono font-semibold transition-all cursor-pointer hover:scale-105 active:scale-95"
                 >
                   <HiFolderPlus className="w-4 h-4" />
-                  <span>+ Buat Folder Baru</span>
+                  <span>Buat Folder Baru</span>
                 </button>
               </div>
 
@@ -1118,7 +1107,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         </div>
                       </button>
 
-                      {/* Delete folder button â€” visible on hover for ALL folders */}
+                      {/* Delete folder button — visible on hover for ALL folders */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -1231,7 +1220,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               >
                                 <span>{toolName}</span>
                                 <span className="text-[10px] opacity-75">
-                                  {isIncluded ? "âœ“" : "+"}
+                                  {isIncluded ? "✓" : "+"}
                                 </span>
                               </button>
                             );
@@ -1285,7 +1274,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer shrink-0"
                     >
                       <HiArrowUpTray className="w-4 h-4" />
-                      <span>+ Upload Gambar Portofolio Baru</span>
+                      <span>Add New Portfolio Image</span>
                     </button>
                   </div>
 
@@ -1379,7 +1368,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         Belum ada gambar di folder {selectedClient.clientName}
                       </p>
                       <p className="text-xs text-neutral-500 mt-1 max-w-sm">
-                        Klik tombol "+ Upload Gambar Portofolio Baru" di atas untuk menambahkan visual kampanye ke folder ini.
+                        Klik tombol "Add New Portfolio Image" di atas untuk menambahkan visual kampanye ke folder ini.
                       </p>
                     </div>
                   )}
@@ -1624,7 +1613,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
                       <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
                       <span className="truncate">
-                        {newOverImage ? "âœ“ Gambar Dipilih" : "Pilih File Gambar"}
+                        {newOverImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
                       </span>
                       <input
                         type="file"
@@ -1723,7 +1712,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hwStage1ScrollText}
                     onChange={(e) => setHwStage1ScrollText(e.target.value)}
-                    placeholder="Scroll down â†“"
+                    placeholder="Scroll down ↓"
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
                   />
                 </div>
@@ -1840,7 +1829,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
                       <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
                       <span className="truncate">
-                        {newDeckImage ? "âœ“ Gambar Dipilih" : "Pilih File Gambar"}
+                        {newDeckImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
                       </span>
                       <input
                         type="file"
@@ -2278,7 +2267,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     rows={4}
                     value={aboutBio}
                     onChange={(e) => setAboutBio(e.target.value)}
-                    placeholder="With 11+ years in creative design, Iâ€™ve evolved alongside the industry..."
+                    placeholder="With 11+ years in creative design, I've evolved alongside the industry..."
                     className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm leading-relaxed focus:outline-none focus:border-[#14AF9E] transition-all resize-none"
                   />
                 </div>
@@ -2317,7 +2306,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       type="text"
                       value={aboutPhilosophyQuote}
                       onChange={(e) => setAboutPhilosophyQuote(e.target.value)}
-                      placeholder="A creative professionalâ€™s greatest advantage isnâ€™t resisting change â€” itâ€™s adapting faster."
+                      placeholder="A creative professional's greatest advantage isn't resisting change — it's adapting faster."
                       className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm italic focus:outline-none focus:border-[#14AF9E] transition-all"
                     />
                   </div>
@@ -2542,7 +2531,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <HiInformationCircle className="w-4 h-4" />
                 </span>
                 <p className="text-neutral-400 leading-relaxed text-[11px] sm:text-xs">
-                  <strong className="text-white">Lokasi di Web Publik:</strong> Section ini berada di dalam sekuens interaktif <em>Projects (Stage 3: ~60% scroll)</em>. Saat Anda klik tombol <strong>"Simpan & Buka Langsung di Web â†—"</strong> di bawah, sistem akan otomatis melakukan scroll halus langsung tepat ke depan video YouTube Anda.
+                  <strong className="text-white">Lokasi di Web Publik:</strong> Section ini berada di dalam sekuens interaktif <em>Projects (Stage 3: ~60% scroll)</em>. Saat Anda klik tombol <strong>"Simpan & Buka Langsung di Web ↗"</strong> di bawah, sistem akan otomatis melakukan scroll halus langsung tepat ke depan video YouTube Anda.
                 </p>
               </div>
             </div>
@@ -2697,7 +2686,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-400 hover:from-[#119889] hover:to-cyan-300 text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all active:scale-95 cursor-pointer"
                     >
                       <HiCheck className="w-4 h-4" />
-                      <span>Simpan & Buka Langsung di Web â†—</span>
+                      <span>Simpan & Buka Langsung di Web ↗</span>
                     </button>
 
                     <button
@@ -2785,7 +2774,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="absolute bottom-3 right-3 z-20 pointer-events-none">
                       <span className="px-2.5 py-1 rounded-full bg-white text-black font-semibold text-[10px] flex items-center gap-1 shadow-lg">
                         <span>View Full</span>
-                        <span>â†—</span>
+                        <span>↗</span>
                       </span>
                     </div>
                   </div>
@@ -3396,7 +3385,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               : "bg-white/5 text-neutral-400 hover:text-white border border-white/10"
                           }`}
                         >
-                          {isSelected ? `âœ“ ${tool.label}` : `+ ${tool.label}`}
+                          {isSelected ? `✓ ${tool.label}` : `+ ${tool.label}`}
                         </button>
                       );
                     })}
@@ -3546,7 +3535,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="fixed bottom-6 right-6 z-[120] flex items-center gap-2.5 px-4 py-3 rounded-xl bg-neutral-900 border border-[#14AF9E]/50 text-white shadow-2xl backdrop-blur-xl text-xs sm:text-sm font-medium"
           >
             <div className="w-5 h-5 rounded-full bg-[#14AF9E] text-black flex items-center justify-center font-bold text-xs shrink-0">
-              âœ“
+              ✓
             </div>
             <span>{toastMessage}</span>
           </motion.div>
