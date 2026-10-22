@@ -510,10 +510,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       {/* Top Floating Glassmorphic Header */}
       <header className="sticky top-0 z-50 bg-[#0d0e12]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl overflow-hidden shrink-0 shadow-md shadow-cyan-500/10">
+          <div className="w-9 h-9 rounded-full overflow-hidden shrink-0 shadow-md shadow-cyan-500/10 flex items-center justify-center">
             <img
-              src="/brand-logo.png"
-              alt="Rizx Studio Logo"
+              src="/logo-admin.png"
+              alt="Rizx Studio Admin"
               className="w-full h-full object-cover"
             />
           </div>

@@ -72,8 +72,8 @@ export default function Contact() {
               aria-label="Back to top"
             >
               <img
-                src="/brand-logo.png"
-                alt="Logo"
+                src="/logo-public.png"
+                alt="Rizx Studio Logo"
                 className="h-7 w-auto object-contain"
               />
             </button>
@@ -161,8 +161,8 @@ export default function Contact() {
             aria-label="Back to top"
           >
             <img
-              src="/brand-logo.png"
-              alt="Logo"
+              src="/logo-public.png"
+              alt="Rizx Studio Logo"
               className="h-8 w-auto object-contain"
             />
           </button>

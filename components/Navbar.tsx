@@ -88,8 +88,8 @@ export default function Navbar() {
             aria-label="Back to top"
           >
             <img
-              src="/brand-logo.png"
-              alt="Logo"
+              src="/logo-public.png"
+              alt="Rizx Studio Logo"
               className="h-8 sm:h-9 w-auto object-contain"
             />
           </button>
