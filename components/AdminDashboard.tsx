@@ -1142,21 +1142,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           FOLDER: client - {selectedClient.clientName}
                         </span>
                         <h3 className="text-base font-bold text-white">
-                          Edit Deskripsi & Penjelasan Brand
+                          {isId ? "Edit Deskripsi & Penjelasan Brand" : "Edit Brand Description & Overview"}
                         </h3>
                       </div>
                       <span className="text-xs font-mono px-3 py-1 rounded-full bg-white/5 text-neutral-300 border border-white/10">
-                        {selectedClient.works?.length || 0} Portofolio
+                        {selectedClient.works?.length || 0} {isId ? "Portofolio" : "Portfolio"}
                       </span>
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          Penjelasan / Deskripsi Klien & Brand <span className="text-cyan-400">*</span>
+                          {isId ? "Penjelasan / Deskripsi Klien & Brand" : "Client & Brand Description"} <span className="text-cyan-400">*</span>
                         </label>
                         <span className="text-[11px] font-mono text-neutral-500">
-                          {clientDescInput.length} karakter
+                          {clientDescInput.length} {isId ? "karakter" : "characters"}
                         </span>
                       </div>
 
@@ -1164,7 +1164,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         rows={3}
                         value={clientDescInput}
                         onChange={(e) => setClientDescInput(e.target.value)}
-                        placeholder={`Tuliskan profil atau penjelasan brand ${selectedClient.clientName}, cakupan kampanye, atau nilai tambah kolaborasi...`}
+                        placeholder={
+                          isId
+                            ? `Tuliskan profil atau penjelasan brand ${selectedClient.clientName}, cakupan kampanye, atau nilai tambah kolaborasi...`
+                            : `Write brand profile or overview for ${selectedClient.clientName}, campaign scope, or creative collaboration value...`
+                        }
                         className="w-full p-3.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all leading-relaxed"
                       />
                     </div>
@@ -1173,10 +1177,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="space-y-2 pt-2 border-t border-white/10">
                       <div className="flex items-center justify-between">
                         <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          Tools Used / Software & AI yang Digunakan
+                          {isId ? "Tools Used / Software & AI yang Digunakan" : "Tools Used / Software & AI"}
                         </label>
                         <span className="text-[11px] font-mono text-cyan-400">
-                          Pisahkan dengan koma atau klik badge di bawah
+                          {isId ? "Pisahkan dengan koma atau klik badge di bawah" : "Separate with commas or click badges below"}
                         </span>
                       </div>
 
@@ -1191,7 +1195,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       {/* Quick Select Tool Badges */}
                       <div>
                         <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider block mb-1.5">
-                          Pilihan Cepat (Klik untuk Tambah / Hapus Tag):
+                          {isId ? "Pilihan Cepat (Klik untuk Tambah / Hapus Tag):" : "Quick Select (Click to Add / Remove Tag):"}
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {[
@@ -1240,7 +1244,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
                       >
                         <HiCheck className="w-4 h-4" />
-                        <span>Simpan Deskripsi & Tag Tools (Auto-Update Web)</span>
+                        <span>{isId ? "Simpan Deskripsi & Tag Tools (Auto-Update Web)" : "Save Description & Tool Tags (Auto-Update Web)"}</span>
                       </button>
 
                       <button
@@ -1248,7 +1252,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onClick={handleResetClientDescription}
                         className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                       >
-                        Reset Form
+                        {isId ? "Reset Form" : "Reset Form"}
                       </button>
                     </div>
                   </form>
@@ -1594,7 +1598,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <HiTrash className="w-3.5 h-3.5" />
-                        <span>Hapus Kartu</span>
+                        <span>{isId ? "Hapus Kartu" : "Delete Card"}</span>
                       </button>
                     </div>
                   ))}
@@ -1604,7 +1608,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
                     <HiPlus className="w-4 h-4 text-[#14AF9E]" />
-                    <span>Tambah Kartu Hero Baru</span>
+                    <span>{isId ? "Tambah Kartu Hero Baru" : "Add New Hero Card"}</span>
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input
@@ -1810,7 +1814,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <HiTrash className="w-3.5 h-3.5" />
-                        <span>Hapus Kartu</span>
+                        <span>{isId ? "Hapus Kartu" : "Delete Card"}</span>
                       </button>
                     </div>
                   ))}
@@ -1820,7 +1824,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
                     <HiPlus className="w-4 h-4 text-[#14AF9E]" />
-                    <span>Tambah Kartu Deck Baru</span>
+                    <span>{isId ? "Tambah Kartu Deck Baru" : "Add New Deck Card"}</span>
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input
@@ -1950,7 +1954,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <HiPlus className="w-4 h-4 text-[#14AF9E]" />
-                <span>Tambah Logo Klien Baru ke Marquee</span>
+                <span>{isId ? "Tambah Logo Klien Baru ke Marquee" : "Add New Client Logo to Marquee"}</span>
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
