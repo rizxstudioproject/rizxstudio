@@ -22,6 +22,18 @@ export default function Home() {
     adminLogout,
   } = usePortfolioData();
 
+  const [showAdminTrigger, setShowAdminTrigger] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLocal =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+      const params = new URLSearchParams(window.location.search);
+      setShowAdminTrigger(isLocal || params.get("admin") === "true");
+    }
+  }, []);
+
   // Admin mode requested but not authenticated → show login page
   if (isAdminMode && !isAdminAuthenticated) {
     return (
@@ -76,18 +88,20 @@ export default function Home() {
         <Contact />
       </main>
 
-      {/* Floating Admin Dashboard Trigger */}
-      <button
-        type="button"
-        onClick={toggleAdminMode}
-        title="Buka Admin Dashboard Rizx Studio"
-        aria-label="Open Admin Dashboard"
-        className="fixed bottom-6 right-6 z-[80] flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-white border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-xl text-xs font-mono transition-all duration-300 hover:scale-105 active:scale-95 group cursor-pointer"
-      >
-        <span className="w-2.5 h-2.5 rounded-full bg-[#14AF9E] animate-pulse" />
-        <span className="font-semibold tracking-wide">Admin</span>
-        <HiCog6Tooth className="w-4 h-4 text-neutral-400 group-hover:rotate-90 transition-transform duration-500" />
-      </button>
+      {/* Floating Admin Dashboard Trigger — only visible on localhost or if ?admin=true */}
+      {showAdminTrigger && (
+        <button
+          type="button"
+          onClick={toggleAdminMode}
+          title="Buka Admin Dashboard Rizx Studio"
+          aria-label="Open Admin Dashboard"
+          className="fixed bottom-6 right-6 z-[80] flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-white border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-xl text-xs font-mono transition-all duration-300 hover:scale-105 active:scale-95 group cursor-pointer"
+        >
+          <span className="w-2.5 h-2.5 rounded-full bg-[#14AF9E] animate-pulse" />
+          <span className="font-semibold tracking-wide">Admin</span>
+          <HiCog6Tooth className="w-4 h-4 text-neutral-400 group-hover:rotate-90 transition-transform duration-500" />
+        </button>
+      )}
     </div>
   );
 }

@@ -88,9 +88,40 @@ const PortfolioDataContext = createContext<PortfolioDataContextType | undefined>
 export function PortfolioDataProvider({ children }: { children: React.ReactNode }) {
   const [stage3, setStage3] = useState(antigravityData.stage3);
   const [clients, setClients] = useState<ClientItem[]>(antigravityData.stage4.clients as ClientItem[]);
-  const [isAdminMode, setIsAdminMode] = useState(true);
+  const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isCloudSyncActive, setIsCloudSyncActive] = useState(isSupabaseConfigured);
+
+  // Auto-detect environment:
+  // On localhost -> Open Admin Login directly as requested.
+  // On live domain (rizxstudio.com) -> NEVER show admin login by default (only via ?admin=true or shortcut).
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLocal =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+      const params = new URLSearchParams(window.location.search);
+      const adminRequested = params.get("admin") === "true" || params.get("admin") === "1";
+
+      if (isLocal || adminRequested) {
+        setIsAdminMode(true);
+      } else {
+        setIsAdminMode(false);
+      }
+    }
+  }, []);
+
+  // Keyboard shortcut: Ctrl + Shift + A (or Cmd + Shift + A) to toggle admin mode from any page
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "A" || e.key === "a")) {
+        e.preventDefault();
+        setIsAdminMode((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Helper to persist current state to LocalStorage
   const persistState = useCallback((newStage3: typeof stage3, newClients: ClientItem[]) => {
@@ -554,7 +585,14 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       sessionStorage.removeItem(SESSION_KEY);
     } catch (_) {}
     setIsAdminAuthenticated(false);
-    setIsAdminMode(true);
+    if (typeof window !== "undefined") {
+      const isLocal =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+      setIsAdminMode(isLocal);
+    } else {
+      setIsAdminMode(false);
+    }
   }, []);
 
   // Full composite data for consumption
