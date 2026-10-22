@@ -31,6 +31,35 @@ export default function Home() {
     }
   }, []);
 
+  // Dynamic Browser Tab Logo (Favicon) & Title for Public vs Admin
+  React.useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const updateFavicon = (url: string) => {
+      const existingIcons = document.querySelectorAll(
+        "link[rel*='icon'], link[rel='apple-touch-icon']"
+      );
+      if (existingIcons.length > 0) {
+        existingIcons.forEach((el) => {
+          (el as HTMLLinkElement).href = url;
+        });
+      } else {
+        const link = document.createElement("link");
+        link.rel = "icon";
+        link.href = url;
+        document.head.appendChild(link);
+      }
+    };
+
+    if (isAdminMode) {
+      document.title = "Rizx Studio — Admin Dashboard";
+      updateFavicon("/logo-admin.png");
+    } else {
+      document.title = "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio";
+      updateFavicon("/logo-public.png");
+    }
+  }, [isAdminMode]);
+
   // Admin mode requested but not authenticated → show login page
   if (isAdminMode && !isAdminAuthenticated) {
     return (
