@@ -25,14 +25,7 @@ export default function ClientLogos() {
   const row1Logos = clientLogos?.logos?.filter((l) => l.row === 1) || [];
   const row2Logos = clientLogos?.logos?.filter((l) => l.row === 2) || [];
   const isId = lang === "id";
-  const isDefaultSubtitle =
-    !clientLogos?.subtitle ||
-    clientLogos.subtitle === "Selected Clients & Creative Collaborations";
-  const subtitleText = isId
-    ? isDefaultSubtitle
-      ? t("clients.subtitle")
-      : clientLogos.subtitle
-    : clientLogos?.subtitle || t("clients.subtitle");
+  const subtitleText = isId ? t("clients.subtitle") : (clientLogos?.subtitle || t("clients.subtitle"));
 
   return (
     <section

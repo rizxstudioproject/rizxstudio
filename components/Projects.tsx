@@ -523,7 +523,7 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
 export default function Projects() {
   const { stage1: defaultStage1, stage2: defaultStage2 } = antigravityData;
   // Use context for live edits from Admin Dashboard
-  const { stage3, clients: contextClients, allData, heroWorks } = usePortfolioData();
+  const { stage3, clients: contextClients, allData, heroWorks, portfolioIntro } = usePortfolioData();
   const { t, lang } = useLang();
   const isId = lang === "id";
 
@@ -571,6 +571,21 @@ export default function Projects() {
         : defaultStage2.overlappingCards,
   };
   const stage4 = { ...allData.stage4, clients: contextClients };
+
+  const stage4Tools =
+    portfolioIntro?.tools && portfolioIntro.tools.length > 0
+      ? portfolioIntro.tools
+      : stage4.tools;
+
+  const stage4Badge = isId
+    ? t("projects.stage4.badge")
+    : portfolioIntro?.badge || t("projects.stage4.badge");
+  const stage4Headline = isId
+    ? t("projects.stage4.headline")
+    : portfolioIntro?.headline || t("projects.stage4.headline");
+  const stage4Desc = isId
+    ? t("projects.stage4.desc")
+    : portfolioIntro?.description || t("projects.stage4.desc");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const folderScrollRef = useRef<HTMLDivElement>(null);
@@ -1137,19 +1152,19 @@ export default function Projects() {
             <div className="inline-flex items-center gap-2 mb-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
               <span className="text-xs sm:text-xs text-cyan-400 font-mono tracking-widest uppercase font-semibold">
-                {t("projects.stage4.badge")}
+                {stage4Badge}
               </span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2 sm:mb-3 leading-tight">
-              {t("projects.stage4.headline")}
+              {stage4Headline}
             </h2>
             <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed mb-4">
-              {t("projects.stage4.desc")}
+              {stage4Desc}
             </p>
             
             {/* Tool tags */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-1.5 sm:gap-2">
-              {stage4.tools.map((tool, idx) => (
+              {stage4Tools.map((tool, idx) => (
                 <span key={idx} className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200">
                   {tool}
                 </span>

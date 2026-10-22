@@ -219,6 +219,21 @@ export const defaultClientLogosData: ClientLogosData = {
   ],
 };
 
+export interface PortfolioIntroData {
+  badge: string;
+  headline: string;
+  description: string;
+  tools: string[];
+}
+
+export const defaultPortfolioIntroData: PortfolioIntroData = {
+  badge: "PROFESSIONAL EXPERIENCE",
+  headline: "Creative Work. Real-World Thinking.",
+  description:
+    "From brand campaigns to digital experiences, I combine design, motion, and AI-driven workflows to create purposeful visuals for brands and businesses.",
+  tools: ["Figma", "Photoshop", "Magnific AI", "GPT", "Gemini"],
+};
+
 interface PortfolioDataContextType {
   stage3: {
     classTag: string;
@@ -229,6 +244,7 @@ interface PortfolioDataContextType {
   about: AboutData;
   heroWorks: HeroWorksData;
   clientLogos: ClientLogosData;
+  portfolioIntro: PortfolioIntroData;
   allData: typeof antigravityData;
   updateStage3Video: (params: {
     youtubeUrl: string;
@@ -250,6 +266,7 @@ interface PortfolioDataContextType {
   updateAboutData: (newData: Partial<AboutData>) => void;
   updateHeroWorksData: (newData: Partial<HeroWorksData>) => void;
   updateClientLogosData: (newData: Partial<ClientLogosData>) => void;
+  updatePortfolioIntroData: (newData: Partial<PortfolioIntroData>) => void;
   resetPortfolioData: () => void;
   isAdminMode: boolean;
   setIsAdminMode: (open: boolean) => void;
@@ -286,6 +303,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [about, setAbout] = useState<AboutData>(defaultAboutData);
   const [heroWorks, setHeroWorks] = useState<HeroWorksData>(defaultHeroWorksData);
   const [clientLogos, setClientLogos] = useState<ClientLogosData>(defaultClientLogosData);
+  const [portfolioIntro, setPortfolioIntro] = useState<PortfolioIntroData>(defaultPortfolioIntroData);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isCloudSyncActive, setIsCloudSyncActive] = useState(isSupabaseConfigured);
@@ -328,7 +346,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       newClients: ClientItem[],
       newAbout?: AboutData,
       newHeroWorks?: HeroWorksData,
-      newClientLogos?: ClientLogosData
+      newClientLogos?: ClientLogosData,
+      newPortfolioIntro?: PortfolioIntroData
     ) => {
       try {
         const payload = {
@@ -336,6 +355,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           about: newAbout || about,
           heroWorks: newHeroWorks || heroWorks,
           clientLogos: newClientLogos || clientLogos,
+          portfolioIntro: newPortfolioIntro || portfolioIntro,
           clients: newClients.map((c) => ({
             id: c.id,
             clientName: c.clientName,
@@ -355,7 +375,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         console.warn("Failed to persist portfolio overrides to localStorage:", err);
       }
     },
-    [about, heroWorks, clientLogos]
+    [about, heroWorks, clientLogos, portfolioIntro]
   );
 
   // Initialize: First from LocalStorage for instant render, then from Supabase if configured
@@ -441,6 +461,13 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             ...parsed.clientLogos,
           });
         }
+
+        if (parsed.portfolioIntro) {
+          setPortfolioIntro({
+            ...defaultPortfolioIntroData,
+            ...parsed.portfolioIntro,
+          });
+        }
       }
 
       const session = sessionStorage.getItem(SESSION_KEY);
@@ -524,6 +551,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               } catch (_) {}
             }
 
+            // Extract Portfolio Intro config from Supabase
+            const portfolioIntroRow = clientRows.find((r) => r.client_id === "site-portfolio-intro");
+            if (portfolioIntroRow && portfolioIntroRow.description) {
+              try {
+                const parsedIntro = JSON.parse(portfolioIntroRow.description);
+                setPortfolioIntro({
+                  ...defaultPortfolioIntroData,
+                  ...parsedIntro,
+                });
+              } catch (_) {}
+            }
+
             // Extract Admin Credentials config from Supabase
             const credsRow = clientRows.find((r) => r.client_id === "site-admin-credentials");
             if (credsRow && credsRow.description) {
@@ -541,6 +580,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 r.client_id !== "site-about-section" &&
                 r.client_id !== "site-hero-works" &&
                 r.client_id !== "site-client-logos" &&
+                r.client_id !== "site-portfolio-intro" &&
                 r.client_id !== "site-admin-credentials"
             );
 
@@ -897,7 +937,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setAbout(updatedAbout);
-      persistState(stage3, clients, updatedAbout, heroWorks, clientLogos);
+      persistState(stage3, clients, updatedAbout, heroWorks, clientLogos, portfolioIntro);
 
       if (isSupabaseConfigured && supabase) {
         try {
@@ -913,7 +953,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
     },
-    [about, stage3, clients, heroWorks, clientLogos, persistState]
+    [about, stage3, clients, heroWorks, clientLogos, portfolioIntro, persistState]
   );
 
   // Update Hero & Selected Works Section
@@ -924,7 +964,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setHeroWorks(updated);
-      persistState(stage3, clients, about, updated, clientLogos);
+      persistState(stage3, clients, about, updated, clientLogos, portfolioIntro);
 
       if (isSupabaseConfigured && supabase) {
         try {
@@ -940,7 +980,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
     },
-    [heroWorks, stage3, clients, about, clientLogos, persistState]
+    [heroWorks, stage3, clients, about, clientLogos, portfolioIntro, persistState]
   );
 
   // Update Client Logos Marquee Section
@@ -951,7 +991,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setClientLogos(updated);
-      persistState(stage3, clients, about, heroWorks, updated);
+      persistState(stage3, clients, about, heroWorks, updated, portfolioIntro);
 
       if (isSupabaseConfigured && supabase) {
         try {
@@ -967,7 +1007,34 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
     },
-    [clientLogos, stage3, clients, about, heroWorks, persistState]
+    [clientLogos, stage3, clients, about, heroWorks, portfolioIntro, persistState]
+  );
+
+  // Update Portfolio Section Intro Block (Badge, Headline, Description, Tool Tags)
+  const updatePortfolioIntroData = useCallback(
+    async (newData: Partial<PortfolioIntroData>) => {
+      const updated: PortfolioIntroData = {
+        ...portfolioIntro,
+        ...newData,
+      };
+      setPortfolioIntro(updated);
+      persistState(stage3, clients, about, heroWorks, clientLogos, updated);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("client_descriptions").upsert({
+            client_id: "site-portfolio-intro",
+            client_name: "Portfolio Intro Header",
+            category: "Site Section Config",
+            description: JSON.stringify(updated),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.warn("Supabase portfolio intro update notice:", err);
+        }
+      }
+    },
+    [portfolioIntro, stage3, clients, about, heroWorks, clientLogos, persistState]
   );
 
   // Reset all overrides back to default projectsData
@@ -979,6 +1046,10 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     }
     setStage3(antigravityData.stage3);
     setClients(antigravityData.stage4.clients as ClientItem[]);
+    setAbout(defaultAboutData);
+    setHeroWorks(defaultHeroWorksData);
+    setClientLogos(defaultClientLogosData);
+    setPortfolioIntro(defaultPortfolioIntroData);
 
     // Reset cloud if configured
     if (isSupabaseConfigured && supabase) {
@@ -1037,6 +1108,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         about,
         heroWorks,
         clientLogos,
+        portfolioIntro,
         allData,
         updateStage3Video,
         removeStage3Video,
@@ -1049,6 +1121,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         updateAboutData,
         updateHeroWorksData,
         updateClientLogosData,
+        updatePortfolioIntroData,
         resetPortfolioData,
         isAdminMode,
         setIsAdminMode,

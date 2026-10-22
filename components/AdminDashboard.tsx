@@ -34,6 +34,7 @@ import {
   defaultAboutData,
   defaultHeroWorksData,
   defaultClientLogosData,
+  defaultPortfolioIntroData,
   DeckCardItem,
   OverlappingCardItem,
   ClientLogoItem,
@@ -47,8 +48,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     about,
     heroWorks,
     clientLogos,
+    portfolioIntro,
     updateHeroWorksData,
     updateClientLogosData,
+    updatePortfolioIntroData,
     updateAboutData,
     updateStage3Video,
     removeStage3Video,
@@ -484,13 +487,62 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   );
   const [videoEnabled, setVideoEnabled] = useState(stage3.heroCard.isVideoEnabled !== false);
 
-  // Tab 2: Client Brand Description & Works State
+  // Tab 1: Client Brand Description & Works State
   const [selectedClientId, setSelectedClientId] = useState<string>(
     clients.length > 0 ? clients[0].id : "client-kia"
   );
   const selectedClient = clients.find((c) => c.id === selectedClientId) || clients[0];
   const [clientDescInput, setClientDescInput] = useState<string>("");
   const [clientToolsInput, setClientToolsInput] = useState<string>("Figma, Photoshop, Magnific AI, ChatGPT, Gemini");
+
+  // Tab 1: Portfolio Section Header & Intro Block State (Left Block on Web)
+  const [introBadgeInput, setIntroBadgeInput] = useState(
+    portfolioIntro?.badge || "PROFESSIONAL EXPERIENCE"
+  );
+  const [introHeadlineInput, setIntroHeadlineInput] = useState(
+    portfolioIntro?.headline || "Creative Work. Real-World Thinking."
+  );
+  const [introDescInput, setIntroDescInput] = useState(
+    portfolioIntro?.description ||
+      "From brand campaigns to digital experiences, I combine design, motion, and AI-driven workflows to create purposeful visuals for brands and businesses."
+  );
+  const [introToolsInput, setIntroToolsInput] = useState(
+    portfolioIntro?.tools ? portfolioIntro.tools.join(", ") : "Figma, Photoshop, Magnific AI, GPT, Gemini"
+  );
+
+  // Sync intro fields whenever portfolioIntro in context changes
+  useEffect(() => {
+    if (portfolioIntro) {
+      if (portfolioIntro.badge !== undefined) setIntroBadgeInput(portfolioIntro.badge);
+      if (portfolioIntro.headline !== undefined) setIntroHeadlineInput(portfolioIntro.headline);
+      if (portfolioIntro.description !== undefined) setIntroDescInput(portfolioIntro.description);
+      if (portfolioIntro.tools && portfolioIntro.tools.length > 0) {
+        setIntroToolsInput(portfolioIntro.tools.join(", "));
+      }
+    }
+  }, [portfolioIntro]);
+
+  const handleSavePortfolioIntro = async () => {
+    const parsedTools = introToolsInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    await updatePortfolioIntroData({
+      badge: introBadgeInput.trim(),
+      headline: introHeadlineInput.trim(),
+      description: introDescInput.trim(),
+      tools: parsedTools.length > 0 ? parsedTools : ["Figma", "Photoshop", "Magnific AI", "GPT", "Gemini"],
+    });
+    showToast(isId ? "Header & Intro Section Portofolio berhasil disimpan & tayang di web!" : "Portfolio section header & intro saved & live on public web!");
+  };
+
+  const handleResetPortfolioIntro = () => {
+    setIntroBadgeInput(defaultPortfolioIntroData.badge);
+    setIntroHeadlineInput(defaultPortfolioIntroData.headline);
+    setIntroDescInput(defaultPortfolioIntroData.description);
+    setIntroToolsInput(defaultPortfolioIntroData.tools.join(", "));
+    showToast(isId ? "Form dikembalikan ke teks bawaan. Klik 'Simpan' untuk menerapkan ke web." : "Reset to default text. Click 'Save' to apply to web.");
+  };
 
   // Helper to toggle tools in clientToolsInput
   const toggleToolChip = (toolName: string) => {
@@ -1043,6 +1095,124 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   ? "Pilih folder klien di bawah untuk mengupload gambar portofolio baru, menghapus karya (ikon silang X di sudut gambar), dan mengedit narasi brand. Perubahan langsung tersimpan dan tampil di public website."
                   : "Select a client folder below to upload new portfolio images, delete works (X icon on top-right), and edit brand stories. Changes are saved and updated live."}
               </p>
+            </div>
+
+            {/* PORTFOLIO INTRO HEADER & TOOLS EDITOR (LEFT BLOCK IN WEB VIEW) */}
+            <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-br from-[#0c1219] via-neutral-900/80 to-neutral-950 border border-cyan-500/25 shadow-xl space-y-5">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3 flex-wrap gap-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                    <HiSparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      <span>{isId ? "Header & Teks Intro Section Portofolio (Sisi Kiri Web)" : "Portfolio Section Header & Intro (Web Left Side)"}</span>
+                    </h3>
+                    <p className="text-xs text-neutral-400">
+                      {isId ? "Badge, Headline, Deskripsi, dan Tag Software di section portofolio web publik" : "Badge, Headline, Description, and Software Tags on the public portfolio section"}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20">
+                  Live Public Sync
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Badge Input */}
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    {isId ? "Badge / Eyebrow (Teks Kecil)" : "Badge / Eyebrow (Small Text)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={introBadgeInput}
+                    onChange={(e) => setIntroBadgeInput(e.target.value)}
+                    placeholder="PROFESSIONAL EXPERIENCE"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-cyan-400 transition-all"
+                  />
+                </div>
+
+                {/* Headline Input */}
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    {isId ? "Headline Utama" : "Main Headline"}
+                  </label>
+                  <input
+                    type="text"
+                    value={introHeadlineInput}
+                    onChange={(e) => setIntroHeadlineInput(e.target.value)}
+                    placeholder="Creative Work. Real-World Thinking."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all"
+                  />
+                </div>
+
+                {/* Description Textarea */}
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    {isId ? "Deskripsi / Narasi Portofolio" : "Portfolio Description / Narrative"}
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={introDescInput}
+                    onChange={(e) => setIntroDescInput(e.target.value)}
+                    placeholder="From brand campaigns to digital experiences..."
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all leading-relaxed"
+                  />
+                </div>
+
+                {/* Tools Input */}
+                <div className="md:col-span-2">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-mono text-neutral-300 font-medium">
+                      {isId ? "Tag Software / Alat Kerja (Pisahkan dengan koma)" : "Software / Tool Tags (Comma-separated)"}
+                    </label>
+                    <span className="text-[10px] font-mono text-cyan-400">
+                      {introToolsInput.split(",").filter((t) => t.trim()).length} Tags
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    value={introToolsInput}
+                    onChange={(e) => setIntroToolsInput(e.target.value)}
+                    placeholder="Figma, Photoshop, Magnific AI, GPT, Gemini"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-cyan-400 transition-all"
+                  />
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {introToolsInput
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter(Boolean)
+                      .map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2.5 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-[11px] font-mono"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons for Intro */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={handleSavePortfolioIntro}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-[#14AF9E] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <HiCheck className="w-4 h-4" />
+                  <span>{isId ? "Simpan Header Portofolio" : "Save Portfolio Header"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={handleResetPortfolioIntro}
+                  className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
+                >
+                  {isId ? "Reset ke Bawaan" : "Reset to Default"}
+                </button>
+              </div>
             </div>
 
             {/* Folder Grid Selector (Format: client - [Nama Brand]) */}
