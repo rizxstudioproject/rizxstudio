@@ -1145,8 +1145,8 @@ export default function Projects() {
 
             {/* Brand Description Panel — REMOVED from folder view, shown only inside modal popup */}
 
-            {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto pr-1 folder-scrollbar">
+            {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL (Clean without right scrollbar) */}
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto no-scrollbar">
               {activeClientData.works.map((work, wIdx) => {
                 const localizedWork = getWorkLocalized(work, isId);
                 return (
