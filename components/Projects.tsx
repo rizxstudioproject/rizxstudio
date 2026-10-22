@@ -40,7 +40,7 @@ interface ModalItem extends WorkItem {
 }
 
 /**
- * ToolBadge â€” Visual icon badges for creative tools
+ * ToolBadge — Visual icon badges for creative tools
  */
 function ToolBadge({ tool }: { tool: string }) {
   const normalized = tool.toLowerCase().trim();
@@ -201,13 +201,51 @@ function ToolBadge({ tool }: { tool: string }) {
 }
 
 /**
+ * Client Brand Description Translations (Bilingual Support)
+ */
+const clientBrandDescMap: Record<string, { en: string; id: string }> = {
+  "kia dufour": {
+    en: "KIA Dufour is an authorized automotive dealership network in France representing Kia's forward-thinking electric vehicle line-up. Our collaboration focuses on producing high-end digital advertising campaigns, 3D/AI concept automotive visualizations, and promotional marketing collateral for models including the EV2, Sportage, and PBV concepts.",
+    id: "KIA Dufour adalah jaringan dealer resmi otomotif terkemuka di Prancis yang memasarkan lini kendaraan listrik inovatif Kia. Kolaborasi kami berfokus pada produksi kampanye iklan digital kelas atas, visualisasi konsep otomotif 3D/AI, dan materi promosi untuk model unggulan termasuk EV2, Sportage, dan PBV.",
+  },
+  "hyashop": {
+    en: "HYASHOP is a premier curated fashion and footwear retail brand catering to contemporary urban demographics. We partnered to create elevated digital editorial campaigns, product lookbooks, and high-conversion social ad creatives blending commercial impact with modern aesthetic direction.",
+    id: "HYASHOP adalah brand ritel fesyen dan alas kaki kurasi premium yang menyasar demografi urban modern. Kami berkolaborasi merancang kampanye editorial digital, lookbook produk, dan materi iklan media sosial berkonversi tinggi yang memadukan daya tarik komersial dengan estetika modern.",
+  },
+  "burger king": {
+    en: "Burger King is a world-renowned global fast-food brand recognized for bold flavor and playful advertising. We engineered high-impact promotional digital ad suites, gamified campaign visuals, and localized social media creatives tailored for consumer engagement across Europe.",
+    id: "Burger King adalah merek makanan cepat saji global ternama di dunia yang dikenal dengan cita rasa berani dan gaya periklanan yang menyenangkan. Kami merancang materi kampanye iklan digital interaktif, visual promosi bertema permainan, dan konten media sosial terarah.",
+  },
+  "permifast": {
+    en: "Permifast is a French driver education platform simplifying access to driving licences through modern digital learning. We delivered conversion-driven digital ad campaigns, social proof creatives, and promotional giveaway collateral to maximize user acquisition.",
+    id: "Permifast adalah platform edukasi pengemudi di Prancis yang mempermudah akses kepemilikan SIM melalui pembelajaran digital modern. Kami merancang kampanye iklan digital berorientasi konversi, aset promosi giveaway, dan materi kreatif media sosial.",
+  },
+  "xeilos": {
+    en: "Xeilos is a high-growth crypto and algorithmic trading intelligence brand. We provided complete event visual identity design, Trading Summit promotional suites, speaker asset layouts, and social media ad production to establish market authority.",
+    id: "Xeilos adalah brand analitik kripto dan kecerdasan trading algoritmik bereputasi tinggi. Kami menghadirkan identitas visual acara komprehensif, materi promosi Trading Summit, tata letak aset pembicara, dan produksi iklan media sosial futuristik.",
+  },
+  "adl - finance": {
+    en: "ADL Finance is a modern financial consultancy and wealth management firm. We crafted corporate social advertising assets, structured wealth management campaign layouts, and clean financial visual communication tailored for high-net-worth investors.",
+    id: "ADL Finance adalah firma konsultasi keuangan dan manajemen kekayaan modern. Kami merancang materi iklan korporat, tata letak kampanye manajemen aset yang terstruktur, dan komunikasi visual finansial yang elegan bagi para investor.",
+  },
+  "eduf - education": {
+    en: "EDUF is an international education agency and student mobility consultancy. We developed vibrant student recruitment campaign visuals, university fair promotional collateral, and dynamic social media ad suites to drive event registrations globally.",
+    id: "EDUF adalah agensi pendidikan internasional dan konsultan mobilitas pelajar global. Kami mengembangkan visual kampanye pendaftaran mahasiswa baru, materi promosi pameran universitas, dan rangkaian iklan media sosial yang energetik.",
+  },
+  "withings - health tech": {
+    en: "Withings is a pioneer in connected health technology and medical-grade smart devices. We produced clean minimalist product campaign visuals, 1:1 lifestyle social media layouts, and smart device highlight cards reflecting Scandinavian elegance.",
+    id: "Withings adalah pelopor teknologi kesehatan terhubung dan perangkat pintar berstandar medis. Kami memproduksi visual kampanye produk minimalis yang bersih, layout media sosial bertema gaya hidup modern, dan kartu sorotan fitur elegan.",
+  },
+};
+
+/**
  * Intelligent AI Case Study Fallback with Bilingual Support (EN & ID)
  */
 export function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
   const isId = lang === "id";
 
-  // Priority 1: If work has customized case study fields from Admin, return them directly!
-  if (work.challenge || work.solution || work.brief || work.role) {
+  // Priority 1: If in English, and work has explicit fields from Admin / data, return them directly
+  if (!isId && (work.challenge || work.solution || work.brief || work.role)) {
     return {
       brand: work.brand || work.clientName || "Brand",
       year: work.year || "2026",
@@ -239,7 +277,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
         : "Art direction, AI prompt development, visual generation, and campaign layout design in Photoshop and Figma.",
       challenge: isId
         ? "Menerjemahkan referensi unit kendaraan dari klien menjadi visual suasana realistis berbasis AI dengan tetap menjaga keaslian detail khas tiap model."
-        : "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each modelâ€™s defining details.",
+        : "Translating client-provided vehicle references into realistic AI-generated scenes while preserving each model's defining details.",
       solution: isId
         ? "Mengembangkan prompt berbasis referensi presisi dan menyempurnakan hasil akhir untuk menjaga akurasi bentuk mobil, konsistensi visual, dan estetika otomotif mewah."
         : "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
@@ -252,7 +290,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       brand: work.brand || work.clientName || "Burger King",
       year: work.year || "2026",
       brief: isId
-        ? "Kampanye Back-to-School Burger King menampilkan koleksi Where's Charlie? â€” iklan digital bergaya bermain yang menggabungkan karakter ikonik dengan promosi menu pilihan."
+        ? "Kampanye Back-to-School Burger King menampilkan koleksi Where's Charlie? — iklan digital bergaya bermain yang menggabungkan karakter ikonik dengan promosi menu pilihan."
         : "Back-to-school campaign for Burger King featuring the Where's Charlie? collection, blending playful character-driven visuals with menu promotions across digital ad formats.",
       approach: isId
         ? "Mengintegrasikan karakter Where's Charlie? ke dalam format iklan digital yang energetik dengan komposisi penuh warna, tipografi cerita, dan hierarki pesan promosi yang jelas."
@@ -275,7 +313,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       brand: work.brand || work.clientName || "Permifast",
       year: work.year || "2026",
       brief: isId
-        ? "Kampanye digital giveaway SIM untuk Permifast â€” mempromosikan program pemberian SIM gratis melalui visual digital yang jelas, menarik, dan mendorong partisipasi audiens."
+        ? "Kampanye digital giveaway SIM untuk Permifast — mempromosikan program pemberian SIM gratis melalui visual digital yang jelas, menarik, dan mendorong partisipasi audiens."
         : "Driving licence giveaway digital campaign for Permifast, promoting a free SIM card giveaway programme through clear, engaging visuals designed to drive audience participation.",
       approach: isId
         ? "Menggunakan visual berdaya tarik tinggi dengan tipografi besar yang menegaskan penawaran utama, layout bersih yang memandu pengguna, dan elemen visual yang menciptakan urgensi."
@@ -298,7 +336,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
       brand: work.brand || work.clientName || "Xeilos",
       year: work.year || "2026",
       brief: isId
-        ? "Kampanye iklan digital Trading Summit untuk Xeilos â€” membangun awareness acara dan mendorong pendaftaran melalui serangkaian aset visual media sosial bertema profesional dan futuristik."
+        ? "Kampanye iklan digital Trading Summit untuk Xeilos — membangun awareness acara dan mendorong pendaftaran melalui serangkaian aset visual media sosial bertema profesional dan futuristik."
         : "Trading Summit digital advertising campaign for Xeilos, building event awareness and driving registrations through a series of professional, forward-looking social media visual assets.",
       approach: isId
         ? "Menggabungkan estetika gelap premium dengan tipografi besar, visual data pasar, dan elemen desain acara untuk mengomunikasikan otoritas dan eksklusivitas Trading Summit."
@@ -390,7 +428,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
     year: work.year || "2026",
     brief: isId
       ? "Mengembangkan rangkaian kampanye digital yang menampilkan produk estetika dan kecantikan HYASHOP melalui visual premium dan profesional."
-      : "Develop a series of digital campaigns showcasing HYASHOPâ€™s aesthetic and beauty products through premium, professional visuals.",
+      : "Develop a series of digital campaigns showcasing HYASHOP's aesthetic and beauty products through premium, professional visuals.",
     approach: isId
       ? "Menggabungkan citra berbantuan AI dengan pengarahan seni yang matang, nuansa netral hangat, dan tipografi bersih untuk menciptakan identitas visual yang konsisten."
       : "Combine AI-assisted imagery with refined art direction, warm neutral tones, and clean typography to create a cohesive visual identity across product categories.",
@@ -446,19 +484,19 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
     localizedTitle = localizedTitle.replace("Digital Campaign Catalog", "Katalog Kampanye Digital");
   } else if (localizedTitle.startsWith("Digital Campaign")) {
     localizedTitle = localizedTitle.replace("Digital Campaign", "Kampanye Digital");
-  } else if (localizedTitle.startsWith("Burger King â€” Campaign Ad")) {
+  } else if (localizedTitle.startsWith("Burger King — Campaign Ad")) {
     localizedTitle = localizedTitle.replace("Campaign Ad", "Iklan Kampanye");
-  } else if (localizedTitle.startsWith("Permifast â€” Promotional Visual")) {
+  } else if (localizedTitle.startsWith("Permifast — Promotional Visual")) {
     localizedTitle = localizedTitle.replace("Promotional Visual", "Visual Promosi");
-  } else if (localizedTitle.startsWith("Xeilos â€” Campaign Asset")) {
+  } else if (localizedTitle.startsWith("Xeilos — Campaign Asset")) {
     localizedTitle = localizedTitle.replace("Campaign Asset", "Aset Kampanye");
-  } else if (localizedTitle.startsWith("Xeilos â€” Brand Visual")) {
+  } else if (localizedTitle.startsWith("Xeilos — Brand Visual")) {
     localizedTitle = localizedTitle.replace("Brand Visual", "Visual Merek");
-  } else if (localizedTitle.startsWith("ADL Finance â€” Campaign")) {
+  } else if (localizedTitle.startsWith("ADL Finance — Campaign")) {
     localizedTitle = localizedTitle.replace("Campaign", "Kampanye");
-  } else if (localizedTitle.startsWith("EDUF â€” Promo Visual")) {
+  } else if (localizedTitle.startsWith("EDUF — Promo Visual")) {
     localizedTitle = localizedTitle.replace("Promo Visual", "Visual Promosi");
-  } else if (localizedTitle.startsWith("Withings â€” Smart Health")) {
+  } else if (localizedTitle.startsWith("Withings — Smart Health")) {
     localizedTitle = localizedTitle.replace("Smart Health", "Kesehatan Pintar");
   }
 
@@ -489,24 +527,21 @@ export default function Projects() {
   const { t, lang } = useLang();
   const isId = lang === "id";
 
-  const isDefaultStage1Badge = !heroWorks?.stage1Badge || heroWorks.stage1Badge === defaultStage1.badge;
-  const isDefaultStage1Headline = !heroWorks?.stage1Headline || heroWorks.stage1Headline === defaultStage1.headline;
-  const isDefaultStage1Subheadline = !heroWorks?.stage1Subheadline || heroWorks.stage1Subheadline === defaultStage1.subheadline;
-
-  const stage1Badge = isId ? (isDefaultStage1Badge ? t("projects.stage1.badge") : heroWorks.stage1Badge) : (heroWorks?.stage1Badge || defaultStage1.badge);
-  const stage1Headline = isId ? (isDefaultStage1Headline ? t("projects.stage1.headline") : heroWorks.stage1Headline) : (heroWorks?.stage1Headline || defaultStage1.headline);
-  const stage1Subheadline = isId ? (isDefaultStage1Subheadline ? t("projects.stage1.subheadline") : heroWorks.stage1Subheadline) : (heroWorks?.stage1Subheadline || defaultStage1.subheadline);
+  const stage1Badge = isId ? t("projects.stage1.badge") : (heroWorks?.stage1Badge || defaultStage1.badge);
+  const stage1Headline = isId ? t("projects.stage1.headline") : (heroWorks?.stage1Headline || defaultStage1.headline);
+  const stage1Subheadline = isId ? t("projects.stage1.subheadline") : (heroWorks?.stage1Subheadline || defaultStage1.subheadline);
   const stage1Scroll = isId ? t("projects.stage1.scroll") : (heroWorks?.stage1ScrollText || "Scroll down ↓");
 
-  const isDefaultStage2Tag = !heroWorks?.stage2Tag || heroWorks.stage2Tag === defaultStage2.categoryTag;
-  const isDefaultStage2Headline = !heroWorks?.stage2Headline || heroWorks.stage2Headline === defaultStage2.headline;
-  const isDefaultStage2Desc = !heroWorks?.stage2Desc || heroWorks.stage2Desc === defaultStage2.description;
-  const isDefaultStage2Btn = !heroWorks?.stage2BtnText || heroWorks.stage2BtnText === defaultStage2.primaryButtonText;
+  const stage2Tag = isId ? t("projects.stage2.tag") : (heroWorks?.stage2Tag || defaultStage2.categoryTag);
+  const stage2Headline = isId ? t("projects.stage2.headline") : (heroWorks?.stage2Headline || defaultStage2.headline);
+  const stage2Desc = isId ? t("projects.stage2.desc") : (heroWorks?.stage2Desc || defaultStage2.description);
+  const stage2BtnText = isId ? t("projects.stage2.btn") : (heroWorks?.stage2BtnText || defaultStage2.primaryButtonText);
 
-  const stage2Tag = isId ? (isDefaultStage2Tag ? t("projects.stage2.tag") : heroWorks.stage2Tag) : (heroWorks?.stage2Tag || defaultStage2.categoryTag);
-  const stage2Headline = isId ? (isDefaultStage2Headline ? t("projects.stage2.headline") : heroWorks.stage2Headline) : (heroWorks?.stage2Headline || defaultStage2.headline);
-  const stage2Desc = isId ? (isDefaultStage2Desc ? t("projects.stage2.desc") : heroWorks.stage2Desc) : (heroWorks?.stage2Desc || defaultStage2.description);
-  const stage2BtnText = isId ? (isDefaultStage2Btn ? t("projects.stage2.btn") : heroWorks.stage2BtnText) : (heroWorks?.stage2BtnText || defaultStage2.primaryButtonText);
+  const fallbackSkills = {
+    en: ["Branding", "Motion", "3D Design", "UI/UX", "AI Visuals"],
+    id: ["Branding", "Animasi Motion", "Desain 3D", "UI/UX", "Visual AI"],
+  };
+  const stage2Skills = isId ? fallbackSkills.id : (heroWorks?.stage2Skills && heroWorks.stage2Skills.length > 0 ? heroWorks.stage2Skills : defaultStage2.skillLabels);
 
   const stage1 = {
     ...defaultStage1,
@@ -525,10 +560,7 @@ export default function Projects() {
     headline: stage2Headline,
     description: stage2Desc,
     primaryButtonText: stage2BtnText,
-    skillLabels:
-      heroWorks?.stage2Skills && heroWorks.stage2Skills.length > 0
-        ? heroWorks.stage2Skills
-        : defaultStage2.skillLabels,
+    skillLabels: stage2Skills,
     badges:
       heroWorks?.stage2Badges && heroWorks.stage2Badges.length > 0
         ? heroWorks.stage2Badges
@@ -836,7 +868,7 @@ export default function Projects() {
                         {cardInfo.category}
                       </span>
                       <span className="w-5 h-5 rounded-full bg-black/50 text-xs flex items-center justify-center text-white">
-                        â†—
+                        ↗
                       </span>
                     </div>
 
@@ -852,7 +884,7 @@ export default function Projects() {
 
           <div className="relative z-30 text-xs sm:text-xs text-neutral-400 font-mono flex items-center gap-1.5 mb-2">
             <span>{stage1.scrollText || t("projects.stage1.scroll")}</span>
-            <span className="animate-bounce">â†“</span>
+            <span className="animate-bounce">↓</span>
           </div>
         </div>
 
@@ -1003,18 +1035,14 @@ export default function Projects() {
         >
           <div className="mb-4 sm:mb-6 text-center sm:text-left">
             <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] block mb-1.5 font-semibold">
-              {isId && (!stage3?.classTag || stage3.classTag === "CREATIVE JOURNEY | 2012 TO PRESENT")
-                ? t("projects.stage3.tag")
-                : (stage3?.classTag || t("projects.stage3.tag"))}
+              {isId ? t("projects.stage3.tag") : (stage3?.classTag || t("projects.stage3.tag"))}
             </span>
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
-              {isId && (!stage3?.headline || stage3.headline === "A journey shaped by creativity and change.")
-                ? t("projects.stage3.headline")
-                : (stage3?.headline || t("projects.stage3.headline"))}
+              {isId ? t("projects.stage3.headline") : (stage3?.headline || t("projects.stage3.headline"))}
             </h2>
           </div>
 
-          {/* Large Aspect Card â€” Video Plays Inside the Card with View Full Button */}
+          {/* Large Aspect Card — Video Plays Inside the Card with View Full Button */}
           {(() => {
             const isVideoOn =
               stage3?.heroCard?.isVideoEnabled !== false &&
@@ -1031,8 +1059,8 @@ export default function Projects() {
                     items: [
                       {
                         id: "hero-showcase",
-                        title: stage3?.heroCard?.title || t("projects.stage3.card.title"),
-                        type: stage3?.heroCard?.category || t("projects.stage3.card.category"),
+                        title: isId ? t("projects.stage3.card.title") : (stage3?.heroCard?.title || t("projects.stage3.card.title")),
+                        type: isId ? t("projects.stage3.card.category") : (stage3?.heroCard?.category || t("projects.stage3.card.category")),
                         image: stage3?.heroCard?.image || "/assets/antigravity/hero-large.jpg",
                         aspect: "16:9",
                         clientName: isId ? "Karya Unggulan" : "Flagship Showcase",
@@ -1070,10 +1098,10 @@ export default function Projects() {
                 {/* Bottom Left: Title & Category */}
                 <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-8 flex flex-col pointer-events-none z-10">
                   <span className="text-xs sm:text-xs font-mono uppercase tracking-widest text-cyan-400 mb-1 font-semibold">
-                    {stage3?.heroCard?.category || t("projects.stage3.card.category")}
+                    {isId ? t("projects.stage3.card.category") : (stage3?.heroCard?.category || t("projects.stage3.card.category"))}
                   </span>
                   <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white">
-                    {stage3?.heroCard?.title || t("projects.stage3.card.title")}
+                    {isId ? t("projects.stage3.card.title") : (stage3?.heroCard?.title || t("projects.stage3.card.title"))}
                   </h3>
                 </div>
 
@@ -1137,7 +1165,7 @@ export default function Projects() {
                 <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-1.5">
                   <HiFolder className="w-3.5 h-3.5 text-[#14AF9E]" />
                   <span>{isId ? "Folder Klien" : "Client Folders"} ({stage4.clients.length})</span>
-                  <span className="text-neutral-500 font-normal lowercase tracking-normal">â€¢ {isId ? "geser â†”" : "scroll â†”"}</span>
+                  <span className="text-neutral-500 font-normal lowercase tracking-normal">• {isId ? "geser ↓" : "scroll ↓"}</span>
                 </span>
                 
                 {/* Arrow buttons: Scroll to start / end of client folders */}
@@ -1153,7 +1181,7 @@ export default function Projects() {
                     title={isId ? "Kembali ke awal folder" : "Scroll to start"}
                     aria-label="Scroll to first folder"
                   >
-                    <span>â†</span>
+                    <span>←</span>
                   </button>
                   <button
                     type="button"
@@ -1169,7 +1197,7 @@ export default function Projects() {
                     title={isId ? "Langsung ke akhir folder" : "Scroll to end"}
                     aria-label="Scroll to last folder"
                   >
-                    <span>â†’</span>
+                    <span>→</span>
                   </button>
                 </div>
               </div>
@@ -1223,7 +1251,7 @@ export default function Projects() {
               </span>
             </div>
 
-            {/* Brand Description Panel â€” REMOVED from folder view, shown only inside modal popup */}
+            {/* Brand Description Panel — REMOVED from folder view, shown only inside modal popup */}
 
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL (Clean without right scrollbar) */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto no-scrollbar">
@@ -1264,7 +1292,7 @@ export default function Projects() {
 
                     {/* Expand icon on hover */}
                     <div className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                      â†—
+                      ↗
                     </div>
 
                     {/* Work Title & Type */}
@@ -1378,7 +1406,7 @@ export default function Projects() {
                   {currentWork.isClientWork && (
                     <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-neutral-400">
                       <span>{t("projects.scrollhint")}</span>
-                      <span className="animate-bounce">â†“</span>
+                      <span className="animate-bounce">↓</span>
                     </div>
                   )}
 
@@ -1426,7 +1454,7 @@ export default function Projects() {
                                 </span>
                               )}
                               <span className="text-[10px] font-mono text-neutral-400">
-                                {currentWork.aspect} â€¢ {currentWork.type}
+                                {currentWork.aspect} • {currentWork.type}
                               </span>
                             </div>
                             <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
@@ -1540,17 +1568,21 @@ export default function Projects() {
                           </button>
                         </div>
 
-                        {/* Brand Description â€” shown at bottom of case study if available */}
+                        {/* Brand Description — shown at bottom of case study if available */}
                         {(() => {
                           const clientData = contextClients.find(
                             (c) => c.clientName === currentWork.clientName
                           );
-                          const brandDesc = (clientData as any)?.description;
+                          const rawDesc = (clientData as any)?.description || "";
+                          const clientKey = (currentWork.clientName || "").toLowerCase().trim();
+                          const brandDesc = isId
+                            ? (clientBrandDescMap[clientKey]?.id || rawDesc)
+                            : (rawDesc || clientBrandDescMap[clientKey]?.en);
                           if (!brandDesc) return null;
                           return (
                             <div className="mt-2 p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20">
                               <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold block mb-1">
-                                {isId ? "Profil & Deskripsi Brand" : "Brand Profile & Context"} â€” {currentWork.clientName}
+                                {isId ? "Profil & Deskripsi Brand" : "Brand Profile & Context"} — {currentWork.clientName}
                               </span>
                               <p className="text-xs text-neutral-300 font-light leading-relaxed">
                                 {brandDesc}
