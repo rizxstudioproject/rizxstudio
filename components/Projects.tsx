@@ -1078,23 +1078,10 @@ export default function Projects() {
               </span>
             </div>
 
-            {/* Brand Description Panel — only show if set */}
-            {(activeClientData as any).description && (
-              <div className="mb-3 px-1">
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
-                  <div className="flex items-center gap-1.5 text-[#14AF9E] text-[10px] font-mono font-semibold uppercase tracking-wider mb-1.5">
-                    <HiSparkles className="w-3 h-3" />
-                    <span>{isId ? "Tentang Klien & Brand" : "About Client & Brand"}</span>
-                  </div>
-                  <p className="text-[11px] text-neutral-300 font-light leading-relaxed line-clamp-3">
-                    {(activeClientData as any).description}
-                  </p>
-                </div>
-              </div>
-            )}
+            {/* Brand Description Panel — REMOVED from folder view, shown only inside modal popup */}
 
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[260px] sm:max-h-[300px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[320px] sm:max-h-[380px] overflow-y-auto pr-1">
               {activeClientData.works.map((work, wIdx) => {
                 const localizedWork = getWorkLocalized(work, isId);
                 return (
