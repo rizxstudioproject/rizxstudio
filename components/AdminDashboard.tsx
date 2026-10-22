@@ -1981,13 +1981,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    File Logo (SVG / PNG / WebP)
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      File Logo (SVG / PNG / WebP)
+                    </label>
+                    <span className="text-[10px] font-mono text-[#14AF9E] bg-[#14AF9E]/10 border border-[#14AF9E]/30 px-2 py-0.5 rounded-full font-semibold">
+                      Frame: 160 × 56 px
+                    </span>
+                  </div>
                   <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/15">
                     <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
                     <span className="truncate">
-                      {newLogoFile ? "âœ“ Logo Dipilih" : "Pilih File Logo"}
+                      {newLogoFile ? "✓ Logo Dipilih" : "Pilih File Logo"}
                     </span>
                     <input
                       type="file"
@@ -1998,6 +2003,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       }
                     />
                   </label>
+                  <p className="text-[11px] text-neutral-400 font-mono leading-relaxed mt-1">
+                    📐 <strong>Ukuran Frame Tampil:</strong> <span className="text-white font-semibold">160 × 56 pixel</span> (tinggi logo: 28px).<br />
+                    ✨ <strong>Ukuran File Disarankan:</strong> <span className="text-[#14AF9E] font-semibold">200 × 60 px</span> s/d <span className="text-[#14AF9E] font-semibold">300 × 80 px</span> (Format SVG atau PNG Transparan @2x).
+                  </p>
                 </div>
               </div>
 
@@ -2028,7 +2037,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-                    <span>Baris 1 â€” Scroll Bergerak ke Kiri</span>
+                    <span>Baris 1 — Scroll Bergerak ke Kiri</span>
                   </h3>
                   <span className="text-xs font-mono text-neutral-400">
                     {clLogos.filter((l) => l.row === 1).length} Logo
@@ -2073,7 +2082,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             }}
                             className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors"
                           >
-                            â†“ Baris 2
+                            ↓ Baris 2
                           </button>
                           <button
                             type="button"
@@ -2094,7 +2103,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                    <span>Baris 2 â€” Scroll Bergerak ke Kanan</span>
+                    <span>Baris 2 — Scroll Bergerak ke Kanan</span>
                   </h3>
                   <span className="text-xs font-mono text-neutral-400">
                     {clLogos.filter((l) => l.row === 2).length} Logo
@@ -2139,7 +2148,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             }}
                             className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors"
                           >
-                            â†‘ Baris 1
+                            ↑ Baris 1
                           </button>
                           <button
                             type="button"
