@@ -26,11 +26,8 @@ export default function Home() {
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
-      const isLocal =
-        window.location.hostname === "localhost" ||
-        window.location.hostname === "127.0.0.1";
       const params = new URLSearchParams(window.location.search);
-      setShowAdminTrigger(isLocal || params.get("admin") === "true");
+      setShowAdminTrigger(params.get("admin") === "true");
     }
   }, []);
 

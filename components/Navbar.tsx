@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
-import { usePortfolioData } from "@/context/PortfolioDataContext";
 
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState<string>("");
@@ -12,7 +11,6 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrollProgressPercent, setScrollProgressPercent] = useState(0);
   const { lang, setLang, t } = useLang();
-  const { isAdminMode, toggleAdminMode } = usePortfolioData();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -163,21 +161,6 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Admin Dashboard Switcher Button */}
-            <button
-              type="button"
-              onClick={toggleAdminMode}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[11px] font-mono transition-all cursor-pointer ${
-                isAdminMode
-                  ? "bg-[#14AF9E] text-black font-bold border-[#14AF9E] shadow-sm"
-                  : "border-white/10 bg-white/[0.04] text-neutral-300 hover:text-white hover:bg-white/[0.08]"
-              }`}
-              title="Buka / Tutup Admin Dashboard"
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${isAdminMode ? "bg-black" : "bg-[#14AF9E] animate-pulse"}`} />
-              <span>Admin</span>
-            </button>
-
             {/* Desktop Socials */}
             <div className="hidden md:flex items-center gap-2.5">
               <a
@@ -293,22 +276,6 @@ export default function Navbar() {
                 ID (Indonesia)
               </button>
             </div>
-          </div>
-
-          {/* Mobile Admin Trigger Row */}
-          <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-neutral-400 font-mono">
-            <span>Studio Management</span>
-            <button
-              type="button"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                toggleAdminMode();
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#14AF9E]/20 text-[#14AF9E] border border-[#14AF9E]/40 text-xs font-mono font-bold"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#14AF9E] animate-pulse" />
-              <span>{isAdminMode ? "Tutup Admin" : "Buka Admin Dashboard"}</span>
-            </button>
           </div>
 
           {/* Mobile Social Links in Drawer */}
