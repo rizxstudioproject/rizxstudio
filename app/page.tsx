@@ -27,7 +27,7 @@ export default function Home() {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      setShowAdminTrigger(params.get("admin") === "true");
+      setShowAdminTrigger(params.get("login") === "secret");
     }
   }, []);
 
@@ -114,7 +114,7 @@ export default function Home() {
         <Contact />
       </main>
 
-      {/* Floating Admin Dashboard Trigger — only visible on localhost or if ?admin=true */}
+      {/* Floating Admin Dashboard Trigger — only visible on localhost or if ?login=secret */}
       {showAdminTrigger && (
         <button
           type="button"

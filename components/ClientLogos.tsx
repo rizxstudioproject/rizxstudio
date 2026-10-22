@@ -19,12 +19,20 @@ function LogoItem({ logo }: { logo: ClientLogoItem }) {
 }
 
 export default function ClientLogos() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const { clientLogos } = usePortfolioData();
 
   const row1Logos = clientLogos?.logos?.filter((l) => l.row === 1) || [];
   const row2Logos = clientLogos?.logos?.filter((l) => l.row === 2) || [];
-  const subtitleText = clientLogos?.subtitle || t("clients.subtitle");
+  const isId = lang === "id";
+  const isDefaultSubtitle =
+    !clientLogos?.subtitle ||
+    clientLogos.subtitle === "Selected Clients & Creative Collaborations";
+  const subtitleText = isId
+    ? isDefaultSubtitle
+      ? t("clients.subtitle")
+      : clientLogos.subtitle
+    : clientLogos?.subtitle || t("clients.subtitle");
 
   return (
     <section

@@ -21,7 +21,12 @@ import {
   HiInformationCircle,
   HiTag,
   HiUser,
+  HiKey,
+  HiLockClosed,
+  HiEnvelope,
 } from "react-icons/hi2";
+import { useLang } from "@/context/LanguageContext";
+import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
 import {
   usePortfolioData,
   extractYouTubeId,
@@ -59,10 +64,53 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     isCloudSyncActive,
   } = usePortfolioData();
 
-  // Active Tab: 'clients' | 'hero-works' | 'client-logos' | 'about' | 'flagship'
+  // Active Tab: 'clients' | 'hero-works' | 'client-logos' | 'about' | 'flagship' | 'account'
   const [activeTab, setActiveTab] = useState<
-    "clients" | "hero-works" | "client-logos" | "about" | "flagship"
+    "clients" | "hero-works" | "client-logos" | "about" | "flagship" | "account"
   >("clients");
+
+  // Admin Account & Password Management State
+  const { lang, setLang } = useLang();
+  const [adminUser, setAdminUser] = useState("admin");
+  const [adminPass, setAdminPass] = useState("");
+  const [adminConfirmPass, setAdminConfirmPass] = useState("");
+  const [adminEmail, setAdminEmail] = useState("rizxstudioproject@gmail.com");
+  const [showAdminPass, setShowAdminPass] = useState(false);
+  const [isSavingAccount, setIsSavingAccount] = useState(false);
+
+  useEffect(() => {
+    getAdminCredentials().then((c) => {
+      if (c.username) setAdminUser(c.username);
+      if (c.email) setAdminEmail(c.email);
+    });
+  }, []);
+
+  const handleSaveAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminPass && adminPass !== adminConfirmPass) {
+      showToast("Peringatan: Konfirmasi password tidak cocok!");
+      return;
+    }
+    if (adminPass && adminPass.length < 6) {
+      showToast("Peringatan: Password baru minimal harus 6 karakter!");
+      return;
+    }
+    setIsSavingAccount(true);
+    try {
+      await saveAdminCredentials({
+        username: adminUser.trim() || "admin",
+        email: adminEmail.trim() || "rizxstudioproject@gmail.com",
+        ...(adminPass ? { password: adminPass.trim() } : {}),
+      });
+      setAdminPass("");
+      setAdminConfirmPass("");
+      showToast("Berhasil: Pengaturan akun & password Admin berhasil disimpan ke Supabase Cloud!");
+    } catch (err) {
+      showToast("Gagal menyimpan perubahan akun.");
+    } finally {
+      setIsSavingAccount(false);
+    }
+  };
 
   // ==========================================
   // Hero & Selected Works Form States
@@ -331,7 +379,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       );
       setHwOverlappingCards(heroWorks.overlappingCards || defaultHeroWorksData.overlappingCards);
     }
-    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
+    showToast("Perubahan dibatalkan â€” form dikembalikan ke data tersimpan.");
   };
 
   const handleAddDeckCard = () => {
@@ -396,7 +444,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setClSubtitle(clientLogos.subtitle || defaultClientLogosData.subtitle);
       setClLogos(clientLogos.logos || defaultClientLogosData.logos);
     }
-    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
+    showToast("Perubahan dibatalkan â€” form dikembalikan ke data tersimpan.");
   };
 
   const handleAddClientLogo = () => {
@@ -431,7 +479,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [videoClassTag, setVideoClassTag] = useState(stage3.classTag || "CREATIVE JOURNEY | 2012 TO PRESENT");
   const [videoDescription, setVideoDescription] = useState(
     stage3.heroCard.description ||
-      "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences."
+      "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology â€” pushing the boundaries of creative digital experiences."
   );
   const [videoEnabled, setVideoEnabled] = useState(stage3.heroCard.isVideoEnabled !== false);
 
@@ -473,7 +521,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [uploadType, setUploadType] = useState("Digital Campaign");
   const [uploadAspect, setUploadAspect] = useState<"4:5" | "1:1" | "16:9">("4:5");
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear().toString());
-  // Tool tags for upload — comma-separated input
+  // Tool tags for upload â€” comma-separated input
   const [uploadToolsInput, setUploadToolsInput] = useState("Figma, Photoshop, Magnific AI");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -750,7 +798,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
     addClientFolder({
       clientName: newFolderName.trim(),
-      category: newFolderCategory.trim() || `Portfolio — ${newFolderName.trim()}`,
+      category: newFolderCategory.trim() || `Portfolio â€” ${newFolderName.trim()}`,
       description: "",
     });
     showToast(`Folder "client - ${newFolderName.trim()}" berhasil dibuat!`);
@@ -798,7 +846,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm sm:text-base font-bold text-white tracking-wide">
-                Rizx Studio — Admin Dashboard
+                Rizx Studio â€” Admin Dashboard
               </h1>
               <span
                 className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border flex items-center gap-1 ${
@@ -818,6 +866,42 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
+          {/* Icon-Only Language Switcher (EN / ID flags) */}
+          <div className="flex items-center gap-1 bg-black/40 border border-white/10 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => {
+                setLang("en");
+                showToast("Bahasa web diatur ke: English (Icon 🇺🇸)");
+              }}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${
+                lang === "en"
+                  ? "bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/50 shadow-sm"
+                  : "opacity-45 hover:opacity-100 hover:bg-white/5"
+              }`}
+              title="English (🇺🇸)"
+              aria-label="Switch to English"
+            >
+              🇺🇸
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setLang("id");
+                showToast("Bahasa web diatur ke: Bahasa Indonesia (Icon 🇮🇩)");
+              }}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${
+                lang === "id"
+                  ? "bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/50 shadow-sm"
+                  : "opacity-45 hover:opacity-100 hover:bg-white/5"
+              }`}
+              title="Bahasa Indonesia (🇮🇩)"
+              aria-label="Ganti ke Bahasa Indonesia"
+            >
+              🇮🇩
+            </button>
+          </div>
+
           <button
             type="button"
             onClick={handleFullReset}
@@ -845,8 +929,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             title="Lompat langsung ke pemutar video Flagship Showcase di web"
           >
             <HiVideoCamera className="w-4 h-4 text-[#14AF9E]" />
-            <span className="hidden sm:inline font-semibold">Tonton Video di Web ↗</span>
-            <span className="sm:hidden font-semibold">Video ↗</span>
+            <span className="hidden sm:inline font-semibold">Tonton Video di Web â†—</span>
+            <span className="sm:hidden font-semibold">Video â†—</span>
           </button>
 
           <button
@@ -930,6 +1014,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           >
             <HiVideoCamera className="w-4 h-4 shrink-0" />
             <span>5. Video YouTube</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("account")}
+            className={`flex-1 min-w-[130px] flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+              activeTab === "account"
+                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
+                : "text-neutral-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <HiKey className="w-4 h-4 shrink-0" />
+            <span>6. Sandi & Akun</span>
           </button>
         </div>
 
@@ -1021,7 +1118,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         </div>
                       </button>
 
-                      {/* Delete folder button — visible on hover for ALL folders */}
+                      {/* Delete folder button â€” visible on hover for ALL folders */}
                       <button
                         type="button"
                         onClick={(e) => {
@@ -1134,7 +1231,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               >
                                 <span>{toolName}</span>
                                 <span className="text-[10px] opacity-75">
-                                  {isIncluded ? "✓" : "+"}
+                                  {isIncluded ? "âœ“" : "+"}
                                 </span>
                               </button>
                             );
@@ -1169,7 +1266,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
                     <div>
                       <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                        MY WORK ASSETS · FOLDER {selectedClient.clientName.toUpperCase()}
+                        MY WORK ASSETS Â· FOLDER {selectedClient.clientName.toUpperCase()}
                       </span>
                       <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                         <span>Galeri Gambar Portofolio</span>
@@ -1476,7 +1573,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#14AF9E]"
                         />
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (°):</span>
+                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (Â°):</span>
                           <input
                             type="number"
                             value={card.rotate}
@@ -1527,7 +1624,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
                       <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
                       <span className="truncate">
-                        {newOverImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
+                        {newOverImage ? "âœ“ Gambar Dipilih" : "Pilih File Gambar"}
                       </span>
                       <input
                         type="file"
@@ -1626,7 +1723,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hwStage1ScrollText}
                     onChange={(e) => setHwStage1ScrollText(e.target.value)}
-                    placeholder="Scroll down ↓"
+                    placeholder="Scroll down â†“"
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
                   />
                 </div>
@@ -1743,7 +1840,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
                       <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
                       <span className="truncate">
-                        {newDeckImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
+                        {newDeckImage ? "âœ“ Gambar Dipilih" : "Pilih File Gambar"}
                       </span>
                       <input
                         type="file"
@@ -1890,7 +1987,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/15">
                     <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
                     <span className="truncate">
-                      {newLogoFile ? "✓ Logo Dipilih" : "Pilih File Logo"}
+                      {newLogoFile ? "âœ“ Logo Dipilih" : "Pilih File Logo"}
                     </span>
                     <input
                       type="file"
@@ -1931,7 +2028,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-                    <span>Baris 1 — Scroll Bergerak ke Kiri</span>
+                    <span>Baris 1 â€” Scroll Bergerak ke Kiri</span>
                   </h3>
                   <span className="text-xs font-mono text-neutral-400">
                     {clLogos.filter((l) => l.row === 1).length} Logo
@@ -1976,7 +2073,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             }}
                             className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors"
                           >
-                            ↓ Baris 2
+                            â†“ Baris 2
                           </button>
                           <button
                             type="button"
@@ -1997,7 +2094,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center justify-between border-b border-white/10 pb-3">
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                    <span>Baris 2 — Scroll Bergerak ke Kanan</span>
+                    <span>Baris 2 â€” Scroll Bergerak ke Kanan</span>
                   </h3>
                   <span className="text-xs font-mono text-neutral-400">
                     {clLogos.filter((l) => l.row === 2).length} Logo
@@ -2042,7 +2139,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             }}
                             className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors"
                           >
-                            ↑ Baris 1
+                            â†‘ Baris 1
                           </button>
                           <button
                             type="button"
@@ -2116,7 +2213,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                    BAGIAN 1 · HEADER & NARASI UTAMA
+                    BAGIAN 1 Â· HEADER & NARASI UTAMA
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Judul & Deskripsi Utama Profil
@@ -2172,7 +2269,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     rows={4}
                     value={aboutBio}
                     onChange={(e) => setAboutBio(e.target.value)}
-                    placeholder="With 11+ years in creative design, I’ve evolved alongside the industry..."
+                    placeholder="With 11+ years in creative design, Iâ€™ve evolved alongside the industry..."
                     className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm leading-relaxed focus:outline-none focus:border-[#14AF9E] transition-all resize-none"
                   />
                 </div>
@@ -2182,7 +2279,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                    BAGIAN 2 · FILOSOFI INTI
+                    BAGIAN 2 Â· FILOSOFI INTI
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Quote & Core Philosophy
@@ -2211,7 +2308,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       type="text"
                       value={aboutPhilosophyQuote}
                       onChange={(e) => setAboutPhilosophyQuote(e.target.value)}
-                      placeholder="A creative professional’s greatest advantage isn’t resisting change — it’s adapting faster."
+                      placeholder="A creative professionalâ€™s greatest advantage isnâ€™t resisting change â€” itâ€™s adapting faster."
                       className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm italic focus:outline-none focus:border-[#14AF9E] transition-all"
                     />
                   </div>
@@ -2222,7 +2319,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                    BAGIAN 3 · STATISTIK PENGALAMAN
+                    BAGIAN 3 Â· STATISTIK PENGALAMAN
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     3 Angka Prestasi & Pengalaman
@@ -2299,7 +2396,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                    BAGIAN 4 · KARTU SAMPING (SIDEBAR CARDS)
+                    BAGIAN 4 Â· KARTU SAMPING (SIDEBAR CARDS)
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Kolaborasi Global & Disiplin Keahlian
@@ -2436,7 +2533,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <HiInformationCircle className="w-4 h-4" />
                 </span>
                 <p className="text-neutral-400 leading-relaxed text-[11px] sm:text-xs">
-                  <strong className="text-white">Lokasi di Web Publik:</strong> Section ini berada di dalam sekuens interaktif <em>Projects (Stage 3: ~60% scroll)</em>. Saat Anda klik tombol <strong>"Simpan & Buka Langsung di Web ↗"</strong> di bawah, sistem akan otomatis melakukan scroll halus langsung tepat ke depan video YouTube Anda.
+                  <strong className="text-white">Lokasi di Web Publik:</strong> Section ini berada di dalam sekuens interaktif <em>Projects (Stage 3: ~60% scroll)</em>. Saat Anda klik tombol <strong>"Simpan & Buka Langsung di Web â†—"</strong> di bawah, sistem akan otomatis melakukan scroll halus langsung tepat ke depan video YouTube Anda.
                 </p>
               </div>
             </div>
@@ -2591,7 +2688,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-400 hover:from-[#119889] hover:to-cyan-300 text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all active:scale-95 cursor-pointer"
                     >
                       <HiCheck className="w-4 h-4" />
-                      <span>Simpan & Buka Langsung di Web ↗</span>
+                      <span>Simpan & Buka Langsung di Web â†—</span>
                     </button>
 
                     <button
@@ -2679,7 +2776,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="absolute bottom-3 right-3 z-20 pointer-events-none">
                       <span className="px-2.5 py-1 rounded-full bg-white text-black font-semibold text-[10px] flex items-center gap-1 shadow-lg">
                         <span>View Full</span>
-                        <span>↗</span>
+                        <span>â†—</span>
                       </span>
                     </div>
                   </div>
@@ -2692,6 +2789,172 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <p className="text-xs text-neutral-300 line-clamp-3 leading-relaxed">
                       {videoDescription || "Belum ada narasi."}
                     </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {/* TAB 6: PENGATURAN AKUN & SANDI ADMIN */}
+        {activeTab === "account" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
+            {/* Header Explainer */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+                ADMIN SECURITY & CREDENTIALS
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                Pengaturan Akun, Ganti Password & Email Verifikasi
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
+                Kelola kredensial login Admin Panel. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun baru di URL rahasia <code className="text-[#14AF9E] font-mono">?login=secret</code>.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              {/* Form Kolom Kiri */}
+              <div className="lg:col-span-7 bg-neutral-900/60 border border-white/10 rounded-2xl p-5 sm:p-7 backdrop-blur-sm">
+                <form onSubmit={handleSaveAccount} className="space-y-5">
+                  {/* Username */}
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
+                      USERNAME ADMIN <span className="text-[#14AF9E]">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={adminUser}
+                        onChange={(e) => setAdminUser(e.target.value)}
+                        placeholder="admin"
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        className="w-full px-4 py-3 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
+                      />
+                      <HiUser className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    </div>
+                    <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
+                      Username untuk login ke admin panel dashboard.
+                    </span>
+                  </div>
+
+                  {/* Recovery Email */}
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
+                      EMAIL RECOVERY / VERIFIKASI <span className="text-[#14AF9E]">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        value={adminEmail}
+                        onChange={(e) => setAdminEmail(e.target.value)}
+                        placeholder="rizxstudioproject@gmail.com"
+                        className="w-full px-4 py-3 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
+                      />
+                      <HiEnvelope className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                    </div>
+                    <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
+                      Kode OTP verifikasi saat lupa password akan dikirim ke email ini.
+                    </span>
+                  </div>
+
+                  {/* Password Baru */}
+                  <div className="pt-2 border-t border-white/10">
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
+                      GANTI PASSWORD BARU (KOSONGKAN JIKA TIDAK INGIN MENGUBAH)
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showAdminPass ? "text" : "password"}
+                        value={adminPass}
+                        onChange={(e) => setAdminPass(e.target.value)}
+                        placeholder="Ketik password baru (minimal 6 karakter)"
+                        className="w-full px-4 py-3 pr-12 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowAdminPass(!showAdminPass)}
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors cursor-pointer p-1"
+                        aria-label="Toggle password visibility"
+                      >
+                        {showAdminPass ? <HiXMark className="w-4 h-4" /> : <HiLockClosed className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Konfirmasi Password Baru */}
+                  {adminPass && (
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
+                        KONFIRMASI PASSWORD BARU <span className="text-[#14AF9E]">*</span>
+                      </label>
+                      <input
+                        type={showAdminPass ? "text" : "password"}
+                        value={adminConfirmPass}
+                        onChange={(e) => setAdminConfirmPass(e.target.value)}
+                        placeholder="Ulangi password baru yang sama"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
+                      />
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3 pt-3">
+                    <button
+                      type="submit"
+                      disabled={isSavingAccount}
+                      className="flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      <HiCheck className="w-4 h-4" />
+                      <span>{isSavingAccount ? "Menyimpan ke Cloud…" : "Simpan Perubahan Akun"}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Kolom Kanan: Panduan & Info Keamanan */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className="p-5 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-3.5">
+                  <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs font-semibold uppercase tracking-wider">
+                    <HiInformationCircle className="w-4 h-4" />
+                    <span>Informasi Akses Admin</span>
+                  </div>
+
+                  <div className="space-y-2.5 text-xs text-neutral-300 font-mono leading-relaxed">
+                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                      <span className="text-neutral-500 text-[10px] uppercase block">URL Akses Rahasia</span>
+                      <span className="text-[#14AF9E] font-bold block break-all">
+                        https://rizxstudio.com/?login=secret
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                      <span className="text-neutral-500 text-[10px] uppercase block">Email Verifikasi Pemulihan</span>
+                      <span className="text-white font-bold block break-all">
+                        rizxstudioproject@gmail.com
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                      <span className="text-neutral-500 text-[10px] uppercase block">Shortcut Keyboard Cepat</span>
+                      <span className="text-white block">
+                        Tekan <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-400 font-bold">Ctrl + Shift + A</kbd> dari halaman utama web.
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
+                      <span className="text-neutral-500 text-[10px] uppercase block">Sinkronisasi Cloud</span>
+                      <span className="text-emerald-400 block font-semibold flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        Supabase Database Aktif
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2944,7 +3207,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     Edit Detail: {editingWork.title}
                   </h3>
                   <p className="text-xs text-neutral-400">
-                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> · Perubahan langsung aktif di popup Case Study web publik.
+                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> Â· Perubahan langsung aktif di popup Case Study web publik.
                   </p>
                 </div>
               </div>
@@ -3037,7 +3300,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-mono text-amber-400 font-medium mb-1.5 flex items-center gap-1.5">
-                      <span>⚠️</span>
+                      <span>âš ï¸</span>
                       <span>Tantangan (Challenge)</span>
                     </label>
                     <textarea
@@ -3051,7 +3314,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   <div>
                     <label className="block text-xs font-mono text-[#14AF9E] font-medium mb-1.5 flex items-center gap-1.5">
-                      <span>✅</span>
+                      <span>âœ…</span>
                       <span>Solusi & Pendekatan (Solution)</span>
                     </label>
                     <textarea
@@ -3124,7 +3387,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               : "bg-white/5 text-neutral-400 hover:text-white border border-white/10"
                           }`}
                         >
-                          {isSelected ? `✓ ${tool.label}` : `+ ${tool.label}`}
+                          {isSelected ? `âœ“ ${tool.label}` : `+ ${tool.label}`}
                         </button>
                       );
                     })}
@@ -3274,7 +3537,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="fixed bottom-6 right-6 z-[120] flex items-center gap-2.5 px-4 py-3 rounded-xl bg-neutral-900 border border-[#14AF9E]/50 text-white shadow-2xl backdrop-blur-xl text-xs sm:text-sm font-medium"
           >
             <div className="w-5 h-5 rounded-full bg-[#14AF9E] text-black flex items-center justify-center font-bold text-xs shrink-0">
-              ✓
+              âœ“
             </div>
             <span>{toastMessage}</span>
           </motion.div>

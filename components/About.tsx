@@ -9,6 +9,7 @@ import { usePortfolioData } from "@/context/PortfolioDataContext";
 export default function About() {
   const { t, lang } = useLang();
   const { about } = usePortfolioData();
+  const isId = lang === "id";
 
   const fallbackDisciplines = {
     en: [
@@ -29,20 +30,29 @@ export default function About() {
     ],
   };
 
-  const activeDisciplines =
-    about.disciplines && about.disciplines.length > 0
-      ? about.disciplines
-      : fallbackDisciplines[lang];
+  const displayEyebrow = isId ? t("about.eyebrow") : (about.eyebrow || t("about.eyebrow"));
+  const displayTitle = isId ? t("about.title") : (about.title || t("about.title"));
+  const displayHeadline = isId ? t("about.headline") : (about.headline || t("about.headline"));
+  const displayBio = isId ? t("about.para1") : (about.bio || t("about.para1"));
+  const displayPhilosophyTitle = isId ? t("about.card1.title") : (about.philosophyTitle || t("about.card1.title"));
+  const displayPhilosophyQuote = isId ? t("about.quote") : (about.philosophyQuote || t("about.quote"));
+  const displayStat1Label = isId ? t("about.stat1.label") : (about.stat1Label || t("about.stat1.label"));
+  const displayStat2Label = isId ? t("about.stat2.label") : (about.stat2Label || t("about.stat2.label"));
+  const displayStat3Label = isId ? t("about.stat3.label") : (about.stat3Label || t("about.stat3.label"));
+  const displayCollabTitle = isId ? t("about.card2.title") : (about.collabTitle || t("about.card2.title"));
+  const displayCollabDesc = isId ? t("about.card2.body") : (about.collabDesc || t("about.card2.body"));
+  const displayDisciplinesTitle = isId ? t("about.card3.title") : (about.disciplinesTitle || t("about.card3.title"));
+  const activeDisciplines = fallbackDisciplines[lang];
 
   return (
     <section id="about" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
       {/* Section Header */}
       <div className="flex flex-col mb-8 sm:mb-10">
         <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] mb-2 font-semibold">
-          {about.eyebrow || t("about.eyebrow")}
+          {displayEyebrow}
         </span>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-          {about.title || t("about.title")}<span className="text-neutral-500 font-normal">.</span>
+          {displayTitle}<span className="text-neutral-500 font-normal">.</span>
         </h2>
         <div className="w-12 h-px bg-[#14AF9E]/60 mt-3" />
       </div>
@@ -54,21 +64,21 @@ export default function About() {
             <div className="space-y-4 sm:space-y-5 text-neutral-300 font-light leading-relaxed">
               {/* Main Headline */}
               <h3 className="text-white text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-snug">
-                {about.headline || t("about.headline")}
+                {displayHeadline}
               </h3>
 
               {/* Paragraph 1 */}
               <p className="text-neutral-300 text-[15px] sm:text-base md:text-lg leading-relaxed font-light whitespace-pre-line">
-                {about.bio || t("about.para1")}
+                {displayBio}
               </p>
 
               {/* Blockquote: Core Philosophy */}
               <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/[0.03] border-l-2 border-[#14AF9E] border-y border-r border-white/5 backdrop-blur-sm">
                 <span className="text-[11px] font-mono text-[#14AF9E] uppercase tracking-wider block mb-1 font-semibold">
-                  {about.philosophyTitle || t("about.card1.title")}
+                  {displayPhilosophyTitle}
                 </span>
                 <p className="text-white/90 text-sm sm:text-base italic font-serif leading-relaxed">
-                  &ldquo;{about.philosophyQuote || t("about.quote")}&rdquo;
+                  &ldquo;{displayPhilosophyQuote}&rdquo;
                 </p>
               </div>
             </div>
@@ -80,7 +90,7 @@ export default function About() {
                   {about.stat1Num || t("about.stat1.num")}
                 </span>
                 <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
-                  {about.stat1Label || t("about.stat1.label")}
+                  {displayStat1Label}
                 </span>
               </div>
               <div>
@@ -88,7 +98,7 @@ export default function About() {
                   {about.stat2Num || t("about.stat2.num")}
                 </span>
                 <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
-                  {about.stat2Label || t("about.stat2.label")}
+                  {displayStat2Label}
                 </span>
               </div>
               <div>
@@ -96,7 +106,7 @@ export default function About() {
                   {about.stat3Num || t("about.stat3.num")}
                 </span>
                 <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
-                  {about.stat3Label || t("about.stat3.label")}
+                  {displayStat3Label}
                 </span>
               </div>
             </div>
@@ -110,10 +120,10 @@ export default function About() {
               <HiGlobeAmericas className="w-5 h-5 text-[#14AF9E]" />
             </div>
             <h3 className="text-base sm:text-lg font-medium text-white mb-2">
-              {about.collabTitle || t("about.card2.title")}
+              {displayCollabTitle}
             </h3>
             <p className="text-sm text-neutral-300 font-light leading-relaxed whitespace-pre-line">
-              {about.collabDesc || t("about.card2.body")}
+              {displayCollabDesc}
             </p>
           </SpotlightCard>
 
@@ -122,7 +132,7 @@ export default function About() {
               <HiCheckBadge className="w-5 h-5 text-emerald-400" />
             </div>
             <h3 className="text-base sm:text-lg font-medium text-white mb-3">
-              {about.disciplinesTitle || t("about.card3.title")}
+              {displayDisciplinesTitle}
             </h3>
             <div className="flex flex-wrap gap-2">
               {activeDisciplines.map((tag, i) => (

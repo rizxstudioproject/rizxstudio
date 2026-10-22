@@ -299,7 +299,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1";
       const params = new URLSearchParams(window.location.search);
-      const adminRequested = params.get("admin") === "true" || params.get("admin") === "1";
+      const adminRequested = params.get("login") === "secret";
 
       if (isLocal || adminRequested) {
         setIsAdminMode(true);
@@ -524,12 +524,24 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               } catch (_) {}
             }
 
-            // Exclude site-about-section, site-hero-works, and site-client-logos from regular client folders list
+            // Extract Admin Credentials config from Supabase
+            const credsRow = clientRows.find((r) => r.client_id === "site-admin-credentials");
+            if (credsRow && credsRow.description) {
+              try {
+                const parsedCreds = JSON.parse(credsRow.description);
+                if (parsedCreds.username && parsedCreds.password && typeof window !== "undefined") {
+                  localStorage.setItem("rizx_admin_credentials", JSON.stringify(parsedCreds));
+                }
+              } catch (_) {}
+            }
+
+            // Exclude system keys from regular client folders list
             const regularClientRows = clientRows.filter(
               (r) =>
                 r.client_id !== "site-about-section" &&
                 r.client_id !== "site-hero-works" &&
-                r.client_id !== "site-client-logos"
+                r.client_id !== "site-client-logos" &&
+                r.client_id !== "site-admin-credentials"
             );
 
             const defaultClients = antigravityData.stage4.clients;
