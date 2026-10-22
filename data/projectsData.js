@@ -48,10 +48,10 @@ export const antigravityData = {
       title: "From Visual Craft to Technology",
       category: "VISUAL CRAFT | DIGITAL | AI",
       aspectRatio: "16:9",
-      youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-      videoId: "dQw4w9WgXcQ",
+      youtubeUrl: "",
+      videoId: "",
       description: "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences.",
-      isVideoEnabled: true,
+      isVideoEnabled: false,
     },
   },
 

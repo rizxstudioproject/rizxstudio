@@ -899,17 +899,17 @@ export default function Projects() {
               scrollProgress < 0.52
                 ? 0
                 : scrollProgress > 0.72
-                ? Math.max(0, 1 - (scrollProgress - 0.72) / 0.05)
+                ? Math.max(0, 1 - (scrollProgress - 0.72) / 0.04)
                 : Math.min(1, (scrollProgress - 0.52) / 0.05),
             transform: `translate3d(0, ${
               scrollProgress < 0.52
                 ? 50
                 : scrollProgress > 0.72
-                ? -(scrollProgress - 0.72) * 300
+                ? -(scrollProgress - 0.72) * 400
                 : 0
             }px, 0)`,
-            pointerEvents: scrollProgress >= 0.52 && scrollProgress <= 0.74 ? "auto" : "none",
-            visibility: scrollProgress < 0.49 || scrollProgress > 0.76 ? "hidden" : "visible",
+            pointerEvents: scrollProgress >= 0.52 && scrollProgress <= 0.73 ? "auto" : "none",
+            visibility: scrollProgress < 0.49 || scrollProgress > 0.75 ? "hidden" : "visible",
           }}
         >
           <div className="mb-4 sm:mb-6 text-center sm:text-left">
@@ -923,10 +923,13 @@ export default function Projects() {
 
           {/* Large Aspect Card — Video Plays Inside the Card with View Full Button */}
           {(() => {
-            const computedVideoId =
-              stage3?.heroCard?.videoId ||
-              extractYouTubeId(stage3?.heroCard?.youtubeUrl || "") ||
-              "dQw4w9WgXcQ";
+            const isVideoOn =
+              stage3?.heroCard?.isVideoEnabled !== false &&
+              (stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || ""));
+
+            const computedVideoId = isVideoOn
+              ? (stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || ""))
+              : "";
 
             return (
               <div
@@ -941,7 +944,7 @@ export default function Projects() {
                         aspect: "16:9",
                         clientName: isId ? "Karya Unggulan" : "Flagship Showcase",
                         isClientWork: false,
-                        videoId: computedVideoId,
+                        videoId: computedVideoId || undefined,
                         youtubeUrl: stage3?.heroCard?.youtubeUrl,
                       },
                     ],
@@ -950,14 +953,22 @@ export default function Projects() {
                 }
                 className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-neutral-900 group cursor-pointer"
               >
-                {/* Embedded Video Filling the Card */}
+                {/* Content: Video or Static Image */}
                 <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${computedVideoId}?autoplay=1&mute=1&loop=1&playlist=${computedVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
-                    title={stage3?.heroCard?.title || "Flagship Showcase Video"}
-                    className="w-full h-full object-cover scale-[1.18] border-0 pointer-events-none"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  />
+                  {computedVideoId ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${computedVideoId}?autoplay=1&mute=1&loop=1&playlist=${computedVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                      title={stage3?.heroCard?.title || "Flagship Showcase Video"}
+                      className="w-full h-full object-cover scale-[1.18] border-0 pointer-events-none"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    />
+                  ) : (
+                    <img
+                      src={stage3?.heroCard?.image || "/assets/antigravity/hero-large.jpg"}
+                      alt={stage3?.heroCard?.title || "Flagship Showcase"}
+                      className="w-full h-full object-cover scale-[1.05] transition-transform duration-700 group-hover:scale-[1.1]"
+                    />
+                  )}
                 </div>
 
                 {/* Dark Vignette / Gradient Overlay */}

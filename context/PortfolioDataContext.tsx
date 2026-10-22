@@ -158,9 +158,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         if (parsed.stage3) {
           const defaultHero = antigravityData.stage3.heroCard;
           const parsedHero = parsed.stage3.heroCard || {};
-          const ytUrl = parsedHero.youtubeUrl || defaultHero.youtubeUrl || "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-          const vId = parsedHero.videoId || extractYouTubeId(ytUrl) || defaultHero.videoId || "dQw4w9WgXcQ";
-          const vEnabled = true;
+          const ytUrl = parsedHero.youtubeUrl ?? "";
+          const vId = parsedHero.videoId ?? extractYouTubeId(ytUrl) ?? "";
+          const vEnabled = parsedHero.isVideoEnabled ?? false;
 
           setStage3({
             ...antigravityData.stage3,
@@ -170,7 +170,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               ...parsedHero,
               youtubeUrl: ytUrl,
               videoId: vId,
-              isVideoEnabled: true,
+              isVideoEnabled: vEnabled,
             },
           });
         }
@@ -242,9 +242,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 title: heroData.title || prev.heroCard.title,
                 category: heroData.category || prev.heroCard.category,
                 description: heroData.description || prev.heroCard.description,
-                youtubeUrl: heroData.youtube_url || prev.heroCard.youtubeUrl || "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                videoId: heroData.video_id || extractYouTubeId(heroData.youtube_url || "") || prev.heroCard.videoId || "dQw4w9WgXcQ",
-                isVideoEnabled: true,
+                youtubeUrl: heroData.youtube_url ?? prev.heroCard.youtubeUrl,
+                videoId: heroData.video_id ?? prev.heroCard.videoId,
+                isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled,
               },
             }));
           }
@@ -255,8 +255,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             .select("*");
 
           if (!clientsError && clientRows && Array.isArray(clientRows)) {
-            setClients((prev) =>
-              prev.map((c) => {
+            setClients((prev) => {
+              // 1. Update existing clients with cloud data
+              const updated = prev.map((c) => {
                 const match = clientRows.find((r) => r.client_id === c.id);
                 if (!match) return c;
                 const cloudWorks = Array.isArray(match.works) && match.works.length > 0 ? match.works : c.works;
@@ -267,8 +268,27 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                   works: cloudWorks,
                   itemsCount: cloudWorks.length,
                 };
-              })
-            );
+              });
+
+              // 2. Append any cloud-only custom folders not already in local state
+              const existingIds = new Set(prev.map((c) => c.id));
+              const cloudOnlyCustom: ClientItem[] = clientRows
+                .filter((r) => !existingIds.has(r.client_id) && r.is_custom !== false)
+                .map((r) => ({
+                  id: r.client_id,
+                  clientName: r.client_name || r.client_id,
+                  category: r.category || `Portfolio — ${r.client_name || r.client_id}`,
+                  logo: "",
+                  color: "from-[#14AF9E]/20 via-neutral-900/40 to-neutral-900",
+                  itemsCount: Array.isArray(r.works) ? r.works.length : 0,
+                  description: r.description || "",
+                  tools: Array.isArray(r.tools) ? r.tools : [],
+                  works: Array.isArray(r.works) ? r.works : [],
+                  isCustom: true,
+                }));
+
+              return [...updated, ...cloudOnlyCustom];
+            });
           }
 
           setIsCloudSyncActive(true);
@@ -516,7 +536,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             client_name: folder.clientName,
             category: folder.category || `Portfolio — ${folder.clientName}`,
             description: folder.description || "",
+            tools: [],
             works: [],
+            is_custom: true,
             updated_at: new Date().toISOString(),
           });
         } catch (err) {
@@ -527,7 +549,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [stage3, clients, persistState]
   );
 
-  // Delete a client folder entirely (only admin-created ones are allowed to delete)
+  // Delete a client folder entirely (all folders can be deleted by admin)
   const deleteClientFolder = useCallback(
     async (clientId: string) => {
       const updatedClients = clients.filter((c) => c.id !== clientId);

@@ -302,21 +302,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setIsAddFolderOpen(false);
   };
 
-  // Handler: Delete a client folder
+  // Handler: Delete a client folder (all folders can be deleted)
   const handleDeleteFolder = (client: ClientItem) => {
-    const msg = client.isCustom
-      ? `Hapus folder "client - ${client.clientName}" beserta semua isinya secara permanen?`
-      : `Hapus semua karya di folder "client - ${client.clientName}"? (Folder default tidak bisa dihapus total)`;
+    const msg = `Hapus folder "client - ${client.clientName}" beserta semua isinya secara permanen? Tindakan ini tidak bisa dibatalkan.`;
     if (window.confirm(msg)) {
-      if (client.isCustom) {
-        deleteClientFolder(client.id);
-        if (selectedClientId === client.id && clients.length > 1) {
-          setSelectedClientId(clients.find((c) => c.id !== client.id)?.id || clients[0].id);
-        }
-        showToast(`Folder "${client.clientName}" berhasil dihapus.`);
-      } else {
-        showToast("Folder default tidak dapat dihapus. Hanya folder yang dibuat admin yang bisa dihapus.");
+      deleteClientFolder(client.id);
+      if (selectedClientId === client.id && clients.length > 1) {
+        setSelectedClientId(clients.find((c) => c.id !== client.id)?.id || clients[0].id);
       }
+      showToast(`Folder "${client.clientName}" berhasil dihapus dari portofolio.`);
     }
   };
 
@@ -531,20 +525,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         </div>
                       </button>
 
-                      {/* Delete folder button — visible on hover, only for custom folders */}
-                      {client.isCustom && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteFolder(client);
-                          }}
-                          className="absolute -top-2 -right-2 z-20 w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover/folder:opacity-100 scale-75 group-hover/folder:scale-100 cursor-pointer"
-                          title={`Hapus folder ${client.clientName}`}
-                        >
-                          <HiXMark className="w-3.5 h-3.5" />
-                        </button>
-                      )}
+                      {/* Delete folder button — visible on hover for ALL folders */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteFolder(client);
+                        }}
+                        className="absolute -top-2 -right-2 z-20 w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-all opacity-0 group-hover/folder:opacity-100 scale-75 group-hover/folder:scale-100 cursor-pointer"
+                        title={`Hapus folder ${client.clientName}`}
+                      >
+                        <HiXMark className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   );
                 })}
