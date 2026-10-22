@@ -945,7 +945,35 @@ export default function Projects() {
               {stage2.categoryTag}
             </span>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight">
-              {stage2.headline}
+              {(() => {
+                const words = stage2.headline.split(" ");
+                // If headline has "Motion" or multiple words, give "Motion" interactive breathing
+                return words.map((word, wIdx) => {
+                  const isMotion = word.toLowerCase().includes("motion");
+                  const s2MotionProgress = Math.max(0, Math.min(1, (scrollProgress - 0.28) / 0.15));
+                  const scaleAmount = 1 + s2MotionProgress * 0.08;
+
+                  if (isMotion) {
+                    return (
+                      <span
+                        key={wIdx}
+                        className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-[#14AF9E] transition-transform duration-300 ease-out font-black"
+                        style={{
+                          transform: `scale(${scaleAmount})`,
+                          display: "inline-block",
+                        }}
+                      >
+                        {word}{wIdx < words.length - 1 ? "\u00A0" : ""}
+                      </span>
+                    );
+                  }
+                  return (
+                    <span key={wIdx} className="inline-block">
+                      {word}{wIdx < words.length - 1 ? "\u00A0" : ""}
+                    </span>
+                  );
+                });
+              })()}
             </h2>
             <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed mb-6 max-w-md mx-auto lg:mx-0">
               {stage2.description}
@@ -977,61 +1005,106 @@ export default function Projects() {
 
           {/* Overlapping Dense Deck with Badges */}
           <div className="relative w-full max-w-sm sm:max-w-md h-[220px] sm:h-[300px] md:h-[360px] flex items-center justify-center">
-            {/* Badges */}
-            {stage2.badges && stage2.badges.length > 0 && (
-              <>
-                {stage2.badges[0] && (
-                  <div className="absolute top-0 left-4 z-40 px-3 py-1 rounded-full text-xs font-semibold bg-[#14AF9E] text-white border border-[#14AF9E]/80 shadow-md">
-                    {stage2.badges[0].text}
-                  </div>
-                )}
-                {stage2.badges[1] && (
-                  <div className="absolute top-4 right-4 z-40 px-3 py-1 rounded-full text-xs font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-md">
-                    {stage2.badges[1].text}
-                  </div>
-                )}
-              </>
-            )}
+            {/* Scroll-driven blooming / fan-out factor for stage 2 */}
+            {(() => {
+              // Blooming progress for Stage 2 (spreads gently as user reaches & scrolls stage 2)
+              const bloomProgress = Math.max(0, Math.min(1, (scrollProgress - 0.28) / 0.14));
+              const bloomMultiplier = 1 + bloomProgress * 0.45; // up to 45% spread
+              const bloomRotateMultiplier = 1 + bloomProgress * 0.5;
 
-            {/* Overlapping Dense Cards */}
-            {stage2.overlappingCards.map((card, idx) => {
-              const offsetMultiplier = isMobile ? 32 : 55;
-              const xPos = (idx - 1.5) * offsetMultiplier;
-              const cardTitle = getStage2CardTitle(card, isId);
+              // Badges emerge from behind the cards
+              const badge1Y = (1 - bloomProgress) * 35 - 12; // starts hidden behind card (y: +23px), floats up to -12px
+              const badge1Scale = 0.6 + bloomProgress * 0.4;
+              const badge1Opacity = Math.max(0, Math.min(1, (bloomProgress - 0.1) / 0.4));
+
+              const badge2Y = (1 - bloomProgress) * 40 - 10;
+              const badge2Scale = 0.6 + bloomProgress * 0.4;
+              const badge2Opacity = Math.max(0, Math.min(1, (bloomProgress - 0.15) / 0.4));
 
               return (
-                <div
-                  key={card.id}
-                  onClick={() =>
-                    setModalData({
-                      items: stage2.overlappingCards.map((c) => ({
-                        id: c.id,
-                        title: getStage2CardTitle(c, isId),
-                        type: isId ? "Visual AI & Motion" : "AI & Motion Visual",
-                        image: c.image,
-                        aspect: "1:1",
-                        clientName: isId ? "Arsip Desain & Motion" : "Design & Motion Archive",
-                        isClientWork: false,
-                      })),
-                      currentIndex: idx,
-                    })
-                  }
-                  className="absolute w-36 sm:w-48 md:w-56 aspect-square rounded-2xl p-2.5 bg-neutral-900 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md transition-all duration-300 hover:scale-105 hover:-translate-y-3 cursor-pointer"
-                  style={{
-                    zIndex: 10 + idx,
-                    transform: `translate3d(${xPos}px, ${idx * 4}px, 0) rotate(${card.rotate}deg)`,
-                  }}
-                >
-                  <div className="w-full h-full rounded-xl overflow-hidden bg-neutral-950 relative border border-white/5">
-                    <img src={card.image} alt={cardTitle} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                    <div className="absolute bottom-2 left-2 right-2 text-xs sm:text-sm font-bold text-white truncate">
-                      {cardTitle}
-                    </div>
-                  </div>
-                </div>
+                <>
+                  {/* Badges emerging from behind the cards */}
+                  {stage2.badges && stage2.badges.length > 0 && (
+                    <>
+                      {stage2.badges[0] && (
+                        <div
+                          className="absolute left-2 sm:left-4 z-0 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-[#14AF9E] text-white border border-[#14AF9E]/80 shadow-lg shadow-[#14AF9E]/30 pointer-events-none transition-transform duration-200"
+                          style={{
+                            top: `${badge1Y}px`,
+                            transform: `scale(${badge1Scale}) rotate(-6deg)`,
+                            opacity: badge1Opacity,
+                            zIndex: 5, // Behind front cards (z: 10+)
+                          }}
+                        >
+                          <span className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
+                            <span>{stage2.badges[0].text}</span>
+                          </span>
+                        </div>
+                      )}
+                      {stage2.badges[1] && (
+                        <div
+                          className="absolute right-2 sm:right-4 z-0 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-lg pointer-events-none transition-transform duration-200"
+                          style={{
+                            top: `${badge2Y}px`,
+                            transform: `scale(${badge2Scale}) rotate(6deg)`,
+                            opacity: badge2Opacity,
+                            zIndex: 5, // Behind front cards (z: 10+)
+                          }}
+                        >
+                          <span className="flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-neutral-400" />
+                            <span>{stage2.badges[1].text}</span>
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+
+                  {/* Overlapping Dense Cards — mekar / bloom on scroll */}
+                  {stage2.overlappingCards.map((card, idx) => {
+                    const baseOffset = isMobile ? 32 : 55;
+                    const offsetMultiplier = baseOffset * bloomMultiplier;
+                    const xPos = (idx - 1.5) * offsetMultiplier;
+                    const dynamicRotate = card.rotate * bloomRotateMultiplier;
+                    const cardTitle = getStage2CardTitle(card, isId);
+
+                    return (
+                      <div
+                        key={card.id}
+                        onClick={() =>
+                          setModalData({
+                            items: stage2.overlappingCards.map((c) => ({
+                              id: c.id,
+                              title: getStage2CardTitle(c, isId),
+                              type: isId ? "Visual AI & Motion" : "AI & Motion Visual",
+                              image: c.image,
+                              aspect: "1:1",
+                              clientName: isId ? "Arsip Desain & Motion" : "Design & Motion Archive",
+                              isClientWork: false,
+                            })),
+                            currentIndex: idx,
+                          })
+                        }
+                        className="absolute w-36 sm:w-48 md:w-56 aspect-square rounded-2xl p-2.5 bg-neutral-900 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.9)] backdrop-blur-md transition-all duration-300 hover:scale-105 hover:-translate-y-3 cursor-pointer"
+                        style={{
+                          zIndex: 10 + idx,
+                          transform: `translate3d(${xPos}px, ${idx * 4 - bloomProgress * 6}px, 0) rotate(${dynamicRotate}deg)`,
+                        }}
+                      >
+                        <div className="w-full h-full rounded-xl overflow-hidden bg-neutral-950 relative border border-white/5">
+                          <img src={card.image} alt={cardTitle} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                          <div className="absolute bottom-2 left-2 right-2 text-xs sm:text-sm font-bold text-white truncate">
+                            {cardTitle}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </>
               );
-            })}
+            })()}
           </div>
         </div>
 
