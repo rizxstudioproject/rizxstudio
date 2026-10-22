@@ -1234,6 +1234,16 @@ export default function Projects() {
                 className="relative max-w-5xl max-h-[94vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col scrollbar-thin scrollbar-thumb-white/10"
                 onClick={(e) => e.stopPropagation()}
               >
+                {/* Tombol X Close di Pojok Kanan Atas pada Image Popup */}
+                <button
+                  type="button"
+                  onClick={() => setModalData(null)}
+                  className="absolute top-3 right-3 sm:top-5 sm:right-5 z-40 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-neutral-900/85 hover:bg-neutral-800 text-white border border-white/20 shadow-2xl backdrop-blur-md flex items-center justify-center transition-all active:scale-90 hover:scale-105 cursor-pointer group"
+                  aria-label="Tutup popup"
+                  title="Tutup (Esc)"
+                >
+                  <HiXMark className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5] group-hover:rotate-90 transition-transform duration-200" />
+                </button>
                 {/* Full-Scale Hero Image Preview Box (Artwork is never shrunk) */}
                 <div
                   className="relative w-full min-h-[68vh] sm:min-h-[75vh] md:min-h-[80vh] bg-black flex items-center justify-center p-3 sm:p-6 select-none shrink-0 overflow-hidden"
