@@ -4,11 +4,13 @@ import React from "react";
 import SpotlightCard from "./SpotlightCard";
 import { HiSparkles, HiGlobeAmericas, HiCheckBadge } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
+import { usePortfolioData } from "@/context/PortfolioDataContext";
 
 export default function About() {
   const { t, lang } = useLang();
+  const { about } = usePortfolioData();
 
-  const disciplines = {
+  const fallbackDisciplines = {
     en: [
       "Creative Direction",
       "Motion Graphics",
@@ -27,15 +29,20 @@ export default function About() {
     ],
   };
 
+  const activeDisciplines =
+    about.disciplines && about.disciplines.length > 0
+      ? about.disciplines
+      : fallbackDisciplines[lang];
+
   return (
     <section id="about" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
       {/* Section Header */}
       <div className="flex flex-col mb-8 sm:mb-10">
         <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] mb-2 font-semibold">
-          {t("about.eyebrow")}
+          {about.eyebrow || t("about.eyebrow")}
         </span>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
-          {t("about.title")}<span className="text-neutral-500 font-normal">.</span>
+          {about.title || t("about.title")}<span className="text-neutral-500 font-normal">.</span>
         </h2>
         <div className="w-12 h-px bg-[#14AF9E]/60 mt-3" />
       </div>
@@ -47,21 +54,21 @@ export default function About() {
             <div className="space-y-4 sm:space-y-5 text-neutral-300 font-light leading-relaxed">
               {/* Main Headline */}
               <h3 className="text-white text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-snug">
-                {t("about.headline")}
+                {about.headline || t("about.headline")}
               </h3>
 
               {/* Paragraph 1 */}
-              <p className="text-neutral-300 text-[15px] sm:text-base md:text-lg leading-relaxed font-light">
-                {t("about.para1")}
+              <p className="text-neutral-300 text-[15px] sm:text-base md:text-lg leading-relaxed font-light whitespace-pre-line">
+                {about.bio || t("about.para1")}
               </p>
 
               {/* Blockquote: Core Philosophy */}
               <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/[0.03] border-l-2 border-[#14AF9E] border-y border-r border-white/5 backdrop-blur-sm">
                 <span className="text-[11px] font-mono text-[#14AF9E] uppercase tracking-wider block mb-1 font-semibold">
-                  {t("about.card1.title")}
+                  {about.philosophyTitle || t("about.card1.title")}
                 </span>
                 <p className="text-white/90 text-sm sm:text-base italic font-serif leading-relaxed">
-                  &ldquo;{t("about.quote")}&rdquo;
+                  &ldquo;{about.philosophyQuote || t("about.quote")}&rdquo;
                 </p>
               </div>
             </div>
@@ -70,26 +77,26 @@ export default function About() {
             <div className="pt-6 border-t border-white/5 grid grid-cols-3 gap-3 sm:gap-6 text-xs font-mono mt-auto">
               <div>
                 <span className="text-[#14AF9E] block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight">
-                  {t("about.stat1.num")}
+                  {about.stat1Num || t("about.stat1.num")}
                 </span>
                 <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
-                  {t("about.stat1.label")}
+                  {about.stat1Label || t("about.stat1.label")}
                 </span>
               </div>
               <div>
                 <span className="text-white block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight">
-                  {t("about.stat2.num")}
+                  {about.stat2Num || t("about.stat2.num")}
                 </span>
                 <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
-                  {t("about.stat2.label")}
+                  {about.stat2Label || t("about.stat2.label")}
                 </span>
               </div>
               <div>
                 <span className="text-white block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight">
-                  {t("about.stat3.num")}
+                  {about.stat3Num || t("about.stat3.num")}
                 </span>
                 <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
-                  {t("about.stat3.label")}
+                  {about.stat3Label || t("about.stat3.label")}
                 </span>
               </div>
             </div>
@@ -102,9 +109,11 @@ export default function About() {
             <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-cyan-400 mb-4">
               <HiGlobeAmericas className="w-5 h-5 text-[#14AF9E]" />
             </div>
-            <h3 className="text-base sm:text-lg font-medium text-white mb-2">{t("about.card2.title")}</h3>
-            <p className="text-sm text-neutral-300 font-light leading-relaxed">
-              {t("about.card2.body")}
+            <h3 className="text-base sm:text-lg font-medium text-white mb-2">
+              {about.collabTitle || t("about.card2.title")}
+            </h3>
+            <p className="text-sm text-neutral-300 font-light leading-relaxed whitespace-pre-line">
+              {about.collabDesc || t("about.card2.body")}
             </p>
           </SpotlightCard>
 
@@ -112,9 +121,11 @@ export default function About() {
             <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-emerald-400 mb-4">
               <HiCheckBadge className="w-5 h-5 text-emerald-400" />
             </div>
-            <h3 className="text-base sm:text-lg font-medium text-white mb-3">{t("about.card3.title")}</h3>
+            <h3 className="text-base sm:text-lg font-medium text-white mb-3">
+              {about.disciplinesTitle || t("about.card3.title")}
+            </h3>
             <div className="flex flex-wrap gap-2">
-              {disciplines[lang].map((tag, i) => (
+              {activeDisciplines.map((tag, i) => (
                 <span
                   key={i}
                   className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#14AF9E]/40 hover:text-white transition-colors"

@@ -31,6 +31,51 @@ export interface ClientItem {
   isCustom?: boolean; // true if admin-created folder
 }
 
+export interface AboutData {
+  eyebrow: string;
+  title: string;
+  headline: string;
+  bio: string;
+  philosophyTitle: string;
+  philosophyQuote: string;
+  stat1Num: string;
+  stat1Label: string;
+  stat2Num: string;
+  stat2Label: string;
+  stat3Num: string;
+  stat3Label: string;
+  collabTitle: string;
+  collabDesc: string;
+  disciplinesTitle: string;
+  disciplines: string[];
+}
+
+export const defaultAboutData: AboutData = {
+  eyebrow: "WHO AM I",
+  title: "About Me",
+  headline: "Creative Designer & Motion Specialist | 11+ Years | Agency & Global Brands",
+  bio: "With 11+ years in creative design, I’ve evolved alongside the industry, combining strong design fundamentals with modern creative workflows to deliver impactful visuals for agencies and global brands.",
+  philosophyTitle: "CORE PHILOSOPHY",
+  philosophyQuote: "A creative professional’s greatest advantage isn’t resisting change — it’s adapting faster.",
+  stat1Num: "11+",
+  stat1Label: "YEARS EXPERIENCE",
+  stat2Num: "100+",
+  stat2Label: "PROJECTS",
+  stat3Num: "20+",
+  stat3Label: "CLIENTS",
+  collabTitle: "Global Collaboration",
+  collabDesc: "Producing scalable visual content, high-performing ads, and campaign assets for international brands and agencies.",
+  disciplinesTitle: "Disciplines",
+  disciplines: [
+    "Creative Direction",
+    "Motion Graphics",
+    "Branding & Identity",
+    "UI/UX Design",
+    "Digital Advertising",
+    "Video Production",
+  ],
+};
+
 interface PortfolioDataContextType {
   stage3: {
     classTag: string;
@@ -38,6 +83,7 @@ interface PortfolioDataContextType {
     heroCard: Stage3HeroCard;
   };
   clients: ClientItem[];
+  about: AboutData;
   allData: typeof antigravityData;
   updateStage3Video: (params: {
     youtubeUrl: string;
@@ -56,6 +102,7 @@ interface PortfolioDataContextType {
   deleteClientWork: (clientId: string, workId: string) => void;
   addClientFolder: (folder: { clientName: string; category: string; description?: string }) => void;
   deleteClientFolder: (clientId: string) => void;
+  updateAboutData: (newData: Partial<AboutData>) => void;
   resetPortfolioData: () => void;
   isAdminMode: boolean;
   setIsAdminMode: (open: boolean) => void;
@@ -89,6 +136,7 @@ const PortfolioDataContext = createContext<PortfolioDataContextType | undefined>
 export function PortfolioDataProvider({ children }: { children: React.ReactNode }) {
   const [stage3, setStage3] = useState(antigravityData.stage3);
   const [clients, setClients] = useState<ClientItem[]>(antigravityData.stage4.clients as ClientItem[]);
+  const [about, setAbout] = useState<AboutData>(defaultAboutData);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isCloudSyncActive, setIsCloudSyncActive] = useState(isSupabaseConfigured);
@@ -125,29 +173,33 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   }, []);
 
   // Helper to persist current state to LocalStorage
-  const persistState = useCallback((newStage3: typeof stage3, newClients: ClientItem[]) => {
-    try {
-      const payload = {
-        stage3: newStage3,
-        clients: newClients.map((c) => ({
-          id: c.id,
-          clientName: c.clientName,
-          category: c.category,
-          logo: c.logo || "",
-          color: c.color || "",
-          description: c.description || "",
-          tools: c.tools || [],
-          works: c.works || [],
-          itemsCount: c.works ? c.works.length : c.itemsCount,
-          isCustom: c.isCustom || false,
-        })),
-        updatedAt: new Date().toISOString(),
-      };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    } catch (err) {
-      console.warn("Failed to persist portfolio overrides to localStorage:", err);
-    }
-  }, []);
+  const persistState = useCallback(
+    (newStage3: typeof stage3, newClients: ClientItem[], newAbout?: AboutData) => {
+      try {
+        const payload = {
+          stage3: newStage3,
+          about: newAbout || about,
+          clients: newClients.map((c) => ({
+            id: c.id,
+            clientName: c.clientName,
+            category: c.category,
+            logo: c.logo || "",
+            color: c.color || "",
+            description: c.description || "",
+            tools: c.tools || [],
+            works: c.works || [],
+            itemsCount: c.works ? c.works.length : c.itemsCount,
+            isCustom: c.isCustom || false,
+          })),
+          updatedAt: new Date().toISOString(),
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+      } catch (err) {
+        console.warn("Failed to persist portfolio overrides to localStorage:", err);
+      }
+    },
+    [about]
+  );
 
   // Initialize: First from LocalStorage for instant render, then from Supabase if configured
   useEffect(() => {
@@ -211,6 +263,13 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
           setClients([...(mergedClients as ClientItem[]), ...customClientItems]);
         }
+
+        if (parsed.about) {
+          setAbout({
+            ...defaultAboutData,
+            ...parsed.about,
+          });
+        }
       }
 
       const session = sessionStorage.getItem(SESSION_KEY);
@@ -256,6 +315,23 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             .select("*");
 
           if (!clientsError && clientRows && Array.isArray(clientRows)) {
+            // 0. Extract About Section config from Supabase if present
+            const aboutRow = clientRows.find((r) => r.client_id === "site-about-section");
+            let latestAbout = defaultAboutData;
+            if (aboutRow && aboutRow.description) {
+              try {
+                const parsedAbout = JSON.parse(aboutRow.description);
+                latestAbout = {
+                  ...defaultAboutData,
+                  ...parsedAbout,
+                };
+                setAbout(latestAbout);
+              } catch (_) {}
+            }
+
+            // Exclude site-about-section from client folders list
+            const regularClientRows = clientRows.filter((r) => r.client_id !== "site-about-section");
+
             const defaultClients = antigravityData.stage4.clients;
             const defaultIds = new Set(defaultClients.map((d) => d.id));
 
@@ -289,7 +365,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
             // 1. Update existing default clients
             const mergedDefaults = defaultClients.map((d) => {
-              const match = clientRows.find((r) => r.client_id === d.id);
+              const match = regularClientRows.find((r) => r.client_id === d.id);
               if (!match) return d;
               const parsed = parseRowData(match, d);
               return {
@@ -302,7 +378,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             });
 
             // 2. Extract cloud-only custom folders (rows not in defaultClients)
-            const cloudCustoms: ClientItem[] = clientRows
+            const cloudCustoms: ClientItem[] = regularClientRows
               .filter((r) => !defaultIds.has(r.client_id))
               .map((r) => {
                 const parsed = parseRowData(r);
@@ -601,6 +677,33 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [stage3, clients, persistState]
   );
 
+  // Update About Me Section Content
+  const updateAboutData = useCallback(
+    async (newData: Partial<AboutData>) => {
+      const updatedAbout: AboutData = {
+        ...about,
+        ...newData,
+      };
+      setAbout(updatedAbout);
+      persistState(stage3, clients, updatedAbout);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("client_descriptions").upsert({
+            client_id: "site-about-section",
+            client_name: "About Section",
+            category: "About Section Config",
+            description: JSON.stringify(updatedAbout),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.warn("Supabase about section update notice:", err);
+        }
+      }
+    },
+    [about, stage3, clients, persistState]
+  );
+
   // Reset all overrides back to default projectsData
   const resetPortfolioData = useCallback(async () => {
     try {
@@ -665,6 +768,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       value={{
         stage3,
         clients,
+        about,
         allData,
         updateStage3Video,
         removeStage3Video,
@@ -674,6 +778,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         deleteClientWork,
         addClientFolder,
         deleteClientFolder,
+        updateAboutData,
         resetPortfolioData,
         isAdminMode,
         setIsAdminMode,

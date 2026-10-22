@@ -20,11 +20,13 @@ import {
   HiArrowRightOnRectangle,
   HiInformationCircle,
   HiTag,
+  HiUser,
 } from "react-icons/hi2";
 import {
   usePortfolioData,
   extractYouTubeId,
   ClientItem,
+  defaultAboutData,
 } from "@/context/PortfolioDataContext";
 import { getCaseStudy } from "@/components/Projects";
 
@@ -32,6 +34,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
     stage3,
     clients,
+    about,
+    updateAboutData,
     updateStage3Video,
     removeStage3Video,
     updateClientDescription,
@@ -46,8 +50,98 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     isCloudSyncActive,
   } = usePortfolioData();
 
-  // Active Tab: 'flagship' (YouTube Embed) | 'clients' (Brand Descriptions & My Work Gallery)
-  const [activeTab, setActiveTab] = useState<"flagship" | "clients">("clients");
+  // Active Tab: 'clients' (Portfolio & Folders) | 'about' (About Me Section) | 'flagship' (YouTube Video)
+  const [activeTab, setActiveTab] = useState<"clients" | "about" | "flagship">("clients");
+
+  // About Me Section Form States
+  const [aboutEyebrow, setAboutEyebrow] = useState(about?.eyebrow || defaultAboutData.eyebrow);
+  const [aboutTitle, setAboutTitle] = useState(about?.title || defaultAboutData.title);
+  const [aboutHeadline, setAboutHeadline] = useState(about?.headline || defaultAboutData.headline);
+  const [aboutBio, setAboutBio] = useState(about?.bio || defaultAboutData.bio);
+  const [aboutPhilosophyTitle, setAboutPhilosophyTitle] = useState(about?.philosophyTitle || defaultAboutData.philosophyTitle);
+  const [aboutPhilosophyQuote, setAboutPhilosophyQuote] = useState(about?.philosophyQuote || defaultAboutData.philosophyQuote);
+  const [aboutStat1Num, setAboutStat1Num] = useState(about?.stat1Num || defaultAboutData.stat1Num);
+  const [aboutStat1Label, setAboutStat1Label] = useState(about?.stat1Label || defaultAboutData.stat1Label);
+  const [aboutStat2Num, setAboutStat2Num] = useState(about?.stat2Num || defaultAboutData.stat2Num);
+  const [aboutStat2Label, setAboutStat2Label] = useState(about?.stat2Label || defaultAboutData.stat2Label);
+  const [aboutStat3Num, setAboutStat3Num] = useState(about?.stat3Num || defaultAboutData.stat3Num);
+  const [aboutStat3Label, setAboutStat3Label] = useState(about?.stat3Label || defaultAboutData.stat3Label);
+  const [aboutCollabTitle, setAboutCollabTitle] = useState(about?.collabTitle || defaultAboutData.collabTitle);
+  const [aboutCollabDesc, setAboutCollabDesc] = useState(about?.collabDesc || defaultAboutData.collabDesc);
+  const [aboutDisciplinesTitle, setAboutDisciplinesTitle] = useState(about?.disciplinesTitle || defaultAboutData.disciplinesTitle);
+  const [aboutDisciplinesInput, setAboutDisciplinesInput] = useState(
+    about?.disciplines ? about.disciplines.join(", ") : defaultAboutData.disciplines.join(", ")
+  );
+
+  // Sync About Me form inputs whenever cloud data loads
+  useEffect(() => {
+    if (about) {
+      setAboutEyebrow(about.eyebrow);
+      setAboutTitle(about.title);
+      setAboutHeadline(about.headline);
+      setAboutBio(about.bio);
+      setAboutPhilosophyTitle(about.philosophyTitle);
+      setAboutPhilosophyQuote(about.philosophyQuote);
+      setAboutStat1Num(about.stat1Num);
+      setAboutStat1Label(about.stat1Label);
+      setAboutStat2Num(about.stat2Num);
+      setAboutStat2Label(about.stat2Label);
+      setAboutStat3Num(about.stat3Num);
+      setAboutStat3Label(about.stat3Label);
+      setAboutCollabTitle(about.collabTitle);
+      setAboutCollabDesc(about.collabDesc);
+      setAboutDisciplinesTitle(about.disciplinesTitle);
+      setAboutDisciplinesInput(about.disciplines ? about.disciplines.join(", ") : "");
+    }
+  }, [about]);
+
+  const handleSaveAbout = (e: React.FormEvent) => {
+    e.preventDefault();
+    const parsedDisciplines = aboutDisciplinesInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    updateAboutData({
+      eyebrow: aboutEyebrow.trim(),
+      title: aboutTitle.trim(),
+      headline: aboutHeadline.trim(),
+      bio: aboutBio.trim(),
+      philosophyTitle: aboutPhilosophyTitle.trim(),
+      philosophyQuote: aboutPhilosophyQuote.trim(),
+      stat1Num: aboutStat1Num.trim(),
+      stat1Label: aboutStat1Label.trim(),
+      stat2Num: aboutStat2Num.trim(),
+      stat2Label: aboutStat2Label.trim(),
+      stat3Num: aboutStat3Num.trim(),
+      stat3Label: aboutStat3Label.trim(),
+      collabTitle: aboutCollabTitle.trim(),
+      collabDesc: aboutCollabDesc.trim(),
+      disciplinesTitle: aboutDisciplinesTitle.trim(),
+      disciplines: parsedDisciplines,
+    });
+
+    showToast("Seluruh teks Section About Me berhasil disimpan & langsung aktif di web publik!");
+  };
+
+  const handleResetAbout = () => {
+    setAboutEyebrow(defaultAboutData.eyebrow);
+    setAboutTitle(defaultAboutData.title);
+    setAboutHeadline(defaultAboutData.headline);
+    setAboutBio(defaultAboutData.bio);
+    setAboutPhilosophyTitle(defaultAboutData.philosophyTitle);
+    setAboutPhilosophyQuote(defaultAboutData.philosophyQuote);
+    setAboutStat1Num(defaultAboutData.stat1Num);
+    setAboutStat1Label(defaultAboutData.stat1Label);
+    setAboutStat2Num(defaultAboutData.stat2Num);
+    setAboutStat2Label(defaultAboutData.stat2Label);
+    setAboutStat3Num(defaultAboutData.stat3Num);
+    setAboutStat3Label(defaultAboutData.stat3Label);
+    setAboutCollabTitle(defaultAboutData.collabTitle);
+    setAboutCollabDesc(defaultAboutData.collabDesc);
+    setAboutDisciplinesTitle(defaultAboutData.disciplinesTitle);
+    setAboutDisciplinesInput(defaultAboutData.disciplines.join(", "));
+  };
 
   // Tab 1: Flagship Showcase Video State
   const [videoUrlInput, setVideoUrlInput] = useState(
@@ -416,8 +510,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       {/* Top Floating Glassmorphic Header */}
       <header className="sticky top-0 z-50 bg-[#0d0e12]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#14AF9E] to-cyan-600 flex items-center justify-center text-black font-black text-sm shadow-[0_0_20px_rgba(20,175,158,0.4)]">
-            RX
+          <div className="w-9 h-9 rounded-xl bg-white p-1 border border-white/20 shadow-md shadow-cyan-500/10 flex items-center justify-center shrink-0 overflow-hidden">
+            <img
+              src="/brand-logo.png"
+              alt="Rizx Studio Logo"
+              className="w-full h-full object-contain"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -490,31 +588,44 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 max-w-xl mx-auto mb-8 backdrop-blur-md">
+        <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 max-w-2xl mx-auto mb-8 backdrop-blur-md">
           <button
             type="button"
             onClick={() => setActiveTab("clients")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === "clients"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <HiFolder className="w-4 h-4" />
-            <span>1. Manajemen Portofolio & Klien</span>
+            <span>1. Portofolio & Folder</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("about")}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+              activeTab === "about"
+                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
+                : "text-neutral-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <HiUser className="w-4 h-4" />
+            <span>2. Section About Me</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab("flagship")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer ${
               activeTab === "flagship"
                 ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
                 : "text-neutral-400 hover:text-white hover:bg-white/5"
             }`}
           >
             <HiVideoCamera className="w-4 h-4" />
-            <span>2. Embed Video YouTube</span>
+            <span>3. Video YouTube</span>
           </button>
         </div>
 
@@ -874,6 +985,310 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
               </div>
             )}
+          </motion.div>
+        )}
+
+        {/* TAB: ABOUT ME SECTION MANAGEMENT */}
+        {activeTab === "about" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
+            {/* Header Explainer */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+                SECTION CONTROL: ABOUT ME (WHO AM I)
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                Kustomisasi Seluruh Teks Section About Me
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
+                Ubah headline, narasi profil, filosofi inti, 3 statistik pengalaman, teks kolaborasi global, dan disiplin keahlian. Setiap perubahan langsung disimpan ke Supabase Cloud & LocalStorage dan tayang langsung di web publik.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveAbout} className="space-y-6">
+              {/* 1. Main Headline & Bio */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className="pb-3 border-b border-white/10">
+                  <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                    BAGIAN 1 · HEADER & NARASI UTAMA
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    Judul & Deskripsi Utama Profil
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Sub-header / Eyebrow Tag
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutEyebrow}
+                      onChange={(e) => setAboutEyebrow(e.target.value)}
+                      placeholder="WHO AM I"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] font-mono transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Judul Section (Title)
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutTitle}
+                      onChange={(e) => setAboutTitle(e.target.value)}
+                      placeholder="About Me"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    Headline Utama (Besar)
+                  </label>
+                  <input
+                    type="text"
+                    value={aboutHeadline}
+                    onChange={(e) => setAboutHeadline(e.target.value)}
+                    placeholder="Creative Designer & Motion Specialist | 11+ Years | Agency & Global Brands"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-semibold focus:outline-none focus:border-[#14AF9E] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    Paragraf Narasi / Bio
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={aboutBio}
+                    onChange={(e) => setAboutBio(e.target.value)}
+                    placeholder="With 11+ years in creative design, I’ve evolved alongside the industry..."
+                    className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm leading-relaxed focus:outline-none focus:border-[#14AF9E] transition-all resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Filosofi Inti (Core Philosophy) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className="pb-3 border-b border-white/10">
+                  <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                    BAGIAN 2 · FILOSOFI INTI
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    Quote & Core Philosophy
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Label / Tag Box
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutPhilosophyTitle}
+                      onChange={(e) => setAboutPhilosophyTitle(e.target.value)}
+                      placeholder="CORE PHILOSOPHY"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] transition-all"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Isi Kutipan / Quote Filosofi
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutPhilosophyQuote}
+                      onChange={(e) => setAboutPhilosophyQuote(e.target.value)}
+                      placeholder="A creative professional’s greatest advantage isn’t resisting change — it’s adapting faster."
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm italic focus:outline-none focus:border-[#14AF9E] transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Tiga Statistik Utama (3 Key Stats) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className="pb-3 border-b border-white/10">
+                  <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                    BAGIAN 3 · STATISTIK PENGALAMAN
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    3 Angka Prestasi & Pengalaman
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Stat 1 */}
+                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
+                    <label className="block text-[11px] font-mono text-[#14AF9E] font-semibold uppercase">
+                      Statistik 1 (Warna Aksen Hijau/Cyan)
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutStat1Num}
+                      onChange={(e) => setAboutStat1Num(e.target.value)}
+                      placeholder="11+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#14AF9E]"
+                    />
+                    <input
+                      type="text"
+                      value={aboutStat1Label}
+                      onChange={(e) => setAboutStat1Label(e.target.value)}
+                      placeholder="YEARS EXPERIENCE"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#14AF9E]"
+                    />
+                  </div>
+
+                  {/* Stat 2 */}
+                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
+                    <label className="block text-[11px] font-mono text-neutral-400 font-semibold uppercase">
+                      Statistik 2
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutStat2Num}
+                      onChange={(e) => setAboutStat2Num(e.target.value)}
+                      placeholder="100+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#14AF9E]"
+                    />
+                    <input
+                      type="text"
+                      value={aboutStat2Label}
+                      onChange={(e) => setAboutStat2Label(e.target.value)}
+                      placeholder="PROJECTS"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#14AF9E]"
+                    />
+                  </div>
+
+                  {/* Stat 3 */}
+                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
+                    <label className="block text-[11px] font-mono text-neutral-400 font-semibold uppercase">
+                      Statistik 3
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutStat3Num}
+                      onChange={(e) => setAboutStat3Num(e.target.value)}
+                      placeholder="20+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#14AF9E]"
+                    />
+                    <input
+                      type="text"
+                      value={aboutStat3Label}
+                      onChange={(e) => setAboutStat3Label(e.target.value)}
+                      placeholder="CLIENTS"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#14AF9E]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Sidebar Cards (Global Collaboration & Disciplines) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className="pb-3 border-b border-white/10">
+                  <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                    BAGIAN 4 · KARTU SAMPING (SIDEBAR CARDS)
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    Kolaborasi Global & Disiplin Keahlian
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Kolaborasi Global */}
+                  <div className="space-y-3 p-4 rounded-xl bg-neutral-950 border border-white/10">
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                        Judul Kartu Kolaborasi
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutCollabTitle}
+                        onChange={(e) => setAboutCollabTitle(e.target.value)}
+                        placeholder="Global Collaboration"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                        Deskripsi Kolaborasi
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={aboutCollabDesc}
+                        onChange={(e) => setAboutCollabDesc(e.target.value)}
+                        placeholder="Producing scalable visual content, high-performing ads..."
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-[#14AF9E] resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Disiplin Keahlian */}
+                  <div className="space-y-3 p-4 rounded-xl bg-neutral-950 border border-white/10">
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                        Judul Kartu Disiplin
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutDisciplinesTitle}
+                        onChange={(e) => setAboutDisciplinesTitle(e.target.value)}
+                        placeholder="Disciplines"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-mono text-neutral-300 font-medium">
+                          Daftar Keahlian (Pisahkan dengan koma)
+                        </label>
+                        <span className="text-[10px] font-mono text-cyan-400">
+                          {aboutDisciplinesInput.split(",").filter((t) => t.trim()).length} Tags
+                        </span>
+                      </div>
+                      <textarea
+                        rows={3}
+                        value={aboutDisciplinesInput}
+                        onChange={(e) => setAboutDisciplinesInput(e.target.value)}
+                        placeholder="Creative Direction, Motion Graphics, Branding & Identity, UI/UX Design, Digital Advertising, Video Production"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono leading-relaxed focus:outline-none focus:border-[#14AF9E] resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3 pt-2">
+                <button
+                  type="submit"
+                  className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer"
+                >
+                  <HiCheck className="w-4 h-4" />
+                  <span>Simpan Perubahan About Me & Update Web</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleResetAbout}
+                  className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
+                >
+                  Reset Form
+                </button>
+              </div>
+            </form>
           </motion.div>
         )}
 
