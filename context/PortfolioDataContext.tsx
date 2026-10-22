@@ -320,7 +320,14 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 };
               });
 
-            setClients([...(mergedDefaults as ClientItem[]), ...cloudCustoms]);
+            const finalClients: ClientItem[] = [
+              ...(mergedDefaults as ClientItem[]),
+              ...cloudCustoms,
+            ];
+            setClients(finalClients);
+            try {
+              persistState(stage3, finalClients);
+            } catch (_) {}
           }
 
           setIsCloudSyncActive(true);
