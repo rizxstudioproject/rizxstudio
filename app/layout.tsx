@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import ContentGuard from "@/components/ContentGuard";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { PortfolioDataProvider } from "@/context/PortfolioDataContext";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://rizxstudio.com"),
@@ -68,7 +69,9 @@ export default function RootLayout({
         {/* Multi-layer content protection: anti-rightclick, anti-drag, anti-snip */}
         <ContentGuard />
         <LanguageProvider>
-          {children}
+          <PortfolioDataProvider>
+            {children}
+          </PortfolioDataProvider>
         </LanguageProvider>
       </body>
     </html>

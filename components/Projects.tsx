@@ -9,9 +9,11 @@ import {
   HiSparkles,
   HiExclamationTriangle,
   HiCheckCircle,
+  HiPlay,
 } from "react-icons/hi2";
 import { SiBlender, SiFigma, SiCinema4D, SiGooglegemini } from "react-icons/si";
 import { useLang } from "@/context/LanguageContext";
+import { usePortfolioData, extractYouTubeId } from "@/context/PortfolioDataContext";
 
 interface WorkItem {
   id: string;
@@ -32,6 +34,8 @@ interface WorkItem {
 
 interface ModalItem extends WorkItem {
   clientName: string;
+  videoId?: string;
+  youtubeUrl?: string;
 }
 
 /**
@@ -463,12 +467,17 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
 };
 
 export default function Projects() {
-  const { stage1, stage2, stage3, stage4 } = antigravityData;
+  const { stage1, stage2 } = antigravityData;
+  // Use context for stage3 & stage4 to pick up live edits from Admin Dashboard
+  const { stage3, clients: contextClients, allData } = usePortfolioData();
+  const stage4 = { ...allData.stage4, clients: contextClients };
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [hoveredCard, setHoveredCard] = useState<string | null>(null);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedClient, setSelectedClient] = useState<string>(stage4.clients[0].id);
+  const [flagshipMode, setFlagshipMode] = useState<"video" | "image">("video");
   const { t, lang } = useLang();
   const isId = lang === "id";
 
@@ -568,6 +577,43 @@ export default function Projects() {
     const targetY = stageTop + totalHeight * 0.88;
     window.scrollTo({ top: targetY, behavior: "smooth" });
   };
+
+  // Scroll directly to Stage 3 (Flagship Showcase: YouTube Video Embed)
+  const scrollToFlagshipStage = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const stageTop = rect.top + scrollTop;
+    const totalHeight = rect.height - window.innerHeight;
+    // Progress 0.63 is exactly centered on Stage 3 Flagship Showcase
+    const targetY = stageTop + totalHeight * 0.63;
+    window.scrollTo({ top: targetY, behavior: "smooth" });
+  }, []);
+
+  // Auto-scroll to Stage 3 if requested from Admin or URL hash
+  useEffect(() => {
+    const handleCheckDirectScroll = () => {
+      if (typeof window === "undefined") return;
+      const shouldScrollToFlagship =
+        sessionStorage.getItem("rizx_scroll_to_flagship") === "true" ||
+        window.location.hash === "#flagship-showcase";
+
+      if (shouldScrollToFlagship) {
+        try {
+          sessionStorage.removeItem("rizx_scroll_to_flagship");
+        } catch (_) {}
+
+        // Small delay to allow DOM and pinned layout to settle
+        setTimeout(() => {
+          scrollToFlagshipStage();
+        }, 180);
+      }
+    };
+
+    handleCheckDirectScroll();
+    window.addEventListener("hashchange", handleCheckDirectScroll);
+    return () => window.removeEventListener("hashchange", handleCheckDirectScroll);
+  }, [scrollToFlagshipStage]);
 
   const activeClientData = stage4.clients.find((c) => c.id === selectedClient) || stage4.clients[0];
 
@@ -842,10 +888,11 @@ export default function Projects() {
         </div>
 
         {/* ========================================================
-            STAGE 3: Full Wide Hero Showcase ("Gateway to artist people.")
+            STAGE 3: Flagship Showcase (From Visual Craft to Technology)
             (Active: 0.52 -> 0.74)
            ======================================================== */}
         <div
+          id="flagship-showcase"
           className="absolute inset-0 max-w-4xl mx-auto flex flex-col justify-center px-4 sm:px-8 my-auto"
           style={{
             opacity:
@@ -867,56 +914,75 @@ export default function Projects() {
         >
           <div className="mb-4 sm:mb-6 text-center sm:text-left">
             <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] block mb-1.5 font-semibold">
-              {t("projects.stage3.tag")}
+              {stage3?.classTag || t("projects.stage3.tag")}
             </span>
             <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
-              {t("projects.stage3.headline")}
+              {stage3?.headline || t("projects.stage3.headline")}
             </h2>
           </div>
 
-          {/* Large Aspect Card */}
-          <div
-            onClick={() =>
-              setModalData({
-                items: [
-                  {
-                    id: "hero-showcase",
-                    title: t("projects.stage3.card.title"),
-                    type: t("projects.stage3.card.category"),
-                    image: stage3.heroCard.image,
-                    aspect: "16:9",
-                    clientName: isId ? "Karya Unggulan" : "Flagship Showcase",
-                    isClientWork: false,
-                  },
-                ],
-                currentIndex: 0,
-              })
-            }
-            className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-neutral-900 group cursor-pointer"
-          >
-            <img
-              src={stage3.heroCard.image}
-              alt={t("projects.stage3.card.title")}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
-            
-            <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-8 flex flex-col">
-              <span className="text-xs sm:text-xs font-mono uppercase tracking-widest text-cyan-400 mb-1 font-semibold">
-                {t("projects.stage3.card.category")}
-              </span>
-              <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white">
-                {t("projects.stage3.card.title")}
-              </h3>
-            </div>
+          {/* Large Aspect Card — Video Plays Inside the Card with View Full Button */}
+          {(() => {
+            const computedVideoId =
+              stage3?.heroCard?.videoId ||
+              extractYouTubeId(stage3?.heroCard?.youtubeUrl || "") ||
+              "dQw4w9WgXcQ";
 
-            <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-8">
-              <span className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-xs sm:text-xs flex items-center gap-1.5">
-                <span>{t("projects.stage3.card.btn")}</span>
-                <HiArrowUpRight className="w-3.5 h-3.5" />
-              </span>
-            </div>
-          </div>
+            return (
+              <div
+                onClick={() =>
+                  setModalData({
+                    items: [
+                      {
+                        id: "hero-showcase",
+                        title: stage3?.heroCard?.title || t("projects.stage3.card.title"),
+                        type: stage3?.heroCard?.category || t("projects.stage3.card.category"),
+                        image: stage3?.heroCard?.image || "/assets/antigravity/hero-large.jpg",
+                        aspect: "16:9",
+                        clientName: isId ? "Karya Unggulan" : "Flagship Showcase",
+                        isClientWork: false,
+                        videoId: computedVideoId,
+                        youtubeUrl: stage3?.heroCard?.youtubeUrl,
+                      },
+                    ],
+                    currentIndex: 0,
+                  })
+                }
+                className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-neutral-900 group cursor-pointer"
+              >
+                {/* Embedded Video Filling the Card */}
+                <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${computedVideoId}?autoplay=1&mute=1&loop=1&playlist=${computedVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+                    title={stage3?.heroCard?.title || "Flagship Showcase Video"}
+                    className="w-full h-full object-cover scale-[1.18] border-0 pointer-events-none"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                </div>
+
+                {/* Dark Vignette / Gradient Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
+
+                {/* Bottom Left: Title & Category */}
+                <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-8 flex flex-col pointer-events-none z-10">
+                  <span className="text-xs sm:text-xs font-mono uppercase tracking-widest text-cyan-400 mb-1 font-semibold">
+                    {stage3?.heroCard?.category || t("projects.stage3.card.category")}
+                  </span>
+                  <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white">
+                    {stage3?.heroCard?.title || t("projects.stage3.card.title")}
+                  </h3>
+                </div>
+
+                {/* Bottom Right: View Full Button */}
+                <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-8 z-20">
+                  <span className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-xs sm:text-xs flex items-center gap-1.5 group-hover:bg-neutral-200 transition-all group-hover:scale-105 shadow-xl">
+                    <span>{t("projects.stage3.card.btn")}</span>
+                    <HiArrowUpRight className="w-3.5 h-3.5" />
+                  </span>
+                </div>
+              </div>
+            );
+          })()}
         </div>
 
         {/* ========================================================
@@ -1001,6 +1067,21 @@ export default function Projects() {
               </span>
             </div>
 
+            {/* Brand Description Panel — only show if set */}
+            {(activeClientData as any).description && (
+              <div className="mb-3 px-1">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10">
+                  <div className="flex items-center gap-1.5 text-[#14AF9E] text-[10px] font-mono font-semibold uppercase tracking-wider mb-1.5">
+                    <HiSparkles className="w-3 h-3" />
+                    <span>{isId ? "Tentang Klien & Brand" : "About Client & Brand"}</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-300 font-light leading-relaxed line-clamp-3">
+                    {(activeClientData as any).description}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[260px] sm:max-h-[300px] overflow-y-auto pr-1">
               {activeClientData.works.map((work, wIdx) => {
@@ -1018,6 +1099,7 @@ export default function Projects() {
                             type: loc.type,
                             clientName: activeClientData.clientName,
                             isClientWork: true,
+                            tools: (w as any).tools || (activeClientData as any).tools,
                           };
                         }),
                         currentIndex: wIdx,
@@ -1117,23 +1199,35 @@ export default function Projects() {
                     </button>
                   )}
 
-                  {/* Main Large Visual Artwork (Clean, pristine, no watermark) */}
-                  <div className="relative select-none flex items-center justify-center">
-                    <img
-                      key={currentWork.id}
-                      src={currentWork.image}
-                      alt={currentWork.title}
-                      className="max-h-[66vh] sm:max-h-[74vh] md:max-h-[78vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
-                      draggable={false}
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
-                    {/* Transparent shield: stops right-click "Save Image As" and drag */}
-                    <div
-                      className="absolute inset-0 rounded-xl sm:rounded-2xl z-10 cursor-default"
-                      onContextMenu={(e) => e.preventDefault()}
-                      draggable={false}
-                    />
-                  </div>
+                  {/* Main Large Visual Artwork or Interactive YouTube Player */}
+                  {currentWork.id === "hero-showcase" || currentWork.videoId ? (
+                    <div className="relative w-full max-w-4xl aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+                      <iframe
+                        src={`https://www.youtube.com/embed/${currentWork.videoId || stage3?.heroCard?.videoId || "dQw4w9WgXcQ"}?autoplay=1&rel=0&modestbranding=1`}
+                        title={currentWork.title}
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative select-none flex items-center justify-center">
+                      <img
+                        key={currentWork.id}
+                        src={currentWork.image}
+                        alt={currentWork.title}
+                        className="max-h-[66vh] sm:max-h-[74vh] md:max-h-[78vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
+                        draggable={false}
+                        onContextMenu={(e) => e.preventDefault()}
+                      />
+                      {/* Transparent shield: stops right-click "Save Image As" and drag */}
+                      <div
+                        className="absolute inset-0 rounded-xl sm:rounded-2xl z-10 cursor-default"
+                        onContextMenu={(e) => e.preventDefault()}
+                        draggable={false}
+                      />
+                    </div>
+                  )}
 
                   {/* Scroll Down Indicator Cue (Only for client works that have case study details below) */}
                   {currentWork.isClientWork && (
@@ -1274,9 +1368,21 @@ export default function Projects() {
                               {t("projects.tools")}
                             </span>
                             <div className="flex flex-wrap items-center gap-1.5">
-                              {caseStudy.tools.map((t, idx) => (
-                                <ToolBadge key={idx} tool={t} />
-                              ))}
+                              {(() => {
+                                const clientMatch = contextClients.find(
+                                  (c) => c.clientName === currentWork.clientName || c.clientName === currentWork.brand
+                                );
+                                const resolvedTools =
+                                  (currentWork.tools && currentWork.tools.length > 0)
+                                    ? currentWork.tools
+                                    : (clientMatch?.tools && clientMatch.tools.length > 0)
+                                    ? clientMatch.tools
+                                    : caseStudy.tools;
+
+                                return resolvedTools.map((toolItem: string, idx: number) => (
+                                  <ToolBadge key={idx} tool={toolItem} />
+                                ));
+                              })()}
                             </div>
                           </div>
 
@@ -1288,6 +1394,25 @@ export default function Projects() {
                             {t("projects.close")}
                           </button>
                         </div>
+
+                        {/* Brand Description — shown at bottom of case study if available */}
+                        {(() => {
+                          const clientData = contextClients.find(
+                            (c) => c.clientName === currentWork.clientName
+                          );
+                          const brandDesc = (clientData as any)?.description;
+                          if (!brandDesc) return null;
+                          return (
+                            <div className="mt-2 p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20">
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold block mb-1">
+                                {isId ? "Profil & Deskripsi Brand" : "Brand Profile & Context"} — {currentWork.clientName}
+                              </span>
+                              <p className="text-xs text-neutral-300 font-light leading-relaxed">
+                                {brandDesc}
+                              </p>
+                            </div>
+                          );
+                        })()}
                       </div>
                     );
                   })()

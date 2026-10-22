@@ -48,6 +48,10 @@ export const antigravityData = {
       title: "From Visual Craft to Technology",
       category: "VISUAL CRAFT | DIGITAL | AI",
       aspectRatio: "16:9",
+      youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      videoId: "dQw4w9WgXcQ",
+      description: "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences.",
+      isVideoEnabled: true,
     },
   },
 
@@ -66,6 +70,7 @@ export const antigravityData = {
         logo: "/logos/logo_11.svg",
         color: "from-red-600/30 via-neutral-900/40 to-neutral-900",
         itemsCount: 6,
+        description: "KIA Dufour is an authorized automotive dealership network in France representing Kia's forward-thinking electric vehicle line-up. Our collaboration focuses on producing high-end digital advertising campaigns, 3D/AI concept automotive visualizations, and promotional marketing collateral for models including the EV2, Sportage, and PBV concepts.",
         works: [
           {
             id: "kia-1",
@@ -166,6 +171,7 @@ export const antigravityData = {
         logo: "/logos/logo_15.svg",
         color: "from-teal-600/30 via-emerald-900/20 to-neutral-900",
         itemsCount: 10,
+        description: "HYASHOP is a premier curated fashion and footwear retail brand catering to contemporary streetwear and luxury sneaker enthusiasts. We delivered a series of digital campaigns, visual brand identities, and commercial e-commerce advertising graphics emphasizing premium aesthetics and youth street culture.",
         works: [
           {
             id: "hya-1",
@@ -326,6 +332,7 @@ export const antigravityData = {
         logo: "/logos/logo_21.svg",
         color: "from-amber-600/30 via-red-900/30 to-neutral-900",
         itemsCount: 3,
+        description: "Burger King is a world-renowned global fast-food brand recognized for bold flavor and playful marketing. We crafted dynamic back-to-school promotional campaign graphics and character-driven digital ad assets featuring the 'Where's Charlie?' collection across multiple social and digital display formats.",
         works: [
           {
             id: "bk-1",
@@ -381,6 +388,7 @@ export const antigravityData = {
         logo: "/logos/logo_07.svg",
         color: "from-blue-600/30 via-indigo-900/20 to-neutral-900",
         itemsCount: 3,
+        description: "Permifast is a French driver education platform simplifying access to driving licenses and road safety certifications. We designed engaging digital giveaway promotional campaigns, promotional banners, and targeted social media ad creatives driving user registration.",
         works: [
           {
             id: "permi-1",
@@ -436,6 +444,7 @@ export const antigravityData = {
         logo: "/logos/logo_12.svg",
         color: "from-purple-600/30 via-violet-900/20 to-neutral-900",
         itemsCount: 9,
+        description: "Xeilos is a high-growth crypto and algorithmic trading intelligence brand. We provided comprehensive digital marketing visuals, Trading Summit advertising assets, and high-impact futuristic brand graphics tailored to financial tech audiences.",
         works: [
           {
             id: "xeilos-1",
@@ -581,6 +590,7 @@ export const antigravityData = {
         logo: "/logos/logo_10.svg",
         color: "from-emerald-600/30 via-teal-900/20 to-neutral-900",
         itemsCount: 6,
+        description: "ADL Finance is a modern financial consultancy and wealth management firm. We crafted digital advertising campaigns, investment service promotions, and professional social media collateral designed to build trust and elevate institutional authority.",
         works: [
           {
             id: "adl-1",
@@ -681,6 +691,7 @@ export const antigravityData = {
         logo: "/logos/logo_14.svg",
         color: "from-blue-600/30 via-sky-900/20 to-neutral-900",
         itemsCount: 6,
+        description: "EDUF is an international education agency and student mobility consultancy. We developed inspirational digital advertising campaigns, study abroad visual guides, and student enrollment creative assets highlighting academic excellence.",
         works: [
           {
             id: "eduf-1",
@@ -781,6 +792,7 @@ export const antigravityData = {
         logo: "/logos/logo_23.svg",
         color: "from-cyan-600/30 via-slate-900/20 to-neutral-900",
         itemsCount: 6,
+        description: "Withings is a pioneer in connected health technology and medical-grade smart devices. We produced clean, minimalist digital advertising campaigns and product showcase visuals highlighting health monitoring innovations and smart lifestyle integration.",
         works: [
           {
             id: "with-1",

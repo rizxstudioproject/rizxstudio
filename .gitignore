@@ -15,6 +15,7 @@ node_modules/
 # OS
 .DS_Store
 Thumbs.db
+tsconfig.tsbuildinfo
 
 # Logs
 *.log
