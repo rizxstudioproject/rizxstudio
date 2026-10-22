@@ -1994,7 +1994,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </label>
                   <p className="text-[11px] text-neutral-400 font-mono leading-relaxed mt-1">
                     📐 <strong>Ukuran Frame Tampil:</strong> <span className="text-white font-semibold">160 × 56 pixel</span> (tinggi logo: 28px).<br />
-                    ✨ <strong>Ukuran File Disarankan:</strong> <span className="text-[#14AF9E] font-semibold">200 × 60 px</span> s/d <span className="text-[#14AF9E] font-semibold">300 × 80 px</span> (Format SVG atau PNG Transparan @2x).
+                    ✨ <strong>Ukuran File Disarankan:</strong> <span className="text-[#14AF9E] font-semibold">200 × 60 px</span> s/d <span className="text-[#14AF9E] font-semibold">300 × 80 px</span> (Format SVG atau PNG Transparan).
                   </p>
                 </div>
               </div>
