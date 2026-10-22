@@ -39,7 +39,7 @@ import {
   OverlappingCardItem,
   ClientLogoItem,
 } from "@/context/PortfolioDataContext";
-import { getCaseStudy } from "@/components/Projects";
+import { getCaseStudy, getAspectClass } from "@/components/Projects";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -1558,8 +1558,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               )}
                             </div>
 
-                            {/* Image Thumbnail Container */}
-                            <div className="relative w-full aspect-[4/5] bg-black overflow-hidden">
+                            {/* Image Thumbnail Container — matches work.aspect (16:9, 1:1, 4:5, etc) */}
+                            <div className={`relative w-full ${getAspectClass(work.aspect)} bg-black overflow-hidden transition-all duration-300`}>
                               <img
                                 src={work.image}
                                 alt={work.title}

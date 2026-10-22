@@ -520,6 +520,18 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
   return { title: localizedTitle, type: localizedType };
 };
 
+export const getAspectClass = (aspect?: string) => {
+  const norm = (aspect || "").trim().toLowerCase();
+  if (norm === "16:9" || norm === "16/9") return "aspect-[16/9]";
+  if (norm === "1:1" || norm === "1/1" || norm === "square") return "aspect-square";
+  if (norm === "9:16" || norm === "9/16") return "aspect-[9/16]";
+  if (norm === "4:3" || norm === "4/3") return "aspect-[4/3]";
+  if (norm === "3:4" || norm === "3/4") return "aspect-[3/4]";
+  if (norm === "21:9" || norm === "21/9") return "aspect-[21/9]";
+  // Default to 4:5
+  return "aspect-[4/5]";
+};
+
 export default function Projects() {
   const { stage1: defaultStage1, stage2: defaultStage2 } = antigravityData;
   // Use context for live edits from Admin Dashboard
@@ -1269,9 +1281,10 @@ export default function Projects() {
             {/* Brand Description Panel — REMOVED from folder view, shown only inside modal popup */}
 
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL (Clean without right scrollbar) */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto no-scrollbar">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto no-scrollbar items-start">
               {activeClientData.works.map((work, wIdx) => {
                 const localizedWork = getWorkLocalized(work, isId);
+                const aspectClass = getAspectClass(work.aspect);
                 return (
                   <div
                     key={work.id}
@@ -1291,7 +1304,7 @@ export default function Projects() {
                         currentIndex: wIdx,
                       })
                     }
-                    className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-cyan-400/50 transition-all cursor-pointer aspect-square hover:scale-[1.02]"
+                    className={`group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-cyan-400/50 transition-all cursor-pointer ${aspectClass} hover:scale-[1.02]`}
                   >
                     <img
                       src={work.image}
