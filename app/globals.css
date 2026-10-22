@@ -40,6 +40,7 @@ body {
 /* Custom Deep Space Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -54,6 +55,35 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.28);
+}
+
+/* Client Folder Themed Scrollbar (#14AF9E) — Slim, Vibrant & High Contrast */
+.folder-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #14AF9E rgba(20, 175, 158, 0.15);
+}
+
+.folder-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  width: 4px;
+}
+
+.folder-scrollbar::-webkit-scrollbar-track {
+  background: rgba(20, 175, 158, 0.12);
+  border-radius: 9999px;
+  margin: 0 4px;
+}
+
+.folder-scrollbar::-webkit-scrollbar-thumb {
+  background: #14AF9E;
+  border-radius: 9999px;
+  box-shadow: 0 0 10px rgba(20, 175, 158, 0.6);
+  transition: background-color 0.2s ease;
+}
+
+.folder-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #2dd4bf;
+  box-shadow: 0 0 14px rgba(45, 212, 191, 0.8);
 }
 
 /* Selection */

@@ -1102,7 +1102,7 @@ export default function Projects() {
                     folderScrollRef.current.scrollLeft += e.deltaY;
                   }
                 }}
-                className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent scroll-smooth select-none"
+                className="flex items-center gap-2 overflow-x-auto pb-2.5 folder-scrollbar scroll-smooth select-none"
               >
                 {stage4.clients.map((client) => {
                   const isSelected = selectedClient === client.id;
@@ -1146,7 +1146,7 @@ export default function Projects() {
             {/* Brand Description Panel — REMOVED from folder view, shown only inside modal popup */}
 
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL */}
-            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto pr-1">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto pr-1 folder-scrollbar">
               {activeClientData.works.map((work, wIdx) => {
                 const localizedWork = getWorkLocalized(work, isId);
                 return (
