@@ -72,3 +72,35 @@ export async function clearCustomFramesFromDB(): Promise<void> {
     console.warn("Could not clear sequence from IndexedDB:", err);
   }
 }
+
+export async function saveStage3ImageToDB(dataUrl: string): Promise<void> {
+  try {
+    if (!dataUrl) return;
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.put(dataUrl, "stage3_image");
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.warn("Could not save stage3 image to IndexedDB:", err);
+  }
+}
+
+export async function getStage3ImageFromDB(): Promise<string | null> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get("stage3_image");
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn("Could not retrieve stage3 image from IndexedDB:", err);
+    return null;
+  }
+}

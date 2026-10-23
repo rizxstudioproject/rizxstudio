@@ -509,16 +509,55 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setAboutDisciplinesInput(defaultAboutData.disciplines.join(", "));
   };
 
-  // Helper file reader for image uploads
+  // Helper file reader for image uploads with high-res auto-compression to avoid LocalStorage quota overflow
   const handleGenericImageFile = (
     e: React.ChangeEvent<HTMLInputElement>,
-    callback: (dataUrl: string) => void
+    callback: (dataUrl: string) => void,
+    maxWidth = 1920,
+    maxHeight = 1080,
+    quality = 0.85
   ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Reset input value so selecting the same file again triggers change event
+    e.target.value = "";
+
     const reader = new FileReader();
     reader.onload = (event) => {
-      callback(event.target?.result as string);
+      const rawDataUrl = event.target?.result as string;
+      if (!rawDataUrl) return;
+
+      // Keep SVGs untouched
+      if (file.type === "image/svg+xml") {
+        callback(rawDataUrl);
+        return;
+      }
+
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const mime = file.type === "image/png" ? "image/png" : "image/jpeg";
+          const compressed = canvas.toDataURL(mime, quality);
+          callback(compressed);
+        } else {
+          callback(rawDataUrl);
+        }
+      };
+      img.onerror = () => callback(rawDataUrl);
+      img.src = rawDataUrl;
     };
     reader.readAsDataURL(file);
   };

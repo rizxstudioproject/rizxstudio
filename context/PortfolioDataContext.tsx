@@ -1,8 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { antigravityData } from "@/data/projectsData";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { saveStage3ImageToDB, getStage3ImageFromDB } from "@/lib/sequenceStorage";
 
 const STORAGE_KEY = "rizx_portfolio_custom_data_v1";
 const SESSION_KEY = "rizx_admin_session";
@@ -453,6 +454,25 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isCloudSyncActive, setIsCloudSyncActive] = useState(isSupabaseConfigured);
 
+  // Live state refs to prevent stale closure data loss across async calls and hydration
+  const stage3Ref = useRef(stage3);
+  const clientsRef = useRef(clients);
+  const aboutRef = useRef(about);
+  const heroWorksRef = useRef(heroWorks);
+  const clientLogosRef = useRef(clientLogos);
+  const portfolioIntroRef = useRef(portfolioIntro);
+  const portfolioRunnerRef = useRef(portfolioRunner);
+  const heroBannerRef = useRef(heroBanner);
+
+  useEffect(() => { stage3Ref.current = stage3; }, [stage3]);
+  useEffect(() => { clientsRef.current = clients; }, [clients]);
+  useEffect(() => { aboutRef.current = about; }, [about]);
+  useEffect(() => { heroWorksRef.current = heroWorks; }, [heroWorks]);
+  useEffect(() => { clientLogosRef.current = clientLogos; }, [clientLogos]);
+  useEffect(() => { portfolioIntroRef.current = portfolioIntro; }, [portfolioIntro]);
+  useEffect(() => { portfolioRunnerRef.current = portfolioRunner; }, [portfolioRunner]);
+  useEffect(() => { heroBannerRef.current = heroBanner; }, [heroBanner]);
+
   // Auto-detect environment:
   // On localhost -> Open Admin Login directly as requested.
   // On live domain (rizxstudio.com) -> NEVER show admin login by default (only via ?admin=true or shortcut).
@@ -487,8 +507,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   // Helper to persist current state to LocalStorage
   const persistState = useCallback(
     (
-      newStage3: typeof stage3,
-      newClients: ClientItem[],
+      newStage3?: typeof stage3,
+      newClients?: ClientItem[],
       newAbout?: AboutData,
       newHeroWorks?: HeroWorksData,
       newClientLogos?: ClientLogosData,
@@ -497,15 +517,24 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       newHeroBanner?: HeroBannerData
     ) => {
       try {
+        const targetStage3 = newStage3 || stage3Ref.current;
+        const targetClients = newClients || clientsRef.current;
+        const targetAbout = newAbout || aboutRef.current;
+        const targetHeroWorks = newHeroWorks || heroWorksRef.current;
+        const targetClientLogos = newClientLogos || clientLogosRef.current;
+        const targetPortfolioIntro = newPortfolioIntro || portfolioIntroRef.current;
+        const targetPortfolioRunner = newPortfolioRunner || portfolioRunnerRef.current;
+        const targetHeroBanner = newHeroBanner || heroBannerRef.current;
+
         const payload = {
-          stage3: newStage3,
-          about: newAbout || about,
-          heroWorks: newHeroWorks || heroWorks,
-          clientLogos: newClientLogos || clientLogos,
-          portfolioIntro: newPortfolioIntro || portfolioIntro,
-          portfolioRunner: newPortfolioRunner || portfolioRunner,
-          heroBanner: newHeroBanner || heroBanner,
-          clients: newClients.map((c) => ({
+          stage3: targetStage3,
+          about: targetAbout,
+          heroWorks: targetHeroWorks,
+          clientLogos: targetClientLogos,
+          portfolioIntro: targetPortfolioIntro,
+          portfolioRunner: targetPortfolioRunner,
+          heroBanner: targetHeroBanner,
+          clients: targetClients.map((c) => ({
             id: c.id,
             clientName: c.clientName,
             category: c.category,
@@ -524,7 +553,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         console.warn("Failed to persist portfolio overrides to localStorage:", err);
       }
     },
-    [about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, heroBanner]
+    []
   );
 
   // Initialize: First from LocalStorage for instant render, then from Supabase if configured
@@ -541,7 +570,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           const vId = parsedHero.videoId ?? extractYouTubeId(ytUrl) ?? "";
           const vEnabled = parsedHero.isVideoEnabled ?? false;
 
-          setStage3({
+          const loadedStage3 = {
             ...antigravityData.stage3,
             ...parsed.stage3,
             heroCard: {
@@ -551,7 +580,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               videoId: vId,
               isVideoEnabled: vEnabled,
             },
-          });
+          };
+          setStage3(loadedStage3);
+          stage3Ref.current = loadedStage3;
         }
 
         if (parsed.clients && Array.isArray(parsed.clients)) {
@@ -589,14 +620,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             isCustom: true,
           }));
 
-          setClients([...(mergedClients as ClientItem[]), ...customClientItems]);
+          const finalInitialClients = [...(mergedClients as ClientItem[]), ...customClientItems];
+          setClients(finalInitialClients);
+          clientsRef.current = finalInitialClients;
         }
 
         if (parsed.about) {
-          setAbout({
-            ...defaultAboutData,
-            ...parsed.about,
-          });
+          const loadedAbout = { ...defaultAboutData, ...parsed.about };
+          setAbout(loadedAbout);
+          aboutRef.current = loadedAbout;
         }
 
         if (parsed.heroWorks) {
@@ -635,6 +667,26 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
 
+      // Check IndexedDB backup for Stage 3 custom image if not in localStorage
+      getStage3ImageFromDB().then((cachedImg) => {
+        if (cachedImg) {
+          setStage3((prev) => {
+            if (!prev.heroCard.image || prev.heroCard.image === "/assets/antigravity/hero-large.jpg") {
+              const updated = {
+                ...prev,
+                heroCard: {
+                  ...prev.heroCard,
+                  image: cachedImg,
+                },
+              };
+              stage3Ref.current = updated;
+              return updated;
+            }
+            return prev;
+          });
+        }
+      });
+
       const session = sessionStorage.getItem(SESSION_KEY);
       if (session === "authenticated") {
         setIsAdminAuthenticated(true);
@@ -656,20 +708,25 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             .single();
 
           if (!heroError && heroData) {
-            setStage3((prev) => ({
-              ...prev,
-              headline: heroData.headline || prev.headline,
-              classTag: heroData.class_tag || heroData.classTag || prev.classTag,
-              heroCard: {
-                ...prev.heroCard,
-                title: heroData.title || prev.heroCard.title,
-                category: heroData.category || prev.heroCard.category,
-                description: heroData.description || prev.heroCard.description,
-                youtubeUrl: heroData.youtube_url ?? prev.heroCard.youtubeUrl,
-                videoId: heroData.video_id ?? prev.heroCard.videoId,
-                isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled,
-              },
-            }));
+            setStage3((prev) => {
+              const updated = {
+                ...prev,
+                headline: heroData.headline || prev.headline,
+                classTag: heroData.class_tag || heroData.classTag || prev.classTag,
+                heroCard: {
+                  ...prev.heroCard,
+                  title: heroData.title || prev.heroCard.title,
+                  category: heroData.category || prev.heroCard.category,
+                  description: heroData.description || prev.heroCard.description,
+                  youtubeUrl: heroData.youtube_url ?? prev.heroCard.youtubeUrl,
+                  videoId: heroData.video_id ?? prev.heroCard.videoId,
+                  image: heroData.image_url || heroData.image || prev.heroCard.image,
+                  isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled,
+                },
+              };
+              stage3Ref.current = updated;
+              return updated;
+            });
           }
 
           // Fetch Client Descriptions & custom works
@@ -678,6 +735,26 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             .select("*");
 
           if (!clientsError && clientRows && Array.isArray(clientRows)) {
+            // Extract Stage 3 Showcase config from Supabase if present
+            const stage3Row = clientRows.find((r) => r.client_id === "site-stage3-showcase");
+            if (stage3Row && stage3Row.description) {
+              try {
+                const parsedStage3 = JSON.parse(stage3Row.description);
+                setStage3((prev) => {
+                  const updated = {
+                    ...prev,
+                    ...parsedStage3,
+                    heroCard: {
+                      ...prev.heroCard,
+                      ...(parsedStage3.heroCard || {}),
+                    },
+                  };
+                  stage3Ref.current = updated;
+                  return updated;
+                });
+              } catch (_) {}
+            }
+
             // 0. Extract About Section config from Supabase if present
             const aboutRow = clientRows.find((r) => r.client_id === "site-about-section");
             let latestAbout = defaultAboutData;
@@ -689,6 +766,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                   ...parsedAbout,
                 };
                 setAbout(latestAbout);
+                aboutRef.current = latestAbout;
               } catch (_) {}
             }
 
@@ -697,10 +775,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             if (heroWorksRow && heroWorksRow.description) {
               try {
                 const parsedHero = JSON.parse(heroWorksRow.description);
-                setHeroWorks({
+                const loadedHero = {
                   ...defaultHeroWorksData,
                   ...parsedHero,
-                });
+                };
+                setHeroWorks(loadedHero);
+                heroWorksRef.current = loadedHero;
               } catch (_) {}
             }
 
@@ -709,10 +789,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             if (clientLogosRow && clientLogosRow.description) {
               try {
                 const parsedLogos = JSON.parse(clientLogosRow.description);
-                setClientLogos({
+                const loadedLogos = {
                   ...defaultClientLogosData,
                   ...parsedLogos,
-                });
+                };
+                setClientLogos(loadedLogos);
+                clientLogosRef.current = loadedLogos;
               } catch (_) {}
             }
 
@@ -721,10 +803,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             if (portfolioIntroRow && portfolioIntroRow.description) {
               try {
                 const parsedIntro = JSON.parse(portfolioIntroRow.description);
-                setPortfolioIntro({
+                const loadedIntro = {
                   ...defaultPortfolioIntroData,
                   ...parsedIntro,
-                });
+                };
+                setPortfolioIntro(loadedIntro);
+                portfolioIntroRef.current = loadedIntro;
               } catch (_) {}
             }
 
@@ -733,10 +817,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             if (portfolioRunnerRow && portfolioRunnerRow.description) {
               try {
                 const parsedRunner = JSON.parse(portfolioRunnerRow.description);
-                setPortfolioRunner({
+                const loadedRunner = {
                   ...defaultPortfolioRunnerData,
                   ...parsedRunner,
-                });
+                };
+                setPortfolioRunner(loadedRunner);
+                portfolioRunnerRef.current = loadedRunner;
               } catch (_) {}
             }
 
@@ -745,10 +831,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             if (heroBannerRow && heroBannerRow.description) {
               try {
                 const parsedHeroBanner = JSON.parse(heroBannerRow.description);
-                setHeroBanner({
+                const loadedBanner = {
                   ...defaultHeroBannerData,
                   ...parsedHeroBanner,
-                });
+                };
+                setHeroBanner(loadedBanner);
+                heroBannerRef.current = loadedBanner;
               } catch (_) {}
             }
 
@@ -770,6 +858,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 r.client_id !== "site-hero-works" &&
                 r.client_id !== "site-client-logos" &&
                 r.client_id !== "site-portfolio-intro" &&
+                r.client_id !== "site-portfolio-runner" &&
+                r.client_id !== "site-hero-banner" &&
+                r.client_id !== "site-stage3-showcase" &&
                 r.client_id !== "site-admin-credentials"
             );
 
@@ -844,8 +935,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               ...cloudCustoms,
             ];
             setClients(finalClients);
+            clientsRef.current = finalClients;
             try {
-              persistState(stage3, finalClients);
+              persistState(undefined, finalClients);
             } catch (_) {}
           }
 
@@ -875,30 +967,31 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       classTag?: string;
       isVideoEnabled?: boolean;
     }) => {
+      const currentStage3 = stage3Ref.current;
       const computedYtId = params.videoId || extractYouTubeId(params.youtubeUrl || "");
       const computedGdId = params.gdriveId || extractGoogleDriveId(params.gdriveUrl || "");
       const mediaType =
         params.mediaType ||
         (computedGdId ? "gdrive" : computedYtId ? "youtube" : "image");
-      const newTitle = params.title !== undefined ? params.title : stage3.heroCard.title;
-      const newCat = params.category !== undefined ? params.category : stage3.heroCard.category;
-      const newDesc = params.description !== undefined ? params.description : stage3.heroCard.description;
-      const newHeadline = params.headline !== undefined ? params.headline : stage3.headline;
-      const newClassTag = params.classTag !== undefined ? params.classTag : stage3.classTag;
-      const newImage = params.image !== undefined ? params.image : stage3.heroCard.image;
+      const newTitle = params.title !== undefined ? params.title : currentStage3.heroCard.title;
+      const newCat = params.category !== undefined ? params.category : currentStage3.heroCard.category;
+      const newDesc = params.description !== undefined ? params.description : currentStage3.heroCard.description;
+      const newHeadline = params.headline !== undefined ? params.headline : currentStage3.headline;
+      const newClassTag = params.classTag !== undefined ? params.classTag : currentStage3.classTag;
+      const newImage = params.image !== undefined ? params.image : currentStage3.heroCard.image;
       const newEnabled = params.isVideoEnabled !== undefined ? params.isVideoEnabled : true;
 
       const updatedStage3 = {
-        ...stage3,
+        ...currentStage3,
         classTag: newClassTag,
         headline: newHeadline,
         heroCard: {
-          ...stage3.heroCard,
+          ...currentStage3.heroCard,
           mediaType,
-          youtubeUrl: params.youtubeUrl ?? stage3.heroCard.youtubeUrl,
-          videoId: computedYtId || stage3.heroCard.videoId,
-          gdriveUrl: params.gdriveUrl ?? stage3.heroCard.gdriveUrl,
-          gdriveId: computedGdId || stage3.heroCard.gdriveId,
+          youtubeUrl: params.youtubeUrl ?? currentStage3.heroCard.youtubeUrl,
+          videoId: computedYtId || currentStage3.heroCard.videoId,
+          gdriveUrl: params.gdriveUrl ?? currentStage3.heroCard.gdriveUrl,
+          gdriveId: computedGdId || currentStage3.heroCard.gdriveId,
           image: newImage,
           title: newTitle,
           category: newCat,
@@ -907,12 +1000,32 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         },
       };
 
+      stage3Ref.current = updatedStage3;
       setStage3(updatedStage3);
-      persistState(updatedStage3, clients);
+      persistState(updatedStage3);
+
+      // Save custom image to IndexedDB for high-capacity persistence
+      if (newImage && newImage.startsWith("data:")) {
+        saveStage3ImageToDB(newImage);
+      }
 
       // Async sync to Supabase if configured
       if (isSupabaseConfigured && supabase) {
         const client = supabase;
+        // 1. Full Stage 3 JSON to client_descriptions
+        try {
+          await client.from("client_descriptions").upsert({
+            client_id: "site-stage3-showcase",
+            client_name: "Flagship Showcase Stage 3",
+            category: "Site Section Config",
+            description: JSON.stringify(updatedStage3),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.warn("Supabase site-stage3-showcase sync notice:", err);
+        }
+
+        // 2. Also upsert flagship_showcase table
         try {
           await client.from("flagship_showcase").upsert({
             id: "default",
@@ -923,6 +1036,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             class_tag: newClassTag,
             youtube_url: params.youtubeUrl || "",
             video_id: computedYtId,
+            image_url: newImage,
             is_video_enabled: newEnabled,
             updated_at: new Date().toISOString(),
           });
@@ -931,26 +1045,38 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
     },
-    [stage3, clients, persistState]
+    [persistState]
   );
 
   // Remove YouTube Video from Flagship Showcase
   const removeStage3Video = useCallback(async () => {
+    const currentStage3 = stage3Ref.current;
     const updatedStage3 = {
-      ...stage3,
+      ...currentStage3,
       heroCard: {
-        ...stage3.heroCard,
+        ...currentStage3.heroCard,
         youtubeUrl: "",
         videoId: "",
         isVideoEnabled: false,
       },
     };
 
+    stage3Ref.current = updatedStage3;
     setStage3(updatedStage3);
-    persistState(updatedStage3, clients);
+    persistState(updatedStage3);
 
     if (isSupabaseConfigured && supabase) {
       const client = supabase;
+      try {
+        await client.from("client_descriptions").upsert({
+          client_id: "site-stage3-showcase",
+          client_name: "Flagship Showcase Stage 3",
+          category: "Site Section Config",
+          description: JSON.stringify(updatedStage3),
+          updated_at: new Date().toISOString(),
+        });
+      } catch (_) {}
+
       try {
         await client.from("flagship_showcase").upsert({
           id: "default",
@@ -963,7 +1089,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         console.error("Supabase remove video error:", err);
       }
     }
-  }, [stage3, clients, persistState]);
+  }, [persistState]);
 
   // Helper to sync client data to Supabase using only available columns
   const syncClientToCloud = useCallback(async (clientItem: ClientItem) => {
