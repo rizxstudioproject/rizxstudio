@@ -58,10 +58,6 @@ import {
 import AdminSidebar, { AdminSidebarTab } from "./admin/AdminSidebar";
 import AdminTopBar from "./admin/AdminTopBar";
 import ClientsWorkspace from "./admin/ClientsWorkspace";
-import DashboardOverview from "./admin/DashboardOverview";
-import AIPromptBuilder from "./admin/AIPromptBuilder";
-import BrandGuidelines from "./admin/BrandGuidelines";
-import ResourceLibrary from "./admin/ResourceLibrary";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -1621,11 +1617,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           activeTab={sidebarTab}
           onSelectTab={(tab) => {
             setSidebarTab(tab);
-            if (tab === "clients") setActiveTab("clients");
+            setActiveTab(tab as any);
           }}
           storageUsed="18.4"
           storageTotal="100"
           adminName={adminUser === "admin" ? "Rizx Studio" : adminUser}
+          totalWorks={clients.reduce((acc, c) => acc + (c.works?.length || 0), 0)}
+          totalClients={clients.length}
           onOpenProfileMenu={() => setSidebarTab("settings")}
         />
       </div>
@@ -1662,6 +1660,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               onSaveClientDescription={(id, desc, tools) => {
                 updateClientDescription(id, desc, tools);
               }}
+              onUpdateClientFolder={(id, updates) => {
+                const c = clients.find((item) => item.id === id);
+                if (c) {
+                  updateClientFolder(id, {
+                    clientName: updates.clientName || c.clientName,
+                    category: updates.category !== undefined ? updates.category : c.category,
+                  });
+                }
+              }}
               onReplaceCoverImage={handleReplaceCoverImage}
               onViewWebsite={() => {
                 if (onClose) onClose();
@@ -1671,76 +1678,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             />
           )}
 
-          {/* 2. Studio Dashboard Overview */}
-          {sidebarTab === "dashboard" && (
-            <DashboardOverview
-              clients={clients}
-              onSelectTab={(tab) => {
-                setSidebarTab(tab);
-                if (tab === "clients") setActiveTab("clients");
-              }}
-              onSelectClient={(id) => {
-                setSelectedClientId(id);
-                setSidebarTab("clients");
-              }}
-              onViewWebsite={() => {
-                if (onClose) onClose();
-                else setIsAdminMode(false);
-              }}
-              isCloudSyncActive={isCloudSyncActive}
-            />
-          )}
-
-          {/* 3. AI Prompt Builder */}
-          {sidebarTab === "ai-prompt" && <AIPromptBuilder />}
-
-          {/* 4. Brand Guidelines */}
-          {sidebarTab === "brand" && <BrandGuidelines />}
-
-          {/* 5. Resource Library */}
-          {sidebarTab === "resources" && (
-            <ResourceLibrary clients={clients} showToast={showToast} />
-          )}
-
-          {/* 6. Portfolio Showcase Workspace */}
-          {sidebarTab === "portfolio" && (
-            <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0d0f13]">
-              {/* Subtabs for Portfolio Management */}
-              <div className="shrink-0 bg-[#090b0e] border-b border-white/5 px-4 sm:px-6 py-2.5 flex items-center gap-1.5 overflow-x-auto select-none">
-                {[
-                  { id: "hero-banner" as const, label: isId ? "1. Hero Banner" : "1. Hero Banner" },
-                  { id: "hero-works" as const, label: isId ? "2. Hero & Karya" : "2. Hero & Works" },
-                  { id: "flagship" as const, label: isId ? "3. Media Showcase" : "3. Media Showcase" },
-                  { id: "client-logos" as const, label: isId ? "4. Logo Klien" : "4. Client Logos" },
-                  { id: "runner" as const, label: isId ? "5. Running Portofolio" : "5. Running Portfolio" },
-                  { id: "about" as const, label: isId ? "6. Tentang Saya" : "6. About Me" },
-                ].map((sub) => (
-                  <button
-                    key={sub.id}
-                    type="button"
-                    onClick={() => {
-                      setPortfolioSubTab(sub.id);
-                      setActiveTab(sub.id);
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
-                      portfolioSubTab === sub.id
-                        ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/20"
-                        : "text-neutral-400 hover:text-white hover:bg-white/5"
-                    }`}
-                  >
-                    {sub.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Subtab Canvas Content */}
-              <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-                <div className="max-w-6xl mx-auto space-y-6">
-
-        {/* ========================================================
-            TAB 1: HERO BANNER SCROLLYTELLING MANAGEMENT
-           ======================================================== */}
-        {portfolioSubTab === "hero-banner" && (
+          {/* 2. All Other Real Portfolio Admin Sections */}
+          {sidebarTab !== "clients" && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+              <div className="max-w-6xl mx-auto space-y-6">
+                {/* ========================================================
+                    TAB 1: HERO BANNER SCROLLYTELLING MANAGEMENT
+                   ======================================================== */}
+                {sidebarTab === "hero-banner" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2879,7 +2824,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         {/* ========================================================
             TAB 2: HERO & SELECTED WORKS SECTION MANAGEMENT
            ======================================================== */}
-        {portfolioSubTab === "hero-works" && (
+        {sidebarTab === "hero-works" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -3393,7 +3338,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         {/* ========================================================
             TAB 3: CLIENT LOGOS MARQUEE MANAGEMENT
            ======================================================== */}
-        {portfolioSubTab === "client-logos" && (
+        {sidebarTab === "client-logos" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -3686,7 +3631,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         {/* ========================================================
             TAB 4: PORTFOLIO RUNNER (4:5 MARQUEE) CRUD MANAGEMENT
            ======================================================== */}
-        {portfolioSubTab === "runner" && (
+        {sidebarTab === "runner" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -4368,7 +4313,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             )}
           </motion.div>
         )}
-        {portfolioSubTab === "about" && (
+        {/* ========================================================
+            TAB 5: ABOUT ME SECTION MANAGEMENT
+           ======================================================== */}
+        {sidebarTab === "about" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -4671,8 +4619,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           </motion.div>
         )}
 
-        {/* TAB: FLAGSHIP SHOWCASE YOUTUBE EMBED */}
-        {portfolioSubTab === "flagship" && (
+        {/* TAB 6: FLAGSHIP SHOWCASE YOUTUBE / DRIVE / IMAGE EMBED */}
+        {sidebarTab === "flagship" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -5090,21 +5038,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
           </motion.div>
         )}
-                </div>
-              </div>
-            </div>
-          )}
 
-          {/* 7. SETTINGS & ADMIN ACCOUNT WORKSPACE */}
-          {sidebarTab === "settings" && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-              <div className="max-w-4xl mx-auto space-y-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-6"
-                >
+        {/* ========================================================
+            TAB 7: SETTINGS & ADMIN ACCOUNT WORKSPACE
+           ======================================================== */}
+        {sidebarTab === "settings" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
               <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
@@ -5266,26 +5210,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
             </div>
           </motion.div>
+        )}
 
-                {/* Reset Database Button inside settings */}
-                <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                  <div>
-                    <h4 className="text-xs font-bold text-white">Factory Data Reset</h4>
-                    <p className="text-[11px] text-neutral-400">Kembalikan seluruh data portofolio ke bawaan default</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleFullReset}
-                    className="px-4 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    Reset ke Default
-                  </button>
-                </div>
-              </div>
+        {/* Factory Data Reset inside settings */}
+        {sidebarTab === "settings" && (
+          <div className="p-5 rounded-2xl bg-[#111419] border border-white/5 flex items-center justify-between">
+            <div>
+              <h4 className="text-xs font-bold text-white">Factory Data Reset</h4>
+              <p className="text-[11px] text-neutral-400">Kembalikan seluruh data portofolio ke bawaan default</p>
             </div>
-          )}
-        </div>
+            <button
+              type="button"
+              onClick={handleFullReset}
+              className="px-4 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Reset ke Default
+            </button>
+          </div>
+        )}
       </div>
+    </div>
+  )}
+</div>
+</div>
 
       {/* MODAL: UPLOAD GAMBAR PORTOFOLIO BARU */}
       <AnimatePresence>

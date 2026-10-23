@@ -29,6 +29,7 @@ interface ClientsWorkspaceProps {
   onOpenEditWork: (work: any) => void;
   onDeleteWork: (clientId: string, workId: string, workTitle: string) => void;
   onSaveClientDescription: (clientId: string, desc: string, tools: string[]) => void;
+  onUpdateClientFolder?: (clientId: string, updates: Partial<ClientItem>) => void;
   onReplaceCoverImage?: (clientId: string, file: File) => void;
   onViewWebsite: () => void;
   showToast: (msg: string) => void;
@@ -45,6 +46,7 @@ export default function ClientsWorkspace({
   onOpenEditWork,
   onDeleteWork,
   onSaveClientDescription,
+  onUpdateClientFolder,
   onReplaceCoverImage,
   onViewWebsite,
   showToast,
@@ -107,7 +109,7 @@ export default function ClientsWorkspace({
   // Sync inputs when selected client changes
   React.useEffect(() => {
     if (selectedClient) {
-      setCategoryInput(selectedClient.category || "Automotive Dealer");
+      setCategoryInput(selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`);
       setDescriptionInput(selectedClient.description || "");
       setSelectedTools(
         selectedClient.tools && selectedClient.tools.length > 0
@@ -171,7 +173,10 @@ export default function ClientsWorkspace({
     if (!selectedClient) return;
 
     onSaveClientDescription(selectedClient.id, descriptionInput, selectedTools);
-    showToast(`Saved portfolio info for ${selectedClient.clientName}!`);
+    if (onUpdateClientFolder && categoryInput.trim()) {
+      onUpdateClientFolder(selectedClient.id, { category: categoryInput.trim() });
+    }
+    showToast(`Data portofolio ${selectedClient.clientName} berhasil disimpan!`);
   };
 
   // Filter & sort assets
@@ -425,7 +430,7 @@ export default function ClientsWorkspace({
                   </span>
                 </div>
                 <p className="text-xs text-neutral-400 mt-1">
-                  {selectedClient.category || "Automotive Dealer"} · {selectedClient.works?.length || 0} works · Updated Jan 15, 2026
+                  {selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`} · {selectedClient.works?.length || 0} {selectedClient.works?.length === 1 ? "work" : "works"}
                 </p>
               </div>
             </div>
@@ -563,7 +568,7 @@ export default function ClientsWorkspace({
                     type="text"
                     value={categoryInput}
                     onChange={(e) => setCategoryInput(e.target.value)}
-                    placeholder="Automotive Dealer"
+                    placeholder="Contoh: Digital Campaign"
                     className="w-full bg-[#161a22] border border-white/5 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors"
                   />
                 </div>
@@ -596,7 +601,7 @@ export default function ClientsWorkspace({
                   maxLength={500}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
-                  placeholder="KIA Dufour is an authorized automotive dealership network in France..."
+                  placeholder={`Tulis deskripsi atau profil kampanye untuk ${selectedClient.clientName}...`}
                   className="w-full bg-[#161a22] border border-white/5 rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors leading-relaxed resize-none"
                 />
               </div>
@@ -825,7 +830,7 @@ export default function ClientsWorkspace({
                         {work.title}
                       </h4>
                       <p className="text-[10px] text-neutral-400 mt-0.5 truncate">
-                        {work.year || "Jan 15, 2026"} · {work.aspect || "4:5"}
+                        {work.year || "2026"} · {work.aspect || "4:5"}
                       </p>
                     </div>
                   </div>

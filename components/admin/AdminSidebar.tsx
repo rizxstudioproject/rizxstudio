@@ -6,19 +6,22 @@ import {
   HiFolder,
   HiPhoto,
   HiSparkles,
-  HiBookOpen,
-  HiCircleStack,
-  HiAdjustmentsHorizontal,
+  HiVideoCamera,
+  HiTag,
+  HiUser,
+  HiKey,
   HiChevronDown,
 } from "react-icons/hi2";
+import { useLang } from "@/context/LanguageContext";
 
 export type AdminSidebarTab =
-  | "dashboard"
   | "clients"
-  | "portfolio"
-  | "ai-prompt"
-  | "brand"
-  | "resources"
+  | "hero-banner"
+  | "hero-works"
+  | "flagship"
+  | "runner"
+  | "client-logos"
+  | "about"
   | "settings";
 
 interface AdminSidebarProps {
@@ -27,6 +30,8 @@ interface AdminSidebarProps {
   storageUsed?: string;
   storageTotal?: string;
   adminName?: string;
+  totalWorks?: number;
+  totalClients?: number;
   onOpenProfileMenu?: () => void;
 }
 
@@ -36,16 +41,60 @@ export default function AdminSidebar({
   storageUsed = "18.4",
   storageTotal = "100",
   adminName = "Rizx Studio",
+  totalWorks = 0,
+  totalClients = 0,
   onOpenProfileMenu,
 }: AdminSidebarProps) {
-  const menuItems: { id: AdminSidebarTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { id: "dashboard", label: "Dashboard", icon: HiSquares2X2 },
-    { id: "clients", label: "Clients", icon: HiFolder },
-    { id: "portfolio", label: "Portfolio", icon: HiPhoto },
-    { id: "ai-prompt", label: "AI Prompt Builder", icon: HiSparkles },
-    { id: "brand", label: "Brand Guidelines", icon: HiBookOpen },
-    { id: "resources", label: "Resource Library", icon: HiCircleStack },
-    { id: "settings", label: "Settings", icon: HiAdjustmentsHorizontal },
+  const { lang } = useLang();
+  const isId = lang === "id";
+
+  const menuItems: {
+    id: AdminSidebarTab;
+    label: string;
+    badge?: string | number;
+    icon: React.ComponentType<{ className?: string }>;
+  }[] = [
+    {
+      id: "clients",
+      label: isId ? "Portofolio & Klien" : "Portfolio & Clients",
+      badge: totalClients > 0 ? totalClients : undefined,
+      icon: HiFolder,
+    },
+    {
+      id: "hero-banner",
+      label: isId ? "Hero Banner (Scrolly)" : "Hero Banner (Scrolly)",
+      icon: HiSparkles,
+    },
+    {
+      id: "hero-works",
+      label: isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
+      icon: HiPhoto,
+    },
+    {
+      id: "flagship",
+      label: isId ? "Media Showcase (Stage 3)" : "Media Showcase (Stage 3)",
+      icon: HiVideoCamera,
+    },
+    {
+      id: "runner",
+      label: isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
+      icon: HiSquares2X2,
+    },
+    {
+      id: "client-logos",
+      label: isId ? "Logo Klien Marquee" : "Client Logos Marquee",
+      icon: HiTag,
+    },
+    {
+      id: "about",
+      label: isId ? "Tentang Saya (About Me)" : "About Me Section",
+      icon: HiUser,
+    },
+    {
+      id: "settings",
+      label: isId ? "Sandi & Keamanan Akun" : "Password & Security",
+      icon: HiKey,
+    },
   ];
 
   const storagePercentage = Math.min(
@@ -72,8 +121,12 @@ export default function AdminSidebar({
         </div>
       </div>
 
-      {/* Navigation List */}
+      {/* Navigation List — All 8 REAL Portfolio Admin Sections */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 px-3 pb-1 block">
+          {isId ? "KONTROL PORTOFOLIO" : "PORTFOLIO CONTROLS"}
+        </span>
+
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -83,18 +136,31 @@ export default function AdminSidebar({
               key={item.id}
               type="button"
               onClick={() => onSelectTab(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
                 isActive
                   ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold border-l-2 border-[#14AF9E]"
                   : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
               }`}
             >
-              <Icon
-                className={`w-4 h-4 shrink-0 transition-colors ${
-                  isActive ? "text-[#14AF9E]" : "text-neutral-500"
-                }`}
-              />
-              <span className="truncate">{item.label}</span>
+              <div className="flex items-center gap-2.5 min-w-0">
+                <Icon
+                  className={`w-4 h-4 shrink-0 transition-colors ${
+                    isActive ? "text-[#14AF9E]" : "text-neutral-500"
+                  }`}
+                />
+                <span className="truncate">{item.label}</span>
+              </div>
+              {item.badge !== undefined && (
+                <span
+                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                    isActive
+                      ? "bg-[#14AF9E]/25 text-[#14AF9E]"
+                      : "bg-white/5 text-neutral-400"
+                  }`}
+                >
+                  {item.badge}
+                </span>
+              )}
             </button>
           );
         })}
@@ -116,14 +182,9 @@ export default function AdminSidebar({
               style={{ width: `${storagePercentage}%` }}
             />
           </div>
-          <div>
-            <button
-              type="button"
-              onClick={() => onSelectTab("resources")}
-              className="text-[11px] text-[#14AF9E] hover:underline font-medium cursor-pointer"
-            >
-              Upgrade plan
-            </button>
+          <div className="flex items-center justify-between text-[10px] text-neutral-500 font-mono">
+            <span>{totalWorks} total works</span>
+            <span className="text-emerald-400">Live Sync</span>
           </div>
         </div>
 
