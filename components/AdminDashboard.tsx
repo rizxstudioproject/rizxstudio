@@ -94,13 +94,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   // Studio OS Sidebar Tab: 'dashboard' | 'clients' | 'portfolio' | 'ai-prompt' | 'brand' | 'resources' | 'settings'
   const [sidebarTab, setSidebarTab] = useState<AdminSidebarTab>("clients");
   const [portfolioSubTab, setPortfolioSubTab] = useState<
-    "hero-banner" | "hero-works" | "flagship" | "client-logos" | "runner" | "about"
+    "hero-banner" | "hero-works" | "flagship" | "runner" | "about"
   >("hero-banner");
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
 
   // Legacy activeTab support
   const [activeTab, setActiveTab] = useState<
-    "hero-banner" | "clients" | "hero-works" | "client-logos" | "runner" | "about" | "flagship" | "account"
+    "hero-banner" | "clients" | "hero-works" | "runner" | "about" | "flagship" | "account"
   >("clients");
 
   // Mobile Navigation Drawer State
@@ -1675,6 +1675,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 else setIsAdminMode(false);
               }}
               showToast={showToast}
+              clSubtitle={clSubtitle}
+              setClSubtitle={setClSubtitle}
+              clLogos={clLogos}
+              setClLogos={setClLogos}
+              newLogoName={newLogoName}
+              setNewLogoName={setNewLogoName}
+              newLogoRow={newLogoRow}
+              setNewLogoRow={setNewLogoRow}
+              newLogoFile={newLogoFile}
+              setNewLogoFile={setNewLogoFile}
+              onAddClientLogo={handleAddClientLogo}
+              onDeleteClientLogo={handleDeleteClientLogo}
+              onSaveClientLogos={handleSaveClientLogos}
+              onCancelClientLogos={handleCancelClientLogos}
+              onGenericImageFile={handleGenericImageFile}
             />
           )}
 
@@ -3325,299 +3340,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <button
                   type="button"
                   onClick={handleSaveHeroWorks}
-                  className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-                >
-                  <HiCheck className="w-4 h-4" />
-                  <span>{isId ? "Simpan Update" : "Save Changes"}</span>
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* ========================================================
-            TAB 3: CLIENT LOGOS MARQUEE MANAGEMENT
-           ======================================================== */}
-        {sidebarTab === "client-logos" && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-8"
-          >
-            {/* Header Explainer */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
-                SECTION CONTROL: LOGO KLIEN (MARQUEE)
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Editor Logo Klien & Subtitle Marquee
-              </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
-                Kelola tulisan judul serta logo-logo brand klien yang berjalan di section logo. Anda bisa menambah logo baru, mengganti nama, memindahkan baris, atau menghapus logo.
-              </p>
-            </div>
-
-            {/* Subtitle Form */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <HiTag className="w-4 h-4 text-[#14AF9E]" />
-                <span>Tulisan Subtitle / Judul Marquee</span>
-              </h3>
-              <div className="space-y-1.5 max-w-xl">
-                <input
-                  type="text"
-                  value={clSubtitle}
-                  onChange={(e) => setClSubtitle(e.target.value)}
-                  placeholder="SELECTED CLIENTS & CREATIVE COLLABORATIONS"
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
-                />
-                <p className="text-[11px] text-neutral-500 font-mono">
-                  Teks ini tampil di atas marquee logo di website publik.
-                </p>
-              </div>
-            </div>
-
-            {/* Form Tambah Logo Klien Baru */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <HiPlus className="w-4 h-4 text-[#14AF9E]" />
-                <span>{isId ? "Tambah Logo Klien Baru ke Marquee" : "Add New Client Logo to Marquee"}</span>
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Nama Klien / Brand
-                  </label>
-                  <input
-                    type="text"
-                    value={newLogoName}
-                    onChange={(e) => setNewLogoName(e.target.value)}
-                    placeholder="Contoh: Apple, Google, Nike"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Posisi Baris Marquee
-                  </label>
-                  <select
-                    value={newLogoRow}
-                    onChange={(e) => setNewLogoRow(parseInt(e.target.value) as 1 | 2)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
-                  >
-                    <option value={1}>Baris 1 (Scroll ke Kiri)</option>
-                    <option value={2}>Baris 2 (Scroll ke Kanan)</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
-                      File Logo (SVG / PNG / WebP)
-                    </label>
-                    <span className="text-[10px] font-mono text-[#14AF9E] bg-[#14AF9E]/10 border border-[#14AF9E]/30 px-2 py-0.5 rounded-full font-semibold">
-                      Frame: 160 × 56 px
-                    </span>
-                  </div>
-                  <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/15">
-                    <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
-                    <span className="truncate">
-                      {newLogoFile ? "✓ Logo Dipilih" : "Pilih File Logo"}
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*,.svg"
-                      className="hidden"
-                      onChange={(e) =>
-                        handleGenericImageFile(e, (dataUrl) => setNewLogoFile(dataUrl))
-                      }
-                    />
-                  </label>
-                  <p className="text-[11px] text-neutral-400 font-mono leading-relaxed mt-1">
-                    📐 <strong>Ukuran Frame Tampil:</strong> <span className="text-white font-semibold">160 × 56 pixel</span> (tinggi logo: 28px).<br />
-                    ✨ <strong>Ukuran File Disarankan:</strong> <span className="text-[#14AF9E] font-semibold">200 × 60 px</span> s/d <span className="text-[#14AF9E] font-semibold">300 × 80 px</span> (Format SVG atau PNG Transparan).
-                  </p>
-                </div>
-              </div>
-
-              {newLogoFile && (
-                <div className="flex items-center gap-4 pt-2">
-                  <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center">
-                    <img
-                      src={newLogoFile}
-                      alt="Preview"
-                      className="h-8 max-w-[120px] object-contain invert brightness-0"
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAddClientLogo}
-                    className="px-5 py-2.5 rounded-xl bg-[#14AF9E] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md"
-                  >
-                    + Tambahkan ke Baris {newLogoRow}
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* List Logos: Baris 1 & Baris 2 */}
-            <div className="space-y-6">
-              {/* Row 1 */}
-              <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-                    <span>Baris 1 — Scroll Bergerak ke Kiri</span>
-                  </h3>
-                  <span className="text-xs font-mono text-neutral-400">
-                    {clLogos.filter((l) => l.row === 1).length} Logo
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {clLogos
-                    .filter((l) => l.row === 1)
-                    .map((logo) => (
-                      <div
-                        key={logo.id}
-                        className="p-3 rounded-xl bg-neutral-950 border border-white/10 flex flex-col items-center justify-between gap-2.5 group relative"
-                      >
-                        <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
-                          <img
-                            src={logo.file}
-                            alt={logo.name}
-                            className="max-h-7 max-w-full object-contain"
-                          />
-                        </div>
-                        <input
-                          type="text"
-                          value={logo.name}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setClLogos((prev) =>
-                              prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
-                            );
-                          }}
-                          className="w-full text-center px-1.5 py-1 rounded bg-neutral-900 border border-white/10 text-white text-[11px] font-mono focus:outline-none focus:border-[#14AF9E]"
-                        />
-                        <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
-                          <button
-                            type="button"
-                            title="Pindah ke Baris 2"
-                            onClick={() => {
-                              setClLogos((prev) =>
-                                prev.map((l) => (l.id === logo.id ? { ...l, row: 2 } : l))
-                              );
-                              showToast(`Logo "${logo.name}" dipindah ke Baris 2.`);
-                            }}
-                            className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors"
-                          >
-                            ↓ Baris 2
-                          </button>
-                          <button
-                            type="button"
-                            title="Hapus Logo"
-                            onClick={() => handleDeleteClientLogo(logo.id)}
-                            className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors"
-                          >
-                            <HiTrash className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-
-              {/* Row 2 */}
-              <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-                    <span>Baris 2 — Scroll Bergerak ke Kanan</span>
-                  </h3>
-                  <span className="text-xs font-mono text-neutral-400">
-                    {clLogos.filter((l) => l.row === 2).length} Logo
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                  {clLogos
-                    .filter((l) => l.row === 2)
-                    .map((logo) => (
-                      <div
-                        key={logo.id}
-                        className="p-3 rounded-xl bg-neutral-950 border border-white/10 flex flex-col items-center justify-between gap-2.5 group relative"
-                      >
-                        <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
-                          <img
-                            src={logo.file}
-                            alt={logo.name}
-                            className="max-h-7 max-w-full object-contain"
-                          />
-                        </div>
-                        <input
-                          type="text"
-                          value={logo.name}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setClLogos((prev) =>
-                              prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
-                            );
-                          }}
-                          className="w-full text-center px-1.5 py-1 rounded bg-neutral-900 border border-white/10 text-white text-[11px] font-mono focus:outline-none focus:border-[#14AF9E]"
-                        />
-                        <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
-                          <button
-                            type="button"
-                            title="Pindah ke Baris 1"
-                            onClick={() => {
-                              setClLogos((prev) =>
-                                prev.map((l) => (l.id === logo.id ? { ...l, row: 1 } : l))
-                              );
-                              showToast(`Logo "${logo.name}" dipindah ke Baris 1.`);
-                            }}
-                            className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors"
-                          >
-                            ↑ Baris 1
-                          </button>
-                          <button
-                            type="button"
-                            title="Hapus Logo"
-                            onClick={() => handleDeleteClientLogo(logo.id)}
-                            className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors"
-                          >
-                            <HiTrash className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-
-            {/* ACTION BAR: BATAL & SIMPAN UPDATE */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/15 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 sticky bottom-4 z-30 shadow-2xl">
-              <div>
-                <p className="text-sm font-bold text-white">
-                  Simpan Perubahan Logo Klien Marquee
-                </p>
-                <p className="text-xs text-neutral-400">
-                  Perubahan akan langsung aktif di web publik dan tersinkron ke cloud.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleCancelClientLogos}
-                  className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
-                >
-                  {isId ? "Batal" : "Cancel"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveClientLogos}
                   className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <HiCheck className="w-4 h-4" />
@@ -5940,44 +5662,44 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="space-y-1.5 pt-1">
                 {[
                   {
-                    id: "dashboard" as AdminSidebarTab,
-                    label: "Dashboard",
-                    sub: isId ? "Ringkasan sistem & statistik" : "System summary & metrics",
-                    icon: HiSquares2X2,
-                  },
-                  {
                     id: "clients" as AdminSidebarTab,
-                    label: "Clients",
-                    sub: isId ? "Kelola folder klien & aset karya" : "Manage client folders & assets",
+                    label: isId ? "Portofolio & Klien" : "Portfolio & Clients",
+                    sub: isId ? "Folder klien & logo partner marquee" : "Client folders & partner logos",
                     icon: HiFolder,
                   },
                   {
-                    id: "portfolio" as AdminSidebarTab,
-                    label: "Portfolio",
-                    sub: isId ? "Hero banner, video showcase & marquee" : "Hero banner, video & marquees",
-                    icon: HiPhoto,
-                  },
-                  {
-                    id: "ai-prompt" as AdminSidebarTab,
-                    label: "AI Prompt Builder",
-                    sub: isId ? "Generator prompt kreatif AI" : "Creative AI prompt generator",
+                    id: "hero-banner" as AdminSidebarTab,
+                    label: "Hero Banner",
+                    sub: isId ? "Hero Banner & animasi scrolly" : "Hero banner & scrolly motion",
                     icon: HiSparkles,
                   },
                   {
-                    id: "brand" as AdminSidebarTab,
-                    label: "Brand Guidelines",
-                    sub: isId ? "Warna, tipografi & identitas" : "Colors, typography & tokens",
-                    icon: HiBookOpen,
+                    id: "hero-works" as AdminSidebarTab,
+                    label: isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
+                    sub: isId ? "3 karya sorotan utama" : "3 top highlighted works",
+                    icon: HiPhoto,
                   },
                   {
-                    id: "resources" as AdminSidebarTab,
-                    label: "Resource Library",
-                    sub: isId ? "Penyimpanan aset & media explorer" : "Asset storage & media explorer",
-                    icon: HiCircleStack,
+                    id: "flagship" as AdminSidebarTab,
+                    label: "Media Showcase",
+                    sub: isId ? "Stage 3 video & reels" : "Stage 3 video & reels showcase",
+                    icon: HiVideoCamera,
+                  },
+                  {
+                    id: "runner" as AdminSidebarTab,
+                    label: isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
+                    sub: isId ? "Karya poster vertikal marquee" : "Vertical marquee poster cards",
+                    icon: HiSquares2X2,
+                  },
+                  {
+                    id: "about" as AdminSidebarTab,
+                    label: isId ? "Tentang Saya" : "About Me",
+                    sub: isId ? "Profil, bio & kontak" : "Profile bio & contacts",
+                    icon: HiUser,
                   },
                   {
                     id: "settings" as AdminSidebarTab,
-                    label: "Settings",
+                    label: isId ? "Sandi & Keamanan" : "Settings",
                     sub: isId ? "Sandi, verifikasi & keamanan" : "Password & account security",
                     icon: HiKey,
                   },

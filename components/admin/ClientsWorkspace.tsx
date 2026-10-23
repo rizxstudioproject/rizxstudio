@@ -15,8 +15,13 @@ import {
   HiCheck,
   HiXMark,
   HiSparkles,
+  HiFolder,
+  HiTag,
+  HiArrowLeft,
+  HiPhoto,
 } from "react-icons/hi2";
-import { ClientItem } from "@/context/PortfolioDataContext";
+import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
+import { useLang } from "@/context/LanguageContext";
 
 interface ClientsWorkspaceProps {
   clients: ClientItem[];
@@ -33,6 +38,23 @@ interface ClientsWorkspaceProps {
   onReplaceCoverImage?: (clientId: string, file: File) => void;
   onViewWebsite: () => void;
   showToast: (msg: string) => void;
+
+  // Client Logos (Marquee) props
+  clSubtitle?: string;
+  setClSubtitle?: (val: string) => void;
+  clLogos?: ClientLogoItem[];
+  setClLogos?: React.Dispatch<React.SetStateAction<ClientLogoItem[]>>;
+  newLogoName?: string;
+  setNewLogoName?: (val: string) => void;
+  newLogoRow?: 1 | 2;
+  setNewLogoRow?: (val: 1 | 2) => void;
+  newLogoFile?: string;
+  setNewLogoFile?: (val: string) => void;
+  onAddClientLogo?: () => void;
+  onDeleteClientLogo?: (id: string) => void;
+  onSaveClientLogos?: () => void;
+  onCancelClientLogos?: () => void;
+  onGenericImageFile?: (e: React.ChangeEvent<HTMLInputElement>, cb: (dataUrl: string) => void) => void;
 }
 
 export default function ClientsWorkspace({
@@ -50,7 +72,31 @@ export default function ClientsWorkspace({
   onReplaceCoverImage,
   onViewWebsite,
   showToast,
+  clSubtitle = "SELECTED CLIENTS & CREATIVE COLLABORATIONS",
+  setClSubtitle,
+  clLogos = [],
+  setClLogos,
+  newLogoName = "",
+  setNewLogoName,
+  newLogoRow = 1,
+  setNewLogoRow,
+  newLogoFile = "",
+  setNewLogoFile,
+  onAddClientLogo,
+  onDeleteClientLogo,
+  onSaveClientLogos,
+  onCancelClientLogos,
+  onGenericImageFile,
 }: ClientsWorkspaceProps) {
+  const { lang } = useLang();
+  const isId = lang === "id";
+
+  // Workspace subview: 'folders' (Client Folders & Works) | 'logos' (Client Logos Marquee)
+  const [workspaceView, setWorkspaceView] = useState<"folders" | "logos">("folders");
+
+  // Logo panel filter & search
+  const [logoRowTab, setLogoRowTab] = useState<"all" | "row1" | "row2">("all");
+  const [logoSearch, setLogoSearch] = useState("");
   // Middle Column Filter Tab: 'all' | 'recent' | 'favorites'
   const [filterTab, setFilterTab] = useState<"all" | "recent" | "favorites">("all");
   const [clientSearch, setClientSearch] = useState("");
@@ -236,173 +282,742 @@ export default function ClientsWorkspace({
     }
   };
 
+  // Filtered logos for the middle column & canvas
+  const filteredLogos = useMemo(() => {
+    return clLogos.filter((l) => {
+      if (logoRowTab === "row1" && l.row !== 1) return false;
+      if (logoRowTab === "row2" && l.row !== 2) return false;
+      if (logoSearch.trim()) {
+        return l.name.toLowerCase().includes(logoSearch.trim().toLowerCase());
+      }
+      return true;
+    });
+  }, [clLogos, logoRowTab, logoSearch]);
+
+  const row1Count = useMemo(() => clLogos.filter((l) => l.row === 1).length, [clLogos]);
+  const row2Count = useMemo(() => clLogos.filter((l) => l.row === 2).length, [clLogos]);
+
   return (
     <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-[#0d0f13]">
       {/* ========================================================
           MIDDLE COLUMN: CLIENTS PANEL (~300px)
          ======================================================== */}
       <aside className="w-full md:w-[300px] shrink-0 bg-[#090b0e] border-r border-white/5 flex flex-col h-full overflow-hidden select-none">
-        {/* Header */}
-        <div className="p-4 pb-3 border-b border-white/5 space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Clients</h2>
-              <p className="text-[11px] text-neutral-400 mt-0.5">
-                Client folders and portfolios
-              </p>
-            </div>
+        {/* Workspace Subview Switcher: Folders vs Marquee Logos */}
+        <div className="p-3 pb-2 border-b border-white/5 space-y-2.5">
+          <div className="flex items-center gap-1 p-0.5 rounded-xl bg-neutral-900 border border-white/10">
             <button
               type="button"
-              onClick={onOpenAddFolder}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#14AF9E] hover:bg-[#119889] text-black font-semibold text-xs transition-all active:scale-95 shadow-md shadow-[#14AF9E]/20 cursor-pointer"
-            >
-              <HiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>New folder</span>
-            </button>
-          </div>
-
-          {/* Filter Tabs: All, Recent, Favorites */}
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-neutral-900 border border-white/5">
-            <button
-              type="button"
-              onClick={() => setFilterTab("all")}
-              className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
-                filterTab === "all"
-                  ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold"
+              onClick={() => setWorkspaceView("folders")}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                workspaceView === "folders"
+                  ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/20"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
-              All {clients.length}
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterTab("recent")}
-              className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
-                filterTab === "recent"
-                  ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-            >
-              Recent 3
-            </button>
-            <button
-              type="button"
-              onClick={() => setFilterTab("favorites")}
-              className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
-                filterTab === "favorites"
-                  ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-            >
-              Favorites {favoriteCount}
-            </button>
-          </div>
-
-          {/* Search Input */}
-          <div className="relative">
-            <HiMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
-            <input
-              type="text"
-              value={clientSearch}
-              onChange={(e) => setClientSearch(e.target.value)}
-              placeholder="Search clients"
-              className="w-full bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors"
-            />
-          </div>
-        </div>
-
-        {/* Scrollable Client Items List */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          {filteredClients.map((client) => {
-            const isSelected = client.id === selectedClientId;
-            const isFav = !!favorites[client.id];
-            const worksCount = client.works?.length || 0;
-            const thumbImage = client.works?.[0]?.image || client.logo;
-
-            return (
-              <div
-                key={client.id}
-                onClick={() => onSelectClient(client.id)}
-                className={`group flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${
-                  isSelected
-                    ? "bg-[#151a21] border border-[#14AF9E]/30 shadow-sm"
-                    : "hover:bg-white/[0.04] border border-transparent"
+              <HiFolder className="w-3.5 h-3.5" />
+              <span>{isId ? "Folder Klien" : "Folders"}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  workspaceView === "folders"
+                    ? "bg-black/20 text-black font-bold"
+                    : "bg-white/10 text-neutral-300"
                 }`}
               >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  {/* Square Thumbnail */}
-                  <div className="w-10 h-10 rounded-lg overflow-hidden bg-neutral-800 border border-white/10 shrink-0 flex items-center justify-center">
-                    {thumbImage ? (
-                      <img
-                        src={thumbImage}
-                        alt={client.clientName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <span className="text-xs font-bold text-neutral-300">
-                        {client.clientName.slice(0, 2).toUpperCase()}
-                      </span>
-                    )}
-                  </div>
+                {clients.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setWorkspaceView("logos")}
+              className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                workspaceView === "logos"
+                  ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/20"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              <HiTag className="w-3.5 h-3.5" />
+              <span>{isId ? "Logo Klien" : "Logos"}</span>
+              <span
+                className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
+                  workspaceView === "logos"
+                    ? "bg-black/20 text-black font-bold"
+                    : "bg-white/10 text-neutral-300"
+                }`}
+              >
+                {clLogos.length}
+              </span>
+            </button>
+          </div>
 
-                  {/* Title & Works count */}
-                  <div className="min-w-0">
-                    <p
-                      className={`text-xs font-semibold truncate ${
-                        isSelected ? "text-white" : "text-neutral-200 group-hover:text-white"
-                      }`}
-                    >
-                      {client.clientName}
-                    </p>
-                    <p className="text-[11px] text-neutral-400 font-sans">
-                      {worksCount} {worksCount === 1 ? "work" : "works"}
+          {/* Subview Controls */}
+          {workspaceView === "folders" ? (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-bold text-white tracking-tight">
+                    {isId ? "Daftar Klien" : "Client Folders"}
+                  </h2>
+                  <p className="text-[11px] text-neutral-400">
+                    {isId ? "Folder karya & portofolio" : "Client folders and portfolios"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={onOpenAddFolder}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#14AF9E]/20 cursor-pointer"
+                >
+                  <HiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{isId ? "Folder Baru" : "New folder"}</span>
+                </button>
+              </div>
+
+              {/* Filter Tabs: All, Recent, Favorites */}
+              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-neutral-900 border border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setFilterTab("all")}
+                  className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
+                    filterTab === "all"
+                      ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  All {clients.length}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterTab("recent")}
+                  className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
+                    filterTab === "recent"
+                      ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  Recent 3
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterTab("favorites")}
+                  className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
+                    filterTab === "favorites"
+                      ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  Favorites {favoriteCount}
+                </button>
+              </div>
+
+              {/* Search Input */}
+              <div className="relative">
+                <HiMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+                <input
+                  type="text"
+                  value={clientSearch}
+                  onChange={(e) => setClientSearch(e.target.value)}
+                  placeholder={isId ? "Cari folder klien..." : "Search clients..."}
+                  className="w-full bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-base font-bold text-white tracking-tight">
+                    {isId ? "Logo Klien Marquee" : "Client Logos"}
+                  </h2>
+                  <p className="text-[11px] text-neutral-400">
+                    {isId ? "Brand partner running di web" : "Partner brands on website"}
+                  </p>
+                </div>
+                <span className="text-[10px] font-mono text-[#14AF9E] bg-[#14AF9E]/10 border border-[#14AF9E]/30 px-2 py-0.5 rounded-full font-semibold">
+                  2 Rows
+                </span>
+              </div>
+
+              {/* Row Filter Tabs: All, Row 1, Row 2 */}
+              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-neutral-900 border border-white/5">
+                <button
+                  type="button"
+                  onClick={() => setLogoRowTab("all")}
+                  className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
+                    logoRowTab === "all"
+                      ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  All {clLogos.length}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLogoRowTab("row1")}
+                  className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
+                    logoRowTab === "row1"
+                      ? "bg-cyan-500/20 text-cyan-300 font-semibold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  Row 1 ({row1Count})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLogoRowTab("row2")}
+                  className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
+                    logoRowTab === "row2"
+                      ? "bg-emerald-500/20 text-emerald-300 font-semibold"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  Row 2 ({row2Count})
+                </button>
+              </div>
+
+              {/* Search Logo */}
+              <div className="relative">
+                <HiMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+                <input
+                  type="text"
+                  value={logoSearch}
+                  onChange={(e) => setLogoSearch(e.target.value)}
+                  placeholder={isId ? "Cari logo klien..." : "Search partner logos..."}
+                  className="w-full bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Scrollable Items List */}
+        <div className="flex-1 overflow-y-auto p-2 space-y-1">
+          {workspaceView === "folders" ? (
+            <>
+              {/* Quick Marquee Shortcut Card */}
+              <div
+                onClick={() => setWorkspaceView("logos")}
+                className="p-2.5 mb-2 rounded-xl border border-[#14AF9E]/30 bg-gradient-to-r from-[#14AF9E]/10 via-[#14AF9E]/5 to-transparent hover:from-[#14AF9E]/20 transition-all cursor-pointer flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#14AF9E]/20 text-[#14AF9E] flex items-center justify-center shrink-0">
+                    <HiTag className="w-4 h-4" />
+                  </div>
+                  <div className="truncate">
+                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <span>{isId ? "Logo Klien Marquee" : "Client Logos Marquee"}</span>
+                      <span className="text-[9px] uppercase px-1 py-0.2 bg-[#14AF9E]/20 text-[#14AF9E] rounded font-mono font-bold">
+                        Running
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-neutral-400 truncate">
+                      {clLogos.length} {isId ? "brand partner running" : "partner logos"}
                     </p>
                   </div>
                 </div>
-
-                {/* Favorite Star Button */}
-                <button
-                  type="button"
-                  onClick={(e) => toggleFavorite(client.id, e)}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    isFav
-                      ? "text-[#14AF9E] hover:text-[#119889]"
-                      : "text-neutral-600 hover:text-neutral-300 opacity-0 group-hover:opacity-100"
-                  }`}
-                  title={isFav ? "Remove from favorites" : "Add to favorites"}
-                >
-                  <HiStar className={`w-3.5 h-3.5 ${isFav ? "fill-current" : ""}`} />
-                </button>
+                <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400 group-hover:text-[#14AF9E] shrink-0" />
               </div>
-            );
-          })}
 
-          {filteredClients.length === 0 && (
-            <div className="p-8 text-center text-xs text-neutral-500">
-              No clients found matching filter.
+              {filteredClients.map((client) => {
+                const isSelected = client.id === selectedClientId;
+                const isFav = !!favorites[client.id];
+                const worksCount = client.works?.length || 0;
+                const thumbImage = client.works?.[0]?.image || client.logo;
+
+                return (
+                  <div
+                    key={client.id}
+                    onClick={() => onSelectClient(client.id)}
+                    className={`group flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-[#151a21] border border-[#14AF9E]/30 shadow-sm"
+                        : "hover:bg-white/[0.04] border border-transparent"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      {/* Square Thumbnail */}
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-neutral-800 border border-white/10 shrink-0 flex items-center justify-center">
+                        {thumbImage ? (
+                          <img
+                            src={thumbImage}
+                            alt={client.clientName}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        ) : (
+                          <span className="text-xs font-bold text-neutral-300">
+                            {client.clientName.slice(0, 2).toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Title & Works count */}
+                      <div className="min-w-0">
+                        <p
+                          className={`text-xs font-semibold truncate ${
+                            isSelected ? "text-white" : "text-neutral-200 group-hover:text-white"
+                          }`}
+                        >
+                          {client.clientName}
+                        </p>
+                        <p className="text-[11px] text-neutral-400 font-sans">
+                          {worksCount} {worksCount === 1 ? "work" : "works"}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Favorite Star Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => toggleFavorite(client.id, e)}
+                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                        isFav
+                          ? "text-[#14AF9E] hover:text-[#119889]"
+                          : "text-neutral-600 hover:text-neutral-300 opacity-0 group-hover:opacity-100"
+                      }`}
+                      title={isFav ? "Remove from favorites" : "Add to favorites"}
+                    >
+                      <HiStar className={`w-3.5 h-3.5 ${isFav ? "fill-current" : ""}`} />
+                    </button>
+                  </div>
+                );
+              })}
+
+              {filteredClients.length === 0 && (
+                <div className="p-8 text-center text-xs text-neutral-500">
+                  {isId ? "Tidak ada klien yang cocok." : "No clients found matching filter."}
+                </div>
+              )}
+            </>
+          ) : (
+            /* Logos List in Middle Column */
+            <div className="space-y-1.5">
+              {filteredLogos.map((logo) => (
+                <div
+                  key={logo.id}
+                  className="group flex items-center justify-between p-2 rounded-xl bg-neutral-900/60 hover:bg-neutral-900 border border-white/5 hover:border-white/15 transition-all"
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-9 h-7 rounded bg-neutral-950 border border-white/10 flex items-center justify-center p-1 shrink-0 invert brightness-0">
+                      <img
+                        src={logo.file}
+                        alt={logo.name}
+                        className="max-h-5 max-w-full object-contain"
+                      />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-medium text-white truncate">
+                        {logo.name}
+                      </p>
+                      <span
+                        className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-semibold ${
+                          logo.row === 1
+                            ? "bg-cyan-500/15 text-cyan-400"
+                            : "bg-emerald-500/15 text-emerald-400"
+                        }`}
+                      >
+                        {logo.row === 1 ? "Row 1 (Kiri)" : "Row 2 (Kanan)"}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    title={isId ? "Hapus Logo" : "Delete Logo"}
+                    onClick={() => onDeleteClientLogo?.(logo.id)}
+                    className="p-1.5 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                  >
+                    <HiTrash className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+
+              {filteredLogos.length === 0 && (
+                <div className="p-8 text-center text-xs text-neutral-500">
+                  {isId ? "Tidak ada logo yang cocok." : "No logos found matching filter."}
+                </div>
+              )}
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="p-3 border-t border-white/5 text-center">
-          <button
-            type="button"
-            onClick={() => {
-              setFilterTab("all");
-              setClientSearch("");
-            }}
-            className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
-          >
-            View all {clients.length} clients
-          </button>
+          {workspaceView === "folders" ? (
+            <button
+              type="button"
+              onClick={() => {
+                setFilterTab("all");
+                setClientSearch("");
+              }}
+              className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
+            >
+              View all {clients.length} clients
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setLogoRowTab("all");
+                setLogoSearch("");
+              }}
+              className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
+            >
+              View all {clLogos.length} logos
+            </button>
+          )}
         </div>
       </aside>
 
       {/* ========================================================
-          RIGHT MAIN COLUMN: CLIENT DETAIL & ASSET WORKSPACE
+          RIGHT MAIN COLUMN: CLIENT DETAIL & ASSET WORKSPACE OR CLIENT LOGOS CANVAS
          ======================================================== */}
-      {selectedClient ? (
+      {workspaceView === "logos" ? (
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+          {/* Breadcrumb & Actions */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
+            <div className="flex items-center gap-2 text-xs text-neutral-400">
+              <button
+                type="button"
+                onClick={() => setWorkspaceView("folders")}
+                className="hover:text-white transition-colors cursor-pointer"
+              >
+                {isId ? "Klien" : "Clients"}
+              </button>
+              <span>/</span>
+              <span className="text-white font-medium">
+                {isId ? "Logo Klien Marquee" : "Client Logos Marquee"}
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#14AF9E]/10 border border-[#14AF9E]/30 text-[#14AF9E] font-semibold ml-1">
+                {clLogos.length} Logos Live
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={onViewWebsite}
+                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
+              >
+                <span>{isId ? "Lihat di Web" : "View website"}</span>
+                <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
+              </button>
+              {onSaveClientLogos && (
+                <button
+                  type="button"
+                  onClick={onSaveClientLogos}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#14AF9E]/20 cursor-pointer"
+                >
+                  <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{isId ? "Simpan Perubahan" : "Save Changes"}</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Header Explainer Banner */}
+          <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+            <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+              SECTION CONTROL: LOGO KLIEN (MARQUEE)
+            </span>
+            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              {isId ? "Editor Logo Klien & Subtitle Marquee" : "Client Logos & Marquee Editor"}
+            </h2>
+            <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+              {isId
+                ? "Kelola tulisan judul serta logo-logo brand partner yang berjalan di marquee logo website publik. Anda bisa menambah logo baru, mengganti nama, memindahkan baris, atau menghapus logo."
+                : "Manage title subtitle and partner brand logos scrolling in the public website marquee. Add new logos, rename, switch rows, or delete."}
+            </p>
+          </div>
+
+          {/* Subtitle Form */}
+          <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <HiTag className="w-4 h-4 text-[#14AF9E]" />
+              <span>{isId ? "Tulisan Subtitle / Judul Marquee" : "Marquee Subtitle / Section Title"}</span>
+            </h3>
+            <div className="space-y-1.5 max-w-xl">
+              <input
+                type="text"
+                value={clSubtitle}
+                onChange={(e) => setClSubtitle?.(e.target.value)}
+                placeholder="SELECTED CLIENTS & CREATIVE COLLABORATIONS"
+                className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+              />
+              <p className="text-[11px] text-neutral-500 font-mono">
+                {isId
+                  ? "Teks ini tampil di atas marquee logo di website publik."
+                  : "This text appears above the partner logos marquee on the public website."}
+              </p>
+            </div>
+          </div>
+
+          {/* Form Tambah Logo Klien Baru */}
+          <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <HiPlus className="w-4 h-4 text-[#14AF9E]" />
+              <span>{isId ? "Tambah Logo Klien Baru ke Marquee" : "Add New Client Logo to Marquee"}</span>
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono font-semibold text-neutral-300">
+                  {isId ? "Nama Klien / Brand" : "Client / Brand Name"}
+                </label>
+                <input
+                  type="text"
+                  value={newLogoName}
+                  onChange={(e) => setNewLogoName?.(e.target.value)}
+                  placeholder={isId ? "Contoh: Apple, Google, Nike" : "e.g. Apple, Google, Nike"}
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono font-semibold text-neutral-300">
+                  {isId ? "Posisi Baris Marquee" : "Marquee Row Position"}
+                </label>
+                <select
+                  value={newLogoRow}
+                  onChange={(e) => setNewLogoRow?.(parseInt(e.target.value) as 1 | 2)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                >
+                  <option value={1}>{isId ? "Baris 1 (Scroll ke Kiri)" : "Row 1 (Scroll Left)"}</option>
+                  <option value={2}>{isId ? "Baris 2 (Scroll ke Kanan)" : "Row 2 (Scroll Right)"}</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {isId ? "File Logo (SVG / PNG / WebP)" : "Logo File (SVG / PNG / WebP)"}
+                  </label>
+                  <span className="text-[10px] font-mono text-[#14AF9E] bg-[#14AF9E]/10 border border-[#14AF9E]/30 px-2 py-0.5 rounded-full font-semibold">
+                    Frame: 160 × 56 px
+                  </span>
+                </div>
+                <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/15 transition-colors">
+                  <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
+                  <span className="truncate">
+                    {newLogoFile
+                      ? isId
+                        ? "✓ Logo Dipilih"
+                        : "✓ Logo Selected"
+                      : isId
+                      ? "Pilih File Logo"
+                      : "Choose Logo File"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*,.svg"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (onGenericImageFile) {
+                        onGenericImageFile(e, (dataUrl) => setNewLogoFile?.(dataUrl));
+                      }
+                    }}
+                  />
+                </label>
+                <p className="text-[11px] text-neutral-400 font-mono leading-relaxed mt-1">
+                  📐 <strong>Ukuran Frame Tampil:</strong>{" "}
+                  <span className="text-white font-semibold">160 × 56 pixel</span> (tinggi logo: 28px).
+                  <br />
+                  ✨ <strong>Ukuran File Disarankan:</strong>{" "}
+                  <span className="text-[#14AF9E] font-semibold">200 × 60 px</span> s/d{" "}
+                  <span className="text-[#14AF9E] font-semibold">300 × 80 px</span> (Format SVG atau PNG
+                  Transparan).
+                </p>
+              </div>
+            </div>
+
+            {newLogoFile && (
+              <div className="flex items-center gap-4 pt-2">
+                <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center">
+                  <img
+                    src={newLogoFile}
+                    alt="Preview"
+                    className="h-8 max-w-[120px] object-contain invert brightness-0"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={onAddClientLogo}
+                  className="px-5 py-2.5 rounded-xl bg-[#14AF9E] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md"
+                >
+                  + {isId ? `Tambahkan ke Baris ${newLogoRow}` : `Add to Row ${newLogoRow}`}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* List Logos: Baris 1 & Baris 2 */}
+          <div className="space-y-6">
+            {/* Row 1 */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+                  <span>
+                    {isId ? "Baris 1 — Scroll Bergerak ke Kiri" : "Row 1 — Scroll Left Animation"}
+                  </span>
+                </h3>
+                <span className="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                  {row1Count} Logo
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {clLogos
+                  .filter((l) => l.row === 1)
+                  .map((logo) => (
+                    <div
+                      key={logo.id}
+                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 flex flex-col items-center justify-between gap-2.5 group relative hover:border-[#14AF9E]/30 transition-colors"
+                    >
+                      <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
+                        <img
+                          src={logo.file}
+                          alt={logo.name}
+                          className="max-h-7 max-w-full object-contain"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={logo.name}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setClLogos?.((prev) =>
+                            prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
+                          );
+                        }}
+                        className="w-full text-center px-1.5 py-1 rounded bg-neutral-900 border border-white/10 text-white text-[11px] font-mono focus:outline-none focus:border-[#14AF9E]"
+                      />
+                      <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
+                        <button
+                          type="button"
+                          title="Pindah ke Baris 2"
+                          onClick={() => {
+                            setClLogos?.((prev) =>
+                              prev.map((l) => (l.id === logo.id ? { ...l, row: 2 } : l))
+                            );
+                            showToast(`Logo "${logo.name}" dipindah ke Baris 2.`);
+                          }}
+                          className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors cursor-pointer"
+                        >
+                          ↓ Baris 2
+                        </button>
+                        <button
+                          type="button"
+                          title="Hapus Logo"
+                          onClick={() => onDeleteClientLogo?.(logo.id)}
+                          className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                        >
+                          <HiTrash className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            {/* Row 2 */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+                  <span>
+                    {isId ? "Baris 2 — Scroll Bergerak ke Kanan" : "Row 2 — Scroll Right Animation"}
+                  </span>
+                </h3>
+                <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                  {row2Count} Logo
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {clLogos
+                  .filter((l) => l.row === 2)
+                  .map((logo) => (
+                    <div
+                      key={logo.id}
+                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 flex flex-col items-center justify-between gap-2.5 group relative hover:border-[#14AF9E]/30 transition-colors"
+                    >
+                      <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
+                        <img
+                          src={logo.file}
+                          alt={logo.name}
+                          className="max-h-7 max-w-full object-contain"
+                        />
+                      </div>
+                      <input
+                        type="text"
+                        value={logo.name}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setClLogos?.((prev) =>
+                            prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
+                          );
+                        }}
+                        className="w-full text-center px-1.5 py-1 rounded bg-neutral-900 border border-white/10 text-white text-[11px] font-mono focus:outline-none focus:border-[#14AF9E]"
+                      />
+                      <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
+                        <button
+                          type="button"
+                          title="Pindah ke Baris 1"
+                          onClick={() => {
+                            setClLogos?.((prev) =>
+                              prev.map((l) => (l.id === logo.id ? { ...l, row: 1 } : l))
+                            );
+                            showToast(`Logo "${logo.name}" dipindah ke Baris 1.`);
+                          }}
+                          className="text-[10px] font-mono text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                        >
+                          ↑ Baris 1
+                        </button>
+                        <button
+                          type="button"
+                          title="Hapus Logo"
+                          onClick={() => onDeleteClientLogo?.(logo.id)}
+                          className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                        >
+                          <HiTrash className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </div>
+
+          {/* ACTION BAR: BATAL & SIMPAN UPDATE */}
+          <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/15 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 sticky bottom-4 z-30 shadow-2xl">
+            <div>
+              <p className="text-sm font-bold text-white">
+                {isId ? "Simpan Perubahan Logo Klien Marquee" : "Save Client Logos Changes"}
+              </p>
+              <p className="text-xs text-neutral-400">
+                {isId
+                  ? "Perubahan akan langsung aktif di web publik dan tersinkron ke cloud."
+                  : "Changes will immediately update on the public website and sync to cloud."}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={onCancelClientLogos}
+                className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
+              >
+                {isId ? "Batal" : "Cancel"}
+              </button>
+              <button
+                type="button"
+                onClick={onSaveClientLogos}
+                className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                <HiCheck className="w-4 h-4 stroke-[2.5]" />
+                <span>{isId ? "Simpan Update" : "Save Changes"}</span>
+              </button>
+            </div>
+          </div>
+        </main>
+      ) : selectedClient ? (
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs text-neutral-400">

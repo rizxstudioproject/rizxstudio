@@ -20,7 +20,6 @@ export type AdminSidebarTab =
   | "hero-works"
   | "flagship"
   | "runner"
-  | "client-logos"
   | "about"
   | "settings";
 
@@ -79,11 +78,6 @@ export default function AdminSidebar({
       id: "runner",
       label: isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
       icon: HiSquares2X2,
-    },
-    {
-      id: "client-logos",
-      label: isId ? "Logo Klien Marquee" : "Client Logos Marquee",
-      icon: HiTag,
     },
     {
       id: "about",
