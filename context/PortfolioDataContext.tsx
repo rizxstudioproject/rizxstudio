@@ -7,6 +7,32 @@ import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 const STORAGE_KEY = "rizx_portfolio_custom_data_v1";
 const SESSION_KEY = "rizx_admin_session";
 
+export interface HeroBannerData {
+  name: string;
+  role: string;
+  scrollText: string;
+  sec2Headline1: string;
+  sec2Headline2: string;
+  sec2Body: string;
+  sec3Headline1: string;
+  sec3Headline2: string;
+  sec3Body: string;
+}
+
+export const defaultHeroBannerData: HeroBannerData = {
+  name: "Fomy R",
+  role: "AI-Powered Creative Designer",
+  scrollText: "SCROLL",
+  sec2Headline1: "Results-driven",
+  sec2Headline2: "creative",
+  sec2Body:
+    "Combining 11+ years of creative expertise with modern workflows to produce impactful visuals, distinctive brand identities, and high-performing digital campaigns.",
+  sec3Headline1: "Creative",
+  sec3Headline2: "meets AI",
+  sec3Body:
+    "Where human creativity and modern creative workflows converge - crafting visuals, brands, and campaigns that move people and perform at scale.",
+};
+
 export interface Stage3HeroCard {
   image: string;
   title: string;
@@ -284,6 +310,7 @@ interface PortfolioDataContextType {
   clientLogos: ClientLogosData;
   portfolioIntro: PortfolioIntroData;
   portfolioRunner: PortfolioRunnerData;
+  heroBanner: HeroBannerData;
   allData: typeof antigravityData;
   updateStage3Video: (params: {
     youtubeUrl: string;
@@ -308,6 +335,7 @@ interface PortfolioDataContextType {
   updateClientLogosData: (newData: Partial<ClientLogosData>) => void;
   updatePortfolioIntroData: (newData: Partial<PortfolioIntroData>) => void;
   updatePortfolioRunnerData: (newData: Partial<PortfolioRunnerData>) => void;
+  updateHeroBannerData: (newData: Partial<HeroBannerData>) => void;
   addPortfolioRunnerItem: (item: Omit<PortfolioRunnerItem, "id">) => void;
   editPortfolioRunnerItem: (id: string, updated: Partial<PortfolioRunnerItem>) => void;
   deletePortfolioRunnerItem: (id: string) => void;
@@ -350,6 +378,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [clientLogos, setClientLogos] = useState<ClientLogosData>(defaultClientLogosData);
   const [portfolioIntro, setPortfolioIntro] = useState<PortfolioIntroData>(defaultPortfolioIntroData);
   const [portfolioRunner, setPortfolioRunner] = useState<PortfolioRunnerData>(defaultPortfolioRunnerData);
+  const [heroBanner, setHeroBanner] = useState<HeroBannerData>(defaultHeroBannerData);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isCloudSyncActive, setIsCloudSyncActive] = useState(isSupabaseConfigured);
@@ -394,7 +423,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       newHeroWorks?: HeroWorksData,
       newClientLogos?: ClientLogosData,
       newPortfolioIntro?: PortfolioIntroData,
-      newPortfolioRunner?: PortfolioRunnerData
+      newPortfolioRunner?: PortfolioRunnerData,
+      newHeroBanner?: HeroBannerData
     ) => {
       try {
         const payload = {
@@ -404,6 +434,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           clientLogos: newClientLogos || clientLogos,
           portfolioIntro: newPortfolioIntro || portfolioIntro,
           portfolioRunner: newPortfolioRunner || portfolioRunner,
+          heroBanner: newHeroBanner || heroBanner,
           clients: newClients.map((c) => ({
             id: c.id,
             clientName: c.clientName,
@@ -423,7 +454,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         console.warn("Failed to persist portfolio overrides to localStorage:", err);
       }
     },
-    [about, heroWorks, clientLogos, portfolioIntro, portfolioRunner]
+    [about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, heroBanner]
   );
 
   // Initialize: First from LocalStorage for instant render, then from Supabase if configured
@@ -523,6 +554,13 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           setPortfolioRunner({
             ...defaultPortfolioRunnerData,
             ...parsed.portfolioRunner,
+          });
+        }
+
+        if (parsed.heroBanner) {
+          setHeroBanner({
+            ...defaultHeroBannerData,
+            ...parsed.heroBanner,
           });
         }
       }
@@ -628,6 +666,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 setPortfolioRunner({
                   ...defaultPortfolioRunnerData,
                   ...parsedRunner,
+                });
+              } catch (_) {}
+            }
+
+            // Extract Hero Banner config from Supabase
+            const heroBannerRow = clientRows.find((r) => r.client_id === "site-hero-banner");
+            if (heroBannerRow && heroBannerRow.description) {
+              try {
+                const parsedHeroBanner = JSON.parse(heroBannerRow.description);
+                setHeroBanner({
+                  ...defaultHeroBannerData,
+                  ...parsedHeroBanner,
                 });
               } catch (_) {}
             }
@@ -1209,6 +1259,33 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     await updatePortfolioRunnerData(defaultPortfolioRunnerData);
   }, [updatePortfolioRunnerData]);
 
+  // Update Hero Banner Section
+  const updateHeroBannerData = useCallback(
+    async (newData: Partial<HeroBannerData>) => {
+      const updated: HeroBannerData = {
+        ...heroBanner,
+        ...newData,
+      };
+      setHeroBanner(updated);
+      persistState(stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, updated);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("client_descriptions").upsert({
+            client_id: "site-hero-banner",
+            client_name: "Hero Banner Section",
+            category: "Site Section Config",
+            description: JSON.stringify(updated),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.warn("Supabase hero banner update notice:", err);
+        }
+      }
+    },
+    [heroBanner, stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, persistState]
+  );
+
   // Reset all overrides back to default projectsData
   const resetPortfolioData = useCallback(async () => {
     try {
@@ -1223,6 +1300,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     setClientLogos(defaultClientLogosData);
     setPortfolioIntro(defaultPortfolioIntroData);
     setPortfolioRunner(defaultPortfolioRunnerData);
+    setHeroBanner(defaultHeroBannerData);
 
     // Reset cloud if configured
     if (isSupabaseConfigured && supabase) {
@@ -1283,6 +1361,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         clientLogos,
         portfolioIntro,
         portfolioRunner,
+        heroBanner,
         allData,
         updateStage3Video,
         removeStage3Video,
@@ -1302,6 +1381,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         editPortfolioRunnerItem,
         deletePortfolioRunnerItem,
         resetPortfolioRunner,
+        updateHeroBannerData,
         resetPortfolioData,
         isAdminMode,
         setIsAdminMode,

@@ -41,6 +41,8 @@ import {
   ClientLogoItem,
   PortfolioRunnerItem,
   defaultPortfolioRunnerData,
+  HeroBannerData,
+  defaultHeroBannerData,
 } from "@/context/PortfolioDataContext";
 import { getCaseStudy, getAspectClass } from "@/components/Projects";
 
@@ -58,6 +60,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     portfolioRunner,
     updatePortfolioRunnerData,
     resetPortfolioRunner,
+    heroBanner,
+    updateHeroBannerData,
     updateAboutData,
     updateStage3Video,
     removeStage3Video,
@@ -74,9 +78,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     isCloudSyncActive,
   } = usePortfolioData();
 
-  // Active Tab: 'clients' | 'hero-works' | 'client-logos' | 'runner' | 'about' | 'flagship' | 'account'
+  // Active Tab: 'hero-banner' | 'clients' | 'hero-works' | 'client-logos' | 'runner' | 'about' | 'flagship' | 'account'
   const [activeTab, setActiveTab] = useState<
-    "clients" | "hero-works" | "client-logos" | "runner" | "about" | "flagship" | "account"
+    "hero-banner" | "clients" | "hero-works" | "client-logos" | "runner" | "about" | "flagship" | "account"
   >("clients");
 
   // Mobile Navigation Drawer State
@@ -250,6 +254,33 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setRunnerItems(portfolioRunner.items || defaultPortfolioRunnerData.items);
     }
   }, [portfolioRunner]);
+
+  // ==========================================
+  // Hero Banner Scrollytelling Form States
+  // ==========================================
+  const [hbName, setHbName] = useState(heroBanner?.name || defaultHeroBannerData.name);
+  const [hbRole, setHbRole] = useState(heroBanner?.role || defaultHeroBannerData.role);
+  const [hbScrollText, setHbScrollText] = useState(heroBanner?.scrollText || defaultHeroBannerData.scrollText);
+  const [hbSec2H1, setHbSec2H1] = useState(heroBanner?.sec2Headline1 || defaultHeroBannerData.sec2Headline1);
+  const [hbSec2H2, setHbSec2H2] = useState(heroBanner?.sec2Headline2 || defaultHeroBannerData.sec2Headline2);
+  const [hbSec2Body, setHbSec2Body] = useState(heroBanner?.sec2Body || defaultHeroBannerData.sec2Body);
+  const [hbSec3H1, setHbSec3H1] = useState(heroBanner?.sec3Headline1 || defaultHeroBannerData.sec3Headline1);
+  const [hbSec3H2, setHbSec3H2] = useState(heroBanner?.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
+  const [hbSec3Body, setHbSec3Body] = useState(heroBanner?.sec3Body || defaultHeroBannerData.sec3Body);
+
+  useEffect(() => {
+    if (heroBanner) {
+      setHbName(heroBanner.name || defaultHeroBannerData.name);
+      setHbRole(heroBanner.role || defaultHeroBannerData.role);
+      setHbScrollText(heroBanner.scrollText || defaultHeroBannerData.scrollText);
+      setHbSec2H1(heroBanner.sec2Headline1 || defaultHeroBannerData.sec2Headline1);
+      setHbSec2H2(heroBanner.sec2Headline2 || defaultHeroBannerData.sec2Headline2);
+      setHbSec2Body(heroBanner.sec2Body || defaultHeroBannerData.sec2Body);
+      setHbSec3H1(heroBanner.sec3Headline1 || defaultHeroBannerData.sec3Headline1);
+      setHbSec3H2(heroBanner.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
+      setHbSec3Body(heroBanner.sec3Body || defaultHeroBannerData.sec3Body);
+    }
+  }, [heroBanner]);
 
   // About Me Section Form States
   const [aboutEyebrow, setAboutEyebrow] = useState(about?.eyebrow || defaultAboutData.eyebrow);
@@ -581,6 +612,55 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setRunnerTitle(defaultPortfolioRunnerData.title);
       setRunnerItems(defaultPortfolioRunnerData.items);
       showToast("Running Portofolio berhasil di-reset ke default!");
+    }
+  };
+
+  // ==========================================
+  // Handlers for Hero Banner
+  // ==========================================
+  const handleSaveHeroBanner = async () => {
+    await updateHeroBannerData({
+      name: hbName.trim() || defaultHeroBannerData.name,
+      role: hbRole.trim() || defaultHeroBannerData.role,
+      scrollText: hbScrollText.trim() || defaultHeroBannerData.scrollText,
+      sec2Headline1: hbSec2H1.trim() || defaultHeroBannerData.sec2Headline1,
+      sec2Headline2: hbSec2H2.trim() || defaultHeroBannerData.sec2Headline2,
+      sec2Body: hbSec2Body.trim() || defaultHeroBannerData.sec2Body,
+      sec3Headline1: hbSec3H1.trim() || defaultHeroBannerData.sec3Headline1,
+      sec3Headline2: hbSec3H2.trim() || defaultHeroBannerData.sec3Headline2,
+      sec3Body: hbSec3Body.trim() || defaultHeroBannerData.sec3Body,
+    });
+    showToast("Berhasil: Teks Hero Banner berhasil disimpan!");
+  };
+
+  const handleCancelHeroBanner = () => {
+    if (heroBanner) {
+      setHbName(heroBanner.name || defaultHeroBannerData.name);
+      setHbRole(heroBanner.role || defaultHeroBannerData.role);
+      setHbScrollText(heroBanner.scrollText || defaultHeroBannerData.scrollText);
+      setHbSec2H1(heroBanner.sec2Headline1 || defaultHeroBannerData.sec2Headline1);
+      setHbSec2H2(heroBanner.sec2Headline2 || defaultHeroBannerData.sec2Headline2);
+      setHbSec2Body(heroBanner.sec2Body || defaultHeroBannerData.sec2Body);
+      setHbSec3H1(heroBanner.sec3Headline1 || defaultHeroBannerData.sec3Headline1);
+      setHbSec3H2(heroBanner.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
+      setHbSec3Body(heroBanner.sec3Body || defaultHeroBannerData.sec3Body);
+    }
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
+  };
+
+  const handleResetHeroBannerDefault = async () => {
+    if (confirm(isId ? "Reset teks Hero Banner ke susunan default awal?" : "Reset Hero Banner text to default?")) {
+      await updateHeroBannerData(defaultHeroBannerData);
+      setHbName(defaultHeroBannerData.name);
+      setHbRole(defaultHeroBannerData.role);
+      setHbScrollText(defaultHeroBannerData.scrollText);
+      setHbSec2H1(defaultHeroBannerData.sec2Headline1);
+      setHbSec2H2(defaultHeroBannerData.sec2Headline2);
+      setHbSec2Body(defaultHeroBannerData.sec2Body);
+      setHbSec3H1(defaultHeroBannerData.sec3Headline1);
+      setHbSec3H2(defaultHeroBannerData.sec3Headline2);
+      setHbSec3Body(defaultHeroBannerData.sec3Body);
+      showToast("Teks Hero Banner berhasil di-reset ke default!");
     }
   };
 
@@ -1143,7 +1223,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       {/* Main Content Area */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
         {/* Navigation Tabs (Desktop View: Horizontal Strip, Hidden on Mobile) */}
-        <div className="hidden sm:flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 w-full max-w-5xl mx-auto mb-8 backdrop-blur-md overflow-x-auto">
+        <div className="hidden sm:flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 w-full max-w-6xl mx-auto mb-8 backdrop-blur-md overflow-x-auto">
+          <button
+            type="button"
+            onClick={() => setActiveTab("hero-banner")}
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              activeTab === "hero-banner"
+                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
+                : "text-neutral-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <HiSparkles className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">{isId ? "1. Hero Banner" : "1. Hero Banner"}</span>
+          </button>
+
           <button
             type="button"
             onClick={() => setActiveTab("clients")}
@@ -1154,7 +1247,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiFolder className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "1. Portofolio" : "1. Portfolio"}</span>
+            <span className="whitespace-nowrap">{isId ? "2. Portofolio" : "2. Portfolio"}</span>
           </button>
 
           <button
@@ -1167,7 +1260,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiSparkles className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "2. Hero & Karya" : "2. Hero & Works"}</span>
+            <span className="whitespace-nowrap">{isId ? "3. Hero & Karya" : "3. Hero & Works"}</span>
           </button>
 
           <button
@@ -1180,7 +1273,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiTag className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "3. Logo Klien" : "3. Client Logos"}</span>
+            <span className="whitespace-nowrap">{isId ? "4. Logo Klien" : "4. Client Logos"}</span>
           </button>
 
           <button
@@ -1193,7 +1286,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiPhoto className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "4. Running Portofolio" : "4. Running Portfolio"}</span>
+            <span className="whitespace-nowrap">{isId ? "5. Running Portofolio" : "5. Running Portfolio"}</span>
           </button>
 
           <button
@@ -1206,7 +1299,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiUser className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "5. Tentang Saya" : "5. About Me"}</span>
+            <span className="whitespace-nowrap">{isId ? "6. Tentang Saya" : "6. About Me"}</span>
           </button>
 
           <button
@@ -1219,7 +1312,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiVideoCamera className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "6. Video YouTube" : "6. YouTube Video"}</span>
+            <span className="whitespace-nowrap">{isId ? "7. Video YouTube" : "7. YouTube Video"}</span>
           </button>
 
           <button
@@ -1232,7 +1325,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiKey className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "7. Sandi & Akun" : "7. Password & Account"}</span>
+            <span className="whitespace-nowrap">{isId ? "8. Sandi & Akun" : "8. Password & Account"}</span>
           </button>
         </div>
 
@@ -1241,13 +1334,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-[#14AF9E] animate-pulse" />
             <span className="text-xs font-mono font-semibold text-neutral-300">
-              {activeTab === "clients" && (isId ? "1. Portofolio" : "1. Portfolio")}
-              {activeTab === "hero-works" && (isId ? "2. Hero & Karya" : "2. Hero & Works")}
-              {activeTab === "client-logos" && (isId ? "3. Logo Klien" : "3. Client Logos")}
-              {activeTab === "runner" && (isId ? "4. Running Portofolio (4:5)" : "4. Running Portfolio (4:5)")}
-              {activeTab === "about" && (isId ? "5. Tentang Saya" : "5. About Me")}
-              {activeTab === "flagship" && (isId ? "6. Video YouTube" : "6. YouTube Video")}
-              {activeTab === "account" && (isId ? "7. Sandi & Akun" : "7. Password & Account")}
+              {activeTab === "hero-banner" && (isId ? "1. Hero Banner" : "1. Hero Banner")}
+              {activeTab === "clients" && (isId ? "2. Portofolio" : "2. Portfolio")}
+              {activeTab === "hero-works" && (isId ? "3. Hero & Karya" : "3. Hero & Works")}
+              {activeTab === "client-logos" && (isId ? "4. Logo Klien" : "4. Client Logos")}
+              {activeTab === "runner" && (isId ? "5. Running Portofolio" : "5. Running Portfolio")}
+              {activeTab === "about" && (isId ? "6. Tentang Saya" : "6. About Me")}
+              {activeTab === "flagship" && (isId ? "7. Video YouTube" : "7. YouTube Video")}
+              {activeTab === "account" && (isId ? "8. Sandi & Akun" : "8. Password & Account")}
             </span>
           </div>
 
@@ -1260,6 +1354,242 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <span>Menu Tab</span>
           </button>
         </div>
+
+        {/* ========================================================
+            TAB 1: HERO BANNER SCROLLYTELLING MANAGEMENT
+           ======================================================== */}
+        {activeTab === "hero-banner" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-8"
+          >
+            {/* Header Explainer */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+                SECTION CONTROL: HERO BANNER UTAMA (CANVAS SCROLLYTELLING)
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                {isId ? "Editor Teks Hero Banner & Scrollytelling" : "Hero Banner & Scrollytelling Text Editor"}
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+                {isId
+                  ? "Sesuaikan nama utama, profesi/peran, serta teks narasi scrollytelling yang tampil saat pengunjung membuka website dan menggulir ke bawah."
+                  : "Customize the primary hero name, role/subtitle, and scrollytelling narrative paragraphs that appear as visitors scroll through the top section."}
+              </p>
+            </div>
+
+            {/* Live Visual Preview Mockup */}
+            <div className="p-6 rounded-2xl bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border border-white/15 text-center flex flex-col items-center justify-center min-h-[200px] shadow-2xl relative overflow-hidden">
+              <div className="absolute top-3 left-4 text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
+                {isId ? "Live Preview Hero" : "Hero Live Preview"}
+              </div>
+              <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-tight mb-1">
+                {hbName || "Fomy R"}<span className="text-neutral-500 font-normal">.</span>
+              </h1>
+              <p className="text-xs sm:text-sm font-mono tracking-widest text-[#14AF9E] mt-1">
+                {hbRole || "AI-Powered Creative Designer"}
+              </p>
+              <div className="flex flex-col items-center gap-1.5 mt-5">
+                <div className="w-4 h-6 rounded-full border border-neutral-500 flex justify-center pt-1">
+                  <span className="w-1 h-1.5 rounded-full bg-neutral-400 animate-bounce" />
+                </div>
+                <span className="text-[9px] font-mono tracking-widest text-neutral-500 uppercase">
+                  {hbScrollText || "SCROLL"}
+                </span>
+              </div>
+            </div>
+
+            {/* Bagian 1: Identitas Hero Utama */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <HiSparkles className="w-4 h-4 text-[#14AF9E]" />
+                  <span>{isId ? "Bagian 1: Identitas Hero Utama (Layar Pertama)" : "Part 1: Primary Hero Identity (First Screen)"}</span>
+                </h3>
+                <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 0% - 25%</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {isId ? "Nama Utama (Besar)" : "Main Name (Large)"} *
+                  </label>
+                  <input
+                    type="text"
+                    value={hbName}
+                    onChange={(e) => setHbName(e.target.value)}
+                    placeholder="Contoh: Fomy R"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                  <p className="text-[10px] text-neutral-500 font-mono">Tampil dengan ukuran font paling besar di tengah.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {isId ? "Profesi / Subtitle Role" : "Role / Subtitle"} *
+                  </label>
+                  <input
+                    type="text"
+                    value={hbRole}
+                    onChange={(e) => setHbRole(e.target.value)}
+                    placeholder="Contoh: AI-Powered Creative Designer"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                  <p className="text-[10px] text-neutral-500 font-mono">Teks di bawah nama utama dengan gaya font mono.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {isId ? "Teks Indikator Scroll" : "Scroll Indicator Text"}
+                  </label>
+                  <input
+                    type="text"
+                    value={hbScrollText}
+                    onChange={(e) => setHbScrollText(e.target.value)}
+                    placeholder="Contoh: SCROLL atau GULIR"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                  <p className="text-[10px] text-neutral-500 font-mono">Teks di bawah ikon mouse berkedip.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Bagian 2: Teks Narasi Scroll Kiri (Fase 30% - 60%) */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <HiTag className="w-4 h-4 text-cyan-400" />
+                  <span>{isId ? "Bagian 2: Narasi Sisi Kiri (Fase Scroll 30% - 60%)" : "Part 2: Left-Aligned Narrative (Scroll 30% - 60%)"}</span>
+                </h3>
+                <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 30% - 60%</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {isId ? "Judul Baris 1 (Putih)" : "Headline Line 1 (White)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={hbSec2H1}
+                    onChange={(e) => setHbSec2H1(e.target.value)}
+                    placeholder="Contoh: Results-driven"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {isId ? "Judul Baris 2 (Abu-abu / Aksen)" : "Headline Line 2 (Accent)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={hbSec2H2}
+                    onChange={(e) => setHbSec2H2(e.target.value)}
+                    placeholder="Contoh: creative"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono font-semibold text-neutral-300">
+                  {isId ? "Paragraf Deskripsi Sisi Kiri" : "Left Description Paragraph"}
+                </label>
+                <textarea
+                  rows={3}
+                  value={hbSec2Body}
+                  onChange={(e) => setHbSec2Body(e.target.value)}
+                  placeholder="Deskripsi keahlian dan pengalaman..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] leading-relaxed"
+                />
+              </div>
+            </div>
+
+            {/* Bagian 3: Teks Narasi Scroll Kanan (Fase 65% - 95%) */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <HiTag className="w-4 h-4 text-purple-400" />
+                  <span>{isId ? "Bagian 3: Narasi Sisi Kanan (Fase Scroll 65% - 95%)" : "Part 3: Right-Aligned Narrative (Scroll 65% - 95%)"}</span>
+                </h3>
+                <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 65% - 95%</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {isId ? "Judul Baris 1 (Putih)" : "Headline Line 1 (White)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={hbSec3H1}
+                    onChange={(e) => setHbSec3H1(e.target.value)}
+                    placeholder="Contoh: Creative"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {isId ? "Judul Baris 2 (Abu-abu / Aksen)" : "Headline Line 2 (Accent)"}
+                  </label>
+                  <input
+                    type="text"
+                    value={hbSec3H2}
+                    onChange={(e) => setHbSec3H2(e.target.value)}
+                    placeholder="Contoh: meets AI"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-mono font-semibold text-neutral-300">
+                  {isId ? "Paragraf Deskripsi Sisi Kanan" : "Right Description Paragraph"}
+                </label>
+                <textarea
+                  rows={3}
+                  value={hbSec3Body}
+                  onChange={(e) => setHbSec3Body(e.target.value)}
+                  placeholder="Deskripsi AI workflow dan modern vision..."
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] leading-relaxed"
+                />
+              </div>
+            </div>
+
+            {/* Bottom Actions Bar */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-4 backdrop-blur-xl z-20">
+              <button
+                type="button"
+                onClick={handleResetHeroBannerDefault}
+                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer"
+              >
+                {isId ? "Reset ke Teks Bawaan" : "Reset to Default"}
+              </button>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleCancelHeroBanner}
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs sm:text-sm font-medium transition-all cursor-pointer"
+                >
+                  {isId ? "Batal" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveHeroBanner}
+                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <HiCheck className="w-4 h-4" />
+                  <span>{isId ? "Simpan Perubahan Hero Banner" : "Save Hero Banner"}</span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         {/* TAB: CLIENT BRAND & PORTFOLIO WORKS MANAGEMENT (MY WORK PANEL) */}
         {activeTab === "clients" && (
@@ -4572,44 +4902,50 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="space-y-1.5 pt-1">
                 {[
                   {
+                    id: "hero-banner" as const,
+                    label: isId ? "1. Hero Banner Utama" : "1. Main Hero Banner",
+                    sub: isId ? "Nama, subtitle & scrollytelling intro" : "Name, role & scrollytelling intro",
+                    icon: HiSparkles,
+                  },
+                  {
                     id: "clients" as const,
-                    label: isId ? "1. Manajemen Portofolio & Folder" : "1. Portfolio & Folders",
+                    label: isId ? "2. Manajemen Portofolio & Folder" : "2. Portfolio & Folders",
                     sub: isId ? "Kelola brand & upload karya" : "Manage brands & upload works",
                     icon: HiFolder,
                   },
                   {
                     id: "hero-works" as const,
-                    label: isId ? "2. Hero & Karya Unggulan" : "2. Hero & Selected Works",
+                    label: isId ? "3. Hero & Karya Unggulan" : "3. Hero & Selected Works",
                     sub: isId ? "Teks hero, skill tags & kartu" : "Hero text, skill tags & cards",
                     icon: HiSparkles,
                   },
                   {
                     id: "client-logos" as const,
-                    label: isId ? "3. Logo Klien Marquee" : "3. Client Logos Marquee",
+                    label: isId ? "4. Logo Klien Marquee" : "4. Client Logos Marquee",
                     sub: isId ? "Daftar logo brand partner berjalan" : "Moving partner logo strip",
                     icon: HiTag,
                   },
                   {
                     id: "runner" as const,
-                    label: isId ? "4. Running Portofolio (4:5)" : "4. Running Portfolio (4:5)",
+                    label: isId ? "5. Running Portofolio (4:5)" : "5. Running Portfolio (4:5)",
                     sub: isId ? "Marquee kartu karya rasio 4:5 atas footer" : "2-row 4:5 portfolio runner strip",
                     icon: HiPhoto,
                   },
                   {
                     id: "about" as const,
-                    label: isId ? "5. Tentang Saya (About Me)" : "5. About Me Section",
+                    label: isId ? "6. Tentang Saya (About Me)" : "6. About Me Section",
                     sub: isId ? "Narasi bio, statistik & disiplin" : "Bio narrative, stats & skills",
                     icon: HiUser,
                   },
                   {
                     id: "flagship" as const,
-                    label: isId ? "6. Video Flagship YouTube" : "6. Flagship YouTube Video",
+                    label: isId ? "7. Video Flagship YouTube" : "7. Flagship YouTube Video",
                     sub: isId ? "Embed video karya sinematik" : "Embed cinematic showcase",
                     icon: HiVideoCamera,
                   },
                   {
                     id: "account" as const,
-                    label: isId ? "7. Sandi & Keamanan Akun" : "7. Password & Account Security",
+                    label: isId ? "8. Sandi & Keamanan Akun" : "8. Password & Account Security",
                     sub: isId ? "Ganti username, password & email" : "Update user, pass & recovery email",
                     icon: HiKey,
                   },

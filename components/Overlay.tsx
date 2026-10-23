@@ -2,6 +2,7 @@
 
 import React, { useRef, useEffect } from "react";
 import { useLang } from "@/context/LanguageContext";
+import { usePortfolioData } from "@/context/PortfolioDataContext";
 
 interface OverlayProps {
   progress: number;
@@ -11,7 +12,21 @@ export default function Overlay({ progress }: OverlayProps) {
   const section1Ref = useRef<HTMLDivElement>(null);
   const section2Ref = useRef<HTMLDivElement>(null);
   const section3Ref = useRef<HTMLDivElement>(null);
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const { heroBanner } = usePortfolioData();
+  const isId = lang === "id";
+
+  const displayName = heroBanner?.name || "Fomy R";
+  const displayRole = isId ? t("hero.role") : (heroBanner?.role || t("hero.role"));
+  const displayScroll = isId ? t("hero.scroll") : (heroBanner?.scrollText || t("hero.scroll"));
+
+  const displaySec2H1 = isId ? t("hero.section2.headline1") : (heroBanner?.sec2Headline1 || t("hero.section2.headline1"));
+  const displaySec2H2 = isId ? t("hero.section2.headline2") : (heroBanner?.sec2Headline2 || t("hero.section2.headline2"));
+  const displaySec2Body = isId ? t("hero.section2.body") : (heroBanner?.sec2Body || t("hero.section2.body"));
+
+  const displaySec3H1 = isId ? t("hero.section3.headline1") : (heroBanner?.sec3Headline1 || t("hero.section3.headline1"));
+  const displaySec3H2 = isId ? t("hero.section3.headline2") : (heroBanner?.sec3Headline2 || t("hero.section3.headline2"));
+  const displaySec3Body = isId ? t("hero.section3.body") : (heroBanner?.sec3Body || t("hero.section3.body"));
 
   useEffect(() => {
     // ==========================================
@@ -125,10 +140,10 @@ export default function Overlay({ progress }: OverlayProps) {
         className="absolute inset-x-0 top-[48%] sm:top-[50%] -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 transition-none"
       >
         <h1 className="text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-tight">
-          Fomy R<span className="text-neutral-500 font-normal">.</span>
+          {displayName}<span className="text-neutral-500 font-normal">.</span>
         </h1>
         <p className="text-sm sm:text-base font-mono tracking-wider sm:tracking-widest text-neutral-300 mt-2 sm:mt-3">
-          {t("hero.role")}
+          {displayRole}
         </p>
 
         {/* Minimalist mouse scroll indicator matching reference */}
@@ -137,7 +152,7 @@ export default function Overlay({ progress }: OverlayProps) {
             <span className="w-1 h-2 rounded-full bg-neutral-300 animate-bounce" />
           </div>
           <span className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
-            {t("hero.scroll")}
+            {displayScroll}
           </span>
         </div>
       </div>
@@ -154,11 +169,11 @@ export default function Overlay({ progress }: OverlayProps) {
         className="absolute inset-x-0 px-6 sm:px-0 sm:left-12 md:left-16 lg:left-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left flex flex-col justify-center transition-none"
       >
         <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-[1.15]">
-          {t("hero.section2.headline1")}<br />
-          <span className="text-neutral-400 font-bold">{t("hero.section2.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
+          {displaySec2H1}<br />
+          <span className="text-neutral-400 font-bold">{displaySec2H2}</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
         <p className="text-base sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
-          {t("hero.section2.body")}
+          {displaySec2Body}
         </p>
       </div>
 
@@ -174,11 +189,11 @@ export default function Overlay({ progress }: OverlayProps) {
         className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-right flex flex-col items-end justify-center transition-none ml-auto"
       >
         <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-[1.15]">
-          {t("hero.section3.headline1")}<br />
-          <span className="text-neutral-400 font-bold">{t("hero.section3.headline2")}</span><span className="text-neutral-500 font-normal">.</span>
+          {displaySec3H1}<br />
+          <span className="text-neutral-400 font-bold">{displaySec3H2}</span><span className="text-neutral-500 font-normal">.</span>
         </h2>
         <p className="text-base sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg text-right">
-          {t("hero.section3.body")}
+          {displaySec3Body}
         </p>
       </div>
     </div>
