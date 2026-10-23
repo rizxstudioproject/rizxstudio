@@ -160,7 +160,6 @@ export default function ClientsWorkspace({
   const [descriptionInput, setDescriptionInput] = useState("");
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
   const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
-  const [activeSubTab, setActiveSubTab] = useState<"overview" | "tools" | "assets">("overview");
 
   // Assets toolbar states
   const [assetSearch, setAssetSearch] = useState("");
@@ -1419,52 +1418,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 )}
               </div>
             </div>
-          </div>
-
-          {/* Sub Navigation Tabs */}
-          <div className="flex items-center gap-6 border-b border-white/5 text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => setActiveSubTab("overview")}
-              className={`pb-2.5 transition-colors cursor-pointer relative ${
-                activeSubTab === "overview"
-                  ? "text-white font-semibold"
-                  : "text-neutral-400 hover:text-neutral-200"
-              }`}
-            >
-              {tr("Overview", "Ringkasan", "Ringkasan")}
-              {activeSubTab === "overview" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#14AF9E]" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab("tools")}
-              className={`pb-2.5 transition-colors cursor-pointer relative ${
-                activeSubTab === "tools"
-                  ? "text-white font-semibold"
-                  : "text-neutral-400 hover:text-neutral-200"
-              }`}
-            >
-              {tr("Tools", "Tools & Aplikasi", "Pakakeh & Aplikasi")} {selectedTools.length}
-              {activeSubTab === "tools" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#14AF9E]" />
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSubTab("assets")}
-              className={`pb-2.5 transition-colors cursor-pointer relative ${
-                activeSubTab === "assets"
-                  ? "text-white font-semibold"
-                  : "text-neutral-400 hover:text-neutral-200"
-              }`}
-            >
-              {tr("Assets", "Aset Karya", "Karya Aset")} {selectedClient.works?.length || 0}
-              {activeSubTab === "assets" && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#14AF9E]" />
-              )}
-            </button>
           </div>
 
           {/* Portfolio Information & Cover Preview Grid */}
