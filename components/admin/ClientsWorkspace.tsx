@@ -44,6 +44,8 @@ interface ClientsWorkspaceProps {
   onReplaceCoverImage?: (clientId: string, file: File) => void;
   onViewWebsite: () => void;
   showToast: (msg: string) => void;
+  workspaceView?: "folders" | "logos";
+  onWorkspaceViewChange?: (view: "folders" | "logos") => void;
 
   // Client Logos (Marquee) props
   clSubtitle?: string;
@@ -93,12 +95,19 @@ export default function ClientsWorkspace({
   onSaveClientLogos,
   onCancelClientLogos,
   onGenericImageFile,
+  workspaceView: controlledWorkspaceView,
+  onWorkspaceViewChange,
 }: ClientsWorkspaceProps) {
   const { lang } = useLang();
   const isId = lang === "id";
 
   // Workspace subview: 'folders' (Client Folders & Works) | 'logos' (Client Logos Marquee)
-  const [workspaceView, setWorkspaceView] = useState<"folders" | "logos">("folders");
+  const [internalWorkspaceView, setInternalWorkspaceView] = useState<"folders" | "logos">("folders");
+  const workspaceView = controlledWorkspaceView !== undefined ? controlledWorkspaceView : internalWorkspaceView;
+  const setWorkspaceView = (v: "folders" | "logos") => {
+    setInternalWorkspaceView(v);
+    if (onWorkspaceViewChange) onWorkspaceViewChange(v);
+  };
 
   // Mobile Master-Detail view: 'list' (Middle column list) | 'detail' (Main canvas workspace)
   const [mobileActiveView, setMobileActiveView] = useState<"list" | "detail">("list");

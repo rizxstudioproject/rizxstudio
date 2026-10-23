@@ -99,6 +99,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     "hero-banner" | "hero-works" | "flagship" | "runner" | "about"
   >("hero-banner");
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+  const [clientsWorkspaceView, setClientsWorkspaceView] = useState<"folders" | "logos">("folders");
 
   // Legacy activeTab support
   const [activeTab, setActiveTab] = useState<
@@ -1643,6 +1644,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           onLogout={adminLogout}
           isCloudSyncActive={isCloudSyncActive}
           onToggleMobileMenu={() => setIsMobileMenuOpen(true)}
+          clients={clients}
+          clLogos={clLogos}
+          onSelectClient={(id) => {
+            setSelectedClientId(id);
+            setSidebarTab("clients");
+            setClientsWorkspaceView("folders");
+            showToast("Membuka folder klien");
+          }}
+          onSelectTab={(tab) => {
+            setSidebarTab(tab);
+          }}
+          onOpenLogosTab={() => {
+            setSidebarTab("clients");
+            setClientsWorkspaceView("logos");
+            showToast("Membuka Partner Logos Marquee");
+          }}
         />
 
         {/* Dynamic Workspace Canvas */}
@@ -1652,6 +1669,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <ClientsWorkspace
               clients={clients}
               selectedClientId={selectedClientId}
+              workspaceView={clientsWorkspaceView}
+              onWorkspaceViewChange={setClientsWorkspaceView}
               onSelectClient={(id) => setSelectedClientId(id)}
               onOpenAddFolder={() => setIsAddFolderOpen(true)}
               onOpenEditFolder={handleOpenEditFolder}
