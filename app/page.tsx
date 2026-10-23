@@ -7,6 +7,7 @@ import ClientLogos from "@/components/ClientLogos";
 import About from "@/components/About";
 import Projects from "@/components/Projects";
 import Contact from "@/components/Contact";
+import PortfolioRunner from "@/components/PortfolioRunner";
 import AdminDashboard from "@/components/AdminDashboard";
 import AdminLogin from "@/components/AdminLogin";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
@@ -110,7 +111,10 @@ export default function Home() {
         {/* 3. Work / Selected Works */}
         <Projects />
 
-        {/* 4. Contact Footer */}
+        {/* 4. Portfolio Runner — marquee above footer */}
+        <PortfolioRunner />
+
+        {/* 5. Contact Footer */}
         <Contact />
       </main>
 

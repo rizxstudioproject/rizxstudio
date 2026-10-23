@@ -27,6 +27,8 @@ const config: Config = {
         "float": "float 6s ease-in-out infinite",
         "marquee": "marquee 30s linear infinite",
         "marquee2": "marquee2 30s linear infinite",
+        "marquee-left": "marquee-left var(--dur, 40s) linear infinite",
+        "marquee-right": "marquee-right var(--dur, 48s) linear infinite",
       },
       keyframes: {
         float: {
@@ -40,6 +42,14 @@ const config: Config = {
         marquee2: {
           "0%": { transform: "translateX(0%)" },
           "100%": { transform: "translateX(-100%)" },
+        },
+        "marquee-left": {
+          "0%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "marquee-right": {
+          "0%": { transform: "translateX(-50%)" },
+          "100%": { transform: "translateX(0%)" },
         },
       },
     },
