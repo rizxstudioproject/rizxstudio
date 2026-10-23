@@ -110,8 +110,12 @@ export default function AdminSidebar({
       {/* Brand Header */}
       <div className="p-4 border-b border-white/5">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#14AF9E] flex items-center justify-center font-bold text-black text-sm shadow-md shadow-[#14AF9E]/20 shrink-0">
-            R
+          <div className="w-8 h-8 rounded-lg bg-neutral-900 border border-white/10 flex items-center justify-center p-1.5 shadow-md shadow-black/40 shrink-0">
+            <img
+              src="/navbar-logo.png"
+              alt="Rizx Studio"
+              className="w-full h-full object-contain brightness-0 invert"
+            />
           </div>
           <div className="min-w-0">
             <h1 className="text-sm font-semibold text-white tracking-tight truncate">

@@ -5681,13 +5681,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             >
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#14AF9E]/20 flex items-center justify-center text-[#14AF9E]">
-                    <HiBars3 className="w-4 h-4 stroke-[2]" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-900 border border-white/10 flex items-center justify-center p-1.5 shadow-md shadow-black/40 shrink-0">
+                    <img
+                      src="/navbar-logo.png"
+                      alt="Rizx Studio"
+                      className="w-full h-full object-contain brightness-0 invert"
+                    />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Menu Navigasi Panel Admin</h3>
-                    <p className="text-[10px] font-mono text-neutral-400">Pilih tab pengaturan di bawah</p>
+                    <h3 className="text-sm font-bold text-white">Rizx Studio Admin</h3>
+                    <p className="text-[10px] font-mono text-neutral-400">Creative Production Workspace</p>
                   </div>
                 </div>
                 <button
