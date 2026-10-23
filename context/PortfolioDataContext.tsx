@@ -442,12 +442,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed.stage3) {
+            const raw = parsed.stage3.heroCard?.image;
+            const validImage = (raw && raw !== "/assets/antigravity/hero-large.jpg") ? raw : "";
             return {
               ...antigravityData.stage3,
               ...parsed.stage3,
               heroCard: {
                 ...antigravityData.stage3.heroCard,
                 ...(parsed.stage3.heroCard || {}),
+                image: validImage,
               },
             };
           }
@@ -458,6 +461,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       ...antigravityData.stage3,
       heroCard: {
         ...antigravityData.stage3.heroCard,
+        image: "",
         mediaType: "youtube",
         gdriveUrl: "",
         gdriveId: "",
@@ -730,6 +734,10 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
           if (!heroError && heroData) {
             setStage3((prev) => {
+              const safeCloudImage =
+                heroData.image_url && heroData.image_url !== "/assets/antigravity/hero-large.jpg"
+                  ? heroData.image_url
+                  : prev.heroCard.image;
               const updated = {
                 ...prev,
                 headline: heroData.headline || prev.headline,
@@ -741,7 +749,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                   description: heroData.description || prev.heroCard.description,
                   youtubeUrl: heroData.youtube_url ?? prev.heroCard.youtubeUrl,
                   videoId: heroData.video_id ?? prev.heroCard.videoId,
-                  image: heroData.image_url || heroData.image || prev.heroCard.image,
+                  image: safeCloudImage,
                   isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled,
                 },
               };
@@ -762,15 +770,21 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               try {
                 const parsedStage3 = JSON.parse(stage3Row.description);
                 setStage3((prev) => {
+                  const safeImg =
+                    parsedStage3.heroCard?.image && parsedStage3.heroCard.image !== "/assets/antigravity/hero-large.jpg"
+                      ? parsedStage3.heroCard.image
+                      : prev.heroCard.image;
                   const updated = {
                     ...prev,
                     ...parsedStage3,
                     heroCard: {
                       ...prev.heroCard,
                       ...(parsedStage3.heroCard || {}),
+                      image: safeImg,
                     },
                   };
                   stage3Ref.current = updated;
+                  persistState(updated);
                   return updated;
                 });
               } catch (_) {}
