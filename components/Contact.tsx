@@ -1,9 +1,8 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 import SpotlightCard from "./SpotlightCard";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
-import { HiArrowUpRight } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 
 export default function Contact() {
@@ -76,68 +75,36 @@ export default function Contact() {
             <a href="#clients" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.clients")}</a>
             <a href="#projects" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.work")}</a>
             <a href="#about" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.about")}</a>
-            <a
-              href="https://wa.me/6282381769146"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#14AF9E] text-neutral-300 transition-colors uppercase tracking-widest flex items-center gap-1 font-semibold"
-            >
-              <span>{t("contact.footer.contact")}</span>
-              <span className="text-[10px] text-[#14AF9E]">↗</span>
-            </a>
           </div>
 
-          {/* Right: Language Switcher + Social icons */}
-          <div className="flex items-center gap-4">
+          {/* Right: Language Switcher */}
+          <div className="flex items-center">
             {/* Footer Language Toggle */}
-            <div className="flex items-center">
-              <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
-                <button
-                  type="button"
-                  onClick={() => setLang("en")}
-                  className={`px-2.5 py-1 transition-all cursor-pointer ${
-                    lang === "en"
-                      ? "bg-[#14AF9E] text-white font-bold"
-                      : "text-neutral-400 hover:text-white"
-                  }`}
-                  aria-label="English"
-                >
-                  EN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setLang("id")}
-                  className={`px-2.5 py-1 transition-all cursor-pointer ${
-                    lang === "id"
-                      ? "bg-[#14AF9E] text-white font-bold"
-                      : "text-neutral-400 hover:text-white"
-                  }`}
-                  aria-label="Indonesia"
-                >
-                  ID
-                </button>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2 text-neutral-400 border-l border-white/10 pl-3">
-              <a
-                href="https://www.instagram.com/rizxstudio/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram Profile"
-                className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
+              <button
+                type="button"
+                onClick={() => setLang("en")}
+                className={`px-2.5 py-1 transition-all cursor-pointer ${
+                  lang === "en"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                aria-label="English"
               >
-                <FaInstagram className="w-4 h-4" />
-              </a>
-              <a
-                href="https://www.linkedin.com/in/rizxstudio/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn Profile"
-                className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
+                EN
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang("id")}
+                className={`px-2.5 py-1 transition-all cursor-pointer ${
+                  lang === "id"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                aria-label="Indonesia"
               >
-                <FaLinkedinIn className="w-4 h-4" />
-              </a>
+                ID
+              </button>
             </div>
           </div>
         </div>
@@ -148,14 +115,6 @@ export default function Contact() {
             <a href="#clients" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.clients")}</a>
             <a href="#projects" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.work")}</a>
             <a href="#about" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.about")}</a>
-            <a
-              href="https://wa.me/6282381769146"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-[#14AF9E] text-white transition-colors uppercase font-semibold tracking-wider"
-            >
-              {t("contact.footer.contact")} ↗
-            </a>
           </div>
 
           {/* Mobile Footer Language Toggle */}
@@ -184,27 +143,6 @@ export default function Contact() {
                 ID
               </button>
             </div>
-          </div>
-
-          <div className="flex items-center gap-4 text-neutral-400">
-            <a
-              href="https://www.instagram.com/rizxstudio/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Instagram Profile"
-              className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <FaInstagram className="w-4 h-4" />
-            </a>
-            <a
-              href="https://www.linkedin.com/in/rizxstudio/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="LinkedIn Profile"
-              className="p-2 rounded-full hover:text-white hover:bg-white/5 transition-colors"
-            >
-              <FaLinkedinIn className="w-4 h-4" />
-            </a>
           </div>
 
           <div className="text-xs text-neutral-500 tracking-wider font-mono">
