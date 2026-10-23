@@ -634,6 +634,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           const ytUrl = parsedHero.youtubeUrl ?? "";
           const vId = parsedHero.videoId ?? extractYouTubeId(ytUrl) ?? "";
           const vEnabled = parsedHero.isVideoEnabled ?? false;
+          const rawImg = parsedHero.image;
+          const validImg = (rawImg && rawImg !== "/assets/antigravity/hero-large.jpg") ? rawImg : "";
 
           const loadedStage3 = {
             ...antigravityData.stage3,
@@ -641,6 +643,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             heroCard: {
               ...defaultHero,
               ...parsedHero,
+              image: validImg,
               youtubeUrl: ytUrl,
               videoId: vId,
               isVideoEnabled: vEnabled,
@@ -732,25 +735,28 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
 
-      // Check IndexedDB backup for Stage 3 custom image if not in localStorage
-      getStage3ImageFromDB().then((cachedImg) => {
-        if (cachedImg) {
-          setStage3((prev) => {
-            if (!prev.heroCard.image || prev.heroCard.image === "/assets/antigravity/hero-large.jpg") {
-              const updated = {
-                ...prev,
-                heroCard: {
-                  ...prev.heroCard,
-                  image: cachedImg,
-                },
-              };
-              stage3Ref.current = updated;
-              return updated;
-            }
-            return prev;
-          });
-        }
-      });
+      // Check IndexedDB backup for Stage 3 custom image ONLY IF not already loaded/configured from localStorage
+      const hasLocalStorageData = localStorage.getItem(STORAGE_KEY) !== null;
+      if (!hasLocalStorageData) {
+        getStage3ImageFromDB().then((cachedImg) => {
+          if (cachedImg) {
+            setStage3((prev) => {
+              if (!prev.heroCard.image || prev.heroCard.image === "/assets/antigravity/hero-large.jpg") {
+                const updated = {
+                  ...prev,
+                  heroCard: {
+                    ...prev.heroCard,
+                    image: cachedImg,
+                  },
+                };
+                stage3Ref.current = updated;
+                return updated;
+              }
+              return prev;
+            });
+          }
+        });
+      }
 
       const session = sessionStorage.getItem(SESSION_KEY);
       if (session === "authenticated") {
@@ -774,10 +780,10 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
           if (!heroError && heroData) {
             setStage3((prev) => {
-              const safeCloudImage =
-                heroData.image_url && heroData.image_url !== "/assets/antigravity/hero-large.jpg"
-                  ? heroData.image_url
-                  : prev.heroCard.image;
+              const cloudImg =
+                !heroData.image_url || heroData.image_url === "/assets/antigravity/hero-large.jpg"
+                  ? ""
+                  : heroData.image_url;
               const updated = {
                 ...prev,
                 headline: heroData.headline || prev.headline,
@@ -789,7 +795,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                   description: heroData.description || prev.heroCard.description,
                   youtubeUrl: heroData.youtube_url ?? prev.heroCard.youtubeUrl,
                   videoId: heroData.video_id ?? prev.heroCard.videoId,
-                  image: safeCloudImage,
+                  image: cloudImg,
                   isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled,
                 },
               };
@@ -810,17 +816,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               try {
                 const parsedStage3 = JSON.parse(stage3Row.description);
                 setStage3((prev) => {
-                  const safeImg =
-                    parsedStage3.heroCard?.image && parsedStage3.heroCard.image !== "/assets/antigravity/hero-large.jpg"
-                      ? parsedStage3.heroCard.image
-                      : prev.heroCard.image;
+                  const rawParsedImg = parsedStage3.heroCard?.image;
+                  const cloudImg =
+                    !rawParsedImg || rawParsedImg === "/assets/antigravity/hero-large.jpg"
+                      ? ""
+                      : rawParsedImg;
                   const updated = {
                     ...prev,
                     ...parsedStage3,
                     heroCard: {
                       ...prev.heroCard,
                       ...(parsedStage3.heroCard || {}),
-                      image: safeImg,
+                      image: cloudImg,
                     },
                   };
                   stage3Ref.current = updated;
@@ -1087,9 +1094,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
       // Save custom image to IndexedDB for high-capacity persistence
       if (newImage && newImage.startsWith("data:")) {
-        saveStage3ImageToDB(newImage);
+        await saveStage3ImageToDB(newImage);
       } else if (params.image === "" || newImage === "") {
-        clearStage3ImageFromDB();
+        await clearStage3ImageFromDB();
       }
 
       // Async sync to Supabase if configured
@@ -1112,14 +1119,14 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         try {
           await client.from("flagship_showcase").upsert({
             id: "default",
-            title: newTitle,
-            category: newCat,
-            description: newDesc,
-            headline: newHeadline,
-            class_tag: newClassTag,
+            title: newTitle || "From Visual Craft to Technology",
+            category: newCat || "VISUAL CRAFT | DIGITAL | AI",
+            description: newDesc || "",
+            headline: newHeadline || "",
+            class_tag: newClassTag || "",
             youtube_url: finalYtUrl,
             video_id: finalYtId,
-            image_url: newImage,
+            image_url: newImage || "",
             is_video_enabled: newEnabled,
             updated_at: new Date().toISOString(),
           });
@@ -1151,7 +1158,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     stage3Ref.current = updatedStage3;
     setStage3(updatedStage3);
     persistState(updatedStage3);
-    clearStage3ImageFromDB();
+    await clearStage3ImageFromDB();
 
     if (isSupabaseConfigured && supabase) {
       const client = supabase;
@@ -1168,6 +1175,11 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       try {
         await client.from("flagship_showcase").upsert({
           id: "default",
+          title: currentStage3.heroCard.title || "From Visual Craft to Technology",
+          category: currentStage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI",
+          description: currentStage3.heroCard.description || "",
+          headline: currentStage3.headline || "",
+          class_tag: currentStage3.classTag || "",
           youtube_url: "",
           video_id: "",
           image_url: "",

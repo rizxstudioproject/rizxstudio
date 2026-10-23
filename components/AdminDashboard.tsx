@@ -56,6 +56,7 @@ import {
   saveCustomFramesToDB,
   getCustomFramesFromDB,
   clearCustomFramesFromDB,
+  clearStage3ImageFromDB,
 } from "@/lib/sequenceStorage";
 import AdminSidebar, { AdminSidebarTab } from "./admin/AdminSidebar";
 import AdminTopBar from "./admin/AdminTopBar";
@@ -1470,7 +1471,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     );
   };
 
-  const handleRemoveVideo = () => {
+  const handleRemoveVideo = async () => {
     const confirmMsg = tx(
       "Apakah Anda yakin ingin menghapus media (video & gambar) dari Flagship Showcase?",
       "Are you sure you want to remove the media (video & image) from Flagship Showcase?",
@@ -1483,15 +1484,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         title: stage3.heroCard.title || "Flagship Showcase Media",
         subtitle: stage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI",
         previewImage: flagshipImageUrl || stage3.heroCard.image || "",
-        mediaType: stage3.heroCard.mediaType || "youtube",
+        mediaType: stage3.heroCard.mediaType || "image",
         payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
       });
-      removeStage3Video();
+      await removeStage3Video();
       setVideoUrlInput("");
       setFlagshipGDriveUrl("");
       setFlagshipImageUrl("");
       setFlagshipMediaType("image");
       setVideoEnabled(false);
+      await clearStage3ImageFromDB();
       showToast(
         tx(
           "Media Flagship Showcase berhasil dihapus dan dipindahkan ke Tong Sampah.",
@@ -4688,26 +4690,38 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     {/* MODE 3: CUSTOM IMAGE */}
                     {flagshipMediaType === "image" && (
-                      <div className="space-y-2">
-                        <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          Gambar Showcase Statis <span className="text-[#14AF9E]">*</span>
-                        </label>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-mono text-neutral-300 font-medium">
+                            {tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis")} <span className="text-[#14AF9E]">*</span>
+                          </label>
+                          {flagshipImageUrl && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                              ● {tx("Gambar Aktif", "Image Active", "Gambar Aktif")}
+                            </span>
+                          )}
+                        </div>
+
                         <div className="flex gap-2">
                           <input
                             type="text"
-                            value={flagshipImageUrl}
+                            value={flagshipImageUrl.startsWith("data:") ? `[${tx("Gambar Terupload", "Uploaded Image", "Gambar Taupload")} - ${(flagshipImageUrl.length / 1024).toFixed(0)} KB]` : flagshipImageUrl}
                             onChange={(e) => setFlagshipImageUrl(e.target.value)}
                             placeholder="/assets/antigravity/hero-large.jpg atau URL gambar"
-                            className="flex-1 px-3.5 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#14AF9E]"
+                            readOnly={flagshipImageUrl.startsWith("data:")}
+                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#14AF9E]"
                           />
-                          <label className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-mono font-medium border border-white/15 cursor-pointer shrink-0 flex items-center gap-1.5">
+                          <label className="px-3.5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-mono font-medium border border-white/15 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all">
                             <HiArrowUpTray className="w-3.5 h-3.5 text-[#14AF9E]" />
-                            <span>Upload</span>
+                            <span>{flagshipImageUrl ? tx("Ganti", "Replace", "Ganti") : "Upload"}</span>
                             <input
                               type="file"
                               accept="image/*"
                               onChange={(e) =>
-                                handleGenericImageFile(e, (dataUrl) => setFlagshipImageUrl(dataUrl))
+                                handleGenericImageFile(e, (dataUrl) => {
+                                  setFlagshipImageUrl(dataUrl);
+                                  updateStage3Video({ image: dataUrl });
+                                })
                               }
                               className="hidden"
                             />
@@ -4715,21 +4729,77 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           {flagshipImageUrl && (
                             <button
                               type="button"
-                              onClick={() => {
+                              onClick={async () => {
+                                moveToTrash({
+                                  originalId: "stage3-flagship-image",
+                                  type: "flagship-video",
+                                  title: stage3.heroCard.title || "Showcase Image",
+                                  subtitle: tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis"),
+                                  previewImage: flagshipImageUrl,
+                                  mediaType: "image",
+                                  payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
+                                });
                                 setFlagshipImageUrl("");
-                                updateStage3Video({ image: "" });
-                                showToast(tx("Gambar showcase dikosongkan.", "Showcase image cleared.", "Gambar showcase dibarasiahkan."));
+                                await updateStage3Video({ image: "" });
+                                await clearStage3ImageFromDB();
+                                showToast(tx("Gambar showcase berhasil dihapus & dikosongkan.", "Showcase image deleted & cleared.", "Gambar showcase barasil dihapuih jo dikosongan."));
                               }}
-                              className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-mono font-medium border border-rose-500/25 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:scale-95"
-                              title={tx("Kosongkan gambar", "Clear image", "Barasiahkan gambar")}
+                              className="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 text-xs font-mono font-bold border border-rose-500/30 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-rose-500/10"
+                              title={tx("Hapus gambar ini", "Delete this image", "Hapuih gambar ko")}
                             >
-                              <HiTrash className="w-3.5 h-3.5" />
-                              <span>{tx("Hapus", "Clear", "Hapuih")}</span>
+                              <HiTrash className="w-3.5 h-3.5 text-rose-400" />
+                              <span>{tx("Hapus", "Delete", "Hapuih")}</span>
                             </button>
                           )}
                         </div>
+
+                        {/* Visual Thumbnail Card for Uploaded Image */}
+                        {flagshipImageUrl && (
+                          <div className="p-3 rounded-xl bg-neutral-950/80 border border-white/10 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <div className="w-16 h-10 rounded-lg overflow-hidden border border-white/20 shrink-0 bg-black">
+                                <img
+                                  src={flagshipImageUrl}
+                                  alt="Showcase thumbnail"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="truncate">
+                                <p className="text-xs font-semibold text-white truncate">
+                                  {tx("Thumbnail Showcase Terpasang", "Showcase Thumbnail Loaded", "Thumbnail Showcase Tapasang")}
+                                </p>
+                                <p className="text-[10px] text-neutral-400 font-mono">
+                                  {flagshipImageUrl.startsWith("data:") ? `${(flagshipImageUrl.length / 1024).toFixed(0)} KB WebP/JPG` : flagshipImageUrl}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                moveToTrash({
+                                  originalId: "stage3-flagship-image",
+                                  type: "flagship-video",
+                                  title: stage3.heroCard.title || "Showcase Image",
+                                  subtitle: tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis"),
+                                  previewImage: flagshipImageUrl,
+                                  mediaType: "image",
+                                  payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
+                                });
+                                setFlagshipImageUrl("");
+                                await updateStage3Video({ image: "" });
+                                await clearStage3ImageFromDB();
+                                showToast(tx("Gambar showcase berhasil dihapus & dikosongkan.", "Showcase image deleted & cleared.", "Gambar showcase barasil dihapuih jo dikosongan."));
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] font-mono border border-rose-500/20 flex items-center gap-1 cursor-pointer shrink-0 transition-all"
+                            >
+                              <HiTrash className="w-3 h-3" />
+                              <span>{tx("Hapus Gambar", "Remove Image", "Hapuih Gambar")}</span>
+                            </button>
+                          </div>
+                        )}
+
                         <p className="text-[11px] text-neutral-500 font-mono">
-                          Format disarankan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).
+                          {tx("Format disarankan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).", "Recommended: 16:9 or 21:9 high-res landscape (JPG, PNG, WebP).", "Format nan dianjuaan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).")}
                         </p>
                       </div>
                     )}
