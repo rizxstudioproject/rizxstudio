@@ -26,6 +26,9 @@ import {
   HiLockClosed,
   HiEnvelope,
   HiBars3,
+  HiSquares2X2,
+  HiBookOpen,
+  HiCircleStack,
 } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
@@ -52,6 +55,13 @@ import {
   getCustomFramesFromDB,
   clearCustomFramesFromDB,
 } from "@/lib/sequenceStorage";
+import AdminSidebar, { AdminSidebarTab } from "./admin/AdminSidebar";
+import AdminTopBar from "./admin/AdminTopBar";
+import ClientsWorkspace from "./admin/ClientsWorkspace";
+import DashboardOverview from "./admin/DashboardOverview";
+import AIPromptBuilder from "./admin/AIPromptBuilder";
+import BrandGuidelines from "./admin/BrandGuidelines";
+import ResourceLibrary from "./admin/ResourceLibrary";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -85,7 +95,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     isCloudSyncActive,
   } = usePortfolioData();
 
-  // Active Tab: 'hero-banner' | 'clients' | 'hero-works' | 'client-logos' | 'runner' | 'about' | 'flagship' | 'account'
+  // Studio OS Sidebar Tab: 'dashboard' | 'clients' | 'portfolio' | 'ai-prompt' | 'brand' | 'resources' | 'settings'
+  const [sidebarTab, setSidebarTab] = useState<AdminSidebarTab>("clients");
+  const [portfolioSubTab, setPortfolioSubTab] = useState<
+    "hero-banner" | "hero-works" | "flagship" | "client-logos" | "runner" | "about"
+  >("hero-banner");
+  const [globalSearchQuery, setGlobalSearchQuery] = useState("");
+
+  // Legacy activeTab support
   const [activeTab, setActiveTab] = useState<
     "hero-banner" | "clients" | "hero-works" | "client-logos" | "runner" | "about" | "flagship" | "account"
   >("clients");
@@ -1535,6 +1552,56 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
+  // Handler: Replace cover image for client
+  const handleReplaceCoverImage = (clientId: string, file: File) => {
+    const targetClient = clients.find((c) => c.id === clientId);
+    if (!targetClient) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const raw = e.target?.result as string;
+      if (!raw) return;
+
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        const maxW = 1920;
+        const maxH = 1080;
+        if (width > maxW || height > maxH) {
+          const ratio = Math.min(maxW / width, maxH / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL("image/webp", 0.85);
+
+          if (targetClient.works && targetClient.works.length > 0) {
+            const firstWork = targetClient.works[0];
+            updateClientWork(clientId, { ...firstWork, image: compressed });
+          } else {
+            addClientWork(clientId, {
+              id: `${clientId}-cover-${Date.now()}`,
+              title: `${targetClient.clientName} Cover`,
+              type: "Brand Deliverable",
+              image: compressed,
+              aspect: "16:9",
+              brand: targetClient.clientName,
+              year: new Date().getFullYear().toString(),
+            });
+          }
+          showToast(isId ? "Cover karya berhasil diperbarui!" : "Cover replaced successfully!");
+        }
+      };
+      img.src = raw;
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleFullReset = () => {
     if (
       window.confirm(
@@ -1547,266 +1614,133 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#070708] text-neutral-200 selection:bg-[#14AF9E]/30 selection:text-white pb-24 font-sans">
-      {/* Top Floating Glassmorphic Header */}
-      <header className="sticky top-0 z-50 bg-[#0d0e12]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-8 py-3.5 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center shrink-0">
-            <img
-              src="/navbar-logo.png"
-              alt="Rizx Studio Admin"
-              className="w-full h-full object-contain brightness-0 invert"
+    <div className="fixed inset-0 z-50 bg-[#08090a] text-neutral-200 flex h-screen w-screen overflow-hidden font-sans select-none">
+      {/* Desktop Far Left Sidebar (240px wide) */}
+      <div className="hidden md:flex h-full shrink-0">
+        <AdminSidebar
+          activeTab={sidebarTab}
+          onSelectTab={(tab) => {
+            setSidebarTab(tab);
+            if (tab === "clients") setActiveTab("clients");
+          }}
+          storageUsed="18.4"
+          storageTotal="100"
+          adminName={adminUser === "admin" ? "Rizx Studio" : adminUser}
+          onOpenProfileMenu={() => setSidebarTab("settings")}
+        />
+      </div>
+
+      {/* Main Workspace Column */}
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-[#0d0f13]">
+        {/* Top Header Bar */}
+        <AdminTopBar
+          searchQuery={globalSearchQuery}
+          onSearchChange={(q) => setGlobalSearchQuery(q)}
+          onViewWebsite={() => {
+            if (onClose) onClose();
+            else setIsAdminMode(false);
+          }}
+          onLogout={adminLogout}
+          isCloudSyncActive={isCloudSyncActive}
+          onToggleMobileMenu={() => setIsMobileMenuOpen(true)}
+        />
+
+        {/* Dynamic Workspace Canvas */}
+        <div className="flex-1 flex min-h-0 overflow-hidden relative">
+          {/* 1. Clients Studio OS Workspace (Matches User's Mockup) */}
+          {sidebarTab === "clients" && (
+            <ClientsWorkspace
+              clients={clients}
+              selectedClientId={selectedClientId}
+              onSelectClient={(id) => setSelectedClientId(id)}
+              onOpenAddFolder={() => setIsAddFolderOpen(true)}
+              onOpenEditFolder={handleOpenEditFolder}
+              onDeleteFolder={handleDeleteFolder}
+              onOpenUploadWork={() => setIsUploadModalOpen(true)}
+              onOpenEditWork={handleOpenEditWork}
+              onDeleteWork={handleDeleteWork}
+              onSaveClientDescription={(id, desc, tools) => {
+                updateClientDescription(id, desc, tools);
+              }}
+              onReplaceCoverImage={handleReplaceCoverImage}
+              onViewWebsite={() => {
+                if (onClose) onClose();
+                else setIsAdminMode(false);
+              }}
+              showToast={showToast}
             />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-sm sm:text-base font-bold text-white tracking-wide">
-                Rizx Studio Admin Dashboard
-              </h1>
-              <span
-                className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border flex items-center gap-1 ${
-                  isCloudSyncActive
-                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
-                    : "bg-[#14AF9E]/20 text-[#14AF9E] border-[#14AF9E]/30"
-                }`}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                <span>{isCloudSyncActive ? "SUPABASE CLOUD" : "LOCAL STORAGE"}</span>
-              </span>
-            </div>
-            <p className="text-[11px] text-neutral-400 font-mono hidden sm:block">
-              {isId
-                ? "Setiap kali klik Simpan / Upload, data langsung otomatis update ke web publik rizxstudio.com"
-                : "Changes are automatically updated to live site rizxstudio.com upon saving or uploading"}
-            </p>
-          </div>
-        </div>
+          )}
 
-        <div className="flex items-center gap-2 sm:gap-3">
-          {/* Icon-Only Language Switcher (EN / ID flags) */}
-          <div className="flex items-center gap-1 bg-black/40 border border-white/10 p-1 rounded-xl">
-            <button
-              type="button"
-              onClick={() => {
-                setLang("en");
-                showToast("Language changed to: English (🇺🇸)");
+          {/* 2. Studio Dashboard Overview */}
+          {sidebarTab === "dashboard" && (
+            <DashboardOverview
+              clients={clients}
+              onSelectTab={(tab) => {
+                setSidebarTab(tab);
+                if (tab === "clients") setActiveTab("clients");
               }}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${
-                lang === "en"
-                  ? "bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/50 shadow-sm"
-                  : "opacity-45 hover:opacity-100 hover:bg-white/5"
-              }`}
-              title="English (🇺🇸)"
-              aria-label="Switch to English"
-            >
-              🇺🇸
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setLang("id");
-                showToast("Bahasa diatur ke: Bahasa Indonesia (🇮🇩)");
+              onSelectClient={(id) => {
+                setSelectedClientId(id);
+                setSidebarTab("clients");
               }}
-              className={`w-7 h-7 rounded-lg flex items-center justify-center text-sm transition-all cursor-pointer ${
-                lang === "id"
-                  ? "bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/50 shadow-sm"
-                  : "opacity-45 hover:opacity-100 hover:bg-white/5"
-              }`}
-              title="Bahasa Indonesia (🇮🇩)"
-              aria-label="Ganti ke Bahasa Indonesia"
-            >
-              🇮🇩
-            </button>
-          </div>
+              onViewWebsite={() => {
+                if (onClose) onClose();
+                else setIsAdminMode(false);
+              }}
+              isCloudSyncActive={isCloudSyncActive}
+            />
+          )}
 
-          <button
-            type="button"
-            onClick={handleFullReset}
-            className="flex items-center justify-center w-8 h-8 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-rose-400 border border-white/10 transition-all cursor-pointer hover:scale-105 active:scale-95"
-            title={isId ? "Reset seluruh modifikasi ke data default" : "Reset all modifications to default data"}
-            aria-label="Reset"
-          >
-            <HiArrowPath className="w-4 h-4" />
-          </button>
+          {/* 3. AI Prompt Builder */}
+          {sidebarTab === "ai-prompt" && <AIPromptBuilder />}
 
-          <button
-            type="button"
-            onClick={adminLogout}
-            className="flex items-center justify-center w-8 h-8 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-white/10 transition-all cursor-pointer hover:scale-105 active:scale-95"
-            title={isId ? "Keluar dari sesi Admin (Logout)" : "Logout from Admin session"}
-            aria-label="Logout"
-          >
-            <HiArrowRightOnRectangle className="w-4 h-4" />
-          </button>
+          {/* 4. Brand Guidelines */}
+          {sidebarTab === "brand" && <BrandGuidelines />}
 
-          <button
-            type="button"
-            onClick={() => {
-              if (onClose) onClose();
-              else setIsAdminMode(false);
-            }}
-            className="hidden sm:flex items-center gap-2 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
-          >
-            <HiEye className="w-4 h-4" />
-            <span>{isId ? "Lihat Web Publik" : "View Public Web"}</span>
-          </button>
+          {/* 5. Resource Library */}
+          {sidebarTab === "resources" && (
+            <ResourceLibrary clients={clients} showToast={showToast} />
+          )}
 
-          {/* Mobile Hamburger Burger Button */}
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="sm:hidden flex items-center justify-center w-8 h-8 rounded-xl bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30 transition-all active:scale-90 cursor-pointer"
-            aria-label="Toggle Navigation Menu"
-            title="Menu Navigasi"
-          >
-            {isMobileMenuOpen ? (
-              <HiXMark className="w-5 h-5 stroke-[2.5]" />
-            ) : (
-              <HiBars3 className="w-5 h-5 stroke-[2.5]" />
-            )}
-          </button>
-        </div>
-      </header>
+          {/* 6. Portfolio Showcase Workspace */}
+          {sidebarTab === "portfolio" && (
+            <div className="flex-1 flex flex-col h-full overflow-hidden bg-[#0d0f13]">
+              {/* Subtabs for Portfolio Management */}
+              <div className="shrink-0 bg-[#090b0e] border-b border-white/5 px-4 sm:px-6 py-2.5 flex items-center gap-1.5 overflow-x-auto select-none">
+                {[
+                  { id: "hero-banner" as const, label: isId ? "1. Hero Banner" : "1. Hero Banner" },
+                  { id: "hero-works" as const, label: isId ? "2. Hero & Karya" : "2. Hero & Works" },
+                  { id: "flagship" as const, label: isId ? "3. Media Showcase" : "3. Media Showcase" },
+                  { id: "client-logos" as const, label: isId ? "4. Logo Klien" : "4. Client Logos" },
+                  { id: "runner" as const, label: isId ? "5. Running Portofolio" : "5. Running Portfolio" },
+                  { id: "about" as const, label: isId ? "6. Tentang Saya" : "6. About Me" },
+                ].map((sub) => (
+                  <button
+                    key={sub.id}
+                    type="button"
+                    onClick={() => {
+                      setPortfolioSubTab(sub.id);
+                      setActiveTab(sub.id);
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                      portfolioSubTab === sub.id
+                        ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/20"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    {sub.label}
+                  </button>
+                ))}
+              </div>
 
-      {/* Main Content Area */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        {/* Navigation Tabs (Desktop View: Horizontal Strip, Hidden on Mobile) */}
-        <div className="hidden sm:flex items-center gap-1.5 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 w-full max-w-6xl mx-auto mb-8 backdrop-blur-md overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab("hero-banner")}
-            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              activeTab === "hero-banner"
-                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
-                : "text-neutral-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <HiSparkles className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "1. Hero Banner" : "1. Hero Banner"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("clients")}
-            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              activeTab === "clients"
-                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
-                : "text-neutral-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <HiFolder className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "2. Portofolio" : "2. Portfolio"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("hero-works")}
-            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              activeTab === "hero-works"
-                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
-                : "text-neutral-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <HiSparkles className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "3. Hero & Karya" : "3. Hero & Works"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("client-logos")}
-            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              activeTab === "client-logos"
-                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
-                : "text-neutral-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <HiTag className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "4. Logo Klien" : "4. Client Logos"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("runner")}
-            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              activeTab === "runner"
-                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
-                : "text-neutral-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <HiPhoto className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "5. Running Portofolio" : "5. Running Portfolio"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("about")}
-            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              activeTab === "about"
-                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
-                : "text-neutral-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <HiUser className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "6. Tentang Saya" : "6. About Me"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("flagship")}
-            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              activeTab === "flagship"
-                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
-                : "text-neutral-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <HiVideoCamera className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "7. Media Showcase (Video / Drive / Gambar)" : "7. Media Showcase (Video / Drive / Image)"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab("account")}
-            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-              activeTab === "account"
-                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
-                : "text-neutral-400 hover:text-white hover:bg-white/5"
-            }`}
-          >
-            <HiKey className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "8. Sandi & Akun" : "8. Password & Account"}</span>
-          </button>
-        </div>
-
-        {/* Mobile Navigation Indicator Bar (Active Tab Pill + Hamburger Reminder) */}
-        <div className="sm:hidden mb-6 flex items-center justify-between p-2.5 rounded-2xl bg-neutral-900/90 border border-white/10 backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-[#14AF9E] animate-pulse" />
-            <span className="text-xs font-mono font-semibold text-neutral-300">
-              {activeTab === "hero-banner" && (isId ? "1. Hero Banner" : "1. Hero Banner")}
-              {activeTab === "clients" && (isId ? "2. Portofolio" : "2. Portfolio")}
-              {activeTab === "hero-works" && (isId ? "3. Hero & Karya" : "3. Hero & Works")}
-              {activeTab === "client-logos" && (isId ? "4. Logo Klien" : "4. Client Logos")}
-              {activeTab === "runner" && (isId ? "5. Running Portofolio" : "5. Running Portfolio")}
-              {activeTab === "about" && (isId ? "6. Tentang Saya" : "6. About Me")}
-              {activeTab === "flagship" && (isId ? "7. Media Showcase (YouTube / Drive / Gambar)" : "7. Media Showcase (YouTube / Drive / Image)")}
-              {activeTab === "account" && (isId ? "8. Sandi & Akun" : "8. Password & Account")}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#14AF9E]/15 border border-[#14AF9E]/30 text-[#14AF9E] text-xs font-mono font-semibold transition-all active:scale-95 cursor-pointer"
-          >
-            <HiBars3 className="w-3.5 h-3.5" />
-            <span>Menu Tab</span>
-          </button>
-        </div>
+              {/* Subtab Canvas Content */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+                <div className="max-w-6xl mx-auto space-y-6">
 
         {/* ========================================================
             TAB 1: HERO BANNER SCROLLYTELLING MANAGEMENT
            ======================================================== */}
-        {activeTab === "hero-banner" && (
+        {portfolioSubTab === "hero-banner" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2426,8 +2360,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           </motion.div>
         )}
 
-        {/* TAB: CLIENT BRAND & PORTFOLIO WORKS MANAGEMENT (MY WORK PANEL) */}
-        {activeTab === "clients" && (
+        {/* TAB: CLIENT BRAND & PORTFOLIO WORKS MANAGEMENT (SUPERSEDED BY STUDIO CLIENTS WORKSPACE) */}
+        {false && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -2945,7 +2879,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         {/* ========================================================
             TAB 2: HERO & SELECTED WORKS SECTION MANAGEMENT
            ======================================================== */}
-        {activeTab === "hero-works" && (
+        {portfolioSubTab === "hero-works" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -3459,7 +3393,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         {/* ========================================================
             TAB 3: CLIENT LOGOS MARQUEE MANAGEMENT
            ======================================================== */}
-        {activeTab === "client-logos" && (
+        {portfolioSubTab === "client-logos" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -3752,7 +3686,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         {/* ========================================================
             TAB 4: PORTFOLIO RUNNER (4:5 MARQUEE) CRUD MANAGEMENT
            ======================================================== */}
-        {activeTab === "runner" && (
+        {portfolioSubTab === "runner" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -4434,7 +4368,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             )}
           </motion.div>
         )}
-        {activeTab === "about" && (
+        {portfolioSubTab === "about" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -4738,7 +4672,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         )}
 
         {/* TAB: FLAGSHIP SHOWCASE YOUTUBE EMBED */}
-        {activeTab === "flagship" && (
+        {portfolioSubTab === "flagship" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -5156,15 +5090,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
           </motion.div>
         )}
+                </div>
+              </div>
+            </div>
+          )}
 
-        {/* TAB 6: PENGATURAN AKUN & SANDI ADMIN */}
-        {activeTab === "account" && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
+          {/* 7. SETTINGS & ADMIN ACCOUNT WORKSPACE */}
+          {sidebarTab === "settings" && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+              <div className="max-w-4xl mx-auto space-y-6">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="space-y-6"
+                >
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
               <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
@@ -5326,8 +5266,26 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
             </div>
           </motion.div>
-        )}
-      </main>
+
+                {/* Reset Database Button inside settings */}
+                <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                  <div>
+                    <h4 className="text-xs font-bold text-white">Factory Data Reset</h4>
+                    <p className="text-[11px] text-neutral-400">Kembalikan seluruh data portofolio ke bawaan default</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleFullReset}
+                    className="px-4 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    Reset ke Default
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* MODAL: UPLOAD GAMBAR PORTOFOLIO BARU */}
       <AnimatePresence>
@@ -6035,62 +5993,57 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="space-y-1.5 pt-1">
                 {[
                   {
-                    id: "hero-banner" as const,
-                    label: isId ? "1. Hero Banner Utama" : "1. Main Hero Banner",
-                    sub: isId ? "Nama, subtitle & scrollytelling intro" : "Name, role & scrollytelling intro",
-                    icon: HiSparkles,
+                    id: "dashboard" as AdminSidebarTab,
+                    label: "Dashboard",
+                    sub: isId ? "Ringkasan sistem & statistik" : "System summary & metrics",
+                    icon: HiSquares2X2,
                   },
                   {
-                    id: "clients" as const,
-                    label: isId ? "2. Manajemen Portofolio & Folder" : "2. Portfolio & Folders",
-                    sub: isId ? "Kelola brand & upload karya" : "Manage brands & upload works",
+                    id: "clients" as AdminSidebarTab,
+                    label: "Clients",
+                    sub: isId ? "Kelola folder klien & aset karya" : "Manage client folders & assets",
                     icon: HiFolder,
                   },
                   {
-                    id: "hero-works" as const,
-                    label: isId ? "3. Hero & Karya Unggulan" : "3. Hero & Selected Works",
-                    sub: isId ? "Teks hero, skill tags & kartu" : "Hero text, skill tags & cards",
-                    icon: HiSparkles,
-                  },
-                  {
-                    id: "client-logos" as const,
-                    label: isId ? "4. Logo Klien Marquee" : "4. Client Logos Marquee",
-                    sub: isId ? "Daftar logo brand partner berjalan" : "Moving partner logo strip",
-                    icon: HiTag,
-                  },
-                  {
-                    id: "runner" as const,
-                    label: isId ? "5. Running Portofolio (4:5)" : "5. Running Portfolio (4:5)",
-                    sub: isId ? "Marquee kartu karya rasio 4:5 atas footer" : "2-row 4:5 portfolio runner strip",
+                    id: "portfolio" as AdminSidebarTab,
+                    label: "Portfolio",
+                    sub: isId ? "Hero banner, video showcase & marquee" : "Hero banner, video & marquees",
                     icon: HiPhoto,
                   },
                   {
-                    id: "about" as const,
-                    label: isId ? "6. Tentang Saya (About Me)" : "6. About Me Section",
-                    sub: isId ? "Narasi bio, statistik & disiplin" : "Bio narrative, stats & skills",
-                    icon: HiUser,
+                    id: "ai-prompt" as AdminSidebarTab,
+                    label: "AI Prompt Builder",
+                    sub: isId ? "Generator prompt kreatif AI" : "Creative AI prompt generator",
+                    icon: HiSparkles,
                   },
                   {
-                    id: "flagship" as const,
-                    label: isId ? "7. Video Flagship YouTube" : "7. Flagship YouTube Video",
-                    sub: isId ? "Embed video karya sinematik" : "Embed cinematic showcase",
-                    icon: HiVideoCamera,
+                    id: "brand" as AdminSidebarTab,
+                    label: "Brand Guidelines",
+                    sub: isId ? "Warna, tipografi & identitas" : "Colors, typography & tokens",
+                    icon: HiBookOpen,
                   },
                   {
-                    id: "account" as const,
-                    label: isId ? "8. Sandi & Keamanan Akun" : "8. Password & Account Security",
-                    sub: isId ? "Ganti username, password & email" : "Update user, pass & recovery email",
+                    id: "resources" as AdminSidebarTab,
+                    label: "Resource Library",
+                    sub: isId ? "Penyimpanan aset & media explorer" : "Asset storage & media explorer",
+                    icon: HiCircleStack,
+                  },
+                  {
+                    id: "settings" as AdminSidebarTab,
+                    label: "Settings",
+                    sub: isId ? "Sandi, verifikasi & keamanan" : "Password & account security",
                     icon: HiKey,
                   },
                 ].map((item) => {
                   const Icon = item.icon;
-                  const isSelected = activeTab === item.id;
+                  const isSelected = sidebarTab === item.id;
                   return (
                     <button
                       key={item.id}
                       type="button"
                       onClick={() => {
-                        setActiveTab(item.id);
+                        setSidebarTab(item.id);
+                        if (item.id === "clients") setActiveTab("clients");
                         setIsMobileMenuOpen(false);
                       }}
                       className={`w-full p-3.5 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
