@@ -11,11 +11,13 @@ import {
   HiUser,
   HiKey,
   HiChevronDown,
+  HiSquare3Stack3D,
 } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 
 export type AdminSidebarTab =
   | "clients"
+  | "resources"
   | "hero-banner"
   | "hero-works"
   | "flagship"
@@ -58,6 +60,12 @@ export default function AdminSidebar({
       label: isId ? "Portofolio & Klien" : "Portfolio & Clients",
       badge: totalClients > 0 ? totalClients : undefined,
       icon: HiFolder,
+    },
+    {
+      id: "resources",
+      label: "Resource Library",
+      badge: totalWorks > 0 ? totalWorks : undefined,
+      icon: HiSquare3Stack3D,
     },
     {
       id: "hero-banner",

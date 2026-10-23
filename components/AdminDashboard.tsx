@@ -29,6 +29,7 @@ import {
   HiSquares2X2,
   HiBookOpen,
   HiCircleStack,
+  HiSquare3Stack3D,
 } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
@@ -58,6 +59,7 @@ import {
 import AdminSidebar, { AdminSidebarTab } from "./admin/AdminSidebar";
 import AdminTopBar from "./admin/AdminTopBar";
 import ClientsWorkspace from "./admin/ClientsWorkspace";
+import ResourceLibrary from "./admin/ResourceLibrary";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -1693,8 +1695,27 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             />
           )}
 
-          {/* 2. All Other Real Portfolio Admin Sections */}
-          {sidebarTab !== "clients" && (
+          {/* 2. Resource Library (Media Explorer & Storage Inspector) */}
+          {sidebarTab === "resources" && (
+            <ResourceLibrary
+              clients={clients}
+              clLogos={clLogos}
+              onSelectClientFolder={(id) => {
+                setSelectedClientId(id);
+                setSidebarTab("clients");
+              }}
+              onOpenUploadWork={() => setIsUploadModalOpen(true)}
+              onDeleteWork={handleDeleteWork}
+              showToast={showToast}
+              onViewWebsite={() => {
+                if (onClose) onClose();
+                else setIsAdminMode(false);
+              }}
+            />
+          )}
+
+          {/* 3. All Other Real Portfolio Admin Sections */}
+          {sidebarTab !== "clients" && sidebarTab !== "resources" && (
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
               <div className="max-w-6xl mx-auto space-y-6">
                 {/* ========================================================
@@ -5666,6 +5687,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     label: isId ? "Portofolio & Klien" : "Portfolio & Clients",
                     sub: isId ? "Folder klien & logo partner marquee" : "Client folders & partner logos",
                     icon: HiFolder,
+                  },
+                  {
+                    id: "resources" as AdminSidebarTab,
+                    label: "Resource Library",
+                    sub: isId ? "Semua aset media & visual vault" : "All media assets & visual vault",
+                    icon: HiSquare3Stack3D,
                   },
                   {
                     id: "hero-banner" as AdminSidebarTab,
