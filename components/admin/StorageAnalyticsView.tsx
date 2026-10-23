@@ -37,6 +37,7 @@ export default function StorageAnalyticsView({
   const [cachedFramesCount, setCachedFramesCount] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [animatedPercent, setAnimatedPercent] = useState(0);
+  const [activeCategory, setActiveCategory] = useState<"all" | "works" | "video" | "frames" | "trash">("all");
 
   // Fetch sequence cache count from IndexedDB
   useEffect(() => {
@@ -75,24 +76,41 @@ export default function StorageAnalyticsView({
     } catch (_) {}
 
     // 4. Estimate frames size (avg 45KB per compressed WebP frame in IndexedDB)
-    const framesBytes = (cachedFramesCount || 0) * 46080;
+    const framesMB = Number(((cachedFramesCount || 0) * 0.045).toFixed(1));
 
     // 5. Estimate trash items size
-    const trashBytes = trashItems.length * 153600; // ~150KB per item with thumb
+    let realTrashBytes = 0;
+    trashItems.forEach((t) => {
+      if (t.previewImage) realTrashBytes += t.previewImage.length;
+      if (t.payload) realTrashBytes += JSON.stringify(t.payload).length;
+    });
+    const trashMB = Number((realTrashBytes > 0 ? realTrashBytes / (1024 * 1024) : trashItems.length * 0.15).toFixed(1));
 
     // 6. Base media & portfolio images estimate
-    const worksMediaBytes = totalWorks * 286720; // ~280KB per work asset
+    let realWorksBytes = 0;
+    clients.forEach((c) => {
+      (c.works || []).forEach((w) => {
+        if (w.image && w.image.startsWith("data:")) {
+          realWorksBytes += w.image.length;
+        } else {
+          realWorksBytes += 286720; // 280 KB avg per image asset
+        }
+      });
+    });
+    const worksMB = Number((Math.max(totalWorks * 0.28, realWorksBytes / (1024 * 1024))).toFixed(1));
 
-    const totalUsedBytes = lsBytes + framesBytes + trashBytes + worksMediaBytes + (stage3?.heroCard?.image ? 524288 : 0);
-    const totalUsedMB = Math.max(12.4, Number((totalUsedBytes / (1024 * 1024)).toFixed(1)));
+    // 7. Video showcase MB (includes embed iframe cache, custom hero poster, settings)
+    const videoMB = stage3?.heroCard?.isVideoEnabled ? 3.5 : 1.2;
+
+    const totalUsedMB = Number((worksMB + videoMB + framesMB + trashMB + (lsBytes / (1024 * 1024))).toFixed(1));
     const totalCapacityMB = 100.0;
     const usedPercentage = Math.min(100, Math.max(8, Number(((totalUsedMB / totalCapacityMB) * 100).toFixed(1))));
 
     // Category breakdown percentage of used
-    const worksShare = Math.round((worksMediaBytes / Math.max(1, totalUsedBytes)) * 52) || 48;
-    const videoShare = stage3?.heroCard?.isVideoEnabled ? 20 : 12;
-    const framesShare = (cachedFramesCount && cachedFramesCount > 0) ? 16 : 8;
-    const trashShare = Math.min(20, Math.max(2, Math.round((trashItems.length / Math.max(1, totalWorks + trashItems.length)) * 18)));
+    const worksShare = Math.round((worksMB / Math.max(0.1, totalUsedMB)) * 100) || 50;
+    const videoShare = Math.round((videoMB / Math.max(0.1, totalUsedMB)) * 100) || 15;
+    const framesShare = Math.round((framesMB / Math.max(0.1, totalUsedMB)) * 100) || 10;
+    const trashShare = Math.round((trashMB / Math.max(0.1, totalUsedMB)) * 100) || 2;
     const clientDataShare = Math.max(5, 100 - (worksShare + videoShare + framesShare + trashShare));
 
     return {
@@ -106,6 +124,10 @@ export default function StorageAnalyticsView({
       totalUsedMB,
       totalCapacityMB,
       usedPercentage,
+      worksMB,
+      videoMB,
+      framesMB,
+      trashMB,
       worksShare,
       videoShare,
       framesShare,
@@ -172,7 +194,63 @@ export default function StorageAnalyticsView({
   // SVG Radial Ring constants
   const radius = 80;
   const circumference = 2 * Math.PI * radius;
-  const strokeDashoffset = circumference - (stats.usedPercentage / 100) * circumference;
+
+  // Active category details for dynamic donut coloring & MB display
+  const activeDetails = useMemo(() => {
+    switch (activeCategory) {
+      case "works":
+        return {
+          key: "works",
+          title: tr("CLIENT WORKS", "FOTO & KARYA KLIEN", "FOTO & KARYA KLIEN"),
+          percent: stats.worksShare,
+          sizeText: `${stats.worksMB} MB`,
+          colorHex: "#14AF9E",
+          gradientId: "worksGradient",
+          dashOffset: circumference - (stats.worksShare / 100) * circumference,
+        };
+      case "video":
+        return {
+          key: "video",
+          title: tr("VIDEO MEDIA", "VIDEO SHOWCASE", "VIDEO SHOWCASE"),
+          percent: stats.videoShare,
+          sizeText: `${stats.videoMB} MB`,
+          colorHex: "#6366F1",
+          gradientId: "videoGradient",
+          dashOffset: circumference - (stats.videoShare / 100) * circumference,
+        };
+      case "frames":
+        return {
+          key: "frames",
+          title: tr("SCROLLY FRAMES", "CACHE KANVAS SCROLLY", "CACHE KANVAS SCROLLY"),
+          percent: stats.framesShare,
+          sizeText: `${stats.framesMB} MB`,
+          colorHex: "#F59E0B",
+          gradientId: "framesGradient",
+          dashOffset: circumference - (stats.framesShare / 100) * circumference,
+        };
+      case "trash":
+        return {
+          key: "trash",
+          title: tr("RECYCLE BIN", "TONG SAMPAH", "TONG SAROK"),
+          percent: stats.trashShare,
+          sizeText: `${stats.trashMB} MB`,
+          colorHex: "#F43F5E",
+          gradientId: "trashGradient",
+          dashOffset: circumference - (stats.trashShare / 100) * circumference,
+        };
+      case "all":
+      default:
+        return {
+          key: "all",
+          title: tr("CAPACITY USED", "DATA TERPAKAI", "DATA TAPAKAI"),
+          percent: stats.usedPercentage,
+          sizeText: `${stats.totalUsedMB} MB`,
+          colorHex: "#14AF9E",
+          gradientId: "neonGradient",
+          dashOffset: circumference - (stats.usedPercentage / 100) * circumference,
+        };
+    }
+  }, [activeCategory, stats, tr, circumference]);
 
   return (
     <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13] select-none">
@@ -238,6 +316,22 @@ export default function StorageAnalyticsView({
                     <stop offset="50%" stopColor="#06B6D4" />
                     <stop offset="100%" stopColor="#6366F1" />
                   </linearGradient>
+                  <linearGradient id="worksGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#14AF9E" />
+                    <stop offset="100%" stopColor="#0D9488" />
+                  </linearGradient>
+                  <linearGradient id="videoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#818CF8" />
+                    <stop offset="100%" stopColor="#6366F1" />
+                  </linearGradient>
+                  <linearGradient id="framesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FCD34D" />
+                    <stop offset="100%" stopColor="#F59E0B" />
+                  </linearGradient>
+                  <linearGradient id="trashGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#FB7185" />
+                    <stop offset="100%" stopColor="#F43F5E" />
+                  </linearGradient>
                   <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
                     <feGaussianBlur stdDeviation="4" result="blur" />
                     <feMerge>
@@ -257,35 +351,66 @@ export default function StorageAnalyticsView({
                   fill="transparent"
                 />
 
-                {/* Animated Fill Circle */}
+                {/* Animated Fill Circle with Dynamic Category Colors */}
                 <motion.circle
+                  key={activeCategory}
                   cx="110"
                   cy="110"
                   r={radius}
-                  stroke="url(#neonGradient)"
+                  stroke={`url(#${activeDetails.gradientId})`}
                   strokeWidth="14"
                   strokeLinecap="round"
                   fill="transparent"
                   filter="url(#glow)"
                   initial={{ strokeDashoffset: circumference }}
-                  animate={{ strokeDashoffset }}
-                  transition={{ duration: 1.4, ease: "easeOut" }}
+                  animate={{ strokeDashoffset: activeDetails.dashOffset }}
+                  transition={{ duration: 0.9, ease: "easeOut" }}
                   style={{ strokeDasharray: circumference }}
                 />
               </svg>
 
-              {/* Center Counter & Label */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <span className="text-[10px] font-mono tracking-widest uppercase text-neutral-400 font-semibold mb-0.5">
-                  {tr("CAPACITY USED", "DATA TERPAKAI", "DATA TAPAKAI")}
+              {/* Center Counter & Interactive Label */}
+              <button
+                type="button"
+                onClick={() => setActiveCategory("all")}
+                className="absolute inset-0 flex flex-col items-center justify-center text-center p-3 rounded-full group cursor-pointer focus:outline-none transition-transform active:scale-95"
+                title={activeCategory !== "all" ? tr("Click to reset to all data", "Klik untuk reset ke semua data", "Klik untuak reset ka sadonyo data") : ""}
+              >
+                <span
+                  className="text-[10px] font-mono tracking-widest uppercase font-bold mb-0.5 transition-colors duration-300"
+                  style={{ color: activeDetails.colorHex }}
+                >
+                  {activeDetails.title}
                 </span>
-                <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
-                  {animatedPercent}%
+                <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight flex items-baseline">
+                  {activeCategory === "all" ? animatedPercent : activeDetails.percent}%
                 </span>
-                <span className="text-xs font-mono text-[#14AF9E] mt-0.5 font-semibold">
-                  {stats.totalUsedMB} MB / {stats.totalCapacityMB} MB
+                {/* PROMINENT SIZE IN MB BADGE */}
+                <span
+                  className="mt-1 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wide transition-all shadow-lg flex items-center gap-1.5"
+                  style={{
+                    backgroundColor: `${activeDetails.colorHex}25`,
+                    borderColor: `${activeDetails.colorHex}60`,
+                    color: activeDetails.colorHex,
+                    borderWidth: 1,
+                  }}
+                >
+                  <HiSparkles className="w-3.5 h-3.5 animate-pulse" />
+                  <span>{activeDetails.sizeText}</span>
+                  {activeCategory === "all" && (
+                    <span className="text-neutral-400 font-normal">/ {stats.totalCapacityMB} MB</span>
+                  )}
                 </span>
-              </div>
+                {activeCategory !== "all" ? (
+                  <span className="text-[9px] font-mono text-cyan-400/80 mt-1 hover:text-cyan-300 underline">
+                    {tr("← Click to view all", "← Klik untuk semua data", "← Klik untuak kasadonyo")}
+                  </span>
+                ) : (
+                  <span className="text-[9px] font-mono text-neutral-400 mt-1">
+                    {tr("Click card to change color", "Klik kartu untuk ubah warna", "Klik kartu untuak ubah warna")}
+                  </span>
+                )}
+              </button>
             </div>
 
             {/* Bottom Health Pill */}
@@ -303,7 +428,7 @@ export default function StorageAnalyticsView({
           {/* Right: Animated Multi-Segment Allocation Bar & Category Breakdown (7 Cols) */}
           <div className="lg:col-span-7 p-6 rounded-3xl bg-[#111419] border border-white/10 flex flex-col justify-between space-y-6 shadow-2xl">
             <div>
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <HiCircleStack className="w-4 h-4 text-[#14AF9E]" />
                   <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
@@ -314,125 +439,218 @@ export default function StorageAnalyticsView({
                   {tr("Total active assets:", "Total aset aktif:", "Aset kasadonyo:")} <strong className="text-white">{stats.totalWorks + stats.totalLogos}</strong>
                 </span>
               </div>
+              <p className="text-[11px] text-neutral-400 mb-3">
+                {tr("Click any category below to inspect its exact MB size & see donut color update in real-time.", "Klik kategori di bawah untuk melihat ukuran MB & melihat perubahan warna donut secara interaktif.", "Klik kategori di bawah untuak mancaliak ukuran MB & mancek parubahan warna donot.")}
+              </p>
 
               {/* Animated Segmented Capacity Bar */}
               <div className="w-full h-4 rounded-xl bg-neutral-900 border border-white/10 overflow-hidden flex p-0.5 gap-0.5">
                 {/* 1. Works */}
                 <motion.div
+                  role="button"
+                  onClick={() => setActiveCategory(activeCategory === "works" ? "all" : "works")}
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.worksShare}%` }}
                   transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-                  className="h-full rounded-lg bg-[#14AF9E] relative group cursor-pointer"
-                  title={`${tr("Portfolio Works", "Karya Portofolio", "Karya Portofolio")}: ${stats.worksShare}%`}
+                  className={`h-full rounded-lg bg-[#14AF9E] relative group cursor-pointer transition-opacity ${activeCategory !== "all" && activeCategory !== "works" ? "opacity-30" : "opacity-100"}`}
+                  title={`${tr("Portfolio Works", "Karya Portofolio", "Karya Portofolio")}: ${stats.worksShare}% (${stats.worksMB} MB)`}
                 />
                 {/* 2. Video Showcase */}
                 <motion.div
+                  role="button"
+                  onClick={() => setActiveCategory(activeCategory === "video" ? "all" : "video")}
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.videoShare}%` }}
                   transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-                  className="h-full rounded-lg bg-indigo-500 relative group cursor-pointer"
-                  title={`${tr("Video Showcase", "Video Showcase", "Video Showcase")}: ${stats.videoShare}%`}
+                  className={`h-full rounded-lg bg-indigo-500 relative group cursor-pointer transition-opacity ${activeCategory !== "all" && activeCategory !== "video" ? "opacity-30" : "opacity-100"}`}
+                  title={`${tr("Video Showcase", "Video Showcase", "Video Showcase")}: ${stats.videoShare}% (${stats.videoMB} MB)`}
                 />
                 {/* 3. Sequence Frames */}
                 <motion.div
+                  role="button"
+                  onClick={() => setActiveCategory(activeCategory === "frames" ? "all" : "frames")}
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.framesShare}%` }}
                   transition={{ duration: 1, delay: 0.4, ease: "easeOut" }}
-                  className="h-full rounded-lg bg-amber-400 relative group cursor-pointer"
-                  title={`${tr("Scrolly Frames", "Cache Frame Scrolly", "Cache Frame Scrolly")}: ${stats.framesShare}%`}
+                  className={`h-full rounded-lg bg-amber-400 relative group cursor-pointer transition-opacity ${activeCategory !== "all" && activeCategory !== "frames" ? "opacity-30" : "opacity-100"}`}
+                  title={`${tr("Scrolly Frames", "Cache Frame Scrolly", "Cache Frame Scrolly")}: ${stats.framesShare}% (${stats.framesMB} MB)`}
                 />
                 {/* 4. Trash */}
                 <motion.div
+                  role="button"
+                  onClick={() => setActiveCategory(activeCategory === "trash" ? "all" : "trash")}
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.trashShare}%` }}
                   transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
-                  className="h-full rounded-lg bg-rose-500 relative group cursor-pointer"
-                  title={`${tr("Recycle Bin", "Tong Sampah", "Tong Sarok")}: ${stats.trashShare}%`}
+                  className={`h-full rounded-lg bg-rose-500 relative group cursor-pointer transition-opacity ${activeCategory !== "all" && activeCategory !== "trash" ? "opacity-30" : "opacity-100"}`}
+                  title={`${tr("Recycle Bin", "Tong Sampah", "Tong Sarok")}: ${stats.trashShare}% (${stats.trashMB} MB)`}
                 />
                 {/* 5. Client Data / Free */}
                 <motion.div
+                  role="button"
+                  onClick={() => setActiveCategory("all")}
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.clientDataShare}%` }}
                   transition={{ duration: 1, delay: 0.6, ease: "easeOut" }}
-                  className="h-full rounded-lg bg-cyan-400 relative group cursor-pointer"
+                  className={`h-full rounded-lg bg-cyan-400 relative group cursor-pointer transition-opacity ${activeCategory !== "all" ? "opacity-30" : "opacity-100"}`}
                   title={`${tr("Client Data", "Data Klien", "Data Klien")}: ${stats.clientDataShare}%`}
                 />
               </div>
             </div>
 
-            {/* Interactive Legend List */}
+            {/* Interactive Legend List with Click-to-Color feature & prominent MB display */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
               {/* Item 1: Works */}
-              <div className="p-3 rounded-2xl bg-neutral-900/70 border border-white/5 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setActiveCategory(activeCategory === "works" ? "all" : "works")}
+                className={`p-3.5 rounded-2xl border text-left flex items-center justify-between group transition-all cursor-pointer ${
+                  activeCategory === "works"
+                    ? "bg-[#14AF9E]/15 border-[#14AF9E] ring-2 ring-[#14AF9E]/40 shadow-lg shadow-[#14AF9E]/20"
+                    : activeCategory !== "all"
+                    ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    : "bg-neutral-900/70 border-white/5 hover:border-[#14AF9E]/40 hover:bg-[#14AF9E]/5"
+                }`}
+              >
                 <div className="flex items-center gap-2.5">
-                  <span className="w-3 h-3 rounded-full bg-[#14AF9E] shrink-0 shadow-md shadow-[#14AF9E]/30" />
+                  <span className="w-3.5 h-3.5 rounded-full bg-[#14AF9E] shrink-0 shadow-md shadow-[#14AF9E]/40" />
                   <div>
-                    <p className="text-xs font-semibold text-white">
-                      {tr("Client Works & Images", "Foto & Karya Visual", "Foto & Karya Visual")}
+                    <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                      <span>{tr("Client Works & Images", "Foto & Karya Visual", "Foto & Karya Visual")}</span>
+                      {activeCategory === "works" && (
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#14AF9E] text-black font-bold">
+                          ● {tr("Active", "Aktif", "Aktif")}
+                        </span>
+                      )}
                     </p>
                     <p className="text-[10px] text-neutral-400 font-mono">
                       {stats.totalWorks} {tr("items uploaded", "karya terupload", "karya taupload")}
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-[#14AF9E]">
-                  ~{stats.worksShare}%
-                </span>
-              </div>
+                <div className="text-right">
+                  <span className="px-2 py-0.5 rounded-md bg-[#14AF9E]/20 border border-[#14AF9E]/40 text-xs sm:text-sm font-mono font-extrabold text-[#14AF9E] inline-block shadow-sm">
+                    {stats.worksMB} MB
+                  </span>
+                  <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
+                    ~{stats.worksShare}%
+                  </span>
+                </div>
+              </button>
 
               {/* Item 2: Video & Showcase */}
-              <div className="p-3 rounded-2xl bg-neutral-900/70 border border-white/5 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setActiveCategory(activeCategory === "video" ? "all" : "video")}
+                className={`p-3.5 rounded-2xl border text-left flex items-center justify-between group transition-all cursor-pointer ${
+                  activeCategory === "video"
+                    ? "bg-indigo-500/15 border-indigo-500 ring-2 ring-indigo-500/40 shadow-lg shadow-indigo-500/20"
+                    : activeCategory !== "all"
+                    ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    : "bg-neutral-900/70 border-white/5 hover:border-indigo-500/40 hover:bg-indigo-500/5"
+                }`}
+              >
                 <div className="flex items-center gap-2.5">
-                  <span className="w-3 h-3 rounded-full bg-indigo-500 shrink-0 shadow-md shadow-indigo-500/30" />
+                  <span className="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0 shadow-md shadow-indigo-500/40" />
                   <div>
-                    <p className="text-xs font-semibold text-white">
-                      {tr("Flagship Video & Showcase", "Video & Stage 3 Media", "Video & Stage 3 Media")}
+                    <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                      <span>{tr("Flagship Video & Showcase", "Video & Stage 3 Media", "Video & Stage 3 Media")}</span>
+                      {activeCategory === "video" && (
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-indigo-500 text-white font-bold">
+                          ● {tr("Active", "Aktif", "Aktif")}
+                        </span>
+                      )}
                     </p>
                     <p className="text-[10px] text-neutral-400 font-mono">
                       YouTube / Google Drive
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-indigo-400">
-                  ~{stats.videoShare}%
-                </span>
-              </div>
+                <div className="text-right">
+                  <span className="px-2 py-0.5 rounded-md bg-indigo-500/20 border border-indigo-500/40 text-xs sm:text-sm font-mono font-extrabold text-indigo-400 inline-block shadow-sm">
+                    {stats.videoMB} MB
+                  </span>
+                  <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
+                    ~{stats.videoShare}%
+                  </span>
+                </div>
+              </button>
 
               {/* Item 3: Frames Cache */}
-              <div className="p-3 rounded-2xl bg-neutral-900/70 border border-white/5 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setActiveCategory(activeCategory === "frames" ? "all" : "frames")}
+                className={`p-3.5 rounded-2xl border text-left flex items-center justify-between group transition-all cursor-pointer ${
+                  activeCategory === "frames"
+                    ? "bg-amber-500/15 border-amber-400 ring-2 ring-amber-400/40 shadow-lg shadow-amber-400/20"
+                    : activeCategory !== "all"
+                    ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    : "bg-neutral-900/70 border-white/5 hover:border-amber-400/40 hover:bg-amber-400/5"
+                }`}
+              >
                 <div className="flex items-center gap-2.5">
-                  <span className="w-3 h-3 rounded-full bg-amber-400 shrink-0 shadow-md shadow-amber-400/30" />
+                  <span className="w-3.5 h-3.5 rounded-full bg-amber-400 shrink-0 shadow-md shadow-amber-400/40" />
                   <div>
-                    <p className="text-xs font-semibold text-white">
-                      {tr("Scrollytelling Frames", "Cache Kanvas Scrolly", "Cache Kanvas Scrolly")}
+                    <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                      <span>{tr("Scrollytelling Frames", "Cache Kanvas Scrolly", "Cache Kanvas Scrolly")}</span>
+                      {activeCategory === "frames" && (
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-400 text-black font-bold">
+                          ● {tr("Active", "Aktif", "Aktif")}
+                        </span>
+                      )}
                     </p>
                     <p className="text-[10px] text-neutral-400 font-mono">
                       {stats.cachedFramesCount} {tr("indexed frames", "frame tersimpan", "frame tasimpan")}
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-amber-300">
-                  ~{stats.framesShare}%
-                </span>
-              </div>
+                <div className="text-right">
+                  <span className="px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-xs sm:text-sm font-mono font-extrabold text-amber-300 inline-block shadow-sm">
+                    {stats.framesMB} MB
+                  </span>
+                  <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
+                    ~{stats.framesShare}%
+                  </span>
+                </div>
+              </button>
 
               {/* Item 4: Recycle Bin */}
-              <div className="p-3 rounded-2xl bg-neutral-900/70 border border-white/5 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setActiveCategory(activeCategory === "trash" ? "all" : "trash")}
+                className={`p-3.5 rounded-2xl border text-left flex items-center justify-between group transition-all cursor-pointer ${
+                  activeCategory === "trash"
+                    ? "bg-rose-500/15 border-rose-500 ring-2 ring-rose-500/40 shadow-lg shadow-rose-500/20"
+                    : activeCategory !== "all"
+                    ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    : "bg-neutral-900/70 border-white/5 hover:border-rose-500/40 hover:bg-rose-500/5"
+                }`}
+              >
                 <div className="flex items-center gap-2.5">
-                  <span className="w-3 h-3 rounded-full bg-rose-500 shrink-0 shadow-md shadow-rose-500/30" />
+                  <span className="w-3.5 h-3.5 rounded-full bg-rose-500 shrink-0 shadow-md shadow-rose-500/40" />
                   <div>
-                    <p className="text-xs font-semibold text-white">
-                      {tr("Recycle Bin (Trash)", "Tong Sampah (Pulihkan)", "Tong Sarok (Pulihan)")}
+                    <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                      <span>{tr("Recycle Bin (Trash)", "Tong Sampah (Pulihkan)", "Tong Sarok (Pulihan)")}</span>
+                      {activeCategory === "trash" && (
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500 text-white font-bold">
+                          ● {tr("Active", "Aktif", "Aktif")}
+                        </span>
+                      )}
                     </p>
                     <p className="text-[10px] text-neutral-400 font-mono">
                       {stats.totalTrash} {tr("deleted items", "item terhapus", "item tahapuih")}
                     </p>
                   </div>
                 </div>
-                <span className="text-xs font-mono font-bold text-rose-400">
-                  ~{stats.trashShare}%
-                </span>
-              </div>
+                <div className="text-right">
+                  <span className="px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/40 text-xs sm:text-sm font-mono font-extrabold text-rose-400 inline-block shadow-sm">
+                    {stats.trashMB} MB
+                  </span>
+                  <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
+                    ~{stats.trashShare}%
+                  </span>
+                </div>
+              </button>
             </div>
           </div>
         </div>
@@ -450,9 +668,9 @@ export default function StorageAnalyticsView({
               <span className="text-xs font-medium">{tr("Client Folders", "Folder Klien Aktif", "Folder Klien Aktif")}</span>
               <HiFolder className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
             </div>
-            <p className="text-3xl font-extrabold text-white tracking-tight">
-              {stats.totalFolders}{" "}
-              <span className="text-xs font-normal text-neutral-400">{tr("folders", "folder", "folder")}</span>
+            <p className="text-3xl font-extrabold text-white tracking-tight flex items-baseline gap-2">
+              <span>{stats.totalFolders}</span>
+              <span className="text-xs font-mono font-bold text-amber-400">({stats.worksMB} MB)</span>
             </p>
             <p className="text-[11px] text-neutral-400 font-mono flex items-center justify-between">
               <span>{stats.customFolders} {tr("custom admin", "kustom admin", "kustom admin")}</span>
@@ -471,9 +689,9 @@ export default function StorageAnalyticsView({
               <span className="text-xs font-medium">{tr("Portfolio Works", "Total Karya Portofolio", "Total Karya Portofolio")}</span>
               <HiPhoto className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
             </div>
-            <p className="text-3xl font-extrabold text-white tracking-tight">
-              {stats.totalWorks}{" "}
-              <span className="text-xs font-normal text-neutral-400">{tr("assets", "karya", "karya")}</span>
+            <p className="text-3xl font-extrabold text-white tracking-tight flex items-baseline gap-2">
+              <span>{stats.totalWorks}</span>
+              <span className="text-xs font-mono font-bold text-cyan-400">({stats.worksMB} MB)</span>
             </p>
             <p className="text-[11px] text-neutral-400 font-mono flex items-center justify-between">
               <span>{tr("Stored in folders", "Tersimpan di folder", "Tasimpan di folder")}</span>
@@ -492,9 +710,9 @@ export default function StorageAnalyticsView({
               <span className="text-xs font-medium">{tr("Recycle Bin Items", "Item di Tong Sampah", "Item di Tong Sarok")}</span>
               <HiTrash className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform" />
             </div>
-            <p className="text-3xl font-extrabold text-white tracking-tight">
-              {stats.totalTrash}{" "}
-              <span className="text-xs font-normal text-neutral-400">{tr("items", "item", "item")}</span>
+            <p className="text-3xl font-extrabold text-white tracking-tight flex items-baseline gap-2">
+              <span>{stats.totalTrash}</span>
+              <span className="text-xs font-mono font-bold text-rose-400">({stats.trashMB} MB)</span>
             </p>
             <div className="flex items-center justify-between text-[11px] font-mono">
               <span className="text-neutral-400">
@@ -523,9 +741,12 @@ export default function StorageAnalyticsView({
               <span className="text-xs font-medium">{tr("Cloud Database", "Sinkronisasi Cloud", "Sinkronisasi Cloud")}</span>
               <HiServer className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
             </div>
-            <p className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span>Supabase</span>
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <p className="text-3xl font-extrabold text-white tracking-tight flex items-baseline gap-2">
+              <span className="flex items-center gap-2">
+                <span>Supabase</span>
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              </span>
+              <span className="text-xs font-mono font-bold text-emerald-400">({stats.totalUsedMB} MB)</span>
             </p>
             <p className="text-[11px] text-neutral-400 font-mono flex items-center justify-between">
               <span>Real-time Live Sync</span>

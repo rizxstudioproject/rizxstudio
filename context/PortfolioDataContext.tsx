@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { antigravityData } from "@/data/projectsData";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { saveStage3ImageToDB, getStage3ImageFromDB } from "@/lib/sequenceStorage";
+import { saveStage3ImageToDB, getStage3ImageFromDB, clearStage3ImageFromDB } from "@/lib/sequenceStorage";
 
 const STORAGE_KEY = "rizx_portfolio_custom_data_v1";
 const SESSION_KEY = "rizx_admin_session";
@@ -1088,6 +1088,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       // Save custom image to IndexedDB for high-capacity persistence
       if (newImage && newImage.startsWith("data:")) {
         saveStage3ImageToDB(newImage);
+      } else if (params.image === "" || newImage === "") {
+        clearStage3ImageFromDB();
       }
 
       // Async sync to Supabase if configured
@@ -1141,6 +1143,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         videoId: "",
         gdriveUrl: "",
         gdriveId: "",
+        image: "",
         isVideoEnabled: false,
       },
     };
@@ -1148,6 +1151,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     stage3Ref.current = updatedStage3;
     setStage3(updatedStage3);
     persistState(updatedStage3);
+    clearStage3ImageFromDB();
 
     if (isSupabaseConfigured && supabase) {
       const client = supabase;
@@ -1166,6 +1170,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           id: "default",
           youtube_url: "",
           video_id: "",
+          image_url: "",
           is_video_enabled: false,
           updated_at: new Date().toISOString(),
         });

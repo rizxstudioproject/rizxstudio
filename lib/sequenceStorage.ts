@@ -104,3 +104,18 @@ export async function getStage3ImageFromDB(): Promise<string | null> {
     return null;
   }
 }
+
+export async function clearStage3ImageFromDB(): Promise<void> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.delete("stage3_image");
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.warn("Could not clear stage3 image from IndexedDB:", err);
+  }
+}

@@ -1391,7 +1391,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           stage3.heroCard.gdriveUrl ||
             (stage3.heroCard.gdriveId ? `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view` : "")
         );
-        if (stage3.heroCard.image) setFlagshipImageUrl(stage3.heroCard.image);
+        setFlagshipImageUrl(stage3.heroCard.image || "");
         if (stage3.heroCard.title) setVideoTitle(stage3.heroCard.title);
         if (stage3.heroCard.category) setVideoCategory(stage3.heroCard.category);
         if (stage3.heroCard.description) setVideoDescription(stage3.heroCard.description);
@@ -1472,30 +1472,31 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
   const handleRemoveVideo = () => {
     const confirmMsg = tx(
-      "Apakah Anda yakin ingin menghapus media video dari Flagship Showcase?",
-      "Are you sure you want to remove the video from Flagship Showcase?",
-      "Apakao Sanak yakin nio mahapuih video dari Flagship Showcase?"
+      "Apakah Anda yakin ingin menghapus media (video & gambar) dari Flagship Showcase?",
+      "Are you sure you want to remove the media (video & image) from Flagship Showcase?",
+      "Apakao Sanak yakin nio mahapuih media (video & gambar) dari Flagship Showcase?"
     );
     if (window.confirm(confirmMsg)) {
       moveToTrash({
         originalId: "stage3-flagship-video",
         type: "flagship-video",
-        title: stage3.heroCard.title || "Flagship Showcase Video",
+        title: stage3.heroCard.title || "Flagship Showcase Media",
         subtitle: stage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI",
-        previewImage: stage3.heroCard.image,
+        previewImage: flagshipImageUrl || stage3.heroCard.image || "",
         mediaType: stage3.heroCard.mediaType || "youtube",
         payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
       });
       removeStage3Video();
       setVideoUrlInput("");
       setFlagshipGDriveUrl("");
+      setFlagshipImageUrl("");
       setFlagshipMediaType("image");
       setVideoEnabled(false);
       showToast(
         tx(
-          "Media video dipindahkan ke Tong Sampah. Bisa dipulihkan kapan saja.",
-          "Video moved to Recycle Bin. Can be restored anytime.",
-          "Media video dipindahan ka Tong Sarok. Bisa dipuliahan bilo se."
+          "Media Flagship Showcase berhasil dihapus dan dipindahkan ke Tong Sampah.",
+          "Flagship Showcase media removed and moved to Recycle Bin.",
+          "Media Flagship Showcase barasil dihapuih jo dipindahan ka Tong Sarok."
         )
       );
     }
@@ -4711,6 +4712,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               className="hidden"
                             />
                           </label>
+                          {flagshipImageUrl && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setFlagshipImageUrl("");
+                                updateStage3Video({ image: "" });
+                                showToast(tx("Gambar showcase dikosongkan.", "Showcase image cleared.", "Gambar showcase dibarasiahkan."));
+                              }}
+                              className="px-3 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-mono font-medium border border-rose-500/25 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:scale-95"
+                              title={tx("Kosongkan gambar", "Clear image", "Barasiahkan gambar")}
+                            >
+                              <HiTrash className="w-3.5 h-3.5" />
+                              <span>{tx("Hapus", "Clear", "Hapuih")}</span>
+                            </button>
+                          )}
                         </div>
                         <p className="text-[11px] text-neutral-500 font-mono">
                           Format disarankan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).

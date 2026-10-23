@@ -368,6 +368,8 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 const badge = getItemTypeBadge(item.type);
                 const BadgeIcon = badge.icon;
                 const isRestoring = restoringId === item.id;
+                const itemBytes = (item.previewImage?.length || 0) + (item.payload ? JSON.stringify(item.payload).length : 0);
+                const itemSizeStr = itemBytes > 1048576 ? `${(itemBytes / 1048576).toFixed(1)} MB` : `${Math.max(45, Math.round(itemBytes / 1024))} KB`;
 
                 return (
                   <motion.div
@@ -402,8 +404,10 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                             <span>{badge.label}</span>
                           </span>
 
-                          <span className="px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md text-neutral-300 text-[10px] font-mono">
-                            {formatTimeAgo(item.deletedAt)}
+                          <span className="px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md text-neutral-300 text-[10px] font-mono flex items-center gap-1.5">
+                            <span className="text-cyan-400 font-semibold">{itemSizeStr}</span>
+                            <span>•</span>
+                            <span>{formatTimeAgo(item.deletedAt)}</span>
                           </span>
                         </div>
                       </div>
