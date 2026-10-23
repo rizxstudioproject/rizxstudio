@@ -57,8 +57,11 @@ export interface Stage3HeroCard {
   title: string;
   category: string;
   aspectRatio: string;
+  mediaType?: "youtube" | "gdrive" | "image";
   youtubeUrl?: string;
   videoId?: string;
+  gdriveUrl?: string;
+  gdriveId?: string;
   description?: string;
   isVideoEnabled?: boolean;
 }
@@ -290,6 +293,15 @@ export interface PortfolioRunnerItem {
 export interface PortfolioRunnerData {
   title: string;
   items: PortfolioRunnerItem[];
+  speedRow1?: number; // Duration in seconds (e.g. 85)
+  speedRow2?: number; // Duration in seconds (e.g. 95)
+  directionRow1?: "left" | "right";
+  directionRow2?: "left" | "right";
+  pauseOnHover?: boolean;
+  waveEffectEnabled?: boolean;
+  waveLift?: number; // Elevation in px (e.g. 22)
+  waveScale?: number; // Scale ratio (e.g. 1.17)
+  waveRadius?: number; // Wave radius in px (e.g. 240)
 }
 
 export const defaultPortfolioRunnerData: PortfolioRunnerData = {
@@ -315,6 +327,15 @@ export const defaultPortfolioRunnerData: PortfolioRunnerData = {
     { id: "pr-15", title: "3D Spatial Design", category: "3D Design", image: "/assets/antigravity/selected-3d-design.jpg", row: 2 },
     { id: "pr-16", title: "Campaign Motion Reel", category: "Visuals", image: "/assets/antigravity/selected-campaign-visuals.jpg", row: 2 },
   ],
+  speedRow1: 85,
+  speedRow2: 95,
+  directionRow1: "left",
+  directionRow2: "right",
+  pauseOnHover: false,
+  waveEffectEnabled: true,
+  waveLift: 22,
+  waveScale: 1.17,
+  waveRadius: 240,
 };
 
 interface PortfolioDataContextType {
@@ -332,8 +353,12 @@ interface PortfolioDataContextType {
   heroBanner: HeroBannerData;
   allData: typeof antigravityData;
   updateStage3Video: (params: {
-    youtubeUrl: string;
+    youtubeUrl?: string;
     videoId?: string;
+    mediaType?: "youtube" | "gdrive" | "image";
+    gdriveUrl?: string;
+    gdriveId?: string;
+    image?: string;
     title?: string;
     category?: string;
     description?: string;
@@ -387,10 +412,36 @@ export function extractYouTubeId(urlOrId: string): string {
   return match && match[1] ? match[1] : "";
 }
 
+/**
+ * Robust Google Drive file ID parser for Google Drive share / view / preview links
+ */
+export function extractGoogleDriveId(urlOrId: string): string {
+  if (!urlOrId) return "";
+  const trimmed = urlOrId.trim();
+  const fileMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch && fileMatch[1]) return fileMatch[1];
+  const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (idMatch && idMatch[1]) return idMatch[1];
+  if (/^[a-zA-Z0-9_-]{20,60}$/.test(trimmed)) return trimmed;
+  return "";
+}
+
 const PortfolioDataContext = createContext<PortfolioDataContextType | undefined>(undefined);
 
 export function PortfolioDataProvider({ children }: { children: React.ReactNode }) {
-  const [stage3, setStage3] = useState(antigravityData.stage3);
+  const [stage3, setStage3] = useState<{
+    classTag: string;
+    headline: string;
+    heroCard: Stage3HeroCard;
+  }>({
+    ...antigravityData.stage3,
+    heroCard: {
+      ...antigravityData.stage3.heroCard,
+      mediaType: "youtube",
+      gdriveUrl: "",
+      gdriveId: "",
+    },
+  });
   const [clients, setClients] = useState<ClientItem[]>(antigravityData.stage4.clients as ClientItem[]);
   const [about, setAbout] = useState<AboutData>(defaultAboutData);
   const [heroWorks, setHeroWorks] = useState<HeroWorksData>(defaultHeroWorksData);
@@ -808,11 +859,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     }
   }, []);
 
-  // Update YouTube Video Settings for Flagship Showcase
+  // Update Media Settings for Flagship Showcase (YouTube, Google Drive, or Custom Image)
   const updateStage3Video = useCallback(
     async (params: {
-      youtubeUrl: string;
+      youtubeUrl?: string;
       videoId?: string;
+      mediaType?: "youtube" | "gdrive" | "image";
+      gdriveUrl?: string;
+      gdriveId?: string;
+      image?: string;
       title?: string;
       category?: string;
       description?: string;
@@ -820,13 +875,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       classTag?: string;
       isVideoEnabled?: boolean;
     }) => {
-      const computedId = params.videoId || extractYouTubeId(params.youtubeUrl);
+      const computedYtId = params.videoId || extractYouTubeId(params.youtubeUrl || "");
+      const computedGdId = params.gdriveId || extractGoogleDriveId(params.gdriveUrl || "");
+      const mediaType =
+        params.mediaType ||
+        (computedGdId ? "gdrive" : computedYtId ? "youtube" : "image");
       const newTitle = params.title !== undefined ? params.title : stage3.heroCard.title;
       const newCat = params.category !== undefined ? params.category : stage3.heroCard.category;
       const newDesc = params.description !== undefined ? params.description : stage3.heroCard.description;
       const newHeadline = params.headline !== undefined ? params.headline : stage3.headline;
       const newClassTag = params.classTag !== undefined ? params.classTag : stage3.classTag;
-      const newEnabled = true;
+      const newImage = params.image !== undefined ? params.image : stage3.heroCard.image;
+      const newEnabled = params.isVideoEnabled !== undefined ? params.isVideoEnabled : true;
 
       const updatedStage3 = {
         ...stage3,
@@ -834,8 +894,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         headline: newHeadline,
         heroCard: {
           ...stage3.heroCard,
-          youtubeUrl: params.youtubeUrl,
-          videoId: computedId,
+          mediaType,
+          youtubeUrl: params.youtubeUrl ?? stage3.heroCard.youtubeUrl,
+          videoId: computedYtId || stage3.heroCard.videoId,
+          gdriveUrl: params.gdriveUrl ?? stage3.heroCard.gdriveUrl,
+          gdriveId: computedGdId || stage3.heroCard.gdriveId,
+          image: newImage,
           title: newTitle,
           category: newCat,
           description: newDesc,
@@ -857,8 +921,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             description: newDesc,
             headline: newHeadline,
             class_tag: newClassTag,
-            youtube_url: params.youtubeUrl,
-            video_id: computedId,
+            youtube_url: params.youtubeUrl || "",
+            video_id: computedYtId,
             is_video_enabled: newEnabled,
             updated_at: new Date().toISOString(),
           });

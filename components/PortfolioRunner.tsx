@@ -47,6 +47,11 @@ interface MarqueeRowProps {
   items: PortfolioRunnerItem[];
   direction?: "left" | "right";
   speed?: number;
+  pauseOnHover?: boolean;
+  waveEnabled?: boolean;
+  waveLift?: number;
+  waveScale?: number;
+  waveRadius?: number;
 }
 
 /**
@@ -55,7 +60,16 @@ interface MarqueeRowProps {
  * - The card closest to the mouse elevates ("melayang", up to -22px) and scales up with a teal glow.
  * - Neighboring cards within the wave radius also elevate and tilt in a smooth bell curve wave.
  */
-function MarqueeRow({ items, direction = "left", speed = 85 }: MarqueeRowProps) {
+function MarqueeRow({
+  items,
+  direction = "left",
+  speed = 85,
+  pauseOnHover = false,
+  waveEnabled = true,
+  waveLift = 22,
+  waveScale = 1.17,
+  waveRadius = 240,
+}: MarqueeRowProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -66,10 +80,11 @@ function MarqueeRow({ items, direction = "left", speed = 85 }: MarqueeRowProps) 
   }
 
   const animationName = direction === "left" ? "prunner-marquee-left" : "prunner-marquee-right";
+  const pauseClass = pauseOnHover ? "hover:[animation-play-state:paused]" : "";
 
   useEffect(() => {
     const rowEl = rowRef.current;
-    if (!rowEl) return;
+    if (!rowEl || !waveEnabled) return;
 
     let mouseX: number | null = null;
     let isHovering = false;
@@ -97,8 +112,9 @@ function MarqueeRow({ items, direction = "left", speed = 85 }: MarqueeRowProps) 
       isHovering = false;
     };
 
-    // Wave influence radius in pixels (cards within 240px feel the ripple wave)
-    const WAVE_RADIUS = 240;
+    const W_RADIUS = Math.max(100, waveRadius || 240);
+    const maxLift = Math.max(5, waveLift || 22);
+    const scaleBonus = Math.max(0.02, (waveScale || 1.17) - 1.0);
 
     const updateWave = () => {
       const cards = cardRefs.current;
@@ -123,27 +139,25 @@ function MarqueeRow({ items, direction = "left", speed = 85 }: MarqueeRowProps) 
           if (!card) continue;
 
           const rect = card.getBoundingClientRect();
-          // Skip cards that are outside visible viewport window horizontally
+          // Skip cards outside visible viewport window horizontally
           if (rect.right < -100 || rect.left > window.innerWidth + 100) continue;
 
           const cardCenterX = rect.left + rect.width / 2;
           const dist = Math.abs(curMouseX - cardCenterX);
 
-          if (dist < WAVE_RADIUS) {
-            const norm = dist / WAVE_RADIUS; // 0 (center under mouse) to 1 (outer edge)
+          if (dist < W_RADIUS) {
+            const norm = dist / W_RADIUS;
             // Cosine bell curve wave equation: 1.0 at epicenter, tapering smoothly to 0.0
             const wave = Math.cos(norm * (Math.PI / 2));
 
-            // Peak card lifts up by up to 22px ("melayang") and scales by up to 1.18x
-            const lift = -22 * wave;
-            const scale = 1 + 0.17 * wave;
-            // Outward 3D tilt contour along the wave crest
-            const tilt = ((cardCenterX - curMouseX) / WAVE_RADIUS) * 3.5 * wave;
+            const lift = -maxLift * wave;
+            const curScale = 1 + scaleBonus * wave;
+            const tilt = ((cardCenterX - curMouseX) / W_RADIUS) * 3.5 * wave;
             const zIndex = Math.round(10 + wave * 25);
             const borderAlpha = 0.12 + wave * 0.88;
             const shadowAlpha = wave * 0.45;
 
-            card.style.transform = `translate3d(0, ${lift.toFixed(1)}px, 0) scale(${scale.toFixed(3)}) rotate(${tilt.toFixed(1)}deg)`;
+            card.style.transform = `translate3d(0, ${lift.toFixed(1)}px, 0) scale(${curScale.toFixed(3)}) rotate(${tilt.toFixed(1)}deg)`;
             card.style.zIndex = String(zIndex);
             card.style.borderColor = `rgba(20, 175, 158, ${borderAlpha.toFixed(2)})`;
             card.style.boxShadow = `0 ${Math.round(8 + wave * 16)}px ${Math.round(20 + wave * 24)}px rgba(20, 175, 158, ${shadowAlpha.toFixed(2)})`;
@@ -177,12 +191,12 @@ function MarqueeRow({ items, direction = "left", speed = 85 }: MarqueeRowProps) 
       rowEl.removeEventListener("touchcancel", onTouchEnd);
       cancelAnimationFrame(animId);
     };
-  }, []);
+  }, [waveEnabled, waveRadius, waveLift, waveScale]);
 
   if (!items || items.length === 0) return null;
 
   return (
-    <div ref={rowRef} className="relative w-full overflow-hidden py-4 -my-4">
+    <div ref={rowRef} className="relative w-full overflow-hidden py-4 -my-4 group/row">
       {/* Seamless edge fade overlays */}
       <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-r from-black to-transparent z-20 pointer-events-none" />
       <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-black to-transparent z-20 pointer-events-none" />
@@ -190,7 +204,7 @@ function MarqueeRow({ items, direction = "left", speed = 85 }: MarqueeRowProps) 
       <div className="flex w-max overflow-visible pt-6 pb-2">
         {/* Track 1 */}
         <div
-          className="flex shrink-0 overflow-visible"
+          className={`flex shrink-0 overflow-visible ${pauseClass}`}
           style={{
             animation: `${animationName} ${speed}s linear infinite`,
             willChange: "transform",
@@ -209,7 +223,7 @@ function MarqueeRow({ items, direction = "left", speed = 85 }: MarqueeRowProps) 
 
         {/* Track 2 (Identical Clone for continuous, infinite loop) */}
         <div
-          className="flex shrink-0 overflow-visible"
+          className={`flex shrink-0 overflow-visible ${pauseClass}`}
           aria-hidden="true"
           style={{
             animation: `${animationName} ${speed}s linear infinite`,
@@ -242,6 +256,17 @@ export default function PortfolioRunner() {
   const finalRow1 = row1Items.length > 0 ? row1Items : items;
   const finalRow2 = row2Items.length > 0 ? row2Items : items;
 
+  // Dynamic Runner Settings from Admin
+  const speedRow1 = portfolioRunner?.speedRow1 ?? 85;
+  const speedRow2 = portfolioRunner?.speedRow2 ?? 95;
+  const directionRow1 = portfolioRunner?.directionRow1 ?? "left";
+  const directionRow2 = portfolioRunner?.directionRow2 ?? "right";
+  const pauseOnHover = portfolioRunner?.pauseOnHover ?? false;
+  const waveEnabled = portfolioRunner?.waveEffectEnabled ?? true;
+  const waveLift = portfolioRunner?.waveLift ?? 22;
+  const waveScale = portfolioRunner?.waveScale ?? 1.17;
+  const waveRadius = portfolioRunner?.waveRadius ?? 240;
+
   if (items.length === 0) return null;
 
   return (
@@ -259,10 +284,28 @@ export default function PortfolioRunner() {
       `}</style>
 
       <div className="flex flex-col gap-1 sm:gap-2">
-        {/* Row 1: Ambient Slow Scroll Ke Kiri dengan Wave Proximity */}
-        <MarqueeRow items={finalRow1} direction="left" speed={85} />
-        {/* Row 2: Ambient Slow Scroll Ke Kanan dengan Wave Proximity */}
-        <MarqueeRow items={finalRow2} direction="right" speed={95} />
+        {/* Row 1 */}
+        <MarqueeRow
+          items={finalRow1}
+          direction={directionRow1}
+          speed={speedRow1}
+          pauseOnHover={pauseOnHover}
+          waveEnabled={waveEnabled}
+          waveLift={waveLift}
+          waveScale={waveScale}
+          waveRadius={waveRadius}
+        />
+        {/* Row 2 */}
+        <MarqueeRow
+          items={finalRow2}
+          direction={directionRow2}
+          speed={speedRow2}
+          pauseOnHover={pauseOnHover}
+          waveEnabled={waveEnabled}
+          waveLift={waveLift}
+          waveScale={waveScale}
+          waveRadius={waveRadius}
+        />
       </div>
     </section>
   );

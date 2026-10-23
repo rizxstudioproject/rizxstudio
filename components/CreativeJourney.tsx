@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { HiArrowUpRight, HiXMark } from "react-icons/hi2";
-import { usePortfolioData, extractYouTubeId } from "@/context/PortfolioDataContext";
+import { usePortfolioData, extractYouTubeId, extractGoogleDriveId } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
 
 export default function CreativeJourney() {
@@ -34,14 +34,17 @@ export default function CreativeJourney() {
       ? "Eksplorasi sinematik yang menghubungkan lebih dari satu dekade karya visual, desain animasi 3D, dan teknologi kecerdasan AI mutakhir."
       : "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences.");
 
-  const isVideoOn =
-    stage3?.heroCard?.isVideoEnabled !== false &&
-    (stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || ""));
+  const mediaType = stage3?.heroCard?.mediaType || (
+    stage3?.heroCard?.gdriveId || stage3?.heroCard?.gdriveUrl ? "gdrive" :
+    (stage3?.heroCard?.videoId || stage3?.heroCard?.youtubeUrl ? "youtube" : "image")
+  );
 
-  const computedVideoId = isVideoOn
-    ? stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || "")
-    : "";
+  const isVideoOn = stage3?.heroCard?.isVideoEnabled !== false;
+  const youtubeId = isVideoOn ? (stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || "")) : "";
+  const gdriveId = isVideoOn ? (stage3?.heroCard?.gdriveId || extractGoogleDriveId(stage3?.heroCard?.gdriveUrl || "")) : "";
 
+  const isShowingYouTube = mediaType === "youtube" && Boolean(youtubeId);
+  const isShowingGDrive = mediaType === "gdrive" && Boolean(gdriveId);
   const imageSrc = stage3?.heroCard?.image || "/assets/antigravity/hero-large.jpg";
 
   return (
@@ -61,14 +64,21 @@ export default function CreativeJourney() {
         onClick={() => setIsModalOpen(true)}
         className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-neutral-900 group cursor-pointer"
       >
-        {/* Background Media: Video or Static Image */}
+        {/* Background Media: YouTube, Google Drive, or Static Image */}
         <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
-          {computedVideoId ? (
+          {isShowingYouTube ? (
             <iframe
-              src={`https://www.youtube.com/embed/${computedVideoId}?autoplay=1&mute=1&loop=1&playlist=${computedVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
               title={displayTitle}
               className="w-full h-full object-cover scale-[1.18] border-0 pointer-events-none"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            />
+          ) : isShowingGDrive ? (
+            <iframe
+              src={`https://drive.google.com/file/d/${gdriveId}/preview`}
+              title={displayTitle}
+              className="w-full h-full object-cover scale-[1.12] border-0 pointer-events-none"
+              allow="autoplay; encrypted-media"
             />
           ) : (
             <img
@@ -122,12 +132,20 @@ export default function CreativeJourney() {
 
             {/* Media Area */}
             <div className="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
-              {computedVideoId ? (
+              {isShowingYouTube ? (
                 <iframe
-                  src={`https://www.youtube.com/embed/${computedVideoId}?autoplay=1&rel=0&modestbranding=1`}
+                  src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`}
                   title={displayTitle}
                   className="w-full h-full border-0"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : isShowingGDrive ? (
+                <iframe
+                  src={`https://drive.google.com/file/d/${gdriveId}/preview`}
+                  title={displayTitle}
+                  className="w-full h-full border-0"
+                  allow="autoplay; encrypted-media"
                   allowFullScreen
                 />
               ) : (

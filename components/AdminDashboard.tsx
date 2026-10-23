@@ -32,6 +32,7 @@ import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
 import {
   usePortfolioData,
   extractYouTubeId,
+  extractGoogleDriveId,
   ClientItem,
   defaultAboutData,
   defaultHeroWorksData,
@@ -247,6 +248,33 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [runnerItems, setRunnerItems] = useState<PortfolioRunnerItem[]>(
     portfolioRunner?.items || defaultPortfolioRunnerData.items
   );
+  const [runnerSpeedRow1, setRunnerSpeedRow1] = useState<number>(
+    portfolioRunner?.speedRow1 ?? 85
+  );
+  const [runnerSpeedRow2, setRunnerSpeedRow2] = useState<number>(
+    portfolioRunner?.speedRow2 ?? 95
+  );
+  const [runnerDirRow1, setRunnerDirRow1] = useState<"left" | "right">(
+    portfolioRunner?.directionRow1 ?? "left"
+  );
+  const [runnerDirRow2, setRunnerDirRow2] = useState<"left" | "right">(
+    portfolioRunner?.directionRow2 ?? "right"
+  );
+  const [runnerPauseOnHover, setRunnerPauseOnHover] = useState<boolean>(
+    portfolioRunner?.pauseOnHover ?? false
+  );
+  const [runnerWaveEnabled, setRunnerWaveEnabled] = useState<boolean>(
+    portfolioRunner?.waveEffectEnabled ?? true
+  );
+  const [runnerWaveLift, setRunnerWaveLift] = useState<number>(
+    portfolioRunner?.waveLift ?? 22
+  );
+  const [runnerWaveScale, setRunnerWaveScale] = useState<number>(
+    portfolioRunner?.waveScale ?? 1.17
+  );
+  const [runnerWaveRadius, setRunnerWaveRadius] = useState<number>(
+    portfolioRunner?.waveRadius ?? 240
+  );
   const [newRunnerTitle, setNewRunnerTitle] = useState("");
   const [newRunnerCategory, setNewRunnerCategory] = useState("");
   const [newRunnerImage, setNewRunnerImage] = useState("");
@@ -258,6 +286,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     if (portfolioRunner) {
       setRunnerTitle(portfolioRunner.title || defaultPortfolioRunnerData.title);
       setRunnerItems(portfolioRunner.items || defaultPortfolioRunnerData.items);
+      setRunnerSpeedRow1(portfolioRunner.speedRow1 ?? 85);
+      setRunnerSpeedRow2(portfolioRunner.speedRow2 ?? 95);
+      setRunnerDirRow1(portfolioRunner.directionRow1 ?? "left");
+      setRunnerDirRow2(portfolioRunner.directionRow2 ?? "right");
+      setRunnerPauseOnHover(portfolioRunner.pauseOnHover ?? false);
+      setRunnerWaveEnabled(portfolioRunner.waveEffectEnabled ?? true);
+      setRunnerWaveLift(portfolioRunner.waveLift ?? 22);
+      setRunnerWaveScale(portfolioRunner.waveScale ?? 1.17);
+      setRunnerWaveRadius(portfolioRunner.waveRadius ?? 240);
     }
   }, [portfolioRunner]);
 
@@ -644,14 +681,32 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     await updatePortfolioRunnerData({
       title: runnerTitle.trim() || "SELECTED WORKS",
       items: runnerItems,
+      speedRow1: Number(runnerSpeedRow1) || 85,
+      speedRow2: Number(runnerSpeedRow2) || 95,
+      directionRow1: runnerDirRow1,
+      directionRow2: runnerDirRow2,
+      pauseOnHover: runnerPauseOnHover,
+      waveEffectEnabled: runnerWaveEnabled,
+      waveLift: Number(runnerWaveLift) || 22,
+      waveScale: Number(runnerWaveScale) || 1.17,
+      waveRadius: Number(runnerWaveRadius) || 240,
     });
-    showToast("Berhasil: Running Portofolio (4:5) berhasil disimpan!");
+    showToast("Berhasil: Pengaturan, kecepatan, dan efek Running Portofolio berhasil disimpan!");
   };
 
   const handleCancelPortfolioRunner = () => {
     if (portfolioRunner) {
       setRunnerTitle(portfolioRunner.title || defaultPortfolioRunnerData.title);
       setRunnerItems(portfolioRunner.items || defaultPortfolioRunnerData.items);
+      setRunnerSpeedRow1(portfolioRunner.speedRow1 ?? 85);
+      setRunnerSpeedRow2(portfolioRunner.speedRow2 ?? 95);
+      setRunnerDirRow1(portfolioRunner.directionRow1 ?? "left");
+      setRunnerDirRow2(portfolioRunner.directionRow2 ?? "right");
+      setRunnerPauseOnHover(portfolioRunner.pauseOnHover ?? false);
+      setRunnerWaveEnabled(portfolioRunner.waveEffectEnabled ?? true);
+      setRunnerWaveLift(portfolioRunner.waveLift ?? 22);
+      setRunnerWaveScale(portfolioRunner.waveScale ?? 1.17);
+      setRunnerWaveRadius(portfolioRunner.waveRadius ?? 240);
     }
     showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
   };
@@ -711,6 +766,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       await resetPortfolioRunner();
       setRunnerTitle(defaultPortfolioRunnerData.title);
       setRunnerItems(defaultPortfolioRunnerData.items);
+      setRunnerSpeedRow1(85);
+      setRunnerSpeedRow2(95);
+      setRunnerDirRow1("left");
+      setRunnerDirRow2("right");
+      setRunnerPauseOnHover(false);
+      setRunnerWaveEnabled(true);
+      setRunnerWaveLift(22);
+      setRunnerWaveScale(1.17);
+      setRunnerWaveRadius(240);
       showToast("Running Portofolio berhasil di-reset ke default!");
     }
   };
@@ -973,9 +1037,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  // Tab 1: Flagship Showcase Video State
+  // Tab 1: Flagship Showcase Video & Media State
   const [videoUrlInput, setVideoUrlInput] = useState(
     stage3.heroCard.youtubeUrl || (stage3.heroCard.videoId ? `https://www.youtube.com/watch?v=${stage3.heroCard.videoId}` : "")
+  );
+  const [flagshipMediaType, setFlagshipMediaType] = useState<"youtube" | "gdrive" | "image">(
+    stage3.heroCard.mediaType || (
+      stage3.heroCard.gdriveId || stage3.heroCard.gdriveUrl ? "gdrive" :
+      (stage3.heroCard.videoId || stage3.heroCard.youtubeUrl ? "youtube" : "image")
+    )
+  );
+  const [flagshipGDriveUrl, setFlagshipGDriveUrl] = useState<string>(
+    stage3.heroCard.gdriveUrl || (stage3.heroCard.gdriveId ? `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view` : "")
+  );
+  const [flagshipImageUrl, setFlagshipImageUrl] = useState<string>(
+    stage3.heroCard.image || "/assets/antigravity/hero-large.jpg"
   );
   const [videoTitle, setVideoTitle] = useState(stage3.heroCard.title || "From Visual Craft to Technology");
   const [videoCategory, setVideoCategory] = useState(stage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI");
@@ -1207,7 +1283,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   }, [selectedClientId, clients, selectedClient]);
 
-  // Sync Flagship Video state whenever stage3 updates (e.g. from Supabase Cloud or localStorage)
+  // Sync Flagship Media state whenever stage3 updates (e.g. from Supabase Cloud or localStorage)
   useEffect(() => {
     if (stage3) {
       if (stage3.headline) setVideoHeadline(stage3.headline);
@@ -1217,6 +1293,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           stage3.heroCard.youtubeUrl ||
           (stage3.heroCard.videoId ? `https://www.youtube.com/watch?v=${stage3.heroCard.videoId}` : "");
         if (url) setVideoUrlInput(url);
+        if (stage3.heroCard.mediaType) setFlagshipMediaType(stage3.heroCard.mediaType);
+        if (stage3.heroCard.gdriveUrl || stage3.heroCard.gdriveId) {
+          setFlagshipGDriveUrl(
+            stage3.heroCard.gdriveUrl || `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view`
+          );
+        }
+        if (stage3.heroCard.image) setFlagshipImageUrl(stage3.heroCard.image);
         if (stage3.heroCard.title) setVideoTitle(stage3.heroCard.title);
         if (stage3.heroCard.category) setVideoCategory(stage3.heroCard.category);
         if (stage3.heroCard.description) setVideoDescription(stage3.heroCard.description);
@@ -1234,21 +1317,38 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     else setIsAdminMode(false);
   };
 
-  // Derived YouTube ID for live preview
+  // Derived YouTube ID and Google Drive ID for live preview
   const previewYouTubeId = extractYouTubeId(videoUrlInput);
+  const previewGDriveId = extractGoogleDriveId(flagshipGDriveUrl);
 
   // Handlers for Flagship Video Showcase
   const handleSaveVideo = (e?: React.FormEvent, andJumpToWeb: boolean = false) => {
     if (e) e.preventDefault();
-    const parsedId = extractYouTubeId(videoUrlInput);
-    if (videoUrlInput.trim() && !parsedId) {
-      showToast("Peringatan: Format URL YouTube tidak valid. Mohon periksa kembali.");
-      return;
+
+    let computedYtId = "";
+    let computedGdId = "";
+
+    if (flagshipMediaType === "youtube") {
+      computedYtId = extractYouTubeId(videoUrlInput);
+      if (videoUrlInput.trim() && !computedYtId) {
+        showToast("Peringatan: Format URL YouTube tidak valid. Mohon periksa kembali.");
+        return;
+      }
+    } else if (flagshipMediaType === "gdrive") {
+      computedGdId = extractGoogleDriveId(flagshipGDriveUrl);
+      if (flagshipGDriveUrl.trim() && !computedGdId) {
+        showToast("Peringatan: Format Link Google Drive tidak valid. Mohon periksa kembali.");
+        return;
+      }
     }
 
     updateStage3Video({
+      mediaType: flagshipMediaType,
       youtubeUrl: videoUrlInput.trim(),
-      videoId: parsedId,
+      videoId: computedYtId,
+      gdriveUrl: flagshipGDriveUrl.trim(),
+      gdriveId: computedGdId,
+      image: flagshipImageUrl.trim() || "/assets/antigravity/hero-large.jpg",
       title: videoTitle.trim(),
       category: videoCategory.trim(),
       description: videoDescription.trim(),
@@ -1260,7 +1360,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     if (andJumpToWeb) {
       handleJumpToFlagshipWeb();
     } else {
-      showToast("Berhasil! Semua teks & video Flagship Showcase telah diperbarui dan langsung aktif.");
+      showToast("Berhasil! Semua teks & media Flagship Showcase telah diperbarui dan langsung aktif.");
     }
   };
 
@@ -1621,7 +1721,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiVideoCamera className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "7. Video YouTube" : "7. YouTube Video"}</span>
+            <span className="whitespace-nowrap">{isId ? "7. Media Showcase (Video / Drive / Gambar)" : "7. Media Showcase (Video / Drive / Image)"}</span>
           </button>
 
           <button
@@ -1649,7 +1749,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {activeTab === "client-logos" && (isId ? "4. Logo Klien" : "4. Client Logos")}
               {activeTab === "runner" && (isId ? "5. Running Portofolio" : "5. Running Portfolio")}
               {activeTab === "about" && (isId ? "6. Tentang Saya" : "6. About Me")}
-              {activeTab === "flagship" && (isId ? "7. Video YouTube" : "7. YouTube Video")}
+              {activeTab === "flagship" && (isId ? "7. Media Showcase (YouTube / Drive / Gambar)" : "7. Media Showcase (YouTube / Drive / Image)")}
               {activeTab === "account" && (isId ? "8. Sandi & Akun" : "8. Password & Account")}
             </span>
           </div>
@@ -3655,6 +3755,189 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
             </div>
 
+            {/* Kontrol Animasi, Kecepatan, Gerakan & Efek Gelombang */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <HiSparkles className="w-4 h-4 text-[#14AF9E]" />
+                  <span>{isId ? "Pengaturan Gerakan, Kecepatan & Efek Gelombang" : "Motion, Speed & Wave Effect Controls"}</span>
+                </h3>
+                <span className="text-[10px] font-mono text-[#14AF9E] uppercase font-semibold">
+                  {isId ? "Interaktif Real-Time" : "Real-Time Interactive"}
+                </span>
+              </div>
+
+              {/* 1. KONTROL KECEPATAN (SPEED) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 rounded-xl bg-neutral-950/70 border border-white/10">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-neutral-300 font-semibold">{isId ? "Kecepatan Baris 1 (Atas)" : "Row 1 Speed"}</span>
+                    <span className="text-[#14AF9E] font-bold">{runnerSpeedRow1} detik/putaran</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={35}
+                    max={140}
+                    step={5}
+                    value={runnerSpeedRow1}
+                    onChange={(e) => setRunnerSpeedRow1(Number(e.target.value))}
+                    className="w-full accent-[#14AF9E] cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
+                    <span>Cepat (35s)</span>
+                    <span>Ambient Lambat (140s)</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-mono">
+                    <span className="text-neutral-300 font-semibold">{isId ? "Kecepatan Baris 2 (Bawah)" : "Row 2 Speed"}</span>
+                    <span className="text-[#14AF9E] font-bold">{runnerSpeedRow2} detik/putaran</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={35}
+                    max={140}
+                    step={5}
+                    value={runnerSpeedRow2}
+                    onChange={(e) => setRunnerSpeedRow2(Number(e.target.value))}
+                    className="w-full accent-[#14AF9E] cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
+                    <span>Cepat (35s)</span>
+                    <span>Ambient Lambat (140s)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. KONTROL ARAH GERAKAN (DIRECTION) & PAUSE ON HOVER */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono text-neutral-300 font-semibold block">
+                    {isId ? "Arah Gerak Baris 1" : "Row 1 Direction"}
+                  </label>
+                  <select
+                    value={runnerDirRow1}
+                    onChange={(e) => setRunnerDirRow1(e.target.value as "left" | "right")}
+                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
+                  >
+                    <option value="left">{isId ? "Scroll ke Kiri ←" : "Scroll Left ←"}</option>
+                    <option value="right">{isId ? "Scroll ke Kanan →" : "Scroll Right →"}</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono text-neutral-300 font-semibold block">
+                    {isId ? "Arah Gerak Baris 2" : "Row 2 Direction"}
+                  </label>
+                  <select
+                    value={runnerDirRow2}
+                    onChange={(e) => setRunnerDirRow2(e.target.value as "left" | "right")}
+                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
+                  >
+                    <option value="right">{isId ? "Scroll ke Kanan →" : "Scroll Right →"}</option>
+                    <option value="left">{isId ? "Scroll ke Kiri ←" : "Scroll Left ←"}</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono text-neutral-300 font-semibold block">
+                    {isId ? "Jeda Saat Hover Mouse" : "Pause on Hover"}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setRunnerPauseOnHover(!runnerPauseOnHover)}
+                    className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center justify-between border ${
+                      runnerPauseOnHover
+                        ? "bg-[#14AF9E]/20 text-[#14AF9E] border-[#14AF9E]/50"
+                        : "bg-neutral-900 text-neutral-400 border-white/15 hover:bg-neutral-800"
+                    }`}
+                  >
+                    <span>{runnerPauseOnHover ? (isId ? "Jeda Aktif" : "Pause On") : (isId ? "Tetap Berjalan" : "Keep Running")}</span>
+                    <span className="text-[10px] font-bold">{runnerPauseOnHover ? "ON" : "OFF"}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* 3. KONTROL EFEK SENTUHAN & GELOMBANG (WAVE RIPPLE) */}
+              <div className="p-4 sm:p-5 rounded-xl bg-neutral-950/70 border border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="text-xs sm:text-sm font-bold text-white block">
+                      {isId ? "Efek Gelombang Sentuhan Mouse (Proximity Wave Ripple)" : "Touch / Mouse Proximity Wave Ripple Effect"}
+                    </span>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">
+                      {isId
+                        ? "Saat kursor mendekati kartu, kartu terdekat akan melayang ke atas dan kartu sekitarnya ikut bergelombang halus."
+                        : "When mouse touches or hovers near cards, closest card lifts and neighboring cards ripple in a wave."}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setRunnerWaveEnabled(!runnerWaveEnabled)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
+                      runnerWaveEnabled
+                        ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                        : "bg-neutral-800 text-neutral-400 border border-white/10"
+                    }`}
+                  >
+                    {runnerWaveEnabled ? (isId ? "Efek Aktif" : "Wave Enabled") : (isId ? "Nonaktif" : "Disabled")}
+                  </button>
+                </div>
+
+                {runnerWaveEnabled && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-white/10">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-mono">
+                        <span className="text-neutral-400">{isId ? "Tinggi Melayang:" : "Lift Height:"}</span>
+                        <span className="text-[#14AF9E] font-bold">-{runnerWaveLift}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={10}
+                        max={35}
+                        value={runnerWaveLift}
+                        onChange={(e) => setRunnerWaveLift(Number(e.target.value))}
+                        className="w-full accent-[#14AF9E] cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-mono">
+                        <span className="text-neutral-400">{isId ? "Skala Pembesaran:" : "Card Scale:"}</span>
+                        <span className="text-[#14AF9E] font-bold">{runnerWaveScale}x</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={1.05}
+                        max={1.30}
+                        step={0.01}
+                        value={runnerWaveScale}
+                        onChange={(e) => setRunnerWaveScale(Number(e.target.value))}
+                        className="w-full accent-[#14AF9E] cursor-pointer"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between text-xs font-mono">
+                        <span className="text-neutral-400">{isId ? "Jangkauan Ombak:" : "Wave Radius:"}</span>
+                        <span className="text-[#14AF9E] font-bold">{runnerWaveRadius}px</span>
+                      </div>
+                      <input
+                        type="range"
+                        min={160}
+                        max={360}
+                        step={10}
+                        value={runnerWaveRadius}
+                        onChange={(e) => setRunnerWaveRadius(Number(e.target.value))}
+                        className="w-full accent-[#14AF9E] cursor-pointer"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Form: Tambah Karya Baru ke Running Portofolio (4:5) */}
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-5">
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
@@ -4440,13 +4723,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center gap-2">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-mono font-semibold flex items-center gap-1.5 ${
-                      videoEnabled && previewYouTubeId
-                        ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
-                        : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                      flagshipMediaType === "youtube" && previewYouTubeId && videoEnabled
+                        ? "bg-red-500/10 text-red-400 border border-red-500/30"
+                        : flagshipMediaType === "gdrive" && previewGDriveId && videoEnabled
+                        ? "bg-blue-500/10 text-blue-400 border border-blue-500/30"
+                        : "bg-emerald-500/10 text-[#14AF9E] border border-[#14AF9E]/30"
                     }`}
                   >
                     <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                    {videoEnabled && previewYouTubeId ? "Video Embed Aktif" : "Mode Gambar Standar"}
+                    {flagshipMediaType === "youtube"
+                      ? previewYouTubeId && videoEnabled
+                        ? "YouTube Video Aktif"
+                        : "Menunggu Link YouTube"
+                      : flagshipMediaType === "gdrive"
+                      ? previewGDriveId && videoEnabled
+                        ? "Google Drive Embed Aktif"
+                        : "Menunggu Link Google Drive"
+                      : "Mode Gambar Statis"}
                   </span>
                 </div>
               </div>
@@ -4513,30 +4806,129 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
 
                   {/* SECTION 2: VIDEO MEDIA & KONTEN DALAM CARD */}
-                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
+                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-4">
                     <span className="text-[10px] font-mono uppercase tracking-widest text-[#14AF9E] font-semibold block">
                       B. Media Player & Konten di Dalam Card Showcase
                     </span>
 
-                    {/* YouTube URL or Video ID */}
+                    {/* MEDIA TYPE SELECTOR: YouTube, Google Drive, or Image */}
                     <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                        URL Video atau Video ID YouTube <span className="text-cyan-400">*</span>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                        {isId ? "Tipe Media Showcase" : "Showcase Media Type"}
                       </label>
-                      <input
-                        type="text"
-                        value={videoUrlInput}
-                        onChange={(e) => setVideoUrlInput(e.target.value)}
-                        placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ atau dQw4w9WgXcQ"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
-                      />
-                      <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500 font-mono">
-                        <span>Mendukung: youtube.com/watch?v=..., youtu.be/..., shorts, atau raw ID</span>
-                        {previewYouTubeId && (
-                          <span className="text-cyan-400 font-semibold">ID: {previewYouTubeId}</span>
-                        )}
+                      <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs font-mono">
+                        <button
+                          type="button"
+                          onClick={() => setFlagshipMediaType("youtube")}
+                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            flagshipMediaType === "youtube"
+                              ? "bg-red-600 text-white shadow-md shadow-red-600/30"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <span>🔴 YouTube</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFlagshipMediaType("gdrive")}
+                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            flagshipMediaType === "gdrive"
+                              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <span>📁 Google Drive</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setFlagshipMediaType("image")}
+                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            flagshipMediaType === "image"
+                              ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <span>🖼️ Gambar Kustom</span>
+                        </button>
                       </div>
                     </div>
+
+                    {/* MODE 1: YOUTUBE */}
+                    {flagshipMediaType === "youtube" && (
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-mono text-neutral-300 font-medium">
+                          URL Video atau Video ID YouTube <span className="text-cyan-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={videoUrlInput}
+                          onChange={(e) => setVideoUrlInput(e.target.value)}
+                          placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ atau dQw4w9WgXcQ"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
+                        />
+                        <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500 font-mono">
+                          <span>Mendukung: youtube.com/watch?v=..., youtu.be/..., shorts, atau raw ID</span>
+                          {previewYouTubeId && (
+                            <span className="text-cyan-400 font-semibold">ID: {previewYouTubeId}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MODE 2: GOOGLE DRIVE */}
+                    {flagshipMediaType === "gdrive" && (
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-mono text-neutral-300 font-medium">
+                          Link File / Video Google Drive <span className="text-blue-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={flagshipGDriveUrl}
+                          onChange={(e) => setFlagshipGDriveUrl(e.target.value)}
+                          placeholder="Contoh: https://drive.google.com/file/d/1aBcDeFgHiJkLmNoPqRsTuVwXyZ/view?usp=sharing"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                        />
+                        <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500 font-mono">
+                          <span>Pastikan akses file diatur ke "Siapa saja yang memiliki link"</span>
+                          {previewGDriveId && (
+                            <span className="text-blue-400 font-semibold">Drive ID: {previewGDriveId}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MODE 3: CUSTOM IMAGE */}
+                    {flagshipMediaType === "image" && (
+                      <div className="space-y-2">
+                        <label className="block text-xs font-mono text-neutral-300 font-medium">
+                          Gambar Showcase Statis <span className="text-[#14AF9E]">*</span>
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={flagshipImageUrl}
+                            onChange={(e) => setFlagshipImageUrl(e.target.value)}
+                            placeholder="/assets/antigravity/hero-large.jpg atau URL gambar"
+                            className="flex-1 px-3.5 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#14AF9E]"
+                          />
+                          <label className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-mono font-medium border border-white/15 cursor-pointer shrink-0 flex items-center gap-1.5">
+                            <HiArrowUpTray className="w-3.5 h-3.5 text-[#14AF9E]" />
+                            <span>Upload</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleGenericImageFile(e, (dataUrl) => setFlagshipImageUrl(dataUrl))
+                              }
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                        <p className="text-[11px] text-neutral-500 font-mono">
+                          Format disarankan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).
+                        </p>
+                      </div>
+                    )}
 
                     {/* Title & Category inside Card */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -4657,9 +5049,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </h3>
                   </div>
 
-                  {/* Cinematic Video Card Preview (Exact Image 1 layout) */}
+                  {/* Cinematic Media Card Preview */}
                   <div className="relative aspect-[16/10] sm:aspect-[21/9] w-full rounded-2xl overflow-hidden bg-black border border-white/15 shadow-2xl group">
-                    {previewYouTubeId && videoEnabled ? (
+                    {flagshipMediaType === "youtube" && previewYouTubeId && videoEnabled ? (
                       <iframe
                         src={`https://www.youtube.com/embed/${previewYouTubeId}?rel=0&modestbranding=1`}
                         title="YouTube Showcase Preview"
@@ -4667,19 +5059,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
+                    ) : flagshipMediaType === "gdrive" && previewGDriveId && videoEnabled ? (
+                      <iframe
+                        src={`https://drive.google.com/file/d/${previewGDriveId}/preview`}
+                        title="Google Drive Showcase Preview"
+                        className="w-full h-full border-0"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                      />
                     ) : (
                       <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
                         <img
-                          src={stage3.heroCard.image || "/assets/antigravity/hero-large.jpg"}
-                          alt="Fallback"
-                          className="w-full h-full object-cover opacity-60"
+                          src={flagshipImageUrl || stage3.heroCard.image || "/assets/antigravity/hero-large.jpg"}
+                          alt="Showcase Preview"
+                          className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex flex-col items-center justify-center text-center p-4">
-                          <HiVideoCamera className="w-10 h-10 text-neutral-500 mb-2" />
-                          <p className="text-xs text-neutral-300 font-mono">
-                            Belum ada embed video aktif
-                          </p>
-                        </div>
                       </div>
                     )}
 
