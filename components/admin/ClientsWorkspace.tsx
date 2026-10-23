@@ -98,9 +98,7 @@ export default function ClientsWorkspace({
   workspaceView: controlledWorkspaceView,
   onWorkspaceViewChange,
 }: ClientsWorkspaceProps) {
-  const { lang } = useLang();
-  const isId = lang === "id" || lang === "min";
-  const isMin = lang === "min";
+  const { lang, tr } = useLang();
 
   // Workspace subview: 'folders' (Client Folders & Works) | 'logos' (Client Logos Marquee)
   const [internalWorkspaceView, setInternalWorkspaceView] = useState<"folders" | "logos">("folders");
@@ -471,26 +469,26 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
     if (e) e.preventDefault();
     const trimmed = newToolName.trim();
     if (!trimmed) {
-      showToast(isId ? "Peringatan: Masukkan nama tool terlebih dahulu." : "Warning: Enter tool name first.");
+      showToast(tr("Warning: Enter tool name first.", "Peringatan: Masukkan nama tool terlebih dahulu.", "Paringatan: Masuakkan namo tool talabiah dahulu."));
       return;
     }
 
     if (newToolCategory === "Design") {
       if (tempDesignTools.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
-        showToast(isId ? `Tool "${trimmed}" sudah ada di Design.` : `Tool "${trimmed}" already exists in Design.`);
+        showToast(tr(`Tool "${trimmed}" already exists in Design.`, `Tool "${trimmed}" sudah ada di Design.`, `Tool "${trimmed}" lah ado di Design.`));
         return;
       }
       setTempDesignTools((prev) => [...prev, trimmed]);
     } else {
       if (tempAiTools.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
-        showToast(isId ? `Tool "${trimmed}" sudah ada di AI.` : `Tool "${trimmed}" already exists in AI.`);
+        showToast(tr(`Tool "${trimmed}" already exists in AI.`, `Tool "${trimmed}" sudah ada di AI.`, `Tool "${trimmed}" lah ado di AI.`));
         return;
       }
       setTempAiTools((prev) => [...prev, trimmed]);
     }
 
     setNewToolName("");
-    showToast(isId ? `Tool "${trimmed}" ditambahkan ke ${newToolCategory}` : `Added "${trimmed}" to ${newToolCategory}`);
+    showToast(tr(`Added "${trimmed}" to ${newToolCategory}`, `Tool "${trimmed}" ditambahkan ke ${newToolCategory}`, `Tool "${trimmed}" ditambahkan ka ${newToolCategory}`));
   };
 
   const handleRemoveTempDesignTool = (toolName: string) => {
@@ -504,7 +502,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
   const handleResetDefaultTools = () => {
     setTempDesignTools([...DEFAULT_DESIGN_TOOLS]);
     setTempAiTools([...DEFAULT_AI_TOOLS]);
-    showToast(isId ? "Daftar tool dikembalikan ke bawaan." : "Tools reset to default.");
+    showToast(tr("Tools reset to default.", "Daftar tool dikembalikan ke bawaan.", "Daftar tool dibaliakkan ka samulo."));
   };
 
   const handleSaveManageTools = () => {
@@ -527,7 +525,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
     }
 
     setIsManageToolsOpen(false);
-    showToast(isId ? "Katalog tool berhasil diperbarui!" : "Tools catalog updated successfully!");
+    showToast(tr("Tools catalog updated successfully!", "Katalog tool berhasil diperbarui!", "Katalog tool barasil dipabarui!"));
   };
 
   // Selected Cover Image: first work image or custom cover
@@ -587,7 +585,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               }`}
             >
               <HiFolder className="w-3.5 h-3.5" />
-              <span>{isId ? "Folder Klien" : "Folders"}</span>
+              <span>{tr("Folders", "Folder Klien", "Folder Klien")}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
                   workspaceView === "folders"
@@ -611,7 +609,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               }`}
             >
               <HiTag className="w-3.5 h-3.5" />
-              <span>{isId ? "Logo Klien" : "Logos"}</span>
+              <span>{tr("Logos", "Logo Klien", "Logo Mitra")}</span>
               <span
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
                   workspaceView === "logos"
@@ -630,10 +628,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white tracking-tight">
-                    {isId ? "Daftar Klien" : "Client Folders"}
+                    {tr("Client Folders", "Daftar Klien", "Daftar Klien")}
                   </h2>
                   <p className="text-[11px] text-neutral-400">
-                    {isId ? "Folder karya & portofolio" : "Client folders and portfolios"}
+                    {tr("Client folders & portfolios", "Folder karya & portofolio", "Folder karya & portofolio")}
                   </p>
                 </div>
                 <button
@@ -642,7 +640,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#14AF9E]/20 cursor-pointer"
                 >
                   <HiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>{isId ? "Folder Baru" : "New folder"}</span>
+                  <span>{tr("New folder", "Folder Baru", "Folder Baru")}</span>
                 </button>
               </div>
 
@@ -657,7 +655,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
-                  All {clients.length}
+                  {tr("All", "Semua", "Kasadonyo")} {clients.length}
                 </button>
                 <button
                   type="button"
@@ -668,7 +666,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
-                  Recent 3
+                  {tr("Recent", "Terkini", "Tabaru")} 3
                 </button>
                 <button
                   type="button"
@@ -679,7 +677,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
-                  Favorites {favoriteCount}
+                  {tr("Favorites", "Favorit", "Kaoetamoan")} {favoriteCount}
                 </button>
               </div>
 
@@ -690,7 +688,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   type="text"
                   value={clientSearch}
                   onChange={(e) => setClientSearch(e.target.value)}
-                  placeholder={isId ? "Cari folder klien..." : "Search clients..."}
+                  placeholder={tr("Search clients...", "Cari folder klien...", "Cari folder klien...")}
                   className="w-full bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors"
                 />
               </div>
@@ -700,14 +698,14 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold text-white tracking-tight">
-                    {isId ? "Logo Klien Marquee" : "Client Logos"}
+                    {tr("Client Logos", "Logo Klien Marquee", "Logo Mitra Marquee")}
                   </h2>
                   <p className="text-[11px] text-neutral-400">
-                    {isId ? "Brand partner running di web" : "Partner brands on website"}
+                    {tr("Partner brands on website", "Brand partner running di web", "Brand mitra running di web")}
                   </p>
                 </div>
                 <span className="text-[10px] font-mono text-[#14AF9E] bg-[#14AF9E]/10 border border-[#14AF9E]/30 px-2 py-0.5 rounded-full font-semibold">
-                  2 Rows
+                  2 {tr("Rows", "Baris", "Barih")}
                 </span>
               </div>
 
@@ -722,7 +720,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
-                  All {clLogos.length}
+                  {tr("All", "Semua", "Kasadonyo")} {clLogos.length}
                 </button>
                 <button
                   type="button"
@@ -733,7 +731,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
-                  Row 1 ({row1Count})
+                  {tr("Row", "Baris", "Barih")} 1 ({row1Count})
                 </button>
                 <button
                   type="button"
@@ -744,7 +742,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
-                  Row 2 ({row2Count})
+                  {tr("Row", "Baris", "Barih")} 2 ({row2Count})
                 </button>
               </div>
 
@@ -755,7 +753,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   type="text"
                   value={logoSearch}
                   onChange={(e) => setLogoSearch(e.target.value)}
-                  placeholder={isId ? "Cari logo klien..." : "Search partner logos..."}
+                  placeholder={tr("Search partner logos...", "Cari logo klien...", "Cari logo mitra...")}
                   className="w-full bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors"
                 />
               </div>
@@ -781,13 +779,13 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   </div>
                   <div className="truncate">
                     <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <span>{isId ? "Logo Klien Marquee" : "Client Logos Marquee"}</span>
+                      <span>{tr("Client Logos Marquee", "Logo Klien Marquee", "Logo Klien Marquee")}</span>
                       <span className="text-[9px] uppercase px-1 py-0.2 bg-[#14AF9E]/20 text-[#14AF9E] rounded font-mono font-bold">
                         Running
                       </span>
                     </div>
                     <p className="text-[10px] text-neutral-400 truncate">
-                      {clLogos.length} {isId ? "brand partner running" : "partner logos"}
+                      {clLogos.length} {tr("partner logos", "brand partner running", "brand partner bajalan")}
                     </p>
                   </div>
                 </div>
@@ -863,7 +861,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
               {filteredClients.length === 0 && (
                 <div className="p-8 text-center text-xs text-neutral-500">
-                  {isId ? "Tidak ada klien yang cocok." : "No clients found matching filter."}
+                  {tr("No clients found matching filter.", "Tidak ada klien yang cocok.", "Indak ado klien nan cocok.")}
                 </div>
               )}
             </>
@@ -895,14 +893,16 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                             : "bg-emerald-500/15 text-emerald-400"
                         }`}
                       >
-                        {logo.row === 1 ? "Row 1 (Kiri)" : "Row 2 (Kanan)"}
+                        {logo.row === 1
+                          ? tr("Row 1 (Left)", "Baris 1 (Kiri)", "Barih 1 (Kida)")
+                          : tr("Row 2 (Right)", "Baris 2 (Kanan)", "Barih 2 (Kanan)")}
                       </span>
                     </div>
                   </div>
 
                   <button
                     type="button"
-                    title={isId ? "Hapus Logo" : "Delete Logo"}
+                    title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
                     onClick={(e) => {
                       e.stopPropagation();
                       onDeleteClientLogo?.(logo.id);
@@ -916,7 +916,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
               {filteredLogos.length === 0 && (
                 <div className="p-8 text-center text-xs text-neutral-500">
-                  {isId ? "Tidak ada logo yang cocok." : "No logos found matching filter."}
+                  {tr("No logos found matching filter.", "Tidak ada logo yang cocok.", "Indak ado logo nan cocok.")}
                 </div>
               )}
             </div>
@@ -934,7 +934,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               }}
               className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
             >
-              View all {clients.length} clients
+              {tr(`View all ${clients.length} clients`, `Lihat semua ${clients.length} klien`, `Caliak kasadonyo ${clients.length} klien`)}
             </button>
           ) : (
             <div className="space-y-1.5">
@@ -944,7 +944,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 className="md:hidden w-full py-2.5 px-3 rounded-xl bg-[#14AF9E] text-black font-bold text-xs shadow-md shadow-[#14AF9E]/20 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
               >
                 <HiPencilSquare className="w-4 h-4" />
-                <span>{isId ? "Buka Editor & Tambah Logo →" : "Open Editor & Add Logo →"}</span>
+                <span>{tr("Open Editor & Add Logo →", "Buka Editor & Tambah Logo →", "Bukak Editor & Tambah Logo →")}</span>
               </button>
               <button
                 type="button"
@@ -954,7 +954,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 }}
                 className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
               >
-                View all {clLogos.length} logos
+                {tr(`View all ${clLogos.length} logos`, `Lihat semua ${clLogos.length} logo`, `Caliak kasadonyo ${clLogos.length} logo`)}
               </button>
             </div>
           )}
@@ -978,7 +978,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-semibold cursor-pointer active:scale-95"
             >
               <HiArrowLeft className="w-4 h-4 text-[#14AF9E]" />
-              <span>{isId ? "Daftar Logo" : "Logo List"}</span>
+              <span>{tr("Logo List", "Daftar Logo", "Daftar Logo")}</span>
             </button>
             <button
               type="button"
@@ -989,7 +989,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               className="text-xs text-[#14AF9E] hover:underline flex items-center gap-1 font-medium"
             >
               <HiFolder className="w-3.5 h-3.5" />
-              <span>{isId ? "Ke Folder Klien" : "To Folders"}</span>
+              <span>{tr("To Folders", "Ke Folder Klien", "Ka Folder Klien")}</span>
             </button>
           </div>
 
@@ -1001,11 +1001,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 onClick={() => setWorkspaceView("folders")}
                 className="hover:text-white transition-colors cursor-pointer"
               >
-                {isId ? "Klien" : "Clients"}
+                {tr("Clients", "Klien", "Klien")}
               </button>
               <span>/</span>
               <span className="text-white font-medium">
-                {isId ? "Logo Klien Marquee" : "Client Logos Marquee"}
+                {tr("Client Logos Marquee", "Logo Klien Marquee", "Logo Klien Marquee")}
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#14AF9E]/10 border border-[#14AF9E]/30 text-[#14AF9E] font-semibold ml-1">
                 {clLogos.length} Logos Live
@@ -1018,7 +1018,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 onClick={onViewWebsite}
                 className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
               >
-                <span>{isId ? "Lihat di Web" : "View website"}</span>
+                <span>{tr("View website", "Lihat di Web", "Caliak di Web")}</span>
                 <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
               </button>
               {onSaveClientLogos && (
@@ -1028,7 +1028,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#14AF9E]/20 cursor-pointer"
                 >
                   <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>{isId ? "Simpan Perubahan" : "Save Changes"}</span>
+                  <span>{tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}</span>
                 </button>
               )}
             </div>
@@ -1040,12 +1040,14 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               SECTION CONTROL: LOGO KLIEN (MARQUEE)
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              {isId ? "Editor Logo Klien & Subtitle Marquee" : "Client Logos & Marquee Editor"}
+              {tr("Client Logos & Marquee Editor", "Editor Logo Klien & Subtitle Marquee", "Editor Logo Klien & Subtitle Marquee")}
             </h2>
             <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
-              {isId
-                ? "Kelola tulisan judul serta logo-logo brand partner yang berjalan di marquee logo website publik. Anda bisa menambah logo baru, mengganti nama, memindahkan baris, atau menghapus logo."
-                : "Manage title subtitle and partner brand logos scrolling in the public website marquee. Add new logos, rename, switch rows, or delete."}
+              {tr(
+                "Manage title subtitle and partner brand logos scrolling in the public website marquee. Add new logos, rename, switch rows, or delete.",
+                "Kelola tulisan judul serta logo-logo brand partner yang berjalan di marquee logo website publik. Anda bisa menambah logo baru, mengganti nama, memindahkan baris, atau menghapus logo.",
+                "Kalola tulisan judul sarato logo-logo brand partner nan bajalan di marquee logo website publik. Sanak dapek manambah logo baru, mangganti namo, mamindahkan barih, atau mahapuih logo."
+              )}
             </p>
           </div>
 
@@ -1053,7 +1055,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <HiTag className="w-4 h-4 text-[#14AF9E]" />
-              <span>{isId ? "Tulisan Subtitle / Judul Marquee" : "Marquee Subtitle / Section Title"}</span>
+              <span>{tr("Marquee Subtitle / Section Title", "Tulisan Subtitle / Judul Marquee", "Tulisan Subtitle / Judul Marquee")}</span>
             </h3>
             <div className="space-y-1.5 max-w-xl">
               <input
@@ -1064,9 +1066,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
               />
               <p className="text-[11px] text-neutral-500 font-mono">
-                {isId
-                  ? "Teks ini tampil di atas marquee logo di website publik."
-                  : "This text appears above the partner logos marquee on the public website."}
+                {tr(
+                  "This text appears above the partner logos marquee on the public website.",
+                  "Teks ini tampil di atas marquee logo di website publik.",
+                  "Teks ko tampil di ateh marquee logo di website publik."
+                )}
               </p>
             </div>
           </div>
@@ -1075,40 +1079,40 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <HiPlus className="w-4 h-4 text-[#14AF9E]" />
-              <span>{isId ? "Tambah Logo Klien Baru ke Marquee" : "Add New Client Logo to Marquee"}</span>
+              <span>{tr("Add New Client Logo to Marquee", "Tambah Logo Klien Baru ke Marquee", "Tambah Logo Klien Baru ka Marquee")}</span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
                 <label className="text-xs font-mono font-semibold text-neutral-300">
-                  {isId ? "Nama Klien / Brand" : "Client / Brand Name"}
+                  {tr("Client / Brand Name", "Nama Klien / Brand", "Namo Klien / Brand")}
                 </label>
                 <input
                   type="text"
                   value={newLogoName}
                   onChange={(e) => setNewLogoName?.(e.target.value)}
-                  placeholder={isId ? "Contoh: Apple, Google, Nike" : "e.g. Apple, Google, Nike"}
+                  placeholder={tr("e.g. Apple, Google, Nike", "Contoh: Apple, Google, Nike", "Contoh: Apple, Google, Nike")}
                   className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
                 />
               </div>
 
               <div className="space-y-1.5">
                 <label className="text-xs font-mono font-semibold text-neutral-300">
-                  {isId ? "Posisi Baris Marquee" : "Marquee Row Position"}
+                  {tr("Marquee Row Position", "Posisi Baris Marquee", "Posisi Barih Marquee")}
                 </label>
                 <select
                   value={newLogoRow}
                   onChange={(e) => setNewLogoRow?.(parseInt(e.target.value) as 1 | 2)}
                   className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
                 >
-                  <option value={1}>{isId ? "Baris 1 (Scroll ke Kiri)" : "Row 1 (Scroll Left)"}</option>
-                  <option value={2}>{isId ? "Baris 2 (Scroll ke Kanan)" : "Row 2 (Scroll Right)"}</option>
+                  <option value={1}>{tr("Row 1 (Scroll Left)", "Baris 1 (Scroll ke Kiri)", "Barih 1 (Scroll ka Kida)")}</option>
+                  <option value={2}>{tr("Row 2 (Scroll Right)", "Baris 2 (Scroll ke Kanan)", "Barih 2 (Scroll ka Kanan)")}</option>
                 </select>
               </div>
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {isId ? "File Logo (SVG / PNG / WebP)" : "Logo File (SVG / PNG / WebP)"}
+                    {tr("Logo File (SVG / PNG / WebP)", "File Logo (SVG / PNG / WebP)", "File Logo (SVG / PNG / WebP)")}
                   </label>
                   <span className="text-[10px] font-mono text-[#14AF9E] bg-[#14AF9E]/10 border border-[#14AF9E]/30 px-2 py-0.5 rounded-full font-semibold">
                     Frame: 160 × 56 px
@@ -1118,12 +1122,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
                   <span className="truncate">
                     {newLogoFile
-                      ? isId
-                        ? "✓ Logo Dipilih"
-                        : "✓ Logo Selected"
-                      : isId
-                      ? "Pilih File Logo"
-                      : "Choose Logo File"}
+                      ? tr("✓ Logo Selected", "✓ Logo Dipilih", "✓ Logo Dipiliah")
+                      : tr("Choose Logo File", "Pilih File Logo", "Piliah File Logo")}
                   </span>
                   <input
                     type="file"
@@ -1137,13 +1137,12 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   />
                 </label>
                 <p className="text-[11px] text-neutral-400 font-mono leading-relaxed mt-1">
-                  📐 <strong>Ukuran Frame Tampil:</strong>{" "}
-                  <span className="text-white font-semibold">160 × 56 pixel</span> (tinggi logo: 28px).
+                  📐 <strong>{tr("Frame Display Size:", "Ukuran Frame Tampil:", "Ukuran Frame Tampil:")}</strong>{" "}
+                  <span className="text-white font-semibold">160 × 56 pixel</span> ({tr("logo height:", "tinggi logo:", "tinggi logo:")} 28px).
                   <br />
-                  ✨ <strong>Ukuran File Disarankan:</strong>{" "}
-                  <span className="text-[#14AF9E] font-semibold">200 × 60 px</span> s/d{" "}
-                  <span className="text-[#14AF9E] font-semibold">300 × 80 px</span> (Format SVG atau PNG
-                  Transparan).
+                  ✨ <strong>{tr("Recommended File Size:", "Ukuran File Disarankan:", "Ukuran File Disarankan:")}</strong>{" "}
+                  <span className="text-[#14AF9E] font-semibold">200 × 60 px</span> {tr("to", "s/d", "s/d")}{" "}
+                  <span className="text-[#14AF9E] font-semibold">300 × 80 px</span> ({tr("Transparent SVG or PNG format", "Format SVG atau PNG Transparan", "Format SVG atau PNG Transparan")}).
                 </p>
               </div>
             </div>
@@ -1162,7 +1161,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onClick={onAddClientLogo}
                   className="px-5 py-2.5 rounded-xl bg-[#14AF9E] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md"
                 >
-                  + {isId ? `Tambahkan ke Baris ${newLogoRow}` : `Add to Row ${newLogoRow}`}
+                  + {tr(`Add to Row ${newLogoRow}`, `Tambahkan ke Baris ${newLogoRow}`, `Tambahkan ka Barih ${newLogoRow}`)}
                 </button>
               </div>
             )}
@@ -1176,7 +1175,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
                   <span>
-                    {isId ? "Baris 1 — Scroll Bergerak ke Kiri" : "Row 1 — Scroll Left Animation"}
+                    {tr("Row 1 — Scroll Left Animation", "Baris 1 — Scroll Bergerak ke Kiri", "Barih 1 — Scroll Bagarak ka Kida")}
                   </span>
                 </h3>
                 <span className="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
@@ -1213,20 +1212,20 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
                         <button
                           type="button"
-                          title="Pindah ke Baris 2"
+                          title={tr("Move to Row 2", "Pindah ke Baris 2", "Pindah ka Barih 2")}
                           onClick={() => {
                             setClLogos?.((prev) =>
                               prev.map((l) => (l.id === logo.id ? { ...l, row: 2 } : l))
                             );
-                            showToast(`Logo "${logo.name}" dipindah ke Baris 2.`);
+                            showToast(tr(`Logo "${logo.name}" moved to Row 2.`, `Logo "${logo.name}" dipindah ke Baris 2.`, `Logo "${logo.name}" dipindah ka Barih 2.`));
                           }}
                           className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors cursor-pointer"
                         >
-                          ↓ Baris 2
+                          ↓ {tr("Row 2", "Baris 2", "Barih 2")}
                         </button>
                         <button
                           type="button"
-                          title="Hapus Logo"
+                          title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
                           onClick={() => onDeleteClientLogo?.(logo.id)}
                           className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
                         >
@@ -1244,7 +1243,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
                   <span>
-                    {isId ? "Baris 2 — Scroll Bergerak ke Kanan" : "Row 2 — Scroll Right Animation"}
+                    {tr("Row 2 — Scroll Right Animation", "Baris 2 — Scroll Bergerak ke Kanan", "Barih 2 — Scroll Bagarak ka Kanan")}
                   </span>
                 </h3>
                 <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
@@ -1281,20 +1280,20 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
                         <button
                           type="button"
-                          title="Pindah ke Baris 1"
+                          title={tr("Move to Row 1", "Pindah ke Baris 1", "Pindah ka Barih 1")}
                           onClick={() => {
                             setClLogos?.((prev) =>
                               prev.map((l) => (l.id === logo.id ? { ...l, row: 1 } : l))
                             );
-                            showToast(`Logo "${logo.name}" dipindah ke Baris 1.`);
+                            showToast(tr(`Logo "${logo.name}" moved to Row 1.`, `Logo "${logo.name}" dipindah ke Baris 1.`, `Logo "${logo.name}" dipindah ka Barih 1.`));
                           }}
                           className="text-[10px] font-mono text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
                         >
-                          ↑ Baris 1
+                          ↑ {tr("Row 1", "Baris 1", "Barih 1")}
                         </button>
                         <button
                           type="button"
-                          title="Hapus Logo"
+                          title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
                           onClick={() => onDeleteClientLogo?.(logo.id)}
                           className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
                         >
@@ -1321,7 +1320,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-semibold cursor-pointer active:scale-95"
             >
               <HiArrowLeft className="w-4 h-4 text-[#14AF9E]" />
-              <span>{isId ? "Daftar Klien" : "Back to Clients"}</span>
+              <span>{tr("Back to Clients", "Daftar Klien", "Daftar Klien")}</span>
             </button>
             <span className="text-xs font-bold text-white truncate max-w-[170px]">
               {selectedClient.clientName}
@@ -1330,7 +1329,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
           {/* Breadcrumb */}
           <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-400">
-            <span>Clients</span>
+            <span>{tr("Clients", "Klien", "Klien")}</span>
             <span>/</span>
             <span className="text-white font-medium">{selectedClient.clientName}</span>
           </div>
@@ -1433,7 +1432,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   : "text-neutral-400 hover:text-neutral-200"
               }`}
             >
-              Overview
+              {tr("Overview", "Ringkasan", "Ringkasan")}
               {activeSubTab === "overview" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#14AF9E]" />
               )}
@@ -1447,7 +1446,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   : "text-neutral-400 hover:text-neutral-200"
               }`}
             >
-              Tools {selectedTools.length}
+              {tr("Tools", "Tools & Aplikasi", "Pakakeh & Aplikasi")} {selectedTools.length}
               {activeSubTab === "tools" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#14AF9E]" />
               )}
@@ -1461,7 +1460,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   : "text-neutral-400 hover:text-neutral-200"
               }`}
             >
-              Assets {selectedClient.works?.length || 0}
+              {tr("Assets", "Aset Karya", "Karya Aset")} {selectedClient.works?.length || 0}
               {activeSubTab === "assets" && (
                 <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#14AF9E]" />
               )}
@@ -1473,33 +1472,35 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             {/* Left: Portfolio Information Form */}
             <div className="lg:col-span-7 p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                <h3 className="text-sm font-semibold text-white">Portfolio information</h3>
+                <h3 className="text-sm font-semibold text-white">
+                  {tr("Portfolio Information", "Informasi Portofolio", "Informasi Portofolio")}
+                </h3>
                 <button
                   type="button"
                   onClick={handleSaveInfo}
                   className="px-3 py-1 rounded-lg bg-[#14AF9E] hover:bg-[#119889] text-black font-semibold text-xs transition-colors cursor-pointer"
                 >
-                  Save changes
+                  {tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}
                 </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
                   <label className="block text-[11px] text-neutral-400 font-medium mb-1">
-                    Category
+                    {tr("Category", "Kategori", "Kategori")}
                   </label>
                   <input
                     type="text"
                     value={categoryInput}
                     onChange={(e) => setCategoryInput(e.target.value)}
-                    placeholder="Contoh: Digital Campaign"
+                    placeholder={tr("e.g. Digital Campaign", "Contoh: Digital Campaign", "Contoh: Digital Campaign")}
                     className="w-full bg-[#161a22] border border-white/5 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors"
                   />
                 </div>
 
                 <div>
                   <label className="block text-[11px] text-neutral-400 font-medium mb-1">
-                    Main headline
+                    {tr("Main Headline", "Headline Utama", "Judul Utamo")}
                   </label>
                   <input
                     type="text"
@@ -1514,7 +1515,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-[11px] text-neutral-400 font-medium">
-                    Description
+                    {tr("Description", "Deskripsi", "Katarangan")}
                   </label>
                   <span className="text-[10px] font-mono text-neutral-500">
                     {descriptionInput.length} / 500
@@ -1525,7 +1526,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   maxLength={500}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
-                  placeholder={`Tulis deskripsi atau profil kampanye untuk ${selectedClient.clientName}...`}
+                  placeholder={tr(
+                    `Write description or campaign profile for ${selectedClient.clientName}...`,
+                    `Tulis deskripsi atau profil kampanye untuk ${selectedClient.clientName}...`,
+                    `Tulih katarangan atau profil kampanye untuak ${selectedClient.clientName}...`
+                  )}
                   className="w-full bg-[#161a22] border border-white/5 rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors leading-relaxed resize-none"
                 />
               </div>
@@ -1534,7 +1539,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             {/* Right: Cover Card with Replace Button */}
             <div className="lg:col-span-5 p-5 rounded-2xl bg-[#111419] border border-white/5 flex flex-col justify-between space-y-3">
               <div className="flex items-center justify-between pb-1">
-                <h3 className="text-sm font-semibold text-white">Cover</h3>
+                <h3 className="text-sm font-semibold text-white">
+                  {tr("Cover Image", "Gambar Sampul", "Gambar Muko")}
+                </h3>
                 <div>
                   <input
                     ref={coverFileInputRef}
@@ -1549,7 +1556,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 text-xs font-medium border border-white/10 transition-colors cursor-pointer"
                   >
                     <HiArrowUpTray className="w-3.5 h-3.5" />
-                    <span>Replace</span>
+                    <span>{tr("Replace", "Ganti", "Ganti")}</span>
                   </button>
                 </div>
               </div>
@@ -1588,7 +1595,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 onClick={openManageTools}
                 className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-neutral-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
               >
-                <span>{isId ? "Kelola" : "Manage"}</span>
+                <span>{tr("Manage", "Kelola", "Kalola")}</span>
               </button>
             </div>
 
@@ -1654,9 +1661,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             {/* Assets Header Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">Assets</h3>
+                <h3 className="text-sm font-semibold text-white">{tr("Assets", "Aset", "Aset")}</h3>
                 <span className="text-xs text-neutral-400 font-mono">
-                  {selectedClient.works?.length || 0} items
+                  {selectedClient.works?.length || 0} {tr("items", "item", "item")}
                 </span>
               </div>
 
@@ -1668,7 +1675,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     type="text"
                     value={assetSearch}
                     onChange={(e) => setAssetSearch(e.target.value)}
-                    placeholder="Search assets"
+                    placeholder={tr("Search assets...", "Cari aset...", "Cari aset...")}
                     className="bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]/60 transition-colors w-40 sm:w-48"
                   />
                 </div>
@@ -1678,9 +1685,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onChange={(e) => setAssetSort(e.target.value as any)}
                   className="bg-[#12151a] border border-white/5 rounded-lg px-2.5 py-1 text-xs text-neutral-300 outline-none focus:border-[#14AF9E]/60 cursor-pointer"
                 >
-                  <option value="newest">Newest first</option>
-                  <option value="oldest">Oldest first</option>
-                  <option value="title">Alphabetical</option>
+                  <option value="newest">{tr("Newest first", "Terbaru", "Paliang baru")}</option>
+                  <option value="oldest">{tr("Oldest first", "Terlama", "Paliang lamo")}</option>
+                  <option value="title">{tr("Alphabetical", "Abjad A-Z", "Abjad A-Z")}</option>
                 </select>
 
                 <div className="flex items-center p-0.5 rounded-lg bg-[#12151a] border border-white/5">
@@ -1727,7 +1734,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           type="button"
                           onClick={() => onOpenEditWork(work)}
                           className="w-8 h-8 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer"
-                          title="Edit case study"
+                          title={tr("Edit case study", "Edit studi kasus", "Edit studi kasus")}
                         >
                           <HiPencilSquare className="w-4 h-4" />
                         </button>
@@ -1736,7 +1743,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           type="button"
                           onClick={() => onDeleteWork(selectedClient.id, work.id, work.title)}
                           className="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer"
-                          title="Delete image"
+                          title={tr("Delete image", "Hapus gambar", "Hapuih gambar")}
                         >
                           <HiTrash className="w-4 h-4" />
                         </button>
@@ -1765,7 +1772,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <div className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-[#14AF9E] group-hover:text-black flex items-center justify-center transition-colors">
                   <HiPlus className="w-4 h-4 stroke-[2.5]" />
                 </div>
-                <span className="text-xs font-medium">Add images</span>
+                <span className="text-xs font-medium">{tr("Add images", "Tambah gambar", "Tambah gambar")}</span>
               </button>
             </div>
           </div>
@@ -1776,7 +1783,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             mobileActiveView === "list" ? "hidden md:flex" : "flex"
           }`}
         >
-          Select a client folder from the left list.
+          {tr("Select a client folder from the left list.", "Pilih folder klien dari daftar di sebelah kiri.", "Piliah folder klien dari daftar sabalah kida.")}
         </div>
       )}
       {/* ========================================================
@@ -1789,19 +1796,21 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             <div className="p-5 border-b border-white/10 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
-                  <span>{isId ? "Kelola Software & AI Tools" : "Manage Software & AI Tools"}</span>
+                  <span>{tr("Manage Software & AI Tools", "Kelola Software & AI Tools", "Kalola Software & AI Tools")}</span>
                 </h3>
                 <p className="text-xs text-neutral-400 mt-0.5">
-                  {isId
-                    ? "Tambah atau kurangi tool dari daftar pilihan portofolio."
-                    : "Add or remove tools from the client portfolio options."}
+                  {tr(
+                    "Add or remove tools from the client portfolio options.",
+                    "Tambah atau kurangi tool dari daftar pilihan portofolio.",
+                    "Tambah atau kurangi tool dari daftar piliahan portofolio."
+                  )}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleCancelManageTools}
                 className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-                title={isId ? "Batal" : "Cancel"}
+                title={tr("Cancel", "Batal", "Batal")}
               >
                 <HiXMark className="w-5 h-5" />
               </button>
@@ -1812,7 +1821,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               {/* Add New Tool Form */}
               <div className="p-3.5 rounded-xl bg-neutral-950/80 border border-white/10 space-y-3">
                 <span className="text-xs font-bold text-white block">
-                  {isId ? "+ Tambah Tool Baru" : "+ Add New Tool"}
+                  {tr("+ Add New Tool", "+ Tambah Tool Baru", "+ Tambah Tool Baru")}
                 </span>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input
@@ -1825,11 +1834,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                         handleAddTool();
                       }
                     }}
-                    placeholder={
-                      isId
-                        ? "Nama tool (misal: Premiere Pro, Spline, Claude...)"
-                        : "Tool name (e.g. Premiere Pro, Spline, Claude...)"
-                    }
+                    placeholder={tr(
+                      "Tool name (e.g. Premiere Pro, Spline, Claude...)",
+                      "Nama tool (misal: Premiere Pro, Spline, Claude...)",
+                      "Namo tool (misal: Premiere Pro, Spline, Claude...)"
+                    )}
                     className="flex-1 bg-[#12151a] border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]"
                   />
                   <select
@@ -1845,7 +1854,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     onClick={() => handleAddTool()}
                     className="px-4 py-2 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#14AF9E]/20 cursor-pointer shrink-0"
                   >
-                    {isId ? "Tambah" : "Add"}
+                    {tr("Add", "Tambah", "Tambah")}
                   </button>
                 </div>
               </div>
@@ -1857,7 +1866,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     Design Tools ({tempDesignTools.length})
                   </span>
                   <span className="text-[11px] text-neutral-500 font-mono">
-                    {isId ? "Klik ✕ untuk mengurangi/menghapus" : "Click ✕ to remove"}
+                    {tr("Click ✕ to remove", "Klik ✕ untuk mengurangi/menghapus", "Klik ✕ untuak mangurangi/mahapuih")}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-neutral-950/40 border border-white/5 min-h-[50px]">
@@ -1872,7 +1881,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                         type="button"
                         onClick={() => handleRemoveTempDesignTool(tool)}
                         className="text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-0.5 rounded cursor-pointer ml-0.5"
-                        title={isId ? `Hapus ${tool}` : `Remove ${tool}`}
+                        title={tr(`Remove ${tool}`, `Hapus ${tool}`, `Hapuih ${tool}`)}
                       >
                         <HiXMark className="w-3.5 h-3.5 stroke-[2.5]" />
                       </button>
@@ -1880,7 +1889,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   ))}
                   {tempDesignTools.length === 0 && (
                     <span className="text-xs text-neutral-500 italic p-1">
-                      {isId ? "Belum ada tool design." : "No design tools."}
+                      {tr("No design tools.", "Belum ada tool design.", "Alun ado tool design.")}
                     </span>
                   )}
                 </div>
@@ -1893,7 +1902,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     AI Tools ({tempAiTools.length})
                   </span>
                   <span className="text-[11px] text-neutral-500 font-mono">
-                    {isId ? "Klik ✕ untuk mengurangi/menghapus" : "Click ✕ to remove"}
+                    {tr("Click ✕ to remove", "Klik ✕ untuk mengurangi/menghapus", "Klik ✕ untuak mangurangi/mahapuih")}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-neutral-950/40 border border-white/5 min-h-[50px]">
@@ -1908,7 +1917,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                         type="button"
                         onClick={() => handleRemoveTempAiTool(tool)}
                         className="text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-0.5 rounded cursor-pointer ml-0.5"
-                        title={isId ? `Hapus ${tool}` : `Remove ${tool}`}
+                        title={tr(`Remove ${tool}`, `Hapus ${tool}`, `Hapuih ${tool}`)}
                       >
                         <HiXMark className="w-3.5 h-3.5 stroke-[2.5]" />
                       </button>
@@ -1916,7 +1925,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   ))}
                   {tempAiTools.length === 0 && (
                     <span className="text-xs text-neutral-500 italic p-1">
-                      {isId ? "Belum ada tool AI." : "No AI tools."}
+                      {tr("No AI tools.", "Belum ada tool AI.", "Alun ado tool AI.")}
                     </span>
                   )}
                 </div>
@@ -1930,7 +1939,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 onClick={handleResetDefaultTools}
                 className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer underline"
               >
-                {isId ? "Kembalikan ke Default" : "Reset Defaults"}
+                {tr("Reset Defaults", "Kembalikan ke Default", "Baliakkan ka Bawaan")}
               </button>
 
               <div className="flex items-center gap-2">
@@ -1939,14 +1948,14 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onClick={handleCancelManageTools}
                   className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold transition-all cursor-pointer"
                 >
-                  {isId ? "Batal" : "Cancel"}
+                  {tr("Cancel", "Batal", "Batal")}
                 </button>
                 <button
                   type="button"
                   onClick={handleSaveManageTools}
                   className="px-5 py-2 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black text-xs font-bold transition-all shadow-md shadow-[#14AF9E]/20 cursor-pointer active:scale-95"
                 >
-                  {isId ? "Simpan Perubahan" : "Save Changes"}
+                  {tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}
                 </button>
               </div>
             </div>

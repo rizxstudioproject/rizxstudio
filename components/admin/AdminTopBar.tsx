@@ -52,7 +52,7 @@ export default function AdminTopBar({
   onSelectTab,
   onOpenLogosTab,
 }: AdminTopBarProps) {
-  const { lang, setLang } = useLang();
+  const { lang, setLang, tr } = useLang();
   const isId = lang === "id";
   const isMin = lang === "min";
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -147,50 +147,50 @@ export default function AdminTopBar({
     }[] = [
       {
         id: "clients",
-        label: isMin ? "Portofolio & Klien" : isId ? "Portofolio & Klien" : "Portfolio & Clients",
-        sub: isMin ? "Folder klien & karya visual" : isId ? "Folder klien & karya visual" : "Client folders & works",
+        label: tr("Portfolio & Clients", "Portofolio & Klien", "Portofolio & Klien"),
+        sub: tr("Client folders & works", "Folder klien & karya visual", "Folder klien & karya visual"),
         icon: HiFolder,
       },
       {
         id: "resources",
-        label: "Resource Library",
-        sub: isMin ? "Gudang media explorer & aset" : isId ? "Vault media explorer & storage" : "Media asset explorer",
+        label: tr("Resource Library", "Gudang Aset Media", "Gudang Aset Media"),
+        sub: tr("Media asset explorer", "Vault media explorer & storage", "Gudang media explorer & aset"),
         icon: HiSquare3Stack3D,
       },
       {
         id: "hero-banner",
-        label: "Hero Banner (Scrolly)",
-        sub: isMin ? "Frame animasi kanvas utamo" : isId ? "Frame animasi kanvas utama" : "Canvas sequence frames",
+        label: tr("Hero Banner (Scrolly)", "Banner Utama (Scrolly)", "Banner Utamo (Scrolly)"),
+        sub: tr("Canvas sequence frames", "Frame animasi kanvas utama", "Frame animasi kanvas utamo"),
         icon: HiSparkles,
       },
       {
         id: "hero-works",
-        label: isMin ? "Hero & Karya Tapiliah" : isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
-        sub: isMin ? "3 karya sorotan utamo" : isId ? "3 karya sorotan utama" : "3 top highlighted works",
+        label: tr("Hero & Selected Works", "Hero & Karya Unggulan", "Hero & Karya Tapiliah"),
+        sub: tr("3 top highlighted works", "3 karya sorotan utama", "3 karya sorotan utamo"),
         icon: HiPhoto,
       },
       {
         id: "flagship",
-        label: "Media Showcase",
-        sub: isMin ? "Stage 3 video reels" : isId ? "Stage 3 video reels" : "Stage 3 video showcase",
+        label: tr("Media Showcase (Stage 3)", "Pameran Media (Stage 3)", "Pameran Media (Stage 3)"),
+        sub: tr("Stage 3 video showcase", "Stage 3 video reels", "Stage 3 video reels"),
         icon: HiVideoCamera,
       },
       {
         id: "runner",
-        label: isMin ? "Running Portofolio (4:5)" : isId ? "Running Portofolio (4:5)" : "Running Portfolio",
-        sub: isMin ? "Marquee poster tagak" : isId ? "Marquee poster vertikal" : "Vertical marquee poster cards",
+        label: tr("Running Portfolio (4:5)", "Portofolio Berjalan (4:5)", "Portofolio Baguliah (4:5)"),
+        sub: tr("Vertical marquee poster cards", "Marquee poster vertikal", "Marquee poster tagak"),
         icon: HiSquares2X2,
       },
       {
         id: "about",
-        label: isMin ? "Tantang Ambo" : isId ? "Tentang Saya" : "About Me",
-        sub: isMin ? "Profil, biografi & kontak" : isId ? "Profil, biografi & kontak" : "Profile bio & contacts",
+        label: tr("About Me Section", "Tentang Saya", "Tantang Ambo"),
+        sub: tr("Profile bio & contacts", "Profil, biografi & kontak", "Profil, biografi & kontak"),
         icon: HiUser,
       },
       {
         id: "settings",
-        label: isMin ? "Kunci & Kaamanan" : isId ? "Sandi & Keamanan" : "Password & Security",
-        sub: isMin ? "Pangaturan akun admin" : isId ? "Pengaturan akun admin" : "Admin credentials",
+        label: tr("Password & Security", "Sandi & Keamanan Akun", "Kunci & Kaamanan Akun"),
+        sub: tr("Admin credentials", "Pengaturan akun admin", "Pangaturan akun admin"),
         icon: HiKey,
       },
     ];
@@ -550,11 +550,11 @@ export default function AdminTopBar({
               <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-[#12151a] border border-white/10 shadow-2xl p-3 z-50 animate-in fade-in zoom-in-95">
                 <div className="flex items-center justify-between pb-2 border-b border-white/5">
                   <span className="text-xs font-semibold text-white">
-                    System Status
+                    {tr("System Status", "Status Sistem", "Status Sistem")}
                   </span>
                   <span className="text-[10px] font-mono text-[#14AF9E] flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#14AF9E] animate-pulse" />
-                    Live Sync
+                    {tr("Live Sync", "Sinkron Langsung", "Sinkron Langsuang")}
                   </span>
                 </div>
                 <div className="mt-2.5 space-y-2 text-xs">
@@ -562,10 +562,14 @@ export default function AdminTopBar({
                     <HiCheckCircle className="w-4 h-4 text-[#14AF9E] shrink-0 mt-0.5" />
                     <div>
                       <p className="text-neutral-200 font-medium">
-                        Supabase Cloud Connected
+                        {tr("Supabase Cloud Connected", "Cloud Supabase Terhubung", "Awan Supabase Tahubuang")}
                       </p>
                       <p className="text-[10px] text-neutral-400">
-                        All portfolio assets & client changes are synced live.
+                        {tr(
+                          "All portfolio assets & client changes are synced live.",
+                          "Semua aset & perubahan klien tersinkron langsung.",
+                          "Sadoalah aset & parubahan klien tasinkron langsuang."
+                        )}
                       </p>
                     </div>
                   </div>
@@ -573,10 +577,14 @@ export default function AdminTopBar({
                     <HiCloud className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-neutral-200 font-medium">
-                        IndexedDB Backup Active
+                        {tr("IndexedDB Backup Active", "Cadangan IndexedDB Aktif", "Cadangan IndexedDB Aktif")}
                       </p>
                       <p className="text-[10px] text-neutral-400">
-                        Fast local frame caching enabled.
+                        {tr(
+                          "Fast local frame caching enabled.",
+                          "Cache frame lokal aktif cepat.",
+                          "Cache frame lokal aktif capek."
+                        )}
                       </p>
                     </div>
                   </div>
@@ -591,7 +599,7 @@ export default function AdminTopBar({
             onClick={onViewWebsite}
             className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
           >
-            <span>View website</span>
+            <span>{tr("View website", "Lihat website", "Caliak website")}</span>
             <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
           </button>
 

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useLang } from "@/context/LanguageContext";
 import {
   HiEye,
   HiEyeSlash,
@@ -26,6 +27,7 @@ interface AdminLoginProps {
 }
 
 export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
+  const { tr } = useLang();
   // Credentials state
   const [creds, setCreds] = useState<AdminCredentials>(DEFAULT_ADMIN_CREDENTIALS);
 
@@ -216,17 +218,29 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
 
             <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight mb-1.5">
               {forgotMode === "idle"
-                ? "Selamat datang, Admin."
+                ? tr("Welcome back, Admin.", "Selamat datang, Admin.", "Salamaik tibo, Admin.")
                 : forgotMode === "reset-success"
-                ? "Sandi Berhasil Diubah!"
-                : "Pemulihan Sandi Admin"}
+                ? tr("Password Changed Successfully!", "Sandi Berhasil Diubah!", "Kunci Barasil Diubah!")
+                : tr("Admin Password Recovery", "Pemulihan Sandi Admin", "Pamulihan Kunci Admin")}
             </h1>
             <p className="text-sm text-neutral-400 leading-relaxed max-w-sm">
               {forgotMode === "idle"
-                ? "Masuk untuk mengelola portfolio, upload karya, dan kelola konten website."
+                ? tr(
+                    "Sign in to manage portfolio, upload works, and control website content.",
+                    "Masuk untuk mengelola portfolio, upload karya, dan kelola konten website.",
+                    "Masuak untuak mangalola portofolio, upload karya, sarato kalola konten website."
+                  )
                 : forgotMode === "reset-success"
-                ? "Gunakan password baru Anda untuk masuk ke Admin Dashboard."
-                : "Verifikasi melalui email pribadi rizxstudioproject@gmail.com untuk mengatur ulang password."}
+                ? tr(
+                    "Use your new password to sign in to Admin Dashboard.",
+                    "Gunakan password baru Anda untuk masuk ke Admin Dashboard.",
+                    "Gunoan kunci baru Sanak untuak masuak ka Admin Dashboard."
+                  )
+                : tr(
+                    "Verification via personal email rizxstudioproject@gmail.com to reset password.",
+                    "Verifikasi melalui email pribadi rizxstudioproject@gmail.com untuk mengatur ulang password.",
+                    "Verifikasi malalui email pribadi rizxstudioproject@gmail.com untuak maatur ulang kunci."
+                  )}
             </p>
           </div>
 
@@ -268,7 +282,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                     }}
                     className="text-[11px] text-[#14AF9E] hover:underline font-mono cursor-pointer transition-colors"
                   >
-                    Lupa Password?
+                    <span>{tr("Forgot Password?", "Lupa Password?", "Lupo Kunci?")}</span>
                   </button>
                 </div>
                 <div className="relative">
@@ -327,11 +341,11 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    <span>Memverifikasi…</span>
+                    <span>{tr("Verifying…", "Memverifikasi…", "Mamverifikasi…")}</span>
                   </>
                 ) : (
                   <>
-                    <span>Masuk ke Dashboard</span>
+                    <span>{tr("Sign in to Dashboard", "Masuk ke Dashboard", "Masuak ka Dashboard")}</span>
                     <HiArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}
@@ -473,14 +487,14 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                   onClick={() => setForgotMode("idle")}
                   className="w-1/3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 font-mono text-xs transition-colors cursor-pointer"
                 >
-                  Batal
+                  {tr("Cancel", "Batal", "Batal")}
                 </button>
                 <button
                   type="submit"
                   disabled={isSendingOtp || enteredOtp.length < 6 || !newPassword}
                   className="flex-1 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119a8b] text-black font-bold text-xs sm:text-sm font-mono flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#14AF9E]/20"
                 >
-                  {isSendingOtp ? "Menyimpan…" : "Simpan Sandi Baru"}
+                  {isSendingOtp ? tr("Saving…", "Menyimpan…", "Manyimpan…") : tr("Save New Password", "Simpan Sandi Baru", "Simpan Kunci Baru")}
                 </button>
               </div>
             </form>
@@ -492,7 +506,11 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
               <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 flex items-center gap-3">
                 <HiCheckCircle className="w-6 h-6 text-emerald-400 shrink-0" />
                 <span className="text-xs font-mono leading-relaxed">
-                  Password Admin Anda telah berhasil diperbarui dan tersimpan aman di Cloud & Local Storage.
+                  {tr(
+                    "Your Admin Password has been successfully updated and saved securely in Cloud & Local Storage.",
+                    "Password Admin Anda telah berhasil diperbarui dan tersimpan aman di Cloud & Local Storage.",
+                    "Kunci Admin Sanak lah barasil dipabarui sarato tasimpan aman di Cloud & Local Storage."
+                  )}
                 </span>
               </div>
               <button
@@ -500,7 +518,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                 onClick={() => setForgotMode("idle")}
                 className="w-full py-3.5 rounded-xl bg-[#14AF9E] hover:bg-[#119a8b] text-black font-bold text-sm font-mono transition-all cursor-pointer shadow-lg shadow-[#14AF9E]/20"
               >
-                Kembali ke Login
+                {tr("Back to Login", "Kembali ke Login", "Baliak ka Login")}
               </button>
             </div>
           )}
@@ -513,7 +531,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
               className="flex items-center gap-1.5 text-neutral-500 hover:text-white text-xs font-mono transition-colors cursor-pointer group"
             >
               <HiArrowLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-              <span>Kembali ke Website</span>
+              <span>{tr("Back to Website", "Kembali ke Website", "Baliak ka Website")}</span>
             </button>
           </div>
         </div>

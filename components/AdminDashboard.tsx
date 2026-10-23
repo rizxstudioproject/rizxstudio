@@ -31,7 +31,7 @@ import {
   HiCircleStack,
   HiSquare3Stack3D,
 } from "react-icons/hi2";
-import { useLang } from "@/context/LanguageContext";
+import { useLang, toMinang } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
 import {
   usePortfolioData,
@@ -113,6 +113,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const { lang, setLang } = useLang();
   const isId = lang === "id";
   const isMin = lang === "min";
+  const tx = (idVal: string, enVal: string, minVal?: string) => {
+    if (lang === "min") return minVal || toMinang(idVal);
+    if (lang === "id") return idVal;
+    return enVal;
+  };
   const [adminUser, setAdminUser] = useState("admin");
   const [adminPass, setAdminPass] = useState("");
   const [adminConfirmPass, setAdminConfirmPass] = useState("");
@@ -818,7 +823,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   const handleResetPortfolioRunnerDefault = async () => {
-    if (confirm(isId ? "Reset Running Portofolio ke susunan default awal?" : "Reset Running Portfolio to default?")) {
+    if (confirm(tx("Reset Running Portofolio ke susunan default awal?", "Reset Running Portfolio to default?"))) {
       await resetPortfolioRunner();
       setRunnerTitle(defaultPortfolioRunnerData.title);
       setRunnerItems(defaultPortfolioRunnerData.items);
@@ -856,19 +861,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setSeqPreviewUrls(objectUrls);
     setSeqScrubIdx(0);
     setSeqUploadMsg(
-      isId
-        ? `${sorted.length} frame foto dipilih. Silakan coba slider preview, lalu klik "Upload & Terapkan".`
-        : `${sorted.length} frames selected. Review via preview slider, then click "Upload & Apply".`
+      tx(`${sorted.length} frame foto dipilih. Silakan coba slider preview, lalu klik "Upload & Terapkan".`, `${sorted.length} frames selected. Review via preview slider, then click "Upload & Apply".`)
     );
   };
 
   const handleUploadSequenceBatch = async () => {
     if (seqSelectedFiles.length === 0) {
-      showToast(isId ? "Pilih file foto sequence terlebih dahulu." : "Please select sequence photo files first.");
+      showToast(tx("Pilih file foto sequence terlebih dahulu.", "Please select sequence photo files first."));
       return;
     }
     setSeqIsUploading(true);
-    setSeqUploadMsg(isId ? "Mengupload dan memproses sequence foto..." : "Uploading and processing sequence frames...");
+    setSeqUploadMsg(tx("Mengupload dan memproses sequence foto...", "Uploading and processing sequence frames..."));
 
     try {
       const formData = new FormData();
@@ -917,14 +920,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setSeqPreviewUrls(urls);
       setSeqUploadMsg("");
       showToast(
-        isId
-          ? `Sukses! ${data.totalFrames} frame foto hero sequence berhasil diperbarui & disimpan.`
-          : `Success! ${data.totalFrames} hero sequence frames updated and saved.`
+        tx(`Sukses! ${data.totalFrames} frame foto hero sequence berhasil diperbarui & disimpan.`, `Success! ${data.totalFrames} hero sequence frames updated and saved.`)
       );
     } catch (err: any) {
       console.error(err);
       showToast(`Error: ${err?.message || "Gagal upload sequence foto"}`);
-      setSeqUploadMsg(isId ? `Gagal: ${err?.message}` : `Failed: ${err?.message}`);
+      setSeqUploadMsg(tx(`Gagal: ${err?.message}`, `Failed: ${err?.message}`));
     } finally {
       setSeqIsUploading(false);
     }
@@ -933,9 +934,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const handleResetSequenceDefault = async () => {
     if (
       confirm(
-        isId
-          ? "Kembalikan sequence foto Hero ke default awal (121 Frame WebP)?"
-          : "Reset Hero photo sequence to default (121 WebP frames)?"
+        tx("Kembalikan sequence foto Hero ke default awal (121 Frame WebP)?", "Reset Hero photo sequence to default (121 WebP frames)?")
       )
     ) {
       setHbSeqMode("default");
@@ -967,9 +966,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       });
 
       showToast(
-        isId
-          ? "Sequence foto Hero berhasil dikembalikan ke default bawaan!"
-          : "Hero photo sequence reset to default!"
+        tx("Sequence foto Hero berhasil dikembalikan ke default bawaan!", "Hero photo sequence reset to default!")
       );
     }
   };
@@ -988,9 +985,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       sequenceCustomFrames: [],
     });
     showToast(
-      isId
-        ? "Pengaturan folder sequence foto berhasil diterapkan!"
-        : "Folder sequence settings applied!"
+      tx("Pengaturan folder sequence foto berhasil diterapkan!", "Folder sequence settings applied!")
     );
   };
 
@@ -1016,9 +1011,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       sequenceMouseIntensity: Number(hbSeqMouseIntensity) || 26,
     });
     showToast(
-      isId
-        ? "Berhasil: Pengaturan & Teks Hero Banner berhasil disimpan!"
-        : "Hero Banner text and sequence settings saved successfully!"
+      tx("Berhasil: Pengaturan & Teks Hero Banner berhasil disimpan!", "Hero Banner text and sequence settings saved successfully!")
     );
   };
 
@@ -1046,18 +1039,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setSeqPreviewUrls([]);
     }
     showToast(
-      isId
-        ? "Perubahan dibatalkan — form dikembalikan ke data tersimpan."
-        : "Changes cancelled — restored to saved data."
+      tx("Perubahan dibatalkan — form dikembalikan ke data tersimpan.", "Changes cancelled — restored to saved data.")
     );
   };
 
   const handleResetHeroBannerDefault = async () => {
     if (
       confirm(
-        isId
-          ? "Reset seluruh teks dan sequence foto Hero Banner ke susunan default awal?"
-          : "Reset all Hero Banner text and photo sequence to default?"
+        tx("Reset seluruh teks dan sequence foto Hero Banner ke susunan default awal?", "Reset all Hero Banner text and photo sequence to default?")
       )
     ) {
       await updateHeroBannerData(defaultHeroBannerData);
@@ -1086,9 +1075,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       await clearCustomFramesFromDB();
       fetch("/api/admin/sequence-upload", { method: "DELETE" }).catch(() => {});
       showToast(
-        isId
-          ? "Hero Banner & sequence foto berhasil di-reset ke default!"
-          : "Hero Banner and sequence reset to default!"
+        tx("Hero Banner & sequence foto berhasil di-reset ke default!", "Hero Banner and sequence reset to default!")
       );
     }
   };
@@ -1165,7 +1152,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       description: introDescInput.trim(),
       tools: parsedTools.length > 0 ? parsedTools : ["Figma", "Photoshop", "Magnific AI", "GPT", "Gemini"],
     });
-    showToast(isId ? "Header & Intro Section Portofolio berhasil disimpan & tayang di web!" : "Portfolio section header & intro saved & live on public web!");
+    showToast(tx("Header & Intro Section Portofolio berhasil disimpan & tayang di web!", "Portfolio section header & intro saved & live on public web!"));
   };
 
   const handleResetPortfolioIntro = () => {
@@ -1173,7 +1160,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setIntroHeadlineInput(defaultPortfolioIntroData.headline);
     setIntroDescInput(defaultPortfolioIntroData.description);
     setIntroToolsInput(defaultPortfolioIntroData.tools.join(", "));
-    showToast(isId ? "Form dikembalikan ke teks bawaan. Klik 'Simpan' untuk menerapkan ke web." : "Reset to default text. Click 'Save' to apply to web.");
+    showToast(tx("Form dikembalikan ke teks bawaan. Klik 'Simpan' untuk menerapkan ke web.", "Reset to default text. Click 'Save' to apply to web."));
   };
 
   // Helper to toggle tools in clientToolsInput
@@ -1217,7 +1204,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       clientName: editFolderName.trim(),
       category: editFolderCategory.trim(),
     });
-    showToast(isId ? `Nama brand berhasil diubah menjadi "${editFolderName.trim()}"!` : `Brand name updated to "${editFolderName.trim()}"!`);
+    showToast(tx(`Nama brand berhasil diubah menjadi "${editFolderName.trim()}"!`, `Brand name updated to "${editFolderName.trim()}"!`));
     setEditingFolder(null);
   };
 
@@ -1594,7 +1581,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               year: new Date().getFullYear().toString(),
             });
           }
-          showToast(isId ? "Cover karya berhasil diperbarui!" : "Cover replaced successfully!");
+          showToast(tx("Cover karya berhasil diperbarui!", "Cover replaced successfully!"));
         }
       };
       img.src = raw;
@@ -1754,19 +1741,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 SECTION CONTROL: HERO BANNER UTAMA (CANVAS SCROLLYTELLING)
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {isId ? "Editor Teks Hero Banner & Scrollytelling" : "Hero Banner & Scrollytelling Text Editor"}
+                {tx("Editor Teks Hero Banner & Scrollytelling", "Hero Banner & Scrollytelling Text Editor")}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
-                {isId
-                  ? "Sesuaikan nama utama, profesi/peran, serta teks narasi scrollytelling yang tampil saat pengunjung membuka website dan menggulir ke bawah."
-                  : "Customize the primary hero name, role/subtitle, and scrollytelling narrative paragraphs that appear as visitors scroll through the top section."}
+                {tx("Sesuaikan nama utama, profesi/peran, serta teks narasi scrollytelling yang tampil saat pengunjung membuka website dan menggulir ke bawah.", "Customize the primary hero name, role/subtitle, and scrollytelling narrative paragraphs that appear as visitors scroll through the top section.")}
               </p>
             </div>
 
             {/* Live Visual Preview Mockup */}
             <div className="p-6 rounded-2xl bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border border-white/15 text-center flex flex-col items-center justify-center min-h-[200px] shadow-2xl relative overflow-hidden">
               <div className="absolute top-3 left-4 text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
-                {isId ? "Live Preview Hero" : "Hero Live Preview"}
+                {tx("Live Preview Hero", "Hero Live Preview")}
               </div>
               <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-tight mb-1">
                 {hbName || "Fomy R"}<span className="text-neutral-500 font-normal">.</span>
@@ -1794,15 +1779,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="flex items-center gap-2">
                     <HiPhoto className="w-5 h-5 text-[#14AF9E]" />
                     <h3 className="text-base sm:text-lg font-bold text-white">
-                      {isId
-                        ? "Sequence Foto Hero Banner (3D Canvas Scrollytelling)"
-                        : "Hero Banner Photo Sequence (3D Canvas Scrollytelling)"}
+                      {tx("Sequence Foto Hero Banner (3D Canvas Scrollytelling)", "Hero Banner Photo Sequence (3D Canvas Scrollytelling)")}
                     </h3>
                   </div>
                   <p className="text-xs text-neutral-400 mt-1">
-                    {isId
-                      ? "Kelola dan update rangkaian foto portrait / visual hero yang berputar mulus saat pengunjung menggulir layar."
-                      : "Manage and update the sequence of portrait / visual photos that smoothly rotate as visitors scroll."}
+                    {tx("Kelola dan update rangkaian foto portrait / visual hero yang berputar mulus saat pengunjung menggulir layar.", "Manage and update the sequence of portrait / visual photos that smoothly rotate as visitors scroll.")}
                   </p>
                 </div>
 
@@ -1815,16 +1796,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }`}
                   >
                     {hbSeqMode === "default"
-                      ? isId
-                        ? "Mode: Bawaan (121 Frame)"
-                        : "Mode: Default (121 Frames)"
+                      ? tx("Mode: Bawaan (121 Frame)", "Mode: Default (121 Frames)")
                       : hbSeqMode === "custom"
-                      ? isId
-                        ? `Mode: Upload Kustom (${activeScrubberFrames.length} Frame)`
-                        : `Mode: Custom Upload (${activeScrubberFrames.length} Frames)`
-                      : isId
-                      ? `Mode: Folder (${activeScrubberFrames.length} Frame)`
-                      : `Mode: Folder (${activeScrubberFrames.length} Frames)`}
+                      ? tx(`Mode: Upload Kustom (${activeScrubberFrames.length} Frame)`, `Mode: Custom Upload (${activeScrubberFrames.length} Frames)`)
+                      : tx(`Mode: Folder (${activeScrubberFrames.length} Frame)`, `Mode: Folder (${activeScrubberFrames.length} Frames)`)}
                   </span>
 
                   {hbSeqMode !== "default" && (
@@ -1834,7 +1809,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
                     >
                       <HiArrowPath className="w-3 h-3" />
-                      <span>{isId ? "Reset ke Bawaan" : "Reset Default"}</span>
+                      <span>{tx("Reset ke Bawaan", "Reset Default")}</span>
                     </button>
                   )}
                 </div>
@@ -1853,7 +1828,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       />
                     ) : (
                       <div className="text-center p-6 text-neutral-500 font-mono text-xs">
-                        {isId ? "Belum ada frame foto" : "No frames loaded"}
+                        {tx("Belum ada frame foto", "No frames loaded")}
                       </div>
                     )}
 
@@ -1893,7 +1868,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
                       <span>0% (Awal)</span>
                       <span className="text-[#14AF9E] font-semibold">
-                        {isId ? "Geser slider untuk memutar preview sequence" : "Scrub slider to rotate sequence preview"}
+                        {tx("Geser slider untuk memutar preview sequence", "Scrub slider to rotate sequence preview")}
                       </span>
                       <span>100% (Akhir)</span>
                     </div>
@@ -1924,7 +1899,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           : "text-neutral-400 hover:text-white"
                       }`}
                     >
-                      {isId ? "1. Upload File Foto" : "1. Batch File Upload"}
+                      {tx("1. Upload File Foto", "1. Batch File Upload")}
                     </button>
                     <button
                       type="button"
@@ -1935,7 +1910,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           : "text-neutral-400 hover:text-white"
                       }`}
                     >
-                      {isId ? "2. Folder & Pattern" : "2. Folder & Pattern"}
+                      {tx("2. Folder & Pattern", "2. Folder & Pattern")}
                     </button>
                   </div>
 
@@ -1944,12 +1919,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="flex-1 flex flex-col justify-between p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
                       <div>
                         <span className="text-xs font-semibold text-white block">
-                          {isId ? "Pilih Rangkaian Foto Sequence Baru" : "Select Sequence Photo Frames"}
+                          {tx("Pilih Rangkaian Foto Sequence Baru", "Select Sequence Photo Frames")}
                         </span>
                         <p className="text-[11px] text-neutral-400 mt-1 leading-relaxed">
-                          {isId
-                            ? "Pilih banyak file foto sekaligus (format JPG, PNG, atau WebP). Sistem akan otomatis mengurutkan nama file secara natural (frame_000, frame_001, dst)."
-                            : "Select multiple image files (JPG, PNG, or WebP). Files will be naturally sorted by name."}
+                          {tx("Pilih banyak file foto sekaligus (format JPG, PNG, atau WebP). Sistem akan otomatis mengurutkan nama file secara natural (frame_000, frame_001, dst).", "Select multiple image files (JPG, PNG, or WebP). Files will be naturally sorted by name.")}
                         </p>
                       </div>
 
@@ -1970,15 +1943,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         <div>
                           <span className="text-xs font-semibold text-white">
                             {seqSelectedFiles.length > 0
-                              ? isId
-                                ? `${seqSelectedFiles.length} file dipilih (klik untuk ganti)`
-                                : `${seqSelectedFiles.length} files selected (click to change)`
-                              : isId
-                              ? "Klik untuk memilih file foto sequence"
-                              : "Click to select sequence photos"}
+                              ? tx(`${seqSelectedFiles.length} file dipilih (klik untuk ganti)`, `${seqSelectedFiles.length} files selected (click to change)`)
+                              : tx("Klik untuk memilih file foto sequence", "Click to select sequence photos")}
                           </span>
                           <span className="text-[10px] text-neutral-500 font-mono block mt-0.5">
-                            {isId ? "Bisa pilih 10 s/d 121+ file foto" : "Can select 10 to 121+ frames"}
+                            {tx("Bisa pilih 10 s/d 121+ file foto", "Can select 10 to 121+ frames")}
                           </span>
                         </div>
                       </div>
@@ -1998,12 +1967,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         {seqIsUploading ? (
                           <>
                             <HiArrowPath className="w-4 h-4 animate-spin" />
-                            <span>{isId ? "Mengupload Sequence..." : "Uploading Sequence..."}</span>
+                            <span>{tx("Mengupload Sequence...", "Uploading Sequence...")}</span>
                           </>
                         ) : (
                           <>
                             <HiCheck className="w-4 h-4" />
-                            <span>{isId ? "Upload & Terapkan Sequence Foto" : "Upload & Apply Sequence"}</span>
+                            <span>{tx("Upload & Terapkan Sequence Foto", "Upload & Apply Sequence")}</span>
                           </>
                         )}
                       </button>
@@ -2015,12 +1984,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="flex-1 flex flex-col justify-between p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
                       <div>
                         <span className="text-xs font-semibold text-white block">
-                          {isId ? "Konfigurasi Path Folder / URL" : "Folder Path / URL Configuration"}
+                          {tx("Konfigurasi Path Folder / URL", "Folder Path / URL Configuration")}
                         </span>
                         <p className="text-[11px] text-neutral-400 mt-0.5">
-                          {isId
-                            ? "Arahkan ke folder static atau CDN hosting rangkaian frame foto."
-                            : "Point to a static folder or CDN hosting image sequence frames."}
+                          {tx("Arahkan ke folder static atau CDN hosting rangkaian frame foto.", "Point to a static folder or CDN hosting image sequence frames.")}
                         </p>
                       </div>
 
@@ -2106,7 +2073,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-full py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs sm:text-sm border border-white/15 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                       >
                         <HiCheck className="w-4 h-4 text-[#14AF9E]" />
-                        <span>{isId ? "Terapkan Folder & Muat Sequence" : "Apply Folder & Load Sequence"}</span>
+                        <span>{tx("Terapkan Folder & Muat Sequence", "Apply Folder & Load Sequence")}</span>
                       </button>
                     </div>
                   )}
@@ -2122,18 +2089,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-xs sm:text-sm font-bold text-white">
-                        {isId
-                          ? "Gerakan Mengikuti Kursor Mouse (Interactive Mouse Tracking)"
-                          : "Interactive Mouse Tracking"}
+                        {tx("Gerakan Mengikuti Kursor Mouse (Interactive Mouse Tracking)", "Interactive Mouse Tracking")}
                       </span>
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-[#14AF9E]/20 text-[#14AF9E] font-semibold">
-                        {hbSeqMouseTracking ? (isId ? "AKTIF" : "ENABLED") : (isId ? "NONAKTIF" : "DISABLED")}
+                        {hbSeqMouseTracking ? (tx("AKTIF", "ENABLED")) : (tx("NONAKTIF", "DISABLED"))}
                       </span>
                     </div>
                     <p className="text-[11px] text-neutral-400 mt-0.5">
-                      {isId
-                        ? "Foto portrait di hero akan secara dinamis menoleh dan bergerak mengikuti arah gerakan kursor mouse dengan efek parallax 3D halus."
-                        : "Portrait photo smoothly turns and looks towards cursor movements with subtle 3D stereoscopic parallax."}
+                      {tx("Foto portrait di hero akan secara dinamis menoleh dan bergerak mengikuti arah gerakan kursor mouse dengan efek parallax 3D halus.", "Portrait photo smoothly turns and looks towards cursor movements with subtle 3D stereoscopic parallax.")}
                     </p>
                   </div>
                 </div>
@@ -2142,16 +2105,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {hbSeqMouseTracking && (
                     <div className="flex items-center gap-1.5 text-xs font-mono">
                       <span className="text-neutral-400 text-[11px]">
-                        {isId ? "Sensitivitas:" : "Sensitivity:"}
+                        {tx("Sensitivitas:", "Sensitivity:")}
                       </span>
                       <select
                         value={hbSeqMouseIntensity}
                         onChange={(e) => setHbSeqMouseIntensity(Number(e.target.value))}
                         className="px-2.5 py-1.5 rounded-lg bg-neutral-800 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
                       >
-                        <option value={14}>{isId ? "Halus (14 Frame)" : "Subtle (14 Frames)"}</option>
-                        <option value={26}>{isId ? "Sedang / Natural (26 Frame)" : "Medium / Natural (26 Frames)"}</option>
-                        <option value={38}>{isId ? "Lebar / Responsif (38 Frame)" : "Wide / High (38 Frames)"}</option>
+                        <option value={14}>{tx("Halus (14 Frame)", "Subtle (14 Frames)")}</option>
+                        <option value={26}>{tx("Sedang / Natural (26 Frame)", "Medium / Natural (26 Frames)")}</option>
+                        <option value={38}>{tx("Lebar / Responsif (38 Frame)", "Wide / High (38 Frames)")}</option>
                       </select>
                     </div>
                   )}
@@ -2165,7 +2128,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-white/10"
                     }`}
                   >
-                    {hbSeqMouseTracking ? (isId ? "Aktif" : "Enabled") : (isId ? "Aktifkan" : "Enable")}
+                    {hbSeqMouseTracking ? (tx("Aktif", "Enabled")) : (tx("Aktifkan", "Enable"))}
                   </button>
                 </div>
               </div>
@@ -2176,7 +2139,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <HiSparkles className="w-4 h-4 text-[#14AF9E]" />
-                  <span>{isId ? "Bagian 1: Identitas Hero Utama (Layar Pertama)" : "Part 1: Primary Hero Identity (First Screen)"}</span>
+                  <span>{tx("Bagian 1: Identitas Hero Utama (Layar Pertama)", "Part 1: Primary Hero Identity (First Screen)")}</span>
                 </h3>
                 <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 0% - 25%</span>
               </div>
@@ -2184,7 +2147,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {isId ? "Nama Utama (Besar)" : "Main Name (Large)"} *
+                    {tx("Nama Utama (Besar)", "Main Name (Large)")} *
                   </label>
                   <input
                     type="text"
@@ -2198,7 +2161,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {isId ? "Profesi / Subtitle Role" : "Role / Subtitle"} *
+                    {tx("Profesi / Subtitle Role", "Role / Subtitle")} *
                   </label>
                   <input
                     type="text"
@@ -2212,7 +2175,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {isId ? "Teks Indikator Scroll" : "Scroll Indicator Text"}
+                    {tx("Teks Indikator Scroll", "Scroll Indicator Text")}
                   </label>
                   <input
                     type="text"
@@ -2231,7 +2194,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <HiTag className="w-4 h-4 text-cyan-400" />
-                  <span>{isId ? "Bagian 2: Narasi Sisi Kiri (Fase Scroll 30% - 60%)" : "Part 2: Left-Aligned Narrative (Scroll 30% - 60%)"}</span>
+                  <span>{tx("Bagian 2: Narasi Sisi Kiri (Fase Scroll 30% - 60%)", "Part 2: Left-Aligned Narrative (Scroll 30% - 60%)")}</span>
                 </h3>
                 <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 30% - 60%</span>
               </div>
@@ -2239,7 +2202,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {isId ? "Judul Baris 1 (Putih)" : "Headline Line 1 (White)"}
+                    {tx("Judul Baris 1 (Putih)", "Headline Line 1 (White)")}
                   </label>
                   <input
                     type="text"
@@ -2252,7 +2215,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {isId ? "Judul Baris 2 (Abu-abu / Aksen)" : "Headline Line 2 (Accent)"}
+                    {tx("Judul Baris 2 (Abu-abu / Aksen)", "Headline Line 2 (Accent)")}
                   </label>
                   <input
                     type="text"
@@ -2266,7 +2229,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-mono font-semibold text-neutral-300">
-                  {isId ? "Paragraf Deskripsi Sisi Kiri" : "Left Description Paragraph"}
+                  {tx("Paragraf Deskripsi Sisi Kiri", "Left Description Paragraph")}
                 </label>
                 <textarea
                   rows={3}
@@ -2283,7 +2246,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <HiTag className="w-4 h-4 text-purple-400" />
-                  <span>{isId ? "Bagian 3: Narasi Sisi Kanan (Fase Scroll 65% - 95%)" : "Part 3: Right-Aligned Narrative (Scroll 65% - 95%)"}</span>
+                  <span>{tx("Bagian 3: Narasi Sisi Kanan (Fase Scroll 65% - 95%)", "Part 3: Right-Aligned Narrative (Scroll 65% - 95%)")}</span>
                 </h3>
                 <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 65% - 95%</span>
               </div>
@@ -2291,7 +2254,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {isId ? "Judul Baris 1 (Putih)" : "Headline Line 1 (White)"}
+                    {tx("Judul Baris 1 (Putih)", "Headline Line 1 (White)")}
                   </label>
                   <input
                     type="text"
@@ -2304,7 +2267,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {isId ? "Judul Baris 2 (Abu-abu / Aksen)" : "Headline Line 2 (Accent)"}
+                    {tx("Judul Baris 2 (Abu-abu / Aksen)", "Headline Line 2 (Accent)")}
                   </label>
                   <input
                     type="text"
@@ -2318,7 +2281,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-mono font-semibold text-neutral-300">
-                  {isId ? "Paragraf Deskripsi Sisi Kanan" : "Right Description Paragraph"}
+                  {tx("Paragraf Deskripsi Sisi Kanan", "Right Description Paragraph")}
                 </label>
                 <textarea
                   rows={3}
@@ -2337,7 +2300,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 onClick={handleResetHeroBannerDefault}
                 className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer"
               >
-                {isId ? "Reset ke Teks Bawaan" : "Reset to Default"}
+                {tx("Reset ke Teks Bawaan", "Reset to Default")}
               </button>
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -2346,7 +2309,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onClick={handleCancelHeroBanner}
                   className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs sm:text-sm font-medium transition-all cursor-pointer"
                 >
-                  {isId ? "Batal" : "Cancel"}
+                  {tx("Batal", "Cancel")}
                 </button>
                 <button
                   type="button"
@@ -2354,7 +2317,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                 >
                   <HiCheck className="w-4 h-4" />
-                  <span>{isId ? "Simpan Perubahan Hero Banner" : "Save Hero Banner"}</span>
+                  <span>{tx("Simpan Perubahan Hero Banner", "Save Hero Banner")}</span>
                 </button>
               </div>
             </div>
@@ -2372,15 +2335,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
               <span className="text-[11px] font-mono tracking-widest text-cyan-400 uppercase font-semibold block mb-1">
-                {isId ? "MANAJEMEN FOLDER & PORTOFOLIO" : "FOLDER MANAGEMENT & PORTFOLIO"}
+                {tx("MANAJEMEN FOLDER & PORTOFOLIO", "FOLDER MANAGEMENT & PORTFOLIO")}
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {isId ? "Manajemen Folder & Portofolio (Format: client - [Nama Brand])" : "Folder & Portfolio Management (Format: client - [Brand Name])"}
+                {tx("Manajemen Folder & Portofolio (Format: client - [Nama Brand])", "Folder & Portfolio Management (Format: client - [Brand Name])")}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
-                {isId
-                  ? "Pilih folder klien di bawah untuk mengupload gambar portofolio baru, menghapus karya (ikon silang X di sudut gambar), dan mengedit narasi brand. Perubahan langsung tersimpan dan tampil di public website."
-                  : "Select a client folder below to upload new portfolio images, delete works (X icon on top-right), and edit brand stories. Changes are saved and updated live."}
+                {tx("Pilih folder klien di bawah untuk mengupload gambar portofolio baru, menghapus karya (ikon silang X di sudut gambar), dan mengedit narasi brand. Perubahan langsung tersimpan dan tampil di public website.", "Select a client folder below to upload new portfolio images, delete works (X icon on top-right), and edit brand stories. Changes are saved and updated live.")}
               </p>
             </div>
 
@@ -2393,10 +2354,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <span>{isId ? "Header & Teks Intro Section Portofolio (Sisi Kiri Web)" : "Portfolio Section Header & Intro (Web Left Side)"}</span>
+                      <span>{tx("Header & Teks Intro Section Portofolio (Sisi Kiri Web)", "Portfolio Section Header & Intro (Web Left Side)")}</span>
                     </h3>
                     <p className="text-xs text-neutral-400">
-                      {isId ? "Badge, Headline, Deskripsi, dan Tag Software di section portofolio web publik" : "Badge, Headline, Description, and Software Tags on the public portfolio section"}
+                      {tx("Badge, Headline, Deskripsi, dan Tag Software di section portofolio web publik", "Badge, Headline, Description, and Software Tags on the public portfolio section")}
                     </p>
                   </div>
                 </div>
@@ -2409,7 +2370,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* Badge Input */}
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "Badge / Eyebrow (Teks Kecil)" : "Badge / Eyebrow (Small Text)"}
+                    {tx("Badge / Eyebrow (Teks Kecil)", "Badge / Eyebrow (Small Text)")}
                   </label>
                   <input
                     type="text"
@@ -2423,7 +2384,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* Headline Input */}
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "Headline Utama" : "Main Headline"}
+                    {tx("Headline Utama", "Main Headline")}
                   </label>
                   <input
                     type="text"
@@ -2437,7 +2398,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* Description Textarea */}
                 <div className="md:col-span-2">
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "Deskripsi / Narasi Portofolio" : "Portfolio Description / Narrative"}
+                    {tx("Deskripsi / Narasi Portofolio", "Portfolio Description / Narrative")}
                   </label>
                   <textarea
                     rows={2}
@@ -2452,7 +2413,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="md:col-span-2">
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-mono text-neutral-300 font-medium">
-                      {isId ? "Tag Software / Alat Kerja (Pisahkan dengan koma)" : "Software / Tool Tags (Comma-separated)"}
+                      {tx("Tag Software / Alat Kerja (Pisahkan dengan koma)", "Software / Tool Tags (Comma-separated)")}
                     </label>
                     <span className="text-[10px] font-mono text-cyan-400">
                       {introToolsInput.split(",").filter((t) => t.trim()).length} Tags
@@ -2490,14 +2451,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-[#14AF9E] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <HiCheck className="w-4 h-4" />
-                  <span>{isId ? "Simpan Header Portofolio" : "Save Portfolio Header"}</span>
+                  <span>{tx("Simpan Header Portofolio", "Save Portfolio Header")}</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleResetPortfolioIntro}
                   className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
                 >
-                  {isId ? "Reset ke Bawaan" : "Reset to Default"}
+                  {tx("Reset ke Bawaan", "Reset to Default")}
                 </button>
               </div>
             </div>
@@ -2506,7 +2467,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div>
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-mono text-neutral-400 uppercase tracking-wider">
-                  {isId ? `Daftar Folder Klien (${clients.length} Brand):` : `Client Folder List (${clients.length} Brands):`}
+                  {tx(`Daftar Folder Klien (${clients.length} Brand):`, `Client Folder List (${clients.length} Brands):`)}
                 </span>
                 <button
                   type="button"
@@ -2514,7 +2475,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#14AF9E]/15 hover:bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/35 text-xs font-mono font-semibold transition-all cursor-pointer hover:scale-105 active:scale-95"
                 >
                   <HiFolderPlus className="w-4 h-4" />
-                  <span>{isId ? "Buat Folder Baru" : "Create New Folder"}</span>
+                  <span>{tx("Buat Folder Baru", "Create New Folder")}</span>
                 </button>
               </div>
 
@@ -2542,7 +2503,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 : "bg-white/5 text-neutral-400"
                             }`}
                           >
-                            {client.works?.length || 0} {isId ? "Karya" : "Works"}
+                            {client.works?.length || 0} {tx("Karya", "Works")}
                           </span>
                           <div className="flex items-center gap-1">
                             <HiFolder
@@ -2579,7 +2540,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             handleOpenEditFolder(client);
                           }}
                           className="w-6 h-6 rounded-full bg-cyan-600/90 hover:bg-cyan-500 text-white flex items-center justify-center shadow-lg transition-all scale-75 group-hover/folder:scale-100 cursor-pointer"
-                          title={isId ? `Edit nama brand ${client.clientName}` : `Edit brand name ${client.clientName}`}
+                          title={tx(`Edit nama brand ${client.clientName}`, `Edit brand name ${client.clientName}`)}
                         >
                           <HiPencilSquare className="w-3.5 h-3.5" />
                         </button>
@@ -2592,7 +2553,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             handleDeleteFolder(client);
                           }}
                           className="w-6 h-6 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-all scale-75 group-hover/folder:scale-100 cursor-pointer"
-                          title={isId ? `Hapus folder ${client.clientName}` : `Delete folder ${client.clientName}`}
+                          title={tx(`Hapus folder ${client.clientName}`, `Delete folder ${client.clientName}`)}
                         >
                           <HiXMark className="w-3.5 h-3.5" />
                         </button>
@@ -2619,28 +2580,28 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             type="button"
                             onClick={() => handleOpenEditFolder(selectedClient)}
                             className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-[10px] font-mono border border-cyan-500/20 transition-colors cursor-pointer"
-                            title={isId ? "Edit nama brand ini" : "Edit this brand name"}
+                            title={tx("Edit nama brand ini", "Edit this brand name")}
                           >
                             <HiPencilSquare className="w-3 h-3" />
-                            <span>{isId ? "Ubah Nama Brand" : "Rename Brand"}</span>
+                            <span>{tx("Ubah Nama Brand", "Rename Brand")}</span>
                           </button>
                         </div>
                         <h3 className="text-base font-bold text-white mt-0.5">
-                          {isId ? "Edit Deskripsi & Penjelasan Brand" : "Edit Brand Description & Overview"}
+                          {tx("Edit Deskripsi & Penjelasan Brand", "Edit Brand Description & Overview")}
                         </h3>
                       </div>
                       <span className="text-xs font-mono px-3 py-1 rounded-full bg-white/5 text-neutral-300 border border-white/10">
-                        {selectedClient.works?.length || 0} {isId ? "Portofolio" : "Portfolio"}
+                        {selectedClient.works?.length || 0} {tx("Portofolio", "Portfolio")}
                       </span>
                     </div>
 
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          {isId ? "Penjelasan / Deskripsi Klien & Brand" : "Client & Brand Description"} <span className="text-cyan-400">*</span>
+                          {tx("Penjelasan / Deskripsi Klien & Brand", "Client & Brand Description")} <span className="text-cyan-400">*</span>
                         </label>
                         <span className="text-[11px] font-mono text-neutral-500">
-                          {clientDescInput.length} {isId ? "karakter" : "characters"}
+                          {clientDescInput.length} {tx("karakter", "characters")}
                         </span>
                       </div>
 
@@ -2649,9 +2610,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={clientDescInput}
                         onChange={(e) => setClientDescInput(e.target.value)}
                         placeholder={
-                          isId
-                            ? `Tuliskan profil atau penjelasan brand ${selectedClient.clientName}, cakupan kampanye, atau nilai tambah kolaborasi...`
-                            : `Write brand profile or overview for ${selectedClient.clientName}, campaign scope, or creative collaboration value...`
+                          tx(`Tuliskan profil atau penjelasan brand ${selectedClient.clientName}, cakupan kampanye, atau nilai tambah kolaborasi...`, `Write brand profile or overview for ${selectedClient.clientName}, campaign scope, or creative collaboration value...`)
                         }
                         className="w-full p-3.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all leading-relaxed"
                       />
@@ -2661,10 +2620,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="space-y-2 pt-2 border-t border-white/10">
                       <div className="flex items-center justify-between">
                         <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          {isId ? "Tools Used / Software & AI yang Digunakan" : "Tools Used / Software & AI"}
+                          {tx("Tools Used / Software & AI yang Digunakan", "Tools Used / Software & AI")}
                         </label>
                         <span className="text-[11px] font-mono text-cyan-400">
-                          {isId ? "Pisahkan dengan koma atau klik badge di bawah" : "Separate with commas or click badges below"}
+                          {tx("Pisahkan dengan koma atau klik badge di bawah", "Separate with commas or click badges below")}
                         </span>
                       </div>
 
@@ -2679,7 +2638,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       {/* Quick Select Tool Badges */}
                       <div>
                         <span className="text-[10px] font-mono text-neutral-400 uppercase tracking-wider block mb-1.5">
-                          {isId ? "Pilihan Cepat (Klik untuk Tambah / Hapus Tag):" : "Quick Select (Click to Add / Remove Tag):"}
+                          {tx("Pilihan Cepat (Klik untuk Tambah / Hapus Tag):", "Quick Select (Click to Add / Remove Tag):")}
                         </span>
                         <div className="flex flex-wrap gap-1.5">
                           {[
@@ -2728,7 +2687,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
                       >
                         <HiCheck className="w-4 h-4" />
-                        <span>{isId ? "Simpan Deskripsi & Tag Tools (Auto-Update Web)" : "Save Description & Tool Tags (Auto-Update Web)"}</span>
+                        <span>{tx("Simpan Deskripsi & Tag Tools (Auto-Update Web)", "Save Description & Tool Tags (Auto-Update Web)")}</span>
                       </button>
 
                       <button
@@ -2736,7 +2695,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onClick={handleResetClientDescription}
                         className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                       >
-                        {isId ? "Reset Form" : "Reset Form"}
+                        {tx("Reset Form", "Reset Form")}
                       </button>
                     </div>
                   </form>
@@ -2748,18 +2707,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
                     <div>
                       <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
-                        {isId ? "ASET PORTOFOLIO" : "PORTFOLIO ASSETS"} · FOLDER {selectedClient.clientName.toUpperCase()}
+                        {tx("ASET PORTOFOLIO", "PORTFOLIO ASSETS")} · FOLDER {selectedClient.clientName.toUpperCase()}
                       </span>
                       <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
-                        <span>{isId ? "Galeri Gambar Portofolio" : "Portfolio Image Gallery"}</span>
+                        <span>{tx("Galeri Gambar Portofolio", "Portfolio Image Gallery")}</span>
                         <span className="text-xs px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 border border-cyan-500/30 font-mono">
-                          {selectedClient.works?.length || 0} {isId ? "Item" : "Items"}
+                          {selectedClient.works?.length || 0} {tx("Item", "Items")}
                         </span>
                       </h3>
                       <p className="text-xs text-neutral-400 mt-0.5">
-                        {isId
-                          ? "Klik tombol tanda silang (X) di sudut kanan atas pada gambar untuk menghapusnya langsung dari web portofolio."
-                          : "Click the (X) cross icon on top-right of an image to remove it directly from the portfolio."}
+                        {tx("Klik tombol tanda silang (X) di sudut kanan atas pada gambar untuk menghapusnya langsung dari web portofolio.", "Click the (X) cross icon on top-right of an image to remove it directly from the portfolio.")}
                       </p>
                     </div>
 
@@ -2769,7 +2726,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer shrink-0"
                     >
                       <HiArrowUpTray className="w-4 h-4" />
-                      <span>{isId ? "Tambah Gambar Portofolio" : "Add New Portfolio Image"}</span>
+                      <span>{tx("Tambah Gambar Portofolio", "Add New Portfolio Image")}</span>
                     </button>
                   </div>
 
@@ -2860,14 +2817,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="p-10 rounded-2xl bg-neutral-950/80 border border-dashed border-white/15 text-center flex flex-col items-center justify-center">
                       <HiPhoto className="w-12 h-12 text-neutral-600 mb-2" />
                       <p className="text-sm font-semibold text-neutral-300">
-                        {isId
-                          ? `Belum ada gambar di folder ${selectedClient.clientName}`
-                          : `No images yet in folder ${selectedClient.clientName}`}
+                        {tx(`Belum ada gambar di folder ${selectedClient.clientName}`, `No images yet in folder ${selectedClient.clientName}`)}
                       </p>
                       <p className="text-xs text-neutral-500 mt-1 max-w-sm">
-                        {isId
-                          ? `Klik tombol "Tambah Gambar Portofolio" di atas untuk menambahkan visual kampanye ke folder ini.`
-                          : `Click "Add New Portfolio Image" above to add campaign visuals to this folder.`}
+                        {tx(`Klik tombol "Tambah Gambar Portofolio" di atas untuk menambahkan visual kampanye ke folder ini.`, `Click "Add New Portfolio Image" above to add campaign visuals to this folder.`)}
                       </p>
                     </div>
                   )}
@@ -3082,7 +3035,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <HiTrash className="w-3.5 h-3.5" />
-                        <span>{isId ? "Hapus Kartu" : "Delete Card"}</span>
+                        <span>{tx("Hapus Kartu", "Delete Card")}</span>
                       </button>
                     </div>
                   ))}
@@ -3092,7 +3045,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
                     <HiPlus className="w-4 h-4 text-[#14AF9E]" />
-                    <span>{isId ? "Tambah Kartu Hero Baru" : "Add New Hero Card"}</span>
+                    <span>{tx("Tambah Kartu Hero Baru", "Add New Hero Card")}</span>
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input
@@ -3298,7 +3251,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       >
                         <HiTrash className="w-3.5 h-3.5" />
-                        <span>{isId ? "Hapus Kartu" : "Delete Card"}</span>
+                        <span>{tx("Hapus Kartu", "Delete Card")}</span>
                       </button>
                     </div>
                   ))}
@@ -3308,7 +3261,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
                     <HiPlus className="w-4 h-4 text-[#14AF9E]" />
-                    <span>{isId ? "Tambah Kartu Deck Baru" : "Add New Deck Card"}</span>
+                    <span>{tx("Tambah Kartu Deck Baru", "Add New Deck Card")}</span>
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <input
@@ -3376,7 +3329,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onClick={handleCancelHeroWorks}
                   className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
                 >
-                  {isId ? "Batal" : "Cancel"}
+                  {tx("Batal", "Cancel")}
                 </button>
                 <button
                   type="button"
@@ -3384,7 +3337,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <HiCheck className="w-4 h-4" />
-                  <span>{isId ? "Simpan Update" : "Save Changes"}</span>
+                  <span>{tx("Simpan Update", "Save Changes")}</span>
                 </button>
               </div>
             </div>
@@ -3407,12 +3360,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 SECTION CONTROL: RUNNING PORTOFOLIO (MARQUEE 4:5)
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {isId ? "Editor Running Portofolio (Rasio 4:5)" : "Running Portfolio Editor (4:5 Ratio)"}
+                {tx("Editor Running Portofolio (Rasio 4:5)", "Running Portfolio Editor (4:5 Ratio)")}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
-                {isId
-                  ? "Kelola kartu karya yang berjalan di strip 2 baris tepat di atas footer. Semua kartu memiliki rasio 4:5 seragam tanpa jeda atau putus. Anda bisa menambah karya baru, mengedit judul/kategori/gambar, memindahkan baris, atau menghapus karya."
-                  : "Manage the portfolio cards running in a 2-row strip above the footer. All cards have a uniform 4:5 aspect ratio with seamless infinite looping. You can create, edit, reorder rows, and delete items."}
+                {tx("Kelola kartu karya yang berjalan di strip 2 baris tepat di atas footer. Semua kartu memiliki rasio 4:5 seragam tanpa jeda atau putus. Anda bisa menambah karya baru, mengedit judul/kategori/gambar, memindahkan baris, atau menghapus karya.", "Manage the portfolio cards running in a 2-row strip above the footer. All cards have a uniform 4:5 aspect ratio with seamless infinite looping. You can create, edit, reorder rows, and delete items.")}
               </p>
             </div>
 
@@ -3420,7 +3371,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
                 <HiTag className="w-4 h-4 text-[#14AF9E]" />
-                <span>{isId ? "Judul Label Section" : "Section Header Label"}</span>
+                <span>{tx("Judul Label Section", "Section Header Label")}</span>
               </h3>
               <div className="space-y-1.5 max-w-xl">
                 <input
@@ -3431,7 +3382,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
                 />
                 <p className="text-[11px] text-neutral-500 font-mono">
-                  {isId ? "Teks label kecil yang tampil di atas strip marquee running portofolio." : "Small label appearing above the running marquee strip."}
+                  {tx("Teks label kecil yang tampil di atas strip marquee running portofolio.", "Small label appearing above the running marquee strip.")}
                 </p>
               </div>
             </div>
@@ -3441,10 +3392,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <HiSparkles className="w-4 h-4 text-[#14AF9E]" />
-                  <span>{isId ? "Pengaturan Gerakan, Kecepatan & Efek Gelombang" : "Motion, Speed & Wave Effect Controls"}</span>
+                  <span>{tx("Pengaturan Gerakan, Kecepatan & Efek Gelombang", "Motion, Speed & Wave Effect Controls")}</span>
                 </h3>
                 <span className="text-[10px] font-mono text-[#14AF9E] uppercase font-semibold">
-                  {isId ? "Interaktif Real-Time" : "Real-Time Interactive"}
+                  {tx("Interaktif Real-Time", "Real-Time Interactive")}
                 </span>
               </div>
 
@@ -3452,7 +3403,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 rounded-xl bg-neutral-950/70 border border-white/10">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-neutral-300 font-semibold">{isId ? "Kecepatan Baris 1 (Atas)" : "Row 1 Speed"}</span>
+                    <span className="text-neutral-300 font-semibold">{tx("Kecepatan Baris 1 (Atas)", "Row 1 Speed")}</span>
                     <span className="text-[#14AF9E] font-bold">{runnerSpeedRow1} detik/putaran</span>
                   </div>
                   <input
@@ -3472,7 +3423,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-neutral-300 font-semibold">{isId ? "Kecepatan Baris 2 (Bawah)" : "Row 2 Speed"}</span>
+                    <span className="text-neutral-300 font-semibold">{tx("Kecepatan Baris 2 (Bawah)", "Row 2 Speed")}</span>
                     <span className="text-[#14AF9E] font-bold">{runnerSpeedRow2} detik/putaran</span>
                   </div>
                   <input
@@ -3495,35 +3446,35 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono text-neutral-300 font-semibold block">
-                    {isId ? "Arah Gerak Baris 1" : "Row 1 Direction"}
+                    {tx("Arah Gerak Baris 1", "Row 1 Direction")}
                   </label>
                   <select
                     value={runnerDirRow1}
                     onChange={(e) => setRunnerDirRow1(e.target.value as "left" | "right")}
                     className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
                   >
-                    <option value="left">{isId ? "Scroll ke Kiri ←" : "Scroll Left ←"}</option>
-                    <option value="right">{isId ? "Scroll ke Kanan →" : "Scroll Right →"}</option>
+                    <option value="left">{tx("Scroll ke Kiri ←", "Scroll Left ←")}</option>
+                    <option value="right">{tx("Scroll ke Kanan →", "Scroll Right →")}</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono text-neutral-300 font-semibold block">
-                    {isId ? "Arah Gerak Baris 2" : "Row 2 Direction"}
+                    {tx("Arah Gerak Baris 2", "Row 2 Direction")}
                   </label>
                   <select
                     value={runnerDirRow2}
                     onChange={(e) => setRunnerDirRow2(e.target.value as "left" | "right")}
                     className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
                   >
-                    <option value="right">{isId ? "Scroll ke Kanan →" : "Scroll Right →"}</option>
-                    <option value="left">{isId ? "Scroll ke Kiri ←" : "Scroll Left ←"}</option>
+                    <option value="right">{tx("Scroll ke Kanan →", "Scroll Right →")}</option>
+                    <option value="left">{tx("Scroll ke Kiri ←", "Scroll Left ←")}</option>
                   </select>
                 </div>
 
                 <div className="space-y-1.5">
                   <label className="text-xs font-mono text-neutral-300 font-semibold block">
-                    {isId ? "Jeda Saat Hover Mouse" : "Pause on Hover"}
+                    {tx("Jeda Saat Hover Mouse", "Pause on Hover")}
                   </label>
                   <button
                     type="button"
@@ -3534,7 +3485,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         : "bg-neutral-900 text-neutral-400 border-white/15 hover:bg-neutral-800"
                     }`}
                   >
-                    <span>{runnerPauseOnHover ? (isId ? "Jeda Aktif" : "Pause On") : (isId ? "Tetap Berjalan" : "Keep Running")}</span>
+                    <span>{runnerPauseOnHover ? (tx("Jeda Aktif", "Pause On")) : (tx("Tetap Berjalan", "Keep Running"))}</span>
                     <span className="text-[10px] font-bold">{runnerPauseOnHover ? "ON" : "OFF"}</span>
                   </button>
                 </div>
@@ -3545,12 +3496,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="text-xs sm:text-sm font-bold text-white block">
-                      {isId ? "Efek Gelombang Sentuhan Mouse (Proximity Wave Ripple)" : "Touch / Mouse Proximity Wave Ripple Effect"}
+                      {tx("Efek Gelombang Sentuhan Mouse (Proximity Wave Ripple)", "Touch / Mouse Proximity Wave Ripple Effect")}
                     </span>
                     <p className="text-[11px] text-neutral-400 mt-0.5">
-                      {isId
-                        ? "Saat kursor mendekati kartu, kartu terdekat akan melayang ke atas dan kartu sekitarnya ikut bergelombang halus."
-                        : "When mouse touches or hovers near cards, closest card lifts and neighboring cards ripple in a wave."}
+                      {tx("Saat kursor mendekati kartu, kartu terdekat akan melayang ke atas dan kartu sekitarnya ikut bergelombang halus.", "When mouse touches or hovers near cards, closest card lifts and neighboring cards ripple in a wave.")}
                     </p>
                   </div>
                   <button
@@ -3562,7 +3511,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         : "bg-neutral-800 text-neutral-400 border border-white/10"
                     }`}
                   >
-                    {runnerWaveEnabled ? (isId ? "Efek Aktif" : "Wave Enabled") : (isId ? "Nonaktif" : "Disabled")}
+                    {runnerWaveEnabled ? (tx("Efek Aktif", "Wave Enabled")) : (tx("Nonaktif", "Disabled"))}
                   </button>
                 </div>
 
@@ -3570,7 +3519,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3 border-t border-white/10">
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-neutral-400">{isId ? "Tinggi Melayang:" : "Lift Height:"}</span>
+                        <span className="text-neutral-400">{tx("Tinggi Melayang:", "Lift Height:")}</span>
                         <span className="text-[#14AF9E] font-bold">-{runnerWaveLift}px</span>
                       </div>
                       <input
@@ -3585,7 +3534,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-neutral-400">{isId ? "Skala Pembesaran:" : "Card Scale:"}</span>
+                        <span className="text-neutral-400">{tx("Skala Pembesaran:", "Card Scale:")}</span>
                         <span className="text-[#14AF9E] font-bold">{runnerWaveScale}x</span>
                       </div>
                       <input
@@ -3601,7 +3550,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
-                        <span className="text-neutral-400">{isId ? "Jangkauan Ombak:" : "Wave Radius:"}</span>
+                        <span className="text-neutral-400">{tx("Jangkauan Ombak:", "Wave Radius:")}</span>
                         <span className="text-[#14AF9E] font-bold">{runnerWaveRadius}px</span>
                       </div>
                       <input
@@ -3624,7 +3573,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <HiPlus className="w-4 h-4 text-[#14AF9E]" />
-                  <span>{isId ? "Tambah Karya Baru ke Running Portofolio (4:5)" : "Add New Item to Running Portfolio (4:5)"}</span>
+                  <span>{tx("Tambah Karya Baru ke Running Portofolio (4:5)", "Add New Item to Running Portfolio (4:5)")}</span>
                 </h3>
                 <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-[#14AF9E]/15 text-[#14AF9E] border border-[#14AF9E]/30 font-semibold">
                   Rasio 4:5
@@ -3637,7 +3586,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono font-semibold text-neutral-300">
-                        {isId ? "Judul Karya" : "Item Title"} *
+                        {tx("Judul Karya", "Item Title")} *
                       </label>
                       <input
                         type="text"
@@ -3650,7 +3599,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono font-semibold text-neutral-300">
-                        {isId ? "Kategori / Label" : "Category / Label"}
+                        {tx("Kategori / Label", "Category / Label")}
                       </label>
                       <input
                         type="text"
@@ -3664,22 +3613,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   <div className="space-y-1.5">
                     <label className="text-xs font-mono font-semibold text-neutral-300">
-                      {isId ? "Posisi Baris Marquee" : "Marquee Row Position"}
+                      {tx("Posisi Baris Marquee", "Marquee Row Position")}
                     </label>
                     <select
                       value={newRunnerRow}
                       onChange={(e) => setNewRunnerRow(parseInt(e.target.value) as 1 | 2)}
                       className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
                     >
-                      <option value={1}>{isId ? "Baris 1 (Scroll ke Kiri)" : "Row 1 (Scrolls Left)"}</option>
-                      <option value={2}>{isId ? "Baris 2 (Scroll ke Kanan)" : "Row 2 (Scrolls Right)"}</option>
+                      <option value={1}>{tx("Baris 1 (Scroll ke Kiri)", "Row 1 (Scrolls Left)")}</option>
+                      <option value={2}>{tx("Baris 2 (Scroll ke Kanan)", "Row 2 (Scrolls Right)")}</option>
                     </select>
                   </div>
 
                   {/* Image input: URL or File */}
                   <div className="space-y-2">
                     <label className="text-xs font-mono font-semibold text-neutral-300">
-                      {isId ? "Pilih Gambar (Rasio 4:5 Disarankan)" : "Select Image (4:5 Ratio Recommended)"} *
+                      {tx("Pilih Gambar (Rasio 4:5 Disarankan)", "Select Image (4:5 Ratio Recommended)")} *
                     </label>
                     <div className="flex flex-col sm:flex-row gap-2">
                       <input
@@ -3691,7 +3640,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       />
                       <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
                         <HiArrowUpTray className="w-4 h-4 text-[#14AF9E]" />
-                        <span>{isId ? "Upload File" : "Upload File"}</span>
+                        <span>{tx("Upload File", "Upload File")}</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -3710,14 +3659,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="px-5 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                   >
                     <HiPlus className="w-4 h-4" />
-                    <span>{isId ? "Tambah ke Running Portofolio" : "Add to Running Portfolio"}</span>
+                    <span>{tx("Tambah ke Running Portofolio", "Add to Running Portfolio")}</span>
                   </button>
                 </div>
 
                 {/* Live 4:5 Preview Card: 4 cols */}
                 <div className="md:col-span-4 flex flex-col items-center">
                   <span className="text-[11px] font-mono text-neutral-400 mb-2">
-                    {isId ? "Preview Kartu (4:5)" : "Card Preview (4:5)"}
+                    {tx("Preview Kartu (4:5)", "Card Preview (4:5)")}
                   </span>
                   <div className="relative w-36 sm:w-44 aspect-[4/5] rounded-2xl overflow-hidden border border-white/15 bg-neutral-950 shadow-2xl">
                     {newRunnerImage ? (
@@ -3735,7 +3684,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent pointer-events-none" />
                     <div className="absolute bottom-2.5 left-2.5 right-2.5 pointer-events-none">
                       <p className="text-white text-xs font-bold truncate leading-tight">
-                        {newRunnerTitle || (isId ? "Judul Karya" : "Item Title")}
+                        {newRunnerTitle || (tx("Judul Karya", "Item Title"))}
                       </p>
                       <p className="text-[#14AF9E] text-[10px] font-mono truncate">
                         {newRunnerCategory || "Category"}
@@ -3755,13 +3704,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
                     <HiFolder className="w-4 h-4 text-[#14AF9E]" />
-                    <span>{isId ? "Daftar Karya di Running Portofolio" : "Running Portfolio Items List"}</span>
+                    <span>{tx("Daftar Karya di Running Portofolio", "Running Portfolio Items List")}</span>
                     <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs font-mono text-neutral-300">
                       {runnerItems.length}
                     </span>
                   </h3>
                   <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
-                    {isId ? "Semua kartu ditampilkan dalam rasio seragam 4:5." : "All cards formatted in uniform 4:5 aspect ratio."}
+                    {tx("Semua kartu ditampilkan dalam rasio seragam 4:5.", "All cards formatted in uniform 4:5 aspect ratio.")}
                   </p>
                 </div>
 
@@ -3813,7 +3762,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 if (filtered.length === 0) {
                   return (
                     <div className="py-12 text-center text-neutral-500 font-mono text-xs">
-                      {isId ? "Tidak ada karya di baris ini." : "No items found in this row."}
+                      {tx("Tidak ada karya di baris ini.", "No items found in this row.")}
                     </div>
                   );
                 }
@@ -3911,7 +3860,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 onClick={handleResetPortfolioRunnerDefault}
                 className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer"
               >
-                {isId ? "Reset ke Susunan Default" : "Reset to Default"}
+                {tx("Reset ke Susunan Default", "Reset to Default")}
               </button>
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -3920,7 +3869,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onClick={handleCancelPortfolioRunner}
                   className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs sm:text-sm font-medium transition-all cursor-pointer"
                 >
-                  {isId ? "Batal" : "Cancel"}
+                  {tx("Batal", "Cancel")}
                 </button>
                 <button
                   type="button"
@@ -3928,7 +3877,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                 >
                   <HiCheck className="w-4 h-4" />
-                  <span>{isId ? "Simpan Perubahan Running Portofolio" : "Save Running Portfolio"}</span>
+                  <span>{tx("Simpan Perubahan Running Portofolio", "Save Running Portfolio")}</span>
                 </button>
               </div>
             </div>
@@ -3940,7 +3889,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <h3 className="text-base font-bold text-white flex items-center gap-2">
                       <HiPencilSquare className="w-5 h-5 text-[#14AF9E]" />
-                      <span>{isId ? "Edit Karya Running Portofolio" : "Edit Running Portfolio Item"}</span>
+                      <span>{tx("Edit Karya Running Portofolio", "Edit Running Portfolio Item")}</span>
                     </h3>
                     <button
                       type="button"
@@ -3954,7 +3903,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="space-y-4">
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono font-semibold text-neutral-300">
-                        {isId ? "Judul Karya" : "Item Title"}
+                        {tx("Judul Karya", "Item Title")}
                       </label>
                       <input
                         type="text"
@@ -3968,7 +3917,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono font-semibold text-neutral-300">
-                        {isId ? "Kategori / Subtitle" : "Category / Subtitle"}
+                        {tx("Kategori / Subtitle", "Category / Subtitle")}
                       </label>
                       <input
                         type="text"
@@ -3982,7 +3931,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     <div className="space-y-1.5">
                       <label className="text-xs font-mono font-semibold text-neutral-300">
-                        {isId ? "Posisi Baris" : "Row Position"}
+                        {tx("Posisi Baris", "Row Position")}
                       </label>
                       <select
                         value={editingRunnerItem.row}
@@ -3994,15 +3943,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         }
                         className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
                       >
-                        <option value={1}>{isId ? "Baris 1 (Scroll ke Kiri)" : "Row 1 (Scrolls Left)"}</option>
-                        <option value={2}>{isId ? "Baris 2 (Scroll ke Kanan)" : "Row 2 (Scrolls Right)"}</option>
+                        <option value={1}>{tx("Baris 1 (Scroll ke Kiri)", "Row 1 (Scrolls Left)")}</option>
+                        <option value={2}>{tx("Baris 2 (Scroll ke Kanan)", "Row 2 (Scrolls Right)")}</option>
                       </select>
                     </div>
 
                     {/* Image URL / Upload */}
                     <div className="space-y-2">
                       <label className="text-xs font-mono font-semibold text-neutral-300">
-                        {isId ? "Gambar Karya (Rasio 4:5)" : "Image (4:5 Ratio)"}
+                        {tx("Gambar Karya (Rasio 4:5)", "Image (4:5 Ratio)")}
                       </label>
                       <div className="flex flex-col sm:flex-row gap-2">
                         <input
@@ -4367,7 +4316,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer"
                 >
                   <HiCheck className="w-4 h-4" />
-                  <span>{isId ? "Simpan Perubahan About Me & Update Web" : "Save About Me Changes & Update Web"}</span>
+                  <span>{tx("Simpan Perubahan About Me & Update Web", "Save About Me Changes & Update Web")}</span>
                 </button>
 
                 <button
@@ -4375,7 +4324,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onClick={handleResetAbout}
                   className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                 >
-                  {isId ? "Batal" : "Cancel"}
+                  {tx("Batal", "Cancel")}
                 </button>
               </div>
             </form>
@@ -4498,7 +4447,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     {/* MEDIA TYPE SELECTOR: YouTube, Google Drive, or Image */}
                     <div>
                       <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                        {isId ? "Tipe Media Showcase" : "Showcase Media Type"}
+                        {tx("Tipe Media Showcase", "Showcase Media Type")}
                       </label>
                       <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs font-mono">
                         <button
@@ -4688,14 +4637,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-400 hover:from-[#119889] hover:to-cyan-300 text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all active:scale-95 cursor-pointer"
                     >
                       <HiCheck className="w-4 h-4" />
-                      <span>{isId ? "Simpan & Buka Langsung di Web ↗" : "Save & Open on Web ↗"}</span>
+                      <span>{tx("Simpan & Buka Langsung di Web ↗", "Save & Open on Web ↗")}</span>
                     </button>
 
                     <button
                       type="submit"
                       className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium text-xs sm:text-sm border border-white/10 transition-all active:scale-95 cursor-pointer"
                     >
-                      <span>{isId ? "Simpan Saja" : "Save Only"}</span>
+                      <span>{tx("Simpan Saja", "Save Only")}</span>
                     </button>
 
                     <button
@@ -4704,7 +4653,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all cursor-pointer"
                     >
                       <HiTrash className="w-4 h-4" />
-                      <span>{isId ? "Hapus Video" : "Remove Video"}</span>
+                      <span>{tx("Hapus Video", "Remove Video")}</span>
                     </button>
                   </div>
                 </form>
@@ -4818,12 +4767,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 ADMIN SECURITY & CREDENTIALS
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {isId ? "Pengaturan Akun, Ganti Password & Email Verifikasi" : "Account Settings, Password Change & Recovery Email"}
+                {tx("Pengaturan Akun, Ganti Password & Email Verifikasi", "Account Settings, Password Change & Recovery Email")}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
-                {isId
-                  ? "Kelola kredensial login Admin Panel. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun baru di URL rahasia "
-                  : "Manage Admin Panel credentials. Changes update live in Supabase Cloud & LocalStorage for logging in at the secret URL "}
+                {tx("Kelola kredensial login Admin Panel. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun baru di URL rahasia ", "Manage Admin Panel credentials. Changes update live in Supabase Cloud & LocalStorage for logging in at the secret URL ")}
                 <code className="text-[#14AF9E] font-mono">?login=secret</code>.
               </p>
             </div>
@@ -4835,7 +4782,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {/* Username */}
                   <div>
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                      {isId ? "USERNAME ADMIN" : "ADMIN USERNAME"} <span className="text-[#14AF9E]">*</span>
+                      {tx("USERNAME ADMIN", "ADMIN USERNAME")} <span className="text-[#14AF9E]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -4851,14 +4798,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <HiUser className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     </div>
                     <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
-                      {isId ? "Username untuk login ke admin panel dashboard." : "Username for logging into the admin panel dashboard."}
+                      {tx("Username untuk login ke admin panel dashboard.", "Username for logging into the admin panel dashboard.")}
                     </span>
                   </div>
 
                   {/* Recovery Email */}
                   <div>
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                      {isId ? "EMAIL RECOVERY / VERIFIKASI" : "RECOVERY / VERIFICATION EMAIL"} <span className="text-[#14AF9E]">*</span>
+                      {tx("EMAIL RECOVERY / VERIFIKASI", "RECOVERY / VERIFICATION EMAIL")} <span className="text-[#14AF9E]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -4871,23 +4818,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <HiEnvelope className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     </div>
                     <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
-                      {isId
-                        ? "Kode OTP verifikasi saat lupa password akan dikirim ke email ini."
-                        : "Verification OTP codes for password recovery will be sent to this email."}
+                      {tx("Kode OTP verifikasi saat lupa password akan dikirim ke email ini.", "Verification OTP codes for password recovery will be sent to this email.")}
                     </span>
                   </div>
 
                   {/* Password Baru */}
                   <div className="pt-2 border-t border-white/10">
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                      {isId ? "GANTI PASSWORD BARU (KOSONGKAN JIKA TIDAK INGIN MENGUBAH)" : "CHANGE PASSWORD (LEAVE BLANK TO KEEP UNCHANGED)"}
+                      {tx("GANTI PASSWORD BARU (KOSONGKAN JIKA TIDAK INGIN MENGUBAH)", "CHANGE PASSWORD (LEAVE BLANK TO KEEP UNCHANGED)")}
                     </label>
                     <div className="relative">
                       <input
                         type={showAdminPass ? "text" : "password"}
                         value={adminPass}
                         onChange={(e) => setAdminPass(e.target.value)}
-                        placeholder={isId ? "Ketik password baru (minimal 6 karakter)" : "Enter new password (min. 6 characters)"}
+                        placeholder={tx("Ketik password baru (minimal 6 karakter)", "Enter new password (min. 6 characters)")}
                         className="w-full px-4 py-3 pr-12 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
                       />
                       <button
@@ -4905,13 +4850,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {adminPass && (
                     <div>
                       <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                        {isId ? "KONFIRMASI PASSWORD BARU" : "CONFIRM NEW PASSWORD"} <span className="text-[#14AF9E]">*</span>
+                        {tx("KONFIRMASI PASSWORD BARU", "CONFIRM NEW PASSWORD")} <span className="text-[#14AF9E]">*</span>
                       </label>
                       <input
                         type={showAdminPass ? "text" : "password"}
                         value={adminConfirmPass}
                         onChange={(e) => setAdminConfirmPass(e.target.value)}
-                        placeholder={isId ? "Ulangi password baru yang sama" : "Repeat the same new password"}
+                        placeholder={tx("Ulangi password baru yang sama", "Repeat the same new password")}
                         className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
                       />
                     </div>
@@ -4925,7 +4870,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                     >
                       <HiCheck className="w-4 h-4" />
-                      <span>{isSavingAccount ? (isId ? "Menyimpan ke Cloud…" : "Saving to Cloud…") : (isId ? "Simpan Perubahan Akun" : "Save Account Changes")}</span>
+                      <span>{isSavingAccount ? (tx("Menyimpan ke Cloud…", "Saving to Cloud…")) : (tx("Simpan Perubahan Akun", "Save Account Changes"))}</span>
                     </button>
                   </div>
                 </form>
@@ -5025,12 +4970,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   FOLDER: client - {selectedClient?.clientName}
                 </span>
                 <h3 className="text-xl font-bold text-white">
-                  {isId ? "Upload Gambar Portofolio" : "Upload Portfolio Image"}
+                  {tx("Upload Gambar Portofolio", "Upload Portfolio Image")}
                 </h3>
                 <p className="text-xs text-neutral-400 mt-1">
-                  {isId
-                    ? "Gambar yang diupload akan langsung tersimpan dan muncul di galeri publik folder klien ini."
-                    : "Uploaded image will be saved and displayed live in this client folder's public gallery."}
+                  {tx("Gambar yang diupload akan langsung tersimpan dan muncul di galeri publik folder klien ini.", "Uploaded image will be saved and displayed live in this client folder's public gallery.")}
                 </p>
               </div>
 
@@ -5038,7 +4981,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* File Dropzone / Selector */}
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "File Gambar (JPG, PNG, WEBP)" : "Image File (JPG, PNG, WEBP)"} <span className="text-cyan-400">*</span>
+                    {tx("File Gambar (JPG, PNG, WEBP)", "Image File (JPG, PNG, WEBP)")} <span className="text-cyan-400">*</span>
                   </label>
                   <input
                     ref={fileInputRef}
@@ -5059,17 +5002,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           className="max-h-48 w-auto mx-auto rounded-xl object-contain border border-white/15 shadow-md"
                         />
                         <p className="text-xs text-cyan-400 font-mono">
-                          {isId ? "Klik untuk mengganti gambar" : "Click to replace image"}
+                          {tx("Klik untuk mengganti gambar", "Click to replace image")}
                         </p>
                       </div>
                     ) : (
                       <div className="py-4 space-y-2">
                         <HiArrowUpTray className="w-10 h-10 text-neutral-500 group-hover:text-[#14AF9E] mx-auto transition-colors" />
                         <p className="text-xs sm:text-sm font-semibold text-neutral-300">
-                          {isId ? "Klik untuk memilih file gambar" : "Click to select image file"}
+                          {tx("Klik untuk memilih file gambar", "Click to select image file")}
                         </p>
                         <p className="text-[11px] text-neutral-500 font-mono">
-                          {isId ? "Mendukung PNG, JPG, JPEG, WEBP" : "Supports PNG, JPG, JPEG, WEBP"}
+                          {tx("Mendukung PNG, JPG, JPEG, WEBP", "Supports PNG, JPG, JPEG, WEBP")}
                         </p>
                       </div>
                     )}
@@ -5191,7 +5134,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiCheck className="w-4 h-4" />
-                    <span>{isId ? "Upload & Tambahkan ke Web" : "Upload & Add to Web"}</span>
+                    <span>{tx("Upload & Tambahkan ke Web", "Upload & Add to Web")}</span>
                   </button>
 
                   <button
@@ -5203,7 +5146,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                   >
-                    {isId ? "Batal" : "Cancel"}
+                    {tx("Batal", "Cancel")}
                   </button>
                 </div>
               </form>
@@ -5249,7 +5192,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     Edit Detail: {editingWork.title}
                   </h3>
                   <p className="text-xs text-neutral-400">
-                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> · {isId ? "Perubahan langsung aktif di popup Case Study web publik." : "Changes update live in public Case Study popup."}
+                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> · {tx("Perubahan langsung aktif di popup Case Study web publik.", "Changes update live in public Case Study popup.")}
                   </p>
                 </div>
               </div>
@@ -5452,14 +5395,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
                   >
                     <HiCheck className="w-4 h-4" />
-                    <span>{isId ? "Simpan Perubahan & Update Web" : "Save Changes & Update Web"}</span>
+                    <span>{tx("Simpan Perubahan & Update Web", "Save Changes & Update Web")}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingWork(null)}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                   >
-                    {isId ? "Batal" : "Cancel"}
+                    {tx("Batal", "Cancel")}
                   </button>
                 </div>
               </form>
@@ -5494,25 +5437,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <span className="text-[10px] font-mono uppercase tracking-widest text-[#14AF9E] font-semibold block mb-1">
                   FOLDER MANAGEMENT
                 </span>
-                <h3 className="text-xl font-bold text-white">{isId ? "Buat Folder Klien Baru" : "Create New Client Folder"}</h3>
+                <h3 className="text-xl font-bold text-white">{tx("Buat Folder Klien Baru", "Create New Client Folder")}</h3>
                 <p className="text-xs text-neutral-400 mt-1">
-                  {isId
-                    ? "Folder baru akan langsung tampil di panel My Work & galeri publik website."
-                    : "New folder will immediately appear in the My Work panel & public gallery."}
+                  {tx("Folder baru akan langsung tampil di panel My Work & galeri publik website.", "New folder will immediately appear in the My Work panel & public gallery.")}
                 </p>
               </div>
 
               <form onSubmit={handleAddFolder} className="space-y-4">
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "Nama Brand / Klien" : "Brand / Client Name"} <span className="text-cyan-400">*</span>
+                    {tx("Nama Brand / Klien", "Brand / Client Name")} <span className="text-cyan-400">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
-                    placeholder={isId ? "Contoh: Nike, Samsung, Local Brand Co." : "Example: Nike, Samsung, Local Brand Co."}
+                    placeholder={tx("Contoh: Nike, Samsung, Local Brand Co.", "Example: Nike, Samsung, Local Brand Co.")}
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
                     autoFocus
                   />
@@ -5525,13 +5466,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "Kategori / Tipe Kolaborasi" : "Category / Collaboration Type"}
+                    {tx("Kategori / Tipe Kolaborasi", "Category / Collaboration Type")}
                   </label>
                   <input
                     type="text"
                     value={newFolderCategory}
                     onChange={(e) => setNewFolderCategory(e.target.value)}
-                    placeholder={isId ? "Contoh: Brand Visuals & Ads, Digital Campaign" : "Example: Brand Visuals & Ads, Digital Campaign"}
+                    placeholder={tx("Contoh: Brand Visuals & Ads, Digital Campaign", "Example: Brand Visuals & Ads, Digital Campaign")}
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
                   />
                 </div>
@@ -5539,7 +5480,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* Tahun kolaborasi */}
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "Tahun Kolaborasi" : "Collaboration Year"}
+                    {tx("Tahun Kolaborasi", "Collaboration Year")}
                   </label>
                   <input
                     type="number"
@@ -5559,7 +5500,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiFolderPlus className="w-4 h-4" />
-                    <span>{isId ? "Buat Folder" : "Create Folder"}</span>
+                    <span>{tx("Buat Folder", "Create Folder")}</span>
                   </button>
                   <button
                     type="button"
@@ -5571,7 +5512,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-colors cursor-pointer"
                   >
-                    {isId ? "Batal" : "Cancel"}
+                    {tx("Batal", "Cancel")}
                   </button>
                 </div>
               </form>
@@ -5604,19 +5545,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </span>
                 <h3 className="text-xl font-bold text-white flex items-center gap-2">
                   <HiPencilSquare className="w-5 h-5 text-cyan-400" />
-                  <span>{isId ? "Edit Nama Brand" : "Edit Brand Name"}</span>
+                  <span>{tx("Edit Nama Brand", "Edit Brand Name")}</span>
                 </h3>
                 <p className="text-xs text-neutral-400 mt-1">
-                  {isId
-                    ? "Ubah nama brand ini. Nama baru akan otomatis diperbarui di kartu admin, tag folder (client - [Nama]), dan web publik."
-                    : "Update this brand name. The new name will reflect across admin cards, folder tags (client - [Name]), and public web."}
+                  {tx("Ubah nama brand ini. Nama baru akan otomatis diperbarui di kartu admin, tag folder (client - [Nama]), dan web publik.", "Update this brand name. The new name will reflect across admin cards, folder tags (client - [Name]), and public web.")}
                 </p>
               </div>
 
               <form onSubmit={handleSaveEditFolder} className="space-y-4">
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "Nama Brand" : "Brand Name"} <span className="text-cyan-400">*</span>
+                    {tx("Nama Brand", "Brand Name")} <span className="text-cyan-400">*</span>
                   </label>
                   <input
                     type="text"
@@ -5627,14 +5566,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-cyan-400 transition-all font-semibold"
                   />
                   <span className="text-[11px] font-mono text-neutral-500 mt-1 block">
-                    {isId ? "Format di kartu akan menjadi: " : "Card format will be: "}
+                    {tx("Format di kartu akan menjadi: ", "Card format will be: ")}
                     <code className="text-cyan-400">client - {editFolderName.trim() || editingFolder.clientName}</code>
                   </span>
                 </div>
 
                 <div>
                   <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {isId ? "Kategori / Sub-judul Portfolio" : "Category / Subtitle"}
+                    {tx("Kategori / Sub-judul Portfolio", "Category / Subtitle")}
                   </label>
                   <input
                     type="text"
@@ -5652,14 +5591,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#14AF9E] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiCheck className="w-4 h-4" />
-                    <span>{isId ? "Simpan Perubahan Nama" : "Save Brand Name"}</span>
+                    <span>{tx("Simpan Perubahan Nama", "Save Brand Name")}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setEditingFolder(null)}
                     className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-colors cursor-pointer"
                   >
-                    {isId ? "Batal" : "Cancel"}
+                    {tx("Batal", "Cancel")}
                   </button>
                 </div>
               </form>
@@ -5708,50 +5647,50 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {[
                   {
                     id: "clients" as AdminSidebarTab,
-                    label: isMin ? "Portofolio & Klien" : isId ? "Portofolio & Klien" : "Portfolio & Clients",
-                    sub: isMin ? "Folder klien & logo partner marquee" : isId ? "Folder klien & logo partner marquee" : "Client folders & partner logos",
+                    label: tx("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien"),
+                    sub: tx("Folder klien & logo partner marquee", "Client folders & partner logos", "Folder klien & logo partner marquee"),
                     icon: HiFolder,
                   },
                   {
                     id: "resources" as AdminSidebarTab,
                     label: "Resource Library",
-                    sub: isMin ? "Gudang kasadonyo media & aset" : isId ? "Semua aset media & visual vault" : "All media assets & visual vault",
+                    sub: tx("Semua aset media & visual vault", "All media assets & visual vault", "Gudang kasadonyo media & aset"),
                     icon: HiSquare3Stack3D,
                   },
                   {
                     id: "hero-banner" as AdminSidebarTab,
                     label: "Hero Banner",
-                    sub: isMin ? "Hero Banner & animasi scrolly" : isId ? "Hero Banner & animasi scrolly" : "Hero banner & scrolly motion",
+                    sub: tx("Hero Banner & animasi scrolly", "Hero banner & scrolly motion", "Hero Banner & animasi scrolly"),
                     icon: HiSparkles,
                   },
                   {
                     id: "hero-works" as AdminSidebarTab,
-                    label: isMin ? "Hero & Karya Tapiliah" : isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
-                    sub: isMin ? "3 karya sorotan utamo" : isId ? "3 karya sorotan utama" : "3 top highlighted works",
+                    label: tx("Hero & Karya Unggulan", "Hero & Selected Works", "Hero & Karya Tapiliah"),
+                    sub: tx("3 karya sorotan utama", "3 top highlighted works", "3 karya sorotan utamo"),
                     icon: HiPhoto,
                   },
                   {
                     id: "flagship" as AdminSidebarTab,
                     label: "Media Showcase",
-                    sub: isId ? "Stage 3 video & reels" : "Stage 3 video & reels showcase",
+                    sub: tx("Stage 3 video & reels", "Stage 3 video & reels showcase"),
                     icon: HiVideoCamera,
                   },
                   {
                     id: "runner" as AdminSidebarTab,
-                    label: isMin ? "Running Portofolio (4:5)" : isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
-                    sub: isMin ? "Karya poster tagak marquee" : isId ? "Karya poster vertikal marquee" : "Vertical marquee poster cards",
+                    label: tx("Running Portofolio (4:5)", "Running Portfolio (4:5)", "Running Portofolio (4:5)"),
+                    sub: tx("Karya poster vertikal marquee", "Vertical marquee poster cards", "Karya poster tagak marquee"),
                     icon: HiSquares2X2,
                   },
                   {
                     id: "about" as AdminSidebarTab,
-                    label: isMin ? "Tantang Ambo" : isId ? "Tentang Saya" : "About Me",
-                    sub: isMin ? "Profil, biografi & kontak" : isId ? "Profil, bio & kontak" : "Profile bio & contacts",
+                    label: tx("Tentang Saya", "About Me", "Tantang Ambo"),
+                    sub: tx("Profil, bio & kontak", "Profile bio & contacts", "Profil, biografi & kontak"),
                     icon: HiUser,
                   },
                   {
                     id: "settings" as AdminSidebarTab,
-                    label: isMin ? "Kunci & Kaamanan" : isId ? "Sandi & Keamanan" : "Settings",
-                    sub: isMin ? "Kunci, verifikasi & kaamanan akun" : isId ? "Sandi, verifikasi & keamanan" : "Password & account security",
+                    label: tx("Sandi & Keamanan", "Settings", "Kunci & Kaamanan"),
+                    sub: tx("Sandi, verifikasi & keamanan", "Password & account security", "Kunci, verifikasi & kaamanan akun"),
                     icon: HiKey,
                   },
                 ].map((item) => {
@@ -5811,7 +5750,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer"
                 >
                   <HiEye className="w-4 h-4" />
-                  <span>{isId ? "Lihat Web Publik ↗" : "View Public Web ↗"}</span>
+                  <span>{tx("Lihat Web Publik ↗", "View Public Web ↗")}</span>
                 </button>
               </div>
             </motion.div>

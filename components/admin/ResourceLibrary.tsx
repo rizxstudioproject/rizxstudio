@@ -51,9 +51,7 @@ export default function ResourceLibrary({
   showToast,
   onViewWebsite,
 }: ResourceLibraryProps) {
-  const { lang } = useLang();
-  const isId = lang === "id" || lang === "min";
-  const isMin = lang === "min";
+  const { lang, tr } = useLang();
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");
@@ -142,9 +140,9 @@ export default function ResourceLibrary({
     if (e) e.stopPropagation();
     try {
       await navigator.clipboard.writeText(url);
-      showToast(isId ? "Link gambar berhasil disalin ke clipboard!" : "Asset URL copied to clipboard!");
+      showToast(tr("Asset URL copied to clipboard!", "Link gambar berhasil disalin ke clipboard!", "Link gambar barasil disalin ka clipboard!"));
     } catch {
-      showToast("Gagal menyalin link.");
+      showToast(tr("Failed to copy link.", "Gagal menyalin link.", "Gagal manyalin link."));
     }
   };
 
@@ -158,22 +156,22 @@ export default function ResourceLibrary({
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      showToast(isId ? `Mengunduh ${asset.title}...` : `Downloading ${asset.title}...`);
+      showToast(tr(`Downloading ${asset.title}...`, `Mengunduh ${asset.title}...`, `Maunduah ${asset.title}...`));
     } catch {
-      showToast("Gagal mengunduh file.");
+      showToast(tr("Failed to download file.", "Gagal mengunduh file.", "Gagal maunduah file."));
     }
   };
 
   // Clear Sequence Cache
   const handleClearSequenceCache = async () => {
-    if (!confirm(isId ? "Hapus cache sequence frame dari IndexedDB?" : "Clear sequence cache from IndexedDB?")) return;
+    if (!confirm(tr("Clear sequence cache from IndexedDB?", "Hapus cache sequence frame dari IndexedDB?", "Hapuih cache sequence frame dari IndexedDB?"))) return;
     setIsClearingFrames(true);
     try {
       await clearCustomFramesFromDB();
       setCachedFramesCount(0);
-      showToast(isId ? "Cache sequence berhasil dibersihkan!" : "Sequence cache cleared!");
+      showToast(tr("Sequence cache cleared!", "Cache sequence berhasil dibersihkan!", "Cache sequence barasil dibarasiahkan!"));
     } catch {
-      showToast("Gagal membersihkan cache.");
+      showToast(tr("Failed to clear cache.", "Gagal membersihkan cache.", "Gagal mambarasiahkan cache."));
     } finally {
       setIsClearingFrames(false);
     }
@@ -197,9 +195,11 @@ export default function ResourceLibrary({
               </span>
             </div>
             <p className="text-xs text-neutral-400 mt-0.5">
-              {isId
-                ? "Pusat eksplorasi media visual, karya portofolio, logo partner, dan cache storage."
-                : "Central visual media explorer, client portfolio works, partner logos, and cache vault."}
+              {tr(
+                "Central visual media explorer, client portfolio works, partner logos, and cache vault.",
+                "Pusat eksplorasi media visual, karya portofolio, logo partner, dan cache storage.",
+                "Pusek eksplorasi media visual, karya portofolio, logo partner, sarato cache storage."
+              )}
             </p>
           </div>
         </div>
@@ -212,7 +212,7 @@ export default function ResourceLibrary({
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#14AF9E]/20 cursor-pointer active:scale-95"
             >
               <HiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>{isId ? "Upload Aset Baru" : "Upload Asset"}</span>
+              <span>{tr("Upload Asset", "Upload Aset Baru", "Upload Aset Baru")}</span>
             </button>
           )}
           {onViewWebsite && (
@@ -221,7 +221,7 @@ export default function ResourceLibrary({
               onClick={onViewWebsite}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
             >
-              <span>{isId ? "Lihat Web" : "View web"}</span>
+              <span>{tr("View web", "Lihat Web", "Caliak Web")}</span>
               <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
             </button>
           )}
@@ -233,22 +233,22 @@ export default function ResourceLibrary({
         {/* Card 1: Total Works */}
         <div className="p-4 rounded-2xl bg-[#111419] border border-white/5 space-y-1.5 hover:border-white/10 transition-colors">
           <div className="flex items-center justify-between text-neutral-400">
-            <span className="text-xs font-medium">{isId ? "Karya Klien" : "Client Works"}</span>
+            <span className="text-xs font-medium">{tr("Client Works", "Karya Klien", "Karya Klien")}</span>
             <HiPhoto className="w-4 h-4 text-cyan-400" />
           </div>
           <p className="text-2xl font-bold text-white tracking-tight">
             {allWorkAssets.length}{" "}
-            <span className="text-xs font-normal text-neutral-400">foto & karya</span>
+            <span className="text-xs font-normal text-neutral-400">{tr("photos & works", "foto & karya", "foto & karya")}</span>
           </p>
           <p className="text-[10px] text-neutral-500 font-mono">
-            Tersimpan di {clients.length} folder klien
+            {tr(`Stored in ${clients.length} client folders`, `Tersimpan di ${clients.length} folder klien`, `Tasimpan di ${clients.length} folder klien`)}
           </p>
         </div>
 
         {/* Card 2: Partner Logos */}
         <div className="p-4 rounded-2xl bg-[#111419] border border-white/5 space-y-1.5 hover:border-white/10 transition-colors">
           <div className="flex items-center justify-between text-neutral-400">
-            <span className="text-xs font-medium">{isId ? "Logo Brand Marquee" : "Partner Logos"}</span>
+            <span className="text-xs font-medium">{tr("Partner Logos", "Logo Brand Marquee", "Logo Brand Marquee")}</span>
             <HiTag className="w-4 h-4 text-[#14AF9E]" />
           </div>
           <p className="text-2xl font-bold text-white tracking-tight">
@@ -256,14 +256,14 @@ export default function ResourceLibrary({
             <span className="text-xs font-normal text-neutral-400">brand SVG/PNG</span>
           </p>
           <p className="text-[10px] text-neutral-500 font-mono">
-            Running 2 baris marquee website
+            {tr("Running 2-row website marquee", "Running 2 baris marquee website", "Bajalan 2 barih marquee website")}
           </p>
         </div>
 
         {/* Card 3: Hero Scrollytelling Frames */}
         <div className="p-4 rounded-2xl bg-[#111419] border border-white/5 space-y-1.5 hover:border-white/10 transition-colors">
           <div className="flex items-center justify-between text-neutral-400">
-            <span className="text-xs font-medium">{isId ? "Cache Frame Scrolly" : "Sequence Frames"}</span>
+            <span className="text-xs font-medium">{tr("Sequence Frames", "Cache Frame Scrolly", "Cache Frame Scrolly")}</span>
             <HiSparkles className="w-4 h-4 text-amber-400" />
           </div>
           <p className="text-2xl font-bold text-white tracking-tight">
@@ -279,7 +279,7 @@ export default function ResourceLibrary({
                 disabled={isClearingFrames}
                 className="text-[10px] text-rose-400 hover:underline cursor-pointer"
               >
-                Clear
+                {tr("Clear", "Bersihkan", "Barasiahkan")}
               </button>
             ) : null}
           </div>
@@ -288,7 +288,7 @@ export default function ResourceLibrary({
         {/* Card 4: Cloud Sync Status */}
         <div className="p-4 rounded-2xl bg-[#111419] border border-white/5 space-y-1.5 hover:border-white/10 transition-colors">
           <div className="flex items-center justify-between text-neutral-400">
-            <span className="text-xs font-medium">{isId ? "Status Sinkronisasi" : "Cloud Storage"}</span>
+            <span className="text-xs font-medium">{tr("Cloud Storage", "Status Sinkronisasi", "Status Sinkronisasi")}</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
           <p className="text-2xl font-bold text-white tracking-tight">
@@ -314,7 +314,7 @@ export default function ResourceLibrary({
                   : "text-neutral-400 hover:text-white"
               }`}
             >
-              Semua ({allWorkAssets.length + allLogoAssets.length})
+              {tr(`All (${allWorkAssets.length + allLogoAssets.length})`, `Semua (${allWorkAssets.length + allLogoAssets.length})`, `Kasadonyo (${allWorkAssets.length + allLogoAssets.length})`)}
             </button>
             <button
               type="button"
@@ -325,7 +325,7 @@ export default function ResourceLibrary({
                   : "text-neutral-400 hover:text-white"
               }`}
             >
-              Karya Klien ({allWorkAssets.length})
+              {tr(`Client Works (${allWorkAssets.length})`, `Karya Klien (${allWorkAssets.length})`, `Karya Klien (${allWorkAssets.length})`)}
             </button>
             <button
               type="button"
@@ -336,7 +336,7 @@ export default function ResourceLibrary({
                   : "text-neutral-400 hover:text-white"
               }`}
             >
-              Logo Marquee ({allLogoAssets.length})
+              {tr(`Marquee Logos (${allLogoAssets.length})`, `Logo Marquee (${allLogoAssets.length})`, `Logo Marquee (${allLogoAssets.length})`)}
             </button>
           </div>
 
@@ -347,7 +347,7 @@ export default function ResourceLibrary({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={isId ? "Cari nama karya, brand, atau tahun..." : "Search assets by title, client, year..."}
+              placeholder={tr("Search assets by title, client, year...", "Cari nama karya, brand, atau tahun...", "Cari namo karya, brand, atau tahun...")}
               className="w-full bg-[#141820] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E] transition-colors"
             />
             {searchQuery && (
@@ -371,7 +371,7 @@ export default function ResourceLibrary({
             onChange={(e) => setSelectedClientFilter(e.target.value)}
             className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-white/10 text-xs text-neutral-300 outline-none focus:border-[#14AF9E] cursor-pointer"
           >
-            <option value="all">{isId ? "Semua Folder Klien" : "All Client Folders"}</option>
+            <option value="all">{tr("All Client Folders", "Semua Folder Klien", "Kasadonyo Folder Klien")}</option>
             {clients.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.clientName} ({c.works?.length || 0})
@@ -384,10 +384,10 @@ export default function ResourceLibrary({
             onChange={(e) => setSelectedAspectFilter(e.target.value)}
             className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-white/10 text-xs text-neutral-300 outline-none focus:border-[#14AF9E] cursor-pointer"
           >
-            <option value="all">{isId ? "Semua Rasio" : "All Aspect Ratios"}</option>
-            <option value="4:5">Portrait (4:5)</option>
-            <option value="16:9">Landscape (16:9)</option>
-            <option value="1:1">Square (1:1)</option>
+            <option value="all">{tr("All Aspect Ratios", "Semua Rasio", "Kasadonyo Rasio")}</option>
+            <option value="4:5">{tr("Portrait (4:5)", "Potret (4:5)", "Potret (4:5)")}</option>
+            <option value="16:9">{tr("Landscape (16:9)", "Lanskap (16:9)", "Lanskap (16:9)")}</option>
+            <option value="1:1">{tr("Square (1:1)", "Persegi (1:1)", "Pasegi (1:1)")}</option>
           </select>
 
           {(selectedClientFilter !== "all" || selectedAspectFilter !== "all" || searchQuery) && (
@@ -400,7 +400,7 @@ export default function ResourceLibrary({
               }}
               className="text-[11px] text-[#14AF9E] hover:underline cursor-pointer ml-auto font-mono"
             >
-              {isId ? "Reset Filter" : "Reset Filters"}
+              {tr("Reset Filters", "Reset Filter", "Reset Filter")}
             </button>
           )}
         </div>
@@ -410,9 +410,11 @@ export default function ResourceLibrary({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-xs text-neutral-400 font-mono">
-            {isId
-              ? `Menampilkan ${filteredAssets.length} aset media`
-              : `Showing ${filteredAssets.length} visual assets`}
+            {tr(
+              `Showing ${filteredAssets.length} visual assets`,
+              `Menampilkan ${filteredAssets.length} aset media`,
+              `Manampilkan ${filteredAssets.length} aset media`
+            )}
           </span>
         </div>
 
@@ -449,7 +451,7 @@ export default function ResourceLibrary({
                 <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
                   <button
                     type="button"
-                    title={isId ? "Lihat Preview Besar" : "View Lightbox"}
+                    title={tr("View Lightbox", "Lihat Preview Besar", "Caliak Preview Gadang")}
                     onClick={(e) => {
                       e.stopPropagation();
                       setLightboxAsset(asset);
@@ -460,7 +462,7 @@ export default function ResourceLibrary({
                   </button>
                   <button
                     type="button"
-                    title={isId ? "Salin Link Gambar" : "Copy URL"}
+                    title={tr("Copy URL", "Salin Link Gambar", "Salin Link Gambar")}
                     onClick={(e) => handleCopyLink(asset.image, e)}
                     className="w-8 h-8 rounded-full bg-[#14AF9E] hover:bg-[#119889] text-black flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer"
                   >
@@ -468,7 +470,7 @@ export default function ResourceLibrary({
                   </button>
                   <button
                     type="button"
-                    title={isId ? "Unduh File" : "Download File"}
+                    title={tr("Download File", "Unduh File", "Unduah File")}
                     onClick={(e) => handleDownload(asset, e)}
                     className="w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer"
                   >
@@ -499,10 +501,10 @@ export default function ResourceLibrary({
           <div className="p-12 text-center rounded-2xl bg-[#111419] border border-white/5 space-y-2">
             <HiPhoto className="w-8 h-8 text-neutral-600 mx-auto" />
             <p className="text-sm font-semibold text-white">
-              {isId ? "Tidak ada aset yang ditemukan." : "No visual assets found."}
+              {tr("No visual assets found.", "Tidak ada aset yang ditemukan.", "Indak ado aset nan basuo.")}
             </p>
             <p className="text-xs text-neutral-400">
-              {isId ? "Coba ubah kata kunci pencarian atau filter rasio/folder." : "Try adjusting your search query or filters."}
+              {tr("Try adjusting your search query or filters.", "Coba ubah kata kunci pencarian atau filter rasio/folder.", "Cubolah ubah kato kunci pancarian atau filter rasio/folder.")}
             </p>
           </div>
         )}
@@ -537,7 +539,7 @@ export default function ResourceLibrary({
                   className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-medium flex items-center gap-1.5 border border-white/10 transition-colors cursor-pointer"
                 >
                   <HiClipboardDocument className="w-3.5 h-3.5 text-[#14AF9E]" />
-                  <span>{isId ? "Salin Link" : "Copy URL"}</span>
+                  <span>{tr("Copy URL", "Salin Link", "Salin Link")}</span>
                 </button>
                 <button
                   type="button"
@@ -545,7 +547,7 @@ export default function ResourceLibrary({
                   className="px-3 py-1.5 rounded-lg bg-[#14AF9E] hover:bg-[#119889] text-black text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <HiArrowDownTray className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>{isId ? "Unduh" : "Download"}</span>
+                  <span>{tr("Download", "Unduh", "Unduah")}</span>
                 </button>
                 <button
                   type="button"
@@ -582,7 +584,7 @@ export default function ResourceLibrary({
                   }}
                   className="text-xs text-[#14AF9E] hover:underline flex items-center gap-1 font-medium cursor-pointer"
                 >
-                  <span>{isId ? "Buka di Folder Klien →" : "Open in Client Folder →"}</span>
+                  <span>{tr("Open in Client Folder →", "Buka di Folder Klien →", "Bukak di Folder Klien →")}</span>
                 </button>
               )}
             </div>

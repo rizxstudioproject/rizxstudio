@@ -46,9 +46,7 @@ export default function AdminSidebar({
   totalClients = 0,
   onOpenProfileMenu,
 }: AdminSidebarProps) {
-  const { lang } = useLang();
-  const isId = lang === "id";
-  const isMin = lang === "min";
+  const { lang, tr } = useLang();
 
   const menuItems: {
     id: AdminSidebarTab;
@@ -58,44 +56,44 @@ export default function AdminSidebar({
   }[] = [
     {
       id: "clients",
-      label: isMin ? "Portofolio & Klien" : isId ? "Portofolio & Klien" : "Portfolio & Clients",
+      label: tr("Portfolio & Clients", "Portofolio & Klien", "Portofolio & Klien"),
       badge: totalClients > 0 ? totalClients : undefined,
       icon: HiFolder,
     },
     {
       id: "resources",
-      label: "Resource Library",
+      label: tr("Resource Library", "Gudang Aset Media", "Gudang Aset Media"),
       badge: totalWorks > 0 ? totalWorks : undefined,
       icon: HiSquare3Stack3D,
     },
     {
       id: "hero-banner",
-      label: "Hero Banner (Scrolly)",
+      label: tr("Hero Banner (Scrolly)", "Banner Utama (Scrolly)", "Banner Utamo (Scrolly)"),
       icon: HiSparkles,
     },
     {
       id: "hero-works",
-      label: isMin ? "Hero & Karya Tapiliah" : isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
+      label: tr("Hero & Selected Works", "Hero & Karya Unggulan", "Hero & Karya Tapiliah"),
       icon: HiPhoto,
     },
     {
       id: "flagship",
-      label: "Media Showcase (Stage 3)",
+      label: tr("Media Showcase (Stage 3)", "Pameran Media (Stage 3)", "Pameran Media (Stage 3)"),
       icon: HiVideoCamera,
     },
     {
       id: "runner",
-      label: isMin ? "Running Portofolio (4:5)" : isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
+      label: tr("Running Portfolio (4:5)", "Portofolio Berjalan (4:5)", "Portofolio Baguliah (4:5)"),
       icon: HiSquares2X2,
     },
     {
       id: "about",
-      label: isMin ? "Tantang Ambo (About Me)" : isId ? "Tentang Saya (About Me)" : "About Me Section",
+      label: tr("About Me Section", "Tentang Saya", "Tantang Ambo"),
       icon: HiUser,
     },
     {
       id: "settings",
-      label: isMin ? "Kunci & Kaamanan Akun" : isId ? "Sandi & Keamanan Akun" : "Password & Security",
+      label: tr("Password & Security", "Sandi & Keamanan Akun", "Kunci & Kaamanan Akun"),
       icon: HiKey,
     },
   ];
@@ -122,7 +120,7 @@ export default function AdminSidebar({
               {adminName}
             </h1>
             <p className="text-[11px] text-neutral-400 font-sans truncate">
-              Creative production
+              {tr("Creative production", "Produksi kreatif", "Produksi kreatif")}
             </p>
           </div>
         </div>
@@ -131,7 +129,7 @@ export default function AdminSidebar({
       {/* Navigation List — All 8 REAL Portfolio Admin Sections */}
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-500 px-3 pb-1 block">
-          {isId ? "KONTROL PORTOFOLIO" : "PORTFOLIO CONTROLS"}
+          {tr("PORTFOLIO CONTROLS", "KONTROL PORTOFOLIO", "PANGATURAN PORTOFOLIO")}
         </span>
 
         {menuItems.map((item) => {
@@ -178,7 +176,7 @@ export default function AdminSidebar({
         {/* Storage Bar */}
         <div className="p-3 rounded-xl bg-[#0f1115] border border-white/5 space-y-2">
           <div className="flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">Storage</span>
+            <span className="text-neutral-400">{tr("Storage", "Penyimpanan", "Panyimpanan")}</span>
             <span className="font-mono text-neutral-200">
               <strong className="text-white">{storageUsed}</strong> / {storageTotal} GB
             </span>
@@ -190,8 +188,8 @@ export default function AdminSidebar({
             />
           </div>
           <div className="flex items-center justify-between text-[10px] text-neutral-500 font-mono">
-            <span>{totalWorks} total works</span>
-            <span className="text-emerald-400">Live Sync</span>
+            <span>{totalWorks} {tr("total works", "total karya", "karya kasadonyo")}</span>
+            <span className="text-emerald-400">{tr("Live Sync", "Sinkron Langsung", "Sinkron Langsuang")}</span>
           </div>
         </div>
 

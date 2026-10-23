@@ -13,7 +13,7 @@ import {
   HiPlay,
 } from "react-icons/hi2";
 import { SiBlender, SiFigma, SiCinema4D, SiGooglegemini } from "react-icons/si";
-import { useLang } from "@/context/LanguageContext";
+import { useLang, toMinang } from "@/context/LanguageContext";
 import { usePortfolioData, extractYouTubeId } from "@/context/PortfolioDataContext";
 
 interface WorkItem {
@@ -414,8 +414,31 @@ const clientBrandDescMap: Record<string, { en: string; id: string }> = {
 /**
  * Intelligent AI Case Study Fallback with Bilingual Support (EN & ID)
  */
-export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en") {
-  const isId = lang === "id" || lang === "min";
+export interface CaseStudyResult {
+  brand: string;
+  year: string;
+  brief: string;
+  approach: string;
+  role: string;
+  challenge: string;
+  solution: string;
+  tools: string[];
+}
+
+export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"): CaseStudyResult {
+  if (lang === "min") {
+    const base = getCaseStudy(work, "id");
+    return {
+      ...base,
+      brief: toMinang(base.brief),
+      approach: toMinang(base.approach),
+      role: toMinang(base.role),
+      challenge: toMinang(base.challenge),
+      solution: toMinang(base.solution),
+    };
+  }
+
+  const isId = lang === "id";
 
   // Priority 1: If in English, and work has explicit fields from Admin / data, return them directly
   if (!isId && (work.challenge || work.solution || work.brief || work.role)) {
@@ -709,10 +732,10 @@ export default function Projects() {
   const { stage1: defaultStage1, stage2: defaultStage2 } = antigravityData;
   // Use context for live edits from Admin Dashboard
   const { stage3, clients: contextClients, allData, heroWorks, portfolioIntro } = usePortfolioData();
-  const { t, lang } = useLang();
-  const isId = lang === "id" || lang === "min";
+  const { t, lang, tr } = useLang();
+  const isId = lang === "id";
   const isMin = lang === "min";
-  const isLocalized = isId;
+  const isLocalized = isId || isMin;
 
   const stage1Badge = isLocalized ? t("projects.stage1.badge") : (heroWorks?.stage1Badge || defaultStage1.badge);
   const stage1Headline = isLocalized ? t("projects.stage1.headline") : (heroWorks?.stage1Headline || defaultStage1.headline);
@@ -769,15 +792,9 @@ export default function Projects() {
       ? portfolioIntro.tools
       : stage4.tools;
 
-  const stage4Badge = isId
-    ? t("projects.stage4.badge")
-    : portfolioIntro?.badge || t("projects.stage4.badge");
-  const stage4Headline = isId
-    ? t("projects.stage4.headline")
-    : portfolioIntro?.headline || t("projects.stage4.headline");
-  const stage4Desc = isId
-    ? t("projects.stage4.desc")
-    : portfolioIntro?.description || t("projects.stage4.desc");
+  const stage4Badge = isLocalized ? t("projects.stage4.badge") : portfolioIntro?.badge || t("projects.stage4.badge");
+  const stage4Headline = isLocalized ? t("projects.stage4.headline") : portfolioIntro?.headline || t("projects.stage4.headline");
+  const stage4Desc = isLocalized ? t("projects.stage4.desc") : portfolioIntro?.description || t("projects.stage4.desc");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const folderScrollRef = useRef<HTMLDivElement>(null);
@@ -1039,7 +1056,7 @@ export default function Projects() {
                           type: info.category,
                           image: c.image,
                           aspect: "1:1",
-                          clientName: isId ? "Karya Terpilih" : "Selected Works",
+                          clientName: tr("Selected Works", "Karya Terpilih", "Karya Tapiliah"),
                           isClientWork: false,
                         };
                       }),
@@ -1263,10 +1280,10 @@ export default function Projects() {
                             items: stage2.overlappingCards.map((c) => ({
                               id: c.id,
                               title: getStage2CardTitle(c, isId),
-                              type: isId ? "Visual AI & Motion" : "AI & Motion Visual",
+                              type: tr("AI & Motion Visual", "Visual AI & Motion", "Visual AI & Motion"),
                               image: c.image,
                               aspect: "1:1",
-                              clientName: isId ? "Arsip Desain & Motion" : "Design & Motion Archive",
+                              clientName: tr("Design & Motion Archive", "Arsip Desain & Motion", "Arsip Desain & Motion"),
                               isClientWork: false,
                             })),
                             currentIndex: idx,
@@ -1341,8 +1358,8 @@ export default function Projects() {
               <div className="flex items-center justify-between mb-1.5 px-0.5">
                 <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-1.5">
                   <HiFolder className="w-3.5 h-3.5 text-[#14AF9E]" />
-                  <span>{isId ? "Folder Klien" : "Client Folders"} ({stage4.clients.length})</span>
-                  <span className="text-neutral-500 font-normal lowercase tracking-normal">• {isId ? "geser ↓" : "scroll ↓"}</span>
+                  <span>{tr("Client Folders", "Folder Klien", "Folder Klien")} ({stage4.clients.length})</span>
+                  <span className="text-neutral-500 font-normal lowercase tracking-normal">• {tr("scroll ↓", "geser ↓", "geser ↓")}</span>
                 </span>
                 
                 {/* Arrow buttons: Scroll to start / end of client folders */}
@@ -1355,7 +1372,7 @@ export default function Projects() {
                       }
                     }}
                     className="p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95"
-                    title={isId ? "Kembali ke awal folder" : "Scroll to start"}
+                    title={tr("Scroll to start", "Kembali ke awal folder", "Baliak ka mulo folder")}
                     aria-label="Scroll to first folder"
                   >
                     <span>←</span>
@@ -1371,7 +1388,7 @@ export default function Projects() {
                       }
                     }}
                     className="p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95"
-                    title={isId ? "Langsung ke akhir folder" : "Scroll to end"}
+                    title={tr("Scroll to end", "Langsung ke akhir folder", "Langsuang ka ujuang folder")}
                     aria-label="Scroll to last folder"
                   >
                     <span>→</span>
@@ -1417,7 +1434,7 @@ export default function Projects() {
               <div>
                 <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
                   <HiFolder className="w-4 h-4 text-[#14AF9E] shrink-0" />
-                  <span>{isId ? `Arsip ${activeClientData.clientName}` : `${activeClientData.clientName} Archive`}</span>
+                  <span>{tr(`${activeClientData.clientName} Archive`, `Arsip ${activeClientData.clientName}`, `Arsip ${activeClientData.clientName}`)}</span>
                 </h4>
                 <p className="text-xs text-neutral-300 font-mono">
                   {getClientCategory(activeClientData.category, isId)}
@@ -1753,14 +1770,17 @@ export default function Projects() {
                           );
                           const rawDesc = (clientData as any)?.description || "";
                           const clientKey = (currentWork.clientName || "").toLowerCase().trim();
-                          const brandDesc = isId
-                            ? (clientBrandDescMap[clientKey]?.id || rawDesc)
+                          const rawIdDesc = clientBrandDescMap[clientKey]?.id || rawDesc;
+                          const brandDesc = isMin
+                            ? toMinang(rawIdDesc)
+                            : isId
+                            ? rawIdDesc
                             : (rawDesc || clientBrandDescMap[clientKey]?.en);
                           if (!brandDesc) return null;
                           return (
                             <div className="mt-2 p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20">
                               <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold block mb-1">
-                                {isId ? "Profil & Deskripsi Brand" : "Brand Profile & Context"} — {currentWork.clientName}
+                                {tr("Brand Profile & Context", "Profil & Deskripsi Brand", "Profil & Deskripsi Brand")} — {currentWork.clientName}
                               </span>
                               <p className="text-xs text-neutral-300 font-light leading-relaxed">
                                 {brandDesc}
