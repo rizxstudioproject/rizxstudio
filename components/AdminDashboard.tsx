@@ -1332,16 +1332,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       if (stage3.headline) setVideoHeadline(stage3.headline);
       if (stage3.classTag) setVideoClassTag(stage3.classTag);
       if (stage3.heroCard) {
-        const url =
+        setVideoUrlInput(
           stage3.heroCard.youtubeUrl ||
-          (stage3.heroCard.videoId ? `https://www.youtube.com/watch?v=${stage3.heroCard.videoId}` : "");
-        if (url) setVideoUrlInput(url);
-        if (stage3.heroCard.mediaType) setFlagshipMediaType(stage3.heroCard.mediaType);
-        if (stage3.heroCard.gdriveUrl || stage3.heroCard.gdriveId) {
-          setFlagshipGDriveUrl(
-            stage3.heroCard.gdriveUrl || `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view`
-          );
-        }
+            (stage3.heroCard.videoId ? `https://www.youtube.com/watch?v=${stage3.heroCard.videoId}` : "")
+        );
+        setFlagshipMediaType(stage3.heroCard.mediaType || "image");
+        setFlagshipGDriveUrl(
+          stage3.heroCard.gdriveUrl ||
+            (stage3.heroCard.gdriveId ? `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view` : "")
+        );
         if (stage3.heroCard.image) setFlagshipImageUrl(stage3.heroCard.image);
         if (stage3.heroCard.title) setVideoTitle(stage3.heroCard.title);
         if (stage3.heroCard.category) setVideoCategory(stage3.heroCard.category);
@@ -1365,7 +1364,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const previewGDriveId = extractGoogleDriveId(flagshipGDriveUrl);
 
   // Handlers for Flagship Video Showcase
-  const handleSaveVideo = (e?: React.FormEvent, andJumpToWeb: boolean = false) => {
+  const handleSaveVideo = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     let computedYtId = "";
@@ -1374,44 +1373,72 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     if (flagshipMediaType === "youtube") {
       computedYtId = extractYouTubeId(videoUrlInput);
       if (videoUrlInput.trim() && !computedYtId) {
-        showToast("Peringatan: Format URL YouTube tidak valid. Mohon periksa kembali.");
+        showToast(
+          tx(
+            "Peringatan: Format URL YouTube tidak valid. Mohon periksa kembali.",
+            "Warning: Invalid YouTube URL format. Please check again.",
+            "Paringatan: Format URL YouTube indak sah. Tolong pareso baliak."
+          )
+        );
         return;
       }
     } else if (flagshipMediaType === "gdrive") {
       computedGdId = extractGoogleDriveId(flagshipGDriveUrl);
       if (flagshipGDriveUrl.trim() && !computedGdId) {
-        showToast("Peringatan: Format Link Google Drive tidak valid. Mohon periksa kembali.");
+        showToast(
+          tx(
+            "Peringatan: Format Link Google Drive tidak valid. Mohon periksa kembali.",
+            "Warning: Invalid Google Drive link format. Please check again.",
+            "Paringatan: Format Tautan Google Drive indak sah. Tolong pareso baliak."
+          )
+        );
         return;
       }
     }
 
     updateStage3Video({
       mediaType: flagshipMediaType,
-      youtubeUrl: videoUrlInput.trim(),
-      videoId: computedYtId,
-      gdriveUrl: flagshipGDriveUrl.trim(),
-      gdriveId: computedGdId,
+      youtubeUrl: flagshipMediaType === "youtube" ? videoUrlInput.trim() : "",
+      videoId: flagshipMediaType === "youtube" ? computedYtId : "",
+      gdriveUrl: flagshipMediaType === "gdrive" ? flagshipGDriveUrl.trim() : "",
+      gdriveId: flagshipMediaType === "gdrive" ? computedGdId : "",
       image: flagshipImageUrl.trim(),
       title: videoTitle.trim(),
       category: videoCategory.trim(),
       description: videoDescription.trim(),
       headline: videoHeadline.trim(),
       classTag: videoClassTag.trim(),
-      isVideoEnabled: videoEnabled,
+      isVideoEnabled: flagshipMediaType === "image" ? false : videoEnabled,
     });
 
-    if (andJumpToWeb) {
-      handleJumpToFlagshipWeb();
-    } else {
-      showToast("Berhasil! Semua teks & media Flagship Showcase telah diperbarui dan langsung aktif.");
-    }
+    showToast(
+      tx(
+        "Berhasil! Semua pengaturan Flagship Showcase telah disimpan dan aktif.",
+        "Success! Flagship Showcase settings saved and live.",
+        "Barasil! Kasadonyo pangaturan Flagship Showcase lah disimpan jo aktif."
+      )
+    );
   };
 
   const handleRemoveVideo = () => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus video embed dari Flagship Showcase?")) {
+    const confirmMsg = tx(
+      "Apakah Anda yakin ingin menghapus media video dari Flagship Showcase?",
+      "Are you sure you want to remove the video from Flagship Showcase?",
+      "Apakao Sanak yakin nio mahapuih video dari Flagship Showcase?"
+    );
+    if (window.confirm(confirmMsg)) {
       removeStage3Video();
       setVideoUrlInput("");
-      showToast("Video embed berhasil dihapus dari Flagship Showcase.");
+      setFlagshipGDriveUrl("");
+      setFlagshipMediaType("image");
+      setVideoEnabled(false);
+      showToast(
+        tx(
+          "Media video berhasil dihapus dari Flagship Showcase.",
+          "Video successfully removed from Flagship Showcase.",
+          "Video barasil dihapuih dari Flagship Showcase."
+        )
+      );
     }
   };
 
@@ -4392,7 +4419,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
               <div className="lg:col-span-7">
                 <form
-                  onSubmit={(e) => handleSaveVideo(e, false)}
+                  onSubmit={handleSaveVideo}
                   className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 space-y-5 backdrop-blur-sm"
                 >
                   <div className="flex items-center justify-between pb-2 border-b border-white/10">
@@ -4512,19 +4539,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     {flagshipMediaType === "gdrive" && (
                       <div className="space-y-1.5">
                         <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          Link File / Video Google Drive <span className="text-blue-400">*</span>
+                          {tx("Link File / Video Google Drive", "Google Drive File / Video Link", "Tautan File / Video Google Drive")} <span className="text-blue-400">*</span>
                         </label>
                         <input
                           type="text"
                           value={flagshipGDriveUrl}
                           onChange={(e) => setFlagshipGDriveUrl(e.target.value)}
-                          placeholder="Contoh: https://drive.google.com/file/d/1aBcDeFgHiJkLmNoPqRsTuVwXyZ/view?usp=sharing"
+                          placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
                           className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                         />
-                        <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500 font-mono">
-                          <span>Pastikan akses file diatur ke "Siapa saja yang memiliki link"</span>
+                        <div className="flex flex-wrap items-center justify-between gap-1 mt-1 text-[11px] text-neutral-400 font-mono">
+                          <span>{tx("Akses file: 'Siapa saja yang memiliki link'", "Access: 'Anyone with the link'", "Akses file: 'Sia se nan punyo tautan'")}</span>
                           {previewGDriveId && (
-                            <span className="text-blue-400 font-semibold">Drive ID: {previewGDriveId}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-400 font-semibold">Drive ID: {previewGDriveId}</span>
+                              <a
+                                href={`https://drive.google.com/file/d/${previewGDriveId}/view`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-cyan-400 underline hover:text-cyan-300 transition-colors"
+                              >
+                                {tx("↗ Tes Buka Link", "↗ Test Link", "↗ Uji Bukak Tautan")}
+                              </a>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -4629,31 +4666,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </div>
                   </div>
 
-                  {/* Action Buttons */}
+                  {/* Action Buttons: ONLY Save & Delete */}
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
                     <button
-                      type="button"
-                      onClick={() => handleSaveVideo(undefined, true)}
-                      className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-400 hover:from-[#119889] hover:to-cyan-300 text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all active:scale-95 cursor-pointer"
+                      type="submit"
+                      className="flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-400 hover:from-[#119889] hover:to-cyan-300 text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all active:scale-95 cursor-pointer"
                     >
                       <HiCheck className="w-4 h-4" />
-                      <span>{tx("Simpan & Buka Langsung di Web ↗", "Save & Open on Web ↗")}</span>
-                    </button>
-
-                    <button
-                      type="submit"
-                      className="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-medium text-xs sm:text-sm border border-white/10 transition-all active:scale-95 cursor-pointer"
-                    >
-                      <span>{tx("Simpan Saja", "Save Only")}</span>
+                      <span>{tx("Simpan", "Save", "Simpan")}</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleRemoveVideo}
-                      className="flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all cursor-pointer"
+                      className="flex items-center justify-center gap-1.5 py-3 px-5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer"
                     >
                       <HiTrash className="w-4 h-4" />
-                      <span>{tx("Hapus Video", "Remove Video")}</span>
+                      <span>{tx("Hapus", "Delete", "Hapuih")}</span>
                     </button>
                   </div>
                 </form>

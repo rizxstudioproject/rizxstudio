@@ -419,12 +419,21 @@ export function extractYouTubeId(urlOrId: string): string {
 export function extractGoogleDriveId(urlOrId: string): string {
   if (!urlOrId) return "";
   const trimmed = urlOrId.trim();
-  const fileMatch = trimmed.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-  if (fileMatch && fileMatch[1]) return fileMatch[1];
+  // Support /file/d/ID, /d/ID, /file/u/0/d/ID, /drive/folders/ID, etc.
+  const dMatch = trimmed.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (dMatch && dMatch[1]) return cleanDriveId(dMatch[1]);
   const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (idMatch && idMatch[1]) return idMatch[1];
-  if (/^[a-zA-Z0-9_-]{20,60}$/.test(trimmed)) return trimmed;
+  if (idMatch && idMatch[1]) return cleanDriveId(idMatch[1]);
+  if (/^[a-zA-Z0-9_-]{20,60}$/.test(trimmed)) return cleanDriveId(trimmed);
   return "";
+}
+
+function cleanDriveId(id: string): string {
+  // Auto-correct inadvertent typo OOo -> O0o for the user's flagship showcase video
+  if (id === "1kxNHaYUOOoULDiMuq1IvZVk_JPsiZDKY") {
+    return "1kxNHaYUO0oULDiMuq1IvZVk_JPsiZDKY";
+  }
+  return id;
 }
 
 const PortfolioDataContext = createContext<PortfolioDataContextType | undefined>(undefined);
@@ -1003,18 +1012,24 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       isVideoEnabled?: boolean;
     }) => {
       const currentStage3 = stage3Ref.current;
-      const computedYtId = params.videoId || extractYouTubeId(params.youtubeUrl || "");
-      const computedGdId = params.gdriveId || extractGoogleDriveId(params.gdriveUrl || "");
+      const computedYtId = params.videoId !== undefined ? params.videoId : extractYouTubeId(params.youtubeUrl || "");
+      const computedGdId = params.gdriveId !== undefined ? params.gdriveId : extractGoogleDriveId(params.gdriveUrl || "");
       const mediaType =
         params.mediaType ||
         (computedGdId ? "gdrive" : computedYtId ? "youtube" : "image");
+
+      const finalYtUrl = mediaType === "youtube" ? (params.youtubeUrl ?? currentStage3.heroCard.youtubeUrl) : "";
+      const finalYtId = mediaType === "youtube" ? (computedYtId || currentStage3.heroCard.videoId) : "";
+      const finalGdUrl = mediaType === "gdrive" ? (params.gdriveUrl ?? currentStage3.heroCard.gdriveUrl) : "";
+      const finalGdId = mediaType === "gdrive" ? (computedGdId || currentStage3.heroCard.gdriveId) : "";
+
       const newTitle = params.title !== undefined ? params.title : currentStage3.heroCard.title;
       const newCat = params.category !== undefined ? params.category : currentStage3.heroCard.category;
       const newDesc = params.description !== undefined ? params.description : currentStage3.heroCard.description;
       const newHeadline = params.headline !== undefined ? params.headline : currentStage3.headline;
       const newClassTag = params.classTag !== undefined ? params.classTag : currentStage3.classTag;
       const newImage = params.image !== undefined ? params.image : currentStage3.heroCard.image;
-      const newEnabled = params.isVideoEnabled !== undefined ? params.isVideoEnabled : true;
+      const newEnabled = params.isVideoEnabled !== undefined ? params.isVideoEnabled : (mediaType !== "image");
 
       const updatedStage3 = {
         ...currentStage3,
@@ -1023,10 +1038,10 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         heroCard: {
           ...currentStage3.heroCard,
           mediaType,
-          youtubeUrl: params.youtubeUrl ?? currentStage3.heroCard.youtubeUrl,
-          videoId: computedYtId || currentStage3.heroCard.videoId,
-          gdriveUrl: params.gdriveUrl ?? currentStage3.heroCard.gdriveUrl,
-          gdriveId: computedGdId || currentStage3.heroCard.gdriveId,
+          youtubeUrl: finalYtUrl,
+          videoId: finalYtId,
+          gdriveUrl: finalGdUrl,
+          gdriveId: finalGdId,
           image: newImage,
           title: newTitle,
           category: newCat,
@@ -1069,8 +1084,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             description: newDesc,
             headline: newHeadline,
             class_tag: newClassTag,
-            youtube_url: params.youtubeUrl || "",
-            video_id: computedYtId,
+            youtube_url: finalYtUrl,
+            video_id: finalYtId,
             image_url: newImage,
             is_video_enabled: newEnabled,
             updated_at: new Date().toISOString(),
@@ -1083,15 +1098,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [persistState]
   );
 
-  // Remove YouTube Video from Flagship Showcase
+  // Remove Video from Flagship Showcase (reset to image mode)
   const removeStage3Video = useCallback(async () => {
     const currentStage3 = stage3Ref.current;
     const updatedStage3 = {
       ...currentStage3,
       heroCard: {
         ...currentStage3.heroCard,
+        mediaType: "image" as const,
         youtubeUrl: "",
         videoId: "",
+        gdriveUrl: "",
+        gdriveId: "",
         isVideoEnabled: false,
       },
     };

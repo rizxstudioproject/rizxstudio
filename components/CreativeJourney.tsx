@@ -87,8 +87,8 @@ export default function CreativeJourney() {
             <iframe
               src={`https://drive.google.com/file/d/${gdriveId}/preview`}
               title={displayTitle}
-              className="w-full h-full object-cover scale-[1.12] border-0 pointer-events-none"
-              allow="autoplay; encrypted-media"
+              className="w-full h-full object-cover scale-[1.05] border-0 pointer-events-none"
+              allow="autoplay; encrypted-media; fullscreen"
             />
           ) : mounted && imageSrc ? (
             <img
@@ -102,6 +102,17 @@ export default function CreativeJourney() {
             </div>
           )}
         </div>
+
+        {/* Center Play Button for Video Mode */}
+        {(isShowingYouTube || isShowingGDrive) && (
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+            <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-black/60 backdrop-blur-md border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#14AF9E] group-hover:text-black group-hover:border-[#14AF9E] transition-all duration-300 shadow-2xl">
+              <svg className="w-6 h-6 sm:w-8 sm:h-8 fill-current ml-1" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </div>
+        )}
 
         {/* Dark Vignette Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent pointer-events-none" />
@@ -159,7 +170,7 @@ export default function CreativeJourney() {
                   src={`https://drive.google.com/file/d/${gdriveId}/preview`}
                   title={displayTitle}
                   className="w-full h-full border-0"
-                  allow="autoplay; encrypted-media"
+                  allow="autoplay; encrypted-media; fullscreen"
                   allowFullScreen
                 />
               ) : (
