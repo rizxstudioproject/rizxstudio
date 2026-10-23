@@ -39,6 +39,8 @@ import {
   DeckCardItem,
   OverlappingCardItem,
   ClientLogoItem,
+  PortfolioRunnerItem,
+  defaultPortfolioRunnerData,
 } from "@/context/PortfolioDataContext";
 import { getCaseStudy, getAspectClass } from "@/components/Projects";
 
@@ -53,6 +55,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     updateHeroWorksData,
     updateClientLogosData,
     updatePortfolioIntroData,
+    portfolioRunner,
+    updatePortfolioRunnerData,
+    resetPortfolioRunner,
     updateAboutData,
     updateStage3Video,
     removeStage3Video,
@@ -69,9 +74,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     isCloudSyncActive,
   } = usePortfolioData();
 
-  // Active Tab: 'clients' | 'hero-works' | 'client-logos' | 'about' | 'flagship' | 'account'
+  // Active Tab: 'clients' | 'hero-works' | 'client-logos' | 'runner' | 'about' | 'flagship' | 'account'
   const [activeTab, setActiveTab] = useState<
-    "clients" | "hero-works" | "client-logos" | "about" | "flagship" | "account"
+    "clients" | "hero-works" | "client-logos" | "runner" | "about" | "flagship" | "account"
   >("clients");
 
   // Mobile Navigation Drawer State
@@ -222,6 +227,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setClLogos(clientLogos.logos || defaultClientLogosData.logos);
     }
   }, [clientLogos]);
+
+  // ==========================================
+  // Portfolio Runner Marquee (4:5) Form States
+  // ==========================================
+  const [runnerTitle, setRunnerTitle] = useState(
+    portfolioRunner?.title || defaultPortfolioRunnerData.title
+  );
+  const [runnerItems, setRunnerItems] = useState<PortfolioRunnerItem[]>(
+    portfolioRunner?.items || defaultPortfolioRunnerData.items
+  );
+  const [newRunnerTitle, setNewRunnerTitle] = useState("");
+  const [newRunnerCategory, setNewRunnerCategory] = useState("");
+  const [newRunnerImage, setNewRunnerImage] = useState("");
+  const [newRunnerRow, setNewRunnerRow] = useState<1 | 2>(1);
+  const [editingRunnerItem, setEditingRunnerItem] = useState<PortfolioRunnerItem | null>(null);
+  const [runnerFilterRow, setRunnerFilterRow] = useState<"all" | 1 | 2>("all");
+
+  useEffect(() => {
+    if (portfolioRunner) {
+      setRunnerTitle(portfolioRunner.title || defaultPortfolioRunnerData.title);
+      setRunnerItems(portfolioRunner.items || defaultPortfolioRunnerData.items);
+    }
+  }, [portfolioRunner]);
 
   // About Me Section Form States
   const [aboutEyebrow, setAboutEyebrow] = useState(about?.eyebrow || defaultAboutData.eyebrow);
@@ -476,6 +504,84 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const handleDeleteClientLogo = (id: string) => {
     setClLogos((prev) => prev.filter((l) => l.id !== id));
     showToast("Logo dihapus dari marquee. Klik 'Simpan Update' untuk menerapkan.");
+  };
+
+  // ==========================================
+  // Handlers for Portfolio Runner Marquee (4:5)
+  // ==========================================
+  const handleSavePortfolioRunner = async () => {
+    await updatePortfolioRunnerData({
+      title: runnerTitle.trim() || "SELECTED WORKS",
+      items: runnerItems,
+    });
+    showToast("Berhasil: Running Portofolio (4:5) berhasil disimpan!");
+  };
+
+  const handleCancelPortfolioRunner = () => {
+    if (portfolioRunner) {
+      setRunnerTitle(portfolioRunner.title || defaultPortfolioRunnerData.title);
+      setRunnerItems(portfolioRunner.items || defaultPortfolioRunnerData.items);
+    }
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
+  };
+
+  const handleAddRunnerItem = () => {
+    if (!newRunnerImage) {
+      showToast("Peringatan: Silakan pilih gambar karya terlebih dahulu.");
+      return;
+    }
+    if (!newRunnerTitle.trim()) {
+      showToast("Peringatan: Silakan isi judul karya.");
+      return;
+    }
+    const newItem: PortfolioRunnerItem = {
+      id: `pr-${Date.now()}`,
+      title: newRunnerTitle.trim(),
+      category: newRunnerCategory.trim() || "Creative Work",
+      image: newRunnerImage,
+      row: newRunnerRow,
+    };
+    setRunnerItems((prev) => [newItem, ...prev]);
+    setNewRunnerTitle("");
+    setNewRunnerCategory("");
+    setNewRunnerImage("");
+    showToast(`Karya "${newItem.title}" ditambahkan ke Baris ${newRunnerRow}! Klik 'Simpan Perubahan' untuk menerapkan.`);
+  };
+
+  const handleDeleteRunnerItem = (id: string) => {
+    setRunnerItems((prev) => prev.filter((item) => item.id !== id));
+    showToast("Karya dihapus dari running portfolio. Klik 'Simpan Perubahan' untuk menerapkan.");
+  };
+
+  const handleToggleRunnerRow = (id: string) => {
+    setRunnerItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, row: item.row === 1 ? 2 : 1 } : item
+      )
+    );
+    showToast("Posisi baris karya dipindahkan. Klik 'Simpan Perubahan' untuk menerapkan.");
+  };
+
+  const handleUpdateEditingRunnerItem = () => {
+    if (!editingRunnerItem) return;
+    if (!editingRunnerItem.title.trim()) {
+      showToast("Peringatan: Judul karya tidak boleh kosong.");
+      return;
+    }
+    setRunnerItems((prev) =>
+      prev.map((i) => (i.id === editingRunnerItem.id ? editingRunnerItem : i))
+    );
+    setEditingRunnerItem(null);
+    showToast("Karya berhasil diperbarui! Klik 'Simpan Perubahan' untuk menerapkan.");
+  };
+
+  const handleResetPortfolioRunnerDefault = async () => {
+    if (confirm(isId ? "Reset Running Portofolio ke susunan default awal?" : "Reset Running Portfolio to default?")) {
+      await resetPortfolioRunner();
+      setRunnerTitle(defaultPortfolioRunnerData.title);
+      setRunnerItems(defaultPortfolioRunnerData.items);
+      showToast("Running Portofolio berhasil di-reset ke default!");
+    }
   };
 
   // Tab 1: Flagship Showcase Video State
@@ -1079,6 +1185,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
           <button
             type="button"
+            onClick={() => setActiveTab("runner")}
+            className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+              activeTab === "runner"
+                ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/30"
+                : "text-neutral-400 hover:text-white hover:bg-white/5"
+            }`}
+          >
+            <HiPhoto className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">{isId ? "4. Running Portofolio" : "4. Running Portfolio"}</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveTab("about")}
             className={`flex-1 min-w-fit flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl text-xs sm:text-sm font-medium transition-all cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === "about"
@@ -1087,7 +1206,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiUser className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "4. Tentang Saya" : "4. About Me"}</span>
+            <span className="whitespace-nowrap">{isId ? "5. Tentang Saya" : "5. About Me"}</span>
           </button>
 
           <button
@@ -1100,7 +1219,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiVideoCamera className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "5. Video YouTube" : "5. YouTube Video"}</span>
+            <span className="whitespace-nowrap">{isId ? "6. Video YouTube" : "6. YouTube Video"}</span>
           </button>
 
           <button
@@ -1113,7 +1232,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}
           >
             <HiKey className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">{isId ? "6. Sandi & Akun" : "6. Password & Account"}</span>
+            <span className="whitespace-nowrap">{isId ? "7. Sandi & Akun" : "7. Password & Account"}</span>
           </button>
         </div>
 
@@ -1125,9 +1244,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {activeTab === "clients" && (isId ? "1. Portofolio" : "1. Portfolio")}
               {activeTab === "hero-works" && (isId ? "2. Hero & Karya" : "2. Hero & Works")}
               {activeTab === "client-logos" && (isId ? "3. Logo Klien" : "3. Client Logos")}
-              {activeTab === "about" && (isId ? "4. Tentang Saya" : "4. About Me")}
-              {activeTab === "flagship" && (isId ? "5. Video YouTube" : "5. YouTube Video")}
-              {activeTab === "account" && (isId ? "6. Sandi & Akun" : "6. Password & Account")}
+              {activeTab === "runner" && (isId ? "4. Running Portofolio (4:5)" : "4. Running Portfolio (4:5)")}
+              {activeTab === "about" && (isId ? "5. Tentang Saya" : "5. About Me")}
+              {activeTab === "flagship" && (isId ? "6. Video YouTube" : "6. YouTube Video")}
+              {activeTab === "account" && (isId ? "7. Sandi & Akun" : "7. Password & Account")}
             </span>
           </div>
 
@@ -2464,7 +2584,508 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           </motion.div>
         )}
 
-        {/* TAB: ABOUT ME SECTION MANAGEMENT */}
+        {/* ========================================================
+            TAB 4: PORTFOLIO RUNNER (4:5 MARQUEE) CRUD MANAGEMENT
+           ======================================================== */}
+        {activeTab === "runner" && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-8"
+          >
+            {/* Header Explainer */}
+            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+                SECTION CONTROL: RUNNING PORTOFOLIO (MARQUEE 4:5)
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                {isId ? "Editor Running Portofolio (Rasio 4:5)" : "Running Portfolio Editor (4:5 Ratio)"}
+              </h2>
+              <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+                {isId
+                  ? "Kelola kartu karya yang berjalan di strip 2 baris tepat di atas footer. Semua kartu memiliki rasio 4:5 seragam tanpa jeda atau putus. Anda bisa menambah karya baru, mengedit judul/kategori/gambar, memindahkan baris, atau menghapus karya."
+                  : "Manage the portfolio cards running in a 2-row strip above the footer. All cards have a uniform 4:5 aspect ratio with seamless infinite looping. You can create, edit, reorder rows, and delete items."}
+              </p>
+            </div>
+
+            {/* Section Header Title Editor */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <HiTag className="w-4 h-4 text-[#14AF9E]" />
+                <span>{isId ? "Judul Label Section" : "Section Header Label"}</span>
+              </h3>
+              <div className="space-y-1.5 max-w-xl">
+                <input
+                  type="text"
+                  value={runnerTitle}
+                  onChange={(e) => setRunnerTitle(e.target.value)}
+                  placeholder="SELECTED WORKS"
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                />
+                <p className="text-[11px] text-neutral-500 font-mono">
+                  {isId ? "Teks label kecil yang tampil di atas strip marquee running portofolio." : "Small label appearing above the running marquee strip."}
+                </p>
+              </div>
+            </div>
+
+            {/* Form: Tambah Karya Baru ke Running Portofolio (4:5) */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-5">
+              <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                  <HiPlus className="w-4 h-4 text-[#14AF9E]" />
+                  <span>{isId ? "Tambah Karya Baru ke Running Portofolio (4:5)" : "Add New Item to Running Portfolio (4:5)"}</span>
+                </h3>
+                <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-[#14AF9E]/15 text-[#14AF9E] border border-[#14AF9E]/30 font-semibold">
+                  Rasio 4:5
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+                {/* Inputs: 8 cols */}
+                <div className="md:col-span-8 space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                        {isId ? "Judul Karya" : "Item Title"} *
+                      </label>
+                      <input
+                        type="text"
+                        value={newRunnerTitle}
+                        onChange={(e) => setNewRunnerTitle(e.target.value)}
+                        placeholder="Contoh: KIA EV2 Concept"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                        {isId ? "Kategori / Label" : "Category / Label"}
+                      </label>
+                      <input
+                        type="text"
+                        value={newRunnerCategory}
+                        onChange={(e) => setNewRunnerCategory(e.target.value)}
+                        placeholder="Contoh: Automotive, Branding, UI/UX"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {isId ? "Posisi Baris Marquee" : "Marquee Row Position"}
+                    </label>
+                    <select
+                      value={newRunnerRow}
+                      onChange={(e) => setNewRunnerRow(parseInt(e.target.value) as 1 | 2)}
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    >
+                      <option value={1}>{isId ? "Baris 1 (Scroll ke Kiri)" : "Row 1 (Scrolls Left)"}</option>
+                      <option value={2}>{isId ? "Baris 2 (Scroll ke Kanan)" : "Row 2 (Scrolls Right)"}</option>
+                    </select>
+                  </div>
+
+                  {/* Image input: URL or File */}
+                  <div className="space-y-2">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {isId ? "Pilih Gambar (Rasio 4:5 Disarankan)" : "Select Image (4:5 Ratio Recommended)"} *
+                    </label>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        value={newRunnerImage}
+                        onChange={(e) => setNewRunnerImage(e.target.value)}
+                        placeholder="/works/client-KIA/KIA EV2_B.jpg atau URL online"
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      />
+                      <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
+                        <HiArrowUpTray className="w-4 h-4 text-[#14AF9E]" />
+                        <span>{isId ? "Upload File" : "Upload File"}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) =>
+                            handleGenericImageFile(e, (dataUrl) => setNewRunnerImage(dataUrl))
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddRunnerItem}
+                    className="px-5 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                  >
+                    <HiPlus className="w-4 h-4" />
+                    <span>{isId ? "Tambah ke Running Portofolio" : "Add to Running Portfolio"}</span>
+                  </button>
+                </div>
+
+                {/* Live 4:5 Preview Card: 4 cols */}
+                <div className="md:col-span-4 flex flex-col items-center">
+                  <span className="text-[11px] font-mono text-neutral-400 mb-2">
+                    {isId ? "Preview Kartu (4:5)" : "Card Preview (4:5)"}
+                  </span>
+                  <div className="relative w-36 sm:w-44 aspect-[4/5] rounded-2xl overflow-hidden border border-white/15 bg-neutral-950 shadow-2xl">
+                    {newRunnerImage ? (
+                      <img
+                        src={newRunnerImage}
+                        alt="Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center text-neutral-600 bg-neutral-900/60">
+                        <HiPhoto className="w-8 h-8 mb-1.5 opacity-40" />
+                        <span className="text-[10px] font-mono">Belum ada gambar</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent pointer-events-none" />
+                    <div className="absolute bottom-2.5 left-2.5 right-2.5 pointer-events-none">
+                      <p className="text-white text-xs font-bold truncate leading-tight">
+                        {newRunnerTitle || (isId ? "Judul Karya" : "Item Title")}
+                      </p>
+                      <p className="text-[#14AF9E] text-[10px] font-mono truncate">
+                        {newRunnerCategory || "Category"}
+                      </p>
+                    </div>
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-md bg-black/75 border border-white/10 text-[9px] font-mono text-neutral-300">
+                      Baris {newRunnerRow}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* List & CRUD Management of Running Portfolio Cards */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                    <HiFolder className="w-4 h-4 text-[#14AF9E]" />
+                    <span>{isId ? "Daftar Karya di Running Portofolio" : "Running Portfolio Items List"}</span>
+                    <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs font-mono text-neutral-300">
+                      {runnerItems.length}
+                    </span>
+                  </h3>
+                  <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                    {isId ? "Semua kartu ditampilkan dalam rasio seragam 4:5." : "All cards formatted in uniform 4:5 aspect ratio."}
+                  </p>
+                </div>
+
+                {/* Filter Tabs */}
+                <div className="flex items-center gap-1 p-1 rounded-xl bg-neutral-950 border border-white/10 text-xs font-mono">
+                  <button
+                    type="button"
+                    onClick={() => setRunnerFilterRow("all")}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      runnerFilterRow === "all"
+                        ? "bg-[#14AF9E] text-black font-bold"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    Semua ({runnerItems.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRunnerFilterRow(1)}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      runnerFilterRow === 1
+                        ? "bg-[#14AF9E] text-black font-bold"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    Baris 1 ({runnerItems.filter((i) => i.row === 1).length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRunnerFilterRow(2)}
+                    className={`px-3 py-1 rounded-lg transition-all ${
+                      runnerFilterRow === 2
+                        ? "bg-[#14AF9E] text-black font-bold"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    Baris 2 ({runnerItems.filter((i) => i.row === 2).length})
+                  </button>
+                </div>
+              </div>
+
+              {/* Cards Grid: strictly 4:5 cards */}
+              {(() => {
+                const filtered =
+                  runnerFilterRow === "all"
+                    ? runnerItems
+                    : runnerItems.filter((i) => i.row === runnerFilterRow);
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="py-12 text-center text-neutral-500 font-mono text-xs">
+                      {isId ? "Tidak ada karya di baris ini." : "No items found in this row."}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3.5 sm:gap-4">
+                    {filtered.map((item) => (
+                      <div
+                        key={item.id}
+                        className="group relative flex flex-col rounded-2xl bg-neutral-950 border border-white/10 overflow-hidden shadow-lg hover:border-white/25 transition-all"
+                      >
+                        {/* 4:5 Aspect Ratio Image Box */}
+                        <div className="relative w-full aspect-[4/5] bg-neutral-900 overflow-hidden">
+                          <img
+                            src={item.image}
+                            alt={item.title}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/25 to-transparent pointer-events-none" />
+
+                          {/* Row Badge */}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleRunnerRow(item.id)}
+                            title="Klik untuk pindahkan ke baris lain"
+                            className={`absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold border backdrop-blur-md transition-all active:scale-95 cursor-pointer ${
+                              item.row === 1
+                                ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 hover:bg-cyan-500/30"
+                                : "bg-purple-500/20 text-purple-300 border-purple-500/40 hover:bg-purple-500/30"
+                            }`}
+                          >
+                            Baris {item.row} {item.row === 1 ? "←" : "→"}
+                          </button>
+
+                          {/* Quick Edit & Delete overlay buttons */}
+                          <div className="absolute top-2 right-2 flex items-center gap-1 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => setEditingRunnerItem({ ...item })}
+                              title="Edit Karya"
+                              className="w-7 h-7 rounded-lg bg-black/80 hover:bg-black text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer"
+                            >
+                              <HiPencilSquare className="w-3.5 h-3.5 text-cyan-400" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteRunnerItem(item.id)}
+                              title="Hapus Karya"
+                              className="w-7 h-7 rounded-lg bg-black/80 hover:bg-red-950/80 text-white flex items-center justify-center border border-white/20 hover:border-red-500/50 transition-all cursor-pointer"
+                            >
+                              <HiTrash className="w-3.5 h-3.5 text-red-400" />
+                            </button>
+                          </div>
+
+                          {/* Title & Category Info at Bottom of Card */}
+                          <div className="absolute bottom-2.5 left-2.5 right-2.5 pointer-events-none">
+                            <p className="text-white text-xs font-bold truncate leading-tight">
+                              {item.title}
+                            </p>
+                            <p className="text-[#14AF9E] text-[10px] font-mono font-medium truncate mt-0.5">
+                              {item.category}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Card Footer Bar */}
+                        <div className="p-2 bg-neutral-900/80 border-t border-white/5 flex items-center justify-between text-[11px] font-mono">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleRunnerRow(item.id)}
+                            className="text-neutral-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>Pindah</span>
+                            <span className="text-[#14AF9E]">B{item.row === 1 ? 2 : 1}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingRunnerItem({ ...item })}
+                            className="text-[#14AF9E] hover:underline cursor-pointer"
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Bottom Actions Bar */}
+            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-4 backdrop-blur-xl z-20">
+              <button
+                type="button"
+                onClick={handleResetPortfolioRunnerDefault}
+                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer"
+              >
+                {isId ? "Reset ke Susunan Default" : "Reset to Default"}
+              </button>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleCancelPortfolioRunner}
+                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs sm:text-sm font-medium transition-all cursor-pointer"
+                >
+                  {isId ? "Batal" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSavePortfolioRunner}
+                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                >
+                  <HiCheck className="w-4 h-4" />
+                  <span>{isId ? "Simpan Perubahan Running Portofolio" : "Save Running Portfolio"}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal: Edit Existing Runner Item */}
+            {editingRunnerItem && (
+              <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                <div className="w-full max-w-lg rounded-2xl bg-neutral-950 border border-white/15 p-5 sm:p-7 space-y-5 shadow-2xl">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      <HiPencilSquare className="w-5 h-5 text-[#14AF9E]" />
+                      <span>{isId ? "Edit Karya Running Portofolio" : "Edit Running Portfolio Item"}</span>
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setEditingRunnerItem(null)}
+                      className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10"
+                    >
+                      <HiXMark className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                        {isId ? "Judul Karya" : "Item Title"}
+                      </label>
+                      <input
+                        type="text"
+                        value={editingRunnerItem.title}
+                        onChange={(e) =>
+                          setEditingRunnerItem({ ...editingRunnerItem, title: e.target.value })
+                        }
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                        {isId ? "Kategori / Subtitle" : "Category / Subtitle"}
+                      </label>
+                      <input
+                        type="text"
+                        value={editingRunnerItem.category}
+                        onChange={(e) =>
+                          setEditingRunnerItem({ ...editingRunnerItem, category: e.target.value })
+                        }
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                        {isId ? "Posisi Baris" : "Row Position"}
+                      </label>
+                      <select
+                        value={editingRunnerItem.row}
+                        onChange={(e) =>
+                          setEditingRunnerItem({
+                            ...editingRunnerItem,
+                            row: parseInt(e.target.value) as 1 | 2,
+                          })
+                        }
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      >
+                        <option value={1}>{isId ? "Baris 1 (Scroll ke Kiri)" : "Row 1 (Scrolls Left)"}</option>
+                        <option value={2}>{isId ? "Baris 2 (Scroll ke Kanan)" : "Row 2 (Scrolls Right)"}</option>
+                      </select>
+                    </div>
+
+                    {/* Image URL / Upload */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                        {isId ? "Gambar Karya (Rasio 4:5)" : "Image (4:5 Ratio)"}
+                      </label>
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <input
+                          type="text"
+                          value={editingRunnerItem.image}
+                          onChange={(e) =>
+                            setEditingRunnerItem({ ...editingRunnerItem, image: e.target.value })
+                          }
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        />
+                        <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
+                          <HiArrowUpTray className="w-4 h-4 text-[#14AF9E]" />
+                          <span>Upload File</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              handleGenericImageFile(e, (dataUrl) =>
+                                setEditingRunnerItem((prev) =>
+                                  prev ? { ...prev, image: dataUrl } : null
+                                )
+                              )
+                            }
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Preview 4:5 in modal */}
+                    <div className="flex items-center gap-4 p-3 rounded-xl bg-neutral-900 border border-white/10">
+                      <div className="relative w-16 aspect-[4/5] rounded-lg overflow-hidden bg-neutral-800 shrink-0">
+                        <img
+                          src={editingRunnerItem.image}
+                          alt="preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-white truncate">
+                          {editingRunnerItem.title}
+                        </p>
+                        <p className="text-[11px] text-[#14AF9E] font-mono truncate">
+                          {editingRunnerItem.category}
+                        </p>
+                        <p className="text-[10px] text-neutral-400 font-mono mt-1">
+                          Baris {editingRunnerItem.row} ({editingRunnerItem.row === 1 ? "Scroll Kiri" : "Scroll Kanan"})
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setEditingRunnerItem(null)}
+                      className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-medium"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleUpdateEditingRunnerItem}
+                      className="px-5 py-2 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs shadow-md shadow-[#14AF9E]/30"
+                    >
+                      Update Karya
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
         {activeTab === "about" && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -3969,20 +4590,26 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     icon: HiTag,
                   },
                   {
+                    id: "runner" as const,
+                    label: isId ? "4. Running Portofolio (4:5)" : "4. Running Portfolio (4:5)",
+                    sub: isId ? "Marquee kartu karya rasio 4:5 atas footer" : "2-row 4:5 portfolio runner strip",
+                    icon: HiPhoto,
+                  },
+                  {
                     id: "about" as const,
-                    label: isId ? "4. Tentang Saya (About Me)" : "4. About Me Section",
+                    label: isId ? "5. Tentang Saya (About Me)" : "5. About Me Section",
                     sub: isId ? "Narasi bio, statistik & disiplin" : "Bio narrative, stats & skills",
                     icon: HiUser,
                   },
                   {
                     id: "flagship" as const,
-                    label: isId ? "5. Video Flagship YouTube" : "5. Flagship YouTube Video",
+                    label: isId ? "6. Video Flagship YouTube" : "6. Flagship YouTube Video",
                     sub: isId ? "Embed video karya sinematik" : "Embed cinematic showcase",
                     icon: HiVideoCamera,
                   },
                   {
                     id: "account" as const,
-                    label: isId ? "6. Sandi & Keamanan Akun" : "6. Password & Account Security",
+                    label: isId ? "7. Sandi & Keamanan Akun" : "7. Password & Account Security",
                     sub: isId ? "Ganti username, password & email" : "Update user, pass & recovery email",
                     icon: HiKey,
                   },

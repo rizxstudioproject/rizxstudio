@@ -234,6 +234,44 @@ export const defaultPortfolioIntroData: PortfolioIntroData = {
   tools: ["Figma", "Photoshop", "Magnific AI", "GPT", "Gemini"],
 };
 
+export interface PortfolioRunnerItem {
+  id: string;
+  title: string;
+  category: string;
+  image: string;
+  row: 1 | 2;
+}
+
+export interface PortfolioRunnerData {
+  title: string;
+  items: PortfolioRunnerItem[];
+}
+
+export const defaultPortfolioRunnerData: PortfolioRunnerData = {
+  title: "SELECTED WORKS",
+  items: [
+    // Row 1
+    { id: "pr-1", title: "KIA EV2 Concept", category: "Automotive", image: "/works/client-KIA/KIA EV2_B.jpg", row: 1 },
+    { id: "pr-2", title: "Brand Identity", category: "Branding", image: "/assets/antigravity/selected-brand-identity.jpg", row: 1 },
+    { id: "pr-3", title: "Burger King Campaign", category: "Campaign", image: "/works/client-Burger King/Burger_ads06.jpg", row: 1 },
+    { id: "pr-4", title: "UI/UX Design Platform", category: "UI/UX", image: "/assets/antigravity/selected-uiux-design.jpg", row: 1 },
+    { id: "pr-5", title: "Xeilos Digital Ad", category: "Advertising", image: "/works/client-Xeilos/ad01.jpg", row: 1 },
+    { id: "pr-6", title: "KIA PBV Concept", category: "Automotive", image: "/works/client-KIA/KIA PBV_A.jpg", row: 1 },
+    { id: "pr-7", title: "Motion Graphics Visual", category: "Motion", image: "/assets/antigravity/selected-motion-graphics.jpg", row: 1 },
+    { id: "pr-8", title: "Social Content Series", category: "Social Media", image: "/works/client-Hyashop/01A.jpg", row: 1 },
+
+    // Row 2
+    { id: "pr-9", title: "Digital Campaign Suite", category: "Advertising", image: "/works/client-Xeilos/ad07.jpg", row: 2 },
+    { id: "pr-10", title: "Lifestyle Visuals", category: "Social Media", image: "/works/client-Hyashop/1952.jpg", row: 2 },
+    { id: "pr-11", title: "KIA EV2 Emerald Edition", category: "Automotive", image: "/works/client-KIA/KIA EV2_G.jpg", row: 2 },
+    { id: "pr-12", title: "Burger King Visuals", category: "Campaign", image: "/works/client-Burger King/Burger_ads07.jpg", row: 2 },
+    { id: "pr-13", title: "Creative Flagship Banner", category: "Brand Vision", image: "/assets/antigravity/hero-large.jpg", row: 2 },
+    { id: "pr-14", title: "Permifast Brand Campaign", category: "Brand Identity", image: "/works/client-Permifast/Permifast04.jpg", row: 2 },
+    { id: "pr-15", title: "3D Spatial Design", category: "3D Design", image: "/assets/antigravity/selected-3d-design.jpg", row: 2 },
+    { id: "pr-16", title: "Campaign Motion Reel", category: "Visuals", image: "/assets/antigravity/selected-campaign-visuals.jpg", row: 2 },
+  ],
+};
+
 interface PortfolioDataContextType {
   stage3: {
     classTag: string;
@@ -245,6 +283,7 @@ interface PortfolioDataContextType {
   heroWorks: HeroWorksData;
   clientLogos: ClientLogosData;
   portfolioIntro: PortfolioIntroData;
+  portfolioRunner: PortfolioRunnerData;
   allData: typeof antigravityData;
   updateStage3Video: (params: {
     youtubeUrl: string;
@@ -268,6 +307,11 @@ interface PortfolioDataContextType {
   updateHeroWorksData: (newData: Partial<HeroWorksData>) => void;
   updateClientLogosData: (newData: Partial<ClientLogosData>) => void;
   updatePortfolioIntroData: (newData: Partial<PortfolioIntroData>) => void;
+  updatePortfolioRunnerData: (newData: Partial<PortfolioRunnerData>) => void;
+  addPortfolioRunnerItem: (item: Omit<PortfolioRunnerItem, "id">) => void;
+  editPortfolioRunnerItem: (id: string, updated: Partial<PortfolioRunnerItem>) => void;
+  deletePortfolioRunnerItem: (id: string) => void;
+  resetPortfolioRunner: () => void;
   resetPortfolioData: () => void;
   isAdminMode: boolean;
   setIsAdminMode: (open: boolean) => void;
@@ -305,6 +349,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [heroWorks, setHeroWorks] = useState<HeroWorksData>(defaultHeroWorksData);
   const [clientLogos, setClientLogos] = useState<ClientLogosData>(defaultClientLogosData);
   const [portfolioIntro, setPortfolioIntro] = useState<PortfolioIntroData>(defaultPortfolioIntroData);
+  const [portfolioRunner, setPortfolioRunner] = useState<PortfolioRunnerData>(defaultPortfolioRunnerData);
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isCloudSyncActive, setIsCloudSyncActive] = useState(isSupabaseConfigured);
@@ -348,7 +393,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       newAbout?: AboutData,
       newHeroWorks?: HeroWorksData,
       newClientLogos?: ClientLogosData,
-      newPortfolioIntro?: PortfolioIntroData
+      newPortfolioIntro?: PortfolioIntroData,
+      newPortfolioRunner?: PortfolioRunnerData
     ) => {
       try {
         const payload = {
@@ -357,6 +403,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           heroWorks: newHeroWorks || heroWorks,
           clientLogos: newClientLogos || clientLogos,
           portfolioIntro: newPortfolioIntro || portfolioIntro,
+          portfolioRunner: newPortfolioRunner || portfolioRunner,
           clients: newClients.map((c) => ({
             id: c.id,
             clientName: c.clientName,
@@ -376,7 +423,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         console.warn("Failed to persist portfolio overrides to localStorage:", err);
       }
     },
-    [about, heroWorks, clientLogos, portfolioIntro]
+    [about, heroWorks, clientLogos, portfolioIntro, portfolioRunner]
   );
 
   // Initialize: First from LocalStorage for instant render, then from Supabase if configured
@@ -471,6 +518,13 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             ...parsed.portfolioIntro,
           });
         }
+
+        if (parsed.portfolioRunner) {
+          setPortfolioRunner({
+            ...defaultPortfolioRunnerData,
+            ...parsed.portfolioRunner,
+          });
+        }
       }
 
       const session = sessionStorage.getItem(SESSION_KEY);
@@ -562,6 +616,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 setPortfolioIntro({
                   ...defaultPortfolioIntroData,
                   ...parsedIntro,
+                });
+              } catch (_) {}
+            }
+
+            // Extract Portfolio Runner config from Supabase
+            const portfolioRunnerRow = clientRows.find((r) => r.client_id === "site-portfolio-runner");
+            if (portfolioRunnerRow && portfolioRunnerRow.description) {
+              try {
+                const parsedRunner = JSON.parse(portfolioRunnerRow.description);
+                setPortfolioRunner({
+                  ...defaultPortfolioRunnerData,
+                  ...parsedRunner,
                 });
               } catch (_) {}
             }
@@ -1052,7 +1118,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setPortfolioIntro(updated);
-      persistState(stage3, clients, about, heroWorks, clientLogos, updated);
+      persistState(stage3, clients, about, heroWorks, clientLogos, updated, portfolioRunner);
 
       if (isSupabaseConfigured && supabase) {
         try {
@@ -1068,8 +1134,80 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
     },
-    [portfolioIntro, stage3, clients, about, heroWorks, clientLogos, persistState]
+    [portfolioIntro, stage3, clients, about, heroWorks, clientLogos, portfolioRunner, persistState]
   );
+
+  // Update Portfolio Runner Marquee Section
+  const updatePortfolioRunnerData = useCallback(
+    async (newData: Partial<PortfolioRunnerData>) => {
+      const updated: PortfolioRunnerData = {
+        ...portfolioRunner,
+        ...newData,
+      };
+      setPortfolioRunner(updated);
+      persistState(stage3, clients, about, heroWorks, clientLogos, portfolioIntro, updated);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("client_descriptions").upsert({
+            client_id: "site-portfolio-runner",
+            client_name: "Portfolio Runner Marquee",
+            category: "Site Section Config",
+            description: JSON.stringify(updated),
+            updated_at: new Date().toISOString(),
+          });
+        } catch (err) {
+          console.warn("Supabase portfolio runner update notice:", err);
+        }
+      }
+    },
+    [portfolioRunner, stage3, clients, about, heroWorks, clientLogos, portfolioIntro, persistState]
+  );
+
+  // Add Item to Portfolio Runner
+  const addPortfolioRunnerItem = useCallback(
+    async (item: Omit<PortfolioRunnerItem, "id">) => {
+      const newItem: PortfolioRunnerItem = {
+        ...item,
+        id: `pr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      };
+      const updated: PortfolioRunnerData = {
+        ...portfolioRunner,
+        items: [newItem, ...portfolioRunner.items],
+      };
+      await updatePortfolioRunnerData(updated);
+    },
+    [portfolioRunner, updatePortfolioRunnerData]
+  );
+
+  // Edit Item in Portfolio Runner
+  const editPortfolioRunnerItem = useCallback(
+    async (id: string, updatedFields: Partial<PortfolioRunnerItem>) => {
+      const updated: PortfolioRunnerData = {
+        ...portfolioRunner,
+        items: portfolioRunner.items.map((i) => (i.id === id ? { ...i, ...updatedFields } : i)),
+      };
+      await updatePortfolioRunnerData(updated);
+    },
+    [portfolioRunner, updatePortfolioRunnerData]
+  );
+
+  // Delete Item from Portfolio Runner
+  const deletePortfolioRunnerItem = useCallback(
+    async (id: string) => {
+      const updated: PortfolioRunnerData = {
+        ...portfolioRunner,
+        items: portfolioRunner.items.filter((i) => i.id !== id),
+      };
+      await updatePortfolioRunnerData(updated);
+    },
+    [portfolioRunner, updatePortfolioRunnerData]
+  );
+
+  // Reset Portfolio Runner
+  const resetPortfolioRunner = useCallback(async () => {
+    await updatePortfolioRunnerData(defaultPortfolioRunnerData);
+  }, [updatePortfolioRunnerData]);
 
   // Reset all overrides back to default projectsData
   const resetPortfolioData = useCallback(async () => {
@@ -1084,6 +1222,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     setHeroWorks(defaultHeroWorksData);
     setClientLogos(defaultClientLogosData);
     setPortfolioIntro(defaultPortfolioIntroData);
+    setPortfolioRunner(defaultPortfolioRunnerData);
 
     // Reset cloud if configured
     if (isSupabaseConfigured && supabase) {
@@ -1143,6 +1282,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         heroWorks,
         clientLogos,
         portfolioIntro,
+        portfolioRunner,
         allData,
         updateStage3Video,
         removeStage3Video,
@@ -1157,6 +1297,11 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         updateHeroWorksData,
         updateClientLogosData,
         updatePortfolioIntroData,
+        updatePortfolioRunnerData,
+        addPortfolioRunnerItem,
+        editPortfolioRunnerItem,
+        deletePortfolioRunnerItem,
+        resetPortfolioRunner,
         resetPortfolioData,
         isAdminMode,
         setIsAdminMode,
