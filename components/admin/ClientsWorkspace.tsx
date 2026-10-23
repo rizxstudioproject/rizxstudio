@@ -100,6 +100,9 @@ export default function ClientsWorkspace({
   // Workspace subview: 'folders' (Client Folders & Works) | 'logos' (Client Logos Marquee)
   const [workspaceView, setWorkspaceView] = useState<"folders" | "logos">("folders");
 
+  // Mobile Master-Detail view: 'list' (Middle column list) | 'detail' (Main canvas workspace)
+  const [mobileActiveView, setMobileActiveView] = useState<"list" | "detail">("list");
+
   // Logo panel filter & search
   const [logoRowTab, setLogoRowTab] = useState<"all" | "row1" | "row2">("all");
   const [logoSearch, setLogoSearch] = useState("");
@@ -553,13 +556,20 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
       {/* ========================================================
           MIDDLE COLUMN: CLIENTS PANEL (~300px)
          ======================================================== */}
-      <aside className="w-full md:w-[300px] shrink-0 bg-[#090b0e] border-r border-white/5 flex flex-col h-full overflow-hidden select-none">
+      <aside
+        className={`w-full md:w-[300px] shrink-0 bg-[#090b0e] border-r border-white/5 flex flex-col h-full overflow-hidden select-none ${
+          mobileActiveView === "detail" ? "hidden md:flex" : "flex"
+        }`}
+      >
         {/* Workspace Subview Switcher: Folders vs Marquee Logos */}
         <div className="p-3 pb-2 border-b border-white/5 space-y-2.5">
           <div className="flex items-center gap-1 p-0.5 rounded-xl bg-neutral-900 border border-white/10">
             <button
               type="button"
-              onClick={() => setWorkspaceView("folders")}
+              onClick={() => {
+                setWorkspaceView("folders");
+                setMobileActiveView("list");
+              }}
               className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 workspaceView === "folders"
                   ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/20"
@@ -580,7 +590,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             </button>
             <button
               type="button"
-              onClick={() => setWorkspaceView("logos")}
+              onClick={() => {
+                setWorkspaceView("logos");
+                setMobileActiveView("detail");
+              }}
               className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 workspaceView === "logos"
                   ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/20"
@@ -746,7 +759,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             <>
               {/* Quick Marquee Shortcut Card */}
               <div
-                onClick={() => setWorkspaceView("logos")}
+                onClick={() => {
+                  setWorkspaceView("logos");
+                  setMobileActiveView("detail");
+                }}
                 className="p-2.5 mb-2 rounded-xl border border-[#14AF9E]/30 bg-gradient-to-r from-[#14AF9E]/10 via-[#14AF9E]/5 to-transparent hover:from-[#14AF9E]/20 transition-all cursor-pointer flex items-center justify-between group"
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -777,7 +793,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 return (
                   <div
                     key={client.id}
-                    onClick={() => onSelectClient(client.id)}
+                    onClick={() => {
+                      onSelectClient(client.id);
+                      setMobileActiveView("detail");
+                    }}
                     className={`group flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${
                       isSelected
                         ? "bg-[#151a21] border border-[#14AF9E]/30 shadow-sm"
@@ -844,7 +863,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               {filteredLogos.map((logo) => (
                 <div
                   key={logo.id}
-                  className="group flex items-center justify-between p-2 rounded-xl bg-neutral-900/60 hover:bg-neutral-900 border border-white/5 hover:border-white/15 transition-all"
+                  onClick={() => setMobileActiveView("detail")}
+                  className="group flex items-center justify-between p-2 rounded-xl bg-neutral-900/60 hover:bg-neutral-900 border border-white/5 hover:border-white/15 transition-all cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div className="w-9 h-7 rounded bg-neutral-950 border border-white/10 flex items-center justify-center p-1 shrink-0 invert brightness-0">
@@ -873,7 +893,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   <button
                     type="button"
                     title={isId ? "Hapus Logo" : "Delete Logo"}
-                    onClick={() => onDeleteClientLogo?.(logo.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteClientLogo?.(logo.id);
+                    }}
                     className="p-1.5 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100"
                   >
                     <HiTrash className="w-3.5 h-3.5" />
@@ -904,16 +927,26 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               View all {clients.length} clients
             </button>
           ) : (
-            <button
-              type="button"
-              onClick={() => {
-                setLogoRowTab("all");
-                setLogoSearch("");
-              }}
-              className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
-            >
-              View all {clLogos.length} logos
-            </button>
+            <div className="space-y-1.5">
+              <button
+                type="button"
+                onClick={() => setMobileActiveView("detail")}
+                className="md:hidden w-full py-2.5 px-3 rounded-xl bg-[#14AF9E] text-black font-bold text-xs shadow-md shadow-[#14AF9E]/20 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
+              >
+                <HiPencilSquare className="w-4 h-4" />
+                <span>{isId ? "Buka Editor & Tambah Logo →" : "Open Editor & Add Logo →"}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLogoRowTab("all");
+                  setLogoSearch("");
+                }}
+                className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
+              >
+                View all {clLogos.length} logos
+              </button>
+            </div>
           )}
         </div>
       </aside>
@@ -922,7 +955,34 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           RIGHT MAIN COLUMN: CLIENT DETAIL & ASSET WORKSPACE OR CLIENT LOGOS CANVAS
          ======================================================== */}
       {workspaceView === "logos" ? (
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        <main
+          className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 ${
+            mobileActiveView === "list" ? "hidden md:block" : "block"
+          }`}
+        >
+          {/* Mobile Back / Switch Button */}
+          <div className="md:hidden flex items-center justify-between pb-3 border-b border-white/10">
+            <button
+              type="button"
+              onClick={() => setMobileActiveView("list")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-semibold cursor-pointer active:scale-95"
+            >
+              <HiArrowLeft className="w-4 h-4 text-[#14AF9E]" />
+              <span>{isId ? "Daftar Logo" : "Logo List"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setWorkspaceView("folders");
+                setMobileActiveView("list");
+              }}
+              className="text-xs text-[#14AF9E] hover:underline flex items-center gap-1 font-medium"
+            >
+              <HiFolder className="w-3.5 h-3.5" />
+              <span>{isId ? "Ke Folder Klien" : "To Folders"}</span>
+            </button>
+          </div>
+
           {/* Breadcrumb & Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/5">
             <div className="flex items-center gap-2 text-xs text-neutral-400">
@@ -1238,9 +1298,28 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           </div>
         </main>
       ) : selectedClient ? (
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        <main
+          className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6 ${
+            mobileActiveView === "list" ? "hidden md:block" : "block"
+          }`}
+        >
+          {/* Mobile Back to List Button */}
+          <div className="md:hidden flex items-center justify-between pb-3 border-b border-white/10">
+            <button
+              type="button"
+              onClick={() => setMobileActiveView("list")}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-semibold cursor-pointer active:scale-95"
+            >
+              <HiArrowLeft className="w-4 h-4 text-[#14AF9E]" />
+              <span>{isId ? "Daftar Klien" : "Back to Clients"}</span>
+            </button>
+            <span className="text-xs font-bold text-white truncate max-w-[170px]">
+              {selectedClient.clientName}
+            </span>
+          </div>
+
           {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-xs text-neutral-400">
+          <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-400">
             <span>Clients</span>
             <span>/</span>
             <span className="text-white font-medium">{selectedClient.clientName}</span>
@@ -1682,7 +1761,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           </div>
         </main>
       ) : (
-        <div className="flex-1 flex items-center justify-center p-8 text-neutral-400 text-sm">
+        <div
+          className={`flex-1 flex items-center justify-center p-8 text-neutral-400 text-sm ${
+            mobileActiveView === "list" ? "hidden md:flex" : "flex"
+          }`}
+        >
           Select a client folder from the left list.
         </div>
       )}
