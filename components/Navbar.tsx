@@ -225,27 +225,25 @@ export default function Navbar() {
               </button>
             </div>
 
-            {/* Desktop Socials */}
-            <div className="hidden md:flex items-center gap-2.5">
+            {/* Desktop Socials - Icon only */}
+            <div className="hidden md:flex items-center gap-2">
               <a
                 href="https://www.instagram.com/rizxstudio/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram Profile"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white text-xs transition-all"
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white transition-all"
               >
                 <FaInstagram className="w-3.5 h-3.5" />
-                <span className="font-mono text-[11px]">Instagram</span>
               </a>
               <a
                 href="https://www.linkedin.com/in/rizxstudio/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn Profile"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white text-xs transition-all"
+                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white transition-all"
               >
                 <FaLinkedinIn className="w-3.5 h-3.5" />
-                <span className="font-mono text-[11px]">LinkedIn</span>
               </a>
             </div>
 
