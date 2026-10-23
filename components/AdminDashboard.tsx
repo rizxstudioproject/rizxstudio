@@ -296,6 +296,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [hbSeqCustomFrames, setHbSeqCustomFrames] = useState<string[]>(
     heroBanner?.sequenceCustomFrames || []
   );
+  const [hbSeqMouseTracking, setHbSeqMouseTracking] = useState<boolean>(
+    heroBanner?.sequenceMouseTracking ?? true
+  );
+  const [hbSeqMouseIntensity, setHbSeqMouseIntensity] = useState<number>(
+    heroBanner?.sequenceMouseIntensity ?? 26
+  );
 
   // Scrubber & Batch Upload States
   const [seqSelectedFiles, setSeqSelectedFiles] = useState<File[]>([]);
@@ -325,6 +331,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSeqPadding(heroBanner.sequencePadding ?? 6);
       setHbSeqStart(heroBanner.sequenceStartIndex ?? 0);
       setHbSeqCustomFrames(heroBanner.sequenceCustomFrames || []);
+      setHbSeqMouseTracking(heroBanner.sequenceMouseTracking ?? true);
+      setHbSeqMouseIntensity(heroBanner.sequenceMouseIntensity ?? 26);
     }
   }, [heroBanner]);
 
@@ -817,6 +825,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSeqPadding(6);
       setHbSeqStart(0);
       setHbSeqCustomFrames([]);
+      setHbSeqMouseTracking(true);
+      setHbSeqMouseIntensity(26);
       setSeqSelectedFiles([]);
       setSeqPreviewUrls([]);
       setSeqScrubIdx(0);
@@ -882,6 +892,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       sequencePadding: Number(hbSeqPadding) || 6,
       sequenceStartIndex: Number(hbSeqStart) || 0,
       sequenceCustomFrames: hbSeqCustomFrames,
+      sequenceMouseTracking: hbSeqMouseTracking,
+      sequenceMouseIntensity: Number(hbSeqMouseIntensity) || 26,
     });
     showToast(
       isId
@@ -908,6 +920,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSeqPadding(heroBanner.sequencePadding ?? 6);
       setHbSeqStart(heroBanner.sequenceStartIndex ?? 0);
       setHbSeqCustomFrames(heroBanner.sequenceCustomFrames || []);
+      setHbSeqMouseTracking(heroBanner.sequenceMouseTracking ?? true);
+      setHbSeqMouseIntensity(heroBanner.sequenceMouseIntensity ?? 26);
       setSeqSelectedFiles([]);
       setSeqPreviewUrls([]);
     }
@@ -943,6 +957,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSeqPadding(6);
       setHbSeqStart(0);
       setHbSeqCustomFrames([]);
+      setHbSeqMouseTracking(true);
+      setHbSeqMouseIntensity(26);
       setSeqSelectedFiles([]);
       setSeqPreviewUrls([]);
       setSeqScrubIdx(0);
@@ -2020,6 +2036,63 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       </button>
                     </div>
                   )}
+                </div>
+              </div>
+
+              {/* MOUSE TRACKING TOGGLE & INTENSITY CONTROL */}
+              <div className="p-4 rounded-xl bg-neutral-900/50 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-[#14AF9E]/15 border border-[#14AF9E]/30 flex items-center justify-center text-[#14AF9E] shrink-0 mt-0.5">
+                    <HiSparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm font-bold text-white">
+                        {isId
+                          ? "Gerakan Mengikuti Kursor Mouse (Interactive Mouse Tracking)"
+                          : "Interactive Mouse Tracking"}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-[#14AF9E]/20 text-[#14AF9E] font-semibold">
+                        {hbSeqMouseTracking ? (isId ? "AKTIF" : "ENABLED") : (isId ? "NONAKTIF" : "DISABLED")}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-neutral-400 mt-0.5">
+                      {isId
+                        ? "Foto portrait di hero akan secara dinamis menoleh dan bergerak mengikuti arah gerakan kursor mouse dengan efek parallax 3D halus."
+                        : "Portrait photo smoothly turns and looks towards cursor movements with subtle 3D stereoscopic parallax."}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 self-end sm:self-center shrink-0 flex-wrap">
+                  {hbSeqMouseTracking && (
+                    <div className="flex items-center gap-1.5 text-xs font-mono">
+                      <span className="text-neutral-400 text-[11px]">
+                        {isId ? "Sensitivitas:" : "Sensitivity:"}
+                      </span>
+                      <select
+                        value={hbSeqMouseIntensity}
+                        onChange={(e) => setHbSeqMouseIntensity(Number(e.target.value))}
+                        className="px-2.5 py-1.5 rounded-lg bg-neutral-800 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
+                      >
+                        <option value={14}>{isId ? "Halus (14 Frame)" : "Subtle (14 Frames)"}</option>
+                        <option value={26}>{isId ? "Sedang / Natural (26 Frame)" : "Medium / Natural (26 Frames)"}</option>
+                        <option value={38}>{isId ? "Lebar / Responsif (38 Frame)" : "Wide / High (38 Frames)"}</option>
+                      </select>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setHbSeqMouseTracking(!hbSeqMouseTracking)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
+                      hbSeqMouseTracking
+                        ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                        : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-white/10"
+                    }`}
+                  >
+                    {hbSeqMouseTracking ? (isId ? "Aktif" : "Enabled") : (isId ? "Aktifkan" : "Enable")}
+                  </button>
                 </div>
               </div>
             </div>

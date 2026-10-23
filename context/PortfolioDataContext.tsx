@@ -25,6 +25,8 @@ export interface HeroBannerData {
   sequencePadding?: number; // e.g. 6
   sequenceStartIndex?: number; // e.g. 0
   sequenceCustomFrames?: string[]; // Array of frame URLs
+  sequenceMouseTracking?: boolean; // Follow mouse cursor movement
+  sequenceMouseIntensity?: number; // Number of frames influenced by cursor
 }
 
 export const defaultHeroBannerData: HeroBannerData = {
@@ -46,6 +48,8 @@ export const defaultHeroBannerData: HeroBannerData = {
   sequencePadding: 6,
   sequenceStartIndex: 0,
   sequenceCustomFrames: [],
+  sequenceMouseTracking: true,
+  sequenceMouseIntensity: 26,
 };
 
 export interface Stage3HeroCard {

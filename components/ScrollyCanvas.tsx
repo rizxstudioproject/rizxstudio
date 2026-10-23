@@ -16,6 +16,19 @@ export default function ScrollyCanvas() {
   const [scrollProgress, setScrollProgress] = useState<number>(0);
   const [idbFrames, setIdbFrames] = useState<string[] | null>(null);
 
+  // Mouse tracking parameters from context
+  const mouseTracking = heroBanner?.sequenceMouseTracking ?? true;
+  const mouseIntensity = heroBanner?.sequenceMouseIntensity ?? 26;
+
+  const mouseStateRef = useRef({
+    x: 0.5,
+    y: 0.5,
+    targetX: 0.5,
+    targetY: 0.5,
+  });
+  const scrollProgressRef = useRef<number>(0);
+  const isInViewRef = useRef<boolean>(true);
+
   // Check IndexedDB on mount for cached custom sequence
   useEffect(() => {
     let isMounted = true;
@@ -80,7 +93,7 @@ export default function ScrollyCanvas() {
   );
 
   const renderFrame = useCallback(
-    (index: number) => {
+    (index: number, parallaxX: number = 0, parallaxY: number = 0) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext("2d", { alpha: false });
@@ -154,7 +167,9 @@ export default function ScrollyCanvas() {
       // Fill background with deep space dark before drawing
       ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+      // Draw image with subtle 3D stereoscopic parallax offset following the cursor
+      ctx.drawImage(img, offsetX - parallaxX, offsetY - parallaxY, drawWidth, drawHeight);
       ctx.restore();
 
       currentFrameIndexRef.current = index;
@@ -220,6 +235,93 @@ export default function ScrollyCanvas() {
     };
   }, [totalFrames, getFramePath, renderFrame]);
 
+  // Track mouse and touch movements across screen
+  useEffect(() => {
+    if (!mouseTracking) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const nx = Math.max(0, Math.min(1, e.clientX / window.innerWidth));
+      const ny = Math.max(0, Math.min(1, e.clientY / window.innerHeight));
+      mouseStateRef.current.targetX = nx;
+      mouseStateRef.current.targetY = ny;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        const touch = e.touches[0];
+        const nx = Math.max(0, Math.min(1, touch.clientX / window.innerWidth));
+        const ny = Math.max(0, Math.min(1, touch.clientY / window.innerHeight));
+        mouseStateRef.current.targetX = nx;
+        mouseStateRef.current.targetY = ny;
+      }
+    };
+
+    const handleMouseLeave = () => {
+      // Return smoothly to center when mouse leaves viewport
+      mouseStateRef.current.targetX = 0.5;
+      mouseStateRef.current.targetY = 0.5;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    document.addEventListener("mouseleave", handleMouseLeave);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchmove", handleTouchMove);
+      document.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [mouseTracking]);
+
+  // Smooth fluid LERP animation loop that binds mouse movement + scroll to frame turning
+  useEffect(() => {
+    let animId: number;
+    let isRunning = true;
+
+    const tick = () => {
+      if (!isRunning) return;
+
+      const ms = mouseStateRef.current;
+      const dx = ms.targetX - ms.x;
+      const dy = ms.targetY - ms.y;
+
+      // Smooth organic easing towards cursor target
+      if (Math.abs(dx) > 0.0001 || Math.abs(dy) > 0.0001) {
+        ms.x += dx * 0.085;
+        ms.y += dy * 0.07;
+      }
+
+      if (isInViewRef.current) {
+        const p = scrollProgressRef.current;
+        const baseScrollFrame = p * (totalFrames - 1);
+
+        // When in first hero stage, head turns with boosted range following the cursor
+        const factor = p < 0.25 ? 1.4 : 0.9;
+        const mouseFrameOffset = mouseTracking ? (ms.x - 0.5) * mouseIntensity * factor : 0;
+
+        const finalFrame = Math.min(
+          totalFrames - 1,
+          Math.max(0, Math.round(baseScrollFrame + mouseFrameOffset))
+        );
+
+        // Subtle 3D camera pan / stereoscopic shift
+        const parallaxX = mouseTracking ? (ms.x - 0.5) * 16 : 0;
+        const parallaxY = mouseTracking ? (ms.y - 0.5) * 12 : 0;
+
+        renderFrame(finalFrame, parallaxX, parallaxY);
+      }
+
+      animId = requestAnimationFrame(tick);
+    };
+
+    animId = requestAnimationFrame(tick);
+
+    return () => {
+      isRunning = false;
+      cancelAnimationFrame(animId);
+    };
+  }, [totalFrames, mouseTracking, mouseIntensity, renderFrame]);
+
   // Accurate progress calculator via viewport-relative bounds
   const updateProgress = useCallback(() => {
     const container = containerRef.current;
@@ -229,20 +331,15 @@ export default function ScrollyCanvas() {
     const maxScrollable = container.offsetHeight - window.innerHeight;
     if (maxScrollable <= 0) return;
 
+    // Check if hero container is within visible window
+    isInViewRef.current = rect.bottom > 0 && rect.top < window.innerHeight;
+
     const currentScroll = -rect.top;
     const progress = Math.max(0, Math.min(1, currentScroll / maxScrollable));
 
+    scrollProgressRef.current = progress;
     setScrollProgress(progress);
-
-    const frameIndex = Math.min(
-      totalFrames - 1,
-      Math.max(0, Math.floor(progress * (totalFrames - 1)))
-    );
-
-    if (frameIndex !== currentFrameIndexRef.current) {
-      renderFrame(frameIndex);
-    }
-  }, [totalFrames, renderFrame]);
+  }, []);
 
   // Real-time tracking on both scroll and touch drag
   useEffect(() => {
@@ -273,7 +370,7 @@ export default function ScrollyCanvas() {
         {/* Canvas for image sequence */}
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover transition-transform duration-75 ease-out"
         />
 
         {/* Ambient radial vignette for cinematic depth */}
