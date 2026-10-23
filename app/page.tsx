@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import ScrollyCanvas from "@/components/ScrollyCanvas";
 import ClientLogos from "@/components/ClientLogos";
 import About from "@/components/About";
+import CreativeJourney from "@/components/CreativeJourney";
 import Projects from "@/components/Projects";
 import Contact from "@/components/Contact";
 import PortfolioRunner from "@/components/PortfolioRunner";
@@ -109,7 +110,10 @@ export default function Home() {
         {/* 2. About Me / WHO AM I */}
         <About />
 
-        {/* 3. Work / Selected Works */}
+        {/* 3. Creative Journey Flagship Showcase */}
+        <CreativeJourney />
+
+        {/* 4. Work / Selected Works */}
         <Projects />
 
         {/* 4. Portfolio Runner — marquee above footer */}

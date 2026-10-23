@@ -721,16 +721,12 @@ export default function Projects() {
     window.scrollTo({ top: targetY, behavior: "smooth" });
   };
 
-  // Scroll directly to Stage 3 (Flagship Showcase: YouTube Video Embed)
+  // Scroll directly to Flagship Showcase (Creative Journey)
   const scrollToFlagshipStage = useCallback(() => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const stageTop = rect.top + scrollTop;
-    const totalHeight = rect.height - window.innerHeight;
-    // Progress 0.63 is exactly centered on Stage 3 Flagship Showcase
-    const targetY = stageTop + totalHeight * 0.63;
-    window.scrollTo({ top: targetY, behavior: "smooth" });
+    const el = document.getElementById("flagship-showcase");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    }
   }, []);
 
   // Auto-scroll to Stage 3 if requested from Admin or URL hash
@@ -764,7 +760,7 @@ export default function Projects() {
     <section
       id="projects"
       ref={containerRef}
-      className="relative w-full h-[350vh] sm:h-[450vh] md:h-[500vh] bg-[#0a0a0a] text-white"
+      className="relative w-full h-[240vh] sm:h-[300vh] md:h-[340vh] bg-[#0a0a0a] text-white"
     >
       {/* Sticky Fullscreen Viewport Canvas */}
       <div className="sticky top-0 h-screen h-[100dvh] w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ willChange: "transform" }}>
@@ -774,15 +770,15 @@ export default function Projects() {
 
         {/* ========================================================
             STAGE 1: 1 Card -> Fans out to 5 Cards + Badges
-            (Active: 0.00 -> 0.28)
+            (Active: 0.00 -> 0.38)
            ======================================================== */}
         <div
           className="absolute inset-0 flex flex-col items-center justify-between py-8 sm:py-14 md:py-12 pt-10 sm:pt-14 md:pt-14 px-4"
           style={{
-            opacity: scrollProgress < 0.25 ? 1 : Math.max(0, 1 - (scrollProgress - 0.25) / 0.05),
-            transform: `translate3d(0, ${scrollProgress < 0.25 ? 0 : -(scrollProgress - 0.25) * 350}px, 0)`,
-            pointerEvents: scrollProgress <= 0.28 ? "auto" : "none",
-            visibility: scrollProgress > 0.3 ? "hidden" : "visible",
+            opacity: scrollProgress < 0.34 ? 1 : Math.max(0, 1 - (scrollProgress - 0.34) / 0.05),
+            transform: `translate3d(0, ${scrollProgress < 0.34 ? 0 : -(scrollProgress - 0.34) * 350}px, 0)`,
+            pointerEvents: scrollProgress <= 0.38 ? "auto" : "none",
+            visibility: scrollProgress > 0.41 ? "hidden" : "visible",
           }}
         >
           {/* Header */}
@@ -917,26 +913,26 @@ export default function Projects() {
 
         {/* ========================================================
             STAGE 2: Left Headline & Text + Right Dense Overlapping Cards
-            (Active: 0.28 -> 0.52)
+            (Active: 0.38 -> 0.68)
            ======================================================== */}
         <div
           className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-10 my-auto"
           style={{
             opacity:
-              scrollProgress < 0.28
+              scrollProgress < 0.38
                 ? 0
-                : scrollProgress > 0.5
-                ? Math.max(0, 1 - (scrollProgress - 0.5) / 0.05)
-                : Math.min(1, (scrollProgress - 0.28) / 0.05),
+                : scrollProgress > 0.65
+                ? Math.max(0, 1 - (scrollProgress - 0.65) / 0.05)
+                : Math.min(1, (scrollProgress - 0.38) / 0.05),
             transform: `translate3d(0, ${
-              scrollProgress < 0.28
+              scrollProgress < 0.38
                 ? 50
-                : scrollProgress > 0.5
-                ? -(scrollProgress - 0.5) * 300
+                : scrollProgress > 0.65
+                ? -(scrollProgress - 0.65) * 300
                 : 0
             }px, 0)`,
-            pointerEvents: scrollProgress >= 0.28 && scrollProgress <= 0.52 ? "auto" : "none",
-            visibility: scrollProgress < 0.25 || scrollProgress > 0.55 ? "hidden" : "visible",
+            pointerEvents: scrollProgress >= 0.38 && scrollProgress <= 0.68 ? "auto" : "none",
+            visibility: scrollProgress < 0.34 || scrollProgress > 0.71 ? "hidden" : "visible",
           }}
         >
           {/* Text Block */}
@@ -950,7 +946,7 @@ export default function Projects() {
                 // If headline has "Motion" or multiple words, give "Motion" interactive breathing
                 return words.map((word, wIdx) => {
                   const isMotion = word.toLowerCase().includes("motion");
-                  const s2MotionProgress = Math.max(0, Math.min(1, (scrollProgress - 0.28) / 0.15));
+                  const s2MotionProgress = Math.max(0, Math.min(1, (scrollProgress - 0.38) / 0.16));
                   const scaleAmount = 1 + s2MotionProgress * 0.08;
 
                   if (isMotion) {
@@ -1007,10 +1003,9 @@ export default function Projects() {
           <div className="relative w-full max-w-sm sm:max-w-md h-[220px] sm:h-[300px] md:h-[360px] flex items-center justify-center">
             {/* Scroll-driven blooming / fan-out factor for stage 2 */}
             {(() => {
-              // On mobile the section enters view sooner (stacked layout, less scroll room)
-              // so we use a lower start threshold and wider window
-              const bloomStart = isMobile ? 0.30 : 0.28;
-              const bloomWindow = isMobile ? 0.12 : 0.14;
+              // Smooth blooming progress for Stage 2
+              const bloomStart = isMobile ? 0.40 : 0.38;
+              const bloomWindow = isMobile ? 0.15 : 0.18;
 
               // Blooming progress for Stage 2 (spreads gently as user reaches & scrolls stage 2)
               const bloomProgress = Math.max(0, Math.min(1, (scrollProgress - bloomStart) / bloomWindow));
@@ -1120,127 +1115,18 @@ export default function Projects() {
         </div>
 
         {/* ========================================================
-            STAGE 3: Flagship Showcase (From Visual Craft to Technology)
-            (Active: 0.52 -> 0.74)
-           ======================================================== */}
-        <div
-          id="flagship-showcase"
-          className="absolute inset-0 max-w-4xl mx-auto flex flex-col justify-center px-4 sm:px-8 my-auto"
-          style={{
-            opacity:
-              scrollProgress < 0.52
-                ? 0
-                : scrollProgress > 0.72
-                ? Math.max(0, 1 - (scrollProgress - 0.72) / 0.04)
-                : Math.min(1, (scrollProgress - 0.52) / 0.05),
-            transform: `translate3d(0, ${
-              scrollProgress < 0.52
-                ? 50
-                : scrollProgress > 0.72
-                ? -(scrollProgress - 0.72) * 400
-                : 0
-            }px, 0)`,
-            pointerEvents: scrollProgress >= 0.52 && scrollProgress <= 0.73 ? "auto" : "none",
-            visibility: scrollProgress < 0.49 || scrollProgress > 0.75 ? "hidden" : "visible",
-          }}
-        >
-          <div className="mb-4 sm:mb-6 text-center sm:text-left">
-            <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] block mb-1.5 font-semibold">
-              {isId ? t("projects.stage3.tag") : (stage3?.classTag || t("projects.stage3.tag"))}
-            </span>
-            <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white">
-              {isId ? t("projects.stage3.headline") : (stage3?.headline || t("projects.stage3.headline"))}
-            </h2>
-          </div>
-
-          {/* Large Aspect Card — Video Plays Inside the Card with View Full Button */}
-          {(() => {
-            const isVideoOn =
-              stage3?.heroCard?.isVideoEnabled !== false &&
-              (stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || ""));
-
-            const computedVideoId = isVideoOn
-              ? (stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || ""))
-              : "";
-
-            return (
-              <div
-                onClick={() =>
-                  setModalData({
-                    items: [
-                      {
-                        id: "hero-showcase",
-                        title: isId ? t("projects.stage3.card.title") : (stage3?.heroCard?.title || t("projects.stage3.card.title")),
-                        type: isId ? t("projects.stage3.card.category") : (stage3?.heroCard?.category || t("projects.stage3.card.category")),
-                        image: stage3?.heroCard?.image || "/assets/antigravity/hero-large.jpg",
-                        aspect: "16:9",
-                        clientName: isId ? "Karya Unggulan" : "Flagship Showcase",
-                        isClientWork: false,
-                        videoId: computedVideoId || undefined,
-                        youtubeUrl: stage3?.heroCard?.youtubeUrl,
-                      },
-                    ],
-                    currentIndex: 0,
-                  })
-                }
-                className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-neutral-900 group cursor-pointer"
-              >
-                {/* Content: Video or Static Image */}
-                <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
-                  {computedVideoId ? (
-                    <iframe
-                      src={`https://www.youtube.com/embed/${computedVideoId}?autoplay=1&mute=1&loop=1&playlist=${computedVideoId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
-                      title={stage3?.heroCard?.title || "Flagship Showcase Video"}
-                      className="w-full h-full object-cover scale-[1.18] border-0 pointer-events-none"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    />
-                  ) : (
-                    <img
-                      src={stage3?.heroCard?.image || "/assets/antigravity/hero-large.jpg"}
-                      alt={stage3?.heroCard?.title || "Flagship Showcase"}
-                      className="w-full h-full object-cover scale-[1.05] transition-transform duration-700 group-hover:scale-[1.1]"
-                    />
-                  )}
-                </div>
-
-                {/* Dark Vignette / Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent pointer-events-none" />
-
-                {/* Bottom Left: Title & Category */}
-                <div className="absolute bottom-4 sm:bottom-6 left-4 sm:left-8 flex flex-col pointer-events-none z-10">
-                  <span className="text-xs sm:text-xs font-mono uppercase tracking-widest text-cyan-400 mb-1 font-semibold">
-                    {isId ? t("projects.stage3.card.category") : (stage3?.heroCard?.category || t("projects.stage3.card.category"))}
-                  </span>
-                  <h3 className="text-base sm:text-xl md:text-2xl font-bold text-white">
-                    {isId ? t("projects.stage3.card.title") : (stage3?.heroCard?.title || t("projects.stage3.card.title"))}
-                  </h3>
-                </div>
-
-                {/* Bottom Right: View Full Button */}
-                <div className="absolute bottom-4 sm:bottom-6 right-4 sm:right-8 z-20">
-                  <span className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-xs sm:text-xs flex items-center gap-1.5 group-hover:bg-neutral-200 transition-all group-hover:scale-105 shadow-xl">
-                    <span>{t("projects.stage3.card.btn")}</span>
-                    <HiArrowUpRight className="w-3.5 h-3.5" />
-                  </span>
-                </div>
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* ========================================================
-            STAGE 4: Interactive Client Folders Showcase
+            STAGE 3: Interactive Client Folders Showcase
             (Folders per client + karya di dalamnya)
-            (Active: 0.74 -> 1.00)
+            (Active: 0.68 -> 1.00)
            ======================================================== */}
         <div
           id="client-productions"
           className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 pt-16 sm:pt-20 lg:pt-14 pb-4 sm:pb-8 my-auto"
           style={{
-            opacity: scrollProgress < 0.74 ? 0 : Math.min(1, (scrollProgress - 0.74) / 0.05),
-            transform: `translate3d(0, ${scrollProgress < 0.74 ? 50 : 0}px, 0)`,
-            pointerEvents: scrollProgress >= 0.74 ? "auto" : "none",
-            visibility: scrollProgress < 0.71 ? "hidden" : "visible",
+            opacity: scrollProgress < 0.68 ? 0 : Math.min(1, (scrollProgress - 0.68) / 0.05),
+            transform: `translate3d(0, ${scrollProgress < 0.68 ? 50 : 0}px, 0)`,
+            pointerEvents: scrollProgress >= 0.68 ? "auto" : "none",
+            visibility: scrollProgress < 0.64 ? "hidden" : "visible",
           }}
         >
           {/* Left Text Block */}
