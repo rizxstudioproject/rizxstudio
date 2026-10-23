@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { HiArrowUpRight, HiXMark } from "react-icons/hi2";
 import { usePortfolioData, extractYouTubeId, extractGoogleDriveId } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
@@ -11,6 +11,11 @@ export default function CreativeJourney() {
   const isId = lang === "id";
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const displayTag = isId
     ? t("projects.stage3.tag")
@@ -84,7 +89,9 @@ export default function CreativeJourney() {
             <img
               src={imageSrc}
               alt={displayTitle}
-              className="w-full h-full object-cover scale-[1.02] transition-transform duration-700 ease-out group-hover:scale-[1.08]"
+              className={`w-full h-full object-cover scale-[1.02] transition-all duration-500 ease-out group-hover:scale-[1.08] ${
+                mounted ? "opacity-100" : "opacity-0"
+              }`}
             />
           )}
         </div>

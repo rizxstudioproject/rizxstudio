@@ -430,18 +430,39 @@ export function extractGoogleDriveId(urlOrId: string): string {
 const PortfolioDataContext = createContext<PortfolioDataContextType | undefined>(undefined);
 
 export function PortfolioDataProvider({ children }: { children: React.ReactNode }) {
+  // Synchronous initial state from LocalStorage on client to eliminate SSR flash/glitch
   const [stage3, setStage3] = useState<{
     classTag: string;
     headline: string;
     heroCard: Stage3HeroCard;
-  }>({
-    ...antigravityData.stage3,
-    heroCard: {
-      ...antigravityData.stage3.heroCard,
-      mediaType: "youtube",
-      gdriveUrl: "",
-      gdriveId: "",
-    },
+  }>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.stage3) {
+            return {
+              ...antigravityData.stage3,
+              ...parsed.stage3,
+              heroCard: {
+                ...antigravityData.stage3.heroCard,
+                ...(parsed.stage3.heroCard || {}),
+              },
+            };
+          }
+        }
+      } catch (_) {}
+    }
+    return {
+      ...antigravityData.stage3,
+      heroCard: {
+        ...antigravityData.stage3.heroCard,
+        mediaType: "youtube",
+        gdriveUrl: "",
+        gdriveId: "",
+      },
+    };
   });
   const [clients, setClients] = useState<ClientItem[]>(antigravityData.stage4.clients as ClientItem[]);
   const [about, setAbout] = useState<AboutData>(defaultAboutData);
