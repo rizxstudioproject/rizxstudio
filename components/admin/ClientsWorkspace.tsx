@@ -99,7 +99,8 @@ export default function ClientsWorkspace({
   onWorkspaceViewChange,
 }: ClientsWorkspaceProps) {
   const { lang } = useLang();
-  const isId = lang === "id";
+  const isId = lang === "id" || lang === "min";
+  const isMin = lang === "min";
 
   // Workspace subview: 'folders' (Client Folders & Works) | 'logos' (Client Logos Marquee)
   const [internalWorkspaceView, setInternalWorkspaceView] = useState<"folders" | "logos">("folders");

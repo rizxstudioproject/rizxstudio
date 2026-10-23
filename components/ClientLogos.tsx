@@ -24,8 +24,8 @@ export default function ClientLogos() {
 
   const row1Logos = clientLogos?.logos?.filter((l) => l.row === 1) || [];
   const row2Logos = clientLogos?.logos?.filter((l) => l.row === 2) || [];
-  const isId = lang === "id";
-  const subtitleText = isId ? t("clients.subtitle") : (clientLogos?.subtitle || t("clients.subtitle"));
+  const isLocalized = lang === "id" || lang === "min";
+  const subtitleText = isLocalized ? t("clients.subtitle") : (clientLogos?.subtitle || t("clients.subtitle"));
 
   return (
     <section

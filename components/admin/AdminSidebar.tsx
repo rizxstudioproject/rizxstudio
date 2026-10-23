@@ -48,6 +48,7 @@ export default function AdminSidebar({
 }: AdminSidebarProps) {
   const { lang } = useLang();
   const isId = lang === "id";
+  const isMin = lang === "min";
 
   const menuItems: {
     id: AdminSidebarTab;
@@ -57,7 +58,7 @@ export default function AdminSidebar({
   }[] = [
     {
       id: "clients",
-      label: isId ? "Portofolio & Klien" : "Portfolio & Clients",
+      label: isMin ? "Portofolio & Klien" : isId ? "Portofolio & Klien" : "Portfolio & Clients",
       badge: totalClients > 0 ? totalClients : undefined,
       icon: HiFolder,
     },
@@ -69,32 +70,32 @@ export default function AdminSidebar({
     },
     {
       id: "hero-banner",
-      label: isId ? "Hero Banner (Scrolly)" : "Hero Banner (Scrolly)",
+      label: "Hero Banner (Scrolly)",
       icon: HiSparkles,
     },
     {
       id: "hero-works",
-      label: isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
+      label: isMin ? "Hero & Karya Tapiliah" : isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
       icon: HiPhoto,
     },
     {
       id: "flagship",
-      label: isId ? "Media Showcase (Stage 3)" : "Media Showcase (Stage 3)",
+      label: "Media Showcase (Stage 3)",
       icon: HiVideoCamera,
     },
     {
       id: "runner",
-      label: isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
+      label: isMin ? "Running Portofolio (4:5)" : isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
       icon: HiSquares2X2,
     },
     {
       id: "about",
-      label: isId ? "Tentang Saya (About Me)" : "About Me Section",
+      label: isMin ? "Tantang Ambo (About Me)" : isId ? "Tentang Saya (About Me)" : "About Me Section",
       icon: HiUser,
     },
     {
       id: "settings",
-      label: isId ? "Sandi & Keamanan Akun" : "Password & Security",
+      label: isMin ? "Kunci & Kaamanan Akun" : isId ? "Sandi & Keamanan Akun" : "Password & Security",
       icon: HiKey,
     },
   ];

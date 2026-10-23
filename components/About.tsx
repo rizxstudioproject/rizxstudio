@@ -28,22 +28,33 @@ export default function About() {
       "Iklan Digital",
       "Produksi Video",
     ],
+    min: [
+      "Pangaturan Kreatif",
+      "Animasi Motion",
+      "Branding & Identitas",
+      "Desain UI/UX",
+      "Iklan Digital",
+      "Produksi Video",
+    ],
   };
 
-  const displayEyebrow = isId ? t("about.eyebrow") : (about.eyebrow || t("about.eyebrow"));
-  const displayTitle = isId ? t("about.title") : (about.title || t("about.title"));
-  const displayHeadline = isId ? t("about.headline") : (about.headline || t("about.headline"));
-  const displayBio = isId ? t("about.para1") : (about.bio || t("about.para1"));
-  const displayPhilosophyTitle = isId ? t("about.card1.title") : (about.philosophyTitle || t("about.card1.title"));
-  const displayPhilosophyQuote = isId ? t("about.quote") : (about.philosophyQuote || t("about.quote"));
-  const displayStat1Label = isId ? t("about.stat1.label") : (about.stat1Label || t("about.stat1.label"));
-  const displayStat2Label = isId ? t("about.stat2.label") : (about.stat2Label || t("about.stat2.label"));
-  const displayStat3Label = isId ? t("about.stat3.label") : (about.stat3Label || t("about.stat3.label"));
-  const displayCollabTitle = isId ? t("about.card2.title") : (about.collabTitle || t("about.card2.title"));
-  const displayCollabDesc = isId ? t("about.card2.body") : (about.collabDesc || t("about.card2.body"));
-  const displayDisciplinesTitle = isId ? t("about.card3.title") : (about.disciplinesTitle || t("about.card3.title"));
+  const isLocalized = lang === "id" || lang === "min";
+  const displayEyebrow = isLocalized ? t("about.eyebrow") : (about.eyebrow || t("about.eyebrow"));
+  const displayTitle = isLocalized ? t("about.title") : (about.title || t("about.title"));
+  const displayHeadline = isLocalized ? t("about.headline") : (about.headline || t("about.headline"));
+  const displayBio = isLocalized ? t("about.para1") : (about.bio || t("about.para1"));
+  const displayPhilosophyTitle = isLocalized ? t("about.card1.title") : (about.philosophyTitle || t("about.card1.title"));
+  const displayPhilosophyQuote = isLocalized ? t("about.quote") : (about.philosophyQuote || t("about.quote"));
+  const displayStat1Label = isLocalized ? t("about.stat1.label") : (about.stat1Label || t("about.stat1.label"));
+  const displayStat2Label = isLocalized ? t("about.stat2.label") : (about.stat2Label || t("about.stat2.label"));
+  const displayStat3Label = isLocalized ? t("about.stat3.label") : (about.stat3Label || t("about.stat3.label"));
+  const displayCollabTitle = isLocalized ? t("about.card2.title") : (about.collabTitle || t("about.card2.title"));
+  const displayCollabDesc = isLocalized ? t("about.card2.body") : (about.collabDesc || t("about.card2.body"));
+  const displayDisciplinesTitle = isLocalized ? t("about.card3.title") : (about.disciplinesTitle || t("about.card3.title"));
   // Use admin-saved disciplines (EN only); fall back to hardcoded list if not set
-  const activeDisciplines = isId
+  const activeDisciplines = lang === "min"
+    ? fallbackDisciplines.min
+    : lang === "id"
     ? fallbackDisciplines.id
     : (about.disciplines && about.disciplines.length > 0
         ? about.disciplines

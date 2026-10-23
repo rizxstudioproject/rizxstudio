@@ -79,7 +79,7 @@ export default function Contact() {
 
           {/* Right: Language Switcher */}
           <div className="flex items-center">
-            {/* Footer Language Toggle */}
+            {/* Footer Language Toggle (EN, ID, MIN) */}
             <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
               <button
                 type="button"
@@ -104,6 +104,18 @@ export default function Contact() {
                 aria-label="Indonesia"
               >
                 ID
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang("min")}
+                className={`px-2.5 py-1 transition-all cursor-pointer ${
+                  lang === "min"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+                aria-label="Minang"
+              >
+                MIN
               </button>
             </div>
           </div>
@@ -141,6 +153,17 @@ export default function Contact() {
                 }`}
               >
                 ID
+              </button>
+              <button
+                type="button"
+                onClick={() => setLang("min")}
+                className={`px-3 py-1 transition-all ${
+                  lang === "min"
+                    ? "bg-[#14AF9E] text-white font-bold"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                MIN
               </button>
             </div>
           </div>

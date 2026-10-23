@@ -414,8 +414,8 @@ const clientBrandDescMap: Record<string, { en: string; id: string }> = {
 /**
  * Intelligent AI Case Study Fallback with Bilingual Support (EN & ID)
  */
-export function getCaseStudy(work: ModalItem, lang: "en" | "id" = "en") {
-  const isId = lang === "id";
+export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en") {
+  const isId = lang === "id" || lang === "min";
 
   // Priority 1: If in English, and work has explicit fields from Admin / data, return them directly
   if (!isId && (work.challenge || work.solution || work.brief || work.role)) {
@@ -710,23 +710,30 @@ export default function Projects() {
   // Use context for live edits from Admin Dashboard
   const { stage3, clients: contextClients, allData, heroWorks, portfolioIntro } = usePortfolioData();
   const { t, lang } = useLang();
-  const isId = lang === "id";
+  const isId = lang === "id" || lang === "min";
+  const isMin = lang === "min";
+  const isLocalized = isId;
 
-  const stage1Badge = isId ? t("projects.stage1.badge") : (heroWorks?.stage1Badge || defaultStage1.badge);
-  const stage1Headline = isId ? t("projects.stage1.headline") : (heroWorks?.stage1Headline || defaultStage1.headline);
-  const stage1Subheadline = isId ? t("projects.stage1.subheadline") : (heroWorks?.stage1Subheadline || defaultStage1.subheadline);
-  const stage1Scroll = isId ? t("projects.stage1.scroll") : (heroWorks?.stage1ScrollText || "Scroll down ↓");
+  const stage1Badge = isLocalized ? t("projects.stage1.badge") : (heroWorks?.stage1Badge || defaultStage1.badge);
+  const stage1Headline = isLocalized ? t("projects.stage1.headline") : (heroWorks?.stage1Headline || defaultStage1.headline);
+  const stage1Subheadline = isLocalized ? t("projects.stage1.subheadline") : (heroWorks?.stage1Subheadline || defaultStage1.subheadline);
+  const stage1Scroll = isLocalized ? t("projects.stage1.scroll") : (heroWorks?.stage1ScrollText || "Scroll down ↓");
 
-  const stage2Tag = isId ? t("projects.stage2.tag") : (heroWorks?.stage2Tag || defaultStage2.categoryTag);
-  const stage2Headline = isId ? t("projects.stage2.headline") : (heroWorks?.stage2Headline || defaultStage2.headline);
-  const stage2Desc = isId ? t("projects.stage2.desc") : (heroWorks?.stage2Desc || defaultStage2.description);
-  const stage2BtnText = isId ? t("projects.stage2.btn") : (heroWorks?.stage2BtnText || defaultStage2.primaryButtonText);
+  const stage2Tag = isLocalized ? t("projects.stage2.tag") : (heroWorks?.stage2Tag || defaultStage2.categoryTag);
+  const stage2Headline = isLocalized ? t("projects.stage2.headline") : (heroWorks?.stage2Headline || defaultStage2.headline);
+  const stage2Desc = isLocalized ? t("projects.stage2.desc") : (heroWorks?.stage2Desc || defaultStage2.description);
+  const stage2BtnText = isLocalized ? t("projects.stage2.btn") : (heroWorks?.stage2BtnText || defaultStage2.primaryButtonText);
 
   const fallbackSkills = {
     en: ["Branding", "Motion", "3D Design", "UI/UX", "AI Visuals"],
     id: ["Branding", "Animasi Motion", "Desain 3D", "UI/UX", "Visual AI"],
+    min: ["Branding", "Animasi Motion", "Desain 3D", "UI/UX", "Visual AI"],
   };
-  const stage2Skills = isId ? fallbackSkills.id : (heroWorks?.stage2Skills && heroWorks.stage2Skills.length > 0 ? heroWorks.stage2Skills : defaultStage2.skillLabels);
+  const stage2Skills = isMin
+    ? fallbackSkills.min
+    : lang === "id"
+    ? fallbackSkills.id
+    : (heroWorks?.stage2Skills && heroWorks.stage2Skills.length > 0 ? heroWorks.stage2Skills : defaultStage2.skillLabels);
 
   const stage1 = {
     ...defaultStage1,

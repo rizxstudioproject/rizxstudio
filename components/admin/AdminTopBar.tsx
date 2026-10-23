@@ -54,6 +54,7 @@ export default function AdminTopBar({
 }: AdminTopBarProps) {
   const { lang, setLang } = useLang();
   const isId = lang === "id";
+  const isMin = lang === "min";
   const searchInputRef = useRef<HTMLInputElement>(null);
   const mobileSearchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
@@ -146,50 +147,50 @@ export default function AdminTopBar({
     }[] = [
       {
         id: "clients",
-        label: isId ? "Portofolio & Klien" : "Portfolio & Clients",
-        sub: isId ? "Folder klien & karya visual" : "Client folders & works",
+        label: isMin ? "Portofolio & Klien" : isId ? "Portofolio & Klien" : "Portfolio & Clients",
+        sub: isMin ? "Folder klien & karya visual" : isId ? "Folder klien & karya visual" : "Client folders & works",
         icon: HiFolder,
       },
       {
         id: "resources",
         label: "Resource Library",
-        sub: isId ? "Vault media explorer & storage" : "Media asset explorer",
+        sub: isMin ? "Gudang media explorer & aset" : isId ? "Vault media explorer & storage" : "Media asset explorer",
         icon: HiSquare3Stack3D,
       },
       {
         id: "hero-banner",
         label: "Hero Banner (Scrolly)",
-        sub: isId ? "Frame animasi kanvas utama" : "Canvas sequence frames",
+        sub: isMin ? "Frame animasi kanvas utamo" : isId ? "Frame animasi kanvas utama" : "Canvas sequence frames",
         icon: HiSparkles,
       },
       {
         id: "hero-works",
-        label: isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
-        sub: isId ? "3 karya sorotan utama" : "3 top highlighted works",
+        label: isMin ? "Hero & Karya Tapiliah" : isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
+        sub: isMin ? "3 karya sorotan utamo" : isId ? "3 karya sorotan utama" : "3 top highlighted works",
         icon: HiPhoto,
       },
       {
         id: "flagship",
         label: "Media Showcase",
-        sub: isId ? "Stage 3 video reels" : "Stage 3 video showcase",
+        sub: isMin ? "Stage 3 video reels" : isId ? "Stage 3 video reels" : "Stage 3 video showcase",
         icon: HiVideoCamera,
       },
       {
         id: "runner",
-        label: isId ? "Running Portofolio (4:5)" : "Running Portfolio",
-        sub: isId ? "Marquee poster vertikal" : "Vertical marquee poster cards",
+        label: isMin ? "Running Portofolio (4:5)" : isId ? "Running Portofolio (4:5)" : "Running Portfolio",
+        sub: isMin ? "Marquee poster tagak" : isId ? "Marquee poster vertikal" : "Vertical marquee poster cards",
         icon: HiSquares2X2,
       },
       {
         id: "about",
-        label: isId ? "Tentang Saya" : "About Me",
-        sub: isId ? "Profil, biografi & kontak" : "Profile bio & contacts",
+        label: isMin ? "Tantang Ambo" : isId ? "Tentang Saya" : "About Me",
+        sub: isMin ? "Profil, biografi & kontak" : isId ? "Profil, biografi & kontak" : "Profile bio & contacts",
         icon: HiUser,
       },
       {
         id: "settings",
-        label: isId ? "Sandi & Keamanan" : "Password & Security",
-        sub: isId ? "Pengaturan akun admin" : "Admin credentials",
+        label: isMin ? "Kunci & Kaamanan" : isId ? "Sandi & Keamanan" : "Password & Security",
+        sub: isMin ? "Pangaturan akun admin" : isId ? "Pengaturan akun admin" : "Admin credentials",
         icon: HiKey,
       },
     ];
@@ -284,7 +285,9 @@ export default function AdminTopBar({
               }}
               onKeyDown={handleKeyDown}
               placeholder={
-                isId
+                isMin
+                  ? "Cari klien, karya visual, logo..."
+                  : isId
                   ? "Cari klien, karya visual, logo partner..."
                   : "Search clients, folders, assets"
               }
@@ -592,7 +595,7 @@ export default function AdminTopBar({
             <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
           </button>
 
-          {/* Language Switcher */}
+          {/* Language Switcher (ID, EN, MIN) */}
           <div className="flex items-center p-0.5 rounded-xl bg-[#12151a] border border-white/10">
             <button
               type="button"
@@ -615,6 +618,17 @@ export default function AdminTopBar({
               }`}
             >
               EN
+            </button>
+            <button
+              type="button"
+              onClick={() => setLang("min")}
+              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                lang === "min"
+                  ? "bg-[#14AF9E] text-black shadow-sm"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              MIN
             </button>
           </div>
 

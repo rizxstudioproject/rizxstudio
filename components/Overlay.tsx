@@ -14,19 +14,19 @@ export default function Overlay({ progress }: OverlayProps) {
   const section3Ref = useRef<HTMLDivElement>(null);
   const { t, lang } = useLang();
   const { heroBanner } = usePortfolioData();
-  const isId = lang === "id";
+  const isLocalized = lang === "id" || lang === "min";
 
   const displayName = heroBanner?.name || "Fomy R";
-  const displayRole = isId ? t("hero.role") : (heroBanner?.role || t("hero.role"));
-  const displayScroll = isId ? t("hero.scroll") : (heroBanner?.scrollText || t("hero.scroll"));
+  const displayRole = isLocalized ? t("hero.role") : (heroBanner?.role || t("hero.role"));
+  const displayScroll = isLocalized ? t("hero.scroll") : (heroBanner?.scrollText || t("hero.scroll"));
 
-  const displaySec2H1 = isId ? t("hero.section2.headline1") : (heroBanner?.sec2Headline1 || t("hero.section2.headline1"));
-  const displaySec2H2 = isId ? t("hero.section2.headline2") : (heroBanner?.sec2Headline2 || t("hero.section2.headline2"));
-  const displaySec2Body = isId ? t("hero.section2.body") : (heroBanner?.sec2Body || t("hero.section2.body"));
+  const displaySec2H1 = isLocalized ? t("hero.section2.headline1") : (heroBanner?.sec2Headline1 || t("hero.section2.headline1"));
+  const displaySec2H2 = isLocalized ? t("hero.section2.headline2") : (heroBanner?.sec2Headline2 || t("hero.section2.headline2"));
+  const displaySec2Body = isLocalized ? t("hero.section2.body") : (heroBanner?.sec2Body || t("hero.section2.body"));
 
-  const displaySec3H1 = isId ? t("hero.section3.headline1") : (heroBanner?.sec3Headline1 || t("hero.section3.headline1"));
-  const displaySec3H2 = isId ? t("hero.section3.headline2") : (heroBanner?.sec3Headline2 || t("hero.section3.headline2"));
-  const displaySec3Body = isId ? t("hero.section3.body") : (heroBanner?.sec3Body || t("hero.section3.body"));
+  const displaySec3H1 = isLocalized ? t("hero.section3.headline1") : (heroBanner?.sec3Headline1 || t("hero.section3.headline1"));
+  const displaySec3H2 = isLocalized ? t("hero.section3.headline2") : (heroBanner?.sec3Headline2 || t("hero.section3.headline2"));
+  const displaySec3Body = isLocalized ? t("hero.section3.body") : (heroBanner?.sec3Body || t("hero.section3.body"));
 
   useEffect(() => {
     // ==========================================

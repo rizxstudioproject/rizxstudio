@@ -52,7 +52,8 @@ export default function ResourceLibrary({
   onViewWebsite,
 }: ResourceLibraryProps) {
   const { lang } = useLang();
-  const isId = lang === "id";
+  const isId = lang === "id" || lang === "min";
+  const isMin = lang === "min";
 
   // Filter & Search states
   const [searchQuery, setSearchQuery] = useState("");

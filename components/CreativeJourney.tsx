@@ -9,6 +9,8 @@ export default function CreativeJourney() {
   const { stage3 } = usePortfolioData();
   const { t, lang } = useLang();
   const isId = lang === "id";
+  const isMin = lang === "min";
+  const isLocalized = isId || isMin;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -17,25 +19,27 @@ export default function CreativeJourney() {
     setMounted(true);
   }, []);
 
-  const displayTag = isId
+  const displayTag = isLocalized
     ? t("projects.stage3.tag")
     : stage3?.classTag || t("projects.stage3.tag");
 
-  const displayHeadline = isId
+  const displayHeadline = isLocalized
     ? t("projects.stage3.headline")
     : stage3?.headline || t("projects.stage3.headline");
 
-  const displayTitle = isId
+  const displayTitle = isLocalized
     ? t("projects.stage3.card.title")
     : stage3?.heroCard?.title || t("projects.stage3.card.title");
 
-  const displayCategory = isId
+  const displayCategory = isLocalized
     ? t("projects.stage3.card.category")
     : stage3?.heroCard?.category || t("projects.stage3.card.category");
 
   const displayDescription =
     stage3?.heroCard?.description ||
-    (isId
+    (isMin
+      ? "Eksplorasi sinematik nan mangubuangakan labiah dari sapuluah taun karya visual, animasi motion 3D, sarato teknologi AI modern."
+      : isId
       ? "Eksplorasi sinematik yang menghubungkan lebih dari satu dekade karya visual, desain animasi 3D, dan teknologi kecerdasan AI mutakhir."
       : "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences.");
 

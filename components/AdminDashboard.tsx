@@ -112,6 +112,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   // Admin Account & Password Management State
   const { lang, setLang } = useLang();
   const isId = lang === "id";
+  const isMin = lang === "min";
   const [adminUser, setAdminUser] = useState("admin");
   const [adminPass, setAdminPass] = useState("");
   const [adminConfirmPass, setAdminConfirmPass] = useState("");
@@ -5703,26 +5704,26 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {[
                   {
                     id: "clients" as AdminSidebarTab,
-                    label: isId ? "Portofolio & Klien" : "Portfolio & Clients",
-                    sub: isId ? "Folder klien & logo partner marquee" : "Client folders & partner logos",
+                    label: isMin ? "Portofolio & Klien" : isId ? "Portofolio & Klien" : "Portfolio & Clients",
+                    sub: isMin ? "Folder klien & logo partner marquee" : isId ? "Folder klien & logo partner marquee" : "Client folders & partner logos",
                     icon: HiFolder,
                   },
                   {
                     id: "resources" as AdminSidebarTab,
                     label: "Resource Library",
-                    sub: isId ? "Semua aset media & visual vault" : "All media assets & visual vault",
+                    sub: isMin ? "Gudang kasadonyo media & aset" : isId ? "Semua aset media & visual vault" : "All media assets & visual vault",
                     icon: HiSquare3Stack3D,
                   },
                   {
                     id: "hero-banner" as AdminSidebarTab,
                     label: "Hero Banner",
-                    sub: isId ? "Hero Banner & animasi scrolly" : "Hero banner & scrolly motion",
+                    sub: isMin ? "Hero Banner & animasi scrolly" : isId ? "Hero Banner & animasi scrolly" : "Hero banner & scrolly motion",
                     icon: HiSparkles,
                   },
                   {
                     id: "hero-works" as AdminSidebarTab,
-                    label: isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
-                    sub: isId ? "3 karya sorotan utama" : "3 top highlighted works",
+                    label: isMin ? "Hero & Karya Tapiliah" : isId ? "Hero & Karya Unggulan" : "Hero & Selected Works",
+                    sub: isMin ? "3 karya sorotan utamo" : isId ? "3 karya sorotan utama" : "3 top highlighted works",
                     icon: HiPhoto,
                   },
                   {
@@ -5733,20 +5734,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   },
                   {
                     id: "runner" as AdminSidebarTab,
-                    label: isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
-                    sub: isId ? "Karya poster vertikal marquee" : "Vertical marquee poster cards",
+                    label: isMin ? "Running Portofolio (4:5)" : isId ? "Running Portofolio (4:5)" : "Running Portfolio (4:5)",
+                    sub: isMin ? "Karya poster tagak marquee" : isId ? "Karya poster vertikal marquee" : "Vertical marquee poster cards",
                     icon: HiSquares2X2,
                   },
                   {
                     id: "about" as AdminSidebarTab,
-                    label: isId ? "Tentang Saya" : "About Me",
-                    sub: isId ? "Profil, bio & kontak" : "Profile bio & contacts",
+                    label: isMin ? "Tantang Ambo" : isId ? "Tentang Saya" : "About Me",
+                    sub: isMin ? "Profil, biografi & kontak" : isId ? "Profil, bio & kontak" : "Profile bio & contacts",
                     icon: HiUser,
                   },
                   {
                     id: "settings" as AdminSidebarTab,
-                    label: isId ? "Sandi & Keamanan" : "Settings",
-                    sub: isId ? "Sandi, verifikasi & keamanan" : "Password & account security",
+                    label: isMin ? "Kunci & Kaamanan" : isId ? "Sandi & Keamanan" : "Settings",
+                    sub: isMin ? "Kunci, verifikasi & kaamanan akun" : isId ? "Sandi, verifikasi & keamanan" : "Password & account security",
                     icon: HiKey,
                   },
                 ].map((item) => {

@@ -13,6 +13,7 @@ const SHOW_DELAY_MS = 3500; // show after 3.5s
 export default function WhatsAppPopup() {
   const { lang } = useLang();
   const isId = lang === "id";
+  const isMin = lang === "min";
 
   const [visible, setVisible] = useState(false);
   const [animIn, setAnimIn] = useState(false);
@@ -97,21 +98,25 @@ export default function WhatsAppPopup() {
               </span>
               <span className="text-[10px] text-[#14AF9E] font-mono flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#25D366] animate-pulse inline-block" />
-                {isId ? "Online sekarang" : "Online now"}
+                {isMin ? "Online kini" : isId ? "Online sekarang" : "Online now"}
               </span>
             </div>
           </div>
 
           {/* Headline */}
           <p className="text-sm sm:text-[15px] font-semibold text-white leading-snug mb-1.5">
-            {isId
+            {isMin
+              ? "Ado nan nio ditanyokan? Chat langsuang di WhatsApp."
+              : isId
               ? "Ada pertanyaan? Chat langsung via WhatsApp."
               : "A question? Message us on WhatsApp."}
           </p>
 
           {/* Body */}
           <p className="text-xs sm:text-[13px] text-neutral-400 leading-relaxed mb-4">
-            {isId
+            {isMin
+              ? "Rizx Studio mambaleh langsuang — indak paralu antre."
+              : isId
               ? "Rizx Studio membalas langsung — tanpa form, tanpa antre."
               : "Rizx Studio replies directly — no form, no switchboard."}
           </p>
@@ -122,17 +127,17 @@ export default function WhatsAppPopup() {
             className="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1ebe5a] active:scale-95 text-white font-semibold text-sm transition-all duration-200 shadow-[0_4px_16px_rgba(37,211,102,0.30)]"
           >
             <FaWhatsapp className="w-4.5 h-4.5" />
-            <span>{isId ? "Chat di WhatsApp" : "Chat on WhatsApp"}</span>
+            <span>{isMin ? "Chat di WhatsApp" : isId ? "Chat di WhatsApp" : "Chat on WhatsApp"}</span>
           </button>
 
           {/* Secondary link */}
           <p className="text-center mt-2.5 text-[11px] text-neutral-600">
-            {isId ? "atau " : "or "}
+            {isMin ? "atau " : isId ? "atau " : "or "}
             <button
               onClick={handleDismiss}
               className="underline underline-offset-2 text-neutral-500 hover:text-neutral-300 transition-colors"
             >
-              {isId ? "tutup" : "dismiss"}
+              {isMin ? "tutuik" : isId ? "tutup" : "dismiss"}
             </button>
           </p>
         </div>

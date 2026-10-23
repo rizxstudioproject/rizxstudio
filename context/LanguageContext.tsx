@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 
-export type Lang = "en" | "id";
+export type Lang = "en" | "id" | "min";
 
 interface LanguageContextType {
   lang: Lang;
@@ -196,6 +196,96 @@ export const translations: Record<Lang, Record<string, string>> = {
     "contact.footer.contact": "Kontak",
     "contact.lang.label": "Pilihan Bahasa:",
   },
+
+  min: {
+    // Navbar
+    "nav.clients": "Klien",
+    "nav.about": "Tantang Ambo",
+    "nav.work": "Karya",
+    "nav.contact": "Hubungi",
+    "nav.direct": "Langsuang ↗",
+    "nav.langLabel": "Piliahan Bahaso:",
+
+    // Overlay / Hero
+    "hero.role": "Parancang Kreatif Barbasis AI",
+    "hero.scroll": "GULIA KA BAWAH",
+    "hero.section2.headline1": "Kreatif nan",
+    "hero.section2.headline2": "baasia rancak",
+    "hero.section2.body": "Manggabuangkan 11+ taun pangalaman kreatif jo alur karajo modern untuak mahasiakan visual nan padek, identitas merek nan kuaik, sarato kampanye digital bakarajo tinggi.",
+    "hero.section3.headline1": "Kreativitas",
+    "hero.section3.headline2": "bapadukan AI",
+    "hero.section3.body": "Titik temu antaro kreativitas urang jo alur karajo modern — mambuek karya visual, identitas merek, jo kampanye nan manggariakkan ati sarato maagiah asia gadang.",
+
+    // Clients Section
+    "clients.subtitle": "Klien Tapiliah & Karajosamo Kreatif",
+
+    // About Me (Bahaso Minang)
+    "about.eyebrow": "SIA AMBO",
+    "about.title": "Tantang Ambo",
+    "about.headline": "Parancang Kreatif & Spesialis Motion | 11+ Taun | Agensi & Brand Dunia",
+    "about.para1": "Alah 11+ taun dalam dunia desain kreatif, ambo bakambang sasuai kamajuan industri, mamadukan dasar-dasar desain nan kokoh jo alur karajo modern untuak mahasiakan visual nan padek ka agensi jo brand internasional.",
+    "about.quote": "Kaoetamoan tagadang surang profesional kreatif indaklah manulak parubahan — tapi manyasuaikan diri labiah capek.",
+    "about.stat1.num": "11+",
+    "about.stat1.label": "Taun Pangalaman",
+    "about.stat2.num": "100+",
+    "about.stat2.label": "Proyek Tuntong",
+    "about.stat3.num": "20+",
+    "about.stat3.label": "Klien Dunia",
+    "about.card1.title": "Prinsip Utamo",
+    "about.card1.body": "Kaoetamoan tagadang surang profesional kreatif indaklah manulak parubahan — tapi manyasuaikan diri labiah capek.",
+    "about.card2.title": "Karajosamo Global",
+    "about.card2.body": "Mambuek konten visual skala gadang, iklan rancak, jo materi kampanye batingkek tinggi untuak brand jo agensi dunia.",
+    "about.card3.title": "Kaoetamoan Bidang",
+
+    // Projects / Works - Stage 1
+    "projects.stage1.badge": "KARYA TAPILIAH",
+    "projects.stage1.headline": "Bamacam Karya. Ciek Visi Kreatif.",
+    "projects.stage1.subheadline": "Jelajahi proyek pilihan di bidang branding, animasi motion, rancangan digital, sarato visual barbasis AI, nan tabantuak dek baragam brief, tim, jo tantangan kreatif.",
+    "projects.stage1.scroll": "Gulia ka bawah",
+
+    // Projects / Works - Stage 2
+    "projects.stage2.tag": "KREATIF BARBASIS AI",
+    "projects.stage2.headline": "Desain. Motion. AI.",
+    "projects.stage2.desc": "Desainer Grafis Senior & Saniman Digital nan marancang visual brand babobot, animasi motion, sarato pangalaman digital untuak brand global.",
+    "projects.stage2.btn": "Jelajahi Karya Ambo",
+
+    // Projects / Works - Stage 3
+    "projects.stage3.tag": "PAJALANAN KREATIF | 2012 INGGA KINI",
+    "projects.stage3.headline": "Pajalanan nan tabantuak dek kreativitas jo parubahan.",
+    "projects.stage3.card.title": "Dari Karya Visual Manuju Teknologi",
+    "projects.stage3.card.category": "KARYA VISUAL | DIGITAL | AI",
+    "projects.stage3.card.btn": "Caliak Sangenek",
+
+    // Projects / Works - Stage 4
+    "projects.stage4.badge": "PANGALAMAN PROFESIONAL",
+    "projects.stage4.headline": "Karya Kreatif. Solusi Nyato.",
+    "projects.stage4.desc": "Dari kampanye merek ingga pangalaman digital, ambo mamadukan alur karajo desain, animasi motion, sarato kacerdasan AI untuak mambuek karya nan baguno.",
+    "projects.stage4.archive": "Arsip",
+    "projects.stage4.deliverables": "karya",
+
+    // Lightbox Modal
+    "projects.challenge": "Tantangan",
+    "projects.solution": "Solusi",
+    "projects.role": "Tugeh / Peran:",
+    "projects.tools": "Pakakeh / Tools:",
+    "projects.close": "Tutuik Caliak",
+    "projects.scrollhint": "Katarangan Proyek di Bawah",
+    "casestudy.challenge.label": "Tantangan / Kasukaran",
+    "casestudy.solution.label": "Solusi / Caro Karajo",
+
+    // Contact
+    "contact.badge": "Tabukak untuak Paluang Kreatif",
+    "contact.headline1": "Mari kito buek",
+    "contact.headline2": "nan bamakna",
+    "contact.headline3": "basamo-samo.",
+    "contact.body": "Ado ide rancangan atau proyek? Mari kito badiskusi baa desain kreatif, animasi motion, sarato produksi visual dapek mambuek ide sanak jadi kanyataan.",
+    "contact.footer.rights": "SAGALO HAK CIPTA TALINDUNGI.",
+    "contact.footer.clients": "Klien",
+    "contact.footer.work": "Karya",
+    "contact.footer.about": "Tantang Ambo",
+    "contact.footer.contact": "Hubungi",
+    "contact.lang.label": "Piliahan Bahaso:",
+  },
 };
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
@@ -203,7 +293,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const saved = localStorage.getItem("rizx-lang") as Lang | null;
-    if (saved === "en" || saved === "id") setLangState(saved);
+    if (saved === "en" || saved === "id" || saved === "min") setLangState(saved);
   }, []);
 
   const setLang = (l: Lang) => {
@@ -212,7 +302,12 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   };
 
   const t = (key: string): string => {
-    return translations[lang]?.[key] ?? translations["en"]?.[key] ?? key;
+    return (
+      translations[lang]?.[key] ??
+      translations["id"]?.[key] ??
+      translations["en"]?.[key] ??
+      key
+    );
   };
 
   return (
