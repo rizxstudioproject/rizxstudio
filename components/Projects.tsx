@@ -760,7 +760,7 @@ export default function Projects() {
     <section
       id="projects"
       ref={containerRef}
-      className="relative w-full h-[240vh] sm:h-[300vh] md:h-[340vh] bg-[#0a0a0a] text-white"
+      className="relative w-full h-[320vh] sm:h-[380vh] md:h-[440vh] bg-[#0a0a0a] text-white"
     >
       {/* Sticky Fullscreen Viewport Canvas */}
       <div className="sticky top-0 h-screen h-[100dvh] w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ willChange: "transform" }}>
@@ -770,15 +770,15 @@ export default function Projects() {
 
         {/* ========================================================
             STAGE 1: 1 Card -> Fans out to 5 Cards + Badges
-            (Active: 0.00 -> 0.38)
+            (Active: 0.00 -> 0.30)
            ======================================================== */}
         <div
           className="absolute inset-0 flex flex-col items-center justify-between py-8 sm:py-14 md:py-12 pt-10 sm:pt-14 md:pt-14 px-4"
           style={{
-            opacity: scrollProgress < 0.34 ? 1 : Math.max(0, 1 - (scrollProgress - 0.34) / 0.05),
-            transform: `translate3d(0, ${scrollProgress < 0.34 ? 0 : -(scrollProgress - 0.34) * 350}px, 0)`,
-            pointerEvents: scrollProgress <= 0.38 ? "auto" : "none",
-            visibility: scrollProgress > 0.41 ? "hidden" : "visible",
+            opacity: scrollProgress < 0.28 ? 1 : Math.max(0, 1 - (scrollProgress - 0.28) / 0.05),
+            transform: `translate3d(0, ${scrollProgress < 0.28 ? 0 : -(scrollProgress - 0.28) * 350}px, 0)`,
+            pointerEvents: scrollProgress <= 0.30 ? "auto" : "none",
+            visibility: scrollProgress > 0.34 ? "hidden" : "visible",
           }}
         >
           {/* Header */}
@@ -913,26 +913,26 @@ export default function Projects() {
 
         {/* ========================================================
             STAGE 2: Left Headline & Text + Right Dense Overlapping Cards
-            (Active: 0.38 -> 0.68)
+            (Active: 0.37 -> 0.62)
            ======================================================== */}
         <div
           className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-10 my-auto"
           style={{
             opacity:
-              scrollProgress < 0.38
+              scrollProgress < 0.37
                 ? 0
-                : scrollProgress > 0.65
-                ? Math.max(0, 1 - (scrollProgress - 0.65) / 0.05)
-                : Math.min(1, (scrollProgress - 0.38) / 0.05),
+                : scrollProgress > 0.62
+                ? Math.max(0, 1 - (scrollProgress - 0.62) / 0.05)
+                : Math.min(1, (scrollProgress - 0.37) / 0.05),
             transform: `translate3d(0, ${
-              scrollProgress < 0.38
+              scrollProgress < 0.37
                 ? 50
-                : scrollProgress > 0.65
-                ? -(scrollProgress - 0.65) * 300
+                : scrollProgress > 0.62
+                ? -(scrollProgress - 0.62) * 350
                 : 0
             }px, 0)`,
-            pointerEvents: scrollProgress >= 0.38 && scrollProgress <= 0.68 ? "auto" : "none",
-            visibility: scrollProgress < 0.34 || scrollProgress > 0.71 ? "hidden" : "visible",
+            pointerEvents: scrollProgress >= 0.37 && scrollProgress <= 0.63 ? "auto" : "none",
+            visibility: scrollProgress < 0.35 || scrollProgress > 0.68 ? "hidden" : "visible",
           }}
         >
           {/* Text Block */}
@@ -946,7 +946,7 @@ export default function Projects() {
                 // If headline has "Motion" or multiple words, give "Motion" interactive breathing
                 return words.map((word, wIdx) => {
                   const isMotion = word.toLowerCase().includes("motion");
-                  const s2MotionProgress = Math.max(0, Math.min(1, (scrollProgress - 0.38) / 0.16));
+                  const s2MotionProgress = Math.max(0, Math.min(1, (scrollProgress - 0.37) / 0.16));
                   const scaleAmount = 1 + s2MotionProgress * 0.08;
 
                   if (isMotion) {
@@ -1004,7 +1004,7 @@ export default function Projects() {
             {/* Scroll-driven blooming / fan-out factor for stage 2 */}
             {(() => {
               // Smooth blooming progress for Stage 2
-              const bloomStart = isMobile ? 0.40 : 0.38;
+              const bloomStart = isMobile ? 0.38 : 0.37;
               const bloomWindow = isMobile ? 0.15 : 0.18;
 
               // Blooming progress for Stage 2 (spreads gently as user reaches & scrolls stage 2)
@@ -1117,16 +1117,16 @@ export default function Projects() {
         {/* ========================================================
             STAGE 3: Interactive Client Folders Showcase
             (Folders per client + karya di dalamnya)
-            (Active: 0.68 -> 1.00)
+            (Active: 0.72 -> 1.00)
            ======================================================== */}
         <div
           id="client-productions"
           className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 pt-16 sm:pt-20 lg:pt-14 pb-4 sm:pb-8 my-auto"
           style={{
-            opacity: scrollProgress < 0.68 ? 0 : Math.min(1, (scrollProgress - 0.68) / 0.05),
-            transform: `translate3d(0, ${scrollProgress < 0.68 ? 50 : 0}px, 0)`,
-            pointerEvents: scrollProgress >= 0.68 ? "auto" : "none",
-            visibility: scrollProgress < 0.64 ? "hidden" : "visible",
+            opacity: scrollProgress < 0.72 ? 0 : Math.min(1, (scrollProgress - 0.72) / 0.05),
+            transform: `translate3d(0, ${scrollProgress < 0.72 ? 50 : 0}px, 0)`,
+            pointerEvents: scrollProgress >= 0.72 ? "auto" : "none",
+            visibility: scrollProgress < 0.71 ? "hidden" : "visible",
           }}
         >
           {/* Left Text Block */}
