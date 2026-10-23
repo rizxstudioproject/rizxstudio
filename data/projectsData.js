@@ -44,7 +44,7 @@ export const antigravityData = {
     classTag: "CREATIVE JOURNEY | 2012 TO PRESENT",
     headline: "A journey shaped by creativity and change.",
     heroCard: {
-      image: "/assets/antigravity/hero-large.jpg",
+      image: "",
       title: "From Visual Craft to Technology",
       category: "VISUAL CRAFT | DIGITAL | AI",
       aspectRatio: "16:9",

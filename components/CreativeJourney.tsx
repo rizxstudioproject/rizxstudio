@@ -50,7 +50,7 @@ export default function CreativeJourney() {
 
   const isShowingYouTube = mediaType === "youtube" && Boolean(youtubeId);
   const isShowingGDrive = mediaType === "gdrive" && Boolean(gdriveId);
-  const imageSrc = stage3?.heroCard?.image || "/assets/antigravity/hero-large.jpg";
+  const imageSrc = stage3?.heroCard?.image || "";
 
   return (
     <section id="creative-journey" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
@@ -85,14 +85,16 @@ export default function CreativeJourney() {
               className="w-full h-full object-cover scale-[1.12] border-0 pointer-events-none"
               allow="autoplay; encrypted-media"
             />
-          ) : (
+          ) : mounted && imageSrc ? (
             <img
               src={imageSrc}
               alt={displayTitle}
-              className={`w-full h-full object-cover scale-[1.02] transition-all duration-500 ease-out group-hover:scale-[1.08] ${
-                mounted ? "opacity-100" : "opacity-0"
-              }`}
+              className="w-full h-full object-cover scale-[1.02] transition-transform duration-700 ease-out group-hover:scale-[1.08]"
             />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-950 to-black flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full border border-white/10 animate-pulse bg-white/5" />
+            </div>
           )}
         </div>
 

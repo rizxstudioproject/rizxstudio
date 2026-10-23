@@ -1090,7 +1090,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     stage3.heroCard.gdriveUrl || (stage3.heroCard.gdriveId ? `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view` : "")
   );
   const [flagshipImageUrl, setFlagshipImageUrl] = useState<string>(
-    stage3.heroCard.image || "/assets/antigravity/hero-large.jpg"
+    stage3.heroCard.image || ""
   );
   const [videoTitle, setVideoTitle] = useState(stage3.heroCard.title || "From Visual Craft to Technology");
   const [videoCategory, setVideoCategory] = useState(stage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI");
@@ -1387,7 +1387,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       videoId: computedYtId,
       gdriveUrl: flagshipGDriveUrl.trim(),
       gdriveId: computedGdId,
-      image: flagshipImageUrl.trim() || "/assets/antigravity/hero-large.jpg",
+      image: flagshipImageUrl.trim(),
       title: videoTitle.trim(),
       category: videoCategory.trim(),
       description: videoDescription.trim(),
@@ -5108,11 +5108,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       />
                     ) : (
                       <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
-                        <img
-                          src={flagshipImageUrl || stage3.heroCard.image || "/assets/antigravity/hero-large.jpg"}
-                          alt="Showcase Preview"
-                          className="w-full h-full object-cover"
-                        />
+                        {(flagshipImageUrl || stage3.heroCard.image) ? (
+                          <img
+                            src={flagshipImageUrl || stage3.heroCard.image}
+                            alt="Showcase Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-neutral-500 font-mono text-xs">Pilih atau upload gambar showcase</div>
+                        )}
                       </div>
                     )}
 
