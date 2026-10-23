@@ -17,6 +17,14 @@ export interface HeroBannerData {
   sec3Headline1: string;
   sec3Headline2: string;
   sec3Body: string;
+  // Hero photo sequence controls
+  sequenceMode?: "default" | "folder" | "custom";
+  sequenceTotalFrames?: number;
+  sequenceFolder?: string;
+  sequencePattern?: string; // e.g. "frame_{padded}.webp"
+  sequencePadding?: number; // e.g. 6
+  sequenceStartIndex?: number; // e.g. 0
+  sequenceCustomFrames?: string[]; // Array of frame URLs
 }
 
 export const defaultHeroBannerData: HeroBannerData = {
@@ -31,6 +39,13 @@ export const defaultHeroBannerData: HeroBannerData = {
   sec3Headline2: "meets AI",
   sec3Body:
     "Where human creativity and modern creative workflows converge - crafting visuals, brands, and campaigns that move people and perform at scale.",
+  sequenceMode: "default",
+  sequenceTotalFrames: 121,
+  sequenceFolder: "/sequence",
+  sequencePattern: "frame_{padded}.webp",
+  sequencePadding: 6,
+  sequenceStartIndex: 0,
+  sequenceCustomFrames: [],
 };
 
 export interface Stage3HeroCard {

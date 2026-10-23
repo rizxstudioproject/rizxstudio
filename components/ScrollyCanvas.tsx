@@ -1,16 +1,12 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Overlay from "./Overlay";
-
-const TOTAL_FRAMES = 121;
-
-const getFramePath = (index: number) => {
-  const padded = String(index).padStart(6, "0");
-  return `/sequence/frame_${padded}.webp`;
-};
+import { usePortfolioData } from "@/context/PortfolioDataContext";
+import { getCustomFramesFromDB } from "@/lib/sequenceStorage";
 
 export default function ScrollyCanvas() {
+  const { heroBanner } = usePortfolioData();
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const imagesRef = useRef<(HTMLImageElement | null)[]>([]);
@@ -18,100 +14,180 @@ export default function ScrollyCanvas() {
   const [loadProgress, setLoadProgress] = useState<number>(0);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [scrollProgress, setScrollProgress] = useState<number>(0);
+  const [idbFrames, setIdbFrames] = useState<string[] | null>(null);
 
-  const renderFrame = useCallback((index: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
-
-    // Retrieve requested frame, or fallback to closest loaded frame to avoid flickering
-    let img = imagesRef.current[index];
-    if (!img || !img.complete || img.naturalWidth === 0) {
-      for (let offset = 1; offset < TOTAL_FRAMES; offset++) {
-        const prev = index - offset;
-        const next = index + offset;
-        if (prev >= 0 && imagesRef.current[prev]?.complete && (imagesRef.current[prev]?.naturalWidth ?? 0) > 0) {
-          img = imagesRef.current[prev];
-          break;
-        }
-        if (next < TOTAL_FRAMES && imagesRef.current[next]?.complete && (imagesRef.current[next]?.naturalWidth ?? 0) > 0) {
-          img = imagesRef.current[next];
-          break;
-        }
+  // Check IndexedDB on mount for cached custom sequence
+  useEffect(() => {
+    let isMounted = true;
+    getCustomFramesFromDB().then((frames) => {
+      if (isMounted && frames && frames.length > 0) {
+        setIdbFrames(frames);
       }
-    }
-
-    if (!img || !img.complete || img.naturalWidth === 0) return;
-
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-
-    const targetWidth = Math.floor(width * dpr);
-    const targetHeight = Math.floor(height * dpr);
-
-    if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
-      canvas.width = targetWidth;
-      canvas.height = targetHeight;
-    }
-
-    ctx.save();
-    ctx.scale(dpr, dpr);
-
-    // High performance object-cover math with mobile head/face framing
-    const imgWidth = img.naturalWidth;
-    const imgHeight = img.naturalHeight;
-    const imgRatio = imgWidth / imgHeight;
-    const canvasRatio = width / height;
-
-    let drawWidth = width;
-    let drawHeight = height;
-    let offsetX = 0;
-    let offsetY = 0;
-
-    if (canvasRatio > imgRatio) {
-      drawHeight = width / imgRatio;
-      offsetY = (height - drawHeight) / 2;
-    } else {
-      drawWidth = height * imgRatio;
-      offsetX = (width - drawWidth) / 2;
-      // On narrow mobile screens, bias slightly so the subject's face is centered and prominent
-      if (width < 640) {
-        offsetY = -height * 0.02;
-      }
-    }
-
-    // Fill background with deep space dark before drawing
-    ctx.fillStyle = "#0a0a0a";
-    ctx.fillRect(0, 0, width, height);
-    ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-    ctx.restore();
-
-    currentFrameIndexRef.current = index;
+    });
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  // Preload all frames on mount
+  const sequenceMode = heroBanner?.sequenceMode || "default";
+  const customFrames = useMemo(() => {
+    if (heroBanner?.sequenceCustomFrames && heroBanner.sequenceCustomFrames.length > 0) {
+      return heroBanner.sequenceCustomFrames;
+    }
+    return idbFrames || [];
+  }, [heroBanner?.sequenceCustomFrames, idbFrames]);
+
+  const totalFrames = useMemo(() => {
+    if (sequenceMode === "custom") {
+      return customFrames.length > 0 ? customFrames.length : (heroBanner?.sequenceTotalFrames || 121);
+    }
+    if (sequenceMode === "folder") {
+      return Math.max(1, heroBanner?.sequenceTotalFrames || 121);
+    }
+    return 121;
+  }, [sequenceMode, customFrames.length, heroBanner?.sequenceTotalFrames]);
+
+  const getFramePath = useCallback(
+    (index: number) => {
+      if (sequenceMode === "custom" && customFrames.length > 0) {
+        const clamped = Math.max(0, Math.min(customFrames.length - 1, index));
+        return customFrames[clamped];
+      }
+
+      if (sequenceMode === "folder") {
+        const folder = (heroBanner?.sequenceFolder || "/sequence").replace(/\/$/, "");
+        const pattern = heroBanner?.sequencePattern || "frame_{padded}.webp";
+        const padding = heroBanner?.sequencePadding ?? 6;
+        const startIdx = heroBanner?.sequenceStartIndex ?? 0;
+        const actualIdx = startIdx + index;
+        const padded = String(actualIdx).padStart(padding, "0");
+        const filename = pattern.replace("{padded}", padded).replace("{index}", String(actualIdx));
+        return `${folder}/${filename}`;
+      }
+
+      // Default built-in 121-frame WebP sequence
+      const padded = String(index).padStart(6, "0");
+      return `/sequence/frame_${padded}.webp`;
+    },
+    [
+      sequenceMode,
+      customFrames,
+      heroBanner?.sequenceFolder,
+      heroBanner?.sequencePattern,
+      heroBanner?.sequencePadding,
+      heroBanner?.sequenceStartIndex,
+    ]
+  );
+
+  const renderFrame = useCallback(
+    (index: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d", { alpha: false });
+      if (!ctx) return;
+
+      // Retrieve requested frame, or fallback to closest loaded frame to avoid flickering
+      let img = imagesRef.current[index];
+      if (!img || !img.complete || img.naturalWidth === 0) {
+        for (let offset = 1; offset < totalFrames; offset++) {
+          const prev = index - offset;
+          const next = index + offset;
+          if (
+            prev >= 0 &&
+            imagesRef.current[prev]?.complete &&
+            (imagesRef.current[prev]?.naturalWidth ?? 0) > 0
+          ) {
+            img = imagesRef.current[prev];
+            break;
+          }
+          if (
+            next < totalFrames &&
+            imagesRef.current[next]?.complete &&
+            (imagesRef.current[next]?.naturalWidth ?? 0) > 0
+          ) {
+            img = imagesRef.current[next];
+            break;
+          }
+        }
+      }
+
+      if (!img || !img.complete || img.naturalWidth === 0) return;
+
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+
+      const targetWidth = Math.floor(width * dpr);
+      const targetHeight = Math.floor(height * dpr);
+
+      if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+      }
+
+      ctx.save();
+      ctx.scale(dpr, dpr);
+
+      // High performance object-cover math with mobile head/face framing
+      const imgWidth = img.naturalWidth;
+      const imgHeight = img.naturalHeight;
+      const imgRatio = imgWidth / imgHeight;
+      const canvasRatio = width / height;
+
+      let drawWidth = width;
+      let drawHeight = height;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (canvasRatio > imgRatio) {
+        drawHeight = width / imgRatio;
+        offsetY = (height - drawHeight) / 2;
+      } else {
+        drawWidth = height * imgRatio;
+        offsetX = (width - drawWidth) / 2;
+        // On narrow mobile screens, bias slightly so the subject's face is centered and prominent
+        if (width < 640) {
+          offsetY = -height * 0.02;
+        }
+      }
+
+      // Fill background with deep space dark before drawing
+      ctx.fillStyle = "#0a0a0a";
+      ctx.fillRect(0, 0, width, height);
+      ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+      ctx.restore();
+
+      currentFrameIndexRef.current = index;
+    },
+    [totalFrames]
+  );
+
+  // Preload all frames whenever sequence configuration changes
   useEffect(() => {
     let isCancelled = false;
     let loadedCount = 0;
     const images: HTMLImageElement[] = [];
+    setIsLoaded(false);
+    setLoadProgress(0);
 
-    for (let i = 0; i < TOTAL_FRAMES; i++) {
+    for (let i = 0; i < totalFrames; i++) {
       const img = new Image();
       img.src = getFramePath(i);
 
       img.onload = () => {
         if (isCancelled) return;
         loadedCount++;
-        setLoadProgress(Math.round((loadedCount / TOTAL_FRAMES) * 100));
+        setLoadProgress(Math.round((loadedCount / totalFrames) * 100));
 
         // When active frame loads or first frame loads, render immediately
-        if (i === currentFrameIndexRef.current || (currentFrameIndexRef.current === 0 && i === 0)) {
+        if (
+          i === currentFrameIndexRef.current ||
+          (currentFrameIndexRef.current === 0 && i === 0)
+        ) {
           renderFrame(currentFrameIndexRef.current);
         }
 
-        if (loadedCount === TOTAL_FRAMES) {
+        if (loadedCount === totalFrames) {
           setIsLoaded(true);
           renderFrame(currentFrameIndexRef.current);
         }
@@ -120,8 +196,8 @@ export default function ScrollyCanvas() {
       img.onerror = () => {
         if (isCancelled) return;
         loadedCount++;
-        setLoadProgress(Math.round((loadedCount / TOTAL_FRAMES) * 100));
-        if (loadedCount === TOTAL_FRAMES) {
+        setLoadProgress(Math.round((loadedCount / totalFrames) * 100));
+        if (loadedCount === totalFrames) {
           setIsLoaded(true);
         }
       };
@@ -142,7 +218,7 @@ export default function ScrollyCanvas() {
       isCancelled = true;
       window.removeEventListener("resize", handleResize);
     };
-  }, [renderFrame]);
+  }, [totalFrames, getFramePath, renderFrame]);
 
   // Accurate progress calculator via viewport-relative bounds
   const updateProgress = useCallback(() => {
@@ -159,14 +235,14 @@ export default function ScrollyCanvas() {
     setScrollProgress(progress);
 
     const frameIndex = Math.min(
-      TOTAL_FRAMES - 1,
-      Math.max(0, Math.floor(progress * (TOTAL_FRAMES - 1)))
+      totalFrames - 1,
+      Math.max(0, Math.floor(progress * (totalFrames - 1)))
     );
 
     if (frameIndex !== currentFrameIndexRef.current) {
       renderFrame(frameIndex);
     }
-  }, [renderFrame]);
+  }, [totalFrames, renderFrame]);
 
   // Real-time tracking on both scroll and touch drag
   useEffect(() => {
@@ -190,7 +266,10 @@ export default function ScrollyCanvas() {
       className="relative h-[500vh] w-full bg-[#0a0a0a]"
       id="hero-scrolly"
     >
-      <div className="sticky top-0 h-screen h-[100dvh] w-full overflow-hidden bg-[#0a0a0a]" style={{ willChange: "transform" }}>
+      <div
+        className="sticky top-0 h-screen h-[100dvh] w-full overflow-hidden bg-[#0a0a0a]"
+        style={{ willChange: "transform" }}
+      >
         {/* Canvas for image sequence */}
         <canvas
           ref={canvasRef}

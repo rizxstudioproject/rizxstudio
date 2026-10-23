@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HiPlay,
+  HiPause,
   HiTrash,
   HiCheck,
   HiArrowPath,
@@ -45,6 +46,11 @@ import {
   defaultHeroBannerData,
 } from "@/context/PortfolioDataContext";
 import { getCaseStudy, getAspectClass } from "@/components/Projects";
+import {
+  saveCustomFramesToDB,
+  getCustomFramesFromDB,
+  clearCustomFramesFromDB,
+} from "@/lib/sequenceStorage";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -268,6 +274,39 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [hbSec3H2, setHbSec3H2] = useState(heroBanner?.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
   const [hbSec3Body, setHbSec3Body] = useState(heroBanner?.sec3Body || defaultHeroBannerData.sec3Body);
 
+  // Hero Photo Sequence States
+  const [hbSeqMode, setHbSeqMode] = useState<"default" | "folder" | "custom">(
+    heroBanner?.sequenceMode || "default"
+  );
+  const [hbSeqTotal, setHbSeqTotal] = useState<number>(
+    heroBanner?.sequenceTotalFrames || 121
+  );
+  const [hbSeqFolder, setHbSeqFolder] = useState<string>(
+    heroBanner?.sequenceFolder || "/sequence"
+  );
+  const [hbSeqPattern, setHbSeqPattern] = useState<string>(
+    heroBanner?.sequencePattern || "frame_{padded}.webp"
+  );
+  const [hbSeqPadding, setHbSeqPadding] = useState<number>(
+    heroBanner?.sequencePadding ?? 6
+  );
+  const [hbSeqStart, setHbSeqStart] = useState<number>(
+    heroBanner?.sequenceStartIndex ?? 0
+  );
+  const [hbSeqCustomFrames, setHbSeqCustomFrames] = useState<string[]>(
+    heroBanner?.sequenceCustomFrames || []
+  );
+
+  // Scrubber & Batch Upload States
+  const [seqSelectedFiles, setSeqSelectedFiles] = useState<File[]>([]);
+  const [seqPreviewUrls, setSeqPreviewUrls] = useState<string[]>([]);
+  const [seqScrubIdx, setSeqScrubIdx] = useState<number>(0);
+  const [seqIsUploading, setSeqIsUploading] = useState<boolean>(false);
+  const [seqUploadMsg, setSeqUploadMsg] = useState<string>("");
+  const [seqIsAutoPlaying, setSeqIsAutoPlaying] = useState<boolean>(false);
+  const [seqActiveTab, setSeqActiveTab] = useState<"upload" | "folder">("upload");
+  const seqFileInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (heroBanner) {
       setHbName(heroBanner.name || defaultHeroBannerData.name);
@@ -279,8 +318,61 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSec3H1(heroBanner.sec3Headline1 || defaultHeroBannerData.sec3Headline1);
       setHbSec3H2(heroBanner.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
       setHbSec3Body(heroBanner.sec3Body || defaultHeroBannerData.sec3Body);
+      setHbSeqMode(heroBanner.sequenceMode || "default");
+      setHbSeqTotal(heroBanner.sequenceTotalFrames || 121);
+      setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
+      setHbSeqPattern(heroBanner.sequencePattern || "frame_{padded}.webp");
+      setHbSeqPadding(heroBanner.sequencePadding ?? 6);
+      setHbSeqStart(heroBanner.sequenceStartIndex ?? 0);
+      setHbSeqCustomFrames(heroBanner.sequenceCustomFrames || []);
     }
   }, [heroBanner]);
+
+  // Compute active preview frames for scrubber in admin
+  const activeScrubberFrames = React.useMemo(() => {
+    if (seqPreviewUrls.length > 0) return seqPreviewUrls;
+    if (hbSeqMode === "custom" && hbSeqCustomFrames.length > 0) return hbSeqCustomFrames;
+    if (hbSeqMode === "folder") {
+      const folder = (hbSeqFolder || "/sequence").replace(/\/$/, "");
+      const pattern = hbSeqPattern || "frame_{padded}.webp";
+      const padding = hbSeqPadding ?? 6;
+      const start = hbSeqStart ?? 0;
+      const total = Math.max(1, Math.min(hbSeqTotal || 121, 200));
+      const list: string[] = [];
+      for (let i = 0; i < total; i++) {
+        const actual = start + i;
+        const padded = String(actual).padStart(padding, "0");
+        list.push(`${folder}/${pattern.replace("{padded}", padded).replace("{index}", String(actual))}`);
+      }
+      return list;
+    }
+    // Default sequence
+    const list: string[] = [];
+    for (let i = 0; i < 121; i++) {
+      list.push(`/sequence/frame_${String(i).padStart(6, "0")}.webp`);
+    }
+    return list;
+  }, [
+    seqPreviewUrls,
+    hbSeqMode,
+    hbSeqCustomFrames,
+    hbSeqFolder,
+    hbSeqPattern,
+    hbSeqPadding,
+    hbSeqStart,
+    hbSeqTotal,
+  ]);
+
+  // Autoplay scrubber preview animation
+  useEffect(() => {
+    if (!seqIsAutoPlaying) return;
+    const max = activeScrubberFrames.length;
+    if (max <= 1) return;
+    const interval = setInterval(() => {
+      setSeqScrubIdx((prev) => (prev + 1) % max);
+    }, 65);
+    return () => clearInterval(interval);
+  }, [seqIsAutoPlaying, activeScrubberFrames.length]);
 
   // About Me Section Form States
   const [aboutEyebrow, setAboutEyebrow] = useState(about?.eyebrow || defaultAboutData.eyebrow);
@@ -616,8 +708,162 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   // ==========================================
-  // Handlers for Hero Banner
+  // Handlers for Hero Banner & Sequence Photo
   // ==========================================
+  const handleSelectSequenceFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+    // Natural sort: frame_1, frame_2, ... frame_10 etc.
+    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+    const sorted = [...files].sort((a, b) => collator.compare(a.name, b.name));
+
+    // Revoke previous blob URLs if any
+    seqPreviewUrls.forEach((u) => {
+      if (u.startsWith("blob:")) URL.revokeObjectURL(u);
+    });
+
+    const objectUrls = sorted.map((f) => URL.createObjectURL(f));
+    setSeqSelectedFiles(sorted);
+    setSeqPreviewUrls(objectUrls);
+    setSeqScrubIdx(0);
+    setSeqUploadMsg(
+      isId
+        ? `${sorted.length} frame foto dipilih. Silakan coba slider preview, lalu klik "Upload & Terapkan".`
+        : `${sorted.length} frames selected. Review via preview slider, then click "Upload & Apply".`
+    );
+  };
+
+  const handleUploadSequenceBatch = async () => {
+    if (seqSelectedFiles.length === 0) {
+      showToast(isId ? "Pilih file foto sequence terlebih dahulu." : "Please select sequence photo files first.");
+      return;
+    }
+    setSeqIsUploading(true);
+    setSeqUploadMsg(isId ? "Mengupload dan memproses sequence foto..." : "Uploading and processing sequence frames...");
+
+    try {
+      const formData = new FormData();
+      seqSelectedFiles.forEach((f) => {
+        formData.append("files", f);
+      });
+
+      const res = await fetch("/api/admin/sequence-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson.error || "Gagal mengupload sequence");
+      }
+
+      const data = await res.json();
+      const urls: string[] = data.urls || [];
+
+      // Update state
+      setHbSeqMode("custom");
+      setHbSeqTotal(data.totalFrames);
+      setHbSeqFolder(data.folder);
+      setHbSeqPattern(data.pattern);
+      setHbSeqPadding(data.padding);
+      setHbSeqStart(0);
+      setHbSeqCustomFrames(urls);
+
+      // Cache to IndexedDB
+      await saveCustomFramesToDB(urls);
+
+      // Persist to PortfolioData
+      await updateHeroBannerData({
+        ...heroBanner,
+        sequenceMode: "custom",
+        sequenceTotalFrames: data.totalFrames,
+        sequenceFolder: data.folder,
+        sequencePattern: data.pattern,
+        sequencePadding: data.padding,
+        sequenceStartIndex: 0,
+        sequenceCustomFrames: urls,
+      });
+
+      setSeqSelectedFiles([]);
+      setSeqPreviewUrls(urls);
+      setSeqUploadMsg("");
+      showToast(
+        isId
+          ? `Sukses! ${data.totalFrames} frame foto hero sequence berhasil diperbarui & disimpan.`
+          : `Success! ${data.totalFrames} hero sequence frames updated and saved.`
+      );
+    } catch (err: any) {
+      console.error(err);
+      showToast(`Error: ${err?.message || "Gagal upload sequence foto"}`);
+      setSeqUploadMsg(isId ? `Gagal: ${err?.message}` : `Failed: ${err?.message}`);
+    } finally {
+      setSeqIsUploading(false);
+    }
+  };
+
+  const handleResetSequenceDefault = async () => {
+    if (
+      confirm(
+        isId
+          ? "Kembalikan sequence foto Hero ke default awal (121 Frame WebP)?"
+          : "Reset Hero photo sequence to default (121 WebP frames)?"
+      )
+    ) {
+      setHbSeqMode("default");
+      setHbSeqTotal(121);
+      setHbSeqFolder("/sequence");
+      setHbSeqPattern("frame_{padded}.webp");
+      setHbSeqPadding(6);
+      setHbSeqStart(0);
+      setHbSeqCustomFrames([]);
+      setSeqSelectedFiles([]);
+      setSeqPreviewUrls([]);
+      setSeqScrubIdx(0);
+      setSeqIsAutoPlaying(false);
+
+      await clearCustomFramesFromDB();
+      fetch("/api/admin/sequence-upload", { method: "DELETE" }).catch(() => {});
+
+      await updateHeroBannerData({
+        ...heroBanner,
+        sequenceMode: "default",
+        sequenceTotalFrames: 121,
+        sequenceFolder: "/sequence",
+        sequencePattern: "frame_{padded}.webp",
+        sequencePadding: 6,
+        sequenceStartIndex: 0,
+        sequenceCustomFrames: [],
+      });
+
+      showToast(
+        isId
+          ? "Sequence foto Hero berhasil dikembalikan ke default bawaan!"
+          : "Hero photo sequence reset to default!"
+      );
+    }
+  };
+
+  const handleApplyFolderConfig = async () => {
+    setHbSeqMode("folder");
+    setSeqPreviewUrls([]);
+    await updateHeroBannerData({
+      ...heroBanner,
+      sequenceMode: "folder",
+      sequenceFolder: hbSeqFolder.trim(),
+      sequencePattern: hbSeqPattern.trim(),
+      sequenceTotalFrames: Number(hbSeqTotal) || 121,
+      sequencePadding: Number(hbSeqPadding) || 6,
+      sequenceStartIndex: Number(hbSeqStart) || 0,
+      sequenceCustomFrames: [],
+    });
+    showToast(
+      isId
+        ? "Pengaturan folder sequence foto berhasil diterapkan!"
+        : "Folder sequence settings applied!"
+    );
+  };
+
   const handleSaveHeroBanner = async () => {
     await updateHeroBannerData({
       name: hbName.trim() || defaultHeroBannerData.name,
@@ -629,8 +875,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       sec3Headline1: hbSec3H1.trim() || defaultHeroBannerData.sec3Headline1,
       sec3Headline2: hbSec3H2.trim() || defaultHeroBannerData.sec3Headline2,
       sec3Body: hbSec3Body.trim() || defaultHeroBannerData.sec3Body,
+      sequenceMode: hbSeqMode,
+      sequenceTotalFrames: Number(hbSeqTotal) || 121,
+      sequenceFolder: hbSeqFolder.trim(),
+      sequencePattern: hbSeqPattern.trim(),
+      sequencePadding: Number(hbSeqPadding) || 6,
+      sequenceStartIndex: Number(hbSeqStart) || 0,
+      sequenceCustomFrames: hbSeqCustomFrames,
     });
-    showToast("Berhasil: Teks Hero Banner berhasil disimpan!");
+    showToast(
+      isId
+        ? "Berhasil: Pengaturan & Teks Hero Banner berhasil disimpan!"
+        : "Hero Banner text and sequence settings saved successfully!"
+    );
   };
 
   const handleCancelHeroBanner = () => {
@@ -644,12 +901,31 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSec3H1(heroBanner.sec3Headline1 || defaultHeroBannerData.sec3Headline1);
       setHbSec3H2(heroBanner.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
       setHbSec3Body(heroBanner.sec3Body || defaultHeroBannerData.sec3Body);
+      setHbSeqMode(heroBanner.sequenceMode || "default");
+      setHbSeqTotal(heroBanner.sequenceTotalFrames || 121);
+      setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
+      setHbSeqPattern(heroBanner.sequencePattern || "frame_{padded}.webp");
+      setHbSeqPadding(heroBanner.sequencePadding ?? 6);
+      setHbSeqStart(heroBanner.sequenceStartIndex ?? 0);
+      setHbSeqCustomFrames(heroBanner.sequenceCustomFrames || []);
+      setSeqSelectedFiles([]);
+      setSeqPreviewUrls([]);
     }
-    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
+    showToast(
+      isId
+        ? "Perubahan dibatalkan — form dikembalikan ke data tersimpan."
+        : "Changes cancelled — restored to saved data."
+    );
   };
 
   const handleResetHeroBannerDefault = async () => {
-    if (confirm(isId ? "Reset teks Hero Banner ke susunan default awal?" : "Reset Hero Banner text to default?")) {
+    if (
+      confirm(
+        isId
+          ? "Reset seluruh teks dan sequence foto Hero Banner ke susunan default awal?"
+          : "Reset all Hero Banner text and photo sequence to default?"
+      )
+    ) {
       await updateHeroBannerData(defaultHeroBannerData);
       setHbName(defaultHeroBannerData.name);
       setHbRole(defaultHeroBannerData.role);
@@ -660,7 +936,24 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSec3H1(defaultHeroBannerData.sec3Headline1);
       setHbSec3H2(defaultHeroBannerData.sec3Headline2);
       setHbSec3Body(defaultHeroBannerData.sec3Body);
-      showToast("Teks Hero Banner berhasil di-reset ke default!");
+      setHbSeqMode("default");
+      setHbSeqTotal(121);
+      setHbSeqFolder("/sequence");
+      setHbSeqPattern("frame_{padded}.webp");
+      setHbSeqPadding(6);
+      setHbSeqStart(0);
+      setHbSeqCustomFrames([]);
+      setSeqSelectedFiles([]);
+      setSeqPreviewUrls([]);
+      setSeqScrubIdx(0);
+      setSeqIsAutoPlaying(false);
+      await clearCustomFramesFromDB();
+      fetch("/api/admin/sequence-upload", { method: "DELETE" }).catch(() => {});
+      showToast(
+        isId
+          ? "Hero Banner & sequence foto berhasil di-reset ke default!"
+          : "Hero Banner and sequence reset to default!"
+      );
     }
   };
 
@@ -1398,6 +1691,336 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <span className="text-[9px] font-mono tracking-widest text-neutral-500 uppercase">
                   {hbScrollText || "SCROLL"}
                 </span>
+              </div>
+            </div>
+
+            {/* ========================================================
+                KONTROL SEQUENCE FOTO HERO (CANVAS SCROLLYTELLING)
+               ======================================================== */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <HiPhoto className="w-5 h-5 text-[#14AF9E]" />
+                    <h3 className="text-base sm:text-lg font-bold text-white">
+                      {isId
+                        ? "Sequence Foto Hero Banner (3D Canvas Scrollytelling)"
+                        : "Hero Banner Photo Sequence (3D Canvas Scrollytelling)"}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    {isId
+                      ? "Kelola dan update rangkaian foto portrait / visual hero yang berputar mulus saat pengunjung menggulir layar."
+                      : "Manage and update the sequence of portrait / visual photos that smoothly rotate as visitors scroll."}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className={`px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider ${
+                      hbSeqMode === "default"
+                        ? "bg-neutral-800 text-neutral-300 border border-white/10"
+                        : "bg-[#14AF9E]/20 text-[#14AF9E] border border-[#14AF9E]/40"
+                    }`}
+                  >
+                    {hbSeqMode === "default"
+                      ? isId
+                        ? "Mode: Bawaan (121 Frame)"
+                        : "Mode: Default (121 Frames)"
+                      : hbSeqMode === "custom"
+                      ? isId
+                        ? `Mode: Upload Kustom (${activeScrubberFrames.length} Frame)`
+                        : `Mode: Custom Upload (${activeScrubberFrames.length} Frames)`
+                      : isId
+                      ? `Mode: Folder (${activeScrubberFrames.length} Frame)`
+                      : `Mode: Folder (${activeScrubberFrames.length} Frames)`}
+                  </span>
+
+                  {hbSeqMode !== "default" && (
+                    <button
+                      type="button"
+                      onClick={handleResetSequenceDefault}
+                      className="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
+                    >
+                      <HiArrowPath className="w-3 h-3" />
+                      <span>{isId ? "Reset ke Bawaan" : "Reset Default"}</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Interactive Scrubber & Frame Preview */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                {/* Left/Main: Visual Canvas Scrubber */}
+                <div className="lg:col-span-7 flex flex-col gap-3">
+                  <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-xl overflow-hidden bg-black border border-white/15 flex items-center justify-center shadow-xl group">
+                    {activeScrubberFrames.length > 0 ? (
+                      <img
+                        src={activeScrubberFrames[Math.min(seqScrubIdx, Math.max(0, activeScrubberFrames.length - 1))]}
+                        alt="Sequence frame preview"
+                        className="w-full h-full object-cover select-none"
+                      />
+                    ) : (
+                      <div className="text-center p-6 text-neutral-500 font-mono text-xs">
+                        {isId ? "Belum ada frame foto" : "No frames loaded"}
+                      </div>
+                    )}
+
+                    {/* Ambient vignette */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 pointer-events-none" />
+
+                    {/* Frame Badge */}
+                    <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-white flex items-center gap-1.5 pointer-events-none">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#14AF9E] animate-pulse" />
+                      <span>
+                        FRAME {Math.min(seqScrubIdx + 1, activeScrubberFrames.length)} / {activeScrubberFrames.length}
+                      </span>
+                    </div>
+
+                    {/* Play/Pause Autoplay Button */}
+                    <button
+                      type="button"
+                      onClick={() => setSeqIsAutoPlaying(!seqIsAutoPlaying)}
+                      className="absolute top-3 right-3 px-3 py-1 rounded-md bg-black/75 hover:bg-neutral-800 text-white text-[10px] font-mono font-semibold border border-white/20 backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer active:scale-95"
+                    >
+                      {seqIsAutoPlaying ? (
+                        <>
+                          <HiPause className="w-3.5 h-3.5 text-[#14AF9E]" />
+                          <span>PAUSE</span>
+                        </>
+                      ) : (
+                        <>
+                          <HiPlay className="w-3.5 h-3.5 text-[#14AF9E]" />
+                          <span>PLAY PREVIEW</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Scrubber Range Slider Control */}
+                  <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-neutral-900/60 border border-white/10">
+                    <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+                      <span>0% (Awal)</span>
+                      <span className="text-[#14AF9E] font-semibold">
+                        {isId ? "Geser slider untuk memutar preview sequence" : "Scrub slider to rotate sequence preview"}
+                      </span>
+                      <span>100% (Akhir)</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={Math.max(0, activeScrubberFrames.length - 1)}
+                      value={seqScrubIdx}
+                      onChange={(e) => {
+                        setSeqScrubIdx(Number(e.target.value));
+                        setSeqIsAutoPlaying(false);
+                      }}
+                      className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#14AF9E]"
+                    />
+                  </div>
+                </div>
+
+                {/* Right: Upload & Setting Panel */}
+                <div className="lg:col-span-5 flex flex-col gap-3">
+                  {/* Mode Tabs */}
+                  <div className="flex p-1 rounded-xl bg-neutral-950 border border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setSeqActiveTab("upload")}
+                      className={`flex-1 py-1.5 text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
+                        seqActiveTab === "upload"
+                          ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      {isId ? "1. Upload File Foto" : "1. Batch File Upload"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSeqActiveTab("folder")}
+                      className={`flex-1 py-1.5 text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
+                        seqActiveTab === "folder"
+                          ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      {isId ? "2. Folder & Pattern" : "2. Folder & Pattern"}
+                    </button>
+                  </div>
+
+                  {/* TAB 1: UPLOAD BATCH FOTO */}
+                  {seqActiveTab === "upload" && (
+                    <div className="flex-1 flex flex-col justify-between p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
+                      <div>
+                        <span className="text-xs font-semibold text-white block">
+                          {isId ? "Pilih Rangkaian Foto Sequence Baru" : "Select Sequence Photo Frames"}
+                        </span>
+                        <p className="text-[11px] text-neutral-400 mt-1 leading-relaxed">
+                          {isId
+                            ? "Pilih banyak file foto sekaligus (format JPG, PNG, atau WebP). Sistem akan otomatis mengurutkan nama file secara natural (frame_000, frame_001, dst)."
+                            : "Select multiple image files (JPG, PNG, or WebP). Files will be naturally sorted by name."}
+                        </p>
+                      </div>
+
+                      <input
+                        ref={seqFileInputRef}
+                        type="file"
+                        multiple
+                        accept="image/*"
+                        onChange={handleSelectSequenceFiles}
+                        className="hidden"
+                      />
+
+                      <div
+                        onClick={() => seqFileInputRef.current?.click()}
+                        className="p-4 rounded-xl border border-dashed border-white/20 hover:border-[#14AF9E]/60 bg-neutral-900/40 hover:bg-neutral-900/80 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-2 group"
+                      >
+                        <HiArrowUpTray className="w-6 h-6 text-[#14AF9E] group-hover:scale-110 transition-transform" />
+                        <div>
+                          <span className="text-xs font-semibold text-white">
+                            {seqSelectedFiles.length > 0
+                              ? isId
+                                ? `${seqSelectedFiles.length} file dipilih (klik untuk ganti)`
+                                : `${seqSelectedFiles.length} files selected (click to change)`
+                              : isId
+                              ? "Klik untuk memilih file foto sequence"
+                              : "Click to select sequence photos"}
+                          </span>
+                          <span className="text-[10px] text-neutral-500 font-mono block mt-0.5">
+                            {isId ? "Bisa pilih 10 s/d 121+ file foto" : "Can select 10 to 121+ frames"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {seqUploadMsg && (
+                        <div className="p-2.5 rounded-lg bg-neutral-900 border border-white/10 text-[11px] font-mono text-[#14AF9E]">
+                          {seqUploadMsg}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={handleUploadSequenceBatch}
+                        disabled={seqSelectedFiles.length === 0 || seqIsUploading}
+                        className="w-full py-2.5 px-4 rounded-xl bg-[#14AF9E] hover:bg-[#119889] disabled:opacity-40 disabled:hover:bg-[#14AF9E] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                      >
+                        {seqIsUploading ? (
+                          <>
+                            <HiArrowPath className="w-4 h-4 animate-spin" />
+                            <span>{isId ? "Mengupload Sequence..." : "Uploading Sequence..."}</span>
+                          </>
+                        ) : (
+                          <>
+                            <HiCheck className="w-4 h-4" />
+                            <span>{isId ? "Upload & Terapkan Sequence Foto" : "Upload & Apply Sequence"}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* TAB 2: FOLDER & PATTERN CONFIGURATION */}
+                  {seqActiveTab === "folder" && (
+                    <div className="flex-1 flex flex-col justify-between p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
+                      <div>
+                        <span className="text-xs font-semibold text-white block">
+                          {isId ? "Konfigurasi Path Folder / URL" : "Folder Path / URL Configuration"}
+                        </span>
+                        <p className="text-[11px] text-neutral-400 mt-0.5">
+                          {isId
+                            ? "Arahkan ke folder static atau CDN hosting rangkaian frame foto."
+                            : "Point to a static folder or CDN hosting image sequence frames."}
+                        </p>
+                      </div>
+
+                      <div className="space-y-2 text-xs">
+                        <div>
+                          <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                            Folder / Base URL
+                          </label>
+                          <input
+                            type="text"
+                            value={hbSeqFolder}
+                            onChange={(e) => setHbSeqFolder(e.target.value)}
+                            placeholder="/sequence"
+                            className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                              File Pattern
+                            </label>
+                            <input
+                              type="text"
+                              value={hbSeqPattern}
+                              onChange={(e) => setHbSeqPattern(e.target.value)}
+                              placeholder="frame_{padded}.webp"
+                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                              Total Frame
+                            </label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={300}
+                              value={hbSeqTotal}
+                              onChange={(e) => setHbSeqTotal(Number(e.target.value))}
+                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                              Zero Padding
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={10}
+                              value={hbSeqPadding}
+                              onChange={(e) => setHbSeqPadding(Number(e.target.value))}
+                              placeholder="6"
+                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                              Start Index
+                            </label>
+                            <input
+                              type="number"
+                              min={0}
+                              max={1}
+                              value={hbSeqStart}
+                              onChange={(e) => setHbSeqStart(Number(e.target.value))}
+                              placeholder="0"
+                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleApplyFolderConfig}
+                        className="w-full py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs sm:text-sm border border-white/15 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                      >
+                        <HiCheck className="w-4 h-4 text-[#14AF9E]" />
+                        <span>{isId ? "Terapkan Folder & Muat Sequence" : "Apply Folder & Load Sequence"}</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
