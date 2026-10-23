@@ -42,7 +42,12 @@ export default function About() {
   const displayCollabTitle = isId ? t("about.card2.title") : (about.collabTitle || t("about.card2.title"));
   const displayCollabDesc = isId ? t("about.card2.body") : (about.collabDesc || t("about.card2.body"));
   const displayDisciplinesTitle = isId ? t("about.card3.title") : (about.disciplinesTitle || t("about.card3.title"));
-  const activeDisciplines = fallbackDisciplines[lang];
+  // Use admin-saved disciplines (EN only); fall back to hardcoded list if not set
+  const activeDisciplines = isId
+    ? fallbackDisciplines.id
+    : (about.disciplines && about.disciplines.length > 0
+        ? about.disciplines
+        : fallbackDisciplines.en);
 
   return (
     <section id="about" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
