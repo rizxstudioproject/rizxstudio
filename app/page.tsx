@@ -8,6 +8,7 @@ import About from "@/components/About";
 import Projects from "@/components/Projects";
 import Contact from "@/components/Contact";
 import PortfolioRunner from "@/components/PortfolioRunner";
+import WhatsAppPopup from "@/components/WhatsAppPopup";
 import AdminDashboard from "@/components/AdminDashboard";
 import AdminLogin from "@/components/AdminLogin";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
@@ -132,6 +133,9 @@ export default function Home() {
           <HiCog6Tooth className="w-4 h-4 text-neutral-400 group-hover:rotate-90 transition-transform duration-500" />
         </button>
       )}
+
+      {/* WhatsApp Popup — shows after 3.5s on first visit */}
+      <WhatsAppPopup />
     </div>
   );
 }
