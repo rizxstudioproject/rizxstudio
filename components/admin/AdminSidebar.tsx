@@ -12,6 +12,8 @@ import {
   HiKey,
   HiChevronDown,
   HiSquare3Stack3D,
+  HiTrash,
+  HiChartPie,
 } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 
@@ -23,6 +25,8 @@ export type AdminSidebarTab =
   | "flagship"
   | "runner"
   | "about"
+  | "trash"
+  | "storage"
   | "settings";
 
 interface AdminSidebarProps {
@@ -33,6 +37,7 @@ interface AdminSidebarProps {
   adminName?: string;
   totalWorks?: number;
   totalClients?: number;
+  trashCount?: number;
   onOpenProfileMenu?: () => void;
 }
 
@@ -44,6 +49,7 @@ export default function AdminSidebar({
   adminName = "Rizx Studio",
   totalWorks = 0,
   totalClients = 0,
+  trashCount = 0,
   onOpenProfileMenu,
 }: AdminSidebarProps) {
   const { lang, tr } = useLang();
@@ -90,6 +96,17 @@ export default function AdminSidebar({
       id: "about",
       label: tr("About Me Section", "Tentang Saya", "Tantang Ambo"),
       icon: HiUser,
+    },
+    {
+      id: "trash",
+      label: tr("Recycle Bin", "Tong Sampah", "Tong Sarok"),
+      badge: trashCount > 0 ? trashCount : undefined,
+      icon: HiTrash,
+    },
+    {
+      id: "storage",
+      label: tr("Storage & Analytics", "Kapasitas & Data", "Panyimpanan & Data"),
+      icon: HiChartPie,
     },
     {
       id: "settings",
@@ -173,10 +190,17 @@ export default function AdminSidebar({
 
       {/* Bottom Section: Storage & Profile */}
       <div className="p-3 border-t border-white/5 space-y-3">
-        {/* Storage Bar */}
-        <div className="p-3 rounded-xl bg-[#0f1115] border border-white/5 space-y-2">
+        {/* Storage Bar (Clickable to open animated storage graphic view) */}
+        <button
+          type="button"
+          onClick={() => onSelectTab("storage")}
+          className="w-full text-left p-3 rounded-xl bg-[#0f1115] hover:bg-[#15181f] border border-white/5 hover:border-[#14AF9E]/30 transition-all space-y-2 group cursor-pointer"
+        >
           <div className="flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400">{tr("Storage", "Penyimpanan", "Panyimpanan")}</span>
+            <span className="text-neutral-400 group-hover:text-[#14AF9E] transition-colors flex items-center gap-1.5">
+              <HiChartPie className="w-3.5 h-3.5 text-[#14AF9E]" />
+              <span>{tr("Storage", "Penyimpanan", "Panyimpanan")}</span>
+            </span>
             <span className="font-mono text-neutral-200">
               <strong className="text-white">{storageUsed}</strong> / {storageTotal} GB
             </span>
@@ -189,9 +213,9 @@ export default function AdminSidebar({
           </div>
           <div className="flex items-center justify-between text-[10px] text-neutral-500 font-mono">
             <span>{totalWorks} {tr("total works", "total karya", "karya kasadonyo")}</span>
-            <span className="text-emerald-400">{tr("Live Sync", "Sinkron Langsung", "Sinkron Langsuang")}</span>
+            <span className="text-cyan-400 group-hover:underline">{tr("Graphic ↗", "Grafik ↗", "Grafik ↗")}</span>
           </div>
-        </div>
+        </button>
 
         {/* Profile Card */}
         <button

@@ -339,6 +339,18 @@ export const defaultPortfolioRunnerData: PortfolioRunnerData = {
   waveRadius: 240,
 };
 
+export interface TrashItem {
+  id: string;
+  originalId: string;
+  type: "client-work" | "client-folder" | "flagship-video" | "runner-item" | "hero-card" | "client-logo";
+  title: string;
+  subtitle?: string;
+  previewImage?: string;
+  mediaType?: "image" | "youtube" | "gdrive";
+  deletedAt: string;
+  payload: any;
+}
+
 interface PortfolioDataContextType {
   stage3: {
     classTag: string;
@@ -353,6 +365,11 @@ interface PortfolioDataContextType {
   portfolioRunner: PortfolioRunnerData;
   heroBanner: HeroBannerData;
   allData: typeof antigravityData;
+  trashItems: TrashItem[];
+  moveToTrash: (item: Omit<TrashItem, "id" | "deletedAt">) => string;
+  restoreFromTrash: (trashId: string) => boolean;
+  permanentDeleteFromTrash: (trashId: string) => void;
+  emptyTrash: () => void;
   updateStage3Video: (params: {
     youtubeUrl?: string;
     videoId?: string;
@@ -484,6 +501,18 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [portfolioIntro, setPortfolioIntro] = useState<PortfolioIntroData>(defaultPortfolioIntroData);
   const [portfolioRunner, setPortfolioRunner] = useState<PortfolioRunnerData>(defaultPortfolioRunnerData);
   const [heroBanner, setHeroBanner] = useState<HeroBannerData>(defaultHeroBannerData);
+  const [trashItems, setTrashItems] = useState<TrashItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem("rizx_recycle_bin_items");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [isAdminMode, setIsAdminMode] = useState(false);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
   const [isCloudSyncActive, setIsCloudSyncActive] = useState(isSupabaseConfigured);
@@ -497,6 +526,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const portfolioIntroRef = useRef(portfolioIntro);
   const portfolioRunnerRef = useRef(portfolioRunner);
   const heroBannerRef = useRef(heroBanner);
+  const trashItemsRef = useRef(trashItems);
 
   useEffect(() => { stage3Ref.current = stage3; }, [stage3]);
   useEffect(() => { clientsRef.current = clients; }, [clients]);
@@ -506,6 +536,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   useEffect(() => { portfolioIntroRef.current = portfolioIntro; }, [portfolioIntro]);
   useEffect(() => { portfolioRunnerRef.current = portfolioRunner; }, [portfolioRunner]);
   useEffect(() => { heroBannerRef.current = heroBanner; }, [heroBanner]);
+  useEffect(() => { trashItemsRef.current = trashItems; }, [trashItems]);
 
   // Auto-detect environment:
   // On localhost -> Open Admin Login directly as requested.
@@ -1584,6 +1615,173 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     }
   }, []);
 
+  // Move an item to trash
+  const moveToTrash = useCallback((item: Omit<TrashItem, "id" | "deletedAt">) => {
+    const trashId = `trash_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const newTrashItem: TrashItem = {
+      ...item,
+      id: trashId,
+      deletedAt: new Date().toISOString(),
+    };
+    setTrashItems((prev) => {
+      const updated = [newTrashItem, ...prev];
+      try {
+        localStorage.setItem("rizx_recycle_bin_items", JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+    return trashId;
+  }, []);
+
+  // Restore item from trash back to its original location
+  const restoreFromTrash = useCallback(
+    (trashId: string): boolean => {
+      const currentTrash = trashItemsRef.current;
+      const target = currentTrash.find((t) => t.id === trashId);
+      if (!target) return false;
+
+      try {
+        if (target.type === "client-work") {
+          const { clientId, work } = target.payload;
+          setClients((prev) => {
+            let foundClient = false;
+            const updated = prev.map((c) => {
+              if (c.id === clientId) {
+                foundClient = true;
+                const existingWorks = c.works || [];
+                if (existingWorks.some((w) => w.id === work.id)) return c;
+                return {
+                  ...c,
+                  works: [work, ...existingWorks],
+                  itemsCount: existingWorks.length + 1,
+                };
+              }
+              return c;
+            });
+
+            if (!foundClient) {
+              const restoredFolder: ClientItem = {
+                id: clientId,
+                clientName: target.subtitle?.replace(/^.*Folder:\s*/, "") || clientId,
+                category: "Portfolio",
+                logo: "",
+                color: "from-[#14AF9E]/20 via-neutral-900/40 to-neutral-900",
+                itemsCount: 1,
+                works: [work],
+                tools: ["Figma", "Photoshop", "Magnific AI"],
+                isCustom: true,
+              };
+              updated.push(restoredFolder);
+            }
+
+            clientsRef.current = updated;
+            persistState(undefined, updated);
+            const restoredClient = updated.find((c) => c.id === clientId);
+            if (restoredClient) syncClientToCloud(restoredClient);
+            return updated;
+          });
+        } else if (target.type === "client-folder") {
+          const { client } = target.payload;
+          setClients((prev) => {
+            if (prev.some((c) => c.id === client.id)) return prev;
+            const updated = [...prev, client];
+            clientsRef.current = updated;
+            persistState(undefined, updated);
+            syncClientToCloud(client);
+            return updated;
+          });
+        } else if (target.type === "flagship-video") {
+          const { stage3: savedStage3 } = target.payload;
+          if (savedStage3?.heroCard) {
+            updateStage3Video({
+              mediaType: savedStage3.heroCard.mediaType || "youtube",
+              youtubeUrl: savedStage3.heroCard.youtubeUrl || "",
+              videoId: savedStage3.heroCard.videoId || "",
+              gdriveUrl: savedStage3.heroCard.gdriveUrl || "",
+              gdriveId: savedStage3.heroCard.gdriveId || "",
+              image: savedStage3.heroCard.image || "",
+              title: savedStage3.heroCard.title,
+              category: savedStage3.heroCard.category,
+              description: savedStage3.heroCard.description,
+              headline: savedStage3.headline,
+              classTag: savedStage3.classTag,
+              isVideoEnabled: true,
+            });
+          }
+        } else if (target.type === "runner-item") {
+          const { item } = target.payload;
+          setPortfolioRunner((prev) => {
+            if (prev.items.some((i) => i.id === item.id)) return prev;
+            const updated = {
+              ...prev,
+              items: [...prev.items, item],
+            };
+            portfolioRunnerRef.current = updated;
+            persistState(undefined, undefined, undefined, undefined, undefined, undefined, updated);
+            return updated;
+          });
+        } else if (target.type === "hero-card") {
+          const { card, cardType } = target.payload;
+          setHeroWorks((prev) => {
+            const updated = {
+              ...prev,
+              ...(cardType === "deck"
+                ? { deckCards: [...prev.deckCards.filter((c) => c.id !== card.id), card] }
+                : { overlappingCards: [...prev.overlappingCards.filter((c) => c.id !== card.id), card] }),
+            };
+            heroWorksRef.current = updated;
+            persistState(undefined, undefined, undefined, updated);
+            return updated;
+          });
+        } else if (target.type === "client-logo") {
+          const { logo } = target.payload;
+          setClientLogos((prev) => {
+            if (prev.logos.some((l) => l.id === logo.id)) return prev;
+            const updated = {
+              ...prev,
+              logos: [...prev.logos, logo],
+            };
+            clientLogosRef.current = updated;
+            persistState(undefined, undefined, undefined, undefined, updated);
+            return updated;
+          });
+        }
+
+        setTrashItems((prev) => {
+          const updated = prev.filter((t) => t.id !== trashId);
+          try {
+            localStorage.setItem("rizx_recycle_bin_items", JSON.stringify(updated));
+          } catch (_) {}
+          return updated;
+        });
+        return true;
+      } catch (err) {
+        console.error("Failed to restore from trash:", err);
+        return false;
+      }
+    },
+    [persistState, syncClientToCloud, updateStage3Video]
+  );
+
+  // Permanently delete an item from trash
+  const permanentDeleteFromTrash = useCallback((trashId: string) => {
+    setTrashItems((prev) => {
+      const updated = prev.filter((t) => t.id !== trashId);
+      try {
+        localStorage.setItem("rizx_recycle_bin_items", JSON.stringify(updated));
+      } catch (_) {}
+      return updated;
+    });
+  }, []);
+
+  // Empty all trash items
+  const emptyTrash = useCallback(() => {
+    setTrashItems([]);
+    try {
+      localStorage.removeItem("rizx_recycle_bin_items");
+    } catch (_) {}
+  }, []);
+
   const toggleAdminMode = useCallback(() => {
     setIsAdminMode((prev) => !prev);
   }, []);
@@ -1625,6 +1823,11 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         portfolioRunner,
         heroBanner,
         allData,
+        trashItems,
+        moveToTrash,
+        restoreFromTrash,
+        permanentDeleteFromTrash,
+        emptyTrash,
         updateStage3Video,
         removeStage3Video,
         updateClientDescription,

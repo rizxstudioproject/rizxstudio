@@ -20,6 +20,8 @@ import {
   HiKey,
   HiSquare3Stack3D,
   HiArrowRight,
+  HiTrash,
+  HiChartPie,
 } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
@@ -186,6 +188,18 @@ export default function AdminTopBar({
         label: tr("About Me Section", "Tentang Saya", "Tantang Ambo"),
         sub: tr("Profile bio & contacts", "Profil, biografi & kontak", "Profil, biografi & kontak"),
         icon: HiUser,
+      },
+      {
+        id: "trash",
+        label: tr("Recycle Bin", "Tong Sampah", "Tong Sarok"),
+        sub: tr("Restore deleted works & folders", "Pulihkan karya & folder yang terhapus", "Puliahan karya & folder nan tahapuih"),
+        icon: HiTrash,
+      },
+      {
+        id: "storage",
+        label: tr("Storage & Analytics", "Kapasitas & Data Terpakai", "Panyimpanan & Data Tapakai"),
+        sub: tr("Visual memory graphics & capacity", "Grafik visual kapasitas memori & data", "Grafik visual panyimpanan & data"),
+        icon: HiChartPie,
       },
       {
         id: "settings",

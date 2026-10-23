@@ -30,6 +30,7 @@ import {
   HiBookOpen,
   HiCircleStack,
   HiSquare3Stack3D,
+  HiChartPie,
 } from "react-icons/hi2";
 import { useLang, toMinang } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
@@ -60,6 +61,8 @@ import AdminSidebar, { AdminSidebarTab } from "./admin/AdminSidebar";
 import AdminTopBar from "./admin/AdminTopBar";
 import ClientsWorkspace from "./admin/ClientsWorkspace";
 import ResourceLibrary from "./admin/ResourceLibrary";
+import RecycleBinWorkspace from "./admin/RecycleBinWorkspace";
+import StorageAnalyticsView from "./admin/StorageAnalyticsView";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -91,6 +94,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setIsAdminMode,
     adminLogout,
     isCloudSyncActive,
+    trashItems,
+    moveToTrash,
+    restoreFromTrash,
   } = usePortfolioData();
 
   // Studio OS Sidebar Tab: 'dashboard' | 'clients' | 'portfolio' | 'ai-prompt' | 'brand' | 'resources' | 'settings'
@@ -667,8 +673,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   const handleDeleteDeckCard = (id: string) => {
+    const card = hwDeckCards.find((c) => c.id === id);
+    if (card) {
+      moveToTrash({
+        originalId: id,
+        type: "hero-card",
+        title: card.title,
+        subtitle: `Hero Deck Card • ${card.category}`,
+        previewImage: card.image,
+        payload: { card, cardType: "deck" },
+      });
+    }
     setHwDeckCards((prev) => prev.filter((c) => c.id !== id));
-    showToast("Kartu dihapus dari daftar. Klik 'Simpan Update' untuk menerapkan.");
+    showToast(tx("Kartu dipindahkan ke Tong Sampah. Klik 'Simpan Update' untuk menerapkan.", "Card moved to Recycle Bin. Click 'Save Update' to apply."));
   };
 
   const handleAddOverlappingCard = () => {
@@ -690,8 +707,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   const handleDeleteOverlappingCard = (id: string) => {
+    const card = hwOverlappingCards.find((c) => c.id === id);
+    if (card) {
+      moveToTrash({
+        originalId: id,
+        type: "hero-card",
+        title: card.title,
+        subtitle: "Hero Overlapping Visual",
+        previewImage: card.image,
+        payload: { card, cardType: "overlapping" },
+      });
+    }
     setHwOverlappingCards((prev) => prev.filter((c) => c.id !== id));
-    showToast("Kartu dihapus dari daftar. Klik 'Simpan Update' untuk menerapkan.");
+    showToast(tx("Kartu dipindahkan ke Tong Sampah. Klik 'Simpan Update' untuk menerapkan.", "Card moved to Recycle Bin. Click 'Save Update' to apply."));
   };
 
   // ==========================================
@@ -731,8 +759,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   const handleDeleteClientLogo = (id: string) => {
+    const logo = clLogos.find((l) => l.id === id);
+    if (logo) {
+      moveToTrash({
+        originalId: id,
+        type: "client-logo",
+        title: logo.name,
+        subtitle: `Partner Logos (Row ${logo.row})`,
+        previewImage: logo.file,
+        payload: { logo },
+      });
+    }
     setClLogos((prev) => prev.filter((l) => l.id !== id));
-    showToast("Logo dihapus dari marquee. Klik 'Simpan Update' untuk menerapkan.");
+    showToast(tx("Logo dipindahkan ke Tong Sampah. Klik 'Simpan Update' untuk menerapkan.", "Logo moved to Recycle Bin. Click 'Save Update' to apply."));
   };
 
   // ==========================================
@@ -796,8 +835,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   const handleDeleteRunnerItem = (id: string) => {
+    const item = runnerItems.find((item) => item.id === id);
+    if (item) {
+      moveToTrash({
+        originalId: id,
+        type: "runner-item",
+        title: item.title,
+        subtitle: `Baris ${item.row} • ${item.category}`,
+        previewImage: item.image,
+        payload: { item },
+      });
+    }
     setRunnerItems((prev) => prev.filter((item) => item.id !== id));
-    showToast("Karya dihapus dari running portfolio. Klik 'Simpan Perubahan' untuk menerapkan.");
+    showToast(tx("Kartu dipindahkan ke Tong Sampah. Klik 'Simpan Perubahan' untuk menerapkan.", "Card moved to Recycle Bin. Click 'Save Changes' to apply."));
   };
 
   const handleToggleRunnerRow = (id: string) => {
@@ -1427,6 +1477,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       "Apakao Sanak yakin nio mahapuih video dari Flagship Showcase?"
     );
     if (window.confirm(confirmMsg)) {
+      moveToTrash({
+        originalId: "stage3-flagship-video",
+        type: "flagship-video",
+        title: stage3.heroCard.title || "Flagship Showcase Video",
+        subtitle: stage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI",
+        previewImage: stage3.heroCard.image,
+        mediaType: stage3.heroCard.mediaType || "youtube",
+        payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
+      });
       removeStage3Video();
       setVideoUrlInput("");
       setFlagshipGDriveUrl("");
@@ -1434,9 +1493,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setVideoEnabled(false);
       showToast(
         tx(
-          "Media video berhasil dihapus dari Flagship Showcase.",
-          "Video successfully removed from Flagship Showcase.",
-          "Video barasil dihapuih dari Flagship Showcase."
+          "Media video dipindahkan ke Tong Sampah. Bisa dipulihkan kapan saja.",
+          "Video moved to Recycle Bin. Can be restored anytime.",
+          "Media video dipindahan ka Tong Sarok. Bisa dipuliahan bilo se."
         )
       );
     }
@@ -1529,9 +1588,33 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
   // Handlers for Deleting Portfolio Work Item
   const handleDeleteWork = (clientId: string, workId: string, workTitle: string) => {
-    if (window.confirm(`Hapus gambar portofolio "${workTitle}" dari folder ini?`)) {
+    const client = clients.find((c) => c.id === clientId);
+    const work = client?.works?.find((w) => w.id === workId);
+    const confirmMsg = tx(
+      `Pindahkan karya "${workTitle}" ke Tong Sampah?`,
+      `Move work "${workTitle}" to Recycle Bin?`,
+      `Pindahkan karya "${workTitle}" ka Tong Sarok?`
+    );
+    if (window.confirm(confirmMsg)) {
+      if (work) {
+        moveToTrash({
+          originalId: workId,
+          type: "client-work",
+          title: workTitle || work.title || "Untitled Work",
+          subtitle: `${tx("Folder Klien", "Client Folder", "Folder Klien")}: ${client?.clientName || clientId}`,
+          previewImage: work.image,
+          mediaType: "image",
+          payload: { clientId, work },
+        });
+      }
       deleteClientWork(clientId, workId);
-      showToast(`Gambar "${workTitle}" berhasil dihapus dari portofolio.`);
+      showToast(
+        tx(
+          `"${workTitle}" dipindahkan ke Tong Sampah. Bisa dipulihkan kapan saja.`,
+          `"${workTitle}" moved to Recycle Bin. Can be restored anytime.`,
+          `"${workTitle}" dipindahan ka Tong Sarok. Bisa dipuliahan bilo se.`
+        )
+      );
     }
   };
 
@@ -1556,13 +1639,31 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
   // Handler: Delete a client folder (all folders can be deleted)
   const handleDeleteFolder = (client: ClientItem) => {
-    const msg = `Hapus folder "client - ${client.clientName}" beserta semua isinya secara permanen? Tindakan ini tidak bisa dibatalkan.`;
-    if (window.confirm(msg)) {
+    const confirmMsg = tx(
+      `Pindahkan folder "${client.clientName}" beserta semua isinya ke Tong Sampah?`,
+      `Move folder "${client.clientName}" and all contents to Recycle Bin?`,
+      `Pindahkan folder "${client.clientName}" sarato kasadonyo isinyo ka Tong Sarok?`
+    );
+    if (window.confirm(confirmMsg)) {
+      moveToTrash({
+        originalId: client.id,
+        type: "client-folder",
+        title: client.clientName,
+        subtitle: `${client.works?.length || 0} ${tx("karya di dalamnya", "works inside", "karya di dalamnyo")}`,
+        previewImage: client.works?.[0]?.image || client.logo || "",
+        payload: { client },
+      });
       deleteClientFolder(client.id);
       if (selectedClientId === client.id && clients.length > 1) {
         setSelectedClientId(clients.find((c) => c.id !== client.id)?.id || clients[0].id);
       }
-      showToast(`Folder "${client.clientName}" berhasil dihapus dari portofolio.`);
+      showToast(
+        tx(
+          `Folder "${client.clientName}" dipindahkan ke Tong Sampah. Bisa dipulihkan kapan saja.`,
+          `Folder "${client.clientName}" moved to Recycle Bin. Can be restored anytime.`,
+          `Folder "${client.clientName}" dipindahan ka Tong Sarok. Bisa dipuliahan bilo se.`
+        )
+      );
     }
   };
 
@@ -1642,6 +1743,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           adminName={adminUser === "admin" ? "Rizx Studio" : adminUser}
           totalWorks={clients.reduce((acc, c) => acc + (c.works?.length || 0), 0)}
           totalClients={clients.length}
+          trashCount={trashItems.length}
           onOpenProfileMenu={() => setSidebarTab("settings")}
         />
       </div>
@@ -1748,8 +1850,24 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             />
           )}
 
-          {/* 3. All Other Real Portfolio Admin Sections */}
-          {sidebarTab !== "clients" && sidebarTab !== "resources" && (
+          {/* 3. Recycle Bin / Tong Sampah & System Restore */}
+          {sidebarTab === "trash" && (
+            <RecycleBinWorkspace showToast={showToast} />
+          )}
+
+          {/* 4. Storage Capacity & Animated Data Graphics */}
+          {sidebarTab === "storage" && (
+            <StorageAnalyticsView
+              showToast={showToast}
+              onNavigateToTrash={() => setSidebarTab("trash")}
+            />
+          )}
+
+          {/* 5. All Other Real Portfolio Admin Sections */}
+          {sidebarTab !== "clients" &&
+            sidebarTab !== "resources" &&
+            sidebarTab !== "trash" &&
+            sidebarTab !== "storage" && (
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
               <div className="max-w-6xl mx-auto space-y-6">
                 {/* ========================================================
@@ -5715,6 +5833,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     label: tx("Tentang Saya", "About Me", "Tantang Ambo"),
                     sub: tx("Profil, bio & kontak", "Profile bio & contacts", "Profil, biografi & kontak"),
                     icon: HiUser,
+                  },
+                  {
+                    id: "trash" as AdminSidebarTab,
+                    label: tx("Tong Sampah", "Recycle Bin", "Tong Sarok"),
+                    sub: tx("Item terhapus & pemulihan", "Deleted items & recovery", "Item tahapuih & pamuliahan"),
+                    icon: HiTrash,
+                  },
+                  {
+                    id: "storage" as AdminSidebarTab,
+                    label: tx("Kapasitas & Data", "Storage & Analytics", "Panyimpanan & Data"),
+                    sub: tx("Grafik animasi data terpakai", "Animated data usage graphics", "Grafik visual panyimpanan data"),
+                    icon: HiChartPie,
                   },
                   {
                     id: "settings" as AdminSidebarTab,
