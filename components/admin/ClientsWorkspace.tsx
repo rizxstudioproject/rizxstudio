@@ -248,8 +248,8 @@ export default function ClientsWorkspace({
     return list;
   }, [selectedClient?.works, assetSearch, assetSort]);
 
-  // Available Tools definition
-  const designTools = [
+  // Default Tools Catalog
+  const DEFAULT_DESIGN_TOOLS = [
     "Figma",
     "Photoshop",
     "Illustrator",
@@ -258,13 +258,117 @@ export default function ClientsWorkspace({
     "Cinema 4D",
     "InDesign",
   ];
-  const aiTools = [
+  const DEFAULT_AI_TOOLS = [
     "Magnific AI",
     "Midjourney",
     "ChatGPT",
     "Gemini",
     "Firefly",
   ];
+
+  // Persistent Tools Catalog with LocalStorage
+  const [designTools, setDesignTools] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("rizx_custom_design_tools");
+      return saved ? JSON.parse(saved) : DEFAULT_DESIGN_TOOLS;
+    } catch {
+      return DEFAULT_DESIGN_TOOLS;
+    }
+  });
+
+  const [aiTools, setAiTools] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem("rizx_custom_ai_tools");
+      return saved ? JSON.parse(saved) : DEFAULT_AI_TOOLS;
+    } catch {
+      return DEFAULT_AI_TOOLS;
+    }
+  });
+
+  // Manage Tools Modal States
+  const [isManageToolsOpen, setIsManageToolsOpen] = useState(false);
+  const [tempDesignTools, setTempDesignTools] = useState<string[]>(DEFAULT_DESIGN_TOOLS);
+  const [tempAiTools, setTempAiTools] = useState<string[]>(DEFAULT_AI_TOOLS);
+  const [newToolName, setNewToolName] = useState("");
+  const [newToolCategory, setNewToolCategory] = useState<"Design" | "AI">("Design");
+
+  const openManageTools = () => {
+    setTempDesignTools([...designTools]);
+    setTempAiTools([...aiTools]);
+    setNewToolName("");
+    setNewToolCategory("Design");
+    setIsManageToolsOpen(true);
+  };
+
+  const handleCancelManageTools = () => {
+    setTempDesignTools([...designTools]);
+    setTempAiTools([...aiTools]);
+    setNewToolName("");
+    setIsManageToolsOpen(false);
+  };
+
+  const handleAddTool = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const trimmed = newToolName.trim();
+    if (!trimmed) {
+      showToast(isId ? "Peringatan: Masukkan nama tool terlebih dahulu." : "Warning: Enter tool name first.");
+      return;
+    }
+
+    if (newToolCategory === "Design") {
+      if (tempDesignTools.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
+        showToast(isId ? `Tool "${trimmed}" sudah ada di Design.` : `Tool "${trimmed}" already exists in Design.`);
+        return;
+      }
+      setTempDesignTools((prev) => [...prev, trimmed]);
+    } else {
+      if (tempAiTools.some((t) => t.toLowerCase() === trimmed.toLowerCase())) {
+        showToast(isId ? `Tool "${trimmed}" sudah ada di AI.` : `Tool "${trimmed}" already exists in AI.`);
+        return;
+      }
+      setTempAiTools((prev) => [...prev, trimmed]);
+    }
+
+    setNewToolName("");
+    showToast(isId ? `Tool "${trimmed}" ditambahkan ke ${newToolCategory}` : `Added "${trimmed}" to ${newToolCategory}`);
+  };
+
+  const handleRemoveTempDesignTool = (toolName: string) => {
+    setTempDesignTools((prev) => prev.filter((t) => t.toLowerCase() !== toolName.toLowerCase()));
+  };
+
+  const handleRemoveTempAiTool = (toolName: string) => {
+    setTempAiTools((prev) => prev.filter((t) => t.toLowerCase() !== toolName.toLowerCase()));
+  };
+
+  const handleResetDefaultTools = () => {
+    setTempDesignTools([...DEFAULT_DESIGN_TOOLS]);
+    setTempAiTools([...DEFAULT_AI_TOOLS]);
+    showToast(isId ? "Daftar tool dikembalikan ke bawaan." : "Tools reset to default.");
+  };
+
+  const handleSaveManageTools = () => {
+    setDesignTools(tempDesignTools);
+    setAiTools(tempAiTools);
+
+    try {
+      localStorage.setItem("rizx_custom_design_tools", JSON.stringify(tempDesignTools));
+      localStorage.setItem("rizx_custom_ai_tools", JSON.stringify(tempAiTools));
+    } catch {}
+
+    // Prune any selected tools that no longer exist
+    const allAvailable = [...tempDesignTools, ...tempAiTools].map((t) => t.toLowerCase());
+    const nextSelected = selectedTools.filter((t) => allAvailable.includes(t.toLowerCase()));
+    if (nextSelected.length !== selectedTools.length) {
+      setSelectedTools(nextSelected);
+      if (selectedClient) {
+        onSaveClientDescription(selectedClient.id, descriptionInput, nextSelected);
+      }
+    }
+
+    setIsManageToolsOpen(false);
+    showToast(isId ? "Katalog tool berhasil diperbarui!" : "Tools catalog updated successfully!");
+  };
 
   // Selected Cover Image: first work image or custom cover
   const coverImageUrl =
@@ -985,37 +1089,6 @@ export default function ClientsWorkspace({
               </div>
             </div>
           </div>
-
-          {/* ACTION BAR: BATAL & SIMPAN UPDATE */}
-          <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/15 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 sticky bottom-4 z-30 shadow-2xl">
-            <div>
-              <p className="text-sm font-bold text-white">
-                {isId ? "Simpan Perubahan Logo Klien Marquee" : "Save Client Logos Changes"}
-              </p>
-              <p className="text-xs text-neutral-400">
-                {isId
-                  ? "Perubahan akan langsung aktif di web publik dan tersinkron ke cloud."
-                  : "Changes will immediately update on the public website and sync to cloud."}
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={onCancelClientLogos}
-                className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
-              >
-                {isId ? "Batal" : "Cancel"}
-              </button>
-              <button
-                type="button"
-                onClick={onSaveClientLogos}
-                className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-              >
-                <HiCheck className="w-4 h-4 stroke-[2.5]" />
-                <span>{isId ? "Simpan Update" : "Save Changes"}</span>
-              </button>
-            </div>
-          </div>
         </main>
       ) : selectedClient ? (
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
@@ -1276,17 +1349,10 @@ export default function ClientsWorkspace({
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  const allTools = [...designTools.slice(0, 2), ...aiTools.slice(0, 1)];
-                  setSelectedTools(allTools);
-                  if (selectedClient) {
-                    onSaveClientDescription(selectedClient.id, descriptionInput, allTools);
-                  }
-                  showToast("Tools set to default selection");
-                }}
-                className="text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                onClick={openManageTools}
+                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-neutral-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
               >
-                Manage
+                <span>{isId ? "Kelola" : "Manage"}</span>
               </button>
             </div>
 
@@ -1469,6 +1535,178 @@ export default function ClientsWorkspace({
       ) : (
         <div className="flex-1 flex items-center justify-center p-8 text-neutral-400 text-sm">
           Select a client folder from the left list.
+        </div>
+      )}
+      {/* ========================================================
+          MANAGE SOFTWARE & AI TOOLS MODAL (ADD / REMOVE / CANCEL)
+         ======================================================== */}
+      {isManageToolsOpen && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-lg bg-[#0e1116] border border-white/10 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-white/10 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
+                  <span>{isId ? "Kelola Software & AI Tools" : "Manage Software & AI Tools"}</span>
+                </h3>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  {isId
+                    ? "Tambah atau kurangi tool dari daftar pilihan portofolio."
+                    : "Add or remove tools from the client portfolio options."}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCancelManageTools}
+                className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                title={isId ? "Batal" : "Cancel"}
+              >
+                <HiXMark className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-5">
+              {/* Add New Tool Form */}
+              <div className="p-3.5 rounded-xl bg-neutral-950/80 border border-white/10 space-y-3">
+                <span className="text-xs font-bold text-white block">
+                  {isId ? "+ Tambah Tool Baru" : "+ Add New Tool"}
+                </span>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <input
+                    type="text"
+                    value={newToolName}
+                    onChange={(e) => setNewToolName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddTool();
+                      }
+                    }}
+                    placeholder={
+                      isId
+                        ? "Nama tool (misal: Premiere Pro, Spline, Claude...)"
+                        : "Tool name (e.g. Premiere Pro, Spline, Claude...)"
+                    }
+                    className="flex-1 bg-[#12151a] border border-white/15 rounded-xl px-3.5 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E]"
+                  />
+                  <select
+                    value={newToolCategory}
+                    onChange={(e) => setNewToolCategory(e.target.value as "Design" | "AI")}
+                    className="bg-[#12151a] border border-white/15 rounded-xl px-3 py-2 text-xs text-white outline-none focus:border-[#14AF9E] cursor-pointer"
+                  >
+                    <option value="Design">Design</option>
+                    <option value="AI">AI</option>
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => handleAddTool()}
+                    className="px-4 py-2 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#14AF9E]/20 cursor-pointer shrink-0"
+                  >
+                    {isId ? "Tambah" : "Add"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Design Tools List */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-neutral-300">
+                    Design Tools ({tempDesignTools.length})
+                  </span>
+                  <span className="text-[11px] text-neutral-500 font-mono">
+                    {isId ? "Klik ✕ untuk mengurangi/menghapus" : "Click ✕ to remove"}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-neutral-950/40 border border-white/5 min-h-[50px]">
+                  {tempDesignTools.map((tool) => (
+                    <div
+                      key={tool}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium text-neutral-200 group hover:border-white/20 transition-all"
+                    >
+                      <span>{tool}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTempDesignTool(tool)}
+                        className="text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-0.5 rounded cursor-pointer"
+                        title={isId ? `Hapus ${tool}` : `Remove ${tool}`}
+                      >
+                        <HiXMark className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </button>
+                    </div>
+                  ))}
+                  {tempDesignTools.length === 0 && (
+                    <span className="text-xs text-neutral-500 italic p-1">
+                      {isId ? "Belum ada tool design." : "No design tools."}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* AI Tools List */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-neutral-300">
+                    AI Tools ({tempAiTools.length})
+                  </span>
+                  <span className="text-[11px] text-neutral-500 font-mono">
+                    {isId ? "Klik ✕ untuk mengurangi/menghapus" : "Click ✕ to remove"}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-neutral-950/40 border border-white/5 min-h-[50px]">
+                  {tempAiTools.map((tool) => (
+                    <div
+                      key={tool}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium text-neutral-200 group hover:border-white/20 transition-all"
+                    >
+                      <span>{tool}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTempAiTool(tool)}
+                        className="text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-0.5 rounded cursor-pointer"
+                        title={isId ? `Hapus ${tool}` : `Remove ${tool}`}
+                      >
+                        <HiXMark className="w-3.5 h-3.5 stroke-[2.5]" />
+                      </button>
+                    </div>
+                  ))}
+                  {tempAiTools.length === 0 && (
+                    <span className="text-xs text-neutral-500 italic p-1">
+                      {isId ? "Belum ada tool AI." : "No AI tools."}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-white/10 bg-neutral-950/60 flex items-center justify-between gap-3">
+              <button
+                type="button"
+                onClick={handleResetDefaultTools}
+                className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer underline"
+              >
+                {isId ? "Kembalikan ke Default" : "Reset Defaults"}
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCancelManageTools}
+                  className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs font-semibold transition-all cursor-pointer"
+                >
+                  {isId ? "Batal" : "Cancel"}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveManageTools}
+                  className="px-5 py-2 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black text-xs font-bold transition-all shadow-md shadow-[#14AF9E]/20 cursor-pointer active:scale-95"
+                >
+                  {isId ? "Simpan Perubahan" : "Save Changes"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
