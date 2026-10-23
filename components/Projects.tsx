@@ -40,6 +40,40 @@ interface ModalItem extends WorkItem {
 }
 
 /**
+ * Dynamic Tool Monogram & Color Palette Generator
+ */
+function getToolMonogram(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  const clean = name.trim().replace(/[^a-zA-Z0-9]/g, "");
+  if (clean.length >= 2) {
+    return clean[0].toUpperCase() + clean[1].toLowerCase();
+  }
+  return clean.toUpperCase() || "T";
+}
+
+const TOOL_PALETTES = [
+  { bg: "bg-[#002B49]", border: "border-[#00D2FF]/40", text: "text-[#00D2FF]", badgeBg: "bg-[#00D2FF]", badgeText: "text-[#002B49]" }, // Cyan
+  { bg: "bg-[#2A0E08]", border: "border-[#FF6B4A]/40", text: "text-[#FF6B4A]", badgeBg: "bg-gradient-to-br from-[#FF6B4A] to-[#FF3D00]", badgeText: "text-black" }, // Coral
+  { bg: "bg-[#1D0033]", border: "border-[#EA77FF]/40", text: "text-[#EA77FF]", badgeBg: "bg-[#EA77FF]", badgeText: "text-[#1D0033]" }, // Violet
+  { bg: "bg-[#00261A]", border: "border-[#10A37F]/40", text: "text-[#10A37F]", badgeBg: "bg-[#10A37F]", badgeText: "text-white" }, // Emerald
+  { bg: "bg-[#2D0014]", border: "border-[#FF3366]/40", text: "text-[#FF3366]", badgeBg: "bg-[#FF3366]", badgeText: "text-[#2D0014]" }, // Magenta
+  { bg: "bg-[#001E36]", border: "border-[#31A8FF]/40", text: "text-[#31A8FF]", badgeBg: "bg-[#31A8FF]", badgeText: "text-[#001E36]" }, // Blue
+  { bg: "bg-[#332005]", border: "border-[#F59E0B]/40", text: "text-[#F59E0B]", badgeBg: "bg-[#F59E0B]", badgeText: "text-black" }, // Amber
+  { bg: "bg-[#092E29]", border: "border-[#14AF9E]/40", text: "text-[#14AF9E]", badgeBg: "bg-[#14AF9E]", badgeText: "text-black" }, // Teal
+];
+
+function getToolPalette(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return TOOL_PALETTES[Math.abs(hash) % TOOL_PALETTES.length];
+}
+
+/**
  * ToolBadge — Visual icon badges for creative tools
  */
 function ToolBadge({ tool }: { tool: string }) {
@@ -77,7 +111,12 @@ function ToolBadge({ tool }: { tool: string }) {
     );
   }
 
-  if (normalized === "aftereffects" || normalized === "ae") {
+  if (
+    normalized === "aftereffects" ||
+    normalized === "after effects" ||
+    normalized === "ae" ||
+    normalized.replace(/\s+/g, "") === "aftereffects"
+  ) {
     return (
       <div
         title="Adobe After Effects"
@@ -88,6 +127,48 @@ function ToolBadge({ tool }: { tool: string }) {
         </span>
         <span className="text-[10px] font-mono font-medium text-neutral-300">
           After Effects
+        </span>
+      </div>
+    );
+  }
+
+  if (
+    normalized === "indesign" ||
+    normalized === "in design" ||
+    normalized === "id" ||
+    normalized.replace(/\s+/g, "") === "indesign"
+  ) {
+    return (
+      <div
+        title="Adobe InDesign"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2D0014] border border-[#FF3366]/40 text-[#FF3366] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#FF3366] text-[#2D0014] font-black text-[10px] flex items-center justify-center font-mono">
+          Id
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          InDesign
+        </span>
+      </div>
+    );
+  }
+
+  if (
+    normalized === "premiere" ||
+    normalized === "premiere pro" ||
+    normalized === "pr" ||
+    normalized.replace(/\s+/g, "") === "premierepro"
+  ) {
+    return (
+      <div
+        title="Adobe Premiere Pro"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1D0033] border border-[#EA77FF]/40 text-[#EA77FF] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#EA77FF] text-[#1D0033] font-black text-[10px] flex items-center justify-center font-mono">
+          Pr
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Premiere Pro
         </span>
       </div>
     );
@@ -193,9 +274,101 @@ function ToolBadge({ tool }: { tool: string }) {
     );
   }
 
+  if (normalized.includes("higgsfield")) {
+    return (
+      <div
+        title="Higgsfield AI"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2A0E08] border border-[#FF6B4A]/40 text-[#FF6B4A] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-gradient-to-br from-[#FF6B4A] to-[#FF3D00] text-black font-black text-[10px] flex items-center justify-center font-mono shadow-sm">
+          H
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Higgsfield
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "firefly" || normalized === "adobe firefly") {
+    return (
+      <div
+        title="Adobe Firefly"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#330011] border border-[#FF4081]/40 text-[#FF4081] shadow-sm select-none"
+      >
+        <HiSparkles className="w-3.5 h-3.5 text-[#FF4081]" />
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Firefly
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized === "claude" || normalized === "claude ai") {
+    return (
+      <div
+        title="Anthropic Claude"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2D1609] border border-[#D97706]/40 text-[#D97706] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#D97706] text-black font-black text-[10px] flex items-center justify-center font-mono">
+          C
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Claude
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized.includes("runway")) {
+    return (
+      <div
+        title="Runway AI"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1A1033] border border-[#8B5CF6]/40 text-[#8B5CF6] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#8B5CF6] text-white font-black text-[10px] flex items-center justify-center font-mono">
+          R
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Runway
+        </span>
+      </div>
+    );
+  }
+
+  if (normalized.includes("affinity")) {
+    return (
+      <div
+        title="Affinity"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00223A] border border-[#00D2FF]/40 text-[#00D2FF] shadow-sm select-none"
+      >
+        <span className="w-4 h-4 rounded bg-[#00D2FF] text-[#00223A] font-black text-[10px] flex items-center justify-center font-mono shadow-sm">
+          Af
+        </span>
+        <span className="text-[10px] font-mono font-medium text-neutral-300">
+          Affinity
+        </span>
+      </div>
+    );
+  }
+
+  // Dynamic branded monogram badge fallback for ANY custom / unknown tool (Affinity, TouchDesigner, etc.)
+  const monogram = getToolMonogram(tool);
+  const palette = getToolPalette(tool);
+
   return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-neutral-300 select-none">
-      <span className="text-[10px] font-mono capitalize">{tool}</span>
+    <div
+      title={tool}
+      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${palette.bg} border ${palette.border} ${palette.text} shadow-sm select-none`}
+    >
+      <span
+        className={`w-4 h-4 rounded ${palette.badgeBg} ${palette.badgeText} font-black text-[9px] flex items-center justify-center font-mono shadow-sm shrink-0`}
+      >
+        {monogram}
+      </span>
+      <span className="text-[10px] font-mono font-medium text-neutral-200">
+        {tool}
+      </span>
     </div>
   );
 }

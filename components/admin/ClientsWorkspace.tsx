@@ -20,6 +20,12 @@ import {
   HiArrowLeft,
   HiPhoto,
 } from "react-icons/hi2";
+import {
+  SiFigma,
+  SiBlender,
+  SiCinema4D,
+  SiGooglegemini,
+} from "react-icons/si";
 import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
 
@@ -248,6 +254,146 @@ export default function ClientsWorkspace({
     return list;
   }, [selectedClient?.works, assetSearch, assetSort]);
 
+// Dynamic Tool Monogram & Palette Generator for any custom entered tools
+function getToolMonogram(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+  const clean = name.trim().replace(/[^a-zA-Z0-9]/g, "");
+  if (clean.length >= 2) {
+    return clean[0].toUpperCase() + clean[1].toLowerCase();
+  }
+  return clean.toUpperCase() || "T";
+}
+
+const TOOL_PALETTES = [
+  { bg: "bg-[#002B49]", border: "border-[#00D2FF]/40", text: "text-[#00D2FF]", badgeBg: "bg-[#00D2FF]", badgeText: "text-[#002B49]" },
+  { bg: "bg-[#2A0E08]", border: "border-[#FF6B4A]/40", text: "text-[#FF6B4A]", badgeBg: "bg-gradient-to-br from-[#FF6B4A] to-[#FF3D00]", badgeText: "text-black" },
+  { bg: "bg-[#1D0033]", border: "border-[#EA77FF]/40", text: "text-[#EA77FF]", badgeBg: "bg-[#EA77FF]", badgeText: "text-[#1D0033]" },
+  { bg: "bg-[#00261A]", border: "border-[#10A37F]/40", text: "text-[#10A37F]", badgeBg: "bg-[#10A37F]", badgeText: "text-white" },
+  { bg: "bg-[#2D0014]", border: "border-[#FF3366]/40", text: "text-[#FF3366]", badgeBg: "bg-[#FF3366]", badgeText: "text-[#2D0014]" },
+  { bg: "bg-[#001E36]", border: "border-[#31A8FF]/40", text: "text-[#31A8FF]", badgeBg: "bg-[#31A8FF]", badgeText: "text-[#001E36]" },
+  { bg: "bg-[#332005]", border: "border-[#F59E0B]/40", text: "text-[#F59E0B]", badgeBg: "bg-[#F59E0B]", badgeText: "text-black" },
+  { bg: "bg-[#092E29]", border: "border-[#14AF9E]/40", text: "text-[#14AF9E]", badgeBg: "bg-[#14AF9E]", badgeText: "text-black" },
+];
+
+function getToolPalette(name: string) {
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return TOOL_PALETTES[Math.abs(hash) % TOOL_PALETTES.length];
+}
+
+function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
+  const n = name.toLowerCase().trim().replace(/\s+/g, "");
+
+  if (n === "figma") {
+    return <SiFigma className="w-3.5 h-3.5 text-[#F24E1E] shrink-0" />;
+  }
+  if (n === "photoshop" || n === "ps") {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#31A8FF] text-[#001E36] font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        Ps
+      </span>
+    );
+  }
+  if (n === "illustrator" || n === "ai") {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#FF9A00] text-[#330000] font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        Ai
+      </span>
+    );
+  }
+  if (n === "aftereffects" || n === "ae") {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#9999FF] text-[#00005B] font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        Ae
+      </span>
+    );
+  }
+  if (n.includes("affinity")) {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#00D2FF] text-[#00223A] font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        Af
+      </span>
+    );
+  }
+  if (n === "indesign" || n === "id") {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#FF3366] text-[#2D0014] font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        Id
+      </span>
+    );
+  }
+  if (n === "premiere" || n === "premierepro" || n === "pr") {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#EA77FF] text-[#1D0033] font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        Pr
+      </span>
+    );
+  }
+  if (n === "blender" || n === "blender3d") {
+    return <SiBlender className="w-3.5 h-3.5 text-[#EA7600] shrink-0" />;
+  }
+  if (n === "cinema4d" || n === "c4d") {
+    return <SiCinema4D className="w-3.5 h-3.5 text-[#3B82F6] shrink-0" />;
+  }
+  if (n.includes("higgsfield")) {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-gradient-to-br from-[#FF6B4A] to-[#FF3D00] text-black font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        H
+      </span>
+    );
+  }
+  if (n === "gpt" || n === "chatgpt" || n === "openai") {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#10A37F] text-white font-black text-[8px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        GPT
+      </span>
+    );
+  }
+  if (n === "gemini" || n === "googlegemini") {
+    return <SiGooglegemini className="w-3.5 h-3.5 text-[#799FFF] shrink-0" />;
+  }
+  if (n === "claude" || n === "claudeai") {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#D97706] text-black font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        C
+      </span>
+    );
+  }
+  if (n.includes("runway")) {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-[#8B5CF6] text-white font-black text-[9px] flex items-center justify-center font-mono shrink-0 shadow-sm">
+        R
+      </span>
+    );
+  }
+  if (n.includes("firefly")) {
+    return <HiSparkles className="w-3.5 h-3.5 text-[#FF4081] shrink-0" />;
+  }
+  if (n.includes("magnific")) {
+    return <HiSparkles className="w-3.5 h-3.5 text-[#14AF9E] shrink-0" />;
+  }
+  if (n.includes("midjourney")) {
+    return <HiSparkles className="w-3.5 h-3.5 text-cyan-400 shrink-0" />;
+  }
+
+  // Dynamic Monogram for custom tools (Affinity, TouchDesigner, etc.)
+  const monogram = getToolMonogram(name);
+  const palette = getToolPalette(name);
+
+  return (
+    <span
+      className={`w-3.5 h-3.5 rounded ${palette.badgeBg} ${palette.badgeText} font-black text-[8.5px] flex items-center justify-center font-mono shrink-0 shadow-sm`}
+    >
+      {monogram}
+    </span>
+  );
+}
+
   // Default Tools Catalog
   const DEFAULT_DESIGN_TOOLS = [
     "Figma",
@@ -261,6 +407,7 @@ export default function ClientsWorkspace({
   const DEFAULT_AI_TOOLS = [
     "Magnific AI",
     "Midjourney",
+    "Higgsfield",
     "ChatGPT",
     "Gemini",
     "Firefly",
@@ -1369,14 +1516,15 @@ export default function ClientsWorkspace({
                       key={tool}
                       type="button"
                       onClick={() => toggleTool(tool)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                         isChecked
-                          ? "bg-[#14AF9E]/20 text-[#14AF9E] border border-[#14AF9E]/50 font-semibold"
+                          ? "bg-[#14AF9E]/20 text-[#14AF9E] border border-[#14AF9E]/50 font-semibold shadow-sm"
                           : "bg-white/[0.03] hover:bg-white/[0.07] text-neutral-400 hover:text-white border border-white/5"
                       }`}
                     >
-                      {isChecked && <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />}
+                      <ToolIcon name={tool} />
                       <span>{tool}</span>
+                      {isChecked && <HiCheck className="w-3.5 h-3.5 stroke-[2.5] text-[#14AF9E]" />}
                     </button>
                   );
                 })}
@@ -1396,14 +1544,15 @@ export default function ClientsWorkspace({
                       key={tool}
                       type="button"
                       onClick={() => toggleTool(tool)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                         isChecked
-                          ? "bg-[#14AF9E]/20 text-[#14AF9E] border border-[#14AF9E]/50 font-semibold"
+                          ? "bg-[#14AF9E]/20 text-[#14AF9E] border border-[#14AF9E]/50 font-semibold shadow-sm"
                           : "bg-white/[0.03] hover:bg-white/[0.07] text-neutral-400 hover:text-white border border-white/5"
                       }`}
                     >
-                      {isChecked && <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />}
+                      <ToolIcon name={tool} isAi />
                       <span>{tool}</span>
+                      {isChecked && <HiCheck className="w-3.5 h-3.5 stroke-[2.5] text-[#14AF9E]" />}
                     </button>
                   );
                 })}
@@ -1622,13 +1771,14 @@ export default function ClientsWorkspace({
                   {tempDesignTools.map((tool) => (
                     <div
                       key={tool}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium text-neutral-200 group hover:border-white/20 transition-all"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium text-neutral-200 group hover:border-white/20 transition-all"
                     >
+                      <ToolIcon name={tool} />
                       <span>{tool}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveTempDesignTool(tool)}
-                        className="text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-0.5 rounded cursor-pointer"
+                        className="text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-0.5 rounded cursor-pointer ml-0.5"
                         title={isId ? `Hapus ${tool}` : `Remove ${tool}`}
                       >
                         <HiXMark className="w-3.5 h-3.5 stroke-[2.5]" />
@@ -1657,13 +1807,14 @@ export default function ClientsWorkspace({
                   {tempAiTools.map((tool) => (
                     <div
                       key={tool}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium text-neutral-200 group hover:border-white/20 transition-all"
+                      className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/10 text-xs font-medium text-neutral-200 group hover:border-white/20 transition-all"
                     >
+                      <ToolIcon name={tool} isAi />
                       <span>{tool}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveTempAiTool(tool)}
-                        className="text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-0.5 rounded cursor-pointer"
+                        className="text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors p-0.5 rounded cursor-pointer ml-0.5"
                         title={isId ? `Hapus ${tool}` : `Remove ${tool}`}
                       >
                         <HiXMark className="w-3.5 h-3.5 stroke-[2.5]" />
