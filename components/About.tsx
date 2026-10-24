@@ -42,12 +42,13 @@ export default function About() {
   const isLocalized = isId || isMin;
 
   const fallbackDisciplines = [
-    "Creative Direction",
     "Motion Graphics",
     "Branding & Identity",
     "UI/UX Design",
     "Digital Advertising",
     "Video Production",
+    "Vibe Coding",
+    "Logo Design",
   ];
 
   const displayEyebrow = isLocalized ? t("about.eyebrow") : (about.eyebrow || t("about.eyebrow"));

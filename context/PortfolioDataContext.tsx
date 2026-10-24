@@ -135,12 +135,13 @@ export const defaultAboutData: AboutData = {
   collabDesc: "Producing scalable visual content, high-performing ads, and campaign assets for international brands and agencies.",
   disciplinesTitle: "Disciplines",
   disciplines: [
-    "Creative Direction",
     "Motion Graphics",
     "Branding & Identity",
     "UI/UX Design",
     "Digital Advertising",
     "Video Production",
+    "Vibe Coding",
+    "Logo Design",
   ],
 };
 
