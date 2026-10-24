@@ -115,7 +115,7 @@ const defaultSettings = {
   accentColor: "#06B6D4",
   cursorEffect: "fluid" as CursorEffectType,
   comboMode: false,
-  disableOnMobile: true,
+  disableOnMobile: false,
   motionScroll: {
     smoothInertia: true,
     parallax: true,
@@ -172,7 +172,10 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
         if (parsed.accentColor) setAccentColorState(parsed.accentColor);
         if (parsed.cursorEffect) setCursorEffectState(parsed.cursorEffect);
         if (typeof parsed.comboMode === "boolean") setComboModeState(parsed.comboMode);
-        if (typeof parsed.disableOnMobile === "boolean") setDisableOnMobileState(parsed.disableOnMobile);
+        if (typeof parsed.disableOnMobile === "boolean") {
+          // If explicitly toggled under active version, keep preference; otherwise enable touch by default
+          setDisableOnMobileState(parsed._v === 2 ? parsed.disableOnMobile : false);
+        }
         if (parsed.motionScroll) setMotionScrollState(parsed.motionScroll);
         if (parsed.socialContacts) setSocialContactsState(parsed.socialContacts);
       }
@@ -187,6 +190,7 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
     if (typeof window === "undefined") return;
     try {
       const payload = {
+        _v: 2,
         themeMode,
         primaryColor,
         accentColor,

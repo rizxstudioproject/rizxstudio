@@ -285,20 +285,31 @@ export default function MotionEffectsWorkspace() {
           </button>
         </div>
 
-        {/* Mobile / Touchscreen Auto-Disable */}
+        {/* Mobile / Touchscreen Interactive Effect */}
         <div className="p-5 rounded-2xl bg-neutral-900/60 border border-white/5 flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <HiDevicePhoneMobile className="w-4 h-4 text-cyan-400" />
               <h4 className="text-sm font-semibold text-white">
-                {tr("Auto-Disable on Mobile / Touch", "Matikan Otomatis di HP / Touchscreen", "Matian Otomatis di HP / Layar Sentuah")}
+                {tr("Touch Effects on Mobile / Tablet", "Efek Touch di Layar HP & Tablet", "Efek Sentuah di Layar HP & Tablet")}
               </h4>
+              <span
+                className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-medium ${
+                  !disableOnMobile
+                    ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                    : "bg-neutral-800 text-neutral-400 border border-white/10"
+                }`}
+              >
+                {!disableOnMobile
+                  ? tr("Active (60fps Touch)", "Aktif (60fps Touch)", "Aktif (60fps Touch)")
+                  : tr("Disabled on Mobile", "Nonaktif di HP", "Nonaktif di HP")}
+              </span>
             </div>
             <p className="text-xs text-neutral-400 leading-relaxed">
               {tr(
-                "Turns off canvas rendering automatically on mobile phones & tablets to preserve battery and maintain 60fps.",
-                "Mematikan efek canvas di perangkat layar sentuh & HP demi menghemat baterai dan menjaga performa 60fps.",
-                "Matian efek canvas di HP jo tablet supayo hemat baterai sarato 60fps tatap lancar."
+                "Renders interactive visual effects (trail, glow, fluid, particles) when touching or dragging on mobile phones & tablets.",
+                "Menampilkan efek visual interaktif (jejak, cahaya, fluid, partikel) saat layar sentuh HP & tablet disentuh atau digeser.",
+                "Manampilan efek visual interaktif (jejak, cahayo, fluid, partikel) kutiko layar HP & tablet disentuah atau digeser."
               )}
             </p>
           </div>
@@ -309,14 +320,14 @@ export default function MotionEffectsWorkspace() {
               triggerSaved();
             }}
             className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer shrink-0 mt-1 ${
-              disableOnMobile ? "bg-white" : "bg-neutral-800"
+              !disableOnMobile ? "bg-white" : "bg-neutral-800"
             }`}
-            style={{ backgroundColor: disableOnMobile ? primaryColor : undefined }}
-            aria-label="Toggle Auto Disable on Mobile"
+            style={{ backgroundColor: !disableOnMobile ? primaryColor : undefined }}
+            aria-label="Toggle Touch Effects on Mobile"
           >
             <span
               className={`block w-5 h-5 rounded-full bg-black shadow transform transition-transform ${
-                disableOnMobile ? "translate-x-6 bg-white" : "translate-x-0.5"
+                !disableOnMobile ? "translate-x-6 bg-white" : "translate-x-0.5"
               }`}
             />
           </button>

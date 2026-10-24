@@ -88,18 +88,24 @@ export default function CanvasMouseFollower() {
     };
     window.addEventListener("resize", handleResize);
 
-    const handleMouseMove = (e: MouseEvent) => {
-      targetX = e.clientX;
-      targetY = e.clientY;
+    const handlePointerAction = (clientX: number, clientY: number, isTouch = false) => {
+      targetX = clientX;
+      targetY = clientY;
       isMoving = true;
+
+      // On touch or if cursor was offscreen, snap immediately to touch position
+      if (isTouch && (mouseX < 0 || mouseY < 0 || Math.hypot(targetX - mouseX, targetY - mouseY) > 180)) {
+        mouseX = clientX;
+        mouseY = clientY;
+      }
 
       if (idleTimer) clearTimeout(idleTimer);
       idleTimer = setTimeout(() => {
         isMoving = false;
-      }, 2500);
+      }, isTouch ? 1200 : 2500);
 
       // Check magnetic hover over interactive targets
-      const targetEl = e.target as HTMLElement | null;
+      const targetEl = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
       if (targetEl) {
         const interactive = targetEl.closest(
           'a, button, input, textarea, select, [role="button"], .magnetic-hover'
@@ -165,7 +171,34 @@ export default function CanvasMouseFollower() {
       }
     };
 
+    const handleMouseMove = (e: MouseEvent) => {
+      handlePointerAction(e.clientX, e.clientY, false);
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (!e.touches || e.touches.length === 0) return;
+      const t = e.touches[0];
+      handlePointerAction(t.clientX, t.clientY, true);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!e.touches || e.touches.length === 0) return;
+      const t = e.touches[0];
+      handlePointerAction(t.clientX, t.clientY, true);
+    };
+
+    const handleTouchEnd = () => {
+      if (idleTimer) clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        isMoving = false;
+      }, 800);
+    };
+
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchend", handleTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
 
     // Animation Loop (60 FPS)
     const render = () => {
@@ -412,6 +445,10 @@ export default function CanvasMouseFollower() {
       cancelAnimationFrame(animId);
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("touchend", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchEnd);
       if (idleTimer) clearTimeout(idleTimer);
     };
   }, [cursorEffect, comboMode, disableOnMobile, primaryColor, accentColor]);
