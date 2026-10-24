@@ -1528,40 +1528,52 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               </div>
             </div>
 
-            {/* Right: Cover Card with Replace Button */}
+            {/* Right: Cover Card with Double Click to Replace */}
             <div className="lg:col-span-5 p-5 rounded-2xl bg-[#111419] border border-white/5 flex flex-col justify-between space-y-3">
               <div className="flex items-center justify-between pb-1">
                 <h3 className="text-sm font-semibold text-white">
                   {tr("Cover Image", "Gambar Sampul", "Gambar Muko")}
                 </h3>
-                <div>
-                  <input
-                    ref={coverFileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleCoverFileSelected}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => coverFileInputRef.current?.click()}
-                    className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 text-xs font-medium border border-white/10 transition-colors cursor-pointer"
-                  >
-                    <HiArrowUpTray className="w-3.5 h-3.5" />
-                    <span>{tr("Replace", "Ganti", "Ganti")}</span>
-                  </button>
-                </div>
+                <span className="text-[10px] font-mono text-neutral-400">
+                  {tr("Klik 2x pada gambar untuk ganti", "Double-click image to replace", "Klik 2x pado gambar untuak ganti")}
+                </span>
+                <input
+                  ref={coverFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCoverFileSelected}
+                  className="hidden"
+                />
               </div>
 
-              {/* Cover Image Preview */}
-              <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-black border border-white/5 shadow-md">
+              {/* Cover Image Preview with Double Click to Replace */}
+              <div
+                onDoubleClick={() => coverFileInputRef.current?.click()}
+                title={tr(
+                  "Klik 2x untuk mengganti gambar sampul",
+                  "Double-click to replace cover image",
+                  "Klik 2x untuak mangganti gambar sampul"
+                )}
+                className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-black border border-white/5 shadow-md cursor-pointer group select-none hover:border-[#14AF9E]/50 transition-all"
+              >
                 <img
                   src={coverImageUrl}
                   alt={selectedClient.clientName}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
-                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-[10px] font-mono text-neutral-300">
+
+                {/* Hover overlay hint */}
+                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 text-center backdrop-blur-[1px] pointer-events-none">
+                  <div className="px-3 py-1.5 rounded-xl bg-black/75 border border-white/20 text-white flex items-center gap-2 shadow-xl">
+                    <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
+                    <span className="text-xs font-semibold">
+                      {tr("Klik 2x untuk ganti gambar", "Double-click to replace image", "Klik 2x untuak ganti gambar")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between text-[10px] font-mono text-neutral-300 pointer-events-none">
                   <span className="px-2 py-0.5 rounded bg-black/60 border border-white/10 backdrop-blur-sm truncate">
                     {categoryInput || "Automotive Dealer"}
                   </span>
