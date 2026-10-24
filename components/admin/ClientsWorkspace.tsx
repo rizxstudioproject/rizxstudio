@@ -797,33 +797,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
         <div className="flex-1 overflow-y-auto p-2 space-y-1">
           {workspaceView === "folders" ? (
             <>
-              {/* Quick Marquee Shortcut Card */}
-              <div
-                onClick={() => {
-                  setWorkspaceView("logos");
-                  setMobileActiveView("detail");
-                }}
-                className="p-2.5 mb-2 rounded-xl border border-[#14AF9E]/30 bg-gradient-to-r from-[#14AF9E]/10 via-[#14AF9E]/5 to-transparent hover:from-[#14AF9E]/20 transition-all cursor-pointer flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-[#14AF9E]/20 text-[#14AF9E] flex items-center justify-center shrink-0">
-                    <HiTag className="w-4 h-4" />
-                  </div>
-                  <div className="truncate">
-                    <div className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <span>{tr("Client Logos Marquee", "Logo Klien Marquee", "Logo Klien Marquee")}</span>
-                      <span className="text-[9px] uppercase px-1 py-0.2 bg-[#14AF9E]/20 text-[#14AF9E] rounded font-mono font-bold">
-                        Running
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-neutral-400 truncate">
-                      {clLogos.length} {tr("partner logos", "brand partner running", "brand partner bajalan")}
-                    </p>
-                  </div>
-                </div>
-                <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400 group-hover:text-[#14AF9E] shrink-0" />
-              </div>
-
               {filteredClients.map((client) => {
                 const isSelected = client.id === selectedClientId;
                 const isFav = !!favorites[client.id];
@@ -1443,17 +1416,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <span>{tr("Rename Folder", "Rename Folder", "Rename Folder")}</span>
               </button>
 
-              {/* Direct Ganti PP / Brand Logo Button */}
-              <button
-                type="button"
-                onClick={() => avatarInputRef.current?.click()}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 text-xs font-semibold transition-all cursor-pointer shadow-sm active:scale-95 group/pp"
-                title={tr("Ganti foto profil / logo brand", "Change brand profile / logo", "Ganti foto profil / logo brand")}
-              >
-                <HiCamera className="w-3.5 h-3.5 text-[#14AF9E] group-hover/pp:scale-110 transition-transform" />
-                <span>{tr("Ganti PP", "Change PP", "Ganti PP")}</span>
-              </button>
-
               {/* Delete Folder Button */}
               <button
                 type="button"
@@ -1530,13 +1492,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
             {/* Right: Cover Card with Double Click to Replace */}
             <div className="lg:col-span-5 p-5 rounded-2xl bg-[#111419] border border-white/5 flex flex-col justify-between space-y-3">
-              <div className="flex items-center justify-between pb-1">
+              <div className="pb-2 border-b border-white/5">
                 <h3 className="text-sm font-semibold text-white">
                   {tr("Cover Image", "Gambar Sampul", "Gambar Muko")}
                 </h3>
-                <span className="text-[10px] font-mono text-neutral-400">
-                  {tr("Klik 2x pada gambar untuk ganti", "Double-click image to replace", "Klik 2x pado gambar untuak ganti")}
-                </span>
                 <input
                   ref={coverFileInputRef}
                   type="file"

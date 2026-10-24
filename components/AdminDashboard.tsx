@@ -5935,79 +5935,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                 </div>
 
-                {/* Profile Brand Logo (PP) */}
-                <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {tx("Foto Profil / Logo Brand (PP)", "Brand Profile / Logo")}
-                  </label>
-                  <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-950 border border-white/10">
-                    <div className="w-12 h-12 rounded-xl bg-[#161a22] border border-white/10 flex items-center justify-center font-bold text-white text-sm shrink-0 overflow-hidden shadow-inner">
-                      {editFolderLogo ? (
-                        <img
-                          src={editFolderLogo}
-                          alt="Logo Preview"
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-neutral-400 font-mono">
-                          {editFolderName.trim()
-                            ? editFolderName.trim().slice(0, 2).toUpperCase()
-                            : editingFolder.clientName.slice(0, 2).toUpperCase()}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <label className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-semibold cursor-pointer transition-colors border border-white/10 active:scale-95">
-                        {tx("Unggah PP / Logo", "Upload Logo")}
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onload = () => {
-                                if (typeof reader.result === "string") {
-                                  setEditFolderLogo(reader.result);
-                                }
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                        />
-                      </label>
-                      {editFolderLogo && (
-                        <button
-                          type="button"
-                          onClick={() => setEditFolderLogo("")}
-                          className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-medium transition-colors cursor-pointer"
-                        >
-                          {tx("Hapus Foto", "Remove")}
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-mono text-neutral-500 mt-1 block">
-                    {tx("Anda juga dapat klik 2x langsung pada avatar brand di halaman folder.", "You can also double-click directly on the brand avatar in the folder page.")}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
+                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={!editFolderName.trim()}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#14AF9E] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#14AF9E] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Simpan Perubahan Nama", "Save Brand Name")}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingFolder(null)}
-                    className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-colors cursor-pointer"
-                  >
-                    {tx("Batal", "Cancel")}
                   </button>
                 </div>
 
@@ -6066,6 +6001,56 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 >
                   <HiXMark className="w-5 h-5" />
                 </button>
+              </div>
+
+              {/* Mobile Quick Action Buttons & Language Switcher */}
+              <div className="space-y-2 pt-1 pb-1">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await handleTopBarSave();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex-1 py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-[#14AF9E] hover:from-emerald-400 hover:to-[#119889] text-black font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer"
+                  >
+                    <HiCheck className="w-4 h-4" />
+                    <span>{tx("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await handleTopBarReset();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="py-2.5 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                    title={tx("Kembalikan pengaturan ke default", "Reset to default settings", "Baliakkan ka setelan awal")}
+                  >
+                    <HiArrowPath className="w-3.5 h-3.5 text-neutral-400" />
+                    <span>{tx("Reset", "Reset", "Reset")}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between bg-neutral-900/90 px-3 py-2 rounded-xl border border-white/10">
+                  <span className="text-[11px] font-mono text-neutral-400">{tx("Bahasa UI", "Interface Language", "Bahaso UI")}:</span>
+                  <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5">
+                    {(["id", "en", "min"] as const).map((l) => (
+                      <button
+                        key={l}
+                        type="button"
+                        onClick={() => setLang(l)}
+                        className={`px-2.5 py-1 rounded-md text-[10px] font-bold font-mono transition-all cursor-pointer ${
+                          lang === l
+                            ? "bg-[#14AF9E] text-black shadow-sm shadow-[#14AF9E]/30"
+                            : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        {l.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               {/* Navigation Items List */}
@@ -6170,8 +6155,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 })}
               </div>
 
-              {/* View Public Web Shortcut in Mobile Drawer */}
-              <div className="pt-2 border-t border-white/10">
+              {/* View Public Web Shortcut & Logout in Mobile Drawer */}
+              <div className="pt-2 border-t border-white/10 space-y-2">
                 <a
                   href="/"
                   target="_blank"
@@ -6182,6 +6167,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <HiEye className="w-4 h-4" />
                   <span>{tx("Lihat Web Publik ↗", "View Public Web ↗")}</span>
                 </a>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    adminLogout();
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 font-medium text-xs flex items-center justify-center gap-2 active:scale-95 cursor-pointer transition-colors"
+                >
+                  <HiArrowRightOnRectangle className="w-4 h-4" />
+                  <span>{tx("Keluar Admin (Logout)", "Logout Admin", "Kalua Admin")}</span>
+                </button>
               </div>
             </motion.div>
           </div>

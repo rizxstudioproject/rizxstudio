@@ -556,8 +556,8 @@ export default function AdminTopBar({
 
         {/* Right Actions: Notifications, View Website (Desktop only), Language, Logout */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Notifications Dropdown */}
-          <div className="relative">
+          {/* Notifications Dropdown (Desktop Only - Mobile in Burger Menu) */}
+          <div className="hidden md:block relative">
             <button
               type="button"
               onClick={() => setShowNotifications(!showNotifications)}
@@ -617,7 +617,7 @@ export default function AdminTopBar({
             )}
           </div>
 
-          {/* View Website Button (Hidden on Mobile Navbar as requested, accessible via mobile drawer) */}
+          {/* View Website Button (Desktop Only) */}
           <a
             href="/"
             target="_blank"
@@ -628,36 +628,34 @@ export default function AdminTopBar({
             <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
           </a>
 
-          {/* Top Navbar Action: Reset to Default (Only here in navbar atas) */}
+          {/* Top Navbar Action: Reset to Default (Desktop Only - Mobile in Burger Menu) */}
           {showResetDefault && onResetDefault && (
             <button
               type="button"
               onClick={onResetDefault}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-mono transition-colors cursor-pointer active:scale-95"
+              className="hidden md:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-mono transition-colors cursor-pointer active:scale-95"
               title={tr("Reset to Default", "Reset ke Bawaan", "Baliak ka Bawaan")}
             >
               <HiArrowPath className="w-3.5 h-3.5 text-neutral-400" />
-              <span className="hidden sm:inline">{tr("Reset to Default", "Reset ke Bawaan", "Baliak Default")}</span>
-              <span className="sm:hidden">Reset</span>
+              <span>{tr("Reset to Default", "Reset ke Bawaan", "Baliak Default")}</span>
             </button>
           )}
 
-          {/* Top Navbar Action: Save Changes (Only here in navbar atas) */}
+          {/* Top Navbar Action: Save Changes (Desktop Only - Mobile in Burger Menu) */}
           {showSaveChanges && onSaveChanges && (
             <button
               type="button"
               onClick={onSaveChanges}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#14AF9E]/25 cursor-pointer active:scale-95"
+              className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#14AF9E]/25 cursor-pointer active:scale-95"
               title={tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}
             >
               <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span className="hidden sm:inline">{tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}</span>
-              <span className="sm:hidden">{tr("Save", "Simpan", "Simpan")}</span>
+              <span>{tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}</span>
             </button>
           )}
 
-          {/* Language Switcher (ID, EN, MIN) */}
-          <div className="flex items-center p-0.5 rounded-xl bg-[#12151a] border border-white/10">
+          {/* Language Switcher (Desktop Only - Mobile in Burger Menu) */}
+          <div className="hidden md:flex items-center p-0.5 rounded-xl bg-[#12151a] border border-white/10">
             <button
               type="button"
               onClick={() => setLang("id")}
@@ -693,11 +691,11 @@ export default function AdminTopBar({
             </button>
           </div>
 
-          {/* Logout Button */}
+          {/* Logout Button (Desktop Only - Mobile in Burger Menu) */}
           <button
             type="button"
             onClick={onLogout}
-            className="p-2 rounded-xl text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+            className="hidden md:block p-2 rounded-xl text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
             title="Logout Admin"
           >
             <HiArrowRightOnRectangle className="w-4 h-4" />
