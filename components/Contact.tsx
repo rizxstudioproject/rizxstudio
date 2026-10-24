@@ -5,6 +5,7 @@ import SpotlightCard from "./SpotlightCard";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import { addRealLead } from "@/lib/crmService";
 
 export default function Contact() {
   const { t, lang, setLang } = useLang();
@@ -35,6 +36,21 @@ export default function Contact() {
   const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
     socialContacts.whatsappMessage || "Halo Fomy R / Rizx Studio, saya ingin berkonsultasi mengenai proyek."
   )}`;
+
+  const handleWhatsAppClick = () => {
+    try {
+      addRealLead({
+        name: "Pengunjung WhatsApp (Footer)",
+        source: "WhatsApp Footer",
+        service: "Konsultasi Umum Proyek",
+        status: "New",
+        value: 20000000,
+        notes: "Pengunjung menekan tombol WhatsApp di bagian footer kontak.",
+      }).catch((e) => console.warn("CRM auto-capture notice:", e));
+    } catch (e) {
+      console.warn("CRM auto-capture error:", e);
+    }
+  };
 
   return (
     <footer id="contact" className="relative pt-20 pb-16 px-4 sm:px-12 lg:px-24 max-w-7xl mx-auto">
@@ -86,6 +102,7 @@ export default function Contact() {
               href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleWhatsAppClick}
               style={{
                 backgroundColor: primaryColor,
                 color: "#000000",

@@ -5,6 +5,7 @@ import { FaWhatsapp } from "react-icons/fa6";
 import { HiXMark } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import { addRealLead } from "@/lib/crmService";
 
 const DISMISS_KEY = "wa_popup_dismissed";
 const SHOW_DELAY_MS = 3500; // show after 3.5s
@@ -45,6 +46,18 @@ export default function WhatsAppPopup() {
   };
 
   const handleChat = () => {
+    try {
+      addRealLead({
+        name: "Pengunjung WhatsApp (Floating)",
+        source: "WhatsApp Floating",
+        service: "Konsultasi Kreatif Proyek",
+        status: "New",
+        value: 15000000,
+        notes: "Mengklik pop-up WhatsApp mengambang di website.",
+      }).catch((e) => console.warn("CRM auto-capture notice:", e));
+    } catch (e) {
+      console.warn("CRM auto-capture error:", e);
+    }
     window.open(waUrl, "_blank", "noopener,noreferrer");
     handleDismiss();
   };
