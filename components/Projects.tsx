@@ -1702,18 +1702,6 @@ export default function Projects() {
                       </div>
                     )}
 
-                  {/* Scroll Down Indicator Cue (Only for client works that have case study details below) */}
-                  {currentWork.isClientWork && (
-                    <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1 rounded-full backdrop-blur-md border text-[10px] font-mono ${
-                      isLight
-                        ? "bg-white/90 border-slate-200 text-slate-600 shadow-sm"
-                        : "bg-black/70 border-white/10 text-neutral-400"
-                    }`}>
-                      <span>{t("projects.scrollhint")}</span>
-                      <span className="animate-bounce">↓</span>
-                    </div>
-                  )}
-
                   {/* After / Next Arrow */}
                   {hasMultiple && (
                     <button
