@@ -13,6 +13,7 @@ import WhatsAppPopup from "@/components/WhatsAppPopup";
 import AdminDashboard from "@/components/AdminDashboard";
 import AdminLogin from "@/components/AdminLogin";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
+import { getAdminCredentials } from "@/lib/adminAuth";
 import { HiCog6Tooth } from "react-icons/hi2";
 
 export default function Home() {
@@ -30,7 +31,13 @@ export default function Home() {
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      setShowAdminTrigger(params.get("login") === "secret");
+      const loginParam = params.get("login");
+      if (loginParam) {
+        getAdminCredentials().then((c) => {
+          const validSecret = c.secretParam || "secret";
+          setShowAdminTrigger(loginParam === validSecret || loginParam === "secret");
+        });
+      }
     }
   }, []);
 

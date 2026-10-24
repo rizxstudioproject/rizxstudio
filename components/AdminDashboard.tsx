@@ -144,6 +144,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [adminPass, setAdminPass] = useState("");
   const [adminConfirmPass, setAdminConfirmPass] = useState("");
   const [adminEmail, setAdminEmail] = useState("rizxstudioproject@gmail.com");
+  const [adminSecretKey, setAdminSecretKey] = useState("secret");
   const [showAdminPass, setShowAdminPass] = useState(false);
   const [isSavingAccount, setIsSavingAccount] = useState(false);
 
@@ -151,6 +152,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     getAdminCredentials().then((c) => {
       if (c.username) setAdminUser(c.username);
       if (c.email) setAdminEmail(c.email);
+      if (c.secretParam) setAdminSecretKey(c.secretParam);
     });
   }, []);
 
@@ -166,14 +168,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
     setIsSavingAccount(true);
     try {
+      const cleanSecret = adminSecretKey.trim().replace(/^[\?&]?(login=)?/, "") || "secret";
       await saveAdminCredentials({
         username: adminUser.trim() || "admin",
         email: adminEmail.trim() || "rizxstudioproject@gmail.com",
+        secretParam: cleanSecret,
         ...(adminPass ? { password: adminPass.trim() } : {}),
       });
+      setAdminSecretKey(cleanSecret);
       setAdminPass("");
       setAdminConfirmPass("");
-      showToast("Berhasil: Pengaturan akun & password Admin berhasil disimpan ke Supabase Cloud!");
+      showToast("Berhasil: Pengaturan akun, password & URL login rahasia berhasil disimpan ke Supabase Cloud!");
     } catch (err) {
       showToast("Gagal menyimpan perubahan akun.");
     } finally {
@@ -5084,11 +5089,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 ADMIN SECURITY & CREDENTIALS
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {tx("Pengaturan Akun, Ganti Password & Email Verifikasi", "Account Settings, Password Change & Recovery Email")}
+                {tx("Pengaturan Akun, Ganti Password & URL Login Rahasia", "Account Settings, Password Change & Secret Login URL")}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
-                {tx("Kelola kredensial login Admin Panel. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun baru di URL rahasia ", "Manage Admin Panel credentials. Changes update live in Supabase Cloud & LocalStorage for logging in at the secret URL ")}
-                <code className="text-[#14AF9E] font-mono">?login=secret</code>.
+                {tx("Kelola kredensial login Admin Panel dan parameter URL rahasia. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun & tautan baru di ", "Manage Admin Panel credentials and secret login URL. Changes update live in Supabase Cloud & LocalStorage for logging in at ")}
+                <code className="text-[#14AF9E] font-mono">?login={adminSecretKey || "secret"}</code>.
               </p>
             </div>
 
@@ -5137,6 +5142,47 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
                       {tx("Kode OTP verifikasi saat lupa password akan dikirim ke email ini.", "Verification OTP codes for password recovery will be sent to this email.")}
                     </span>
+                  </div>
+
+                  {/* Secret URL Key Input */}
+                  <div className="pt-2 border-t border-white/10">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-xs font-mono text-neutral-300 font-medium tracking-wide">
+                        {tx("KATA KUNCI URL LOGIN RAHASIA ADMIN", "SECRET ADMIN LOGIN URL PARAMETER")} <span className="text-[#14AF9E]">*</span>
+                      </label>
+                      <span className="text-[10px] font-mono text-[#14AF9E] px-2 py-0.5 rounded bg-[#14AF9E]/10 border border-[#14AF9E]/30">
+                        ?login={adminSecretKey || "secret"}
+                      </span>
+                    </div>
+                    <div className="relative flex rounded-xl bg-neutral-950 border border-white/15 focus-within:border-[#14AF9E] focus-within:ring-1 focus-within:ring-[#14AF9E] transition-all overflow-hidden">
+                      <span className="inline-flex items-center px-3.5 bg-white/5 border-r border-white/10 text-neutral-400 font-mono text-xs select-none">
+                        https://rizxstudio.com/?login=
+                      </span>
+                      <input
+                        type="text"
+                        value={adminSecretKey}
+                        onChange={(e) => {
+                          const clean = e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, "");
+                          setAdminSecretKey(clean);
+                        }}
+                        placeholder="secret"
+                        className="flex-1 px-3.5 py-3 bg-transparent text-[#14AF9E] font-bold text-sm font-mono focus:outline-none placeholder:text-neutral-600"
+                      />
+                    </div>
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-neutral-400 mt-1.5">
+                      <span>{tx("Hanya Anda yang tahu kata kunci ini untuk membuka popup login di domain publik.", "Only you know this key to trigger admin login on the public website.")}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const fullUrl = `https://rizxstudio.com/?login=${adminSecretKey || "secret"}`;
+                          navigator.clipboard.writeText(fullUrl);
+                          showToast(tx("Link URL login rahasia berhasil disalin!", "Secret login URL copied to clipboard!"));
+                        }}
+                        className="text-cyan-400 hover:text-cyan-300 underline cursor-pointer font-semibold"
+                      >
+                        {tx("Salin Link 📋", "Copy URL 📋")}
+                      </button>
+                    </div>
                   </div>
 
                   {/* Password Baru */}
@@ -5190,10 +5236,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
 
                   <div className="space-y-2.5 text-xs text-neutral-300 font-mono leading-relaxed">
-                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                      <span className="text-neutral-500 text-[10px] uppercase block">URL Akses Rahasia</span>
-                      <span className="text-[#14AF9E] font-bold block break-all">
-                        https://rizxstudio.com/?login=secret
+                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-neutral-500 text-[10px] uppercase font-mono">{tx("URL Akses Rahasia Saat Ini", "Active Secret Access URL")}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const fullUrl = `https://rizxstudio.com/?login=${adminSecretKey || "secret"}`;
+                            navigator.clipboard.writeText(fullUrl);
+                            showToast(tx("Link URL rahasia disalin!", "Secret URL copied!"));
+                          }}
+                          className="text-[10px] text-cyan-400 hover:text-cyan-300 underline font-mono cursor-pointer"
+                        >
+                          {tx("Salin 📋", "Copy 📋")}
+                        </button>
+                      </div>
+                      <span className="text-[#14AF9E] font-bold block break-all font-mono text-xs sm:text-sm">
+                        https://rizxstudio.com/?login={adminSecretKey || "secret"}
                       </span>
                     </div>
 

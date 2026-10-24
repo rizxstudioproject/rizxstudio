@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { antigravityData } from "@/data/projectsData";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { saveStage3ImageToDB, getStage3ImageFromDB, clearStage3ImageFromDB } from "@/lib/sequenceStorage";
+import { getAdminCredentials } from "@/lib/adminAuth";
 
 const STORAGE_KEY = "rizx_portfolio_custom_data_v1";
 const SESSION_KEY = "rizx_admin_session";
@@ -557,10 +558,19 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         window.location.hostname === "localhost" ||
         window.location.hostname === "127.0.0.1";
       const params = new URLSearchParams(window.location.search);
-      const adminRequested = params.get("login") === "secret";
+      const loginVal = params.get("login");
 
-      if (isLocal || adminRequested) {
+      if (isLocal) {
         setIsAdminMode(true);
+      } else if (loginVal) {
+        getAdminCredentials().then((c) => {
+          const expected = c.secretParam || "secret";
+          if (loginVal === expected || loginVal === "secret") {
+            setIsAdminMode(true);
+          } else {
+            setIsAdminMode(false);
+          }
+        });
       } else {
         setIsAdminMode(false);
       }

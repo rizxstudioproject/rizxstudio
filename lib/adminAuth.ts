@@ -4,6 +4,7 @@ export interface AdminCredentials {
   username: string;
   password: string;
   email: string;
+  secretParam?: string;
   updatedAt?: string;
 }
 
@@ -11,6 +12,7 @@ export const DEFAULT_ADMIN_CREDENTIALS: AdminCredentials = {
   username: "admin",
   password: "rizxstudio2026",
   email: "rizxstudioproject@gmail.com",
+  secretParam: "secret",
 };
 
 const STORAGE_KEY = "rizx_admin_credentials";
@@ -32,6 +34,7 @@ export async function getAdminCredentials(): Promise<AdminCredentials> {
             username: parsed.username,
             password: parsed.password,
             email: parsed.email || DEFAULT_ADMIN_CREDENTIALS.email,
+            secretParam: parsed.secretParam || DEFAULT_ADMIN_CREDENTIALS.secretParam,
             updatedAt: data.updated_at,
           };
           if (typeof window !== "undefined") {
@@ -58,6 +61,7 @@ export async function getAdminCredentials(): Promise<AdminCredentials> {
             username: parsed.username,
             password: parsed.password,
             email: parsed.email || DEFAULT_ADMIN_CREDENTIALS.email,
+            secretParam: parsed.secretParam || DEFAULT_ADMIN_CREDENTIALS.secretParam,
           };
         }
       }
@@ -71,10 +75,12 @@ export async function saveAdminCredentials(
   creds: Partial<AdminCredentials>
 ): Promise<AdminCredentials> {
   const current = await getAdminCredentials();
+  const rawParam = creds.secretParam !== undefined ? creds.secretParam.trim().replace(/^[\?&]?(login=)?/, "") : current.secretParam;
   const updated: AdminCredentials = {
     username: creds.username?.trim() || current.username,
     password: creds.password?.trim() || current.password,
     email: creds.email?.trim() || current.email,
+    secretParam: rawParam || "secret",
     updatedAt: new Date().toISOString(),
   };
 
