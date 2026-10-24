@@ -166,6 +166,31 @@ html.light header a {
   color: #334155 !important;
 }
 
+/* Client Folder Stage 4 Light Mode Contrast */
+html[data-theme='light'] #projects .client-folder-badge-selected,
+html.light #projects .client-folder-badge-selected {
+  background-color: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme='light'] #projects .client-folder-badge-inactive,
+html.light #projects .client-folder-badge-inactive {
+  background-color: rgba(0, 0, 0, 0.08) !important;
+  color: #475569 !important;
+}
+
+html[data-theme='light'] #projects .folder-nav-btn,
+html.light #projects .folder-nav-btn {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html[data-theme='light'] #projects .folder-nav-btn:hover,
+html.light #projects .folder-nav-btn:hover {
+  background-color: #e2e8f0 !important;
+}
+
 html[data-theme='light'] header a:hover,
 html.light header a:hover {
   color: #0f172a !important;
@@ -457,15 +482,10 @@ body.modal-open .scroll-to-top-btn {
   scrollbar-width: none !important;
 }
 
-/* Client Folder Themed Scrollbar (#14AF9E) — Slim, Vibrant & High Contrast */
-.folder-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: #14AF9E rgba(20, 175, 158, 0.15);
-}
-
+/* Client Folder Themed Scrollbar (#16b09f) — Sleek, High Contrast & Clean */
 .folder-scrollbar::-webkit-scrollbar {
-  height: 4px;
-  width: 4px;
+  height: 5px;
+  width: 5px;
 }
 
 .folder-scrollbar::-webkit-scrollbar-button {
@@ -475,21 +495,29 @@ body.modal-open .scroll-to-top-btn {
 }
 
 .folder-scrollbar::-webkit-scrollbar-track {
-  background: rgba(20, 175, 158, 0.12);
+  background: rgba(22, 176, 159, 0.15);
   border-radius: 9999px;
-  margin: 0 4px;
+  margin: 0 8px;
 }
 
 .folder-scrollbar::-webkit-scrollbar-thumb {
-  background: #14AF9E;
+  background: #16b09f;
   border-radius: 9999px;
-  box-shadow: 0 0 10px rgba(20, 175, 158, 0.6);
+  box-shadow: 0 0 10px rgba(22, 176, 159, 0.6);
   transition: background-color 0.2s ease;
 }
 
 .folder-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #2dd4bf;
   box-shadow: 0 0 14px rgba(45, 212, 191, 0.8);
+}
+
+/* Fallback for Firefox which does not support ::-webkit-scrollbar */
+@supports not selector(::-webkit-scrollbar) {
+  .folder-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #16b09f rgba(22, 176, 159, 0.15);
+  }
 }
 
 /* Selection */

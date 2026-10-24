@@ -1368,10 +1368,10 @@ export default function Projects() {
                     type="button"
                     onClick={() => {
                       if (folderScrollRef.current) {
-                        folderScrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+                        folderScrollRef.current.scrollBy({ left: -220, behavior: "smooth" });
                       }
                     }}
-                    className="p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95"
+                    className="folder-nav-btn p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95 border border-white/5"
                     title={tr("Scroll to start", "Kembali ke awal folder", "Baliak ka mulo folder")}
                     aria-label="Scroll to first folder"
                   >
@@ -1381,13 +1381,10 @@ export default function Projects() {
                     type="button"
                     onClick={() => {
                       if (folderScrollRef.current) {
-                        folderScrollRef.current.scrollTo({
-                          left: folderScrollRef.current.scrollWidth,
-                          behavior: "smooth",
-                        });
+                        folderScrollRef.current.scrollBy({ left: 220, behavior: "smooth" });
                       }
                     }}
-                    className="p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95"
+                    className="folder-nav-btn p-1 px-2 rounded-md bg-white/10 hover:bg-white/20 text-white transition-all text-xs font-mono flex items-center gap-0.5 cursor-pointer active:scale-95 border border-white/5"
                     title={tr("Scroll to end", "Langsung ke akhir folder", "Langsuang ka ujuang folder")}
                     aria-label="Scroll to last folder"
                   >
@@ -1404,7 +1401,7 @@ export default function Projects() {
                     folderScrollRef.current.scrollLeft += e.deltaY;
                   }
                 }}
-                className="flex items-center gap-2 overflow-x-auto pb-2.5 folder-scrollbar scroll-smooth select-none"
+                className="flex items-center gap-2 overflow-x-auto px-2 py-1.5 pb-2.5 folder-scrollbar scroll-smooth select-none"
               >
                 {stage4.clients.map((client) => {
                   const isSelected = selectedClient === client.id;
@@ -1420,7 +1417,7 @@ export default function Projects() {
                     >
                       <HiFolder className="w-3.5 h-3.5 text-[#16b09f] shrink-0" />
                       <span>{client.clientName}</span>
-                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isSelected ? "bg-black/10 text-neutral-800 font-bold" : "bg-white/10 text-neutral-400"}`}>
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold transition-colors ${isSelected ? "client-folder-badge-selected bg-black/15 text-neutral-900" : "client-folder-badge-inactive bg-white/10 text-neutral-400"}`}>
                         {client.works.length}
                       </span>
                     </button>
