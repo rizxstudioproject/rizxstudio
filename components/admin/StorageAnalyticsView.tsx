@@ -20,6 +20,7 @@ import {
 import { motion } from "framer-motion";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 import { getCustomFramesFromDB } from "@/lib/sequenceStorage";
 
 interface StorageAnalyticsViewProps {
@@ -33,6 +34,8 @@ export default function StorageAnalyticsView({
 }: StorageAnalyticsViewProps) {
   const { clients, stage3, heroWorks, clientLogos, portfolioRunner, trashItems, emptyTrash, allData } = usePortfolioData();
   const { lang, tr } = useLang();
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
 
   const [cachedFramesCount, setCachedFramesCount] = useState<number | null>(null);
   const [isExporting, setIsExporting] = useState(false);
@@ -253,30 +256,36 @@ export default function StorageAnalyticsView({
   }, [activeCategory, stats, tr, circumference]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13] select-none">
+    <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 select-none ${isLight ? "bg-[#f8fafc]" : "bg-[#0d0f13]"}`}>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Top Header Banner */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-[#0f171d]/60 to-neutral-950 border border-cyan-500/20 backdrop-blur-md relative overflow-hidden shadow-2xl">
+        <div className={`p-5 sm:p-6 rounded-2xl border backdrop-blur-md relative overflow-hidden shadow-xl ${
+          isLight
+            ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-teal-500/5"
+            : "bg-gradient-to-r from-neutral-900/90 via-[#0f171d]/60 to-neutral-950 border-cyan-500/20 shadow-2xl"
+        }`}>
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-72 h-72 rounded-full bg-cyan-500/5 blur-3xl pointer-events-none" />
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-[#16b09f]/15 border border-[#16b09f]/30 text-[#16b09f]">
+                <span className={`p-2 rounded-xl border ${isLight ? "bg-teal-100 border-teal-300 text-teal-700" : "bg-[#16b09f]/15 border-[#16b09f]/30 text-[#16b09f]"}`}>
                   <HiChartPie className="w-5 h-5" />
                 </span>
-                <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold">
+                <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
                   {tr("DATA ALLOCATION & CAPACITY ANALYTICS", "ANALISIS KAPASITAS & GRAFIK DATA TERPAKAI", "ANALISIS PANYIMPANAN & GRAFIK DATA TAPAKAI")}
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-3">
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-3 ${isLight ? "text-slate-900" : "text-white"}`}>
                 <span>{tr("Storage Usage & Visual Graphics", "Kapasitas & Grafik Data Terpakai", "Panyimpanan & Grafik Data Tapakai")}</span>
-                <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-semibold flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className={`text-xs font-mono px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1.5 border ${
+                  isLight ? "bg-emerald-100 text-emerald-800 border-emerald-300" : "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                }`}>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span>{tr("Optimal Health", "Status Optimal", "Status Optimal")}</span>
                 </span>
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 max-w-2xl leading-relaxed">
+              <p className={`text-xs sm:text-sm max-w-2xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 {tr(
                   "Interactive visual monitoring of memory allocation, portfolio assets, sequence frame cache, and recycle bin storage.",
                   "Monitoring visual interaktif tentang alokasi memori, gambar portofolio terpakai, cache frame scrolly, dan sistem sampah.",
@@ -290,9 +299,15 @@ export default function StorageAnalyticsView({
         {/* PRIMARY ANIMATED GRAPHIC: Futuristic Radial Donut & Segmented Bar */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Left: Animated Radial Progress Circle Gauge (5 Cols) */}
-          <div className="lg:col-span-5 p-6 rounded-3xl bg-[#111419] border border-white/10 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
+          <div className={`lg:col-span-5 p-6 rounded-3xl border flex flex-col items-center justify-center relative overflow-hidden shadow-xl ${
+            isLight ? "bg-white border-slate-200/90 shadow-slate-200/50" : "bg-[#111419] border border-white/10 shadow-2xl"
+          }`}>
             {/* Ambient Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#16b09f]/5 via-transparent to-black pointer-events-none" />
+            <div className={`absolute inset-0 pointer-events-none ${
+              isLight
+                ? "bg-gradient-to-b from-[#16b09f]/5 via-transparent to-slate-50/40"
+                : "bg-gradient-to-b from-[#16b09f]/5 via-transparent to-black"
+            }`} />
 
             <div className="relative flex flex-col items-center my-3">
               {/* SVG Radial Meter */}
@@ -333,7 +348,7 @@ export default function StorageAnalyticsView({
                   cx="110"
                   cy="110"
                   r={radius}
-                  stroke="rgba(255, 255, 255, 0.08)"
+                  stroke={isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.08)"}
                   strokeWidth="14"
                   fill="transparent"
                 />
@@ -369,7 +384,7 @@ export default function StorageAnalyticsView({
                 >
                   {activeDetails.title}
                 </span>
-                <span className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight flex items-baseline">
+                <span className={`text-3xl sm:text-4xl font-extrabold tracking-tight flex items-baseline ${isLight ? "text-slate-900" : "text-white"}`}>
                   {activeCategory === "all" ? animatedPercent : activeDetails.percent}%
                 </span>
                 {/* PROMINENT SIZE IN MB BADGE */}
@@ -385,44 +400,48 @@ export default function StorageAnalyticsView({
                   <HiSparkles className="w-3.5 h-3.5 animate-pulse" />
                   <span>{activeDetails.sizeText}</span>
                   {activeCategory === "all" && (
-                    <span className="text-neutral-400 font-normal">/ {stats.totalCapacityMB} MB</span>
+                    <span className={`font-normal ${isLight ? "text-slate-500" : "text-neutral-400"}`}>/ {stats.totalCapacityMB} MB</span>
                   )}
                 </span>
               </button>
             </div>
 
             {/* Bottom Health Pill */}
-            <div className="w-full mt-4 pt-4 border-t border-white/5 flex items-center justify-between text-xs">
-              <span className="text-neutral-400 flex items-center gap-1.5">
-                <HiShieldCheck className="w-4 h-4 text-emerald-400" />
+            <div className={`w-full mt-4 pt-4 border-t flex items-center justify-between text-xs ${isLight ? "border-slate-100" : "border-white/5"}`}>
+              <span className={`flex items-center gap-1.5 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                <HiShieldCheck className="w-4 h-4 text-emerald-500" />
                 <span>{tr("Browser & DB Quota", "Alokasi Kuota Memori", "Alokasi Kuota Memori")}</span>
               </span>
-              <span className="font-mono text-emerald-400 font-semibold">
+              <span className={`font-mono font-semibold ${isLight ? "text-emerald-700" : "text-emerald-400"}`}>
                 {tr("Safe (Normal)", "Aman (Normal)", "Aman (Normal)")}
               </span>
             </div>
           </div>
 
           {/* Right: Animated Multi-Segment Allocation Bar & Category Breakdown (7 Cols) */}
-          <div className="lg:col-span-7 p-6 rounded-3xl bg-[#111419] border border-white/10 flex flex-col justify-between space-y-6 shadow-2xl">
+          <div className={`lg:col-span-7 p-6 rounded-3xl border flex flex-col justify-between space-y-6 shadow-xl ${
+            isLight ? "bg-white border-slate-200/90 shadow-slate-200/50" : "bg-[#111419] border border-white/10 shadow-2xl"
+          }`}>
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <HiCircleStack className="w-4 h-4 text-[#16b09f]" />
-                  <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
+                  <h3 className={`text-sm sm:text-base font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                     {tr("Visual Storage Breakdown", "Distribusi Alokasi Memori", "Distribusi Alokasi Memori")}
                   </h3>
                 </div>
-                <span className="text-xs font-mono text-neutral-400">
-                  {tr("Total active assets:", "Total aset aktif:", "Aset kasadonyo:")} <strong className="text-white">{stats.totalWorks + stats.totalLogos}</strong>
+                <span className={`text-xs font-mono ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                  {tr("Total active assets:", "Total aset aktif:", "Aset kasadonyo:")} <strong className={isLight ? "text-slate-900" : "text-white"}>{stats.totalWorks + stats.totalLogos}</strong>
                 </span>
               </div>
-              <p className="text-[11px] text-neutral-400 mb-3">
+              <p className={`text-[11px] mb-3 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                 {tr("Click any category below to inspect its exact MB size & see donut color update in real-time.", "Klik kategori di bawah untuk melihat ukuran MB & melihat perubahan warna donut secara interaktif.", "Klik kategori di bawah untuak mancaliak ukuran MB & mancek parubahan warna donot.")}
               </p>
 
               {/* Animated Segmented Capacity Bar */}
-              <div className="w-full h-4 rounded-xl bg-neutral-900 border border-white/10 overflow-hidden flex p-0.5 gap-0.5">
+              <div className={`w-full h-4 rounded-xl border overflow-hidden flex p-0.5 gap-0.5 ${
+                isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900 border border-white/10"
+              }`}>
                 {/* 1. Works */}
                 <motion.div
                   role="button"
@@ -486,14 +505,18 @@ export default function StorageAnalyticsView({
                   activeCategory === "works"
                     ? "bg-[#16b09f]/15 border-[#16b09f] ring-2 ring-[#16b09f]/40 shadow-lg shadow-[#16b09f]/20"
                     : activeCategory !== "all"
-                    ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    ? isLight
+                      ? "bg-slate-50/60 border-slate-200/60 opacity-60 hover:opacity-90"
+                      : "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    : isLight
+                    ? "bg-slate-50/80 hover:bg-slate-100 border-slate-200/80 hover:border-[#16b09f]/40"
                     : "bg-neutral-900/70 border-white/5 hover:border-[#16b09f]/40 hover:bg-[#16b09f]/5"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <span className="w-3.5 h-3.5 rounded-full bg-[#16b09f] shrink-0 shadow-md shadow-[#16b09f]/40" />
                   <div>
-                    <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <p className={`text-xs font-semibold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
                       <span>{tr("Client Works & Images", "Foto & Karya Visual", "Foto & Karya Visual")}</span>
                       {activeCategory === "works" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#16b09f] text-black font-bold">
@@ -501,16 +524,18 @@ export default function StorageAnalyticsView({
                         </span>
                       )}
                     </p>
-                    <p className="text-[10px] text-neutral-400 font-mono">
+                    <p className={`text-[10px] font-mono ${isLight ? "text-slate-500 font-medium" : "text-neutral-400"}`}>
                       {stats.totalWorks} {tr("items uploaded", "karya terupload", "karya taupload")}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="px-2 py-0.5 rounded-md bg-[#16b09f]/20 border border-[#16b09f]/40 text-xs sm:text-sm font-mono font-extrabold text-[#16b09f] inline-block shadow-sm">
+                  <span className={`px-2 py-0.5 rounded-md border text-xs sm:text-sm font-mono font-extrabold inline-block shadow-sm ${
+                    isLight ? "bg-teal-50 border-teal-200 text-teal-700" : "bg-[#16b09f]/20 border-[#16b09f]/40 text-[#16b09f]"
+                  }`}>
                     {stats.worksMB} MB
                   </span>
-                  <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
+                  <span className={`text-[10px] font-mono block mt-0.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                     ~{stats.worksShare}%
                   </span>
                 </div>
@@ -524,14 +549,18 @@ export default function StorageAnalyticsView({
                   activeCategory === "video"
                     ? "bg-indigo-500/15 border-indigo-500 ring-2 ring-indigo-500/40 shadow-lg shadow-indigo-500/20"
                     : activeCategory !== "all"
-                    ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    ? isLight
+                      ? "bg-slate-50/60 border-slate-200/60 opacity-60 hover:opacity-90"
+                      : "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    : isLight
+                    ? "bg-slate-50/80 hover:bg-slate-100 border-slate-200/80 hover:border-indigo-500/40"
                     : "bg-neutral-900/70 border-white/5 hover:border-indigo-500/40 hover:bg-indigo-500/5"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <span className="w-3.5 h-3.5 rounded-full bg-indigo-500 shrink-0 shadow-md shadow-indigo-500/40" />
                   <div>
-                    <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <p className={`text-xs font-semibold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
                       <span>{tr("Flagship Video & Showcase", "Video & Stage 3 Media", "Video & Stage 3 Media")}</span>
                       {activeCategory === "video" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-indigo-500 text-white font-bold">
@@ -539,16 +568,18 @@ export default function StorageAnalyticsView({
                         </span>
                       )}
                     </p>
-                    <p className="text-[10px] text-neutral-400 font-mono">
+                    <p className={`text-[10px] font-mono ${isLight ? "text-slate-500 font-medium" : "text-neutral-400"}`}>
                       YouTube / Google Drive
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="px-2 py-0.5 rounded-md bg-indigo-500/20 border border-indigo-500/40 text-xs sm:text-sm font-mono font-extrabold text-indigo-400 inline-block shadow-sm">
+                  <span className={`px-2 py-0.5 rounded-md border text-xs sm:text-sm font-mono font-extrabold inline-block shadow-sm ${
+                    isLight ? "bg-indigo-50 border-indigo-200 text-indigo-700" : "bg-indigo-500/20 border-indigo-500/40 text-indigo-400"
+                  }`}>
                     {stats.videoMB} MB
                   </span>
-                  <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
+                  <span className={`text-[10px] font-mono block mt-0.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                     ~{stats.videoShare}%
                   </span>
                 </div>
@@ -562,14 +593,18 @@ export default function StorageAnalyticsView({
                   activeCategory === "frames"
                     ? "bg-amber-500/15 border-amber-400 ring-2 ring-amber-400/40 shadow-lg shadow-amber-400/20"
                     : activeCategory !== "all"
-                    ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    ? isLight
+                      ? "bg-slate-50/60 border-slate-200/60 opacity-60 hover:opacity-90"
+                      : "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    : isLight
+                    ? "bg-slate-50/80 hover:bg-slate-100 border-slate-200/80 hover:border-amber-400/40"
                     : "bg-neutral-900/70 border-white/5 hover:border-amber-400/40 hover:bg-amber-400/5"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <span className="w-3.5 h-3.5 rounded-full bg-amber-400 shrink-0 shadow-md shadow-amber-400/40" />
                   <div>
-                    <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <p className={`text-xs font-semibold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
                       <span>{tr("Scrollytelling Frames", "Cache Kanvas Scrolly", "Cache Kanvas Scrolly")}</span>
                       {activeCategory === "frames" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-400 text-black font-bold">
@@ -577,16 +612,18 @@ export default function StorageAnalyticsView({
                         </span>
                       )}
                     </p>
-                    <p className="text-[10px] text-neutral-400 font-mono">
+                    <p className={`text-[10px] font-mono ${isLight ? "text-slate-500 font-medium" : "text-neutral-400"}`}>
                       {stats.cachedFramesCount} {tr("indexed frames", "frame tersimpan", "frame tasimpan")}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="px-2 py-0.5 rounded-md bg-amber-500/20 border border-amber-500/40 text-xs sm:text-sm font-mono font-extrabold text-amber-300 inline-block shadow-sm">
+                  <span className={`px-2 py-0.5 rounded-md border text-xs sm:text-sm font-mono font-extrabold inline-block shadow-sm ${
+                    isLight ? "bg-amber-50 border-amber-200 text-amber-700" : "bg-amber-500/20 border-amber-500/40 text-amber-300"
+                  }`}>
                     {stats.framesMB} MB
                   </span>
-                  <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
+                  <span className={`text-[10px] font-mono block mt-0.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                     ~{stats.framesShare}%
                   </span>
                 </div>
@@ -600,14 +637,18 @@ export default function StorageAnalyticsView({
                   activeCategory === "trash"
                     ? "bg-rose-500/15 border-rose-500 ring-2 ring-rose-500/40 shadow-lg shadow-rose-500/20"
                     : activeCategory !== "all"
-                    ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    ? isLight
+                      ? "bg-slate-50/60 border-slate-200/60 opacity-60 hover:opacity-90"
+                      : "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
+                    : isLight
+                    ? "bg-slate-50/80 hover:bg-slate-100 border-slate-200/80 hover:border-rose-500/40"
                     : "bg-neutral-900/70 border-white/5 hover:border-rose-500/40 hover:bg-rose-500/5"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <span className="w-3.5 h-3.5 rounded-full bg-rose-500 shrink-0 shadow-md shadow-rose-500/40" />
                   <div>
-                    <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <p className={`text-xs font-semibold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
                       <span>{tr("Recycle Bin (Trash)", "Tong Sampah (Pulihkan)", "Tong Sarok (Pulihan)")}</span>
                       {activeCategory === "trash" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500 text-white font-bold">
@@ -615,16 +656,18 @@ export default function StorageAnalyticsView({
                         </span>
                       )}
                     </p>
-                    <p className="text-[10px] text-neutral-400 font-mono">
+                    <p className={`text-[10px] font-mono ${isLight ? "text-slate-500 font-medium" : "text-neutral-400"}`}>
                       {stats.totalTrash} {tr("deleted items", "item terhapus", "item tahapuih")}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="px-2 py-0.5 rounded-md bg-rose-500/20 border border-rose-500/40 text-xs sm:text-sm font-mono font-extrabold text-rose-400 inline-block shadow-sm">
+                  <span className={`px-2 py-0.5 rounded-md border text-xs sm:text-sm font-mono font-extrabold inline-block shadow-sm ${
+                    isLight ? "bg-rose-50 border-rose-200 text-rose-700" : "bg-rose-500/20 border-rose-500/40 text-rose-400"
+                  }`}>
                     {stats.trashMB} MB
                   </span>
-                  <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
+                  <span className={`text-[10px] font-mono block mt-0.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                     ~{stats.trashShare}%
                   </span>
                 </div>
@@ -640,19 +683,21 @@ export default function StorageAnalyticsView({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#16b09f]/30 transition-all shadow-xl group"
+            className={`p-5 rounded-2xl border space-y-2 transition-all shadow-md group ${
+              isLight ? "bg-white border-slate-200/90 hover:border-amber-400/40" : "bg-[#111419] border border-white/5 hover:border-[#16b09f]/30 shadow-xl"
+            }`}
           >
-            <div className="flex items-center justify-between text-neutral-400">
+            <div className={`flex items-center justify-between ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               <span className="text-xs font-medium">{tr("Client Folders", "Folder Klien Aktif", "Folder Klien Aktif")}</span>
-              <HiFolder className="w-5 h-5 text-amber-400 group-hover:scale-110 transition-transform" />
+              <HiFolder className="w-5 h-5 text-amber-500 group-hover:scale-110 transition-transform" />
             </div>
-            <p className="text-3xl font-extrabold text-white tracking-tight flex items-baseline gap-2">
+            <p className={`text-3xl font-extrabold tracking-tight flex items-baseline gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
               <span>{stats.totalFolders}</span>
-              <span className="text-xs font-mono font-bold text-amber-400">({stats.worksMB} MB)</span>
+              <span className={`text-xs font-mono font-bold ${isLight ? "text-amber-600" : "text-amber-400"}`}>({stats.worksMB} MB)</span>
             </p>
-            <p className="text-[11px] text-neutral-400 font-mono flex items-center justify-between">
+            <p className={`text-[11px] font-mono flex items-center justify-between ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
               <span>{stats.customFolders} {tr("custom admin", "kustom admin", "kustom admin")}</span>
-              <span className="text-emerald-400">Active</span>
+              <span className={isLight ? "text-emerald-600 font-semibold" : "text-emerald-400"}>Active</span>
             </p>
           </motion.div>
 
@@ -661,19 +706,21 @@ export default function StorageAnalyticsView({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#16b09f]/30 transition-all shadow-xl group"
+            className={`p-5 rounded-2xl border space-y-2 transition-all shadow-md group ${
+              isLight ? "bg-white border-slate-200/90 hover:border-cyan-500/40" : "bg-[#111419] border border-white/5 hover:border-[#16b09f]/30 shadow-xl"
+            }`}
           >
-            <div className="flex items-center justify-between text-neutral-400">
+            <div className={`flex items-center justify-between ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               <span className="text-xs font-medium">{tr("Portfolio Works", "Total Karya Portofolio", "Total Karya Portofolio")}</span>
-              <HiPhoto className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+              <HiPhoto className="w-5 h-5 text-cyan-600 group-hover:scale-110 transition-transform" />
             </div>
-            <p className="text-3xl font-extrabold text-white tracking-tight flex items-baseline gap-2">
+            <p className={`text-3xl font-extrabold tracking-tight flex items-baseline gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
               <span>{stats.totalWorks}</span>
-              <span className="text-xs font-mono font-bold text-cyan-400">({stats.worksMB} MB)</span>
+              <span className={`text-xs font-mono font-bold ${isLight ? "text-cyan-700" : "text-cyan-400"}`}>({stats.worksMB} MB)</span>
             </p>
-            <p className="text-[11px] text-neutral-400 font-mono flex items-center justify-between">
+            <p className={`text-[11px] font-mono flex items-center justify-between ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
               <span>{tr("Stored in folders", "Tersimpan di folder", "Tasimpan di folder")}</span>
-              <span className="text-cyan-400">WebP / JPG</span>
+              <span className={isLight ? "text-cyan-700 font-semibold" : "text-cyan-400"}>WebP / JPG</span>
             </p>
           </motion.div>
 
@@ -682,25 +729,27 @@ export default function StorageAnalyticsView({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.3 }}
-            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-rose-500/30 transition-all shadow-xl group"
+            className={`p-5 rounded-2xl border space-y-2 transition-all shadow-md group ${
+              isLight ? "bg-white border-slate-200/90 hover:border-rose-500/40" : "bg-[#111419] border border-white/5 hover:border-rose-500/30 shadow-xl"
+            }`}
           >
-            <div className="flex items-center justify-between text-neutral-400">
+            <div className={`flex items-center justify-between ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               <span className="text-xs font-medium">{tr("Recycle Bin Items", "Item di Tong Sampah", "Item di Tong Sarok")}</span>
-              <HiTrash className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform" />
+              <HiTrash className="w-5 h-5 text-rose-500 group-hover:scale-110 transition-transform" />
             </div>
-            <p className="text-3xl font-extrabold text-white tracking-tight flex items-baseline gap-2">
+            <p className={`text-3xl font-extrabold tracking-tight flex items-baseline gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
               <span>{stats.totalTrash}</span>
-              <span className="text-xs font-mono font-bold text-rose-400">({stats.trashMB} MB)</span>
+              <span className={`text-xs font-mono font-bold ${isLight ? "text-rose-600" : "text-rose-400"}`}>({stats.trashMB} MB)</span>
             </p>
-            <div className="flex items-center justify-between text-[11px] font-mono">
-              <span className="text-neutral-400">
+            <div className={`flex items-center justify-between text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+              <span>
                 {stats.totalTrash > 0 ? tr("Can be restored", "Dapat dipulihkan", "Dapek dipuliahan") : tr("Trash empty", "Tong bersih", "Tong barasiah")}
               </span>
               {stats.totalTrash > 0 && onNavigateToTrash && (
                 <button
                   type="button"
                   onClick={onNavigateToTrash}
-                  className="text-rose-400 hover:underline cursor-pointer"
+                  className={`cursor-pointer font-semibold ${isLight ? "text-rose-600 hover:underline" : "text-rose-400 hover:underline"}`}
                 >
                   {tr("View ↗", "Buka ↗", "Bukak ↗")}
                 </button>
@@ -713,49 +762,55 @@ export default function StorageAnalyticsView({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
-            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#16b09f]/30 transition-all shadow-xl group"
+            className={`p-5 rounded-2xl border space-y-2 transition-all shadow-md group ${
+              isLight ? "bg-white border-slate-200/90 hover:border-emerald-500/40" : "bg-[#111419] border border-white/5 hover:border-[#16b09f]/30 shadow-xl"
+            }`}
           >
-            <div className="flex items-center justify-between text-neutral-400">
+            <div className={`flex items-center justify-between ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               <span className="text-xs font-medium">{tr("Cloud Database", "Sinkronisasi Cloud", "Sinkronisasi Cloud")}</span>
-              <HiServer className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+              <HiServer className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
             </div>
-            <p className="text-3xl font-extrabold text-white tracking-tight flex items-baseline gap-2">
+            <p className={`text-3xl font-extrabold tracking-tight flex items-baseline gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
               <span className="flex items-center gap-2">
                 <span>Supabase</span>
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
               </span>
-              <span className="text-xs font-mono font-bold text-emerald-400">({stats.totalUsedMB} MB)</span>
+              <span className={`text-xs font-mono font-bold ${isLight ? "text-emerald-700" : "text-emerald-400"}`}>({stats.totalUsedMB} MB)</span>
             </p>
-            <p className="text-[11px] text-neutral-400 font-mono flex items-center justify-between">
+            <p className={`text-[11px] font-mono flex items-center justify-between ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
               <span>Real-time Live Sync</span>
-              <span className="text-emerald-400">Connected</span>
+              <span className={isLight ? "text-emerald-700 font-semibold" : "text-emerald-400"}>Connected</span>
             </p>
           </motion.div>
         </div>
 
         {/* Storage Maintenance & Quick Tools */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-[#111419] border border-white/5 space-y-4">
-          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+        <div className={`p-5 sm:p-6 rounded-2xl border space-y-4 ${
+          isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-[#111419] border border-white/5"
+        }`}>
+          <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-100" : "border-white/5"}`}>
             <div className="flex items-center gap-2">
               <HiCpuChip className="w-4 h-4 text-[#16b09f]" />
-              <h3 className="text-sm font-bold text-white tracking-tight">
+              <h3 className={`text-sm font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                 {tr("Memory Optimization & Data Tools", "Optimasi Memori & Pemeliharaan Sistem", "Optimasi Memori & Pameliaharaan Sistem")}
               </h3>
             </div>
-            <span className="text-xs font-mono text-neutral-500">
+            <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
               LocalStorage + IndexedDB + Supabase
             </span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {/* Tool 1: Clean Trash */}
-            <div className="p-4 rounded-xl bg-neutral-900 border border-white/5 space-y-2 flex flex-col justify-between">
+            <div className={`p-4 rounded-xl border space-y-2 flex flex-col justify-between ${
+              isLight ? "bg-slate-50 border-slate-200/90" : "bg-neutral-900 border border-white/5"
+            }`}>
               <div className="space-y-1">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <HiTrash className="w-4 h-4 text-rose-400" />
+                <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
+                  <HiTrash className="w-4 h-4 text-rose-500" />
                   <span>{tr("Empty Recycle Bin", "Bersihkan Tong Sampah", "Barasiahkan Tong Sarok")}</span>
                 </span>
-                <p className="text-[11px] text-neutral-400 leading-relaxed">
+                <p className={`text-[11px] leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                   {tr(
                     "Free up memory by clearing items that are no longer needed.",
                     "Bebaskan memori dengan membersihkan item yang sudah tidak terpakai.",
@@ -775,20 +830,22 @@ export default function StorageAnalyticsView({
                     showToast(tr("Recycle Bin emptied successfully!", "Tong Sampah berhasil dibersihkan!", "Tong Sarok barasil dibarasiahkan!"));
                   }
                 }}
-                className="w-full py-2 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/25 text-xs font-semibold transition-all active:scale-95 cursor-pointer mt-2"
+                className="w-full py-2 px-3 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-500 border border-rose-500/25 text-xs font-semibold transition-all active:scale-95 cursor-pointer mt-2"
               >
                 {tr("Clean Trash Now", "Bersihkan Sekarang", "Barasiahkan Kini")}
               </button>
             </div>
 
             {/* Tool 2: Backup JSON */}
-            <div className="p-4 rounded-xl bg-neutral-900 border border-white/5 space-y-2 flex flex-col justify-between">
+            <div className={`p-4 rounded-xl border space-y-2 flex flex-col justify-between ${
+              isLight ? "bg-slate-50 border-slate-200/90" : "bg-neutral-900 border border-white/5"
+            }`}>
               <div className="space-y-1">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <HiArrowDownTray className="w-4 h-4 text-cyan-400" />
+                <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
+                  <HiArrowDownTray className="w-4 h-4 text-cyan-600" />
                   <span>{tr("Full System Backup", "Cadangan Sistem Lengkap", "Cadangan Sistem Langkok")}</span>
                 </span>
-                <p className="text-[11px] text-neutral-400 leading-relaxed">
+                <p className={`text-[11px] leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                   {tr(
                     "Download a complete JSON snapshot of all your portfolio folders, works, and media.",
                     "Unduh file cadangan JSON lengkap dari semua karya, folder, dan media portofolio.",
@@ -800,20 +857,22 @@ export default function StorageAnalyticsView({
                 type="button"
                 onClick={handleExportBackup}
                 disabled={isExporting}
-                className="w-full py-2 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/25 text-xs font-semibold transition-all active:scale-95 cursor-pointer mt-2 disabled:opacity-50"
+                className="w-full py-2 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 border border-cyan-500/25 text-xs font-semibold transition-all active:scale-95 cursor-pointer mt-2 disabled:opacity-50"
               >
                 {tr("Download Backup (JSON)", "Unduh File Backup", "Unduah Berkas Backup")}
               </button>
             </div>
 
             {/* Tool 3: Check Health */}
-            <div className="p-4 rounded-xl bg-neutral-900 border border-white/5 space-y-2 flex flex-col justify-between">
+            <div className={`p-4 rounded-xl border space-y-2 flex flex-col justify-between ${
+              isLight ? "bg-slate-50 border-slate-200/90" : "bg-neutral-900 border border-white/5"
+            }`}>
               <div className="space-y-1">
-                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                  <HiCheckCircle className="w-4 h-4 text-emerald-400" />
+                <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
+                  <HiCheckCircle className="w-4 h-4 text-emerald-600" />
                   <span>{tr("System Health Status", "Kesehatan Penyimpanan", "Kasihatan Panyimpanan")}</span>
                 </span>
-                <p className="text-[11px] text-neutral-400 leading-relaxed">
+                <p className={`text-[11px] leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                   {tr(
                     "Storage allocation is in optimal condition with no memory bottlenecks.",
                     "Alokasi penyimpanan dalam kondisi prima tanpa hambatan memori browser.",
@@ -821,8 +880,10 @@ export default function StorageAnalyticsView({
                   )}
                 </p>
               </div>
-              <div className="py-2 px-3 rounded-xl bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold flex items-center justify-center gap-1.5 mt-2">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <div className={`py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 mt-2 ${
+                isLight ? "bg-emerald-50 border-emerald-200 text-emerald-700" : "bg-emerald-500/10 border-emerald-500/25 text-emerald-400"
+              }`}>
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
                 <span>100% {tr("Optimal & Synced", "Optimal & Tersinkron", "Optimal & Tasinkron")}</span>
               </div>
             </div>

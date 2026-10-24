@@ -1812,7 +1812,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  const { resetToDefaults: resetMotionTheme } = useMotionTheme();
+  const { resetToDefaults: resetMotionTheme, themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
 
   const handleTopBarSave = async () => {
     switch (sidebarTab) {
@@ -2003,15 +2004,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           {(sidebarTab === "storage" || sidebarTab === "resources") && (
             <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
               {/* Sub-view Switcher Header */}
-              <div className="px-4 sm:px-6 py-2.5 border-b border-white/5 bg-[#0a0c10] flex items-center justify-between gap-3 shrink-0">
-                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs font-mono">
+              <div className={`px-4 sm:px-6 py-2.5 border-b flex items-center justify-between gap-3 shrink-0 ${
+                isLight ? "bg-white border-slate-200/90" : "bg-[#0a0c10] border-white/5"
+              }`}>
+                <div className={`flex items-center gap-1.5 p-1 rounded-xl border text-xs font-mono ${
+                  isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900 border border-white/10"
+                }`}>
                   <button
                     type="button"
                     onClick={() => setStorageSubTab("analytics")}
                     className={`py-1.5 px-3 rounded-lg font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                       storageSubTab === "analytics"
                         ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
-                        : "text-neutral-400 hover:text-white"
+                        : isLight
+                          ? "text-slate-600 hover:text-slate-900"
+                          : "text-neutral-400 hover:text-white"
                     }`}
                   >
                     <HiChartPie className="w-3.5 h-3.5" />
@@ -2023,7 +2030,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className={`py-1.5 px-3 rounded-lg font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                       storageSubTab === "resources"
                         ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
-                        : "text-neutral-400 hover:text-white"
+                        : isLight
+                          ? "text-slate-600 hover:text-slate-900"
+                          : "text-neutral-400 hover:text-white"
                     }`}
                   >
                     <HiSquare3Stack3D className="w-3.5 h-3.5" />
@@ -2031,7 +2040,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </button>
                 </div>
 
-                <span className="text-[11px] font-mono text-neutral-500 hidden sm:inline">
+                <span className={`text-[11px] font-mono hidden sm:inline ${isLight ? "text-slate-500 font-medium" : "text-neutral-500"}`}>
                   {storageSubTab === "analytics"
                     ? tx("Visualisasi memori & donat interaktif", "Memory usage & interactive gauge", "Visualisasi memori & grafik donat")
                     : tx("Eksplorasi visual karya & logo partner", "Visual explorer for works & logos", "Eksplorasi karya & logo")}
@@ -2111,14 +2120,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="space-y-8"
           >
             {/* Header Explainer */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
+              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                isLight ? "text-teal-700" : "text-[#16b09f]"
+              }`}>
                 SECTION CONTROL: HERO BANNER UTAMA (CANVAS SCROLLYTELLING)
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                 {tx("Editor Teks Hero Banner & Scrollytelling", "Hero Banner & Scrollytelling Text Editor")}
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+              <p className={`text-xs sm:text-sm mt-1.5 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 {tx("Sesuaikan nama utama, profesi/peran, serta teks narasi scrollytelling yang tampil saat pengunjung membuka website dan menggulir ke bawah.", "Customize the primary hero name, role/subtitle, and scrollytelling narrative paragraphs that appear as visitors scroll through the top section.")}
               </p>
             </div>
@@ -3331,14 +3346,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="space-y-8"
           >
             {/* Header Explainer */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
+              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                isLight ? "text-teal-700" : "text-[#16b09f]"
+              }`}>
                 SECTION CONTROL: HERO & SELECTED WORKS
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                 Editor Section Hero (Design. Motion. AI.) & Selected Works
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+              <p className={`text-xs sm:text-sm mt-1.5 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 Edit seluruh teks headline, subheadline, tags, tombol CTA, serta tambah, ganti, atau hapus gambar kartu preview bertumpuk dan melengkung secara fleksibel.
               </p>
             </div>
@@ -3816,14 +3837,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="space-y-8"
           >
             {/* Header Explainer */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
+              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                isLight ? "text-teal-700" : "text-[#16b09f]"
+              }`}>
                 SECTION CONTROL: RUNNING PORTOFOLIO (MARQUEE 4:5)
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                 {tx("Editor Running Portofolio (Rasio 4:5)", "Running Portfolio Editor (4:5 Ratio)")}
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+              <p className={`text-xs sm:text-sm mt-1.5 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 {tx("Kelola kartu karya yang berjalan di strip 2 baris tepat di atas footer. Semua kartu memiliki rasio 4:5 seragam tanpa jeda atau putus. Anda bisa menambah karya baru, mengedit judul/kategori/gambar, memindahkan baris, atau menghapus karya.", "Manage the portfolio cards running in a 2-row strip above the footer. All cards have a uniform 4:5 aspect ratio with seamless infinite looping. You can create, edit, reorder rows, and delete items.")}
               </p>
             </div>
@@ -4470,14 +4497,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="space-y-6"
           >
             {/* Header Explainer */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
+              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                isLight ? "text-teal-700" : "text-[#16b09f]"
+              }`}>
                 SECTION CONTROL: ABOUT ME (WHO AM I)
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                 Kustomisasi Seluruh Teks Section About Me
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
+              <p className={`text-xs sm:text-sm mt-1 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 Ubah headline, narasi profil, filosofi inti, 3 statistik pengalaman, teks kolaborasi global, dan disiplin keahlian. Setiap perubahan langsung disimpan ke Supabase Cloud & LocalStorage dan tayang langsung di web publik.
               </p>
             </div>
@@ -4757,16 +4790,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="space-y-6"
           >
             {/* Section Explainer Banner */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
               <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
-                  <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
+                  <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                    isLight ? "text-teal-700" : "text-[#16b09f]"
+                  }`}>
                     SECTION CONTROL: STAGE 3
                   </span>
-                  <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                  <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                     Flagship Showcase: From Visual Craft to Technology (VISUAL CRAFT | DIGITAL | AI)
                   </h2>
-                  <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-2xl leading-relaxed">
+                  <p className={`text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                     Kelola integrasi pemutar video YouTube sinematik khusus untuk section karya unggulan ini. Video langsung tayang di section Flagship Showcase pada web publik.
                   </p>
                 </div>
@@ -5277,26 +5316,34 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="space-y-6"
           >
             {/* Header Explainer */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
+              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                isLight ? "text-teal-700" : "text-[#16b09f]"
+              }`}>
                 ADMIN SECURITY & CREDENTIALS
               </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                 {tx("Pengaturan Akun, Ganti Password & URL Login Rahasia", "Account Settings, Password Change & Secret Login URL")}
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
+              <p className={`text-xs sm:text-sm mt-1 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 {tx("Kelola kredensial login Admin Panel dan parameter URL rahasia. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun & tautan baru di ", "Manage Admin Panel credentials and secret login URL. Changes update live in Supabase Cloud & LocalStorage for logging in at ")}
-                <code className="text-[#16b09f] font-mono">?login={adminSecretKey || "secret"}</code>.
+                <code className={`font-mono font-bold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>?login={adminSecretKey || "secret"}</code>.
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Form Kolom Kiri */}
-              <div className="lg:col-span-7 bg-neutral-900/60 border border-white/10 rounded-2xl p-5 sm:p-7 backdrop-blur-sm">
+              <div className={`lg:col-span-7 border rounded-2xl p-5 sm:p-7 backdrop-blur-sm ${
+                isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/60 border-white/10"
+              }`}>
                 <form onSubmit={handleSaveAccount} className="space-y-5">
                   {/* Username */}
                   <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 tracking-wide ${isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}`}>
                       {tx("USERNAME ADMIN", "ADMIN USERNAME")} <span className="text-[#16b09f]">*</span>
                     </label>
                     <div className="relative">
@@ -5308,18 +5355,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         autoCapitalize="none"
                         autoCorrect="off"
                         spellCheck={false}
-                        className="w-full px-4 py-3 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                        className={`w-full px-4 py-3 pl-10 rounded-xl border text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all ${
+                          isLight ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white" : "bg-neutral-950 border-white/15 text-white"
+                        }`}
                       />
-                      <HiUser className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <HiUser className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 ${isLight ? "text-slate-400" : "text-neutral-500"}`} />
                     </div>
-                    <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
+                    <span className={`text-[11px] font-mono mt-1 block ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
                       {tx("Username untuk login ke admin panel dashboard.", "Username for logging into the admin panel dashboard.")}
                     </span>
                   </div>
 
                   {/* Recovery Email */}
                   <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 tracking-wide ${isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}`}>
                       {tx("EMAIL RECOVERY / VERIFIKASI", "RECOVERY / VERIFICATION EMAIL")} <span className="text-[#16b09f]">*</span>
                     </label>
                     <div className="relative">
@@ -5328,27 +5377,35 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={adminEmail}
                         onChange={(e) => setAdminEmail(e.target.value)}
                         placeholder="rizxstudioproject@gmail.com"
-                        className="w-full px-4 py-3 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                        className={`w-full px-4 py-3 pl-10 rounded-xl border text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all ${
+                          isLight ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white" : "bg-neutral-950 border-white/15 text-white"
+                        }`}
                       />
-                      <HiEnvelope className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <HiEnvelope className={`w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 ${isLight ? "text-slate-400" : "text-neutral-500"}`} />
                     </div>
-                    <span className="text-[11px] text-neutral-500 font-mono mt-1 block">
+                    <span className={`text-[11px] font-mono mt-1 block ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
                       {tx("Kode OTP verifikasi saat lupa password akan dikirim ke email ini.", "Verification OTP codes for password recovery will be sent to this email.")}
                     </span>
                   </div>
 
                   {/* Secret URL Key Input */}
-                  <div className="pt-2 border-t border-white/10">
+                  <div className={`pt-2 border-t ${isLight ? "border-slate-100" : "border-white/10"}`}>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-xs font-mono text-neutral-300 font-medium tracking-wide">
+                      <label className={`block text-xs font-mono font-medium tracking-wide ${isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}`}>
                         {tx("KATA KUNCI URL LOGIN RAHASIA ADMIN", "SECRET ADMIN LOGIN URL PARAMETER")} <span className="text-[#16b09f]">*</span>
                       </label>
-                      <span className="text-[10px] font-mono text-[#16b09f] px-2 py-0.5 rounded bg-[#16b09f]/10 border border-[#16b09f]/30">
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${
+                        isLight ? "bg-teal-50 border-teal-200 text-teal-700 font-bold" : "bg-[#16b09f]/10 border-[#16b09f]/30 text-[#16b09f]"
+                      }`}>
                         ?login={adminSecretKey || "secret"}
                       </span>
                     </div>
-                    <div className="relative flex rounded-xl bg-neutral-950 border border-white/15 focus-within:border-[#16b09f] focus-within:ring-1 focus-within:ring-[#16b09f] transition-all overflow-hidden">
-                      <span className="inline-flex items-center px-3.5 bg-white/5 border-r border-white/10 text-neutral-400 font-mono text-xs select-none">
+                    <div className={`relative flex rounded-xl border focus-within:border-[#16b09f] focus-within:ring-1 focus-within:ring-[#16b09f] transition-all overflow-hidden ${
+                      isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-950 border-white/15"
+                    }`}>
+                      <span className={`inline-flex items-center px-3.5 border-r font-mono text-xs select-none ${
+                        isLight ? "bg-slate-100 border-slate-200 text-slate-600" : "bg-white/5 border-white/10 text-neutral-400"
+                      }`}>
                         https://rizxstudio.com/?login=
                       </span>
                       <input
@@ -5359,11 +5416,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           setAdminSecretKey(clean);
                         }}
                         placeholder="secret"
-                        className="flex-1 px-3.5 py-3 bg-transparent text-[#16b09f] font-bold text-sm font-mono focus:outline-none placeholder:text-neutral-600"
+                        className={`flex-1 px-3.5 py-3 bg-transparent font-bold text-sm font-mono focus:outline-none ${
+                          isLight ? "text-teal-700 placeholder:text-slate-400" : "text-[#16b09f] placeholder:text-neutral-600"
+                        }`}
                       />
                     </div>
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-neutral-400 mt-1.5">
-                      <span>{tx("Hanya Anda yang tahu kata kunci ini untuk membuka popup login di domain publik.", "Only you know this key to trigger admin login on the public website.")}</span>
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono mt-1.5">
+                      <span className={isLight ? "text-slate-500" : "text-neutral-400"}>
+                        {tx("Hanya Anda yang tahu kata kunci ini untuk membuka popup login di domain publik.", "Only you know this key to trigger admin login on the public website.")}
+                      </span>
                       <button
                         type="button"
                         onClick={() => {
@@ -5371,7 +5432,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           navigator.clipboard.writeText(fullUrl);
                           showToast(tx("Link URL login rahasia berhasil disalin!", "Secret login URL copied to clipboard!"));
                         }}
-                        className="text-cyan-400 hover:text-cyan-300 underline cursor-pointer font-semibold"
+                        className={`underline cursor-pointer font-semibold ${isLight ? "text-teal-700 hover:text-teal-800" : "text-cyan-400 hover:text-cyan-300"}`}
                       >
                         {tx("Salin Link 📋", "Copy URL 📋")}
                       </button>
@@ -5379,8 +5440,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
 
                   {/* Password Baru */}
-                  <div className="pt-2 border-t border-white/10">
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
+                  <div className={`pt-2 border-t ${isLight ? "border-slate-100" : "border-white/10"}`}>
+                    <label className={`block text-xs font-mono font-medium mb-1.5 tracking-wide ${isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}`}>
                       {tx("GANTI PASSWORD BARU (KOSONGKAN JIKA TIDAK INGIN MENGUBAH)", "CHANGE PASSWORD (LEAVE BLANK TO KEEP UNCHANGED)")}
                     </label>
                     <div className="relative">
@@ -5389,12 +5450,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={adminPass}
                         onChange={(e) => setAdminPass(e.target.value)}
                         placeholder={tx("Ketik password baru (minimal 6 karakter)", "Enter new password (min. 6 characters)")}
-                        className="w-full px-4 py-3 pr-12 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                        className={`w-full px-4 py-3 pr-12 rounded-xl border text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all ${
+                          isLight ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white" : "bg-neutral-950 border-white/15 text-white"
+                        }`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowAdminPass(!showAdminPass)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors cursor-pointer p-1"
+                        className={`absolute right-3.5 top-1/2 -translate-y-1/2 transition-colors cursor-pointer p-1 ${
+                          isLight ? "text-slate-400 hover:text-slate-700" : "text-neutral-500 hover:text-white"
+                        }`}
                         aria-label="Toggle password visibility"
                       >
                         {showAdminPass ? <HiXMark className="w-4 h-4" /> : <HiLockClosed className="w-4 h-4" />}
@@ -5405,7 +5470,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {/* Konfirmasi Password Baru */}
                   {adminPass && (
                     <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
+                      <label className={`block text-xs font-mono font-medium mb-1.5 tracking-wide ${isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}`}>
                         {tx("KONFIRMASI PASSWORD BARU", "CONFIRM NEW PASSWORD")} <span className="text-[#16b09f]">*</span>
                       </label>
                       <input
@@ -5413,25 +5478,33 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={adminConfirmPass}
                         onChange={(e) => setAdminConfirmPass(e.target.value)}
                         placeholder={tx("Ulangi password baru yang sama", "Repeat the same new password")}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                        className={`w-full px-4 py-3 rounded-xl border text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all ${
+                          isLight ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white" : "bg-neutral-950 border-white/15 text-white"
+                        }`}
                       />
                     </div>
                   )}
                 </form>
               </div>
 
-              {/* Kolom Kanan: Panduan & Info Keamanan */}
+              {/* Kolom Kanan: Panduan & Info Keamanan (Image 4) */}
               <div className="lg:col-span-5 space-y-4">
-                <div className="p-5 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-3.5">
-                  <div className="flex items-center gap-2 text-cyan-400 font-mono text-xs font-semibold uppercase tracking-wider">
+                <div className={`p-5 rounded-2xl border backdrop-blur-sm space-y-3.5 ${
+                  isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/60 border-white/10"
+                }`}>
+                  <div className={`flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider ${
+                    isLight ? "text-teal-700" : "text-cyan-400"
+                  }`}>
                     <HiInformationCircle className="w-4 h-4" />
                     <span>Informasi Akses Admin</span>
                   </div>
 
-                  <div className="space-y-2.5 text-xs text-neutral-300 font-mono leading-relaxed">
-                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1.5">
+                  <div className="space-y-2.5 text-xs font-mono leading-relaxed">
+                    <div className={`p-3 rounded-xl border space-y-1.5 ${
+                      isLight ? "bg-slate-50 border-slate-200/90 shadow-2xs" : "bg-black/40 border-white/5"
+                    }`}>
                       <div className="flex items-center justify-between">
-                        <span className="text-neutral-500 text-[10px] uppercase font-mono">{tx("URL Akses Rahasia Saat Ini", "Active Secret Access URL")}</span>
+                        <span className={`text-[10px] uppercase font-mono font-semibold ${isLight ? "text-slate-500" : "text-neutral-500"}`}>{tx("URL Akses Rahasia Saat Ini", "Active Secret Access URL")}</span>
                         <button
                           type="button"
                           onClick={() => {
@@ -5439,34 +5512,40 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             navigator.clipboard.writeText(fullUrl);
                             showToast(tx("Link URL rahasia disalin!", "Secret URL copied!"));
                           }}
-                          className="text-[10px] text-cyan-400 hover:text-cyan-300 underline font-mono cursor-pointer"
+                          className={`text-[10px] underline font-mono cursor-pointer font-bold ${isLight ? "text-teal-700 hover:text-teal-800" : "text-cyan-400 hover:text-cyan-300"}`}
                         >
                           {tx("Salin 📋", "Copy 📋")}
                         </button>
                       </div>
-                      <span className="text-[#16b09f] font-bold block break-all font-mono text-xs sm:text-sm">
+                      <span className={`font-bold block break-all font-mono text-xs sm:text-sm ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
                         https://rizxstudio.com/?login={adminSecretKey || "secret"}
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                      <span className="text-neutral-500 text-[10px] uppercase block">Email Verifikasi Pemulihan</span>
-                      <span className="text-white font-bold block break-all">
+                    <div className={`p-3 rounded-xl border space-y-1 ${
+                      isLight ? "bg-slate-50 border-slate-200/90 shadow-2xs" : "bg-black/40 border-white/5"
+                    }`}>
+                      <span className={`text-[10px] uppercase block font-semibold ${isLight ? "text-slate-500" : "text-neutral-500"}`}>Email Verifikasi Pemulihan</span>
+                      <span className={`font-bold block break-all ${isLight ? "text-slate-900" : "text-white"}`}>
                         rizxstudioproject@gmail.com
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                      <span className="text-neutral-500 text-[10px] uppercase block">Shortcut Keyboard Cepat</span>
-                      <span className="text-white block">
-                        Tekan <kbd className="px-1.5 py-0.5 rounded bg-white/10 text-cyan-400 font-bold">Ctrl + Shift + A</kbd> dari halaman utama web.
+                    <div className={`p-3 rounded-xl border space-y-1 ${
+                      isLight ? "bg-slate-50 border-slate-200/90 shadow-2xs" : "bg-black/40 border-white/5"
+                    }`}>
+                      <span className={`text-[10px] uppercase block font-semibold ${isLight ? "text-slate-500" : "text-neutral-500"}`}>Shortcut Keyboard Cepat</span>
+                      <span className={`block ${isLight ? "text-slate-700 font-medium" : "text-white"}`}>
+                        Tekan <kbd className={`px-1.5 py-0.5 rounded font-bold border ${isLight ? "bg-slate-200 border-slate-300 text-teal-800" : "bg-white/10 text-cyan-400"}`}>Ctrl + Shift + A</kbd> dari halaman utama web.
                       </span>
                     </div>
 
-                    <div className="p-3 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                      <span className="text-neutral-500 text-[10px] uppercase block">Sinkronisasi Cloud</span>
-                      <span className="text-emerald-400 block font-semibold flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <div className={`p-3 rounded-xl border space-y-1 ${
+                      isLight ? "bg-slate-50 border-slate-200/90 shadow-2xs" : "bg-black/40 border-white/5"
+                    }`}>
+                      <span className={`text-[10px] uppercase block font-semibold ${isLight ? "text-slate-500" : "text-neutral-500"}`}>Sinkronisasi Cloud</span>
+                      <span className={`block font-semibold flex items-center gap-1.5 ${isLight ? "text-emerald-700" : "text-emerald-400"}`}>
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                         Supabase Database Aktif
                       </span>
                     </div>
