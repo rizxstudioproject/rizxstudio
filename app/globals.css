@@ -1164,10 +1164,18 @@ html.light .projects-close-btn:focus {
   color: #ffffff !important;
 }
 
-/* Tool badge text in Light & Dark Mode - guarantee high-contrast text on dark app tiles */
-.tool-badge-label,
+/* Tool badge text in Light & Dark Mode */
+.tool-badge-label {
+  color: #f8fafc;
+}
+
 html[data-theme='light'] .tool-badge-label,
 html.light .tool-badge-label {
+  color: #0f172a !important;
+}
+
+html[data-theme='dark'] .tool-badge-label,
+html.dark .tool-badge-label {
   color: #f8fafc !important;
 }
 

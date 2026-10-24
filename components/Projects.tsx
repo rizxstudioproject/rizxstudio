@@ -79,17 +79,22 @@ function getToolPalette(name: string) {
  */
 function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
   const normalized = tool.toLowerCase().trim();
+  const textColor = isLight ? "#0f172a" : "#f8fafc";
 
   if (normalized === "photoshop" || normalized === "ps") {
     return (
       <div
         title="Adobe Photoshop"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#001E36] border border-[#31A8FF]/40 text-[#31A8FF] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-[#31A8FF]/15 border-[#31A8FF]/40 text-[#0066b2]"
+            : "bg-[#001E36] border-[#31A8FF]/40 text-[#31A8FF]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#31A8FF] text-[#001E36] font-black text-[10px] flex items-center justify-center font-mono">
+        <span className="w-4 h-4 rounded bg-[#31A8FF] text-[#001E36] font-black text-[10px] flex items-center justify-center font-mono shrink-0">
           Ps
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Photoshop
         </span>
       </div>
@@ -100,12 +105,16 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Adobe Illustrator"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#330000] border border-[#FF9A00]/40 text-[#FF9A00] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-[#FF9A00]/15 border-[#FF9A00]/40 text-[#b36b00]"
+            : "bg-[#330000] border-[#FF9A00]/40 text-[#FF9A00]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#FF9A00] text-[#330000] font-black text-[10px] flex items-center justify-center font-mono">
+        <span className="w-4 h-4 rounded bg-[#FF9A00] text-[#330000] font-black text-[10px] flex items-center justify-center font-mono shrink-0">
           Ai
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Illustrator
         </span>
       </div>
@@ -121,12 +130,20 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Adobe After Effects"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00005B] border border-[#9999FF]/40 text-[#9999FF] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-indigo-50 border-indigo-300 text-indigo-700"
+            : "bg-[#00005B] border-[#9999FF]/40 text-[#9999FF]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#9999FF] text-[#00005B] font-black text-[10px] flex items-center justify-center font-mono">
+        <span
+          className={`w-4 h-4 rounded font-black text-[10px] flex items-center justify-center font-mono shrink-0 ${
+            isLight ? "bg-indigo-600 text-white" : "bg-[#9999FF] text-[#00005B]"
+          }`}
+        >
           Ae
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           After Effects
         </span>
       </div>
@@ -142,12 +159,20 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Adobe InDesign"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2D0014] border border-[#FF3366]/40 text-[#FF3366] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-pink-50 border-pink-300 text-pink-700"
+            : "bg-[#2D0014] border-[#FF3366]/40 text-[#FF3366]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#FF3366] text-[#2D0014] font-black text-[10px] flex items-center justify-center font-mono">
+        <span
+          className={`w-4 h-4 rounded font-black text-[10px] flex items-center justify-center font-mono shrink-0 ${
+            isLight ? "bg-[#FF3366] text-white" : "bg-[#FF3366] text-[#2D0014]"
+          }`}
+        >
           Id
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           InDesign
         </span>
       </div>
@@ -163,12 +188,20 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Adobe Premiere Pro"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1D0033] border border-[#EA77FF]/40 text-[#EA77FF] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-purple-50 border-purple-300 text-purple-700"
+            : "bg-[#1D0033] border-[#EA77FF]/40 text-[#EA77FF]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#EA77FF] text-[#1D0033] font-black text-[10px] flex items-center justify-center font-mono">
+        <span
+          className={`w-4 h-4 rounded font-black text-[10px] flex items-center justify-center font-mono shrink-0 ${
+            isLight ? "bg-[#EA77FF] text-black" : "bg-[#EA77FF] text-[#1D0033]"
+          }`}
+        >
           Pr
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Premiere Pro
         </span>
       </div>
@@ -179,10 +212,14 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Blender 3D"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#EA7600]/15 border border-[#EA7600]/40 text-[#EA7600] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-[#EA7600]/10 border-[#EA7600]/30 text-[#c25e00]"
+            : "bg-[#2B1400] border-[#EA7600]/40 text-[#EA7600]"
+        }`}
       >
-        <SiBlender className="w-3.5 h-3.5 text-[#EA7600]" />
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <SiBlender className="w-3.5 h-3.5 text-[#EA7600] shrink-0" />
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Blender 3D
         </span>
       </div>
@@ -193,10 +230,14 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Figma"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/15 text-[#F24E1E] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-[#F24E1E]/10 border-[#F24E1E]/30 text-[#F24E1E]"
+            : "bg-[#1E1E24] border-[#F24E1E]/40 text-[#F24E1E]"
+        }`}
       >
-        <SiFigma className="w-3 h-3 text-[#F24E1E]" />
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <SiFigma className="w-3 h-3 text-[#F24E1E] shrink-0" />
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Figma
         </span>
       </div>
@@ -207,10 +248,14 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Cinema 4D"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-400/40 text-blue-300 shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-blue-50 border-blue-300 text-blue-700"
+            : "bg-[#001A33] border-blue-400/40 text-blue-300"
+        }`}
       >
-        <SiCinema4D className="w-3.5 h-3.5 text-blue-400" />
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <SiCinema4D className={`w-3.5 h-3.5 shrink-0 ${isLight ? "text-blue-600" : "text-blue-400"}`} />
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Cinema 4D
         </span>
       </div>
@@ -221,10 +266,14 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Midjourney AI"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/40 text-cyan-300 shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-cyan-50 border-cyan-300 text-cyan-700"
+            : "bg-[#04202C] border-cyan-400/40 text-cyan-300"
+        }`}
       >
-        <HiSparkles className="w-3 h-3 text-cyan-400" />
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <HiSparkles className={`w-3 h-3 shrink-0 ${isLight ? "text-cyan-600" : "text-cyan-400"}`} />
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Midjourney
         </span>
       </div>
@@ -235,10 +284,14 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Magnific AI"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#16b09f]/10 border border-[#16b09f]/40 text-[#16b09f] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-[#16b09f]/15 border-[#16b09f]/35 text-[#0f766e]"
+            : "bg-[#042E29] border-[#16b09f]/40 text-[#16b09f]"
+        }`}
       >
-        <HiSparkles className="w-3 h-3 text-[#16b09f]" />
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <HiSparkles className={`w-3 h-3 shrink-0 ${isLight ? "text-[#0f766e]" : "text-[#16b09f]"}`} />
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Magnific AI
         </span>
       </div>
@@ -249,12 +302,16 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="ChatGPT / GPT-4"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#10A37F]/15 border border-[#10A37F]/40 text-[#10A37F] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-[#10A37F]/15 border-[#10A37F]/35 text-[#065f46]"
+            : "bg-[#062F24] border-[#10A37F]/40 text-[#10A37F]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#10A37F] text-white font-black text-[8px] flex items-center justify-center font-mono">
+        <span className="w-4 h-4 rounded bg-[#10A37F] text-white font-black text-[8px] flex items-center justify-center font-mono shrink-0">
           GPT
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           ChatGPT
         </span>
       </div>
@@ -265,10 +322,14 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Google Gemini"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-400/40 text-indigo-300 shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-indigo-50 border-indigo-300 text-indigo-700"
+            : "bg-[#141432] border-indigo-400/40 text-indigo-300"
+        }`}
       >
-        <SiGooglegemini className="w-3.5 h-3.5 text-[#799FFF]" />
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <SiGooglegemini className={`w-3.5 h-3.5 shrink-0 ${isLight ? "text-indigo-600" : "text-[#799FFF]"}`} />
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Gemini
         </span>
       </div>
@@ -279,12 +340,16 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Higgsfield AI"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2A0E08] border border-[#FF6B4A]/40 text-[#FF6B4A] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-orange-50 border-orange-300 text-orange-800"
+            : "bg-[#2A0E08] border-[#FF6B4A]/40 text-[#FF6B4A]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-gradient-to-br from-[#FF6B4A] to-[#FF3D00] text-black font-black text-[10px] flex items-center justify-center font-mono shadow-sm">
+        <span className="w-4 h-4 rounded bg-gradient-to-br from-[#FF6B4A] to-[#FF3D00] text-black font-black text-[10px] flex items-center justify-center font-mono shadow-sm shrink-0">
           H
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Higgsfield
         </span>
       </div>
@@ -295,10 +360,14 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Adobe Firefly"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#330011] border border-[#FF4081]/40 text-[#FF4081] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-pink-50 border-pink-300 text-pink-700"
+            : "bg-[#330011] border-[#FF4081]/40 text-[#FF4081]"
+        }`}
       >
-        <HiSparkles className="w-3.5 h-3.5 text-[#FF4081]" />
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <HiSparkles className={`w-3.5 h-3.5 shrink-0 ${isLight ? "text-pink-600" : "text-[#FF4081]"}`} />
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Firefly
         </span>
       </div>
@@ -309,12 +378,20 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Anthropic Claude"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#2D1609] border border-[#D97706]/40 text-[#D97706] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-amber-50 border-amber-300 text-amber-800"
+            : "bg-[#2D1609] border-[#D97706]/40 text-[#D97706]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#D97706] text-black font-black text-[10px] flex items-center justify-center font-mono">
+        <span
+          className={`w-4 h-4 rounded font-black text-[10px] flex items-center justify-center font-mono shrink-0 ${
+            isLight ? "bg-[#D97706] text-white" : "bg-[#D97706] text-black"
+          }`}
+        >
           C
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Claude
         </span>
       </div>
@@ -325,12 +402,16 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Runway AI"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#1A1033] border border-[#8B5CF6]/40 text-[#8B5CF6] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-purple-50 border-purple-300 text-purple-800"
+            : "bg-[#1A1033] border-[#8B5CF6]/40 text-[#8B5CF6]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#8B5CF6] text-white font-black text-[10px] flex items-center justify-center font-mono">
+        <span className="w-4 h-4 rounded bg-[#8B5CF6] text-white font-black text-[10px] flex items-center justify-center font-mono shrink-0">
           R
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Runway
         </span>
       </div>
@@ -341,12 +422,16 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     return (
       <div
         title="Affinity"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#00223A] border border-[#00D2FF]/40 text-[#00D2FF] shadow-sm select-none"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-sky-50 border-sky-300 text-sky-800"
+            : "bg-[#00223A] border-[#00D2FF]/40 text-[#00D2FF]"
+        }`}
       >
-        <span className="w-4 h-4 rounded bg-[#00D2FF] text-[#00223A] font-black text-[10px] flex items-center justify-center font-mono shadow-sm">
+        <span className="w-4 h-4 rounded bg-[#00D2FF] text-[#00223A] font-black text-[10px] flex items-center justify-center font-mono shadow-sm shrink-0">
           Af
         </span>
-        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
           Affinity
         </span>
       </div>
@@ -360,14 +445,20 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
   return (
     <div
       title={tool}
-      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg ${palette.bg} border ${palette.border} ${palette.text} shadow-sm select-none`}
+      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+        isLight
+          ? "bg-slate-100 border-slate-300 text-slate-800"
+          : `${palette.bg} ${palette.border} ${palette.text}`
+      }`}
     >
       <span
-        className={`w-4 h-4 rounded ${palette.badgeBg} ${palette.badgeText} font-black text-[9px] flex items-center justify-center font-mono shadow-sm shrink-0`}
+        className={`w-4 h-4 rounded font-black text-[9px] flex items-center justify-center font-mono shadow-sm shrink-0 ${
+          isLight ? "bg-slate-700 text-white" : `${palette.badgeBg} ${palette.badgeText}`
+        }`}
       >
         {monogram}
       </span>
-      <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
+      <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
         {tool}
       </span>
     </div>
