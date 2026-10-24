@@ -30,11 +30,11 @@ export default function ClientLogos() {
   return (
     <section
       id="clients"
-      className="relative py-16 bg-[#0a0a0a] overflow-hidden border-y border-white/5"
+      className="relative py-16 bg-[var(--background,#0a0a0a)] overflow-hidden border-y border-white/5 transition-colors duration-300"
     >
       {/* Left / Right fade masks */}
-      <div className="absolute inset-y-0 left-0 w-24 sm:w-36 z-10 pointer-events-none bg-gradient-to-r from-[#0a0a0a] to-transparent" />
-      <div className="absolute inset-y-0 right-0 w-24 sm:w-36 z-10 pointer-events-none bg-gradient-to-l from-[#0a0a0a] to-transparent" />
+      <div className="client-fade-left absolute inset-y-0 left-0 w-24 sm:w-36 z-10 pointer-events-none bg-gradient-to-r from-[var(--background,#0a0a0a)] to-transparent" />
+      <div className="client-fade-right absolute inset-y-0 right-0 w-24 sm:w-36 z-10 pointer-events-none bg-gradient-to-l from-[var(--background,#0a0a0a)] to-transparent" />
 
       {/* Label */}
       <div className="mb-10 text-center px-4">

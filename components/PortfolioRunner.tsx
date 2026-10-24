@@ -198,8 +198,8 @@ function MarqueeRow({
   return (
     <div ref={rowRef} className="relative w-full overflow-hidden py-4 -my-4 group/row">
       {/* Seamless edge fade overlays */}
-      <div className="absolute left-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-r from-black to-transparent z-20 pointer-events-none" />
-      <div className="absolute right-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-black to-transparent z-20 pointer-events-none" />
+      <div className="runner-fade-left absolute left-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-r from-[var(--background,#0a0a0a)] to-transparent z-20 pointer-events-none" />
+      <div className="runner-fade-right absolute right-0 top-0 bottom-0 w-12 sm:w-24 bg-gradient-to-l from-[var(--background,#0a0a0a)] to-transparent z-20 pointer-events-none" />
 
       <div className="flex w-max overflow-visible pt-6 pb-2">
         {/* Track 1 */}
@@ -270,7 +270,7 @@ export default function PortfolioRunner() {
   if (items.length === 0) return null;
 
   return (
-    <section className="w-full overflow-hidden py-6 sm:py-8 bg-black border-t border-white/[0.05]">
+    <section className="portfolio-runner-section w-full overflow-hidden py-6 sm:py-8 bg-[var(--background,#0a0a0a)] border-t border-white/[0.05] transition-colors duration-300">
       {/* Unique keyframes isolated for portfolio runner */}
       <style>{`
         @keyframes prunner-marquee-left {

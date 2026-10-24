@@ -128,6 +128,80 @@ html.light .invert.brightness-0 {
   filter: none !important;
 }
 
+/* Client Logos Section in Light Mode */
+html[data-theme='light'] #clients,
+html.light #clients {
+  background-color: #f8fafc !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] .client-fade-left,
+html.light .client-fade-left {
+  background: linear-gradient(to right, #f8fafc, transparent) !important;
+}
+
+html[data-theme='light'] .client-fade-right,
+html.light .client-fade-right {
+  background: linear-gradient(to left, #f8fafc, transparent) !important;
+}
+
+/* Projects Showcase Section in Light Mode */
+html[data-theme='light'] #projects,
+html.light #projects {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] #projects .bg-neutral-900\/95,
+html.light #projects .bg-neutral-900\/95 {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.07) !important;
+}
+
+html[data-theme='light'] #projects .bg-neutral-950,
+html.light #projects .bg-neutral-950 {
+  background-color: #f8fafc !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] #projects .border-white\/10,
+html[data-theme='light'] #projects .border-white\/5,
+html.light #projects .border-white\/10,
+html.light #projects .border-white\/5 {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] #projects button.bg-white,
+html.light #projects button.bg-white {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+html[data-theme='light'] #projects .bg-white\/\[0\.04\],
+html.light #projects .bg-white\/\[0\.04\] {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: #334155 !important;
+}
+
+/* Portfolio Runner Marquee Section in Light Mode */
+html[data-theme='light'] .portfolio-runner-section,
+html.light .portfolio-runner-section {
+  background-color: #f8fafc !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] .runner-fade-left,
+html.light .runner-fade-left {
+  background: linear-gradient(to right, #f8fafc, transparent) !important;
+}
+
+html[data-theme='light'] .runner-fade-right,
+html.light .runner-fade-right {
+  background: linear-gradient(to left, #f8fafc, transparent) !important;
+}
+
 /* Contact Footer in Light Mode */
 html[data-theme='light'] #contact a.border-white\/10,
 html.light #contact a.border-white\/10 {

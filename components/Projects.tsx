@@ -957,7 +957,7 @@ export default function Projects() {
     <section
       id="projects"
       ref={containerRef}
-      className="relative w-full h-[320vh] sm:h-[380vh] md:h-[440vh] bg-[#0a0a0a] text-white"
+      className="relative w-full h-[320vh] sm:h-[380vh] md:h-[440vh] bg-[var(--background,#0a0a0a)] text-[var(--foreground,#d4d4d4)] transition-colors duration-300"
     >
       {/* Sticky Fullscreen Viewport Canvas */}
       <div className="sticky top-0 h-screen h-[100dvh] w-full flex items-center justify-center overflow-hidden select-none px-3 sm:px-6 md:px-8" style={{ willChange: "transform" }}>
