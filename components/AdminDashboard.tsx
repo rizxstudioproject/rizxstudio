@@ -31,6 +31,10 @@ import {
   RiDatabase2Fill as HiCircleStack,
   RiStackFill as HiSquare3Stack3D,
   RiPieChartFill as HiChartPie,
+  RiCursorFill,
+  RiPaletteFill,
+  RiChat3Fill,
+  RiLineChartFill,
 } from "react-icons/ri";
 import { useLang, toMinang } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
@@ -6400,27 +6404,37 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="admin-mobile-drawer w-full bg-[#0d0e14] border-t border-white/15 rounded-t-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4"
+              className={`admin-mobile-drawer w-full border-t rounded-t-3xl p-5 sm:p-6 shadow-2xl max-h-[88vh] overflow-y-auto space-y-4 ${
+                isLight
+                  ? "bg-white border-slate-200 text-slate-800"
+                  : "bg-[#0d0e14] border-white/15 text-white"
+              }`}
             >
               {/* Drawer Header */}
-              <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className={`flex items-center justify-between pb-3 border-b ${
+                isLight ? "border-slate-100" : "border-white/10"
+              }`}>
                 <div className="flex items-center gap-2.5">
-                  <div className="admin-drawer-logo w-8 h-8 rounded-lg bg-neutral-900 border border-white/10 flex items-center justify-center p-1.5 shadow-md shadow-black/40 shrink-0">
+                  <div className={`admin-drawer-logo w-8 h-8 rounded-lg border flex items-center justify-center p-1.5 shrink-0 ${
+                    isLight ? "bg-slate-100 border-slate-200 shadow-sm" : "bg-neutral-900 border-white/10 shadow-md shadow-black/40"
+                  }`}>
                     <img
                       src="/navbar-logo.png"
                       alt="Rizx Studio"
-                      className="w-full h-full object-contain brightness-0 invert"
+                      className={`w-full h-full object-contain ${isLight ? "" : "brightness-0 invert"}`}
                     />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-white">Rizx Studio Admin</h3>
-                    <p className="text-[10px] font-mono text-neutral-400">Creative Production Workspace</p>
+                    <h3 className={`text-sm font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Rizx Studio Admin</h3>
+                    <p className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>Creative Production Workspace</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="admin-drawer-close w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className={`admin-drawer-close w-8 h-8 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                    isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700" : "bg-white/10 hover:bg-white/20 text-white"
+                  }`}
                 >
                   <HiXMark className="w-5 h-5" />
                 </button>
@@ -6447,17 +6461,27 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       await handleTopBarReset();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="admin-drawer-reset py-2.5 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                    className={`admin-drawer-reset py-2.5 px-3.5 rounded-xl border font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                        : "bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border-white/10"
+                    }`}
                     title={tx("Kembalikan pengaturan ke default", "Reset to default settings", "Baliakkan ka setelan awal")}
                   >
-                    <HiArrowPath className="w-3.5 h-3.5 text-neutral-400" />
+                    <HiArrowPath className={`w-3.5 h-3.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`} />
                     <span>{tx("Reset", "Reset", "Reset")}</span>
                   </button>
                 </div>
 
-                <div className="admin-drawer-lang-box flex items-center justify-between bg-neutral-900/90 px-3 py-2 rounded-xl border border-white/10">
-                  <span className="text-[11px] font-mono text-neutral-400">{tx("Bahasa UI", "Interface Language", "Bahaso UI")}:</span>
-                  <div className="admin-drawer-lang-pill flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5">
+                <div className={`admin-drawer-lang-box flex items-center justify-between px-3 py-2 rounded-xl border ${
+                  isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                }`}>
+                  <span className={`text-[11px] font-mono ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                    {tx("Bahasa UI", "Interface Language", "Bahaso UI")}:
+                  </span>
+                  <div className={`admin-drawer-lang-pill flex items-center gap-1 p-0.5 rounded-lg border ${
+                    isLight ? "bg-white border-slate-200" : "bg-black/40 border-white/5"
+                  }`}>
                     {(["id", "en", "min"] as const).map((l) => (
                       <button
                         key={l}
@@ -6466,6 +6490,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className={`px-2.5 py-1 rounded-md text-[10px] font-bold font-mono transition-all cursor-pointer ${
                           lang === l
                             ? "bg-[#16b09f] text-black shadow-sm shadow-[#16b09f]/30"
+                            : isLight
+                            ? "text-slate-600 hover:text-slate-900"
                             : "text-neutral-400 hover:text-white"
                         }`}
                       >
@@ -6476,60 +6502,93 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
               </div>
 
-              {/* Navigation Items List */}
+              {/* Navigation Items List — All 13 REAL Portfolio Admin Sections */}
               <div className="space-y-1.5 pt-1">
+                <span className={`text-[10px] font-mono uppercase tracking-wider px-2 block mb-1 ${
+                  isLight ? "text-slate-500 font-semibold" : "text-neutral-500"
+                }`}>
+                  {tx("KONTROL PORTOFOLIO", "PORTFOLIO CONTROLS", "PANGATURAN PORTOFOLIO")}
+                </span>
+
                 {[
                   {
                     id: "clients" as AdminSidebarTab,
-                    label: tx("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien"),
+                    label: tx("Portfolio & Clients", "Portofolio & Klien", "Portofolio & Klien"),
                     sub: tx("Folder klien & logo partner marquee", "Client folders & partner logos", "Folder klien & logo partner marquee"),
                     icon: HiFolder,
+                    badge: clients.length > 0 ? clients.length : undefined,
                   },
                   {
                     id: "hero-banner" as AdminSidebarTab,
-                    label: "Hero Banner",
+                    label: tx("Hero Banner (Scrolly)", "Banner Utama (Scrolly)", "Banner Utamo (Scrolly)"),
                     sub: tx("Hero Banner & animasi scrolly", "Hero banner & scrolly motion", "Hero Banner & animasi scrolly"),
                     icon: HiSparkles,
                   },
                   {
                     id: "hero-works" as AdminSidebarTab,
-                    label: tx("Hero & Karya Unggulan", "Hero & Selected Works", "Hero & Karya Tapiliah"),
+                    label: tx("Hero & Selected Works", "Hero & Karya Unggulan", "Hero & Karya Tapiliah"),
                     sub: tx("3 karya sorotan utama", "3 top highlighted works", "3 karya sorotan utamo"),
                     icon: HiPhoto,
                   },
                   {
                     id: "flagship" as AdminSidebarTab,
-                    label: "Media Showcase",
+                    label: tx("Media Showcase (Stage 3)", "Pameran Media (Stage 3)", "Pameran Media (Stage 3)"),
                     sub: tx("Stage 3 video & reels", "Stage 3 video & reels showcase"),
                     icon: HiVideoCamera,
                   },
                   {
                     id: "runner" as AdminSidebarTab,
-                    label: tx("Running Portofolio (4:5)", "Running Portfolio (4:5)", "Running Portofolio (4:5)"),
+                    label: tx("Running Portfolio (4:5)", "Portofolio Berjalan (4:5)", "Portofolio Baguliah (4:5)"),
                     sub: tx("Karya poster vertikal marquee", "Vertical marquee poster cards", "Karya poster tagak marquee"),
                     icon: HiSquares2X2,
                   },
                   {
                     id: "about" as AdminSidebarTab,
-                    label: tx("Tentang Saya", "About Me", "Tantang Ambo"),
+                    label: tx("About Me Section", "Tentang Saya", "Tantang Ambo"),
                     sub: tx("Profil, bio & kontak", "Profile bio & contacts", "Profil, biografi & kontak"),
                     icon: HiUser,
                   },
                   {
+                    id: "motion" as AdminSidebarTab,
+                    label: tx("Motion & Cursor", "Motion & Kursor", "Motion & Kursor"),
+                    sub: tx("Efek gerak, scroll & kursor magnetik", "Motion effects, scroll & magnetic cursor", "Efek garak, scroll & kursor magnetik"),
+                    icon: RiCursorFill,
+                  },
+                  {
+                    id: "theme" as AdminSidebarTab,
+                    label: tx("Theme & Colors", "Warna & Tema", "Warna & Tema"),
+                    sub: tx("Skema warna aksen & kustomisasi UI", "Accent colors & UI themes", "Skema warna aksen & kustomisasi UI"),
+                    icon: RiPaletteFill,
+                  },
+                  {
+                    id: "social" as AdminSidebarTab,
+                    label: tx("Contact & Socials", "Kontak & Sosmed", "Kontak & Sosmed"),
+                    sub: tx("WhatsApp, email & tautan sosial", "WhatsApp, email & social links", "WhatsApp, email & tautan sosial"),
+                    icon: RiChat3Fill,
+                  },
+                  {
+                    id: "crm" as AdminSidebarTab,
+                    label: tx("CRM & Analytics", "CRM & Prospek", "CRM & Prospek"),
+                    sub: tx("Data telemetri pengunjung & prospek lead", "Visitor telemetry & leads analytics", "Data pangunjuang & prospek lead"),
+                    icon: RiLineChartFill,
+                  },
+                  {
                     id: "trash" as AdminSidebarTab,
-                    label: tx("Tong Sampah", "Recycle Bin", "Tong Sarok"),
+                    label: tx("Recycle Bin", "Tong Sampah", "Tong Sarok"),
                     sub: tx("Item terhapus & pemulihan", "Deleted items & recovery", "Item tahapuih & pamuliahan"),
+                    badge: trashItems.length > 0 ? trashItems.length : undefined,
                     icon: HiTrash,
                   },
                   {
                     id: "storage" as AdminSidebarTab,
-                    label: tx("Kapasitas & Data", "Storage & Analytics", "Panyimpanan & Data"),
+                    label: tx("Storage & Analytics", "Kapasitas & Data", "Panyimpanan & Data"),
                     sub: tx("Grafik animasi & Resource Library", "Storage graphics & Resource Library", "Grafik visual & Resource Library"),
+                    badge: clients.reduce((acc, c) => acc + (c.works?.length || 0), 0) > 0 ? clients.reduce((acc, c) => acc + (c.works?.length || 0), 0) : undefined,
                     icon: HiChartPie,
                   },
                   {
                     id: "settings" as AdminSidebarTab,
-                    label: tx("Sandi & Keamanan", "Settings", "Kunci & Kaamanan"),
+                    label: tx("Password & Security", "Sandi & Keamanan Akun", "Kunci & Kaamanan Akun"),
                     sub: tx("Sandi, verifikasi & keamanan", "Password & account security", "Kunci, verifikasi & kaamanan akun"),
                     icon: HiKey,
                   },
@@ -6542,44 +6601,70 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       type="button"
                       onClick={() => {
                         setSidebarTab(item.id);
-                        if (item.id === "clients") setActiveTab("clients");
+                        setActiveTab(item.id as any);
                         setIsMobileMenuOpen(false);
                       }}
-                      className={`w-full p-3.5 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
+                      className={`w-full p-3 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
                         isSelected
                           ? "bg-[#16b09f] text-black border-[#16b09f] shadow-lg shadow-[#16b09f]/25 font-bold"
+                          : isLight
+                          ? "admin-drawer-nav-item bg-slate-50 hover:bg-slate-100 text-slate-800 border-slate-200"
                           : "admin-drawer-nav-item bg-neutral-900/60 hover:bg-neutral-900 text-neutral-300 border-white/10"
                       }`}
                     >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         <div
                           className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                            isSelected ? "admin-drawer-nav-icon bg-black/15 text-black" : "admin-drawer-nav-icon bg-white/5 text-[#16b09f]"
+                            isSelected
+                              ? "admin-drawer-nav-icon bg-black/15 text-black"
+                              : isLight
+                              ? "admin-drawer-nav-icon bg-slate-200/80 text-teal-700"
+                              : "admin-drawer-nav-icon bg-white/5 text-[#16b09f]"
                           }`}
                         >
                           <Icon className="w-5 h-5" />
                         </div>
-                        <div>
-                          <p className="text-xs font-bold leading-tight">{item.label}</p>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold leading-tight truncate">{item.label}</p>
                           <p
-                            className={`text-[10px] mt-0.5 leading-tight ${
-                              isSelected ? "text-neutral-900 font-medium" : "text-neutral-400 font-mono"
+                            className={`text-[10px] mt-0.5 leading-tight truncate ${
+                              isSelected
+                                ? "text-neutral-900 font-medium"
+                                : isLight
+                                ? "text-slate-500 font-sans"
+                                : "text-neutral-400 font-mono"
                             }`}
                           >
                             {item.sub}
                           </p>
                         </div>
                       </div>
-                      {isSelected && (
-                        <div className="w-2 h-2 rounded-full bg-black shrink-0" />
-                      )}
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {item.badge !== undefined && (
+                          <span
+                            className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
+                              isSelected
+                                ? "bg-black/20 text-black"
+                                : isLight
+                                ? "bg-slate-200 text-slate-700"
+                                : "bg-white/10 text-neutral-300"
+                            }`}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                        {isSelected && (
+                          <div className="w-2 h-2 rounded-full bg-black shrink-0" />
+                        )}
+                      </div>
                     </button>
                   );
                 })}
               </div>
 
               {/* View Public Web Shortcut & Logout in Mobile Drawer */}
-              <div className="pt-2 border-t border-white/10 space-y-2">
+              <div className={`pt-2 border-t space-y-2 ${isLight ? "border-slate-100" : "border-white/10"}`}>
                 <a
                   href="/"
                   target="_blank"
@@ -6597,7 +6682,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     setIsMobileMenuOpen(false);
                     adminLogout();
                   }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 font-medium text-xs flex items-center justify-center gap-2 active:scale-95 cursor-pointer transition-colors"
+                  className={`w-full py-2.5 px-4 rounded-xl border font-medium text-xs flex items-center justify-center gap-2 active:scale-95 cursor-pointer transition-colors ${
+                    isLight
+                      ? "bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700"
+                      : "bg-rose-500/10 hover:bg-rose-500/20 border-rose-500/20 text-rose-400"
+                  }`}
                 >
                   <HiArrowRightOnRectangle className="w-4 h-4" />
                   <span>{tx("Keluar Admin (Logout)", "Logout Admin", "Kalua Admin")}</span>
