@@ -28,6 +28,7 @@ import {
 } from "react-icons/si";
 import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 interface ClientsWorkspaceProps {
   clients: ClientItem[];
@@ -99,6 +100,8 @@ export default function ClientsWorkspace({
   onWorkspaceViewChange,
 }: ClientsWorkspaceProps) {
   const { lang, tr } = useLang();
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
 
   // Workspace subview: 'folders' (Client Folders & Works) | 'logos' (Client Logos Marquee)
   const [internalWorkspaceView, setInternalWorkspaceView] = useState<"folders" | "logos">("folders");
@@ -2009,16 +2012,34 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
       {/* Mobile Text Edit Popup Modal */}
       {mobileTextModal.isOpen && (
         <div className="fixed inset-0 z-[120] flex flex-col justify-end md:hidden bg-black/80 backdrop-blur-md">
-          <div className="w-full bg-[#12161f] border-t border-white/15 rounded-t-3xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
-            <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div
+            className={`w-full border-t rounded-t-3xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col ${
+              isLight
+                ? "bg-white border-slate-200 text-slate-800"
+                : "bg-[#12161f] border-white/15 text-white"
+            }`}
+          >
+            <div
+              className={`flex items-center justify-between pb-3 border-b shrink-0 ${
+                isLight ? "border-slate-200" : "border-white/10"
+              }`}
+            >
+              <h3
+                className={`text-sm font-bold flex items-center gap-2 ${
+                  isLight ? "text-slate-900" : "text-white"
+                }`}
+              >
                 <HiPencilSquare className="w-4 h-4 text-[#16b09f]" />
                 <span>{mobileTextModal.title}</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setMobileTextModal((prev) => ({ ...prev, isOpen: false }))}
-                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                className={`w-7 h-7 rounded-full flex items-center justify-center transition-colors cursor-pointer ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                    : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
               >
                 <HiXMark className="w-4 h-4" />
               </button>
@@ -2035,11 +2056,20 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     onChange={(e) =>
                       setMobileTextModal((prev) => ({ ...prev, value: e.target.value }))
                     }
-                    className="w-full flex-1 bg-[#1a202c] border border-white/15 rounded-2xl p-4 text-sm text-white placeholder-neutral-500 outline-none focus:border-[#16b09f] transition-colors leading-relaxed resize-none"
+                    style={{ color: isLight ? "#0f172a" : "#ffffff" }}
+                    className={`w-full flex-1 border rounded-2xl p-4 text-sm outline-none focus:border-[#16b09f] transition-colors leading-relaxed resize-none ${
+                      isLight
+                        ? "bg-slate-50 border-slate-300 placeholder:text-slate-400"
+                        : "bg-[#1a202c] border-white/15 placeholder:text-neutral-500"
+                    }`}
                     placeholder="Ketik teks di sini..."
                   />
                   {mobileTextModal.maxLength && (
-                    <div className="text-right text-[11px] font-mono text-neutral-400">
+                    <div
+                      className={`text-right text-[11px] font-mono ${
+                        isLight ? "text-slate-500" : "text-neutral-400"
+                      }`}
+                    >
                       {mobileTextModal.value.length} / {mobileTextModal.maxLength}
                     </div>
                   )}
@@ -2053,7 +2083,12 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onChange={(e) =>
                     setMobileTextModal((prev) => ({ ...prev, value: e.target.value }))
                   }
-                  className="w-full bg-[#1a202c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 outline-none focus:border-[#16b09f] transition-colors"
+                  style={{ color: isLight ? "#0f172a" : "#ffffff" }}
+                  className={`w-full border rounded-xl px-4 py-3 text-sm outline-none focus:border-[#16b09f] transition-colors ${
+                    isLight
+                      ? "bg-slate-50 border-slate-300 placeholder:text-slate-400"
+                      : "bg-[#1a202c] border-white/15 placeholder:text-neutral-500"
+                  }`}
                   placeholder="Ketik teks di sini..."
                 />
               )}
@@ -2063,7 +2098,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <button
                 type="button"
                 onClick={() => setMobileTextModal((prev) => ({ ...prev, isOpen: false }))}
-                className="flex-1 py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs transition-colors cursor-pointer text-center"
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold text-xs transition-colors cursor-pointer text-center ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
+                    : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+                }`}
               >
                 {tr("Cancel", "Batal", "Batal")}
               </button>
