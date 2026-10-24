@@ -18,6 +18,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { usePortfolioData, TrashItem } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 interface RecycleBinWorkspaceProps {
   showToast: (msg: string) => void;
@@ -26,6 +27,8 @@ interface RecycleBinWorkspaceProps {
 export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspaceProps) {
   const { trashItems, restoreFromTrash, permanentDeleteFromTrash, emptyTrash } = usePortfolioData();
   const { lang, tr } = useLang();
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
 
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState<"all" | "client-work" | "client-folder" | "flagship-video" | "other">("all");
@@ -195,29 +198,35 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13] select-none">
+    <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 select-none ${isLight ? "bg-[#f8fafc]" : "bg-[#0d0f13]"}`}>
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Top Header Banner */}
-        <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-[#181216]/60 to-neutral-950 border border-rose-500/20 backdrop-blur-md relative overflow-hidden shadow-2xl">
+        <div className={`p-5 sm:p-6 rounded-2xl border backdrop-blur-md relative overflow-hidden shadow-xl ${
+          isLight
+            ? "bg-gradient-to-r from-rose-50/90 via-white to-slate-50 border-rose-200/80 shadow-rose-500/5"
+            : "bg-gradient-to-r from-neutral-900/90 via-[#181216]/60 to-neutral-950 border-rose-500/20 shadow-2xl"
+        }`}>
           <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-rose-500/5 blur-3xl pointer-events-none" />
           
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400">
+                <span className={`p-2 rounded-xl border ${isLight ? "bg-rose-100 border-rose-300 text-rose-600" : "bg-rose-500/10 border-rose-500/30 text-rose-400"}`}>
                   <HiTrash className="w-5 h-5" />
                 </span>
-                <span className="text-[11px] font-mono tracking-widest text-rose-400 uppercase font-semibold">
+                <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold ${isLight ? "text-rose-600" : "text-rose-400"}`}>
                   {tr("SYSTEM RESTORE & RECYCLE BIN", "SISTEM PEMULIHAN & TONG SAMPAH", "SISTEM PAMULIAHAN & TONG SAROK")}
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight flex items-center gap-3">
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight flex items-center gap-3 ${isLight ? "text-slate-900" : "text-white"}`}>
                 <span>{tr("Recycle Bin & Safe Recovery", "Tong Sampah & Pemulihan Aman", "Tong Sarok & Pamuliahan Aman")}</span>
-                <span className="text-xs font-mono px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-semibold">
+                <span className={`text-xs font-mono px-2.5 py-0.5 rounded-full font-semibold border ${
+                  isLight ? "bg-rose-100 text-rose-700 border-rose-300" : "bg-rose-500/20 text-rose-300 border-rose-500/30"
+                }`}>
                   {trashItems.length} {tr("items", "item", "item")}
                 </span>
               </h2>
-              <p className="text-xs sm:text-sm text-neutral-400 max-w-2xl leading-relaxed">
+              <p className={`text-xs sm:text-sm max-w-2xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 {tr(
                   "Items deleted by mistake are safely held here. You can restore them back to their exact original folder or delete them permanently.",
                   "Item yang tidak sengaja terhapus tersimpan dengan aman di sini. Anda dapat memulihkannya kembali ke foldernya masing-masing dalam 1-klik, atau menghapusnya permanen.",
@@ -252,17 +261,19 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
         </div>
 
         {/* Search & Filter Bar */}
-        <div className="p-3.5 rounded-2xl bg-[#111419] border border-white/5 space-y-3">
+        <div className={`p-3.5 rounded-2xl border space-y-3 ${isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-[#111419] border border-white/5"}`}>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             {/* Filter Tabs */}
-            <div className="flex items-center gap-1 p-0.5 rounded-xl bg-neutral-900 border border-white/5 overflow-x-auto">
+            <div className={`flex items-center gap-1 p-0.5 rounded-xl border overflow-x-auto ${isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900 border border-white/5"}`}>
               <button
                 type="button"
                 onClick={() => setActiveFilter("all")}
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "all"
                     ? "bg-[#16b09f] text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
+                    : isLight
+                      ? "text-slate-600 hover:text-slate-900"
+                      : "text-neutral-400 hover:text-white"
                 }`}
               >
                 {tr(`All (${counts.all})`, `Semua (${counts.all})`, `Kasadonyo (${counts.all})`)}
@@ -273,7 +284,9 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "client-work"
                     ? "bg-[#16b09f] text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
+                    : isLight
+                      ? "text-slate-600 hover:text-slate-900"
+                      : "text-neutral-400 hover:text-white"
                 }`}
               >
                 {tr(`Works (${counts.works})`, `Karya (${counts.works})`, `Karya (${counts.works})`)}
@@ -284,7 +297,9 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "client-folder"
                     ? "bg-[#16b09f] text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
+                    : isLight
+                      ? "text-slate-600 hover:text-slate-900"
+                      : "text-neutral-400 hover:text-white"
                 }`}
               >
                 {tr(`Folders (${counts.folders})`, `Folder (${counts.folders})`, `Folder (${counts.folders})`)}
@@ -295,7 +310,9 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "flagship-video"
                     ? "bg-[#16b09f] text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
+                    : isLight
+                      ? "text-slate-600 hover:text-slate-900"
+                      : "text-neutral-400 hover:text-white"
                 }`}
               >
                 {tr(`Videos (${counts.videos})`, `Video (${counts.videos})`, `Video (${counts.videos})`)}
@@ -306,7 +323,9 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "other"
                     ? "bg-[#16b09f] text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
+                    : isLight
+                      ? "text-slate-600 hover:text-slate-900"
+                      : "text-neutral-400 hover:text-white"
                 }`}
               >
                 {tr(`Others (${counts.other})`, `Lainnya (${counts.other})`, `Lainnyo (${counts.other})`)}
@@ -321,7 +340,11 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={tr("Search deleted items...", "Cari item di tong sampah...", "Cari item di tong sarok...")}
-                className="w-full pl-9 pr-3.5 py-1.5 rounded-xl bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 text-xs focus:outline-none focus:border-[#16b09f] transition-all"
+                className={`w-full pl-9 pr-3.5 py-1.5 rounded-xl border text-xs focus:outline-none focus:border-[#16b09f] transition-all ${
+                  isLight
+                    ? "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white"
+                    : "bg-neutral-900 border-white/10 text-white placeholder:text-neutral-600"
+                }`}
               />
             </div>
           </div>
@@ -329,21 +352,25 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
 
         {/* Empty State */}
         {filteredItems.length === 0 && (
-          <div className="p-12 sm:p-16 rounded-3xl bg-[#111419]/70 border border-white/5 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-neutral-900 border border-white/10 flex items-center justify-center shadow-xl">
+          <div className={`p-12 sm:p-16 rounded-3xl border flex flex-col items-center justify-center text-center space-y-4 ${
+            isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-[#111419]/70 border border-white/5"
+          }`}>
+            <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full border flex items-center justify-center shadow-md ${
+              isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-900 border border-white/10 shadow-xl"
+            }`}>
               {trashItems.length === 0 ? (
-                <HiCheck className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-400" />
+                <HiCheck className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500" />
               ) : (
-                <HiMagnifyingGlass className="w-8 h-8 sm:w-10 sm:h-10 text-neutral-500" />
+                <HiMagnifyingGlass className={`w-8 h-8 sm:w-10 sm:h-10 ${isLight ? "text-slate-400" : "text-neutral-500"}`} />
               )}
             </div>
             <div className="max-w-md space-y-1">
-              <h3 className="text-base sm:text-lg font-bold text-white">
+              <h3 className={`text-base sm:text-lg font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
                 {trashItems.length === 0
                   ? tr("Recycle Bin is Empty", "Tong Sampah Kosong", "Tong Sarok Kosong")
                   : tr("No Matching Deleted Items", "Tidak Ada Item yang Cocok", "Indak Ado Item Nan Sasuai")}
               </h3>
-              <p className="text-xs sm:text-sm text-neutral-400">
+              <p className={`text-xs sm:text-sm ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 {trashItems.length === 0
                   ? tr(
                       "All your works, folders, and showcase media are active and safe. Items you delete in the admin dashboard will appear here.",
@@ -379,11 +406,17 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9, y: 10 }}
                     transition={{ duration: 0.2 }}
-                    className="p-4 rounded-2xl bg-[#111419] border border-white/5 hover:border-white/15 transition-all flex flex-col justify-between group shadow-xl relative overflow-hidden"
+                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between group relative overflow-hidden ${
+                      isLight
+                        ? "bg-white border-slate-200/90 hover:border-slate-300 shadow-md hover:shadow-xl"
+                        : "bg-[#111419] border border-white/5 hover:border-white/15 shadow-xl"
+                    }`}
                   >
                     <div className="space-y-3">
                       {/* Thumbnail Preview */}
-                      <div className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-neutral-900 border border-white/5 flex items-center justify-center">
+                      <div className={`relative aspect-[16/10] w-full rounded-xl overflow-hidden border flex items-center justify-center ${
+                        isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900 border border-white/5"
+                      }`}>
                         {item.previewImage ? (
                           <img
                             src={item.previewImage}
@@ -391,7 +424,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                         ) : (
-                          <div className="flex flex-col items-center justify-center text-neutral-600 gap-1.5 p-4">
+                          <div className={`flex flex-col items-center justify-center gap-1.5 p-4 ${isLight ? "text-slate-400" : "text-neutral-600"}`}>
                             <BadgeIcon className="w-8 h-8" />
                             <span className="text-[11px] font-mono">{badge.label}</span>
                           </div>
@@ -414,11 +447,13 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
 
                       {/* Content Info */}
                       <div>
-                        <h4 className="text-sm font-bold text-white tracking-tight line-clamp-1 group-hover:text-[#16b09f] transition-colors">
+                        <h4 className={`text-sm font-bold tracking-tight line-clamp-1 transition-colors ${
+                          isLight ? "text-slate-900 group-hover:text-[#16b09f]" : "text-white group-hover:text-[#16b09f]"
+                        }`}>
                           {item.title || tr("Untitled Item", "Item Tanpa Judul", "Item Tanpa Judul")}
                         </h4>
                         {item.subtitle && (
-                          <p className="text-xs text-neutral-400 line-clamp-1 mt-0.5 font-light">
+                          <p className={`text-xs line-clamp-1 mt-0.5 font-light ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                             {item.subtitle}
                           </p>
                         )}
@@ -426,7 +461,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                     </div>
 
                     {/* Action Buttons: Restore & Delete Forever */}
-                    <div className="pt-4 mt-3 border-t border-white/5 flex items-center gap-2">
+                    <div className={`pt-4 mt-3 border-t flex items-center gap-2 ${isLight ? "border-slate-100" : "border-white/5"}`}>
                       <button
                         type="button"
                         onClick={() => handleRestore(item)}
@@ -466,18 +501,22 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
             onClick={() => setConfirmEmptyOpen(false)}
           >
             <div
-              className="w-full max-w-md rounded-2xl bg-neutral-950 border border-rose-500/30 p-6 space-y-4 shadow-2xl"
+              className={`w-full max-w-md rounded-2xl border p-6 space-y-4 shadow-2xl ${
+                isLight ? "bg-white border-rose-200" : "bg-neutral-950 border border-rose-500/30"
+              }`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 shrink-0">
+                <div className={`w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 ${
+                  isLight ? "bg-rose-100 border-rose-300 text-rose-600" : "bg-rose-500/15 border-rose-500/30 text-rose-400"
+                }`}>
                   <HiExclamationTriangle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">
+                  <h3 className={`text-base font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
                     {tr("Empty Recycle Bin?", "Kosongkan Tong Sampah?", "Kosongkan Tong Sarok?")}
                   </h3>
-                  <p className="text-xs text-neutral-400">
+                  <p className={`text-xs ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                     {tr(
                       `Permanently delete all ${trashItems.length} items? This cannot be undone.`,
                       `Hapus permanen semua ${trashItems.length} item? Tindakan ini tidak dapat dibatalkan.`,
@@ -487,8 +526,10 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-rose-500/5 border border-rose-500/15 flex items-start gap-2.5 text-xs text-rose-300">
-                <HiInformationCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-400" />
+              <div className={`p-3 rounded-xl border flex items-start gap-2.5 text-xs ${
+                isLight ? "bg-rose-50 border-rose-200 text-rose-800" : "bg-rose-500/5 border-rose-500/15 text-rose-300"
+              }`}>
+                <HiInformationCircle className={`w-4 h-4 shrink-0 mt-0.5 ${isLight ? "text-rose-600" : "text-rose-400"}`} />
                 <span>
                   {tr(
                     "All deleted images, folders, and videos in this trash will be permanently cleared from local storage.",
@@ -502,7 +543,9 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 <button
                   type="button"
                   onClick={() => setConfirmEmptyOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-300 text-xs font-medium border border-white/10 transition-colors cursor-pointer"
+                  className={`px-4 py-2 rounded-xl text-xs font-medium border transition-colors cursor-pointer ${
+                    isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200" : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border border-white/10"
+                  }`}
                 >
                   {tr("Cancel", "Batal", "Batal")}
                 </button>

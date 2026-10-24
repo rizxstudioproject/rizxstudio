@@ -433,6 +433,7 @@ html.light #admin-dashboard .bg-gradient-to-br.from-\[\#0c1219\] {
 /* 4. Main Cards & Form Surfaces */
 html[data-theme='light'] #admin-dashboard .bg-\[\#0e0f14\],
 html[data-theme='light'] #admin-dashboard .bg-\[\#111419\],
+html[data-theme='light'] #admin-dashboard .bg-\[\#111419\]\/70,
 html[data-theme='light'] #admin-dashboard .bg-\[\#12151a\],
 html[data-theme='light'] #admin-dashboard .bg-\[\#161a20\],
 html[data-theme='light'] #admin-dashboard .bg-\[\#0c0d10\],
@@ -446,6 +447,7 @@ html[data-theme='light'] #admin-dashboard .bg-neutral-900\/40,
 html[data-theme='light'] #admin-dashboard .bg-neutral-900,
 html.light #admin-dashboard .bg-\[\#0e0f14\],
 html.light #admin-dashboard .bg-\[\#111419\],
+html.light #admin-dashboard .bg-\[\#111419\]\/70,
 html.light #admin-dashboard .bg-\[\#12151a\],
 html.light #admin-dashboard .bg-\[\#161a20\],
 html.light #admin-dashboard .bg-\[\#0c0d10\],
@@ -470,13 +472,15 @@ html[data-theme='light'] #admin-dashboard .bg-neutral-950\/50,
 html[data-theme='light'] #admin-dashboard .bg-neutral-950\/40,
 html[data-theme='light'] #admin-dashboard .bg-neutral-950,
 html[data-theme='light'] #admin-dashboard .bg-\[\#161a22\],
+html[data-theme='light'] #admin-dashboard .bg-black\/40,
 html.light #admin-dashboard .bg-neutral-950\/70,
 html.light #admin-dashboard .bg-neutral-950\/80,
 html.light #admin-dashboard .bg-neutral-950\/60,
 html.light #admin-dashboard .bg-neutral-950\/50,
 html.light #admin-dashboard .bg-neutral-950\/40,
 html.light #admin-dashboard .bg-neutral-950,
-html.light #admin-dashboard .bg-\[\#161a22\] {
+html.light #admin-dashboard .bg-\[\#161a22\],
+html.light #admin-dashboard .bg-black\/40 {
   background-color: #f1f5f9 !important;
   border-color: rgba(0, 0, 0, 0.08) !important;
 }
@@ -509,9 +513,21 @@ html.light #admin-dashboard .bg-\[\#0f1115\] span {
   color: #475569 !important;
 }
 
-html[data-theme='light'] #admin-dashboard .bg-neutral-800,
-html.light #admin-dashboard .bg-neutral-800 {
+/* Progress bar tracks retain muted grey */
+html[data-theme='light'] #admin-dashboard .h-1\.5.bg-neutral-800,
+html[data-theme='light'] #admin-dashboard .h-1.bg-neutral-800,
+html[data-theme='light'] #admin-dashboard .h-2.bg-neutral-800,
+html.light #admin-dashboard .h-1\.5.bg-neutral-800,
+html.light #admin-dashboard .h-1.bg-neutral-800,
+html.light #admin-dashboard .h-2.bg-neutral-800 {
   background-color: #cbd5e1 !important;
+}
+
+/* General neutral-800 cards become clean white */
+html[data-theme='light'] #admin-dashboard .bg-neutral-800:not(.h-1\.5):not(.h-1):not(.h-2),
+html.light #admin-dashboard .bg-neutral-800:not(.h-1\.5):not(.h-1):not(.h-2) {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
 }
 
 /* 7. Selected Client Item in ClientsWorkspace */
@@ -557,14 +573,38 @@ html.light #admin-dashboard .text-\[\#16b09f\] {
   color: #0d9488 !important;
 }
 
+html[data-theme='light'] #admin-dashboard .text-rose-400,
+html.light #admin-dashboard .text-rose-400 {
+  color: #e11d48 !important;
+}
+
+html[data-theme='light'] #admin-dashboard .text-rose-300,
+html.light #admin-dashboard .text-rose-300 {
+  color: #be123c !important;
+}
+
+html[data-theme='light'] #admin-dashboard .text-neutral-400,
+html.light #admin-dashboard .text-neutral-400 {
+  color: #64748b !important;
+}
+
+html[data-theme='light'] #admin-dashboard .text-neutral-500,
+html.light #admin-dashboard .text-neutral-500 {
+  color: #64748b !important;
+}
+
 html[data-theme='light'] #admin-dashboard h1,
 html[data-theme='light'] #admin-dashboard h2,
 html[data-theme='light'] #admin-dashboard h3,
 html[data-theme='light'] #admin-dashboard h4,
+html[data-theme='light'] #admin-dashboard h5,
+html[data-theme='light'] #admin-dashboard h6,
 html.light #admin-dashboard h1,
 html.light #admin-dashboard h2,
 html.light #admin-dashboard h3,
-html.light #admin-dashboard h4 {
+html.light #admin-dashboard h4,
+html.light #admin-dashboard h5,
+html.light #admin-dashboard h6 {
   color: #0f172a !important;
 }
 

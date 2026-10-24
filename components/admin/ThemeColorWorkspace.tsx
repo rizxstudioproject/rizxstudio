@@ -31,6 +31,7 @@ export default function ThemeColorWorkspace() {
 
   const { lang, tr } = useLang();
   const [saveToast, setSaveToast] = useState(false);
+  const isLight = themeMode === "light";
 
   const triggerSaved = () => {
     setSaveToast(true);
@@ -40,21 +41,21 @@ export default function ThemeColorWorkspace() {
   return (
     <div className="space-y-8 max-w-5xl mx-auto pb-12">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/5">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b ${isLight ? "border-slate-200" : "border-white/5"}`}>
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span
               className="w-2.5 h-2.5 rounded-full animate-pulse"
               style={{ backgroundColor: primaryColor }}
             />
-            <span className="text-xs font-mono uppercase tracking-widest text-neutral-400">
+            <span className={`text-xs font-mono uppercase tracking-widest ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
               {tr("Theme & Brand Staging", "Pewarnaan & Tema Sistem", "Pewarnaan & Tema Sistem")}
             </span>
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">
+          <h2 className={`text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
             {tr("Color Scheme & Appearance", "Pengaturan Warna Tampilan", "Aturan Warna Tampilan")}
           </h2>
-          <p className="text-sm text-neutral-400 mt-1 max-w-2xl">
+          <p className={`text-sm mt-1 max-w-2xl ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
             {tr(
               "Customize primary and accent colors with precision color pickers or curated palettes. Changes reactively update CSS variables across all components.",
               "Ubah skema warna utama dan aksen dengan Color Picker atau palet preset. Warna terhubung ke CSS Variables dan otomatis mengubah seluruh tombol, kursor, dan grafik.",
@@ -81,11 +82,11 @@ export default function ThemeColorWorkspace() {
 
       {/* 1. DARK & LIGHT MODE SELECTOR */}
       <section className="space-y-4">
-        <h3 className="text-base font-semibold text-white flex items-center gap-2">
+        <h3 className={`text-base font-semibold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
           {themeMode === "dark" ? (
             <HiMoon className="w-5 h-5 text-[#16b09f]" />
           ) : (
-            <HiSun className="w-5 h-5 text-amber-400" />
+            <HiSun className="w-5 h-5 text-amber-500" />
           )}
           <span>{tr("Theme Mode (Dark / Light)", "Mode Gelap & Terang", "Mode Kalam & Tarang")}</span>
         </h3>
@@ -104,8 +105,12 @@ export default function ThemeColorWorkspace() {
             }}
             className={`p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden group ${
               themeMode === "dark"
-                ? "bg-neutral-900 border-white/30"
-                : "bg-neutral-950/60 border-white/5 hover:border-white/10"
+                ? isLight
+                  ? "bg-white border-[#16b09f] shadow-md ring-2 ring-[#16b09f]/20"
+                  : "bg-neutral-900 border-white/30"
+                : isLight
+                  ? "bg-slate-50/80 hover:bg-slate-100 border-slate-200"
+                  : "bg-neutral-950/60 border-white/5 hover:border-white/10"
             }`}
           >
             {themeMode === "dark" && (
@@ -117,19 +122,21 @@ export default function ThemeColorWorkspace() {
               </div>
             )}
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-neutral-800 border border-white/10 flex items-center justify-center text-[#16b09f]">
+              <div className={`w-10 h-10 rounded-xl border flex items-center justify-center text-[#16b09f] ${
+                isLight ? "bg-white border-slate-200 shadow-sm" : "bg-neutral-800 border-white/10"
+              }`}>
                 <HiMoon className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-white">
+                <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
                   {tr("Dark Space Mode (Default)", "Mode Gelap / Deep Space", "Mode Kalam / Deep Space")}
                 </h4>
-                <span className="text-xs text-neutral-400 font-mono">
+                <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   #0a0a0a / High Contrast
                 </span>
               </div>
             </div>
-            <p className="text-xs text-neutral-400 leading-relaxed">
+            <p className={`text-xs leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               {tr(
                 "Cinematic deep dark aesthetic optimal for showcasing motion graphics, video sequences, and 3D lighting.",
                 "Tampilan gelap sinematik elegan, sangat ideal untuk memamerkan karya motion, video sequence, dan pencahayaan 3D.",
@@ -151,8 +158,12 @@ export default function ThemeColorWorkspace() {
             }}
             className={`p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden group ${
               themeMode === "light"
-                ? "bg-neutral-800 border-white/30"
-                : "bg-neutral-950/60 border-white/5 hover:border-white/10"
+                ? isLight
+                  ? "bg-white border-[#16b09f] shadow-lg shadow-[#16b09f]/10 ring-2 ring-[#16b09f]/20"
+                  : "bg-neutral-800 border-white/30"
+                : isLight
+                  ? "bg-slate-50/80 hover:bg-slate-100 border-slate-200"
+                  : "bg-neutral-950/60 border-white/5 hover:border-white/10"
             }`}
           >
             {themeMode === "light" && (
@@ -164,19 +175,21 @@ export default function ThemeColorWorkspace() {
               </div>
             )}
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-300">
+              <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${
+                isLight ? "bg-amber-100 border-amber-300 text-amber-600 shadow-sm" : "bg-amber-500/20 border-amber-500/30 text-amber-300"
+              }`}>
                 <HiSun className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-sm font-semibold text-white">
+                <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
                   {tr("Light Studio Mode", "Mode Terang / Clean Studio", "Mode Tarang / Barasiah")}
                 </h4>
-                <span className="text-xs text-neutral-400 font-mono">
+                <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   #f8fafc / Clean Architectural
                 </span>
               </div>
             </div>
-            <p className="text-xs text-neutral-400 leading-relaxed">
+            <p className={`text-xs leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               {tr(
                 "Clean, crisp high-readability architectural daylight layout with balanced gray contrasts.",
                 "Tampilan cerah arsitektural yang bersih dengan kontras teks tajam dan tata letak minimalis modern.",
@@ -189,8 +202,8 @@ export default function ThemeColorWorkspace() {
 
       {/* 2. CURATED COLOR PRESETS */}
       <section className="space-y-4">
-        <h3 className="text-base font-semibold text-white flex items-center gap-2">
-          <HiSwatch className="w-5 h-5 text-neutral-400" />
+        <h3 className={`text-base font-semibold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
+          <HiSwatch className={`w-5 h-5 ${isLight ? "text-slate-600" : "text-neutral-400"}`} />
           <span>{tr("Curated Color Presets", "Preset Warna Pilihan", "Piliahan Preset Warna")}</span>
         </h3>
 
@@ -208,12 +221,18 @@ export default function ThemeColorWorkspace() {
                 }}
                 className={`p-3.5 rounded-2xl border text-center transition-all duration-200 cursor-pointer relative group flex flex-col items-center gap-2.5 ${
                   isSelected
-                    ? "bg-white/[0.08] border-white/40 shadow-lg"
-                    : "bg-neutral-900/50 border-white/5 hover:border-white/10"
+                    ? isLight
+                      ? "bg-white border-[#16b09f] shadow-md ring-2 ring-[#16b09f]/20"
+                      : "bg-white/[0.08] border-white/40 shadow-lg"
+                    : isLight
+                      ? "bg-white hover:bg-slate-50 border-slate-200/90 hover:border-slate-300 shadow-sm"
+                      : "bg-neutral-900/50 border-white/5 hover:border-white/10"
                 }`}
               >
                 {/* Visual Swatch Pill */}
-                <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white/20 shadow-md group-hover:scale-105 transition-transform">
+                <div className={`relative w-12 h-12 rounded-full overflow-hidden border-2 shadow-md group-hover:scale-105 transition-transform ${
+                  isLight ? "border-slate-200 shadow-slate-200" : "border-white/20"
+                }`}>
                   <div
                     className="absolute inset-0"
                     style={{
@@ -228,10 +247,10 @@ export default function ThemeColorWorkspace() {
                 </div>
 
                 <div>
-                  <h5 className="text-xs font-semibold text-white truncate max-w-[110px]">
+                  <h5 className={`text-xs font-semibold truncate max-w-[110px] ${isLight ? "text-slate-900" : "text-white"}`}>
                     {preset.label[lang as keyof typeof preset.label] || preset.label.en}
                   </h5>
-                  <span className="text-[10px] font-mono text-neutral-400">
+                  <span className={`text-[10px] font-mono ${isLight ? "text-slate-500 font-medium" : "text-neutral-400"}`}>
                     {preset.primary}
                   </span>
                 </div>
@@ -243,20 +262,22 @@ export default function ThemeColorWorkspace() {
 
       {/* 3. CUSTOM COLOR PICKERS & HEX INPUTS */}
       <section className="space-y-4">
-        <h3 className="text-base font-semibold text-white flex items-center gap-2">
-          <HiPaintBrush className="w-5 h-5 text-neutral-400" />
+        <h3 className={`text-base font-semibold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
+          <HiPaintBrush className={`w-5 h-5 ${isLight ? "text-slate-600" : "text-neutral-400"}`} />
           <span>{tr("Custom Color Picker", "Kustomisasi Warna Bebas", "Kustomisasi Warna Bebas")}</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Primary Color Picker */}
-          <div className="p-5 rounded-2xl bg-neutral-900/60 border border-white/5 space-y-4">
+          <div className={`p-5 rounded-2xl border space-y-4 ${
+            isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/60 border-white/5"
+          }`}>
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-white">
+                <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
                   {tr("Primary Brand Accent", "Warna Utama / Aksen Brand", "Warna Utamo / Aksen Brand")}
                 </h4>
-                <p className="text-xs text-neutral-400">
+                <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   {tr(
                     "Used for main buttons, highlights, badges, and cursor blob.",
                     "Digunakan untuk tombol utama, sorotan teks, badge, dan kursor.",
@@ -265,14 +286,16 @@ export default function ThemeColorWorkspace() {
                 </p>
               </div>
               <div
-                className="w-9 h-9 rounded-xl border border-white/20 shadow-sm shrink-0"
+                className={`w-9 h-9 rounded-xl border shadow-sm shrink-0 ${isLight ? "border-slate-200" : "border-white/20"}`}
                 style={{ backgroundColor: primaryColor }}
               />
             </div>
 
             <div className="flex items-center gap-3">
               {/* Native Color Input */}
-              <div className="relative w-11 h-11 rounded-xl overflow-hidden border border-white/10 shrink-0 cursor-pointer">
+              <div className={`relative w-11 h-11 rounded-xl overflow-hidden border shrink-0 cursor-pointer ${
+                isLight ? "border-slate-300 shadow-sm" : "border-white/10"
+              }`}>
                 <input
                   type="color"
                   value={primaryColor}
@@ -287,7 +310,7 @@ export default function ThemeColorWorkspace() {
 
               {/* Text Hex Input */}
               <div className="flex-1 relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 font-mono text-xs">
+                <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs ${isLight ? "text-slate-400 font-semibold" : "text-neutral-500"}`}>
                   HEX
                 </span>
                 <input
@@ -297,7 +320,11 @@ export default function ThemeColorWorkspace() {
                     setPrimaryColor(e.target.value);
                     triggerSaved();
                   }}
-                  className="w-full bg-neutral-950 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-xs font-mono text-white uppercase focus:outline-none focus:border-white/30"
+                  className={`w-full border rounded-xl pl-12 pr-4 py-2.5 text-xs font-mono uppercase focus:outline-none transition-all ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 focus:border-[#16b09f] focus:bg-white"
+                      : "bg-neutral-950 border-white/10 text-white focus:border-white/30"
+                  }`}
                   placeholder="#16b09f"
                 />
               </div>
@@ -305,13 +332,15 @@ export default function ThemeColorWorkspace() {
           </div>
 
           {/* Secondary / Accent Color Picker */}
-          <div className="p-5 rounded-2xl bg-neutral-900/60 border border-white/5 space-y-4">
+          <div className={`p-5 rounded-2xl border space-y-4 ${
+            isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/60 border-white/5"
+          }`}>
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="text-sm font-semibold text-white">
+                <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
                   {tr("Secondary Accent Color", "Warna Aksen Sekunder", "Warna Aksen Kaduo")}
                 </h4>
-                <p className="text-xs text-neutral-400">
+                <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   {tr(
                     "Used for secondary gradient fades, particles, and chart series.",
                     "Digunakan untuk gradasi sekunder, partikel bintang, dan grafik seri 2.",
@@ -320,14 +349,16 @@ export default function ThemeColorWorkspace() {
                 </p>
               </div>
               <div
-                className="w-9 h-9 rounded-xl border border-white/20 shadow-sm shrink-0"
+                className={`w-9 h-9 rounded-xl border shadow-sm shrink-0 ${isLight ? "border-slate-200" : "border-white/20"}`}
                 style={{ backgroundColor: accentColor }}
               />
             </div>
 
             <div className="flex items-center gap-3">
               {/* Native Color Input */}
-              <div className="relative w-11 h-11 rounded-xl overflow-hidden border border-white/10 shrink-0 cursor-pointer">
+              <div className={`relative w-11 h-11 rounded-xl overflow-hidden border shrink-0 cursor-pointer ${
+                isLight ? "border-slate-300 shadow-sm" : "border-white/10"
+              }`}>
                 <input
                   type="color"
                   value={accentColor}
@@ -342,7 +373,7 @@ export default function ThemeColorWorkspace() {
 
               {/* Text Hex Input */}
               <div className="flex-1 relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 font-mono text-xs">
+                <span className={`absolute left-3 top-1/2 -translate-y-1/2 font-mono text-xs ${isLight ? "text-slate-400 font-semibold" : "text-neutral-500"}`}>
                   HEX
                 </span>
                 <input
@@ -352,7 +383,11 @@ export default function ThemeColorWorkspace() {
                     setAccentColor(e.target.value);
                     triggerSaved();
                   }}
-                  className="w-full bg-neutral-950 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-xs font-mono text-white uppercase focus:outline-none focus:border-white/30"
+                  className={`w-full border rounded-xl pl-12 pr-4 py-2.5 text-xs font-mono uppercase focus:outline-none transition-all ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 focus:border-[#16b09f] focus:bg-white"
+                      : "bg-neutral-950 border-white/10 text-white focus:border-white/30"
+                  }`}
                   placeholder="#06B6D4"
                 />
               </div>
@@ -362,23 +397,27 @@ export default function ThemeColorWorkspace() {
       </section>
 
       {/* 4. LIVE COMPONENT PREVIEW */}
-      <section className="p-6 rounded-2xl bg-neutral-900/80 border border-white/10 space-y-4">
+      <section className={`p-6 rounded-2xl border space-y-4 ${
+        isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/80 border-white/10"
+      }`}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <HiEye className="w-5 h-5 text-neutral-400" />
-            <h3 className="text-sm font-semibold text-white">
+            <HiEye className={`w-5 h-5 ${isLight ? "text-slate-600" : "text-neutral-400"}`} />
+            <h3 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
               {tr("Live Theme Application Preview", "Pratinjau Hasil Penerapan Warna", "Caliak Hasil Panarapan Warna")}
             </h3>
           </div>
-          <span className="text-xs font-mono text-neutral-500">
+          <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
             {tr("Reactive CSS Variables", "CSS Variables Reaktif", "CSS Variables Reaktif")}
           </span>
         </div>
 
-        <div className="p-6 rounded-xl bg-black/40 border border-white/5 grid grid-cols-1 md:grid-cols-3 gap-5 items-center">
+        <div className={`p-6 rounded-xl border grid grid-cols-1 md:grid-cols-3 gap-5 items-center ${
+          isLight ? "bg-slate-50 border-slate-200" : "bg-black/40 border-white/5"
+        }`}>
           {/* Button preview */}
           <div className="space-y-2">
-            <span className="text-[11px] font-mono text-neutral-400 block">
+            <span className={`text-[11px] font-mono block ${isLight ? "text-slate-600 font-semibold" : "text-neutral-400"}`}>
               {tr("Solid & Outline Buttons", "Tombol Solid & Garis", "Tombol Solid & Garih")}
             </span>
             <div className="flex flex-wrap gap-2.5">
@@ -391,7 +430,7 @@ export default function ThemeColorWorkspace() {
               </button>
               <button
                 type="button"
-                className="px-4 py-2 rounded-xl text-white font-medium text-xs border"
+                className={`px-4 py-2 rounded-xl font-medium text-xs border ${isLight ? "bg-white shadow-sm" : "text-white"}`}
                 style={{ borderColor: primaryColor, color: primaryColor }}
               >
                 Outline CTA
@@ -401,7 +440,7 @@ export default function ThemeColorWorkspace() {
 
           {/* Badge & Highlight preview */}
           <div className="space-y-2">
-            <span className="text-[11px] font-mono text-neutral-400 block">
+            <span className={`text-[11px] font-mono block ${isLight ? "text-slate-600 font-semibold" : "text-neutral-400"}`}>
               {tr("Badges & Tags", "Badge & Tag Status", "Badge & Tag Status")}
             </span>
             <div className="flex items-center gap-2">
@@ -424,7 +463,7 @@ export default function ThemeColorWorkspace() {
 
           {/* Gradient text preview */}
           <div className="space-y-2">
-            <span className="text-[11px] font-mono text-neutral-400 block">
+            <span className={`text-[11px] font-mono block ${isLight ? "text-slate-600 font-semibold" : "text-neutral-400"}`}>
               {tr("Gradient Typography", "Tipografi Gradasi", "Tulisan Gradasi")}
             </span>
             <h4
