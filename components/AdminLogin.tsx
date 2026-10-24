@@ -187,7 +187,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
 
       {/* Ambient background glows */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full bg-[#14AF9E]/[0.06] blur-[120px]" />
+        <div className="absolute -top-32 -left-32 w-[600px] h-[600px] rounded-full bg-[#16b09f]/[0.06] blur-[120px]" />
         <div className="absolute bottom-0 right-0 w-[500px] h-[500px] rounded-full bg-cyan-800/[0.04] blur-[150px]" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-neutral-800/[0.15] blur-[80px]" />
       </div>
@@ -265,7 +265,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck={false}
-                  className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E]/70 focus:bg-[#14AF9E]/[0.04] focus:ring-1 focus:ring-[#14AF9E]/30 transition-all"
+                  className="w-full px-4 py-3 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f]/70 focus:bg-[#16b09f]/[0.04] focus:ring-1 focus:ring-[#16b09f]/30 transition-all"
                 />
               </div>
 
@@ -282,7 +282,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                       setForgotError("");
                       setForgotStatus("");
                     }}
-                    className="text-[11px] text-[#14AF9E] hover:underline font-mono cursor-pointer transition-colors"
+                    className="text-[11px] text-[#16b09f] hover:underline font-mono cursor-pointer transition-colors"
                   >
                     <span>{tr("Forgot Password?", "Lupa Password?", "Lupo Kunci?")}</span>
                   </button>
@@ -296,7 +296,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                       setError("");
                     }}
                     placeholder="••••••••••••••"
-                    className="w-full px-4 py-3 pr-12 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E]/70 focus:bg-[#14AF9E]/[0.04] focus:ring-1 focus:ring-[#14AF9E]/30 transition-all"
+                    className="w-full px-4 py-3 pr-12 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f]/70 focus:bg-[#16b09f]/[0.04] focus:ring-1 focus:ring-[#16b09f]/30 transition-all"
                   />
                   <button
                     type="button"
@@ -332,7 +332,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                 style={{
                   background: isLoading
                     ? "rgba(20,175,158,0.5)"
-                    : "linear-gradient(135deg, #14AF9E 0%, #0cb8a5 50%, #07c4b0 100%)",
+                    : "linear-gradient(135deg, #16b09f 0%, #0cb8a5 50%, #07c4b0 100%)",
                   boxShadow: "0 6px 30px rgba(20, 175, 158, 0.4)",
                   color: "#000",
                 }}
@@ -371,7 +371,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                       setForgotError("");
                     }}
                     placeholder="rizxstudioproject@gmail.com"
-                    className="w-full px-4 py-3 pl-10 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E]/70 focus:bg-[#14AF9E]/[0.04] transition-all"
+                    className="w-full px-4 py-3 pl-10 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f]/70 focus:bg-[#16b09f]/[0.04] transition-all"
                   />
                   <HiEnvelope className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 </div>
@@ -398,7 +398,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                 <button
                   type="submit"
                   disabled={isSendingOtp || !recoveryEmail.trim()}
-                  className="flex-1 py-3 rounded-xl bg-[#14AF9E] hover:bg-[#119a8b] text-black font-bold text-xs sm:text-sm font-mono flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#14AF9E]/20"
+                  className="flex-1 py-3 rounded-xl bg-[#16b09f] hover:bg-[#119a8b] text-black font-bold text-xs sm:text-sm font-mono flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#16b09f]/20"
                 >
                   {isSendingOtp ? "Mengirim Kode…" : "Kirim Kode Verifikasi"}
                 </button>
@@ -429,7 +429,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                     setForgotError("");
                   }}
                   placeholder="Contoh: 123456"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white text-base font-mono tracking-widest text-center focus:outline-none focus:border-[#14AF9E]/70"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white text-base font-mono tracking-widest text-center focus:outline-none focus:border-[#16b09f]/70"
                 />
               </div>
 
@@ -447,7 +447,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                       setForgotError("");
                     }}
                     placeholder="Minimal 6 karakter"
-                    className="w-full px-4 py-2.5 pr-10 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E]/70"
+                    className="w-full px-4 py-2.5 pr-10 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f]/70"
                   />
                   <button
                     type="button"
@@ -472,7 +472,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                     setForgotError("");
                   }}
                   placeholder="Ulangi password baru"
-                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E]/70"
+                  className="w-full px-4 py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f]/70"
                 />
               </div>
 
@@ -494,7 +494,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                 <button
                   type="submit"
                   disabled={isSendingOtp || enteredOtp.length < 6 || !newPassword}
-                  className="flex-1 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119a8b] text-black font-bold text-xs sm:text-sm font-mono flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#14AF9E]/20"
+                  className="flex-1 py-2.5 rounded-xl bg-[#16b09f] hover:bg-[#119a8b] text-black font-bold text-xs sm:text-sm font-mono flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-[#16b09f]/20"
                 >
                   {isSendingOtp ? tr("Saving…", "Menyimpan…", "Manyimpan…") : tr("Save New Password", "Simpan Sandi Baru", "Simpan Kunci Baru")}
                 </button>
@@ -518,7 +518,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
               <button
                 type="button"
                 onClick={() => setForgotMode("idle")}
-                className="w-full py-3.5 rounded-xl bg-[#14AF9E] hover:bg-[#119a8b] text-black font-bold text-sm font-mono transition-all cursor-pointer shadow-lg shadow-[#14AF9E]/20"
+                className="w-full py-3.5 rounded-xl bg-[#16b09f] hover:bg-[#119a8b] text-black font-bold text-sm font-mono transition-all cursor-pointer shadow-lg shadow-[#16b09f]/20"
               >
                 {tr("Back to Login", "Kembali ke Login", "Baliak ka Login")}
               </button>
@@ -547,13 +547,13 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
               filter: "brightness(0.55) saturate(0.7)",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/30 to-[#14AF9E]/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/30 to-[#16b09f]/20" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
           <div className="absolute inset-0 flex flex-col justify-end p-8">
             <div className="mb-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/50 border border-white/15 backdrop-blur-md w-fit">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#14AF9E] animate-pulse" />
-              <span className="text-[11px] font-mono text-[#14AF9E] font-semibold tracking-wider">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse" />
+              <span className="text-[11px] font-mono text-[#16b09f] font-semibold tracking-wider">
                 ADMIN CONTROL PANEL
               </span>
             </div>
@@ -573,7 +573,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                 "Sync Supabase & LocalStorage aman",
               ].map((f, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <span className="w-1 h-1 rounded-full bg-[#14AF9E] shrink-0" />
+                  <span className="w-1 h-1 rounded-full bg-[#16b09f] shrink-0" />
                   <span className="text-[11px] text-neutral-400 font-mono">{f}</span>
                 </div>
               ))}
@@ -584,3 +584,4 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
     </div>
   );
 }
+

@@ -63,7 +63,7 @@ export default function CreativeJourney() {
     <section id="creative-journey" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6 sm:mb-8 text-center sm:text-left">
-        <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] block mb-2 font-semibold">
+        <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#16b09f] block mb-2 font-semibold">
           {displayTag}
         </span>
         <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
@@ -108,7 +108,7 @@ export default function CreativeJourney() {
         {/* Center Play Button for Video Mode */}
         {(isShowingYouTube || isShowingGDrive) && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-            <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-black/60 backdrop-blur-md border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#14AF9E] group-hover:text-black group-hover:border-[#14AF9E] transition-all duration-300 shadow-2xl">
+            <div className="w-14 h-14 sm:w-18 sm:h-18 rounded-full bg-black/60 backdrop-blur-md border border-white/30 flex items-center justify-center text-white group-hover:scale-110 group-hover:bg-[#16b09f] group-hover:text-black group-hover:border-[#16b09f] transition-all duration-300 shadow-2xl">
               <svg className="w-6 h-6 sm:w-8 sm:h-8 fill-current ml-1" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
@@ -186,7 +186,7 @@ export default function CreativeJourney() {
 
             {/* Details Footer */}
             <div className="p-5 sm:p-7 bg-neutral-950 border-t border-white/10 flex flex-col gap-2">
-              <span className="text-xs font-mono uppercase tracking-widest text-[#14AF9E] font-semibold">
+              <span className="text-xs font-mono uppercase tracking-widest text-[#16b09f] font-semibold">
                 {displayCategory}
               </span>
               <h3 className="text-xl sm:text-2xl font-bold text-white">
@@ -202,3 +202,4 @@ export default function CreativeJourney() {
     </section>
   );
 }
+

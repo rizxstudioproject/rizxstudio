@@ -64,13 +64,13 @@ export default function About() {
     <section id="about" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
       {/* Section Header */}
       <div className="flex flex-col mb-8 sm:mb-10">
-        <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] mb-2 font-semibold">
+        <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#16b09f] mb-2 font-semibold">
           {displayEyebrow}
         </span>
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
           {displayTitle}<span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <div className="w-12 h-px bg-[#14AF9E]/60 mt-3" />
+        <div className="w-12 h-px bg-[#16b09f]/60 mt-3" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch">
@@ -89,8 +89,8 @@ export default function About() {
               </p>
 
               {/* Blockquote: Core Philosophy */}
-              <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/[0.03] border-l-2 border-[#14AF9E] border-y border-r border-white/5 backdrop-blur-sm">
-                <span className="text-[11px] font-mono text-[#14AF9E] uppercase tracking-wider block mb-1 font-semibold">
+              <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/[0.03] border-l-2 border-[#16b09f] border-y border-r border-white/5 backdrop-blur-sm">
+                <span className="text-[11px] font-mono text-[#16b09f] uppercase tracking-wider block mb-1 font-semibold">
                   {displayPhilosophyTitle}
                 </span>
                 <p className="text-white/90 text-sm sm:text-base italic font-serif leading-relaxed">
@@ -102,7 +102,7 @@ export default function About() {
             {/* 3 Key Stats: 11+ Years Experience | 100+ Projects | 20+ Clients */}
             <div className="pt-6 border-t border-white/5 grid grid-cols-3 gap-3 sm:gap-6 text-xs font-mono mt-auto">
               <div>
-                <span className="text-[#14AF9E] block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight">
+                <span className="text-[#16b09f] block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight">
                   {about.stat1Num || t("about.stat1.num")}
                 </span>
                 <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
@@ -133,7 +133,7 @@ export default function About() {
         <div className="lg:col-span-4 flex flex-col gap-6">
           <SpotlightCard className="p-6 sm:p-7 flex-1 flex flex-col justify-center">
             <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-cyan-400 mb-4">
-              <HiGlobeAmericas className="w-5 h-5 text-[#14AF9E]" />
+              <HiGlobeAmericas className="w-5 h-5 text-[#16b09f]" />
             </div>
             <h3 className="text-base sm:text-lg font-medium text-white mb-2">
               {displayCollabTitle}
@@ -154,7 +154,7 @@ export default function About() {
               {activeDisciplines.map((tag, i) => (
                 <span
                   key={i}
-                  className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#14AF9E]/40 hover:text-white transition-colors"
+                  className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#16b09f]/40 hover:text-white transition-colors"
                 >
                   {tag}
                 </span>
@@ -166,3 +166,4 @@ export default function About() {
     </section>
   );
 }
+

@@ -159,7 +159,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
         return {
           label: tr("Portfolio Work", "Karya Klien", "Karya Klien"),
           icon: HiPhoto,
-          color: "bg-[#14AF9E]/15 text-[#14AF9E] border-[#14AF9E]/30",
+          color: "bg-[#16b09f]/15 text-[#16b09f] border-[#16b09f]/30",
         };
       case "client-folder":
         return {
@@ -261,7 +261,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 onClick={() => setActiveFilter("all")}
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "all"
-                    ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -272,7 +272,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 onClick={() => setActiveFilter("client-work")}
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "client-work"
-                    ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -283,7 +283,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 onClick={() => setActiveFilter("client-folder")}
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "client-folder"
-                    ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -294,7 +294,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 onClick={() => setActiveFilter("flagship-video")}
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "flagship-video"
-                    ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -305,7 +305,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 onClick={() => setActiveFilter("other")}
                 className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                   activeFilter === "other"
-                    ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -321,7 +321,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={tr("Search deleted items...", "Cari item di tong sampah...", "Cari item di tong sarok...")}
-                className="w-full pl-9 pr-3.5 py-1.5 rounded-xl bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 text-xs focus:outline-none focus:border-[#14AF9E] transition-all"
+                className="w-full pl-9 pr-3.5 py-1.5 rounded-xl bg-neutral-900 border border-white/10 text-white placeholder:text-neutral-600 text-xs focus:outline-none focus:border-[#16b09f] transition-all"
               />
             </div>
           </div>
@@ -414,7 +414,7 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
 
                       {/* Content Info */}
                       <div>
-                        <h4 className="text-sm font-bold text-white tracking-tight line-clamp-1 group-hover:text-[#14AF9E] transition-colors">
+                        <h4 className="text-sm font-bold text-white tracking-tight line-clamp-1 group-hover:text-[#16b09f] transition-colors">
                           {item.title || tr("Untitled Item", "Item Tanpa Judul", "Item Tanpa Judul")}
                         </h4>
                         {item.subtitle && (
@@ -521,3 +521,4 @@ export default function RecycleBinWorkspace({ showToast }: RecycleBinWorkspacePr
     </div>
   );
 }
+

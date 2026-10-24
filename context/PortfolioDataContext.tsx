@@ -207,7 +207,7 @@ export const defaultHeroWorksData: HeroWorksData = {
   stage2BtnText: "Explore My Work",
   stage2Skills: ["Branding", "Motion", "3D Design", "UI/UX", "AI Visuals"],
   stage2Badges: [
-    { id: 1, text: "@rizx", color: "bg-[#14AF9E] text-white border-[#14AF9E]" },
+    { id: 1, text: "@rizx", color: "bg-[#16b09f] text-white border-[#16b09f]" },
     { id: 2, text: "@malaka", color: "bg-neutral-800 text-white border-neutral-700" },
   ],
   overlappingCards: [
@@ -711,7 +711,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             clientName: c.clientName || c.id,
             category: c.category || `Portfolio — ${c.clientName || c.id}`,
             logo: c.logo || "",
-            color: c.color || "from-[#14AF9E]/20 via-neutral-900/40 to-neutral-900",
+            color: c.color || "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
             itemsCount: Array.isArray(c.works) ? c.works.length : 0,
             description: c.description || "",
             tools: Array.isArray(c.tools) ? c.tools : [],
@@ -1058,7 +1058,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                   clientName: r.client_name || r.client_id,
                   category: r.category || `Portfolio — ${r.client_name || r.client_id}`,
                   logo: parsed.logo || "",
-                  color: "from-[#14AF9E]/20 via-neutral-900/40 to-neutral-900",
+                  color: "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
                   itemsCount: parsed.works.length,
                   description: parsed.text,
                   tools: parsed.tools,
@@ -1382,7 +1382,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         clientName: folder.clientName,
         category: folder.category || `Portfolio — ${folder.clientName}`,
         logo: "",
-        color: "from-[#14AF9E]/20 via-neutral-900/40 to-neutral-900",
+        color: "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
         itemsCount: 0,
         description: folder.description || "",
         works: [],
@@ -1746,7 +1746,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 clientName: target.subtitle?.replace(/^.*Folder:\s*/, "") || clientId,
                 category: "Portfolio",
                 logo: "",
-                color: "from-[#14AF9E]/20 via-neutral-900/40 to-neutral-900",
+                color: "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
                 itemsCount: 1,
                 works: [work],
                 tools: ["Figma", "Photoshop", "Magnific AI"],
@@ -1950,3 +1950,4 @@ export function usePortfolioData() {
   }
   return context;
 }
+

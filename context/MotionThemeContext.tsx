@@ -33,7 +33,7 @@ export const COLOR_PRESETS: ColorPreset[] = [
     id: "teal",
     name: "Teal Signature",
     label: { en: "Teal Signature", id: "Teal Khas Rizx", min: "Teal Khas Rizx" },
-    primary: "#14AF9E",
+    primary: "#16b09f",
     accent: "#06B6D4",
   },
   {
@@ -111,7 +111,7 @@ const STORAGE_KEY = "rizx_motion_theme_settings_v2";
 
 const defaultSettings = {
   themeMode: "dark" as ThemeMode,
-  primaryColor: "#14AF9E",
+  primaryColor: "#16b09f",
   accentColor: "#06B6D4",
   cursorEffect: "fluid" as CursorEffectType,
   comboMode: false,
@@ -168,7 +168,9 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
       if (saved) {
         const parsed = JSON.parse(saved);
         if (parsed.themeMode) setThemeModeState(parsed.themeMode);
-        if (parsed.primaryColor) setPrimaryColorState(parsed.primaryColor);
+        if (parsed.primaryColor) {
+          setPrimaryColorState(parsed.primaryColor === "#14AF9E" ? "#16b09f" : parsed.primaryColor);
+        }
         if (parsed.accentColor) setAccentColorState(parsed.accentColor);
         if (parsed.cursorEffect) setCursorEffectState(parsed.cursorEffect);
         if (typeof parsed.comboMode === "boolean") setComboModeState(parsed.comboMode);

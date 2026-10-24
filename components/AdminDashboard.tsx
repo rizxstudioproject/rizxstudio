@@ -626,7 +626,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         text: b.trim(),
         color:
           i === 0
-            ? "bg-[#14AF9E] text-white border-[#14AF9E]"
+            ? "bg-[#16b09f] text-white border-[#16b09f]"
             : "bg-neutral-800 text-white border-neutral-700",
       }))
       .filter((b) => b.text.length > 0);
@@ -1965,7 +1965,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onClick={() => setStorageSubTab("analytics")}
                     className={`py-1.5 px-3 rounded-lg font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                       storageSubTab === "analytics"
-                        ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                        ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
                         : "text-neutral-400 hover:text-white"
                     }`}
                   >
@@ -1977,7 +1977,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onClick={() => setStorageSubTab("resources")}
                     className={`py-1.5 px-3 rounded-lg font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
                       storageSubTab === "resources"
-                        ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                        ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
                         : "text-neutral-400 hover:text-white"
                     }`}
                   >
@@ -2067,7 +2067,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           >
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
                 SECTION CONTROL: HERO BANNER UTAMA (CANVAS SCROLLYTELLING)
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
@@ -2086,7 +2086,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-tight mb-1">
                 {hbName || "Fomy R"}<span className="text-neutral-500 font-normal">.</span>
               </h1>
-              <p className="text-xs sm:text-sm font-mono tracking-widest text-[#14AF9E] mt-1">
+              <p className="text-xs sm:text-sm font-mono tracking-widest text-[#16b09f] mt-1">
                 {hbRole || "AI-Powered Creative Designer"}
               </p>
               <div className="flex flex-col items-center gap-1.5 mt-5">
@@ -2107,7 +2107,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <HiPhoto className="w-5 h-5 text-[#14AF9E]" />
+                    <HiPhoto className="w-5 h-5 text-[#16b09f]" />
                     <h3 className="text-base sm:text-lg font-bold text-white">
                       {tx("Sequence Foto Hero Banner (3D Canvas Scrollytelling)", "Hero Banner Photo Sequence (3D Canvas Scrollytelling)")}
                     </h3>
@@ -2122,7 +2122,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className={`px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider ${
                       hbSeqMode === "default"
                         ? "bg-neutral-800 text-neutral-300 border border-white/10"
-                        : "bg-[#14AF9E]/20 text-[#14AF9E] border border-[#14AF9E]/40"
+                        : "bg-[#16b09f]/20 text-[#16b09f] border border-[#16b09f]/40"
                     }`}
                   >
                     {hbSeqMode === "default"
@@ -2167,7 +2167,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     {/* Frame Badge */}
                     <div className="absolute top-3 left-3 px-2.5 py-1 rounded-md bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-white flex items-center gap-1.5 pointer-events-none">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#14AF9E] animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse" />
                       <span>
                         FRAME {Math.min(seqScrubIdx + 1, activeScrubberFrames.length)} / {activeScrubberFrames.length}
                       </span>
@@ -2181,12 +2181,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     >
                       {seqIsAutoPlaying ? (
                         <>
-                          <HiPause className="w-3.5 h-3.5 text-[#14AF9E]" />
+                          <HiPause className="w-3.5 h-3.5 text-[#16b09f]" />
                           <span>PAUSE</span>
                         </>
                       ) : (
                         <>
-                          <HiPlay className="w-3.5 h-3.5 text-[#14AF9E]" />
+                          <HiPlay className="w-3.5 h-3.5 text-[#16b09f]" />
                           <span>PLAY PREVIEW</span>
                         </>
                       )}
@@ -2197,7 +2197,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-neutral-900/60 border border-white/10">
                     <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
                       <span>0% (Awal)</span>
-                      <span className="text-[#14AF9E] font-semibold">
+                      <span className="text-[#16b09f] font-semibold">
                         {tx("Geser slider untuk memutar preview sequence", "Scrub slider to rotate sequence preview")}
                       </span>
                       <span>100% (Akhir)</span>
@@ -2211,7 +2211,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         setSeqScrubIdx(Number(e.target.value));
                         setSeqIsAutoPlaying(false);
                       }}
-                      className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#14AF9E]"
+                      className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#16b09f]"
                     />
                   </div>
                 </div>
@@ -2225,7 +2225,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       onClick={() => setSeqActiveTab("upload")}
                       className={`flex-1 py-1.5 text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
                         seqActiveTab === "upload"
-                          ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                          ? "bg-[#16b09f] text-black font-bold shadow-sm"
                           : "text-neutral-400 hover:text-white"
                       }`}
                     >
@@ -2236,7 +2236,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       onClick={() => setSeqActiveTab("folder")}
                       className={`flex-1 py-1.5 text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
                         seqActiveTab === "folder"
-                          ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                          ? "bg-[#16b09f] text-black font-bold shadow-sm"
                           : "text-neutral-400 hover:text-white"
                       }`}
                     >
@@ -2267,9 +2267,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                       <div
                         onClick={() => seqFileInputRef.current?.click()}
-                        className="p-4 rounded-xl border border-dashed border-white/20 hover:border-[#14AF9E]/60 bg-neutral-900/40 hover:bg-neutral-900/80 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-2 group"
+                        className="p-4 rounded-xl border border-dashed border-white/20 hover:border-[#16b09f]/60 bg-neutral-900/40 hover:bg-neutral-900/80 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-2 group"
                       >
-                        <HiArrowUpTray className="w-6 h-6 text-[#14AF9E] group-hover:scale-110 transition-transform" />
+                        <HiArrowUpTray className="w-6 h-6 text-[#16b09f] group-hover:scale-110 transition-transform" />
                         <div>
                           <span className="text-xs font-semibold text-white">
                             {seqSelectedFiles.length > 0
@@ -2283,7 +2283,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       </div>
 
                       {seqUploadMsg && (
-                        <div className="p-2.5 rounded-lg bg-neutral-900 border border-white/10 text-[11px] font-mono text-[#14AF9E]">
+                        <div className="p-2.5 rounded-lg bg-neutral-900 border border-white/10 text-[11px] font-mono text-[#16b09f]">
                           {seqUploadMsg}
                         </div>
                       )}
@@ -2292,7 +2292,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         type="button"
                         onClick={handleUploadSequenceBatch}
                         disabled={seqSelectedFiles.length === 0 || seqIsUploading}
-                        className="w-full py-2.5 px-4 rounded-xl bg-[#14AF9E] hover:bg-[#119889] disabled:opacity-40 disabled:hover:bg-[#14AF9E] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                        className="w-full py-2.5 px-4 rounded-xl bg-[#16b09f] hover:bg-[#119889] disabled:opacity-40 disabled:hover:bg-[#16b09f] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#16b09f]/20 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                       >
                         {seqIsUploading ? (
                           <>
@@ -2331,7 +2331,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             value={hbSeqFolder}
                             onChange={(e) => setHbSeqFolder(e.target.value)}
                             placeholder="/sequence"
-                            className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                            className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
                           />
                         </div>
 
@@ -2345,7 +2345,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               value={hbSeqPattern}
                               onChange={(e) => setHbSeqPattern(e.target.value)}
                               placeholder="frame_{padded}.webp"
-                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
                             />
                           </div>
 
@@ -2359,7 +2359,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               max={300}
                               value={hbSeqTotal}
                               onChange={(e) => setHbSeqTotal(Number(e.target.value))}
-                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
                             />
                           </div>
                         </div>
@@ -2376,7 +2376,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               value={hbSeqPadding}
                               onChange={(e) => setHbSeqPadding(Number(e.target.value))}
                               placeholder="6"
-                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
                             />
                           </div>
 
@@ -2391,7 +2391,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               value={hbSeqStart}
                               onChange={(e) => setHbSeqStart(Number(e.target.value))}
                               placeholder="0"
-                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#14AF9E] focus:outline-none"
+                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
                             />
                           </div>
                         </div>
@@ -2402,7 +2402,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onClick={handleApplyFolderConfig}
                         className="w-full py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs sm:text-sm border border-white/15 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
                       >
-                        <HiCheck className="w-4 h-4 text-[#14AF9E]" />
+                        <HiCheck className="w-4 h-4 text-[#16b09f]" />
                         <span>{tx("Terapkan Folder & Muat Sequence", "Apply Folder & Load Sequence")}</span>
                       </button>
                     </div>
@@ -2413,7 +2413,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {/* MOUSE TRACKING TOGGLE & INTENSITY CONTROL */}
               <div className="p-4 rounded-xl bg-neutral-900/50 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-[#14AF9E]/15 border border-[#14AF9E]/30 flex items-center justify-center text-[#14AF9E] shrink-0 mt-0.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f] shrink-0 mt-0.5">
                     <HiSparkles className="w-4 h-4" />
                   </div>
                   <div>
@@ -2421,7 +2421,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <span className="text-xs sm:text-sm font-bold text-white">
                         {tx("Gerakan Mengikuti Kursor Mouse (Interactive Mouse Tracking)", "Interactive Mouse Tracking")}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-[#14AF9E]/20 text-[#14AF9E] font-semibold">
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-[#16b09f]/20 text-[#16b09f] font-semibold">
                         {hbSeqMouseTracking ? (tx("AKTIF", "ENABLED")) : (tx("NONAKTIF", "DISABLED"))}
                       </span>
                     </div>
@@ -2440,7 +2440,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <select
                         value={hbSeqMouseIntensity}
                         onChange={(e) => setHbSeqMouseIntensity(Number(e.target.value))}
-                        className="px-2.5 py-1.5 rounded-lg bg-neutral-800 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg bg-neutral-800 border border-white/15 text-white text-xs font-mono focus:border-[#16b09f] focus:outline-none cursor-pointer"
                       >
                         <option value={14}>{tx("Halus (14 Frame)", "Subtle (14 Frames)")}</option>
                         <option value={26}>{tx("Sedang / Natural (26 Frame)", "Medium / Natural (26 Frames)")}</option>
@@ -2454,7 +2454,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onClick={() => setHbSeqMouseTracking(!hbSeqMouseTracking)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
                       hbSeqMouseTracking
-                        ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                        ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
                         : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-white/10"
                     }`}
                   >
@@ -2468,7 +2468,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <HiSparkles className="w-4 h-4 text-[#14AF9E]" />
+                  <HiSparkles className="w-4 h-4 text-[#16b09f]" />
                   <span>{tx("Bagian 1: Identitas Hero Utama (Layar Pertama)", "Part 1: Primary Hero Identity (First Screen)")}</span>
                 </h3>
                 <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 0% - 25%</span>
@@ -2484,7 +2484,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hbName}
                     onChange={(e) => setHbName(e.target.value)}
                     placeholder="Contoh: Fomy R"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                   <p className="text-[10px] text-neutral-500 font-mono">Tampil dengan ukuran font paling besar di tengah.</p>
                 </div>
@@ -2498,7 +2498,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hbRole}
                     onChange={(e) => setHbRole(e.target.value)}
                     placeholder="Contoh: AI-Powered Creative Designer"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                   <p className="text-[10px] text-neutral-500 font-mono">Teks di bawah nama utama dengan gaya font mono.</p>
                 </div>
@@ -2512,7 +2512,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hbScrollText}
                     onChange={(e) => setHbScrollText(e.target.value)}
                     placeholder="Contoh: SCROLL atau GULIR"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                   <p className="text-[10px] text-neutral-500 font-mono">Teks di bawah ikon mouse berkedip.</p>
                 </div>
@@ -2539,7 +2539,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hbSec2H1}
                     onChange={(e) => setHbSec2H1(e.target.value)}
                     placeholder="Contoh: Results-driven"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -2552,7 +2552,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hbSec2H2}
                     onChange={(e) => setHbSec2H2(e.target.value)}
                     placeholder="Contoh: creative"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
               </div>
@@ -2566,7 +2566,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   value={hbSec2Body}
                   onChange={(e) => setHbSec2Body(e.target.value)}
                   placeholder="Deskripsi keahlian dan pengalaman..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] leading-relaxed"
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed"
                 />
               </div>
             </div>
@@ -2591,7 +2591,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hbSec3H1}
                     onChange={(e) => setHbSec3H1(e.target.value)}
                     placeholder="Contoh: Creative"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -2604,7 +2604,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hbSec3H2}
                     onChange={(e) => setHbSec3H2(e.target.value)}
                     placeholder="Contoh: meets AI"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
               </div>
@@ -2618,7 +2618,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   value={hbSec3Body}
                   onChange={(e) => setHbSec3Body(e.target.value)}
                   placeholder="Deskripsi AI workflow dan modern vision..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] leading-relaxed"
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed"
                 />
               </div>
             </div>
@@ -2749,7 +2749,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <button
                   type="button"
                   onClick={handleSavePortfolioIntro}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-[#14AF9E] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-[#16b09f] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                 >
                   <HiCheck className="w-4 h-4" />
                   <span>{tx("Simpan Header Portofolio", "Save Portfolio Header")}</span>
@@ -2773,7 +2773,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <button
                   type="button"
                   onClick={() => setIsAddFolderOpen(true)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#14AF9E]/15 hover:bg-[#14AF9E]/25 text-[#14AF9E] border border-[#14AF9E]/35 text-xs font-mono font-semibold transition-all cursor-pointer hover:scale-105 active:scale-95"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/35 text-xs font-mono font-semibold transition-all cursor-pointer hover:scale-105 active:scale-95"
                 >
                   <HiFolderPlus className="w-4 h-4" />
                   <span>{tx("Buat Folder Baru", "Create New Folder")}</span>
@@ -2808,7 +2808,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           </span>
                           <div className="flex items-center gap-1">
                             <HiFolder
-                              className={`w-4 h-4 ${isSelected ? "text-[#14AF9E]" : "text-neutral-500"}`}
+                              className={`w-4 h-4 ${isSelected ? "text-[#16b09f]" : "text-neutral-500"}`}
                             />
                           </div>
                         </div>
@@ -2913,7 +2913,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         placeholder={
                           tx(`Tuliskan profil atau penjelasan brand ${selectedClient.clientName}, cakupan kampanye, atau nilai tambah kolaborasi...`, `Write brand profile or overview for ${selectedClient.clientName}, campaign scope, or creative collaboration value...`)
                         }
-                        className="w-full p-3.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all leading-relaxed"
+                        className="w-full p-3.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all leading-relaxed"
                       />
                     </div>
 
@@ -2933,7 +2933,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={clientToolsInput}
                         onChange={(e) => setClientToolsInput(e.target.value)}
                         placeholder="Figma, Photoshop, Magnific AI, ChatGPT, Gemini..."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                       />
 
                       {/* Quick Select Tool Badges */}
@@ -2967,7 +2967,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 onClick={() => toggleToolChip(toolName)}
                                 className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5 ${
                                   isIncluded
-                                    ? "bg-[#14AF9E] text-black font-bold shadow-md shadow-[#14AF9E]/25 border border-[#14AF9E]"
+                                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25 border border-[#16b09f]"
                                     : "bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10"
                                 }`}
                               >
@@ -2985,7 +2985,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="flex items-center gap-3 pt-1">
                       <button
                         type="submit"
-                        className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
+                        className="flex items-center justify-center gap-2 py-2.5 px-5 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer"
                       >
                         <HiCheck className="w-4 h-4" />
                         <span>{tx("Simpan Deskripsi & Tag Tools (Auto-Update Web)", "Save Description & Tool Tags (Auto-Update Web)")}</span>
@@ -3007,7 +3007,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {/* Gallery Header + Upload Trigger Button */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
                     <div>
-                      <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                      <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                         {tx("ASET PORTOFOLIO", "PORTFOLIO ASSETS")} · FOLDER {selectedClient.clientName.toUpperCase()}
                       </span>
                       <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
@@ -3024,7 +3024,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <button
                       type="button"
                       onClick={() => setIsUploadModalOpen(true)}
-                      className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer shrink-0"
+                      className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#16b09f] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer shrink-0"
                     >
                       <HiArrowUpTray className="w-4 h-4" />
                       <span>{tx("Tambah Gambar Portofolio", "Add New Portfolio Image")}</span>
@@ -3143,7 +3143,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           >
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
                 SECTION CONTROL: HERO & SELECTED WORKS
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
@@ -3158,7 +3158,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#14AF9E]/15 border border-[#14AF9E]/30 flex items-center justify-center text-[#14AF9E]">
+                  <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f]">
                     <HiSparkles className="w-4 h-4" />
                   </div>
                   <div>
@@ -3183,7 +3183,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage2Tag}
                     onChange={(e) => setHwStage2Tag(e.target.value)}
                     placeholder="AI-DRIVEN CREATIVE"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -3196,7 +3196,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage2Headline}
                     onChange={(e) => setHwStage2Headline(e.target.value)}
                     placeholder="Design. Motion. AI."
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -3209,7 +3209,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage2Desc}
                     onChange={(e) => setHwStage2Desc(e.target.value)}
                     placeholder="Senior Graphic Designer & Digital Artist..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -3222,7 +3222,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage2BtnText}
                     onChange={(e) => setHwStage2BtnText(e.target.value)}
                     placeholder="Explore My Work"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -3235,7 +3235,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage2Badges}
                     onChange={(e) => setHwStage2Badges(e.target.value)}
                     placeholder="@rizx, @malaka"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -3248,7 +3248,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage2Skills}
                     onChange={(e) => setHwStage2Skills(e.target.value)}
                     placeholder="Branding, Motion, 3D Design, UI/UX, AI Visuals"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
               </div>
@@ -3283,7 +3283,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           className="w-full h-full object-cover"
                         />
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-xs text-white font-medium gap-1">
-                          <HiArrowUpTray className="w-5 h-5 text-[#14AF9E]" />
+                          <HiArrowUpTray className="w-5 h-5 text-[#16b09f]" />
                           <span>Ganti Gambar</span>
                           <input
                             type="file"
@@ -3312,7 +3312,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             );
                           }}
                           placeholder="Judul Kartu"
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#14AF9E]"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#16b09f]"
                         />
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-mono text-neutral-400">Rotasi (°):</span>
@@ -3345,7 +3345,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* Form Tambah Kartu Baru */}
                 <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <HiPlus className="w-4 h-4 text-[#14AF9E]" />
+                    <HiPlus className="w-4 h-4 text-[#16b09f]" />
                     <span>{tx("Tambah Kartu Hero Baru", "Add New Hero Card")}</span>
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -3354,17 +3354,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={newOverTitle}
                       onChange={(e) => setNewOverTitle(e.target.value)}
                       placeholder="Judul Kartu (contoh: 3D Visual)"
-                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#14AF9E]"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#16b09f]"
                     />
                     <input
                       type="number"
                       value={newOverRotate}
                       onChange={(e) => setNewOverRotate(e.target.value)}
                       placeholder="Rotasi derajat (contoh: 5)"
-                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#14AF9E]"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
                     />
                     <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
-                      <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
+                      <HiPhoto className="w-4 h-4 text-[#16b09f]" />
                       <span className="truncate">
                         {newOverImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
                       </span>
@@ -3388,7 +3388,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <button
                         type="button"
                         onClick={handleAddOverlappingCard}
-                        className="px-4 py-2 rounded-xl bg-[#14AF9E] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-[#16b09f] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
                       >
                         + Masukkan Kartu ke Hero
                       </button>
@@ -3402,7 +3402,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#14AF9E]/15 border border-[#14AF9E]/30 flex items-center justify-center text-[#14AF9E]">
+                  <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f]">
                     <HiFolder className="w-4 h-4" />
                   </div>
                   <div>
@@ -3427,7 +3427,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage1Badge}
                     onChange={(e) => setHwStage1Badge(e.target.value)}
                     placeholder="SELECTED WORKS"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -3440,7 +3440,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage1Headline}
                     onChange={(e) => setHwStage1Headline(e.target.value)}
                     placeholder="A Range of Work. One Creative Vision."
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -3453,7 +3453,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage1Subheadline}
                     onChange={(e) => setHwStage1Subheadline(e.target.value)}
                     placeholder="Explore selected projects across branding, motion..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
 
@@ -3466,7 +3466,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={hwStage1ScrollText}
                     onChange={(e) => setHwStage1ScrollText(e.target.value)}
                     placeholder="Scroll down ↓"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
               </div>
@@ -3501,7 +3501,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           className="w-full h-full object-cover"
                         />
                         <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-xs text-white font-medium gap-1">
-                          <HiArrowUpTray className="w-5 h-5 text-[#14AF9E]" />
+                          <HiArrowUpTray className="w-5 h-5 text-[#16b09f]" />
                           <span>Ganti Gambar</span>
                           <input
                             type="file"
@@ -3530,7 +3530,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             );
                           }}
                           placeholder="Judul"
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#14AF9E]"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#16b09f]"
                         />
                         <input
                           type="text"
@@ -3542,7 +3542,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             );
                           }}
                           placeholder="Kategori"
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#14AF9E]"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
                         />
                       </div>
 
@@ -3561,7 +3561,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* Form Tambah Kartu Deck Baru */}
                 <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
                   <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <HiPlus className="w-4 h-4 text-[#14AF9E]" />
+                    <HiPlus className="w-4 h-4 text-[#16b09f]" />
                     <span>{tx("Tambah Kartu Deck Baru", "Add New Deck Card")}</span>
                   </span>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -3570,17 +3570,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={newDeckTitle}
                       onChange={(e) => setNewDeckTitle(e.target.value)}
                       placeholder="Judul (contoh: Motion Design)"
-                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#14AF9E]"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#16b09f]"
                     />
                     <input
                       type="text"
                       value={newDeckCategory}
                       onChange={(e) => setNewDeckCategory(e.target.value)}
                       placeholder="Kategori (contoh: 3D & AI)"
-                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#14AF9E]"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
                     />
                     <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
-                      <HiPhoto className="w-4 h-4 text-[#14AF9E]" />
+                      <HiPhoto className="w-4 h-4 text-[#16b09f]" />
                       <span className="truncate">
                         {newDeckImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
                       </span>
@@ -3604,7 +3604,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <button
                         type="button"
                         onClick={handleAddDeckCard}
-                        className="px-4 py-2 rounded-xl bg-[#14AF9E] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-[#16b09f] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
                       >
                         + Masukkan Kartu ke Selected Works
                       </button>
@@ -3628,7 +3628,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           >
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
                 SECTION CONTROL: RUNNING PORTOFOLIO (MARQUEE 4:5)
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
@@ -3642,7 +3642,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             {/* Section Header Title Editor */}
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
               <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                <HiTag className="w-4 h-4 text-[#14AF9E]" />
+                <HiTag className="w-4 h-4 text-[#16b09f]" />
                 <span>{tx("Judul Label Section", "Section Header Label")}</span>
               </h3>
               <div className="space-y-1.5 max-w-xl">
@@ -3651,7 +3651,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   value={runnerTitle}
                   onChange={(e) => setRunnerTitle(e.target.value)}
                   placeholder="SELECTED WORKS"
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                 />
                 <p className="text-[11px] text-neutral-500 font-mono">
                   {tx("Teks label kecil yang tampil di atas strip marquee running portofolio.", "Small label appearing above the running marquee strip.")}
@@ -3663,10 +3663,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <HiSparkles className="w-4 h-4 text-[#14AF9E]" />
+                  <HiSparkles className="w-4 h-4 text-[#16b09f]" />
                   <span>{tx("Pengaturan Gerakan, Kecepatan & Efek Gelombang", "Motion, Speed & Wave Effect Controls")}</span>
                 </h3>
-                <span className="text-[10px] font-mono text-[#14AF9E] uppercase font-semibold">
+                <span className="text-[10px] font-mono text-[#16b09f] uppercase font-semibold">
                   {tx("Interaktif Real-Time", "Real-Time Interactive")}
                 </span>
               </div>
@@ -3676,7 +3676,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-neutral-300 font-semibold">{tx("Kecepatan Baris 1 (Atas)", "Row 1 Speed")}</span>
-                    <span className="text-[#14AF9E] font-bold">{runnerSpeedRow1} detik/putaran</span>
+                    <span className="text-[#16b09f] font-bold">{runnerSpeedRow1} detik/putaran</span>
                   </div>
                   <input
                     type="range"
@@ -3685,7 +3685,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     step={5}
                     value={runnerSpeedRow1}
                     onChange={(e) => setRunnerSpeedRow1(Number(e.target.value))}
-                    className="w-full accent-[#14AF9E] cursor-pointer"
+                    className="w-full accent-[#16b09f] cursor-pointer"
                   />
                   <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
                     <span>Cepat (35s)</span>
@@ -3696,7 +3696,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-mono">
                     <span className="text-neutral-300 font-semibold">{tx("Kecepatan Baris 2 (Bawah)", "Row 2 Speed")}</span>
-                    <span className="text-[#14AF9E] font-bold">{runnerSpeedRow2} detik/putaran</span>
+                    <span className="text-[#16b09f] font-bold">{runnerSpeedRow2} detik/putaran</span>
                   </div>
                   <input
                     type="range"
@@ -3705,7 +3705,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     step={5}
                     value={runnerSpeedRow2}
                     onChange={(e) => setRunnerSpeedRow2(Number(e.target.value))}
-                    className="w-full accent-[#14AF9E] cursor-pointer"
+                    className="w-full accent-[#16b09f] cursor-pointer"
                   />
                   <div className="flex justify-between text-[10px] text-neutral-500 font-mono">
                     <span>Cepat (35s)</span>
@@ -3723,7 +3723,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <select
                     value={runnerDirRow1}
                     onChange={(e) => setRunnerDirRow1(e.target.value as "left" | "right")}
-                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#16b09f] focus:outline-none cursor-pointer"
                   >
                     <option value="left">{tx("Scroll ke Kiri ←", "Scroll Left ←")}</option>
                     <option value="right">{tx("Scroll ke Kanan →", "Scroll Right →")}</option>
@@ -3737,7 +3737,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <select
                     value={runnerDirRow2}
                     onChange={(e) => setRunnerDirRow2(e.target.value as "left" | "right")}
-                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#14AF9E] focus:outline-none cursor-pointer"
+                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#16b09f] focus:outline-none cursor-pointer"
                   >
                     <option value="right">{tx("Scroll ke Kanan →", "Scroll Right →")}</option>
                     <option value="left">{tx("Scroll ke Kiri ←", "Scroll Left ←")}</option>
@@ -3753,7 +3753,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onClick={() => setRunnerPauseOnHover(!runnerPauseOnHover)}
                     className={`w-full py-2 px-3 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer flex items-center justify-between border ${
                       runnerPauseOnHover
-                        ? "bg-[#14AF9E]/20 text-[#14AF9E] border-[#14AF9E]/50"
+                        ? "bg-[#16b09f]/20 text-[#16b09f] border-[#16b09f]/50"
                         : "bg-neutral-900 text-neutral-400 border-white/15 hover:bg-neutral-800"
                     }`}
                   >
@@ -3779,7 +3779,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onClick={() => setRunnerWaveEnabled(!runnerWaveEnabled)}
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
                       runnerWaveEnabled
-                        ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                        ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
                         : "bg-neutral-800 text-neutral-400 border border-white/10"
                     }`}
                   >
@@ -3792,7 +3792,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
                         <span className="text-neutral-400">{tx("Tinggi Melayang:", "Lift Height:")}</span>
-                        <span className="text-[#14AF9E] font-bold">-{runnerWaveLift}px</span>
+                        <span className="text-[#16b09f] font-bold">-{runnerWaveLift}px</span>
                       </div>
                       <input
                         type="range"
@@ -3800,14 +3800,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         max={35}
                         value={runnerWaveLift}
                         onChange={(e) => setRunnerWaveLift(Number(e.target.value))}
-                        className="w-full accent-[#14AF9E] cursor-pointer"
+                        className="w-full accent-[#16b09f] cursor-pointer"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
                         <span className="text-neutral-400">{tx("Skala Pembesaran:", "Card Scale:")}</span>
-                        <span className="text-[#14AF9E] font-bold">{runnerWaveScale}x</span>
+                        <span className="text-[#16b09f] font-bold">{runnerWaveScale}x</span>
                       </div>
                       <input
                         type="range"
@@ -3816,14 +3816,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         step={0.01}
                         value={runnerWaveScale}
                         onChange={(e) => setRunnerWaveScale(Number(e.target.value))}
-                        className="w-full accent-[#14AF9E] cursor-pointer"
+                        className="w-full accent-[#16b09f] cursor-pointer"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <div className="flex justify-between text-xs font-mono">
                         <span className="text-neutral-400">{tx("Jangkauan Ombak:", "Wave Radius:")}</span>
-                        <span className="text-[#14AF9E] font-bold">{runnerWaveRadius}px</span>
+                        <span className="text-[#16b09f] font-bold">{runnerWaveRadius}px</span>
                       </div>
                       <input
                         type="range"
@@ -3832,7 +3832,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         step={10}
                         value={runnerWaveRadius}
                         onChange={(e) => setRunnerWaveRadius(Number(e.target.value))}
-                        className="w-full accent-[#14AF9E] cursor-pointer"
+                        className="w-full accent-[#16b09f] cursor-pointer"
                       />
                     </div>
                   </div>
@@ -3844,10 +3844,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-5">
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <HiPlus className="w-4 h-4 text-[#14AF9E]" />
+                  <HiPlus className="w-4 h-4 text-[#16b09f]" />
                   <span>{tx("Tambah Karya Baru ke Running Portofolio (4:5)", "Add New Item to Running Portfolio (4:5)")}</span>
                 </h3>
-                <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-[#14AF9E]/15 text-[#14AF9E] border border-[#14AF9E]/30 font-semibold">
+                <span className="text-[11px] font-mono px-2.5 py-0.5 rounded-full bg-[#16b09f]/15 text-[#16b09f] border border-[#16b09f]/30 font-semibold">
                   Rasio 4:5
                 </span>
               </div>
@@ -3865,7 +3865,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={newRunnerTitle}
                         onChange={(e) => setNewRunnerTitle(e.target.value)}
                         placeholder="Contoh: KIA EV2 Concept"
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       />
                     </div>
 
@@ -3878,7 +3878,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={newRunnerCategory}
                         onChange={(e) => setNewRunnerCategory(e.target.value)}
                         placeholder="Contoh: Automotive, Branding, UI/UX"
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       />
                     </div>
                   </div>
@@ -3890,7 +3890,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <select
                       value={newRunnerRow}
                       onChange={(e) => setNewRunnerRow(parseInt(e.target.value) as 1 | 2)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                     >
                       <option value={1}>{tx("Baris 1 (Scroll ke Kiri)", "Row 1 (Scrolls Left)")}</option>
                       <option value={2}>{tx("Baris 2 (Scroll ke Kanan)", "Row 2 (Scrolls Right)")}</option>
@@ -3908,10 +3908,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={newRunnerImage}
                         onChange={(e) => setNewRunnerImage(e.target.value)}
                         placeholder="/works/client-KIA/KIA EV2_B.jpg atau URL online"
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       />
                       <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
-                        <HiArrowUpTray className="w-4 h-4 text-[#14AF9E]" />
+                        <HiArrowUpTray className="w-4 h-4 text-[#16b09f]" />
                         <span>{tx("Upload File", "Upload File")}</span>
                         <input
                           type="file"
@@ -3928,7 +3928,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <button
                     type="button"
                     onClick={handleAddRunnerItem}
-                    className="px-5 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+                    className="px-5 py-2.5 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#16b09f]/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                   >
                     <HiPlus className="w-4 h-4" />
                     <span>Running</span>
@@ -3958,7 +3958,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <p className="text-white text-xs font-bold truncate leading-tight">
                         {newRunnerTitle || (tx("Judul Karya", "Item Title"))}
                       </p>
-                      <p className="text-[#14AF9E] text-[10px] font-mono truncate">
+                      <p className="text-[#16b09f] text-[10px] font-mono truncate">
                         {newRunnerCategory || "Category"}
                       </p>
                     </div>
@@ -3975,7 +3975,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
                 <div>
                   <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                    <HiFolder className="w-4 h-4 text-[#14AF9E]" />
+                    <HiFolder className="w-4 h-4 text-[#16b09f]" />
                     <span>{tx("Daftar Karya di Running Portofolio", "Running Portfolio Items List")}</span>
                     <span className="px-2 py-0.5 rounded-full bg-white/10 text-xs font-mono text-neutral-300">
                       {runnerItems.length}
@@ -3993,7 +3993,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onClick={() => setRunnerFilterRow("all")}
                     className={`px-3 py-1 rounded-lg transition-all ${
                       runnerFilterRow === "all"
-                        ? "bg-[#14AF9E] text-black font-bold"
+                        ? "bg-[#16b09f] text-black font-bold"
                         : "text-neutral-400 hover:text-white"
                     }`}
                   >
@@ -4004,7 +4004,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onClick={() => setRunnerFilterRow(1)}
                     className={`px-3 py-1 rounded-lg transition-all ${
                       runnerFilterRow === 1
-                        ? "bg-[#14AF9E] text-black font-bold"
+                        ? "bg-[#16b09f] text-black font-bold"
                         : "text-neutral-400 hover:text-white"
                     }`}
                   >
@@ -4015,7 +4015,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onClick={() => setRunnerFilterRow(2)}
                     className={`px-3 py-1 rounded-lg transition-all ${
                       runnerFilterRow === 2
-                        ? "bg-[#14AF9E] text-black font-bold"
+                        ? "bg-[#16b09f] text-black font-bold"
                         : "text-neutral-400 hover:text-white"
                     }`}
                   >
@@ -4094,7 +4094,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             <p className="text-white text-xs font-bold truncate leading-tight">
                               {item.title}
                             </p>
-                            <p className="text-[#14AF9E] text-[10px] font-mono font-medium truncate mt-0.5">
+                            <p className="text-[#16b09f] text-[10px] font-mono font-medium truncate mt-0.5">
                               {item.category}
                             </p>
                           </div>
@@ -4108,12 +4108,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             className="text-neutral-400 hover:text-white transition-colors flex items-center gap-1 cursor-pointer"
                           >
                             <span>Pindah</span>
-                            <span className="text-[#14AF9E]">B{item.row === 1 ? 2 : 1}</span>
+                            <span className="text-[#16b09f]">B{item.row === 1 ? 2 : 1}</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditingRunnerItem({ ...item })}
-                            className="text-[#14AF9E] hover:underline cursor-pointer"
+                            className="text-[#16b09f] hover:underline cursor-pointer"
                           >
                             Edit
                           </button>
@@ -4133,7 +4133,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="w-full max-w-lg rounded-2xl bg-neutral-950 border border-white/15 p-5 sm:p-7 space-y-5 shadow-2xl">
                   <div className="flex items-center justify-between border-b border-white/10 pb-3">
                     <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <HiPencilSquare className="w-5 h-5 text-[#14AF9E]" />
+                      <HiPencilSquare className="w-5 h-5 text-[#16b09f]" />
                       <span>{tx("Edit Karya Running Portofolio", "Edit Running Portfolio Item")}</span>
                     </h3>
                     <button
@@ -4156,7 +4156,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onChange={(e) =>
                           setEditingRunnerItem({ ...editingRunnerItem, title: e.target.value })
                         }
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       />
                     </div>
 
@@ -4170,7 +4170,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onChange={(e) =>
                           setEditingRunnerItem({ ...editingRunnerItem, category: e.target.value })
                         }
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       />
                     </div>
 
@@ -4186,7 +4186,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             row: parseInt(e.target.value) as 1 | 2,
                           })
                         }
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       >
                         <option value={1}>{tx("Baris 1 (Scroll ke Kiri)", "Row 1 (Scrolls Left)")}</option>
                         <option value={2}>{tx("Baris 2 (Scroll ke Kanan)", "Row 2 (Scrolls Right)")}</option>
@@ -4205,10 +4205,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           onChange={(e) =>
                             setEditingRunnerItem({ ...editingRunnerItem, image: e.target.value })
                           }
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                          className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                         />
                         <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
-                          <HiArrowUpTray className="w-4 h-4 text-[#14AF9E]" />
+                          <HiArrowUpTray className="w-4 h-4 text-[#16b09f]" />
                           <span>Upload File</span>
                           <input
                             type="file"
@@ -4239,7 +4239,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         <p className="text-xs font-bold text-white truncate">
                           {editingRunnerItem.title}
                         </p>
-                        <p className="text-[11px] text-[#14AF9E] font-mono truncate">
+                        <p className="text-[11px] text-[#16b09f] font-mono truncate">
                           {editingRunnerItem.category}
                         </p>
                         <p className="text-[10px] text-neutral-400 font-mono mt-1">
@@ -4260,7 +4260,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <button
                       type="button"
                       onClick={handleUpdateEditingRunnerItem}
-                      className="px-5 py-2 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs shadow-md shadow-[#14AF9E]/30"
+                      className="px-5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs shadow-md shadow-[#16b09f]/30"
                     >
                       Update Karya
                     </button>
@@ -4282,7 +4282,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           >
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
                 SECTION CONTROL: ABOUT ME (WHO AM I)
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
@@ -4297,7 +4297,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {/* 1. Main Headline & Bio */}
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
-                  <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                     BAGIAN 1 · HEADER & NARASI UTAMA
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
@@ -4315,7 +4315,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={aboutEyebrow}
                       onChange={(e) => setAboutEyebrow(e.target.value)}
                       placeholder="WHO AM I"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] font-mono transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] font-mono transition-all"
                     />
                   </div>
 
@@ -4328,7 +4328,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={aboutTitle}
                       onChange={(e) => setAboutTitle(e.target.value)}
                       placeholder="About Me"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] transition-all"
                     />
                   </div>
                 </div>
@@ -4342,7 +4342,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={aboutHeadline}
                     onChange={(e) => setAboutHeadline(e.target.value)}
                     placeholder="Creative Designer & Motion Specialist | 11+ Years | Agency & Global Brands"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-semibold focus:outline-none focus:border-[#14AF9E] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-semibold focus:outline-none focus:border-[#16b09f] transition-all"
                   />
                 </div>
 
@@ -4355,7 +4355,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={aboutBio}
                     onChange={(e) => setAboutBio(e.target.value)}
                     placeholder="With 11+ years in creative design, I've evolved alongside the industry..."
-                    className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm leading-relaxed focus:outline-none focus:border-[#14AF9E] transition-all resize-none"
+                    className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm leading-relaxed focus:outline-none focus:border-[#16b09f] transition-all resize-none"
                   />
                 </div>
               </div>
@@ -4363,7 +4363,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {/* 2. Filosofi Inti (Core Philosophy) */}
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
-                  <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                     BAGIAN 2 · FILOSOFI INTI
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
@@ -4381,7 +4381,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={aboutPhilosophyTitle}
                       onChange={(e) => setAboutPhilosophyTitle(e.target.value)}
                       placeholder="CORE PHILOSOPHY"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] transition-all"
                     />
                   </div>
 
@@ -4394,7 +4394,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={aboutPhilosophyQuote}
                       onChange={(e) => setAboutPhilosophyQuote(e.target.value)}
                       placeholder="A creative professional's greatest advantage isn't resisting change — it's adapting faster."
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm italic focus:outline-none focus:border-[#14AF9E] transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm italic focus:outline-none focus:border-[#16b09f] transition-all"
                     />
                   </div>
                 </div>
@@ -4403,7 +4403,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {/* 3. Tiga Statistik Utama (3 Key Stats) */}
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
-                  <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                     BAGIAN 3 · STATISTIK PENGALAMAN
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
@@ -4414,7 +4414,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {/* Stat 1 */}
                   <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
-                    <label className="block text-[11px] font-mono text-[#14AF9E] font-semibold uppercase">
+                    <label className="block text-[11px] font-mono text-[#16b09f] font-semibold uppercase">
                       Statistik 1 (Warna Aksen Hijau/Cyan)
                     </label>
                     <input
@@ -4422,14 +4422,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={aboutStat1Num}
                       onChange={(e) => setAboutStat1Num(e.target.value)}
                       placeholder="11+"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#14AF9E]"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
                     />
                     <input
                       type="text"
                       value={aboutStat1Label}
                       onChange={(e) => setAboutStat1Label(e.target.value)}
                       placeholder="YEARS EXPERIENCE"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#14AF9E]"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
                     />
                   </div>
 
@@ -4443,14 +4443,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={aboutStat2Num}
                       onChange={(e) => setAboutStat2Num(e.target.value)}
                       placeholder="100+"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#14AF9E]"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
                     />
                     <input
                       type="text"
                       value={aboutStat2Label}
                       onChange={(e) => setAboutStat2Label(e.target.value)}
                       placeholder="PROJECTS"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#14AF9E]"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
                     />
                   </div>
 
@@ -4464,14 +4464,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={aboutStat3Num}
                       onChange={(e) => setAboutStat3Num(e.target.value)}
                       placeholder="20+"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#14AF9E]"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
                     />
                     <input
                       type="text"
                       value={aboutStat3Label}
                       onChange={(e) => setAboutStat3Label(e.target.value)}
                       placeholder="CLIENTS"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#14AF9E]"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
                     />
                   </div>
                 </div>
@@ -4480,7 +4480,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {/* 4. Sidebar Cards (Global Collaboration & Disciplines) */}
               <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
                 <div className="pb-3 border-b border-white/10">
-                  <span className="text-[10px] font-mono text-[#14AF9E] uppercase tracking-widest font-semibold block">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                     BAGIAN 4 · KARTU SAMPING (SIDEBAR CARDS)
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
@@ -4500,7 +4500,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={aboutCollabTitle}
                         onChange={(e) => setAboutCollabTitle(e.target.value)}
                         placeholder="Global Collaboration"
-                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       />
                     </div>
 
@@ -4513,7 +4513,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={aboutCollabDesc}
                         onChange={(e) => setAboutCollabDesc(e.target.value)}
                         placeholder="Producing scalable visual content, high-performing ads..."
-                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-[#14AF9E] resize-none"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-[#16b09f] resize-none"
                       />
                     </div>
                   </div>
@@ -4529,7 +4529,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={aboutDisciplinesTitle}
                         onChange={(e) => setAboutDisciplinesTitle(e.target.value)}
                         placeholder="Disciplines"
-                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E]"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       />
                     </div>
 
@@ -4547,7 +4547,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={aboutDisciplinesInput}
                         onChange={(e) => setAboutDisciplinesInput(e.target.value)}
                         placeholder="Creative Direction, Motion Graphics, Branding & Identity, UI/UX Design, Digital Advertising, Video Production"
-                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono leading-relaxed focus:outline-none focus:border-[#14AF9E] resize-none"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono leading-relaxed focus:outline-none focus:border-[#16b09f] resize-none"
                       />
                     </div>
                   </div>
@@ -4571,7 +4571,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
               <div className="flex items-start justify-between flex-wrap gap-4">
                 <div>
-                  <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+                  <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
                     SECTION CONTROL: STAGE 3
                   </span>
                   <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
@@ -4588,7 +4588,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         ? "bg-red-500/10 text-red-400 border border-red-500/30"
                         : flagshipMediaType === "gdrive" && previewGDriveId
                         ? "bg-blue-500/10 text-blue-400 border border-blue-500/30"
-                        : "bg-emerald-500/10 text-[#14AF9E] border border-[#14AF9E]/30"
+                        : "bg-emerald-500/10 text-[#16b09f] border border-[#16b09f]/30"
                     }`}
                   >
                     <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
@@ -4607,7 +4607,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
               {/* Informational Position Note */}
               <div className="mt-4 pt-4 border-t border-white/10 flex items-start gap-3 text-xs text-neutral-300">
-                <span className="p-1 rounded-md bg-[#14AF9E]/20 text-[#14AF9E] shrink-0 mt-0.5">
+                <span className="p-1 rounded-md bg-[#16b09f]/20 text-[#16b09f] shrink-0 mt-0.5">
                   <HiInformationCircle className="w-4 h-4" />
                 </span>
                 <p className="text-neutral-400 leading-relaxed text-[11px] sm:text-xs">
@@ -4625,7 +4625,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 >
                   <div className="flex items-center justify-between pb-2 border-b border-white/10">
                     <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                      <HiPencilSquare className="w-4 h-4 text-[#14AF9E]" />
+                      <HiPencilSquare className="w-4 h-4 text-[#16b09f]" />
                       Pengaturan Lengkap Section Flagship Showcase
                     </h3>
                     <span className="text-[10px] font-mono text-cyan-400">
@@ -4648,7 +4648,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={videoHeadline}
                         onChange={(e) => setVideoHeadline(e.target.value)}
                         placeholder="Contoh: A journey shaped by creativity and change."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                       />
                     </div>
 
@@ -4661,14 +4661,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={videoClassTag}
                         onChange={(e) => setVideoClassTag(e.target.value)}
                         placeholder="Contoh: CREATIVE JOURNEY | 2012 TO PRESENT"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                       />
                     </div>
                   </div>
 
                   {/* SECTION 2: VIDEO MEDIA & KONTEN DALAM CARD */}
                   <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-4">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#14AF9E] font-semibold block">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold block">
                       B. Media Player & Konten di Dalam Card Showcase
                     </span>
 
@@ -4714,7 +4714,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           }}
                           className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             flagshipMediaType === "image"
-                              ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                              ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
                               : "text-neutral-400 hover:text-white"
                           }`}
                         >
@@ -4740,7 +4740,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             }
                           }}
                           placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ atau dQw4w9WgXcQ"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                         />
                         <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500 font-mono">
                           <span>Mendukung: youtube.com/watch?v=..., youtu.be/..., shorts, atau raw ID</span>
@@ -4794,7 +4794,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <div className="space-y-3">
                         <div className="flex items-center justify-between">
                           <label className="block text-xs font-mono text-neutral-300 font-medium">
-                            {tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis")} <span className="text-[#14AF9E]">*</span>
+                            {tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis")} <span className="text-[#16b09f]">*</span>
                           </label>
                           {flagshipImageUrl && (
                             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
@@ -4810,10 +4810,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             onChange={(e) => setFlagshipImageUrl(e.target.value)}
                             placeholder="/assets/antigravity/hero-large.jpg atau URL gambar"
                             readOnly={flagshipImageUrl.startsWith("data:")}
-                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#14AF9E]"
+                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f]"
                           />
                           <label className="px-3.5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-mono font-medium border border-white/15 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all">
-                            <HiArrowUpTray className="w-3.5 h-3.5 text-[#14AF9E]" />
+                            <HiArrowUpTray className="w-3.5 h-3.5 text-[#16b09f]" />
                             <span>{flagshipImageUrl ? tx("Ganti", "Replace", "Ganti") : "Upload"}</span>
                             <input
                               type="file"
@@ -4916,7 +4916,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={videoTitle}
                           onChange={(e) => setVideoTitle(e.target.value)}
                           placeholder="From Visual Craft to Technology"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
                         />
                       </div>
                       <div>
@@ -4928,7 +4928,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={videoCategory}
                           onChange={(e) => setVideoCategory(e.target.value)}
                           placeholder="VISUAL CRAFT | DIGITAL | AI"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
                         />
                       </div>
                     </div>
@@ -4943,7 +4943,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={videoDescription}
                         onChange={(e) => setVideoDescription(e.target.value)}
                         placeholder="Tuliskan deskripsi karya unggulan, teknologi yang digunakan, atau konsep kreatif..."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#14AF9E] transition-all resize-y"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all resize-y"
                       />
                     </div>
 
@@ -4959,7 +4959,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         type="button"
                         onClick={() => setVideoEnabled(!videoEnabled)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
-                          videoEnabled ? "bg-[#14AF9E]" : "bg-neutral-800"
+                          videoEnabled ? "bg-[#16b09f]" : "bg-neutral-800"
                         }`}
                       >
                         <span
@@ -5000,7 +5000,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   {/* Section Top Header Preview */}
                   <div className="mb-3 px-1">
-                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#14AF9E] block mb-0.5 font-semibold">
+                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#16b09f] block mb-0.5 font-semibold">
                       {videoClassTag || "CREATIVE JOURNEY | 2012 TO PRESENT"}
                     </span>
                     <h3 className="text-sm sm:text-base font-bold text-white leading-tight">
@@ -5045,7 +5045,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     {/* Bottom Left: Title & Category */}
                     <div className="absolute bottom-3 left-3 z-20 max-w-[65%] pointer-events-none">
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-[#14AF9E] block mb-0.5 font-semibold truncate">
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-[#16b09f] block mb-0.5 font-semibold truncate">
                         {videoCategory || "VISUAL CRAFT | DIGITAL | AI"}
                       </span>
                       <h4 className="text-xs sm:text-sm font-bold text-white truncate">
@@ -5089,7 +5089,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           >
             {/* Header Explainer */}
             <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
-              <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold block mb-1">
+              <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
                 ADMIN SECURITY & CREDENTIALS
               </span>
               <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
@@ -5097,7 +5097,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 mt-1 max-w-3xl leading-relaxed">
                 {tx("Kelola kredensial login Admin Panel dan parameter URL rahasia. Perubahan langsung tersimpan di database Supabase Cloud dan LocalStorage sehingga Anda dapat login dengan akun & tautan baru di ", "Manage Admin Panel credentials and secret login URL. Changes update live in Supabase Cloud & LocalStorage for logging in at ")}
-                <code className="text-[#14AF9E] font-mono">?login={adminSecretKey || "secret"}</code>.
+                <code className="text-[#16b09f] font-mono">?login={adminSecretKey || "secret"}</code>.
               </p>
             </div>
 
@@ -5108,7 +5108,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {/* Username */}
                   <div>
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                      {tx("USERNAME ADMIN", "ADMIN USERNAME")} <span className="text-[#14AF9E]">*</span>
+                      {tx("USERNAME ADMIN", "ADMIN USERNAME")} <span className="text-[#16b09f]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -5119,7 +5119,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         autoCapitalize="none"
                         autoCorrect="off"
                         spellCheck={false}
-                        className="w-full px-4 py-3 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
+                        className="w-full px-4 py-3 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
                       />
                       <HiUser className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     </div>
@@ -5131,7 +5131,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {/* Recovery Email */}
                   <div>
                     <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                      {tx("EMAIL RECOVERY / VERIFIKASI", "RECOVERY / VERIFICATION EMAIL")} <span className="text-[#14AF9E]">*</span>
+                      {tx("EMAIL RECOVERY / VERIFIKASI", "RECOVERY / VERIFICATION EMAIL")} <span className="text-[#16b09f]">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -5139,7 +5139,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={adminEmail}
                         onChange={(e) => setAdminEmail(e.target.value)}
                         placeholder="rizxstudioproject@gmail.com"
-                        className="w-full px-4 py-3 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
+                        className="w-full px-4 py-3 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
                       />
                       <HiEnvelope className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
                     </div>
@@ -5152,13 +5152,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="pt-2 border-t border-white/10">
                     <div className="flex items-center justify-between mb-1.5">
                       <label className="block text-xs font-mono text-neutral-300 font-medium tracking-wide">
-                        {tx("KATA KUNCI URL LOGIN RAHASIA ADMIN", "SECRET ADMIN LOGIN URL PARAMETER")} <span className="text-[#14AF9E]">*</span>
+                        {tx("KATA KUNCI URL LOGIN RAHASIA ADMIN", "SECRET ADMIN LOGIN URL PARAMETER")} <span className="text-[#16b09f]">*</span>
                       </label>
-                      <span className="text-[10px] font-mono text-[#14AF9E] px-2 py-0.5 rounded bg-[#14AF9E]/10 border border-[#14AF9E]/30">
+                      <span className="text-[10px] font-mono text-[#16b09f] px-2 py-0.5 rounded bg-[#16b09f]/10 border border-[#16b09f]/30">
                         ?login={adminSecretKey || "secret"}
                       </span>
                     </div>
-                    <div className="relative flex rounded-xl bg-neutral-950 border border-white/15 focus-within:border-[#14AF9E] focus-within:ring-1 focus-within:ring-[#14AF9E] transition-all overflow-hidden">
+                    <div className="relative flex rounded-xl bg-neutral-950 border border-white/15 focus-within:border-[#16b09f] focus-within:ring-1 focus-within:ring-[#16b09f] transition-all overflow-hidden">
                       <span className="inline-flex items-center px-3.5 bg-white/5 border-r border-white/10 text-neutral-400 font-mono text-xs select-none">
                         https://rizxstudio.com/?login=
                       </span>
@@ -5170,7 +5170,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           setAdminSecretKey(clean);
                         }}
                         placeholder="secret"
-                        className="flex-1 px-3.5 py-3 bg-transparent text-[#14AF9E] font-bold text-sm font-mono focus:outline-none placeholder:text-neutral-600"
+                        className="flex-1 px-3.5 py-3 bg-transparent text-[#16b09f] font-bold text-sm font-mono focus:outline-none placeholder:text-neutral-600"
                       />
                     </div>
                     <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono text-neutral-400 mt-1.5">
@@ -5200,7 +5200,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={adminPass}
                         onChange={(e) => setAdminPass(e.target.value)}
                         placeholder={tx("Ketik password baru (minimal 6 karakter)", "Enter new password (min. 6 characters)")}
-                        className="w-full px-4 py-3 pr-12 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
+                        className="w-full px-4 py-3 pr-12 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
                       />
                       <button
                         type="button"
@@ -5217,14 +5217,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {adminPass && (
                     <div>
                       <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5 tracking-wide">
-                        {tx("KONFIRMASI PASSWORD BARU", "CONFIRM NEW PASSWORD")} <span className="text-[#14AF9E]">*</span>
+                        {tx("KONFIRMASI PASSWORD BARU", "CONFIRM NEW PASSWORD")} <span className="text-[#16b09f]">*</span>
                       </label>
                       <input
                         type={showAdminPass ? "text" : "password"}
                         value={adminConfirmPass}
                         onChange={(e) => setAdminConfirmPass(e.target.value)}
                         placeholder={tx("Ulangi password baru yang sama", "Repeat the same new password")}
-                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E]"
+                        className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
                       />
                     </div>
                   )}
@@ -5255,7 +5255,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           {tx("Salin 📋", "Copy 📋")}
                         </button>
                       </div>
-                      <span className="text-[#14AF9E] font-bold block break-all font-mono text-xs sm:text-sm">
+                      <span className="text-[#16b09f] font-bold block break-all font-mono text-xs sm:text-sm">
                         https://rizxstudio.com/?login={adminSecretKey || "secret"}
                       </span>
                     </div>
@@ -5343,7 +5343,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-white/20 hover:border-[#14AF9E] rounded-2xl p-5 text-center cursor-pointer transition-colors bg-neutral-950/50 flex flex-col items-center justify-center group"
+                    className="w-full border-2 border-dashed border-white/20 hover:border-[#16b09f] rounded-2xl p-5 text-center cursor-pointer transition-colors bg-neutral-950/50 flex flex-col items-center justify-center group"
                   >
                     {uploadPreview ? (
                       <div className="space-y-2">
@@ -5358,7 +5358,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       </div>
                     ) : (
                       <div className="py-4 space-y-2">
-                        <HiArrowUpTray className="w-10 h-10 text-neutral-500 group-hover:text-[#14AF9E] mx-auto transition-colors" />
+                        <HiArrowUpTray className="w-10 h-10 text-neutral-500 group-hover:text-[#16b09f] mx-auto transition-colors" />
                         <p className="text-xs sm:text-sm font-semibold text-neutral-300">
                           {tx("Klik untuk memilih file gambar", "Click to select image file")}
                         </p>
@@ -5381,7 +5381,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={uploadTitle}
                     onChange={(e) => setUploadTitle(e.target.value)}
                     placeholder="Contoh: Digital Campaign Concept Visual A"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
                   />
                 </div>
 
@@ -5396,7 +5396,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={uploadType}
                       onChange={(e) => setUploadType(e.target.value)}
                       placeholder="Contoh: Digital Campaign"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
                     />
                   </div>
                   <div>
@@ -5409,7 +5409,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={uploadYear}
                       onChange={(e) => setUploadYear(e.target.value)}
                       placeholder="2026"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#14AF9E] transition-all"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f] transition-all"
                     />
                   </div>
                 </div>
@@ -5427,7 +5427,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onClick={() => setUploadAspect(ratio)}
                         className={`py-2 px-2.5 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer text-center ${
                           uploadAspect === ratio
-                            ? "bg-[#14AF9E] text-black border-[#14AF9E] shadow-sm"
+                            ? "bg-[#16b09f] text-black border-[#16b09f] shadow-sm"
                             : "bg-neutral-950 text-neutral-400 border-white/10 hover:text-white"
                         }`}
                       >
@@ -5456,7 +5456,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={uploadToolsInput}
                     onChange={(e) => setUploadToolsInput(e.target.value)}
                     placeholder="Figma, Photoshop, Magnific AI, GPT, Gemini"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                   />
                   {/* Tag preview */}
                   {uploadToolsInput.trim() && (
@@ -5467,7 +5467,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         return (
                           <span
                             key={i}
-                            className="px-2 py-0.5 rounded-full bg-[#14AF9E]/15 border border-[#14AF9E]/30 text-[#14AF9E] text-[10px] font-mono font-semibold"
+                            className="px-2 py-0.5 rounded-full bg-[#16b09f]/15 border border-[#16b09f]/30 text-[#16b09f] text-[10px] font-mono font-semibold"
                           >
                             {tool}
                           </span>
@@ -5482,7 +5482,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <button
                     type="submit"
                     disabled={!uploadPreview}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Upload & Tambahkan ke Web", "Upload & Add to Web")}</span>
@@ -5658,7 +5658,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-[#14AF9E] font-medium mb-1.5 flex items-center gap-1.5">
+                    <label className="block text-xs font-mono text-[#16b09f] font-medium mb-1.5 flex items-center gap-1.5">
                       <span>✅</span>
                       <span>Solusi & Pendekatan (Solution)</span>
                     </label>
@@ -5667,7 +5667,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={editWorkSolution}
                       onChange={(e) => setEditWorkSolution(e.target.value)}
                       placeholder="Solusi kreatif atau teknis yang diimplementasikan..."
-                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-[#14AF9E]/30 text-white text-xs sm:text-sm focus:outline-none focus:border-[#14AF9E] transition-all resize-none leading-relaxed"
+                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-[#16b09f]/30 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all resize-none leading-relaxed"
                     />
                   </div>
                 </div>
@@ -5743,7 +5743,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center gap-3 pt-3 border-t border-white/10 shrink-0">
                   <button
                     type="submit"
-                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#16b09f] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Simpan Perubahan & Update Web", "Save Changes & Update Web")}</span>
@@ -5785,7 +5785,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </button>
 
               <div className="mb-5">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#14AF9E] font-semibold block mb-1">
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold block mb-1">
                   FOLDER MANAGEMENT
                 </span>
                 <h3 className="text-xl font-bold text-white">{tx("Buat Folder Klien Baru", "Create New Client Folder")}</h3>
@@ -5805,7 +5805,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
                     placeholder={tx("Contoh: Nike, Samsung, Local Brand Co.", "Example: Nike, Samsung, Local Brand Co.")}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                     autoFocus
                   />
                   {newFolderName.trim() && (
@@ -5824,7 +5824,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={newFolderCategory}
                     onChange={(e) => setNewFolderCategory(e.target.value)}
                     placeholder={tx("Contoh: Brand Visuals & Ads, Digital Campaign", "Example: Brand Visuals & Ads, Digital Campaign")}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] transition-all"
                   />
                 </div>
 
@@ -5840,7 +5840,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={newFolderYear}
                     onChange={(e) => setNewFolderYear(e.target.value)}
                     placeholder={new Date().getFullYear().toString()}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#14AF9E] transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] transition-all"
                   />
                 </div>
 
@@ -5848,7 +5848,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <button
                     type="submit"
                     disabled={!newFolderName.trim()}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiFolderPlus className="w-4 h-4" />
                     <span>{tx("Buat Folder", "Create Folder")}</span>
@@ -5939,7 +5939,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <button
                     type="submit"
                     disabled={!editFolderName.trim()}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#14AF9E] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#16b09f] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Simpan Perubahan Nama", "Save Brand Name")}</span>
@@ -5995,7 +5995,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       await handleTopBarSave();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex-1 py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-[#14AF9E] hover:from-emerald-400 hover:to-[#119889] text-black font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer"
+                    className="flex-1 py-2.5 px-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-[#16b09f] hover:from-emerald-400 hover:to-[#119889] text-black font-bold text-xs flex items-center justify-center gap-1.5 shadow-md shadow-emerald-500/20 active:scale-95 cursor-pointer"
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}</span>
@@ -6025,7 +6025,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onClick={() => setLang(l)}
                         className={`px-2.5 py-1 rounded-md text-[10px] font-bold font-mono transition-all cursor-pointer ${
                           lang === l
-                            ? "bg-[#14AF9E] text-black shadow-sm shadow-[#14AF9E]/30"
+                            ? "bg-[#16b09f] text-black shadow-sm shadow-[#16b09f]/30"
                             : "text-neutral-400 hover:text-white"
                         }`}
                       >
@@ -6107,14 +6107,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       }}
                       className={`w-full p-3.5 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
                         isSelected
-                          ? "bg-[#14AF9E] text-black border-[#14AF9E] shadow-lg shadow-[#14AF9E]/25 font-bold"
+                          ? "bg-[#16b09f] text-black border-[#16b09f] shadow-lg shadow-[#16b09f]/25 font-bold"
                           : "bg-neutral-900/60 hover:bg-neutral-900 text-neutral-300 border-white/10"
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                            isSelected ? "bg-black/15 text-black" : "bg-white/5 text-[#14AF9E]"
+                            isSelected ? "bg-black/15 text-black" : "bg-white/5 text-[#16b09f]"
                           }`}
                         >
                           <Icon className="w-5 h-5" />
@@ -6145,7 +6145,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer no-underline"
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#16b09f] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer no-underline"
                 >
                   <HiEye className="w-4 h-4" />
                   <span>{tx("Lihat Web Publik ↗", "View Public Web ↗")}</span>
@@ -6175,9 +6175,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             initial={{ opacity: 0, y: 20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-6 right-6 z-[120] flex items-center gap-2.5 px-4 py-3 rounded-xl bg-neutral-900 border border-[#14AF9E]/50 text-white shadow-2xl backdrop-blur-xl text-xs sm:text-sm font-medium"
+            className="fixed bottom-6 right-6 z-[120] flex items-center gap-2.5 px-4 py-3 rounded-xl bg-neutral-900 border border-[#16b09f]/50 text-white shadow-2xl backdrop-blur-xl text-xs sm:text-sm font-medium"
           >
-            <div className="w-5 h-5 rounded-full bg-[#14AF9E] text-black flex items-center justify-center font-bold text-xs shrink-0">
+            <div className="w-5 h-5 rounded-full bg-[#16b09f] text-black flex items-center justify-center font-bold text-xs shrink-0">
               ✓
             </div>
             <span>{toastMessage}</span>
@@ -6187,3 +6187,4 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     </div>
   );
 }
+

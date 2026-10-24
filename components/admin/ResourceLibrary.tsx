@@ -180,7 +180,7 @@ export default function ResourceLibrary({
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-xl bg-[#14AF9E]/15 border border-[#14AF9E]/30 flex items-center justify-center text-[#14AF9E] shrink-0 shadow-lg shadow-[#14AF9E]/10">
+          <div className="w-11 h-11 rounded-xl bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f] shrink-0 shadow-lg shadow-[#16b09f]/10">
             <HiSquare3Stack3D className="w-6 h-6 stroke-[1.8]" />
           </div>
           <div>
@@ -188,7 +188,7 @@ export default function ResourceLibrary({
               <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 Resource Library
               </h1>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#14AF9E]/15 border border-[#14AF9E]/30 text-[#14AF9E] font-semibold">
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#16b09f]/15 border border-[#16b09f]/30 text-[#16b09f] font-semibold">
                 {allWorkAssets.length + allLogoAssets.length} Assets
               </span>
             </div>
@@ -224,7 +224,7 @@ export default function ResourceLibrary({
         <div className="p-4 rounded-2xl bg-[#111419] border border-white/5 space-y-1.5 hover:border-white/10 transition-colors">
           <div className="flex items-center justify-between text-neutral-400">
             <span className="text-xs font-medium">{tr("Partner Logos", "Logo Brand Marquee", "Logo Brand Marquee")}</span>
-            <HiTag className="w-4 h-4 text-[#14AF9E]" />
+            <HiTag className="w-4 h-4 text-[#16b09f]" />
           </div>
           <p className="text-2xl font-bold text-white tracking-tight">
             {clLogos.length}{" "}
@@ -285,7 +285,7 @@ export default function ResourceLibrary({
               onClick={() => setActiveTab("all")}
               className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "all"
-                  ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                  ? "bg-[#16b09f] text-black font-bold shadow-sm"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -296,7 +296,7 @@ export default function ResourceLibrary({
               onClick={() => setActiveTab("works")}
               className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "works"
-                  ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                  ? "bg-[#16b09f] text-black font-bold shadow-sm"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -307,7 +307,7 @@ export default function ResourceLibrary({
               onClick={() => setActiveTab("logos")}
               className={`py-1.5 px-3 rounded-lg text-xs font-medium transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "logos"
-                  ? "bg-[#14AF9E] text-black font-bold shadow-sm"
+                  ? "bg-[#16b09f] text-black font-bold shadow-sm"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -323,7 +323,7 @@ export default function ResourceLibrary({
           <select
             value={selectedClientFilter}
             onChange={(e) => setSelectedClientFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-white/10 text-xs text-neutral-300 outline-none focus:border-[#14AF9E] cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-white/10 text-xs text-neutral-300 outline-none focus:border-[#16b09f] cursor-pointer"
           >
             <option value="all">{tr("All Client Folders", "Semua Folder Klien", "Kasadonyo Folder Klien")}</option>
             {clients.map((c) => (
@@ -336,7 +336,7 @@ export default function ResourceLibrary({
           <select
             value={selectedAspectFilter}
             onChange={(e) => setSelectedAspectFilter(e.target.value)}
-            className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-white/10 text-xs text-neutral-300 outline-none focus:border-[#14AF9E] cursor-pointer"
+            className="px-2.5 py-1 rounded-lg bg-neutral-900 border border-white/10 text-xs text-neutral-300 outline-none focus:border-[#16b09f] cursor-pointer"
           >
             <option value="all">{tr("All Aspect Ratios", "Semua Rasio", "Kasadonyo Rasio")}</option>
             <option value="4:5">{tr("Portrait (4:5)", "Potret (4:5)", "Potret (4:5)")}</option>
@@ -352,7 +352,7 @@ export default function ResourceLibrary({
                 setSelectedAspectFilter("all");
                 setSearchQuery("");
               }}
-              className="text-[11px] text-[#14AF9E] hover:underline cursor-pointer ml-auto font-mono"
+              className="text-[11px] text-[#16b09f] hover:underline cursor-pointer ml-auto font-mono"
             >
               {tr("Reset Filters", "Reset Filter", "Reset Filter")}
             </button>
@@ -377,7 +377,7 @@ export default function ResourceLibrary({
             <div
               key={`${asset.clientId}-${asset.id}`}
               onClick={() => setLightboxAsset(asset)}
-              className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/10 hover:border-[#14AF9E]/50 transition-all cursor-pointer shadow-md flex flex-col justify-between"
+              className="group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/10 hover:border-[#16b09f]/50 transition-all cursor-pointer shadow-md flex flex-col justify-between"
             >
               {/* Thumbnail Container */}
               <div className="aspect-[4/5] w-full bg-neutral-900 relative overflow-hidden flex items-center justify-center">
@@ -395,7 +395,7 @@ export default function ResourceLibrary({
                     {asset.aspect}
                   </span>
                   {asset.category === "logo" && (
-                    <span className="text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#14AF9E]/20 text-[#14AF9E] font-bold border border-[#14AF9E]/30">
+                    <span className="text-[8px] font-mono uppercase px-1.5 py-0.5 rounded bg-[#16b09f]/20 text-[#16b09f] font-bold border border-[#16b09f]/30">
                       Logo
                     </span>
                   )}
@@ -418,7 +418,7 @@ export default function ResourceLibrary({
                     type="button"
                     title={tr("Copy URL", "Salin Link Gambar", "Salin Link Gambar")}
                     onClick={(e) => handleCopyLink(asset.image, e)}
-                    className="w-8 h-8 rounded-full bg-[#14AF9E] hover:bg-[#119889] text-black flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer"
+                    className="w-8 h-8 rounded-full bg-[#16b09f] hover:bg-[#119889] text-black flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer"
                   >
                     <HiClipboardDocument className="w-4 h-4" />
                   </button>
@@ -435,7 +435,7 @@ export default function ResourceLibrary({
 
               {/* Caption Footer */}
               <div className="p-2.5 bg-neutral-950 border-t border-white/5 space-y-0.5">
-                <p className="text-[10px] font-mono text-[#14AF9E] truncate uppercase font-semibold">
+                <p className="text-[10px] font-mono text-[#16b09f] truncate uppercase font-semibold">
                   {asset.clientName}
                 </p>
                 <p className="text-xs font-semibold text-white truncate">
@@ -479,7 +479,7 @@ export default function ResourceLibrary({
             {/* Modal Header */}
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-mono text-[#14AF9E] uppercase font-bold">
+                <p className="text-[10px] font-mono text-[#16b09f] uppercase font-bold">
                   {lightboxAsset.clientName}
                 </p>
                 <h3 className="text-sm sm:text-base font-bold text-white tracking-tight truncate">
@@ -492,13 +492,13 @@ export default function ResourceLibrary({
                   onClick={() => handleCopyLink(lightboxAsset.image)}
                   className="px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white text-xs font-medium flex items-center gap-1.5 border border-white/10 transition-colors cursor-pointer"
                 >
-                  <HiClipboardDocument className="w-3.5 h-3.5 text-[#14AF9E]" />
+                  <HiClipboardDocument className="w-3.5 h-3.5 text-[#16b09f]" />
                   <span>{tr("Copy URL", "Salin Link", "Salin Link")}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDownload(lightboxAsset)}
-                  className="px-3 py-1.5 rounded-lg bg-[#14AF9E] hover:bg-[#119889] text-black text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg bg-[#16b09f] hover:bg-[#119889] text-black text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
                 >
                   <HiArrowDownTray className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>{tr("Download", "Unduh", "Unduah")}</span>
@@ -536,7 +536,7 @@ export default function ResourceLibrary({
                     onSelectClientFolder(lightboxAsset.clientId);
                     setLightboxAsset(null);
                   }}
-                  className="text-xs text-[#14AF9E] hover:underline flex items-center gap-1 font-medium cursor-pointer"
+                  className="text-xs text-[#16b09f] hover:underline flex items-center gap-1 font-medium cursor-pointer"
                 >
                   <span>{tr("Open in Client Folder →", "Buka di Folder Klien →", "Bukak di Folder Klien →")}</span>
                 </button>
@@ -548,3 +548,4 @@ export default function ResourceLibrary({
     </div>
   );
 }
+

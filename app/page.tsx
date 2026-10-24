@@ -139,7 +139,7 @@ export default function Home() {
           aria-label="Open Admin Dashboard"
           className="fixed bottom-6 right-6 z-[80] flex items-center gap-2.5 px-4 py-2.5 rounded-full bg-neutral-900/90 hover:bg-neutral-800 text-white border border-white/20 shadow-[0_10px_35px_rgba(0,0,0,0.85)] backdrop-blur-xl text-xs font-mono transition-all duration-300 hover:scale-105 active:scale-95 group cursor-pointer"
         >
-          <span className="w-2.5 h-2.5 rounded-full bg-[#14AF9E] animate-pulse" />
+          <span className="w-2.5 h-2.5 rounded-full bg-[#16b09f] animate-pulse" />
           <span className="font-semibold tracking-wide">Admin</span>
           <HiCog6Tooth className="w-4 h-4 text-neutral-400 group-hover:rotate-90 transition-transform duration-500" />
         </button>

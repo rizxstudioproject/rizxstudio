@@ -62,7 +62,7 @@ const TOOL_PALETTES = [
   { bg: "bg-[#2D0014]", border: "border-[#FF3366]/40", text: "text-[#FF3366]", badgeBg: "bg-[#FF3366]", badgeText: "text-[#2D0014]" }, // Magenta
   { bg: "bg-[#001E36]", border: "border-[#31A8FF]/40", text: "text-[#31A8FF]", badgeBg: "bg-[#31A8FF]", badgeText: "text-[#001E36]" }, // Blue
   { bg: "bg-[#332005]", border: "border-[#F59E0B]/40", text: "text-[#F59E0B]", badgeBg: "bg-[#F59E0B]", badgeText: "text-black" }, // Amber
-  { bg: "bg-[#092E29]", border: "border-[#14AF9E]/40", text: "text-[#14AF9E]", badgeBg: "bg-[#14AF9E]", badgeText: "text-black" }, // Teal
+  { bg: "bg-[#092E29]", border: "border-[#16b09f]/40", text: "text-[#16b09f]", badgeBg: "bg-[#16b09f]", badgeText: "text-black" }, // Teal
 ];
 
 function getToolPalette(name: string) {
@@ -234,9 +234,9 @@ function ToolBadge({ tool }: { tool: string }) {
     return (
       <div
         title="Magnific AI"
-        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#14AF9E]/10 border border-[#14AF9E]/40 text-[#14AF9E] shadow-sm select-none"
+        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#16b09f]/10 border border-[#16b09f]/40 text-[#16b09f] shadow-sm select-none"
       >
-        <HiSparkles className="w-3 h-3 text-[#14AF9E]" />
+        <HiSparkles className="w-3 h-3 text-[#16b09f]" />
         <span className="text-[10px] font-mono font-medium text-neutral-300">
           Magnific AI
         </span>
@@ -980,7 +980,7 @@ export default function Projects() {
         >
           {/* Header */}
           <div className="relative z-30 flex flex-col items-center text-center mt-1 sm:mt-2 max-w-4xl px-2 mb-2 sm:mb-4">
-            <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#14AF9E] mb-2 font-semibold">
+            <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#16b09f] mb-2 font-semibold">
               {stage1.badge}
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-tight">
@@ -1150,7 +1150,7 @@ export default function Projects() {
                     return (
                       <span
                         key={wIdx}
-                        className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-[#14AF9E] transition-transform duration-300 ease-out font-black"
+                        className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-[#16b09f] transition-transform duration-300 ease-out font-black"
                         style={{
                           transform: `scale(${scaleAmount})`,
                           display: "inline-block",
@@ -1231,7 +1231,7 @@ export default function Projects() {
                     <>
                       {stage2.badges[0] && (
                         <div
-                          className="absolute left-2 sm:left-4 z-0 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-[#14AF9E] text-white border border-[#14AF9E]/80 shadow-lg shadow-[#14AF9E]/30 pointer-events-none transition-transform duration-200"
+                          className="absolute left-2 sm:left-4 z-0 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-[#16b09f] text-white border border-[#16b09f]/80 shadow-lg shadow-[#16b09f]/30 pointer-events-none transition-transform duration-200"
                           style={{
                             top: `${badge1Y}px`,
                             transform: `scale(${badge1Scale}) rotate(-6deg)`,
@@ -1357,7 +1357,7 @@ export default function Projects() {
             <div className="mb-3 pb-2.5 border-b border-white/10">
               <div className="flex items-center justify-between mb-1.5 px-0.5">
                 <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest font-semibold flex items-center gap-1.5">
-                  <HiFolder className="w-3.5 h-3.5 text-[#14AF9E]" />
+                  <HiFolder className="w-3.5 h-3.5 text-[#16b09f]" />
                   <span>{tr("Client Folders", "Folder Klien", "Folder Klien")} ({stage4.clients.length})</span>
                   <span className="text-neutral-500 font-normal lowercase tracking-normal">• {tr("scroll ↓", "geser ↓", "geser ↓")}</span>
                 </span>
@@ -1418,7 +1418,7 @@ export default function Projects() {
                           : "bg-white/[0.04] text-neutral-400 hover:text-white hover:bg-white/[0.08] border border-white/5"
                       }`}
                     >
-                      <HiFolder className="w-3.5 h-3.5 text-[#14AF9E] shrink-0" />
+                      <HiFolder className="w-3.5 h-3.5 text-[#16b09f] shrink-0" />
                       <span>{client.clientName}</span>
                       <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isSelected ? "bg-black/10 text-neutral-800 font-bold" : "bg-white/10 text-neutral-400"}`}>
                         {client.works.length}
@@ -1433,7 +1433,7 @@ export default function Projects() {
             <div className="flex items-center justify-between mb-3 px-1">
               <div>
                 <h4 className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
-                  <HiFolder className="w-4 h-4 text-[#14AF9E] shrink-0" />
+                  <HiFolder className="w-4 h-4 text-[#16b09f] shrink-0" />
                   <span>{tr(`${activeClientData.clientName} Archive`, `Arsip ${activeClientData.clientName}`, `Arsip ${activeClientData.clientName}`)}</span>
                 </h4>
                 <p className="text-xs text-neutral-300 font-mono">
@@ -1640,7 +1640,7 @@ export default function Projects() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div>
                             <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                              <span className="px-2.5 py-0.5 rounded-full bg-[#14AF9E]/15 text-[#14AF9E] border border-[#14AF9E]/30 text-[10px] font-mono font-bold tracking-wider uppercase">
+                              <span className="px-2.5 py-0.5 rounded-full bg-[#16b09f]/15 text-[#16b09f] border border-[#16b09f]/30 text-[10px] font-mono font-bold tracking-wider uppercase">
                                 {caseStudy.brand}
                               </span>
                               {caseStudy.year && (
@@ -1708,8 +1708,8 @@ export default function Projects() {
                           </div>
 
                           {/* Jalan Keluar / Solusi */}
-                          <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-[#14AF9E]/30 transition-all">
-                            <div className="flex items-center gap-1.5 text-[#14AF9E] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
+                          <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-[#16b09f]/30 transition-all">
+                            <div className="flex items-center gap-1.5 text-[#16b09f] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
                               <HiCheckCircle className="w-3.5 h-3.5 shrink-0" />
                               <span>{t("casestudy.solution.label")}</span>
                             </div>
@@ -1722,7 +1722,7 @@ export default function Projects() {
                         {/* Role & Approach */}
                         {caseStudy.role && (
                           <div className="px-3.5 py-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-400">
-                            <span className="text-[#14AF9E] font-mono font-semibold uppercase text-[10px] tracking-wider">
+                            <span className="text-[#16b09f] font-mono font-semibold uppercase text-[10px] tracking-wider">
                               {t("projects.role")}
                             </span>
                             <span>{caseStudy.role}</span>
@@ -1795,7 +1795,7 @@ export default function Projects() {
                   /* Compact Clean Caption for Non-Client Works (Stage 1, 2, 3) */
                   <div className="p-4 sm:p-6 bg-neutral-950 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
                     <div>
-                      <span className="text-[10px] font-mono text-[#14AF9E] tracking-widest uppercase block mb-1">
+                      <span className="text-[10px] font-mono text-[#16b09f] tracking-widest uppercase block mb-1">
                         {currentWork.clientName}
                       </span>
                       <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
@@ -1856,3 +1856,4 @@ export default function Projects() {
     </section>
   );
 }
+

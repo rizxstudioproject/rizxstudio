@@ -32,7 +32,7 @@ const RunnerCard = React.forwardRef<HTMLDivElement, RunnerCardProps>(({ item }, 
           {item.title}
         </span>
         {item.category && (
-          <span className="text-[#14AF9E] text-[8px] sm:text-[9px] font-mono font-medium truncate">
+          <span className="text-[#16b09f] text-[8px] sm:text-[9px] font-mono font-medium truncate">
             {item.category}
           </span>
         )}
@@ -310,3 +310,4 @@ export default function PortfolioRunner() {
     </section>
   );
 }
+

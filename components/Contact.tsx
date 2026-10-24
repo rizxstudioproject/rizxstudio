@@ -20,8 +20,15 @@ export default function Contact() {
       <SpotlightCard className="p-8 sm:p-14 lg:p-16 mb-16 sm:mb-20">
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 sm:gap-10">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-mono tracking-widest uppercase text-emerald-400 mb-4 px-3 py-1 rounded-full bg-emerald-400/10 border border-emerald-400/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            <div
+              className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-mono tracking-widest uppercase mb-4 px-3 py-1 rounded-full border shadow-sm"
+              style={{
+                color: "#16b09f",
+                backgroundColor: "rgba(22, 176, 159, 0.12)",
+                borderColor: "rgba(22, 176, 159, 0.3)",
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse shadow-[0_0_8px_#16b09f]" />
               <span>{t("contact.badge")}</span>
             </div>
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
@@ -93,7 +100,7 @@ export default function Contact() {
                 onClick={() => setLang("en")}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "en"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="English"
@@ -105,7 +112,7 @@ export default function Contact() {
                 onClick={() => setLang("id")}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "id"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="Indonesia"
@@ -117,7 +124,7 @@ export default function Contact() {
                 onClick={() => setLang("min")}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "min"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="Minang"
@@ -144,7 +151,7 @@ export default function Contact() {
                 onClick={() => setLang("en")}
                 className={`px-3 py-1 transition-all ${
                   lang === "en"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -155,7 +162,7 @@ export default function Contact() {
                 onClick={() => setLang("id")}
                 className={`px-3 py-1 transition-all ${
                   lang === "id"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -166,7 +173,7 @@ export default function Contact() {
                 onClick={() => setLang("min")}
                 className={`px-3 py-1 transition-all ${
                   lang === "min"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >

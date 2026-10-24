@@ -53,10 +53,10 @@ export default function ContentGuard() {
           "position:fixed;inset:0;z-index:99999999;background:#050505;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#ffffff;font-family:monospace;pointer-events:none;opacity:0;transition:opacity 0.05s ease;";
         shield.innerHTML = `
           <div style="text-align:center;padding:24px;border:1px solid rgba(20,175,158,0.3);border-radius:12px;background:rgba(10,10,10,0.85);backdrop-filter:blur(10px);max-width:320px;">
-            <div style="width:40px;height:40px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(20,175,158,0.15);color:#14AF9E;font-size:20px;font-weight:bold;">
+            <div style="width:40px;height:40px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:rgba(20,175,158,0.15);color:#16b09f;font-size:20px;font-weight:bold;">
               !
             </div>
-            <div style="font-size:18px;font-weight:900;letter-spacing:0.25em;color:#14AF9E;margin-bottom:6px;">RIZX STUDIO</div>
+            <div style="font-size:18px;font-weight:900;letter-spacing:0.25em;color:#16b09f;margin-bottom:6px;">RIZX STUDIO</div>
             <div style="font-size:10px;font-weight:700;letter-spacing:0.2em;color:#f87171;margin-bottom:4px;">SCREENSHOT / RECORDING BLOCKED</div>
             <div style="font-size:9px;letter-spacing:0.15em;color:#888888;text-transform:uppercase;">Protected Artwork & Proprietary Design</div>
           </div>
@@ -173,3 +173,4 @@ export default function ContentGuard() {
 
   return null;
 }
+

@@ -223,11 +223,11 @@ export default function AdminSidebar({
         <button
           type="button"
           onClick={() => onSelectTab("storage")}
-          className="w-full text-left p-3 rounded-xl bg-[#0f1115] hover:bg-[#15181f] border border-white/5 hover:border-[#14AF9E]/30 transition-all space-y-2 group cursor-pointer"
+          className="w-full text-left p-3 rounded-xl bg-[#0f1115] hover:bg-[#15181f] border border-white/5 hover:border-[#16b09f]/30 transition-all space-y-2 group cursor-pointer"
         >
           <div className="flex items-center justify-between text-[11px]">
-            <span className="text-neutral-400 group-hover:text-[#14AF9E] transition-colors flex items-center gap-1.5">
-              <RiPieChartFill className="w-3.5 h-3.5 text-[#14AF9E]" />
+            <span className="text-neutral-400 group-hover:text-[#16b09f] transition-colors flex items-center gap-1.5">
+              <RiPieChartFill className="w-3.5 h-3.5 text-[#16b09f]" />
               <span>{tr("Storage", "Penyimpanan", "Panyimpanan")}</span>
             </span>
             <span className="font-mono text-neutral-200">
@@ -236,7 +236,7 @@ export default function AdminSidebar({
           </div>
           <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#14AF9E] rounded-full transition-all duration-500"
+              className="h-full bg-[#16b09f] rounded-full transition-all duration-500"
               style={{ width: `${storagePercentage}%` }}
             />
           </div>
@@ -248,3 +248,5 @@ export default function AdminSidebar({
     </aside>
   );
 }
+
+

@@ -121,7 +121,7 @@ export default function Navbar() {
 
       {/* Top Scroll Speed / Progress Line Indicator */}
       <div
-        className="navbar-progress-bar fixed top-0 left-0 h-[2.5px] bg-gradient-to-r from-cyan-400 via-[#00A389] to-white z-[60] pointer-events-none transition-all duration-75 shadow-[0_0_8px_rgba(0,163,137,0.8)]"
+        className="navbar-progress-bar fixed top-0 left-0 h-[2.5px] bg-gradient-to-r from-cyan-400 via-[#16b09f] to-white z-[60] pointer-events-none transition-all duration-75 shadow-[0_0_8px_rgba(22,176,159,0.8)]"
         style={{ width: `${scrollProgressPercent}%` }}
       />
 
@@ -229,7 +229,7 @@ export default function Navbar() {
                 onClick={() => setLang("en")}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "en"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="Switch to English"
@@ -241,7 +241,7 @@ export default function Navbar() {
                 onClick={() => setLang("id")}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "id"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="Switch to Indonesian"
@@ -253,7 +253,7 @@ export default function Navbar() {
                 onClick={() => setLang("min")}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "min"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="Switch to Minang"
@@ -366,7 +366,7 @@ export default function Navbar() {
                 onClick={() => setLang("en")}
                 className={`px-3 py-1 transition-all ${
                   lang === "en"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -377,7 +377,7 @@ export default function Navbar() {
                 onClick={() => setLang("id")}
                 className={`px-3 py-1 transition-all ${
                   lang === "id"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -388,7 +388,7 @@ export default function Navbar() {
                 onClick={() => setLang("min")}
                 className={`px-3 py-1 transition-all ${
                   lang === "min"
-                    ? "bg-[#14AF9E] text-white font-bold"
+                    ? "bg-[#16b09f] text-white font-bold"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >

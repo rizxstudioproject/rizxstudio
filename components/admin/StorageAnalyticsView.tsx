@@ -204,7 +204,7 @@ export default function StorageAnalyticsView({
           title: tr("CLIENT WORKS", "FOTO & KARYA KLIEN", "FOTO & KARYA KLIEN"),
           percent: stats.worksShare,
           sizeText: `${stats.worksMB} MB`,
-          colorHex: "#14AF9E",
+          colorHex: "#16b09f",
           gradientId: "worksGradient",
           dashOffset: circumference - (stats.worksShare / 100) * circumference,
         };
@@ -245,7 +245,7 @@ export default function StorageAnalyticsView({
           title: tr("CAPACITY USED", "DATA TERPAKAI", "DATA TAPAKAI"),
           percent: stats.usedPercentage,
           sizeText: `${stats.totalUsedMB} MB`,
-          colorHex: "#14AF9E",
+          colorHex: "#16b09f",
           gradientId: "neonGradient",
           dashOffset: circumference - (stats.usedPercentage / 100) * circumference,
         };
@@ -262,10 +262,10 @@ export default function StorageAnalyticsView({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 relative z-10">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="p-2 rounded-xl bg-[#14AF9E]/15 border border-[#14AF9E]/30 text-[#14AF9E]">
+                <span className="p-2 rounded-xl bg-[#16b09f]/15 border border-[#16b09f]/30 text-[#16b09f]">
                   <HiChartPie className="w-5 h-5" />
                 </span>
-                <span className="text-[11px] font-mono tracking-widest text-[#14AF9E] uppercase font-semibold">
+                <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold">
                   {tr("DATA ALLOCATION & CAPACITY ANALYTICS", "ANALISIS KAPASITAS & GRAFIK DATA TERPAKAI", "ANALISIS PANYIMPANAN & GRAFIK DATA TAPAKAI")}
                 </span>
               </div>
@@ -292,19 +292,19 @@ export default function StorageAnalyticsView({
           {/* Left: Animated Radial Progress Circle Gauge (5 Cols) */}
           <div className="lg:col-span-5 p-6 rounded-3xl bg-[#111419] border border-white/10 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl">
             {/* Ambient Background Glow */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#14AF9E]/5 via-transparent to-black pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#16b09f]/5 via-transparent to-black pointer-events-none" />
 
             <div className="relative flex flex-col items-center my-3">
               {/* SVG Radial Meter */}
               <svg width="220" height="220" className="transform -rotate-90">
                 <defs>
                   <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#14AF9E" />
+                    <stop offset="0%" stopColor="#16b09f" />
                     <stop offset="50%" stopColor="#06B6D4" />
                     <stop offset="100%" stopColor="#6366F1" />
                   </linearGradient>
                   <linearGradient id="worksGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#14AF9E" />
+                    <stop offset="0%" stopColor="#16b09f" />
                     <stop offset="100%" stopColor="#0D9488" />
                   </linearGradient>
                   <linearGradient id="videoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -408,7 +408,7 @@ export default function StorageAnalyticsView({
             <div>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
-                  <HiCircleStack className="w-4 h-4 text-[#14AF9E]" />
+                  <HiCircleStack className="w-4 h-4 text-[#16b09f]" />
                   <h3 className="text-sm sm:text-base font-bold text-white tracking-tight">
                     {tr("Visual Storage Breakdown", "Distribusi Alokasi Memori", "Distribusi Alokasi Memori")}
                   </h3>
@@ -430,7 +430,7 @@ export default function StorageAnalyticsView({
                   initial={{ width: 0 }}
                   animate={{ width: `${stats.worksShare}%` }}
                   transition={{ duration: 1, delay: 0.2, ease: "easeOut" }}
-                  className={`h-full rounded-lg bg-[#14AF9E] relative group cursor-pointer transition-opacity ${activeCategory !== "all" && activeCategory !== "works" ? "opacity-30" : "opacity-100"}`}
+                  className={`h-full rounded-lg bg-[#16b09f] relative group cursor-pointer transition-opacity ${activeCategory !== "all" && activeCategory !== "works" ? "opacity-30" : "opacity-100"}`}
                   title={`${tr("Portfolio Works", "Karya Portofolio", "Karya Portofolio")}: ${stats.worksShare}% (${stats.worksMB} MB)`}
                 />
                 {/* 2. Video Showcase */}
@@ -484,19 +484,19 @@ export default function StorageAnalyticsView({
                 onClick={() => setActiveCategory(activeCategory === "works" ? "all" : "works")}
                 className={`p-3.5 rounded-2xl border text-left flex items-center justify-between group transition-all cursor-pointer ${
                   activeCategory === "works"
-                    ? "bg-[#14AF9E]/15 border-[#14AF9E] ring-2 ring-[#14AF9E]/40 shadow-lg shadow-[#14AF9E]/20"
+                    ? "bg-[#16b09f]/15 border-[#16b09f] ring-2 ring-[#16b09f]/40 shadow-lg shadow-[#16b09f]/20"
                     : activeCategory !== "all"
                     ? "bg-neutral-900/40 border-white/5 opacity-50 hover:opacity-90"
-                    : "bg-neutral-900/70 border-white/5 hover:border-[#14AF9E]/40 hover:bg-[#14AF9E]/5"
+                    : "bg-neutral-900/70 border-white/5 hover:border-[#16b09f]/40 hover:bg-[#16b09f]/5"
                 }`}
               >
                 <div className="flex items-center gap-2.5">
-                  <span className="w-3.5 h-3.5 rounded-full bg-[#14AF9E] shrink-0 shadow-md shadow-[#14AF9E]/40" />
+                  <span className="w-3.5 h-3.5 rounded-full bg-[#16b09f] shrink-0 shadow-md shadow-[#16b09f]/40" />
                   <div>
                     <p className="text-xs font-semibold text-white flex items-center gap-1.5">
                       <span>{tr("Client Works & Images", "Foto & Karya Visual", "Foto & Karya Visual")}</span>
                       {activeCategory === "works" && (
-                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#14AF9E] text-black font-bold">
+                        <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#16b09f] text-black font-bold">
                           ● {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
@@ -507,7 +507,7 @@ export default function StorageAnalyticsView({
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="px-2 py-0.5 rounded-md bg-[#14AF9E]/20 border border-[#14AF9E]/40 text-xs sm:text-sm font-mono font-extrabold text-[#14AF9E] inline-block shadow-sm">
+                  <span className="px-2 py-0.5 rounded-md bg-[#16b09f]/20 border border-[#16b09f]/40 text-xs sm:text-sm font-mono font-extrabold text-[#16b09f] inline-block shadow-sm">
                     {stats.worksMB} MB
                   </span>
                   <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
@@ -640,7 +640,7 @@ export default function StorageAnalyticsView({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
-            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#14AF9E]/30 transition-all shadow-xl group"
+            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#16b09f]/30 transition-all shadow-xl group"
           >
             <div className="flex items-center justify-between text-neutral-400">
               <span className="text-xs font-medium">{tr("Client Folders", "Folder Klien Aktif", "Folder Klien Aktif")}</span>
@@ -661,7 +661,7 @@ export default function StorageAnalyticsView({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
-            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#14AF9E]/30 transition-all shadow-xl group"
+            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#16b09f]/30 transition-all shadow-xl group"
           >
             <div className="flex items-center justify-between text-neutral-400">
               <span className="text-xs font-medium">{tr("Portfolio Works", "Total Karya Portofolio", "Total Karya Portofolio")}</span>
@@ -713,7 +713,7 @@ export default function StorageAnalyticsView({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
-            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#14AF9E]/30 transition-all shadow-xl group"
+            className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-2 hover:border-[#16b09f]/30 transition-all shadow-xl group"
           >
             <div className="flex items-center justify-between text-neutral-400">
               <span className="text-xs font-medium">{tr("Cloud Database", "Sinkronisasi Cloud", "Sinkronisasi Cloud")}</span>
@@ -737,7 +737,7 @@ export default function StorageAnalyticsView({
         <div className="p-5 sm:p-6 rounded-2xl bg-[#111419] border border-white/5 space-y-4">
           <div className="flex items-center justify-between border-b border-white/5 pb-3">
             <div className="flex items-center gap-2">
-              <HiCpuChip className="w-4 h-4 text-[#14AF9E]" />
+              <HiCpuChip className="w-4 h-4 text-[#16b09f]" />
               <h3 className="text-sm font-bold text-white tracking-tight">
                 {tr("Memory Optimization & Data Tools", "Optimasi Memori & Pemeliharaan Sistem", "Optimasi Memori & Pameliaharaan Sistem")}
               </h3>
@@ -832,3 +832,4 @@ export default function StorageAnalyticsView({
     </div>
   );
 }
+

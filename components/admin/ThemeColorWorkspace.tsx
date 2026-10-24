@@ -290,7 +290,7 @@ export default function ThemeColorWorkspace() {
                     triggerSaved();
                   }}
                   className="w-full bg-neutral-950 border border-white/10 rounded-xl pl-12 pr-4 py-2.5 text-xs font-mono text-white uppercase focus:outline-none focus:border-white/30"
-                  placeholder="#14AF9E"
+                  placeholder="#16b09f"
                 />
               </div>
             </div>
@@ -433,3 +433,4 @@ export default function ThemeColorWorkspace() {
     </div>
   );
 }
+
