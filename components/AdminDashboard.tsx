@@ -1393,7 +1393,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           stage3.heroCard.youtubeUrl ||
             (stage3.heroCard.videoId ? `https://www.youtube.com/watch?v=${stage3.heroCard.videoId}` : "")
         );
-        setFlagshipMediaType(stage3.heroCard.mediaType || "image");
+        const resolvedMediaType = stage3.heroCard.mediaType || (
+          stage3.heroCard.gdriveId || stage3.heroCard.gdriveUrl ? "gdrive" :
+          stage3.heroCard.videoId || stage3.heroCard.youtubeUrl ? "youtube" : "image"
+        );
+        setFlagshipMediaType(resolvedMediaType);
         setFlagshipGDriveUrl(
           stage3.heroCard.gdriveUrl ||
             (stage3.heroCard.gdriveId ? `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view` : "")
@@ -1402,7 +1406,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         if (stage3.heroCard.title) setVideoTitle(stage3.heroCard.title);
         if (stage3.heroCard.category) setVideoCategory(stage3.heroCard.category);
         if (stage3.heroCard.description) setVideoDescription(stage3.heroCard.description);
-        if (stage3.heroCard.isVideoEnabled !== undefined) setVideoEnabled(stage3.heroCard.isVideoEnabled);
+        const resolvedEnabled = stage3.heroCard.isVideoEnabled !== undefined
+          ? stage3.heroCard.isVideoEnabled
+          : (resolvedMediaType !== "image");
+        setVideoEnabled(resolvedEnabled);
       }
     }
   }, [stage3]);
@@ -1421,7 +1428,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const previewGDriveId = extractGoogleDriveId(flagshipGDriveUrl);
 
   // Handlers for Flagship Video Showcase
-  const handleSaveVideo = (e?: React.FormEvent) => {
+  const handleSaveVideo = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     let computedYtId = "";
@@ -1453,7 +1460,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       }
     }
 
-    updateStage3Video({
+    const isVideoMode = flagshipMediaType === "youtube" || flagshipMediaType === "gdrive";
+    const effectiveVideoEnabled = isVideoMode ? (videoEnabled || Boolean(computedGdId || computedYtId)) : false;
+    if (isVideoMode && !videoEnabled) {
+      setVideoEnabled(true);
+    }
+
+    await updateStage3Video({
       mediaType: flagshipMediaType,
       youtubeUrl: flagshipMediaType === "youtube" ? videoUrlInput.trim() : "",
       videoId: flagshipMediaType === "youtube" ? computedYtId : "",
@@ -1465,7 +1478,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       description: videoDescription.trim(),
       headline: videoHeadline.trim(),
       classTag: videoClassTag.trim(),
-      isVideoEnabled: flagshipMediaType === "image" ? false : videoEnabled,
+      isVideoEnabled: effectiveVideoEnabled,
     });
 
     showToast(
@@ -1748,7 +1761,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         await handleSaveHeroWorks();
         break;
       case "flagship":
-        handleSaveVideo();
+        await handleSaveVideo();
         break;
       case "runner":
         await handleSavePortfolioRunner();
@@ -4513,21 +4526,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center gap-2">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-mono font-semibold flex items-center gap-1.5 ${
-                      flagshipMediaType === "youtube" && previewYouTubeId && videoEnabled
+                      flagshipMediaType === "youtube" && previewYouTubeId
                         ? "bg-red-500/10 text-red-400 border border-red-500/30"
-                        : flagshipMediaType === "gdrive" && previewGDriveId && videoEnabled
+                        : flagshipMediaType === "gdrive" && previewGDriveId
                         ? "bg-blue-500/10 text-blue-400 border border-blue-500/30"
                         : "bg-emerald-500/10 text-[#14AF9E] border border-[#14AF9E]/30"
                     }`}
                   >
                     <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
                     {flagshipMediaType === "youtube"
-                      ? previewYouTubeId && videoEnabled
-                        ? "YouTube Video Aktif"
+                      ? previewYouTubeId
+                        ? (videoEnabled ? "YouTube Video Aktif" : "YouTube Siap (Nonaktif)")
                         : "Menunggu Link YouTube"
                       : flagshipMediaType === "gdrive"
-                      ? previewGDriveId && videoEnabled
-                        ? "Google Drive Embed Aktif"
+                      ? previewGDriveId
+                        ? (videoEnabled ? "Google Drive Embed Aktif" : "Google Drive Siap (Nonaktif)")
                         : "Menunggu Link Google Drive"
                       : "Mode Gambar Statis"}
                   </span>
@@ -4609,7 +4622,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs font-mono">
                         <button
                           type="button"
-                          onClick={() => setFlagshipMediaType("youtube")}
+                          onClick={() => {
+                            setFlagshipMediaType("youtube");
+                            setVideoEnabled(true);
+                          }}
                           className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             flagshipMediaType === "youtube"
                               ? "bg-red-600 text-white shadow-md shadow-red-600/30"
@@ -4620,7 +4636,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setFlagshipMediaType("gdrive")}
+                          onClick={() => {
+                            setFlagshipMediaType("gdrive");
+                            setVideoEnabled(true);
+                          }}
                           className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             flagshipMediaType === "gdrive"
                               ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
@@ -4631,7 +4650,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setFlagshipMediaType("image")}
+                          onClick={() => {
+                            setFlagshipMediaType("image");
+                            setVideoEnabled(false);
+                          }}
                           className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
                             flagshipMediaType === "image"
                               ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
@@ -4652,7 +4674,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         <input
                           type="text"
                           value={videoUrlInput}
-                          onChange={(e) => setVideoUrlInput(e.target.value)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setVideoUrlInput(val);
+                            if (extractYouTubeId(val)) {
+                              setVideoEnabled(true);
+                            }
+                          }}
                           placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ atau dQw4w9WgXcQ"
                           className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#14AF9E] focus:ring-1 focus:ring-[#14AF9E] transition-all"
                         />
@@ -4674,7 +4702,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         <input
                           type="text"
                           value={flagshipGDriveUrl}
-                          onChange={(e) => setFlagshipGDriveUrl(e.target.value)}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFlagshipGDriveUrl(val);
+                            if (extractGoogleDriveId(val)) {
+                              setVideoEnabled(true);
+                            }
+                          }}
                           placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
                           className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
                         />
@@ -4918,7 +4952,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   {/* Cinematic Media Card Preview */}
                   <div className="relative aspect-[16/10] sm:aspect-[21/9] w-full rounded-2xl overflow-hidden bg-black border border-white/15 shadow-2xl group">
-                    {flagshipMediaType === "youtube" && previewYouTubeId && videoEnabled ? (
+                    {flagshipMediaType === "youtube" && previewYouTubeId ? (
                       <iframe
                         src={`https://www.youtube.com/embed/${previewYouTubeId}?rel=0&modestbranding=1`}
                         title="YouTube Showcase Preview"
@@ -4926,7 +4960,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
                       />
-                    ) : flagshipMediaType === "gdrive" && previewGDriveId && videoEnabled ? (
+                    ) : flagshipMediaType === "gdrive" && previewGDriveId ? (
                       <iframe
                         src={`https://drive.google.com/file/d/${previewGDriveId}/preview`}
                         title="Google Drive Showcase Preview"

@@ -48,9 +48,11 @@ export default function CreativeJourney() {
     (stage3?.heroCard?.videoId || stage3?.heroCard?.youtubeUrl ? "youtube" : "image")
   );
 
+  const rawGdriveId = stage3?.heroCard?.gdriveId || extractGoogleDriveId(stage3?.heroCard?.gdriveUrl || "");
+  const rawYoutubeId = stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || "");
   const isVideoOn = stage3?.heroCard?.isVideoEnabled !== false;
-  const youtubeId = isVideoOn ? (stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || "")) : "";
-  const gdriveId = isVideoOn ? (stage3?.heroCard?.gdriveId || extractGoogleDriveId(stage3?.heroCard?.gdriveUrl || "")) : "";
+  const youtubeId = (isVideoOn || (mediaType === "youtube" && !stage3?.heroCard?.image)) ? rawYoutubeId : "";
+  const gdriveId = (isVideoOn || (mediaType === "gdrive" && !stage3?.heroCard?.image)) ? rawGdriveId : "";
 
   const isShowingYouTube = mediaType === "youtube" && Boolean(youtubeId);
   const isShowingGDrive = mediaType === "gdrive" && Boolean(gdriveId);

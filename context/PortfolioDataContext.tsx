@@ -470,13 +470,22 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           if (parsed.stage3) {
             const raw = parsed.stage3.heroCard?.image;
             const validImage = (raw && raw !== "/assets/antigravity/hero-large.jpg") ? raw : "";
+            const parsedHero = parsed.stage3.heroCard || {};
+            const resolvedMediaType = parsedHero.mediaType || (
+              parsedHero.gdriveId || parsedHero.gdriveUrl ? "gdrive" :
+              parsedHero.videoId || parsedHero.youtubeUrl ? "youtube" : "image"
+            );
             return {
               ...antigravityData.stage3,
               ...parsed.stage3,
               heroCard: {
                 ...antigravityData.stage3.heroCard,
-                ...(parsed.stage3.heroCard || {}),
+                ...parsedHero,
+                mediaType: resolvedMediaType,
                 image: validImage,
+                isVideoEnabled: parsedHero.isVideoEnabled !== undefined
+                  ? parsedHero.isVideoEnabled
+                  : (resolvedMediaType !== "image"),
               },
             };
           }
@@ -491,6 +500,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         mediaType: "youtube",
         gdriveUrl: "",
         gdriveId: "",
+        isVideoEnabled: true,
       },
     };
   });
@@ -633,7 +643,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           const parsedHero = parsed.stage3.heroCard || {};
           const ytUrl = parsedHero.youtubeUrl ?? "";
           const vId = parsedHero.videoId ?? extractYouTubeId(ytUrl) ?? "";
-          const vEnabled = parsedHero.isVideoEnabled ?? false;
+          const gdUrl = parsedHero.gdriveUrl ?? "";
+          const gdId = parsedHero.gdriveId ?? extractGoogleDriveId(gdUrl) ?? "";
+          const resolvedMediaType = parsedHero.mediaType || (
+            gdId || gdUrl ? "gdrive" :
+            vId || ytUrl ? "youtube" : "image"
+          );
+          const vEnabled = parsedHero.isVideoEnabled !== undefined
+            ? parsedHero.isVideoEnabled
+            : (resolvedMediaType !== "image");
           const rawImg = parsedHero.image;
           const validImg = (rawImg && rawImg !== "/assets/antigravity/hero-large.jpg") ? rawImg : "";
 
@@ -643,14 +661,17 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             heroCard: {
               ...defaultHero,
               ...parsedHero,
+              mediaType: resolvedMediaType,
               image: validImg,
               youtubeUrl: ytUrl,
               videoId: vId,
+              gdriveUrl: gdUrl,
+              gdriveId: gdId,
               isVideoEnabled: vEnabled,
             },
           };
-          setStage3(loadedStage3);
           stage3Ref.current = loadedStage3;
+          setStage3(loadedStage3);
         }
 
         if (parsed.clients && Array.isArray(parsed.clients)) {
@@ -784,6 +805,13 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 !heroData.image_url || heroData.image_url === "/assets/antigravity/hero-large.jpg"
                   ? ""
                   : heroData.image_url;
+              const ytUrl = heroData.youtube_url ?? prev.heroCard.youtubeUrl;
+              const gdUrl = heroData.gdrive_url ?? prev.heroCard.gdriveUrl;
+              const gdId = heroData.gdrive_id ?? prev.heroCard.gdriveId;
+              const resolvedMediaType = heroData.media_type ?? prev.heroCard.mediaType ?? (
+                gdId || gdUrl ? "gdrive" :
+                ytUrl ? "youtube" : "image"
+              );
               const updated = {
                 ...prev,
                 headline: heroData.headline || prev.headline,
@@ -793,10 +821,13 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                   title: heroData.title || prev.heroCard.title,
                   category: heroData.category || prev.heroCard.category,
                   description: heroData.description || prev.heroCard.description,
-                  youtubeUrl: heroData.youtube_url ?? prev.heroCard.youtubeUrl,
+                  youtubeUrl: ytUrl,
                   videoId: heroData.video_id ?? prev.heroCard.videoId,
-                  image: cloudImg,
-                  isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled,
+                  gdriveUrl: gdUrl,
+                  gdriveId: gdId,
+                  mediaType: resolvedMediaType,
+                  image: cloudImg || prev.heroCard.image,
+                  isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled ?? (resolvedMediaType !== "image"),
                 },
               };
               stage3Ref.current = updated;
