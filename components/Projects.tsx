@@ -16,6 +16,7 @@ import { SiBlender, SiFigma, SiCinema4D, SiGooglegemini } from "react-icons/si";
 import { useLang, toMinang } from "@/context/LanguageContext";
 import { usePortfolioData, extractYouTubeId } from "@/context/PortfolioDataContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import { DISCIPLINE_TRANSLATIONS } from "./About";
 
 interface WorkItem {
   id: string;
@@ -733,38 +734,48 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
   };
 }
 
-const getDeckCardInfo = (card: { id: string; title: string; category: string }, isId: boolean) => {
-  if (!isId) return { title: card.title, category: card.category };
-  const map: Record<string, { title: string; category: string }> = {
+const getDeckCardInfo = (card: { id: string; title: string; category: string }, lang: "en" | "id" | "min") => {
+  if (lang === "en") return { title: card.title, category: card.category };
+  const mapId: Record<string, { title: string; category: string }> = {
     d1: { title: "Identitas Merek", category: "Identitas Merek" },
     d2: { title: "Visual Kampanye", category: "Visual Kampanye" },
     d3: { title: "Motion Graphics", category: "Motion Graphics" },
     d4: { title: "Desain 3D", category: "Desain 3D" },
     d5: { title: "Desain UI/UX", category: "Desain UI/UX" },
   };
-  return map[card.id] || { title: card.title, category: card.category };
+  const base = mapId[card.id] || { title: card.title, category: card.category };
+  if (lang === "min") {
+    return {
+      title: card.id === "d3" ? "Animasi Motion" : toMinang(base.title),
+      category: card.id === "d3" ? "Animasi Motion" : toMinang(base.category),
+    };
+  }
+  return base;
 };
 
-const getStage2CardTitle = (card: { id: string; title: string }, isId: boolean) => {
-  if (!isId) return card.title;
-  const map: Record<string, string> = {
-    o1: "Branding",
-    o2: "Motion",
-    o3: "UI/UX",
-    o4: "Visual AI",
+const getStage2CardTitle = (card: { id: string; title: string }, lang: "en" | "id" | "min") => {
+  if (lang === "en") return card.title;
+  const map: Record<string, { id: string; min: string }> = {
+    o1: { id: "Branding", min: "Branding" },
+    o2: { id: "Motion", min: "Animasi Motion" },
+    o3: { id: "UI/UX", min: "UI/UX" },
+    o4: { id: "Visual AI", min: "Visual AI" },
   };
-  return map[card.id] || card.title;
+  const match = map[card.id];
+  if (match) return lang === "min" ? match.min : match.id;
+  return lang === "min" ? toMinang(card.title) : card.title;
 };
 
-const getClientCategory = (cat: string, isId: boolean) => {
-  if (!isId) return cat;
-  return cat
+const getClientCategory = (cat: string, lang: "en" | "id" | "min") => {
+  if (lang === "en") return cat;
+  const idCat = cat
     .replace("Digital Campaign", "Kampanye Digital")
     .replace("Brand Visuals & Ads", "Visual Merek & Iklan");
+  return lang === "min" ? toMinang(idCat) : idCat;
 };
 
-const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) => {
-  if (!isId) return { title: work.title, type: work.type };
+const getWorkLocalized = (work: { title: string; type: string }, lang: "en" | "id" | "min") => {
+  if (lang === "en") return { title: work.title, type: work.type };
   let localizedTitle = work.title;
   if (localizedTitle.startsWith("Digital Campaign Editorial")) {
     localizedTitle = localizedTitle.replace("Digital Campaign Editorial", "Editorial Kampanye Digital");
@@ -805,6 +816,12 @@ const getWorkLocalized = (work: { title: string; type: string }, isId: boolean) 
   if (typeMap[work.type]) {
     localizedType = typeMap[work.type];
   }
+  if (lang === "min") {
+    return {
+      title: toMinang(localizedTitle),
+      type: toMinang(localizedType),
+    };
+  }
   return { title: localizedTitle, type: localizedType };
 };
 
@@ -841,16 +858,19 @@ export default function Projects() {
   const stage2Desc = isLocalized ? t("projects.stage2.desc") : (heroWorks?.stage2Desc || defaultStage2.description);
   const stage2BtnText = isLocalized ? t("projects.stage2.btn") : (heroWorks?.stage2BtnText || defaultStage2.primaryButtonText);
 
-  const fallbackSkills = {
-    en: ["Branding", "Motion", "3D Design", "UI/UX", "AI Visuals"],
-    id: ["Branding", "Animasi Motion", "Desain 3D", "UI/UX", "Visual AI"],
-    min: ["Branding", "Animasi Motion", "Desain 3D", "UI/UX", "Visual AI"],
-  };
-  const stage2Skills = isMin
-    ? fallbackSkills.min
-    : lang === "id"
-    ? fallbackSkills.id
-    : (heroWorks?.stage2Skills && heroWorks.stage2Skills.length > 0 ? heroWorks.stage2Skills : defaultStage2.skillLabels);
+  const fallbackSkills = ["Branding", "Motion", "3D Design", "UI/UX", "AI Visuals"];
+  const baseSkills =
+    heroWorks?.stage2Skills && heroWorks.stage2Skills.length > 0
+      ? heroWorks.stage2Skills
+      : defaultStage2.skillLabels || fallbackSkills;
+
+  const stage2Skills = baseSkills.map((item) => {
+    if (lang === "en") return item;
+    const cleanKey = item.toLowerCase().trim();
+    const match = DISCIPLINE_TRANSLATIONS[cleanKey];
+    if (match) return lang === "min" ? match.min : match.id;
+    return lang === "min" ? toMinang(item) : item;
+  });
 
   const stage1 = {
     ...defaultStage1,
@@ -1133,7 +1153,7 @@ export default function Projects() {
               const currentY = targetY * fanProgress;
 
               const isHovered = hoveredCard === card.id;
-              const cardInfo = getDeckCardInfo(card, isId);
+              const cardInfo = getDeckCardInfo(card, lang);
 
               return (
                 <div
@@ -1143,7 +1163,7 @@ export default function Projects() {
                   onClick={() =>
                     setModalData({
                       items: stage1.deckCards.map((c) => {
-                        const info = getDeckCardInfo(c, isId);
+                        const info = getDeckCardInfo(c, lang);
                         return {
                           id: c.id,
                           title: info.title,
@@ -1364,7 +1384,7 @@ export default function Projects() {
                     const offsetMultiplier = baseOffset * bloomMultiplier;
                     const xPos = (idx - 1.5) * offsetMultiplier;
                     const dynamicRotate = card.rotate * bloomRotateMultiplier;
-                    const cardTitle = getStage2CardTitle(card, isId);
+                    const cardTitle = getStage2CardTitle(card, lang);
 
                     return (
                       <div
@@ -1373,7 +1393,7 @@ export default function Projects() {
                           setModalData({
                             items: stage2.overlappingCards.map((c) => ({
                               id: c.id,
-                              title: getStage2CardTitle(c, isId),
+                              title: getStage2CardTitle(c, lang),
                               type: tr("AI & Motion Visual", "Visual AI & Motion", "Visual AI & Motion"),
                               image: c.image,
                               aspect: "1:1",
@@ -1528,7 +1548,7 @@ export default function Projects() {
                   <span>{tr(`${activeClientData.clientName} Archive`, `Arsip ${activeClientData.clientName}`, `Arsip ${activeClientData.clientName}`)}</span>
                 </h4>
                 <p className="text-xs text-neutral-300 font-mono">
-                  {getClientCategory(activeClientData.category, isId)}
+                  {getClientCategory(activeClientData.category, lang)}
                 </p>
               </div>
               <span className="text-xs font-mono px-3 py-1 rounded-full bg-cyan-400/10 text-cyan-300 border border-cyan-400/20">
@@ -1541,7 +1561,7 @@ export default function Projects() {
             {/* Client Works Grid within Active Folder -> CLICK TO POPUP MODAL (Clean without right scrollbar) */}
             <div className="grid grid-cols-2 gap-2.5 sm:gap-3 max-h-[220px] sm:max-h-[260px] md:max-h-[280px] overflow-y-auto no-scrollbar items-start">
               {activeClientData.works.map((work, wIdx) => {
-                const localizedWork = getWorkLocalized(work, isId);
+                const localizedWork = getWorkLocalized(work, lang);
                 const aspectClass = getAspectClass(work.aspect);
                 return (
                   <div
@@ -1549,7 +1569,7 @@ export default function Projects() {
                     onClick={() =>
                       setModalData({
                         items: activeClientData.works.map((w) => {
-                          const loc = getWorkLocalized(w, isId);
+                          const loc = getWorkLocalized(w, lang);
                           return {
                             ...w,
                             title: loc.title,

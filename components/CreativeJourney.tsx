@@ -38,13 +38,12 @@ export default function CreativeJourney() {
     ? t("projects.stage3.card.category")
     : stage3?.heroCard?.category || t("projects.stage3.card.category");
 
-  const displayDescription =
-    stage3?.heroCard?.description ||
-    (isMin
+  const displayDescription = isLocalized
+    ? (isMin
       ? "Eksplorasi sinematik nan mangubuangakan labiah dari sapuluah taun karya visual, animasi motion 3D, sarato teknologi AI modern."
-      : isId
-      ? "Eksplorasi sinematik yang menghubungkan lebih dari satu dekade karya visual, desain animasi 3D, dan teknologi kecerdasan AI mutakhir."
-      : "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences.");
+      : "Eksplorasi sinematik yang menghubungkan lebih dari satu dekade karya visual, desain animasi 3D, dan teknologi kecerdasan AI mutakhir.")
+    : (stage3?.heroCard?.description ||
+      "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences.");
 
   const mediaType = stage3?.heroCard?.mediaType || (
     stage3?.heroCard?.gdriveId || stage3?.heroCard?.gdriveUrl ? "gdrive" :

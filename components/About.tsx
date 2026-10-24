@@ -6,39 +6,50 @@ import { HiSparkles, HiGlobeAmericas, HiCheckBadge } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
 
+export const DISCIPLINE_TRANSLATIONS: Record<string, { id: string; min: string }> = {
+  "creative direction": { id: "Pengarahan Kreatif", min: "Pangaturan Kreatif" },
+  "motion graphics": { id: "Motion Graphics", min: "Animasi Motion" },
+  "branding & identity": { id: "Branding & Identitas", min: "Branding & Identitas" },
+  "branding and identity": { id: "Branding & Identitas", min: "Branding & Identitas" },
+  "ui/ux design": { id: "Desain UI/UX", min: "Desain UI/UX" },
+  "ui / ux design": { id: "Desain UI/UX", min: "Desain UI/UX" },
+  "digital advertising": { id: "Iklan Digital", min: "Iklan Digital" },
+  "video production": { id: "Produksi Video", min: "Produksi Video" },
+  "vibe coding": { id: "Vibe Coding", min: "Vibe Coding" },
+  "logo design": { id: "Desain Logo", min: "Desain Logo" },
+  "graphic design": { id: "Desain Grafis", min: "Desain Grafis" },
+  "art direction": { id: "Pengarahan Seni", min: "Pangaturan Seni" },
+  "3d design": { id: "Desain 3D", min: "Desain 3D" },
+  "3d animation": { id: "Animasi 3D", min: "Animasi 3D" },
+  "visual effects": { id: "Efek Visual (VFX)", min: "Efek Visual (VFX)" },
+  "vfx": { id: "VFX", min: "VFX" },
+  "illustration": { id: "Ilustrasi", min: "Ilustrasi" },
+  "web design": { id: "Desain Web", min: "Desain Web" },
+  "typography": { id: "Tipografi", min: "Tipografi" },
+  "packaging design": { id: "Desain Kemasan", min: "Desain Kemasan" },
+  "ai visuals": { id: "Visual AI", min: "Visual AI" },
+  "ai generation": { id: "Generasi AI", min: "Generasi AI" },
+  "sound design": { id: "Desain Audio", min: "Desain Audio" },
+  "social media design": { id: "Desain Media Sosial", min: "Desain Media Sosial" },
+  "commercial ads": { id: "Iklan Komersial", min: "Iklan Komersial" },
+};
+
 export default function About() {
-  const { t, lang } = useLang();
+  const { t, lang, toMinang } = useLang();
   const { about } = usePortfolioData();
   const isId = lang === "id";
+  const isMin = lang === "min";
+  const isLocalized = isId || isMin;
 
-  const fallbackDisciplines = {
-    en: [
-      "Creative Direction",
-      "Motion Graphics",
-      "Branding & Identity",
-      "UI/UX Design",
-      "Digital Advertising",
-      "Video Production",
-    ],
-    id: [
-      "Pengarahan Kreatif",
-      "Motion Graphics",
-      "Branding & Identitas",
-      "Desain UI/UX",
-      "Iklan Digital",
-      "Produksi Video",
-    ],
-    min: [
-      "Pangaturan Kreatif",
-      "Animasi Motion",
-      "Branding & Identitas",
-      "Desain UI/UX",
-      "Iklan Digital",
-      "Produksi Video",
-    ],
-  };
+  const fallbackDisciplines = [
+    "Creative Direction",
+    "Motion Graphics",
+    "Branding & Identity",
+    "UI/UX Design",
+    "Digital Advertising",
+    "Video Production",
+  ];
 
-  const isLocalized = lang === "id" || lang === "min";
   const displayEyebrow = isLocalized ? t("about.eyebrow") : (about.eyebrow || t("about.eyebrow"));
   const displayTitle = isLocalized ? t("about.title") : (about.title || t("about.title"));
   const displayHeadline = isLocalized ? t("about.headline") : (about.headline || t("about.headline"));
@@ -51,14 +62,23 @@ export default function About() {
   const displayCollabTitle = isLocalized ? t("about.card2.title") : (about.collabTitle || t("about.card2.title"));
   const displayCollabDesc = isLocalized ? t("about.card2.body") : (about.collabDesc || t("about.card2.body"));
   const displayDisciplinesTitle = isLocalized ? t("about.card3.title") : (about.disciplinesTitle || t("about.card3.title"));
-  // Use admin-saved disciplines (EN only); fall back to hardcoded list if not set
-  const activeDisciplines = lang === "min"
-    ? fallbackDisciplines.min
-    : lang === "id"
-    ? fallbackDisciplines.id
-    : (about.disciplines && about.disciplines.length > 0
-        ? about.disciplines
-        : fallbackDisciplines.en);
+
+  // Dynamic 1:1 synchronization across all languages:
+  // If user configured disciplines in admin, precisely translate each item without dropping or altering count.
+  const baseDisciplines =
+    about.disciplines && about.disciplines.length > 0
+      ? about.disciplines
+      : fallbackDisciplines;
+
+  const activeDisciplines = baseDisciplines.map((item) => {
+    if (lang === "en") return item;
+    const cleanKey = item.toLowerCase().trim();
+    const match = DISCIPLINE_TRANSLATIONS[cleanKey];
+    if (match) {
+      return lang === "min" ? match.min : match.id;
+    }
+    return lang === "min" ? toMinang(item) : item;
+  });
 
   return (
     <section id="about" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
@@ -131,34 +151,38 @@ export default function About() {
 
         {/* Sidebar Cards - 4 cols */}
         <div className="lg:col-span-4 flex flex-col gap-6">
-          <SpotlightCard className="p-6 sm:p-7 flex-1 flex flex-col justify-center">
-            <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-cyan-400 mb-4">
-              <HiGlobeAmericas className="w-5 h-5 text-[#16b09f]" />
+          <SpotlightCard className="p-5 sm:p-6 lg:p-7 lg:flex-1 min-h-[auto]">
+            <div className="flex flex-col justify-center h-full">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-cyan-400 mb-3 sm:mb-4 shrink-0">
+                <HiGlobeAmericas className="w-5 h-5 text-[#16b09f]" />
+              </div>
+              <h3 className="text-base sm:text-lg font-medium text-white mb-2">
+                {displayCollabTitle}
+              </h3>
+              <p className="text-sm text-neutral-300 font-light leading-relaxed whitespace-pre-line">
+                {displayCollabDesc}
+              </p>
             </div>
-            <h3 className="text-base sm:text-lg font-medium text-white mb-2">
-              {displayCollabTitle}
-            </h3>
-            <p className="text-sm text-neutral-300 font-light leading-relaxed whitespace-pre-line">
-              {displayCollabDesc}
-            </p>
           </SpotlightCard>
 
-          <SpotlightCard className="p-6 sm:p-7 flex-1 flex flex-col justify-center">
-            <div className="w-10 h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-emerald-400 mb-4">
-              <HiCheckBadge className="w-5 h-5 text-emerald-400" />
-            </div>
-            <h3 className="text-base sm:text-lg font-medium text-white mb-3">
-              {displayDisciplinesTitle}
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {activeDisciplines.map((tag, i) => (
-                <span
-                  key={i}
-                  className="about-discipline-tag px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#16b09f]/40 hover:text-white transition-colors"
-                >
-                  {tag}
-                </span>
-              ))}
+          <SpotlightCard className="p-5 sm:p-6 lg:p-7 lg:flex-1 min-h-[auto]">
+            <div className="flex flex-col justify-center h-full">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-emerald-400 mb-3 sm:mb-4 shrink-0">
+                <HiCheckBadge className="w-5 h-5 text-emerald-400" />
+              </div>
+              <h3 className="text-base sm:text-lg font-medium text-white mb-2.5 sm:mb-3">
+                {displayDisciplinesTitle}
+              </h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 pb-1">
+                {activeDisciplines.map((tag, i) => (
+                  <span
+                    key={i}
+                    className="about-discipline-tag px-2.5 sm:px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-[11px] sm:text-xs font-mono text-neutral-200 hover:border-[#16b09f]/40 hover:text-white transition-colors"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           </SpotlightCard>
         </div>
@@ -166,4 +190,3 @@ export default function About() {
     </section>
   );
 }
-
