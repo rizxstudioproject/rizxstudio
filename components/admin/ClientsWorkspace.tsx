@@ -6,7 +6,6 @@ import {
   HiStar,
   HiMagnifyingGlass,
   HiArrowTopRightOnSquare,
-  HiEllipsisHorizontal,
   HiArrowUpTray,
   HiPencilSquare,
   HiTrash,
@@ -160,7 +159,6 @@ export default function ClientsWorkspace({
   const [headlineInput, setHeadlineInput] = useState("PROFESSIONAL EXPERIENCE");
   const [descriptionInput, setDescriptionInput] = useState("");
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
-  const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
 
   // Assets toolbar states
   const [assetSearch, setAssetSearch] = useState("");
@@ -1456,88 +1454,15 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <span>{tr("Ganti PP", "Change PP", "Ganti PP")}</span>
               </button>
 
-              {/* More Menu Dropdown */}
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setIsMoreMenuOpen(!isMoreMenuOpen)}
-                  className="p-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition-colors cursor-pointer"
-                  title="More actions"
-                >
-                  <HiEllipsisHorizontal className="w-4 h-4" />
-                </button>
-
-                {isMoreMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-52 rounded-xl bg-[#14181f] border border-white/10 shadow-2xl p-1 z-30">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        onOpenEditFolder(selectedClient);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-neutral-200 hover:text-white hover:bg-white/5 rounded-lg text-left cursor-pointer"
-                    >
-                      <HiPencilSquare className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>{tr("Rename folder", "Rename folder", "Rename folder")}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        avatarInputRef.current?.click();
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-neutral-200 hover:text-white hover:bg-white/5 rounded-lg text-left cursor-pointer"
-                    >
-                      <HiCamera className="w-3.5 h-3.5 text-[#14AF9E]" />
-                      <span>{tr("Ganti Foto Profil Brand (PP)", "Change Brand Avatar (PP)", "Ganti Foto Profil Brand (PP)")}</span>
-                    </button>
-                    {selectedClient.logo && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsMoreMenuOpen(false);
-                          if (onUpdateClientFolder) {
-                            onUpdateClientFolder(selectedClient.id, { logo: "" });
-                            showToast(
-                              tr(
-                                "Foto profil brand dikembalikan ke inisial.",
-                                "Brand avatar reset to initials.",
-                                "Foto profil brand dibaliakkan ka inisial."
-                              )
-                            );
-                          }
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-amber-400 hover:bg-amber-500/10 rounded-lg text-left cursor-pointer"
-                      >
-                        <HiTrash className="w-3.5 h-3.5" />
-                        <span>{tr("Reset PP ke Inisial", "Reset PP to Initials", "Reset PP ka Inisial")}</span>
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        onOpenUploadWork();
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-neutral-200 hover:text-white hover:bg-white/5 rounded-lg text-left cursor-pointer"
-                    >
-                      <HiArrowUpTray className="w-3.5 h-3.5 text-[#14AF9E]" />
-                      <span>Add work</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsMoreMenuOpen(false);
-                        onDeleteFolder(selectedClient);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg text-left cursor-pointer"
-                    >
-                      <HiTrash className="w-3.5 h-3.5" />
-                      <span>Delete folder</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* Delete Folder Button */}
+              <button
+                type="button"
+                onClick={() => onDeleteFolder(selectedClient)}
+                className="p-1.5 rounded-xl bg-white/5 hover:bg-rose-500/15 text-neutral-400 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 transition-all cursor-pointer shadow-sm active:scale-95"
+                title={tr("Hapus folder klien ini", "Delete this client folder", "Hapuih folder klien ko")}
+              >
+                <HiTrash className="w-4 h-4" />
+              </button>
             </div>
           </div>
 

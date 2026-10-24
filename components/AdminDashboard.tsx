@@ -6010,6 +6010,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     {tx("Batal", "Cancel")}
                   </button>
                 </div>
+
+                <div className="pt-2 border-t border-white/5 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (editingFolder) {
+                        const target = editingFolder;
+                        setEditingFolder(null);
+                        handleDeleteFolder(target);
+                      }
+                    }}
+                    className="flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+                  >
+                    <HiTrash className="w-3.5 h-3.5" />
+                    <span>{tx("Hapus Folder Klien Ini", "Delete this client folder")}</span>
+                  </button>
+                </div>
               </form>
             </motion.div>
           </div>
