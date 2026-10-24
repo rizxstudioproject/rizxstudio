@@ -391,7 +391,7 @@ interface PortfolioDataContextType {
   updateClientWork: (clientId: string, updatedWork: any) => void;
   deleteClientWork: (clientId: string, workId: string) => void;
   addClientFolder: (folder: { clientName: string; category: string; description?: string }) => void;
-  updateClientFolder: (clientId: string, updates: { clientName: string; category?: string }) => void;
+  updateClientFolder: (clientId: string, updates: { clientName?: string; category?: string; logo?: string }) => void;
   deleteClientFolder: (clientId: string) => void;
   updateAboutData: (newData: Partial<AboutData>) => void;
   updateHeroWorksData: (newData: Partial<HeroWorksData>) => void;
@@ -996,6 +996,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               let tools: string[] = fallbackClient?.tools || [];
               let works: any[] = fallbackClient?.works || [];
               let isCustom = fallbackClient?.isCustom || false;
+              let logo = fallbackClient?.logo || "";
 
               if (row && row.description) {
                 if (typeof row.description === "string" && row.description.startsWith("{")) {
@@ -1005,6 +1006,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                     if (Array.isArray(parsed.tools) && parsed.tools.length > 0) tools = parsed.tools;
                     if (Array.isArray(parsed.works) && parsed.works.length > 0) works = parsed.works;
                     if (parsed.isCustom !== undefined) isCustom = parsed.isCustom;
+                    if (parsed.logo !== undefined) logo = parsed.logo;
                   } catch (_) {
                     text = row.description;
                   }
@@ -1014,8 +1016,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               }
               if (Array.isArray(row.tools) && row.tools.length > 0) tools = row.tools;
               if (Array.isArray(row.works) && row.works.length > 0) works = row.works;
+              if (row.logo) logo = row.logo;
 
-              return { text, tools, works, isCustom };
+              return { text, tools, works, isCustom, logo };
             };
 
             // 1. Update existing default clients
@@ -1031,6 +1034,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 tools: parsed.tools,
                 works: parsed.works,
                 itemsCount: parsed.works.length,
+                logo: parsed.logo || d.logo || "",
               };
             });
 
@@ -1043,7 +1047,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                   id: r.client_id,
                   clientName: r.client_name || r.client_id,
                   category: r.category || `Portfolio — ${r.client_name || r.client_id}`,
-                  logo: "",
+                  logo: parsed.logo || "",
                   color: "from-[#14AF9E]/20 via-neutral-900/40 to-neutral-900",
                   itemsCount: parsed.works.length,
                   description: parsed.text,
@@ -1242,6 +1246,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         tools: clientItem.tools || [],
         works: clientItem.works || [],
         isCustom: Boolean(clientItem.isCustom),
+        logo: clientItem.logo || "",
       });
       await supabase.from("client_descriptions").upsert({
         client_id: clientItem.id,
@@ -1383,19 +1388,22 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [stage3, clients, persistState, syncClientToCloud]
   );
 
-  // Edit / Rename an existing client folder
+  // Edit / Rename an existing client folder or update logo
   const updateClientFolder = useCallback(
-    async (clientId: string, updates: { clientName: string; category?: string }) => {
+    async (clientId: string, updates: { clientName?: string; category?: string; logo?: string }) => {
       const updatedClients = clients.map((c) => {
         if (c.id === clientId) {
-          const newName = updates.clientName.trim();
-          const newCategory = updates.category !== undefined && updates.category.trim() !== ""
-            ? updates.category.trim()
-            : `Portfolio — ${newName}`;
+          const newName = updates.clientName !== undefined ? updates.clientName.trim() : c.clientName;
+          const newCategory =
+            updates.category !== undefined && updates.category.trim() !== ""
+              ? updates.category.trim()
+              : (updates.clientName ? `Portfolio — ${newName}` : c.category);
+          const newLogo = updates.logo !== undefined ? updates.logo : (c.logo || "");
           return {
             ...c,
             clientName: newName,
             category: newCategory,
+            logo: newLogo,
           };
         }
         return c;

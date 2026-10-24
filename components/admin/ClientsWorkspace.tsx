@@ -19,6 +19,7 @@ import {
   HiTag,
   HiArrowLeft,
   HiPhoto,
+  HiCamera,
 } from "react-icons/hi2";
 import {
   SiFigma,
@@ -167,6 +168,40 @@ export default function ClientsWorkspace({
   const [assetViewMode, setAssetViewMode] = useState<"grid" | "list">("grid");
 
   const coverFileInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedClient) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast(
+        tr(
+          "Harap pilih file gambar yang valid (PNG, JPG, SVG, WebP).",
+          "Please choose a valid image file (PNG, JPG, SVG, WebP).",
+          "Piliahlah file gambar nan valid (PNG, JPG, SVG, WebP)."
+        )
+      );
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      if (dataUrl && onUpdateClientFolder) {
+        onUpdateClientFolder(selectedClient.id, { logo: dataUrl });
+        showToast(
+          tr(
+            `Foto profil brand "${selectedClient.clientName}" berhasil diperbarui!`,
+            `Brand profile picture for "${selectedClient.clientName}" updated!`,
+            `Foto profil brand "${selectedClient.clientName}" barasil dipabarui!`
+          )
+        );
+      }
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
 
   // Sync inputs when selected client changes
   React.useEffect(() => {
@@ -795,7 +830,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 const isSelected = client.id === selectedClientId;
                 const isFav = !!favorites[client.id];
                 const worksCount = client.works?.length || 0;
-                const thumbImage = client.works?.[0]?.image || client.logo;
+                const thumbImage = client.logo || client.works?.[0]?.image;
 
                 return (
                   <div
@@ -841,19 +876,34 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       </div>
                     </div>
 
-                    {/* Favorite Star Button */}
-                    <button
-                      type="button"
-                      onClick={(e) => toggleFavorite(client.id, e)}
-                      className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                        isFav
-                          ? "text-[#14AF9E] hover:text-[#119889]"
-                          : "text-neutral-600 hover:text-neutral-300 opacity-0 group-hover:opacity-100"
-                      }`}
-                      title={isFav ? "Remove from favorites" : "Add to favorites"}
-                    >
-                      <HiStar className={`w-3.5 h-3.5 ${isFav ? "fill-current" : ""}`} />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      {/* Quick Rename Folder Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenEditFolder(client);
+                        }}
+                        className="p-1.5 rounded-lg text-neutral-500 hover:text-cyan-400 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        title={tr("Rename folder", "Ganti nama folder", "Ganti namo folder")}
+                      >
+                        <HiPencilSquare className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Favorite Star Button */}
+                      <button
+                        type="button"
+                        onClick={(e) => toggleFavorite(client.id, e)}
+                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                          isFav
+                            ? "text-[#14AF9E] hover:text-[#119889]"
+                            : "text-neutral-600 hover:text-neutral-300 opacity-0 group-hover:opacity-100"
+                        }`}
+                        title={isFav ? "Remove from favorites" : "Add to favorites"}
+                      >
+                        <HiStar className={`w-3.5 h-3.5 ${isFav ? "fill-current" : ""}`} />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
@@ -1315,16 +1365,62 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           {/* Client Header Card */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
             <div className="flex items-center gap-3.5">
-              {/* Rounded Square Avatar [KD] */}
-              <div className="w-12 h-12 rounded-xl bg-[#161a22] border border-white/10 flex items-center justify-center font-bold text-white text-base shadow-inner shrink-0">
-                {clientInitials}
+              {/* Rounded Square Avatar [KD] with Double Click to Upload / Edit Brand Profile Picture */}
+              <div
+                onDoubleClick={() => avatarInputRef.current?.click()}
+                title={tr(
+                  "Klik 2x untuk ganti foto profil / logo brand",
+                  "Double-click to change brand profile / logo",
+                  "Klik 2x untuak ganti foto profil / logo brand"
+                )}
+                className="relative group w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#161a22] border-2 border-white/10 hover:border-[#14AF9E]/60 flex items-center justify-center font-bold text-white text-base shadow-inner shrink-0 cursor-pointer overflow-hidden transition-all select-none"
+              >
+                {selectedClient.logo ? (
+                  <img
+                    src={selectedClient.logo}
+                    alt={selectedClient.clientName}
+                    className="w-full h-full object-cover rounded-2xl transition-transform group-hover:scale-105"
+                  />
+                ) : (
+                  <span className="font-mono text-base tracking-wider text-neutral-200 group-hover:text-white">
+                    {clientInitials}
+                  </span>
+                )}
+
+                {/* Hover overlay hint for double click */}
+                <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 text-center backdrop-blur-[2px]">
+                  <HiCamera className="w-4 h-4 text-[#14AF9E] mb-0.5" />
+                  <span className="text-[9px] font-mono font-semibold text-white leading-tight">
+                    {tr("Klik 2x", "2x Click", "Klik 2x")}
+                  </span>
+                  <span className="text-[8px] text-neutral-300 leading-tight">
+                    {tr("Ganti PP", "Change PP", "Ganti PP")}
+                  </span>
+                </div>
               </div>
+
+              {/* Hidden File Input for Avatar / PP */}
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
 
               <div>
                 <div className="flex items-center gap-2">
                   <h1 className="text-2xl font-bold text-white tracking-tight">
                     {selectedClient.clientName}
                   </h1>
+                  <button
+                    type="button"
+                    onClick={() => onOpenEditFolder(selectedClient)}
+                    className="p-1 rounded-lg text-neutral-400 hover:text-cyan-400 hover:bg-white/10 transition-colors cursor-pointer"
+                    title={tr("Rename folder / edit brand name", "Ganti nama folder / edit brand", "Ganti namo folder / edit brand")}
+                  >
+                    <HiPencilSquare className="w-4 h-4" />
+                  </button>
                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     Active
@@ -1338,6 +1434,28 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
             {/* Right Header Actions */}
             <div className="flex items-center gap-2 shrink-0 relative">
+              {/* Direct Rename Folder Button */}
+              <button
+                type="button"
+                onClick={() => onOpenEditFolder(selectedClient)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 text-xs font-semibold transition-all cursor-pointer shadow-sm active:scale-95 group/btn"
+                title={tr("Rename folder / edit brand name", "Ganti nama folder / edit brand", "Ganti namo folder / edit brand")}
+              >
+                <HiPencilSquare className="w-3.5 h-3.5 text-cyan-400 group-hover/btn:scale-110 transition-transform" />
+                <span>{tr("Rename Folder", "Rename Folder", "Rename Folder")}</span>
+              </button>
+
+              {/* Direct Ganti PP / Brand Logo Button */}
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 text-xs font-semibold transition-all cursor-pointer shadow-sm active:scale-95 group/pp"
+                title={tr("Ganti foto profil / logo brand", "Change brand profile / logo", "Ganti foto profil / logo brand")}
+              >
+                <HiCamera className="w-3.5 h-3.5 text-[#14AF9E] group-hover/pp:scale-110 transition-transform" />
+                <span>{tr("Ganti PP", "Change PP", "Ganti PP")}</span>
+              </button>
+
               {/* More Menu Dropdown */}
               <div className="relative">
                 <button
@@ -1350,7 +1468,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 </button>
 
                 {isMoreMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#14181f] border border-white/10 shadow-2xl p-1 z-30">
+                  <div className="absolute right-0 mt-2 w-52 rounded-xl bg-[#14181f] border border-white/10 shadow-2xl p-1 z-30">
                     <button
                       type="button"
                       onClick={() => {
@@ -1360,8 +1478,41 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       className="w-full flex items-center gap-2 px-3 py-2 text-xs text-neutral-200 hover:text-white hover:bg-white/5 rounded-lg text-left cursor-pointer"
                     >
                       <HiPencilSquare className="w-3.5 h-3.5 text-cyan-400" />
-                      <span>Rename folder</span>
+                      <span>{tr("Rename folder", "Rename folder", "Rename folder")}</span>
                     </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsMoreMenuOpen(false);
+                        avatarInputRef.current?.click();
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-neutral-200 hover:text-white hover:bg-white/5 rounded-lg text-left cursor-pointer"
+                    >
+                      <HiCamera className="w-3.5 h-3.5 text-[#14AF9E]" />
+                      <span>{tr("Ganti Foto Profil Brand (PP)", "Change Brand Avatar (PP)", "Ganti Foto Profil Brand (PP)")}</span>
+                    </button>
+                    {selectedClient.logo && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsMoreMenuOpen(false);
+                          if (onUpdateClientFolder) {
+                            onUpdateClientFolder(selectedClient.id, { logo: "" });
+                            showToast(
+                              tr(
+                                "Foto profil brand dikembalikan ke inisial.",
+                                "Brand avatar reset to initials.",
+                                "Foto profil brand dibaliakkan ka inisial."
+                              )
+                            );
+                          }
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-amber-400 hover:bg-amber-500/10 rounded-lg text-left cursor-pointer"
+                      >
+                        <HiTrash className="w-3.5 h-3.5" />
+                        <span>{tr("Reset PP ke Inisial", "Reset PP to Initials", "Reset PP ka Inisial")}</span>
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => {

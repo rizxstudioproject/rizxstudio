@@ -1260,11 +1260,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [editingFolder, setEditingFolder] = useState<ClientItem | null>(null);
   const [editFolderName, setEditFolderName] = useState("");
   const [editFolderCategory, setEditFolderCategory] = useState("");
+  const [editFolderLogo, setEditFolderLogo] = useState("");
 
   const handleOpenEditFolder = (folder: ClientItem) => {
     setEditingFolder(folder);
     setEditFolderName(folder.clientName);
     setEditFolderCategory(folder.category || `Portfolio — ${folder.clientName}`);
+    setEditFolderLogo(folder.logo || "");
   };
 
   const handleSaveEditFolder = (e: React.FormEvent) => {
@@ -1274,6 +1276,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     updateClientFolder(editingFolder.id, {
       clientName: editFolderName.trim(),
       category: editFolderCategory.trim(),
+      logo: editFolderLogo,
     });
     showToast(tx(`Nama brand berhasil diubah menjadi "${editFolderName.trim()}"!`, `Brand name updated to "${editFolderName.trim()}"!`));
     setEditingFolder(null);
@@ -1917,6 +1920,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   updateClientFolder(id, {
                     clientName: updates.clientName || c.clientName,
                     category: updates.category !== undefined ? updates.category : c.category,
+                    logo: updates.logo !== undefined ? updates.logo : (c.logo || ""),
                   });
                 }
               }}
@@ -5929,6 +5933,64 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     placeholder={`Portfolio — ${editFolderName.trim() || editingFolder.clientName}`}
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-cyan-400 transition-all"
                   />
+                </div>
+
+                {/* Profile Brand Logo (PP) */}
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    {tx("Foto Profil / Logo Brand (PP)", "Brand Profile / Logo")}
+                  </label>
+                  <div className="flex items-center gap-3 p-3 rounded-xl bg-neutral-950 border border-white/10">
+                    <div className="w-12 h-12 rounded-xl bg-[#161a22] border border-white/10 flex items-center justify-center font-bold text-white text-sm shrink-0 overflow-hidden shadow-inner">
+                      {editFolderLogo ? (
+                        <img
+                          src={editFolderLogo}
+                          alt="Logo Preview"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-neutral-400 font-mono">
+                          {editFolderName.trim()
+                            ? editFolderName.trim().slice(0, 2).toUpperCase()
+                            : editingFolder.clientName.slice(0, 2).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white text-xs font-semibold cursor-pointer transition-colors border border-white/10 active:scale-95">
+                        {tx("Unggah PP / Logo", "Upload Logo")}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onload = () => {
+                                if (typeof reader.result === "string") {
+                                  setEditFolderLogo(reader.result);
+                                }
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                      </label>
+                      {editFolderLogo && (
+                        <button
+                          type="button"
+                          onClick={() => setEditFolderLogo("")}
+                          className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-xs font-medium transition-colors cursor-pointer"
+                        >
+                          {tx("Hapus Foto", "Remove")}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <span className="text-[11px] font-mono text-neutral-500 mt-1 block">
+                    {tx("Anda juga dapat klik 2x langsung pada avatar brand di halaman folder.", "You can also double-click directly on the brand avatar in the folder page.")}
+                  </span>
                 </div>
 
                 <div className="flex items-center gap-3 pt-2">
