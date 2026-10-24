@@ -1177,7 +1177,7 @@ export default function Projects() {
               {stage2.skillLabels.map((skill, sIdx) => (
                 <span
                   key={sIdx}
-                  className="px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#00A389]/40 hover:text-white transition-colors"
+                  className="stage2-skill-tag px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#00A389]/40 hover:text-white transition-colors"
                 >
                   {skill}
                 </span>
@@ -1231,7 +1231,7 @@ export default function Projects() {
                     <>
                       {stage2.badges[0] && (
                         <div
-                          className="absolute left-2 sm:left-4 z-0 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-[#16b09f] text-white border border-[#16b09f]/80 shadow-lg shadow-[#16b09f]/30 pointer-events-none transition-transform duration-200"
+                          className="stage2-badge-rizx absolute left-2 sm:left-4 z-0 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-[#16b09f] text-white border border-[#16b09f]/80 shadow-lg shadow-[#16b09f]/30 pointer-events-none transition-transform duration-200"
                           style={{
                             top: `${badge1Y}px`,
                             transform: `scale(${badge1Scale}) rotate(-6deg)`,
@@ -1247,7 +1247,7 @@ export default function Projects() {
                       )}
                       {stage2.badges[1] && (
                         <div
-                          className="absolute right-2 sm:right-4 z-0 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-lg pointer-events-none transition-transform duration-200"
+                          className="stage2-badge-malaka absolute right-2 sm:right-4 z-0 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-neutral-800 text-white border border-neutral-700 shadow-lg pointer-events-none transition-transform duration-200"
                           style={{
                             top: `${badge2Y}px`,
                             transform: `scale(${badge2Scale}) rotate(6deg)`,

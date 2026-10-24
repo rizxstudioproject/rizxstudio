@@ -50,6 +50,13 @@ html.light .text-white {
 }
 
 /* Paragraphs & Subtitles in Light Mode */
+html[data-theme='light'] .text-neutral-100,
+html[data-theme='light'] .text-neutral-200,
+html.light .text-neutral-100,
+html.light .text-neutral-200 {
+  color: #1e293b !important;
+}
+
 html[data-theme='light'] .text-neutral-300,
 html[data-theme='light'] .text-neutral-400,
 html.light .text-neutral-300,
@@ -60,6 +67,53 @@ html.light .text-neutral-400 {
 html[data-theme='light'] .text-neutral-500,
 html.light .text-neutral-500 {
   color: #64748b !important;
+}
+
+/* Tag Pills (Disciplines, Skills, Tools) in Light Mode */
+html[data-theme='light'] .about-discipline-tag,
+html.light .about-discipline-tag,
+html[data-theme='light'] .stage2-skill-tag,
+html.light .stage2-skill-tag,
+html[data-theme='light'] .bg-white\/\[0\.04\],
+html.light .bg-white\/\[0\.04\] {
+  background-color: #f1f5f9 !important;
+  color: #1e293b !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] .about-discipline-tag:hover,
+html.light .about-discipline-tag:hover,
+html[data-theme='light'] .stage2-skill-tag:hover,
+html.light .stage2-skill-tag:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  border-color: #16b09f !important;
+}
+
+/* Floating Stage 2 Badges (@rizx & @malaka) in Light Mode */
+html[data-theme='light'] .stage2-badge-malaka,
+html.light .stage2-badge-malaka {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] .stage2-badge-malaka span,
+html.light .stage2-badge-malaka span {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .stage2-badge-rizx,
+html.light .stage2-badge-rizx {
+  background-color: #16b09f !important;
+  color: #000000 !important;
+  border-color: #16b09f !important;
+}
+
+html[data-theme='light'] .stage2-badge-rizx span,
+html.light .stage2-badge-rizx span {
+  color: #000000 !important;
 }
 
 /* Cards & Surface Containers (SpotlightCard, Bento boxes, Sections) */

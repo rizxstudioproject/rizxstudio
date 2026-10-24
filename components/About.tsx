@@ -154,7 +154,7 @@ export default function About() {
               {activeDisciplines.map((tag, i) => (
                 <span
                   key={i}
-                  className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#16b09f]/40 hover:text-white transition-colors"
+                  className="about-discipline-tag px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#16b09f]/40 hover:text-white transition-colors"
                 >
                   {tag}
                 </span>
