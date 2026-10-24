@@ -98,7 +98,7 @@ export default function Home() {
 
   // Default: Public Portfolio View
   return (
-    <div className="relative min-h-screen max-w-full overflow-x-clip bg-[#0a0a0a] text-neutral-300 selection:bg-white/20 selection:text-white">
+    <div className="relative min-h-screen max-w-full overflow-x-clip bg-[var(--background,#0a0a0a)] text-[var(--foreground,#d4d4d4)] selection:bg-[#16b09f] selection:text-black transition-colors duration-300">
       {/* Floating Header Navigation */}
       <Navbar />
 
@@ -106,7 +106,7 @@ export default function Home() {
       <ScrollyCanvas />
 
       {/* Standard Portfolio Sections below the 500vh sequence */}
-      <main className="relative z-20 bg-[#0a0a0a] max-w-full overflow-x-clip">
+      <main className="relative z-20 bg-[var(--background,#0a0a0a)] max-w-full overflow-x-clip transition-colors duration-300">
         {/* Subtle radial ambient background glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[800px] h-[500px] bg-indigo-500/[0.03] blur-[140px] pointer-events-none rounded-full" />
         <div className="absolute top-1/2 right-0 w-full max-w-[500px] h-[500px] bg-purple-500/[0.02] blur-[150px] pointer-events-none rounded-full" />

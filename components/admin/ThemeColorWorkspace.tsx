@@ -98,9 +98,13 @@ export default function ThemeColorWorkspace() {
               setThemeMode("dark");
               triggerSaved();
             }}
+            style={{
+              borderColor: themeMode === "dark" ? primaryColor : undefined,
+              boxShadow: themeMode === "dark" ? `0 0 0 2px ${primaryColor}55, 0 10px 25px -5px rgba(0,0,0,0.5)` : undefined,
+            }}
             className={`p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden group ${
               themeMode === "dark"
-                ? "bg-neutral-900 border-white/30 shadow-xl shadow-black/60"
+                ? "bg-neutral-900 border-white/30"
                 : "bg-neutral-950/60 border-white/5 hover:border-white/10"
             }`}
           >
@@ -141,9 +145,13 @@ export default function ThemeColorWorkspace() {
               setThemeMode("light");
               triggerSaved();
             }}
+            style={{
+              borderColor: themeMode === "light" ? primaryColor : undefined,
+              boxShadow: themeMode === "light" ? `0 0 0 2px ${primaryColor}55, 0 10px 25px -5px rgba(0,0,0,0.15)` : undefined,
+            }}
             className={`p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden group ${
               themeMode === "light"
-                ? "bg-neutral-800 border-white/30 shadow-xl shadow-black/60"
+                ? "bg-neutral-800 border-white/30"
                 : "bg-neutral-950/60 border-white/5 hover:border-white/10"
             }`}
           >
