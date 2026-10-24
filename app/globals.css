@@ -1146,3 +1146,20 @@ html[data-theme='light'] #admin-dashboard header button.md\:hidden svg,
 html.light #admin-dashboard header button.md\:hidden svg {
   color: #0f172a !important;
 }
+
+/* Projects modal close preview button in Light Mode */
+html[data-theme='light'] .projects-close-btn,
+html.light .projects-close-btn {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+html[data-theme='light'] .projects-close-btn:hover,
+html.light .projects-close-btn:hover,
+html[data-theme='light'] .projects-close-btn:active,
+html.light .projects-close-btn:active,
+html[data-theme='light'] .projects-close-btn:focus,
+html.light .projects-close-btn:focus {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+}

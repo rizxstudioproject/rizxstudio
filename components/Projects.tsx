@@ -1783,7 +1783,8 @@ export default function Projects() {
                           <button
                             type="button"
                             onClick={() => setModalData(null)}
-                            className={`px-5 py-2 rounded-full font-semibold text-xs transition-colors cursor-pointer active:scale-95 shrink-0 self-end sm:self-auto ${isLight ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md" : "bg-white text-black hover:bg-neutral-200"}`}
+                            style={{ color: isLight ? "#ffffff" : undefined }}
+                            className={`projects-close-btn px-5 py-2 rounded-full font-semibold text-xs transition-colors cursor-pointer active:scale-95 shrink-0 self-end sm:self-auto select-none ${isLight ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md" : "bg-white text-black hover:bg-neutral-200"}`}
                           >
                             {t("projects.close")}
                           </button>
@@ -1866,7 +1867,8 @@ export default function Projects() {
                       <button
                         type="button"
                         onClick={() => setModalData(null)}
-                        className={`px-5 py-2.5 rounded-full font-semibold text-xs transition-colors cursor-pointer active:scale-95 shrink-0 ${isLight ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md" : "bg-white text-black hover:bg-neutral-200"}`}
+                        style={{ color: isLight ? "#ffffff" : undefined }}
+                        className={`projects-close-btn px-5 py-2.5 rounded-full font-semibold text-xs transition-colors cursor-pointer active:scale-95 shrink-0 select-none ${isLight ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md" : "bg-white text-black hover:bg-neutral-200"}`}
                       >
                         {t("projects.close")}
                       </button>
