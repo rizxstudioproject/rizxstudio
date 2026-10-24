@@ -4,10 +4,13 @@ import React, { useState, useEffect } from "react";
 import { HiArrowUpRight, HiXMark } from "react-icons/hi2";
 import { usePortfolioData, extractYouTubeId, extractGoogleDriveId } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export default function CreativeJourney() {
   const { stage3 } = usePortfolioData();
   const { t, lang } = useLang();
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
   const isId = lang === "id";
   const isMin = lang === "min";
   const isLocalized = isId || isMin;
@@ -141,24 +144,36 @@ export default function CreativeJourney() {
       {/* Fullview Modal Popup */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in"
+          className={`fixed inset-0 z-[150] flex items-center justify-center p-4 sm:p-6 backdrop-blur-xl animate-fade-in ${
+            isLight ? "bg-slate-900/50" : "bg-black/90"
+          }`}
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="relative w-full max-w-5xl rounded-3xl bg-neutral-950 border border-white/15 overflow-hidden shadow-2xl flex flex-col max-h-[90vh]"
+            className={`relative w-full max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] border ${
+              isLight
+                ? "bg-white border-slate-200"
+                : "bg-neutral-950 border-white/15"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white border border-white/20 flex items-center justify-center transition-all cursor-pointer hover:scale-105"
+              className={`absolute top-4 right-4 z-30 w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-105 border ${
+                isLight
+                  ? "bg-white/90 hover:bg-white text-slate-800 border-slate-200 shadow-md"
+                  : "bg-black/70 hover:bg-black text-white border-white/20"
+              }`}
               aria-label="Close modal"
             >
               <HiXMark className="w-5 h-5" />
             </button>
 
             {/* Media Area */}
-            <div className="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
+            <div className={`relative w-full aspect-video overflow-hidden flex items-center justify-center ${
+              isLight ? "bg-slate-100" : "bg-black"
+            }`}>
               {isShowingYouTube ? (
                 <iframe
                   src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`}
@@ -185,14 +200,22 @@ export default function CreativeJourney() {
             </div>
 
             {/* Details Footer */}
-            <div className="p-5 sm:p-7 bg-neutral-950 border-t border-white/10 flex flex-col gap-2">
+            <div className={`p-5 sm:p-7 border-t flex flex-col gap-2 ${
+              isLight
+                ? "bg-white border-slate-200"
+                : "bg-neutral-950 border-white/10"
+            }`}>
               <span className="text-xs font-mono uppercase tracking-widest text-[#16b09f] font-semibold">
                 {displayCategory}
               </span>
-              <h3 className="text-xl sm:text-2xl font-bold text-white">
+              <h3 className={`text-xl sm:text-2xl font-bold ${
+                isLight ? "text-slate-900" : "text-white"
+              }`}>
                 {displayTitle}
               </h3>
-              <p className="text-sm text-neutral-300 font-light leading-relaxed max-w-3xl whitespace-pre-line mt-1">
+              <p className={`text-sm font-light leading-relaxed max-w-3xl whitespace-pre-line mt-1 ${
+                isLight ? "text-slate-600" : "text-neutral-300"
+              }`}>
                 {displayDescription}
               </p>
             </div>

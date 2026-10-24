@@ -15,6 +15,7 @@ import {
 import { SiBlender, SiFigma, SiCinema4D, SiGooglegemini } from "react-icons/si";
 import { useLang, toMinang } from "@/context/LanguageContext";
 import { usePortfolioData, extractYouTubeId } from "@/context/PortfolioDataContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 interface WorkItem {
   id: string;
@@ -736,6 +737,8 @@ export default function Projects() {
   const isId = lang === "id";
   const isMin = lang === "min";
   const isLocalized = isId || isMin;
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
 
   const stage1Badge = isLocalized ? t("projects.stage1.badge") : (heroWorks?.stage1Badge || defaultStage1.badge);
   const stage1Headline = isLocalized ? t("projects.stage1.headline") : (heroWorks?.stage1Headline || defaultStage1.headline);
@@ -1517,19 +1520,27 @@ export default function Projects() {
 
             return (
               <div
-                className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/95 backdrop-blur-2xl animate-fade-in"
+                className={`fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-5 md:p-8 backdrop-blur-2xl animate-fade-in ${
+                  isLight ? "bg-slate-900/50" : "bg-black/95"
+                }`}
                 onClick={() => setModalData(null)}
               >
                 {/* Modal Container */}
                 <div
-                  className="relative max-w-5xl max-h-[92vh] w-full bg-neutral-950 border border-white/15 rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col no-scrollbar"
+                  className={`relative max-w-5xl max-h-[92vh] w-full rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col no-scrollbar border ${
+                    isLight
+                      ? "bg-white border-slate-200 text-slate-800"
+                      : "bg-neutral-950 border-white/15 text-white"
+                  }`}
                   onClick={(e) => e.stopPropagation()}
                 >
                   {/* Clean X Close on Top Right of Popup (Tanpa frame bulat, ukuran pas & elegan) */}
                   <button
                     type="button"
                     onClick={() => setModalData(null)}
-                    className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 p-2 text-white/70 hover:text-white transition-colors cursor-pointer group"
+                    className={`absolute top-3 right-3 sm:top-4 sm:right-4 z-40 p-2 transition-colors cursor-pointer group ${
+                      isLight ? "text-slate-500 hover:text-slate-900" : "text-white/70 hover:text-white"
+                    }`}
                     aria-label="Tutup popup"
                     title="Tutup (Esc)"
                   >
@@ -1538,7 +1549,9 @@ export default function Projects() {
 
                   {/* Full-Scale Hero Image Preview Box (Artwork is never shrunk or cropped) */}
                   <div
-                    className="relative w-full bg-black flex items-center justify-center p-3 sm:p-6 select-none shrink-0"
+                    className={`relative w-full flex items-center justify-center p-3 sm:p-6 select-none shrink-0 ${
+                      isLight ? "bg-slate-100/90" : "bg-black"
+                    }`}
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                   >
@@ -1548,7 +1561,11 @@ export default function Projects() {
                         type="button"
                         onClick={handlePrevWork}
                         aria-label="Previous work (Before)"
-                        className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
+                        className={`absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group border ${
+                          isLight
+                            ? "bg-white/95 hover:bg-white text-slate-800 border-slate-200 shadow-slate-300/60"
+                            : "bg-neutral-900/80 hover:bg-neutral-800 text-white border-white/20"
+                        }`}
                       >
                         <svg
                           className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:-translate-x-0.5"
@@ -1596,7 +1613,11 @@ export default function Projects() {
 
                   {/* Scroll Down Indicator Cue (Only for client works that have case study details below) */}
                   {currentWork.isClientWork && (
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[10px] font-mono text-neutral-400">
+                    <div className={`absolute bottom-3 left-1/2 -translate-x-1/2 z-20 pointer-events-none flex items-center gap-1.5 px-3 py-1 rounded-full backdrop-blur-md border text-[10px] font-mono ${
+                      isLight
+                        ? "bg-white/90 border-slate-200 text-slate-600 shadow-sm"
+                        : "bg-black/70 border-white/10 text-neutral-400"
+                    }`}>
                       <span>{t("projects.scrollhint")}</span>
                       <span className="animate-bounce">↓</span>
                     </div>
@@ -1608,7 +1629,11 @@ export default function Projects() {
                       type="button"
                       onClick={handleNextWork}
                       aria-label="Next work (After)"
-                      className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-neutral-900/80 hover:bg-neutral-800 text-white border border-white/20 backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group"
+                      className={`absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-14 sm:h-14 rounded-full backdrop-blur-md flex items-center justify-center transition-all shadow-2xl active:scale-90 hover:scale-105 cursor-pointer group border ${
+                        isLight
+                          ? "bg-white/95 hover:bg-white text-slate-800 border-slate-200 shadow-slate-300/60"
+                          : "bg-neutral-900/80 hover:bg-neutral-800 text-white border-white/20"
+                      }`}
                     >
                       <svg
                         className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-0.5"
@@ -1632,7 +1657,11 @@ export default function Projects() {
                     const caseStudy = getCaseStudy(currentWork, lang);
 
                     return (
-                      <div className="p-5 sm:p-8 bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-t border-white/10 space-y-5 shrink-0">
+                      <div className={`p-5 sm:p-8 border-t space-y-5 shrink-0 ${
+                        isLight
+                          ? "bg-white border-slate-200"
+                          : "bg-gradient-to-b from-neutral-900 via-neutral-950 to-black border-white/10"
+                      }`}>
                         {/* Top Header: Brand Badge & Title */}
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                           <div>
@@ -1641,19 +1670,19 @@ export default function Projects() {
                                 {caseStudy.brand}
                               </span>
                               {caseStudy.year && (
-                                <span className="px-2 py-0.5 rounded-full bg-white/5 text-neutral-300 border border-white/10 text-[10px] font-mono">
+                                <span className={`px-2 py-0.5 rounded-full border text-[10px] font-mono ${isLight ? "bg-slate-100 text-slate-600 border-slate-200" : "bg-white/5 text-neutral-300 border-white/10"}`}>
                                   {caseStudy.year}
                                 </span>
                               )}
-                              <span className="text-[10px] font-mono text-neutral-400">
+                              <span className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                                 {currentWork.aspect} • {currentWork.type}
                               </span>
                             </div>
-                            <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
+                            <h3 className={`text-base sm:text-xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                               {currentWork.title}
                             </h3>
                             {caseStudy.brief && (
-                              <p className="text-xs text-neutral-400 font-sans mt-1 leading-relaxed max-w-2xl">
+                              <p className={`text-xs font-sans mt-1 leading-relaxed max-w-2xl ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                                 {caseStudy.brief}
                               </p>
                             )}
@@ -1662,14 +1691,14 @@ export default function Projects() {
                           {/* Counter & Mini Navigation */}
                           {hasMultiple && (
                             <div className="flex items-center gap-2 self-start sm:self-auto">
-                              <span className="text-xs font-mono text-neutral-400 px-3 py-1 rounded-full bg-white/[0.04] border border-white/5">
+                              <span className={`text-xs font-mono px-3 py-1 rounded-full border ${isLight ? "text-slate-600 bg-slate-100 border-slate-200" : "text-neutral-400 bg-white/[0.04] border-white/5"}`}>
                                 {modalData.currentIndex + 1} / {modalData.items.length}
                               </span>
                               <div className="flex items-center gap-1">
                                 <button
                                   type="button"
                                   onClick={handlePrevWork}
-                                  className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                                  className={`p-1.5 rounded-full border transition-all active:scale-95 cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
                                   aria-label="Previous work"
                                 >
                                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1679,7 +1708,7 @@ export default function Projects() {
                                 <button
                                   type="button"
                                   onClick={handleNextWork}
-                                  className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                                  className={`p-1.5 rounded-full border transition-all active:scale-95 cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
                                   aria-label="Next work"
                                 >
                                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1694,23 +1723,23 @@ export default function Projects() {
                         {/* 2-Box Grid: Tantangan (Kesulitan) vs Jalan Keluar (Solusi) */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
                           {/* Tantangan / Kesulitan */}
-                          <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-amber-500/20 transition-all">
-                            <div className="flex items-center gap-1.5 text-amber-400 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
+                          <div className={`p-3.5 rounded-xl border transition-all ${isLight ? "bg-amber-50/70 border-amber-200/80 shadow-xs" : "bg-neutral-900/60 border-white/5 hover:border-amber-500/20"}`}>
+                            <div className={`flex items-center gap-1.5 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5 ${isLight ? "text-amber-700" : "text-amber-400"}`}>
                               <HiExclamationTriangle className="w-3.5 h-3.5 shrink-0" />
                               <span>{t("casestudy.challenge.label")}</span>
                             </div>
-                            <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
+                            <p className={`text-xs sm:text-[13px] leading-relaxed font-normal ${isLight ? "text-slate-800" : "text-neutral-300"}`}>
                               {caseStudy.challenge}
                             </p>
                           </div>
 
                           {/* Jalan Keluar / Solusi */}
-                          <div className="p-3.5 rounded-xl bg-neutral-900/60 border border-white/5 hover:border-[#16b09f]/30 transition-all">
+                          <div className={`p-3.5 rounded-xl border transition-all ${isLight ? "bg-teal-50/70 border-teal-200/80 shadow-xs" : "bg-neutral-900/60 border-white/5 hover:border-[#16b09f]/30 transition-all"}`}>
                             <div className="flex items-center gap-1.5 text-[#16b09f] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
                               <HiCheckCircle className="w-3.5 h-3.5 shrink-0" />
                               <span>{t("casestudy.solution.label")}</span>
                             </div>
-                            <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed font-normal">
+                            <p className={`text-xs sm:text-[13px] leading-relaxed font-normal ${isLight ? "text-slate-800" : "text-neutral-300"}`}>
                               {caseStudy.solution}
                             </p>
                           </div>
@@ -1718,7 +1747,7 @@ export default function Projects() {
 
                         {/* Role & Approach */}
                         {caseStudy.role && (
-                          <div className="px-3.5 py-2 rounded-lg bg-white/[0.02] border border-white/5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-neutral-400">
+                          <div className={`px-3.5 py-2 rounded-lg border flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] ${isLight ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-white/[0.02] border-white/5 text-neutral-400"}`}>
                             <span className="text-[#16b09f] font-mono font-semibold uppercase text-[10px] tracking-wider">
                               {t("projects.role")}
                             </span>
@@ -1727,9 +1756,9 @@ export default function Projects() {
                         )}
 
                         {/* Tools Digunakan (Icon Tool Saja) & Close Button */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-white/5">
+                        <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t ${isLight ? "border-slate-100" : "border-white/5"}`}>
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 font-semibold">
+                            <span className={`text-[10px] font-mono uppercase tracking-widest font-semibold ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                               {t("projects.tools")}
                             </span>
                             <div className="flex flex-wrap items-center gap-1.5">
@@ -1754,7 +1783,7 @@ export default function Projects() {
                           <button
                             type="button"
                             onClick={() => setModalData(null)}
-                            className="px-5 py-2 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0 self-end sm:self-auto"
+                            className={`px-5 py-2 rounded-full font-semibold text-xs transition-colors cursor-pointer active:scale-95 shrink-0 self-end sm:self-auto ${isLight ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md" : "bg-white text-black hover:bg-neutral-200"}`}
                           >
                             {t("projects.close")}
                           </button>
@@ -1775,11 +1804,11 @@ export default function Projects() {
                             : (rawDesc || clientBrandDescMap[clientKey]?.en);
                           if (!brandDesc) return null;
                           return (
-                            <div className="mt-2 p-3.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20">
-                              <span className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold block mb-1">
+                            <div className={`mt-2 p-3.5 rounded-xl border ${isLight ? "bg-cyan-50/70 border-cyan-200/80 shadow-xs" : "bg-cyan-950/20 border-cyan-500/20"}`}>
+                              <span className={`text-[10px] font-mono uppercase tracking-wider font-semibold block mb-1 ${isLight ? "text-cyan-800" : "text-cyan-400"}`}>
                                 {tr("Brand Profile & Context", "Profil & Deskripsi Brand", "Profil & Deskripsi Brand")} — {currentWork.clientName}
                               </span>
-                              <p className="text-xs text-neutral-300 font-light leading-relaxed">
+                              <p className={`text-xs font-light leading-relaxed ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                                 {brandDesc}
                               </p>
                             </div>
@@ -1790,15 +1819,15 @@ export default function Projects() {
                   })()
                 ) : (
                   /* Compact Clean Caption for Non-Client Works (Stage 1, 2, 3) */
-                  <div className="p-4 sm:p-6 bg-neutral-950 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0">
+                  <div className={`p-4 sm:p-6 border-t flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shrink-0 ${isLight ? "bg-white border-slate-200" : "bg-neutral-950 border-white/10"}`}>
                     <div>
                       <span className="text-[10px] font-mono text-[#16b09f] tracking-widest uppercase block mb-1">
                         {currentWork.clientName}
                       </span>
-                      <h3 className="text-base sm:text-xl font-bold text-white tracking-tight">
+                      <h3 className={`text-base sm:text-xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                         {currentWork.title}
                       </h3>
-                      <p className="text-xs text-neutral-400 font-mono mt-0.5">
+                      <p className={`text-xs font-mono mt-0.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                         {currentWork.type}
                       </p>
                     </div>
@@ -1806,14 +1835,14 @@ export default function Projects() {
                     <div className="flex items-center gap-3 self-end sm:self-auto w-full sm:w-auto justify-between sm:justify-start">
                       {hasMultiple && (
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-neutral-400 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/5">
+                          <span className={`text-xs font-mono px-3 py-1.5 rounded-full border ${isLight ? "text-slate-600 bg-slate-100 border-slate-200" : "text-neutral-400 bg-white/[0.04] border-white/5"}`}>
                             {modalData.currentIndex + 1} / {modalData.items.length}
                           </span>
                           <div className="flex items-center gap-1">
                             <button
                               type="button"
                               onClick={handlePrevWork}
-                              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                              className={`p-2 rounded-full border transition-all active:scale-95 cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
                               aria-label="Previous work"
                             >
                               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1823,7 +1852,7 @@ export default function Projects() {
                             <button
                               type="button"
                               onClick={handleNextWork}
-                              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/10 transition-all active:scale-95 cursor-pointer"
+                              className={`p-2 rounded-full border transition-all active:scale-95 cursor-pointer ${isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200" : "bg-white/10 hover:bg-white/20 text-white border-white/10"}`}
                               aria-label="Next work"
                             >
                               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1837,7 +1866,7 @@ export default function Projects() {
                       <button
                         type="button"
                         onClick={() => setModalData(null)}
-                        className="px-5 py-2.5 rounded-full bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors cursor-pointer active:scale-95 shrink-0"
+                        className={`px-5 py-2.5 rounded-full font-semibold text-xs transition-colors cursor-pointer active:scale-95 shrink-0 ${isLight ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md" : "bg-white text-black hover:bg-neutral-200"}`}
                       >
                         {t("projects.close")}
                       </button>
