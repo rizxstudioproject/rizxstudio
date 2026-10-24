@@ -4,7 +4,6 @@ import React, { useState, useMemo, useEffect } from "react";
 import {
   HiSquare3Stack3D,
   HiPhoto,
-  HiMagnifyingGlass,
   HiArrowDownTray,
   HiClipboardDocument,
   HiEye,
@@ -14,7 +13,6 @@ import {
   HiTag,
   HiSparkles,
   HiCheck,
-  HiPlus,
 } from "react-icons/hi2";
 import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
@@ -203,19 +201,6 @@ export default function ResourceLibrary({
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          {onOpenUploadWork && (
-            <button
-              type="button"
-              onClick={onOpenUploadWork}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#14AF9E]/20 cursor-pointer active:scale-95"
-            >
-              <HiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>{tr("Upload Asset", "Upload Aset Baru", "Upload Aset Baru")}</span>
-            </button>
-          )}
-        </div>
       </div>
 
       {/* Metrics / Storage Cards */}
@@ -328,27 +313,6 @@ export default function ResourceLibrary({
             >
               {tr(`Marquee Logos (${allLogoAssets.length})`, `Logo Marquee (${allLogoAssets.length})`, `Logo Marquee (${allLogoAssets.length})`)}
             </button>
-          </div>
-
-          {/* Search Input */}
-          <div className="relative flex-1 max-w-md">
-            <HiMagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={tr("Search assets by title, client, year...", "Cari nama karya, brand, atau tahun...", "Cari namo karya, brand, atau tahun...")}
-              className="w-full bg-[#141820] border border-white/10 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#14AF9E] transition-colors"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white text-xs"
-              >
-                ✕
-              </button>
-            )}
           </div>
         </div>
 
