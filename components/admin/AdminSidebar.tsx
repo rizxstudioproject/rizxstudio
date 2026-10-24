@@ -10,7 +10,6 @@ import {
   HiTag,
   HiUser,
   HiKey,
-  HiChevronDown,
   HiSquare3Stack3D,
   HiTrash,
   HiChartPie,
@@ -245,28 +244,6 @@ export default function AdminSidebar({
           <div className="flex items-center justify-between text-[10px] text-neutral-500 font-mono">
             <span>{totalWorks} {tr("total works", "total karya", "karya kasadonyo")}</span>
           </div>
-        </button>
-
-        {/* Profile Card */}
-        <button
-          type="button"
-          onClick={onOpenProfileMenu || (() => onSelectTab("settings"))}
-          className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/[0.04] transition-colors text-left cursor-pointer group"
-        >
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-8 h-8 rounded-full bg-neutral-800 border border-white/10 flex items-center justify-center text-xs font-semibold text-white shrink-0">
-              RS
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs font-semibold text-white truncate">
-                {adminName}
-              </p>
-              <p className="text-[10px] text-neutral-400 font-sans truncate">
-                Admin
-              </p>
-            </div>
-          </div>
-          <HiChevronDown className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors shrink-0" />
         </button>
       </div>
     </aside>
