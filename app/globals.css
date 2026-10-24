@@ -264,6 +264,67 @@ html.light #projects .bg-white\/\[0\.04\] {
   color: #334155 !important;
 }
 
+/* ========================================================
+   MEDIA ARTWORK THUMBNAILS & OVERLAYS IN LIGHT MODE
+   Ensures badges, pills, and text over dark photographic
+   thumbnails and scrims remain high-contrast and readable
+   ======================================================== */
+html[data-theme='light'] .deck-card-pill,
+html.light .deck-card-pill,
+html[data-theme='light'] .stage4-work-badge,
+html.light .stage4-work-badge {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+html[data-theme='light'] .deck-card-arrow,
+html.light .deck-card-arrow,
+html[data-theme='light'] .stage4-work-arrow,
+html.light .stage4-work-arrow {
+  background-color: rgba(0, 0, 0, 0.7) !important;
+  color: #ffffff !important;
+}
+
+html[data-theme='light'] .deck-card-title,
+html.light .deck-card-title,
+html[data-theme='light'] .stage4-work-title,
+html.light .stage4-work-title,
+html[data-theme='light'] .stage2-card-title,
+html.light .stage2-card-title,
+html[data-theme='light'] .creative-journey-title,
+html.light .creative-journey-title {
+  color: #ffffff !important;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9) !important;
+}
+
+html[data-theme='light'] .deck-card-category,
+html.light .deck-card-category,
+html[data-theme='light'] .stage4-work-type,
+html.light .stage4-work-type {
+  color: #cbd5e1 !important;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Generic safeguard for dark translucent pills overlaying media in light mode */
+html[data-theme='light'] .bg-black\/60,
+html[data-theme='light'] .bg-black\/50,
+html[data-theme='light'] .bg-black\/70,
+html.light .bg-black\/60,
+html.light .bg-black\/50,
+html.light .bg-black\/70 {
+  color: #ffffff !important;
+}
+
+html[data-theme='light'] .bg-black\/60 *,
+html[data-theme='light'] .bg-black\/50 *,
+html[data-theme='light'] .bg-black\/70 *,
+html.light .bg-black\/60 *,
+html.light .bg-black\/50 *,
+html.light .bg-black\/70 * {
+  color: #ffffff !important;
+}
+
 /* Hero Scrollytelling Custom Colors - Priority over light/dark theme overrides */
 .hero-custom-color,
 html[data-theme='light'] .hero-custom-color,

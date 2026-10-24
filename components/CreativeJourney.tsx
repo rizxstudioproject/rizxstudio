@@ -124,7 +124,7 @@ export default function CreativeJourney() {
           <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 mb-1 font-semibold">
             {displayCategory}
           </span>
-          <h3 className="text-base sm:text-2xl md:text-3xl font-bold text-white drop-shadow-lg leading-snug">
+          <h3 className="creative-journey-title text-base sm:text-2xl md:text-3xl font-bold text-white drop-shadow-lg leading-snug">
             {displayTitle}
           </h3>
         </div>

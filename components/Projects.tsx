@@ -1084,17 +1084,17 @@ export default function Projects() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                     
                     <div className="relative z-10 flex items-center justify-between">
-                      <span className="px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono uppercase tracking-wider text-neutral-200 border border-white/10 truncate max-w-[90px]">
+                      <span className="deck-card-pill px-2.5 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono uppercase tracking-wider text-neutral-200 border border-white/10 truncate max-w-[90px]">
                         {cardInfo.category}
                       </span>
-                      <span className="w-5 h-5 rounded-full bg-black/50 text-xs flex items-center justify-center text-white">
+                      <span className="deck-card-arrow w-5 h-5 rounded-full bg-black/50 text-xs flex items-center justify-center text-white">
                         ↗
                       </span>
                     </div>
 
                     <div className="relative z-10">
-                      <h3 className="text-xs sm:text-base font-bold text-white tracking-tight truncate">{cardInfo.title}</h3>
-                      <p className="text-[11px] sm:text-xs text-neutral-300 font-mono">{cardInfo.category}</p>
+                      <h3 className="deck-card-title text-xs sm:text-base font-bold text-white tracking-tight truncate">{cardInfo.title}</h3>
+                      <p className="deck-card-category text-[11px] sm:text-xs text-neutral-300 font-mono">{cardInfo.category}</p>
                     </div>
                   </div>
                 </div>
@@ -1298,7 +1298,7 @@ export default function Projects() {
                         <div className="w-full h-full rounded-xl overflow-hidden bg-neutral-950 relative border border-white/5">
                           <img src={card.image} alt={cardTitle} className="w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                          <div className="absolute bottom-2 left-2 right-2 text-xs sm:text-sm font-bold text-white truncate">
+                          <div className="stage2-card-title absolute bottom-2 left-2 right-2 text-xs sm:text-sm font-bold text-white truncate">
                             {cardTitle}
                           </div>
                         </div>
@@ -1478,21 +1478,21 @@ export default function Projects() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                     
                     {/* Aspect Badge */}
-                    <div className="absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono text-neutral-200 border border-white/10">
+                    <div className="stage4-work-badge absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono text-neutral-200 border border-white/10">
                       {work.aspect}
                     </div>
 
                     {/* Expand icon on hover */}
-                    <div className="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="stage4-work-arrow absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
                       ↗
                     </div>
 
                     {/* Work Title & Type */}
                     <div className="absolute bottom-2 left-2 right-2 z-10">
-                      <h5 className="text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">
+                      <h5 className="stage4-work-title text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">
                         {localizedWork.title}
                       </h5>
-                      <p className="text-[11px] sm:text-xs text-neutral-300 font-mono truncate">
+                      <p className="stage4-work-type text-[11px] sm:text-xs text-neutral-300 font-mono truncate">
                         {localizedWork.type}
                       </p>
                     </div>
