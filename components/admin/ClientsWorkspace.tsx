@@ -160,6 +160,22 @@ export default function ClientsWorkspace({
   const [descriptionInput, setDescriptionInput] = useState("");
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
 
+  // Mobile Text Edit Popup Modal State
+  const [mobileTextModal, setMobileTextModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    value: string;
+    maxLength?: number;
+    isTextarea: boolean;
+    onSave: (val: string) => void;
+  }>({
+    isOpen: false,
+    title: "",
+    value: "",
+    isTextarea: false,
+    onSave: () => {},
+  });
+
   // Assets toolbar states
   const [assetSearch, setAssetSearch] = useState("");
   const [assetSort, setAssetSort] = useState<"newest" | "oldest" | "title">("newest");
@@ -1478,6 +1494,17 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     type="text"
                     value={categoryInput}
                     onChange={(e) => setCategoryInput(e.target.value)}
+                    onClick={() => {
+                      if (typeof window !== "undefined" && window.innerWidth < 768) {
+                        setMobileTextModal({
+                          isOpen: true,
+                          title: tr("Category", "Kategori", "Kategori"),
+                          value: categoryInput,
+                          isTextarea: false,
+                          onSave: (val) => setCategoryInput(val),
+                        });
+                      }
+                    }}
                     placeholder={tr("e.g. Digital Campaign", "Contoh: Digital Campaign", "Contoh: Digital Campaign")}
                     className="w-full bg-[#161a22] border border-white/5 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors"
                   />
@@ -1491,6 +1518,17 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     type="text"
                     value={headlineInput}
                     onChange={(e) => setHeadlineInput(e.target.value)}
+                    onClick={() => {
+                      if (typeof window !== "undefined" && window.innerWidth < 768) {
+                        setMobileTextModal({
+                          isOpen: true,
+                          title: tr("Main Headline", "Headline Utama", "Judul Utamo"),
+                          value: headlineInput,
+                          isTextarea: false,
+                          onSave: (val) => setHeadlineInput(val),
+                        });
+                      }
+                    }}
                     placeholder="PROFESSIONAL EXPERIENCE"
                     className="w-full bg-[#161a22] border border-white/5 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors"
                   />
@@ -1511,12 +1549,24 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   maxLength={500}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && window.innerWidth < 768) {
+                      setMobileTextModal({
+                        isOpen: true,
+                        title: tr("Description", "Deskripsi", "Katarangan"),
+                        value: descriptionInput,
+                        maxLength: 500,
+                        isTextarea: true,
+                        onSave: (val) => setDescriptionInput(val),
+                      });
+                    }
+                  }}
                   placeholder={tr(
                     `Write description or campaign profile for ${selectedClient.clientName}...`,
                     `Tulis deskripsi atau profil kampanye untuk ${selectedClient.clientName}...`,
                     `Tulih katarangan atau profil kampanye untuak ${selectedClient.clientName}...`
                   )}
-                  className="w-full bg-[#161a22] border border-white/5 rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors leading-relaxed resize-none"
+                  className="w-full bg-[#161a22] border border-white/5 rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors leading-relaxed resize-none cursor-text"
                 />
               </div>
             </div>
@@ -1952,6 +2002,83 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   {tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Mobile Text Edit Popup Modal */}
+      {mobileTextModal.isOpen && (
+        <div className="fixed inset-0 z-[120] flex flex-col justify-end md:hidden bg-black/80 backdrop-blur-md">
+          <div className="w-full bg-[#12161f] border-t border-white/15 rounded-t-3xl p-5 shadow-2xl space-y-4 max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <HiPencilSquare className="w-4 h-4 text-[#16b09f]" />
+                <span>{mobileTextModal.title}</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setMobileTextModal((prev) => ({ ...prev, isOpen: false }))}
+                className="w-7 h-7 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <HiXMark className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="flex-1 flex flex-col min-h-0 space-y-2">
+              {mobileTextModal.isTextarea ? (
+                <>
+                  <textarea
+                    autoFocus
+                    rows={8}
+                    maxLength={mobileTextModal.maxLength}
+                    value={mobileTextModal.value}
+                    onChange={(e) =>
+                      setMobileTextModal((prev) => ({ ...prev, value: e.target.value }))
+                    }
+                    className="w-full flex-1 bg-[#1a202c] border border-white/15 rounded-2xl p-4 text-sm text-white placeholder-neutral-500 outline-none focus:border-[#16b09f] transition-colors leading-relaxed resize-none"
+                    placeholder="Ketik teks di sini..."
+                  />
+                  {mobileTextModal.maxLength && (
+                    <div className="text-right text-[11px] font-mono text-neutral-400">
+                      {mobileTextModal.value.length} / {mobileTextModal.maxLength}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <input
+                  autoFocus
+                  type="text"
+                  maxLength={mobileTextModal.maxLength}
+                  value={mobileTextModal.value}
+                  onChange={(e) =>
+                    setMobileTextModal((prev) => ({ ...prev, value: e.target.value }))
+                  }
+                  className="w-full bg-[#1a202c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-500 outline-none focus:border-[#16b09f] transition-colors"
+                  placeholder="Ketik teks di sini..."
+                />
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 pt-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setMobileTextModal((prev) => ({ ...prev, isOpen: false }))}
+                className="flex-1 py-3 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs transition-colors cursor-pointer text-center"
+              >
+                {tr("Cancel", "Batal", "Batal")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  mobileTextModal.onSave(mobileTextModal.value);
+                  setMobileTextModal((prev) => ({ ...prev, isOpen: false }));
+                  showToast(tr("Teks berhasil diperbarui!", "Text updated successfully!", "Teks berhasil dipabarui!"));
+                }}
+                className="flex-1 py-3 px-4 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs transition-transform active:scale-95 shadow-md shadow-[#16b09f]/20 cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <HiCheck className="w-4 h-4" />
+                <span>{tr("Save / Done", "Selesai & Simpan", "Salasai")}</span>
+              </button>
             </div>
           </div>
         </div>
