@@ -2628,13 +2628,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                       isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                     }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                      <input
-                        type="color"
-                        value={hbNameColor}
-                        onChange={(e) => setHbNameColor(e.target.value)}
-                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                        title={tx("Color Wheel", "Color Wheel")}
-                      />
+                      <label
+                        className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                          isLight ? "border-slate-300" : "border-white/30"
+                        }`}
+                        style={{ backgroundColor: hbNameColor }}
+                        title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                      >
+                        <input
+                          type="color"
+                          value={hbNameColor}
+                          onChange={(e) => setHbNameColor(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          aria-label={tx("Color Wheel", "Color Wheel")}
+                        />
+                      </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                         isLight ? "text-slate-700" : "text-neutral-300"
                       }`}>
@@ -2668,13 +2676,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                       isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                     }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                      <input
-                        type="color"
-                        value={hbRoleColor}
-                        onChange={(e) => setHbRoleColor(e.target.value)}
-                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                        title={tx("Color Wheel", "Color Wheel")}
-                      />
+                      <label
+                        className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                          isLight ? "border-slate-300" : "border-white/30"
+                        }`}
+                        style={{ backgroundColor: hbRoleColor }}
+                        title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                      >
+                        <input
+                          type="color"
+                          value={hbRoleColor}
+                          onChange={(e) => setHbRoleColor(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          aria-label={tx("Color Wheel", "Color Wheel")}
+                        />
+                      </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                         isLight ? "text-slate-700" : "text-neutral-300"
                       }`}>
@@ -2708,13 +2724,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                       isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                     }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                      <input
-                        type="color"
-                        value={hbScrollTextColor}
-                        onChange={(e) => setHbScrollTextColor(e.target.value)}
-                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                        title={tx("Color Wheel", "Color Wheel")}
-                      />
+                      <label
+                        className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                          isLight ? "border-slate-300" : "border-white/30"
+                        }`}
+                        style={{ backgroundColor: hbScrollTextColor }}
+                        title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                      >
+                        <input
+                          type="color"
+                          value={hbScrollTextColor}
+                          onChange={(e) => setHbScrollTextColor(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          aria-label={tx("Color Wheel", "Color Wheel")}
+                        />
+                      </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                         isLight ? "text-slate-700" : "text-neutral-300"
                       }`}>
@@ -2769,13 +2793,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                       isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                     }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                      <input
-                        type="color"
-                        value={hbSec2H1Color}
-                        onChange={(e) => setHbSec2H1Color(e.target.value)}
-                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                        title={tx("Color Wheel", "Color Wheel")}
-                      />
+                      <label
+                        className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                          isLight ? "border-slate-300" : "border-white/30"
+                        }`}
+                        style={{ backgroundColor: hbSec2H1Color }}
+                        title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                      >
+                        <input
+                          type="color"
+                          value={hbSec2H1Color}
+                          onChange={(e) => setHbSec2H1Color(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          aria-label={tx("Color Wheel", "Color Wheel")}
+                        />
+                      </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                         isLight ? "text-slate-700" : "text-neutral-300"
                       }`}>
@@ -2806,13 +2838,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                       isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                     }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                      <input
-                        type="color"
-                        value={hbSec2H2Color}
-                        onChange={(e) => setHbSec2H2Color(e.target.value)}
-                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                        title={tx("Color Wheel", "Color Wheel")}
-                      />
+                      <label
+                        className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                          isLight ? "border-slate-300" : "border-white/30"
+                        }`}
+                        style={{ backgroundColor: hbSec2H2Color }}
+                        title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                      >
+                        <input
+                          type="color"
+                          value={hbSec2H2Color}
+                          onChange={(e) => setHbSec2H2Color(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          aria-label={tx("Color Wheel", "Color Wheel")}
+                        />
+                      </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                         isLight ? "text-slate-700" : "text-neutral-300"
                       }`}>
@@ -2844,13 +2884,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                     isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                   }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                    <input
-                      type="color"
-                      value={hbSec2BodyColor}
-                      onChange={(e) => setHbSec2BodyColor(e.target.value)}
-                      className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                      title={tx("Color Wheel", "Color Wheel")}
-                    />
+                    <label
+                      className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                        isLight ? "border-slate-300" : "border-white/30"
+                      }`}
+                      style={{ backgroundColor: hbSec2BodyColor }}
+                      title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                    >
+                      <input
+                        type="color"
+                        value={hbSec2BodyColor}
+                        onChange={(e) => setHbSec2BodyColor(e.target.value)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        aria-label={tx("Color Wheel", "Color Wheel")}
+                      />
+                    </label>
                     <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                       isLight ? "text-slate-700" : "text-neutral-300"
                     }`}>
@@ -2901,13 +2949,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                       isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                     }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                      <input
-                        type="color"
-                        value={hbSec3H1Color}
-                        onChange={(e) => setHbSec3H1Color(e.target.value)}
-                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                        title={tx("Color Wheel", "Color Wheel")}
-                      />
+                      <label
+                        className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                          isLight ? "border-slate-300" : "border-white/30"
+                        }`}
+                        style={{ backgroundColor: hbSec3H1Color }}
+                        title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                      >
+                        <input
+                          type="color"
+                          value={hbSec3H1Color}
+                          onChange={(e) => setHbSec3H1Color(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          aria-label={tx("Color Wheel", "Color Wheel")}
+                        />
+                      </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                         isLight ? "text-slate-700" : "text-neutral-300"
                       }`}>
@@ -2938,13 +2994,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                       isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                     }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                      <input
-                        type="color"
-                        value={hbSec3H2Color}
-                        onChange={(e) => setHbSec3H2Color(e.target.value)}
-                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                        title={tx("Color Wheel", "Color Wheel")}
-                      />
+                      <label
+                        className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                          isLight ? "border-slate-300" : "border-white/30"
+                        }`}
+                        style={{ backgroundColor: hbSec3H2Color }}
+                        title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                      >
+                        <input
+                          type="color"
+                          value={hbSec3H2Color}
+                          onChange={(e) => setHbSec3H2Color(e.target.value)}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          aria-label={tx("Color Wheel", "Color Wheel")}
+                        />
+                      </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                         isLight ? "text-slate-700" : "text-neutral-300"
                       }`}>
@@ -2976,13 +3040,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
                     isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
                   }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
-                    <input
-                      type="color"
-                      value={hbSec3BodyColor}
-                      onChange={(e) => setHbSec3BodyColor(e.target.value)}
-                      className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
-                      title={tx("Color Wheel", "Color Wheel")}
-                    />
+                    <label
+                      className={`relative w-4 h-4 rounded-full border shadow-xs shrink-0 cursor-pointer overflow-hidden transition-transform active:scale-95 ${
+                        isLight ? "border-slate-300" : "border-white/30"
+                      }`}
+                      style={{ backgroundColor: hbSec3BodyColor }}
+                      title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}
+                    >
+                      <input
+                        type="color"
+                        value={hbSec3BodyColor}
+                        onChange={(e) => setHbSec3BodyColor(e.target.value)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        aria-label={tx("Color Wheel", "Color Wheel")}
+                      />
+                    </label>
                     <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
                       isLight ? "text-slate-700" : "text-neutral-300"
                     }`}>

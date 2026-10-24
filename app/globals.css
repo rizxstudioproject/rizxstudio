@@ -14,6 +14,28 @@
   --border-subtle: rgba(255, 255, 255, 0.08);
 }
 
+/* Color Picker Swatch Resets - make swatches fill circles/boxes without inner rectangle frames */
+input[type="color"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  padding: 0;
+  background: transparent;
+}
+input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border-radius: inherit;
+}
+input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: inherit;
+}
+input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: inherit;
+}
+
 html[data-theme='light'],
 html.light,
 body.light {

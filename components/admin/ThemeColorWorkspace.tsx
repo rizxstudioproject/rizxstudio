@@ -272,30 +272,28 @@ export default function ThemeColorWorkspace() {
           <div className={`p-5 rounded-2xl border space-y-4 ${
             isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/60 border-white/5"
           }`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
-                  {tr("Primary Brand Accent", "Warna Utama / Aksen Brand", "Warna Utamo / Aksen Brand")}
-                </h4>
-                <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                  {tr(
-                    "Used for main buttons, highlights, badges, and cursor blob.",
-                    "Digunakan untuk tombol utama, sorotan teks, badge, dan kursor.",
-                    "Dipakai untuak tombol utamo, sorotan teks, badge, jo kursor."
-                  )}
-                </p>
-              </div>
-              <div
-                className={`w-9 h-9 rounded-xl border shadow-sm shrink-0 ${isLight ? "border-slate-200" : "border-white/20"}`}
-                style={{ backgroundColor: primaryColor }}
-              />
+            <div>
+              <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
+                {tr("Primary Brand Accent", "Warna Utama / Aksen Brand", "Warna Utamo / Aksen Brand")}
+              </h4>
+              <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                {tr(
+                  "Used for main buttons, highlights, badges, and cursor blob.",
+                  "Digunakan untuk tombol utama, sorotan teks, badge, dan kursor.",
+                  "Dipakai untuak tombol utamo, sorotan teks, badge, jo kursor."
+                )}
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Native Color Input */}
-              <div className={`relative w-11 h-11 rounded-xl overflow-hidden border shrink-0 cursor-pointer ${
-                isLight ? "border-slate-300 shadow-sm" : "border-white/10"
-              }`}>
+              {/* Circular Color Swatch Input */}
+              <label
+                className={`relative w-10 h-10 rounded-full border shadow-sm shrink-0 cursor-pointer overflow-hidden transition-transform hover:scale-105 active:scale-95 ${
+                  isLight ? "border-slate-300 shadow-slate-200" : "border-white/25"
+                }`}
+                style={{ backgroundColor: primaryColor }}
+                title={tr("Pilih Warna", "Pick Color", "Pilih Warna")}
+              >
                 <input
                   type="color"
                   value={primaryColor}
@@ -303,10 +301,10 @@ export default function ThemeColorWorkspace() {
                     setPrimaryColor(e.target.value);
                     triggerSaved();
                   }}
-                  className="absolute -top-3 -left-3 w-16 h-16 cursor-pointer border-0"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   aria-label="Pick Primary Color"
                 />
-              </div>
+              </label>
 
               {/* Text Hex Input */}
               <div className="flex-1 relative">
@@ -335,30 +333,28 @@ export default function ThemeColorWorkspace() {
           <div className={`p-5 rounded-2xl border space-y-4 ${
             isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/60 border-white/5"
           }`}>
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
-                  {tr("Secondary Accent Color", "Warna Aksen Sekunder", "Warna Aksen Kaduo")}
-                </h4>
-                <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                  {tr(
-                    "Used for secondary gradient fades, particles, and chart series.",
-                    "Digunakan untuk gradasi sekunder, partikel bintang, dan grafik seri 2.",
-                    "Dipakai untuak gradasi kaduo, partikel bintang, sarato grafik seri 2."
-                  )}
-                </p>
-              </div>
-              <div
-                className={`w-9 h-9 rounded-xl border shadow-sm shrink-0 ${isLight ? "border-slate-200" : "border-white/20"}`}
-                style={{ backgroundColor: accentColor }}
-              />
+            <div>
+              <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
+                {tr("Secondary Accent Color", "Warna Aksen Sekunder", "Warna Aksen Kaduo")}
+              </h4>
+              <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                {tr(
+                  "Used for secondary gradient fades, particles, and chart series.",
+                  "Digunakan untuk gradasi sekunder, partikel bintang, dan grafik seri 2.",
+                  "Dipakai untuak gradasi kaduo, partikel bintang, sarato grafik seri 2."
+                )}
+              </p>
             </div>
 
             <div className="flex items-center gap-3">
-              {/* Native Color Input */}
-              <div className={`relative w-11 h-11 rounded-xl overflow-hidden border shrink-0 cursor-pointer ${
-                isLight ? "border-slate-300 shadow-sm" : "border-white/10"
-              }`}>
+              {/* Circular Color Swatch Input */}
+              <label
+                className={`relative w-10 h-10 rounded-full border shadow-sm shrink-0 cursor-pointer overflow-hidden transition-transform hover:scale-105 active:scale-95 ${
+                  isLight ? "border-slate-300 shadow-slate-200" : "border-white/25"
+                }`}
+                style={{ backgroundColor: accentColor }}
+                title={tr("Pilih Warna", "Pick Color", "Pilih Warna")}
+              >
                 <input
                   type="color"
                   value={accentColor}
@@ -366,10 +362,10 @@ export default function ThemeColorWorkspace() {
                     setAccentColor(e.target.value);
                     triggerSaved();
                   }}
-                  className="absolute -top-3 -left-3 w-16 h-16 cursor-pointer border-0"
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   aria-label="Pick Secondary Accent Color"
                 />
-              </div>
+              </label>
 
               {/* Text Hex Input */}
               <div className="flex-1 relative">
