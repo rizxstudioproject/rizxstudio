@@ -797,3 +797,42 @@ img, canvas {
     visibility: hidden !important;
   }
 }
+
+
+/* ========================================================
+   HERO SCROLLYTELLING SOFT LIGHT TRANSITIONS
+   Provides subtle white feather gradients at top & bottom
+   to eliminate abrupt/sharp cuts in light mode
+   ======================================================== */
+html[data-theme='light'] #hero-scrolly,
+html.light #hero-scrolly {
+  background-color: #f8fafc !important;
+}
+
+html[data-theme='light'] #hero-scrolly > div,
+html.light #hero-scrolly > div {
+  background-color: #f8fafc !important;
+}
+
+html[data-theme='light'] .hero-vignette,
+html.light .hero-vignette {
+  background: radial-gradient(circle at center, transparent 35%, rgba(248, 250, 252, 0.4) 100%) !important;
+}
+
+html[data-theme='light'] .hero-gradient-top,
+html.light .hero-gradient-top {
+  background: linear-gradient(to bottom, rgba(248, 250, 252, 0.95) 0%, rgba(248, 250, 252, 0.5) 45%, rgba(248, 250, 252, 0) 100%) !important;
+  height: 9rem !important; /* 144px subtle top feather */
+}
+
+html[data-theme='light'] .hero-gradient-bottom,
+html.light .hero-gradient-bottom {
+  background: linear-gradient(to top, rgba(248, 250, 252, 1) 0%, rgba(248, 250, 252, 0.75) 35%, rgba(248, 250, 252, 0.25) 75%, rgba(248, 250, 252, 0) 100%) !important;
+  height: 14rem !important; /* 224px smooth organic bottom feather into ClientLogos */
+}
+
+/* Eliminate harsh top border cut between Hero Canvas and ClientLogos in Light Mode */
+html[data-theme='light'] #clients,
+html.light #clients {
+  border-top-color: transparent !important;
+}

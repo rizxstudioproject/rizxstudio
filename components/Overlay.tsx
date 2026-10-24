@@ -128,7 +128,7 @@ export default function Overlay({ progress }: OverlayProps) {
   }, [progress]);
 
   return (
-    <div className="absolute inset-0 z-10 pointer-events-none select-none">
+    <div className="absolute inset-0 z-20 pointer-events-none select-none">
       {/* SECTION 1: Centered across lower-middle/chest region (matching reference Shivam Kumar) */}
       <div
         ref={section1Ref}
