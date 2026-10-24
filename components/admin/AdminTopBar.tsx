@@ -22,6 +22,8 @@ import {
   HiArrowRight,
   HiTrash,
   HiChartPie,
+  HiCheck,
+  HiArrowPath,
 } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
@@ -39,6 +41,10 @@ interface AdminTopBarProps {
   onSelectClient?: (clientId: string) => void;
   onSelectTab?: (tab: AdminSidebarTab) => void;
   onOpenLogosTab?: () => void;
+  onResetDefault?: () => void;
+  onSaveChanges?: () => void;
+  showResetDefault?: boolean;
+  showSaveChanges?: boolean;
 }
 
 export default function AdminTopBar({
@@ -53,6 +59,10 @@ export default function AdminTopBar({
   onSelectClient,
   onSelectTab,
   onOpenLogosTab,
+  onResetDefault,
+  onSaveChanges,
+  showResetDefault = true,
+  showSaveChanges = true,
 }: AdminTopBarProps) {
   const { lang, setLang, tr } = useLang();
   const isId = lang === "id";
@@ -616,6 +626,34 @@ export default function AdminTopBar({
             <span>{tr("View website", "Lihat website", "Caliak website")}</span>
             <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
           </button>
+
+          {/* Top Navbar Action: Reset to Default (Only here in navbar atas) */}
+          {showResetDefault && onResetDefault && (
+            <button
+              type="button"
+              onClick={onResetDefault}
+              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-mono transition-colors cursor-pointer active:scale-95"
+              title={tr("Reset to Default", "Reset ke Bawaan", "Baliak ka Bawaan")}
+            >
+              <HiArrowPath className="w-3.5 h-3.5 text-neutral-400" />
+              <span className="hidden sm:inline">{tr("Reset to Default", "Reset ke Bawaan", "Baliak Default")}</span>
+              <span className="sm:hidden">Reset</span>
+            </button>
+          )}
+
+          {/* Top Navbar Action: Save Changes (Only here in navbar atas) */}
+          {showSaveChanges && onSaveChanges && (
+            <button
+              type="button"
+              onClick={onSaveChanges}
+              className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#14AF9E]/25 cursor-pointer active:scale-95"
+              title={tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}
+            >
+              <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span className="hidden sm:inline">{tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}</span>
+              <span className="sm:hidden">{tr("Save", "Simpan", "Simpan")}</span>
+            </button>
+          )}
 
           {/* Language Switcher (ID, EN, MIN) */}
           <div className="flex items-center p-0.5 rounded-xl bg-[#12151a] border border-white/10">

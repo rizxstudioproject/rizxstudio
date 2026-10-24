@@ -1010,27 +1010,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 {clLogos.length} Logos Live
               </span>
             </div>
-
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={onViewWebsite}
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
-              >
-                <span>{tr("View website", "Lihat di Web", "Caliak di Web")}</span>
-                <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
-              </button>
-              {onSaveClientLogos && (
-                <button
-                  type="button"
-                  onClick={onSaveClientLogos}
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#14AF9E]/20 cursor-pointer"
-                >
-                  <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
-                  <span>{tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}</span>
-                </button>
-              )}
-            </div>
           </div>
 
           {/* Header Explainer Banner */}
@@ -1424,17 +1403,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Portfolio Information Form */}
             <div className="lg:col-span-7 p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/5">
+              <div className="pb-2 border-b border-white/5">
                 <h3 className="text-sm font-semibold text-white">
                   {tr("Portfolio Information", "Informasi Portofolio", "Informasi Portofolio")}
                 </h3>
-                <button
-                  type="button"
-                  onClick={handleSaveInfo}
-                  className="px-3 py-1 rounded-lg bg-[#14AF9E] hover:bg-[#119889] text-black font-semibold text-xs transition-colors cursor-pointer"
-                >
-                  {tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}
-                </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">

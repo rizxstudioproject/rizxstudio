@@ -69,6 +69,7 @@ import ThemeColorWorkspace from "./admin/ThemeColorWorkspace";
 import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
 import CrmAnalyticsView from "./admin/CrmAnalyticsView";
 import MetaSEO from "./MetaSEO";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -1736,6 +1737,74 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
+  const { resetToDefaults: resetMotionTheme } = useMotionTheme();
+
+  const handleTopBarSave = async () => {
+    switch (sidebarTab) {
+      case "hero-banner":
+        await handleSaveHeroBanner();
+        break;
+      case "hero-works":
+        await handleSaveHeroWorks();
+        break;
+      case "flagship":
+        handleSaveVideo();
+        break;
+      case "runner":
+        await handleSavePortfolioRunner();
+        break;
+      case "about":
+        handleSaveAbout({ preventDefault: () => {} } as any);
+        break;
+      case "clients":
+        if (clientsWorkspaceView === "logos") {
+          await handleSaveClientLogos();
+        } else {
+          showToast(tx("Data folder & portofolio berhasil disimpan & disinkronkan!", "Client folder & portfolio changes saved & synced!"));
+        }
+        break;
+      case "social":
+        showToast(tx("Pengaturan kontak & sosmed berhasil disimpan!", "Contact & social settings saved!"));
+        break;
+      case "motion":
+        showToast(tx("Pengaturan motion & kursor berhasil disimpan!", "Motion & cursor settings saved!"));
+        break;
+      case "theme":
+        showToast(tx("Skema warna tampilan berhasil disimpan!", "Color scheme & theme saved!"));
+        break;
+      case "settings":
+        await handleSaveAccount({ preventDefault: () => {} } as any);
+        break;
+      default:
+        showToast(tx("Perubahan berhasil disimpan & disinkronkan ke web!", "Changes saved and synced to web!"));
+    }
+  };
+
+  const handleTopBarReset = async () => {
+    switch (sidebarTab) {
+      case "hero-banner":
+        await handleResetHeroBannerDefault();
+        break;
+      case "runner":
+        await handleResetPortfolioRunnerDefault();
+        break;
+      case "about":
+        handleResetAbout();
+        break;
+      case "hero-works":
+        updateHeroWorksData(defaultHeroWorksData);
+        showToast(tx("Hero & Selected Works dikembalikan ke default!", "Hero & Selected Works reset to default!"));
+        break;
+      case "motion":
+      case "theme":
+        resetMotionTheme();
+        showToast(tx("Pengaturan berhasil dikembalikan ke default!", "Settings successfully reset to default!"));
+        break;
+      default:
+        showToast(tx("Bagian ini sudah menggunakan konfigurasi aktif bawaan.", "This section is already using active default configuration."));
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-[#08090a] text-neutral-200 flex h-screen w-screen overflow-hidden font-sans select-none">
       <MetaSEO isAdmin={true} />
@@ -1786,6 +1855,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             setClientsWorkspaceView("logos");
             showToast("Membuka Partner Logos Marquee");
           }}
+          onResetDefault={handleTopBarReset}
+          onSaveChanges={handleTopBarSave}
+          showResetDefault={sidebarTab !== "trash" && sidebarTab !== "storage" && sidebarTab !== "crm"}
+          showSaveChanges={sidebarTab !== "trash" && sidebarTab !== "storage"}
         />
 
         {/* Dynamic Workspace Canvas */}
@@ -2476,35 +2549,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   placeholder="Deskripsi AI workflow dan modern vision..."
                   className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#14AF9E] leading-relaxed"
                 />
-              </div>
-            </div>
-
-            {/* Bottom Actions Bar */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-4 backdrop-blur-xl z-20">
-              <button
-                type="button"
-                onClick={handleResetHeroBannerDefault}
-                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer"
-              >
-                {tx("Reset ke Teks Bawaan", "Reset to Default")}
-              </button>
-
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={handleCancelHeroBanner}
-                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs sm:text-sm font-medium transition-all cursor-pointer"
-                >
-                  {tx("Batal", "Cancel")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveHeroBanner}
-                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                >
-                  <HiCheck className="w-4 h-4" />
-                  <span>{tx("Simpan Perubahan Hero Banner", "Save Hero Banner")}</span>
-                </button>
               </div>
             </div>
           </motion.div>
@@ -3498,35 +3542,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
               </div>
             </div>
-
-            {/* ACTION BAR: BATAL & SIMPAN UPDATE */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/15 backdrop-blur-xl flex flex-wrap items-center justify-between gap-4 sticky bottom-4 z-30 shadow-2xl">
-              <div>
-                <p className="text-sm font-bold text-white">
-                  Simpan Perubahan Hero & Selected Works
-                </p>
-                <p className="text-xs text-neutral-400">
-                  Perubahan akan langsung aktif di web publik dan tersinkron ke cloud.
-                </p>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleCancelHeroWorks}
-                  className="px-5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 font-semibold text-xs sm:text-sm transition-all cursor-pointer"
-                >
-                  {tx("Batal", "Cancel")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSaveHeroWorks}
-                  className="px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-                >
-                  <HiCheck className="w-4 h-4" />
-                  <span>{tx("Simpan Update", "Save Changes")}</span>
-                </button>
-              </div>
-            </div>
           </motion.div>
         )}
 
@@ -4039,34 +4054,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               })()}
             </div>
 
-            {/* Bottom Actions Bar */}
-            <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/90 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 sticky bottom-4 backdrop-blur-xl z-20">
-              <button
-                type="button"
-                onClick={handleResetPortfolioRunnerDefault}
-                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono transition-all cursor-pointer"
-              >
-                {tx("Reset ke Susunan Default", "Reset to Default")}
-              </button>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={handleCancelPortfolioRunner}
-                  className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs sm:text-sm font-medium transition-all cursor-pointer"
-                >
-                  {tx("Batal", "Cancel")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSavePortfolioRunner}
-                  className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/30 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
-                >
-                  <HiCheck className="w-4 h-4" />
-                  <span>{tx("Simpan Perubahan Running Portofolio", "Save Running Portfolio")}</span>
-                </button>
-              </div>
-            </div>
 
             {/* Modal: Edit Existing Runner Item */}
             {editingRunnerItem && (
@@ -4495,24 +4483,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="submit"
-                  className="flex-1 flex items-center justify-center gap-2 py-3 px-6 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer"
-                >
-                  <HiCheck className="w-4 h-4" />
-                  <span>{tx("Simpan Perubahan About Me & Update Web", "Save About Me Changes & Update Web")}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleResetAbout}
-                  className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
-                >
-                  {tx("Batal", "Cancel")}
-                </button>
-              </div>
+              {/* 4. Sidebar Cards (Global Collaboration & Disciplines) end */}
             </form>
           </motion.div>
         )}
@@ -4908,23 +4879,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </div>
                   </div>
 
-                  {/* Action Buttons: ONLY Save & Delete */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-1">
-                    <button
-                      type="submit"
-                      className="flex-1 flex items-center justify-center gap-2 py-3 px-5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-400 hover:from-[#119889] hover:to-cyan-300 text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all active:scale-95 cursor-pointer"
-                    >
-                      <HiCheck className="w-4 h-4" />
-                      <span>{tx("Simpan", "Save", "Simpan")}</span>
-                    </button>
-
+                  {/* Action Button: Remove / Delete Showcase */}
+                  <div className="flex justify-end pt-1">
                     <button
                       type="button"
                       onClick={handleRemoveVideo}
-                      className="flex items-center justify-center gap-1.5 py-3 px-5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer"
+                      className="flex items-center justify-center gap-1.5 py-2.5 px-5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer"
                     >
                       <HiTrash className="w-4 h-4" />
-                      <span>{tx("Hapus", "Delete", "Hapuih")}</span>
+                      <span>{tx("Hapus Video/Media Showcase", "Delete Video/Media Showcase", "Hapuih Video/Media Showcase")}</span>
                     </button>
                   </div>
                 </form>

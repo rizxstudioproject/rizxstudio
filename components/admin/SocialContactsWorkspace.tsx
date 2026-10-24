@@ -30,6 +30,12 @@ export default function SocialContactsWorkspace() {
 
   const [saveToast, setSaveToast] = useState(false);
 
+  const handleFieldChange = (field: keyof typeof form, value: string) => {
+    const updated = { ...form, [field]: value };
+    setForm(updated);
+    updateSocialContacts(updated);
+  };
+
   const handleSave = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     updateSocialContacts(form);
@@ -68,17 +74,8 @@ export default function SocialContactsWorkspace() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleSave}
-            className="px-5 py-2.5 rounded-xl text-xs font-semibold text-black shadow-lg transition-all flex items-center gap-1.5 cursor-pointer hover:opacity-90"
-            style={{ backgroundColor: primaryColor }}
-          >
-            <HiCheck className="w-4 h-4" />
-            <span>{tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}</span>
-          </button>
-          {saveToast && (
+        {saveToast && (
+          <div className="flex items-center gap-3">
             <motion.div
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
@@ -88,8 +85,8 @@ export default function SocialContactsWorkspace() {
               <HiCheck className="w-3.5 h-3.5" />
               <span>{tr("Updated Globally!", "Tersimpan Global!", "Tasimpan Global!")}</span>
             </motion.div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
@@ -123,7 +120,7 @@ export default function SocialContactsWorkspace() {
               <input
                 type="text"
                 value={form.whatsappNumber}
-                onChange={(e) => setForm({ ...form, whatsappNumber: e.target.value })}
+                onChange={(e) => handleFieldChange("whatsappNumber", e.target.value)}
                 placeholder="6282381769146"
                 className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white font-mono focus:outline-none focus:border-white/30"
               />
@@ -156,7 +153,7 @@ export default function SocialContactsWorkspace() {
             <textarea
               rows={2}
               value={form.whatsappMessage}
-              onChange={(e) => setForm({ ...form, whatsappMessage: e.target.value })}
+              onChange={(e) => handleFieldChange("whatsappMessage", e.target.value)}
               placeholder="Halo Fomy R, saya tertarik dengan portofolio Anda..."
               className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/30"
             />
@@ -193,7 +190,7 @@ export default function SocialContactsWorkspace() {
               <input
                 type="url"
                 value={form.instagramUrl}
-                onChange={(e) => setForm({ ...form, instagramUrl: e.target.value })}
+                onChange={(e) => handleFieldChange("instagramUrl", e.target.value)}
                 placeholder="https://www.instagram.com/rizxstudio/"
                 className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/30"
               />
@@ -208,7 +205,7 @@ export default function SocialContactsWorkspace() {
               <input
                 type="url"
                 value={form.linkedinUrl}
-                onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })}
+                onChange={(e) => handleFieldChange("linkedinUrl", e.target.value)}
                 placeholder="https://www.linkedin.com/in/rizxstudio/"
                 className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/30"
               />
@@ -223,7 +220,7 @@ export default function SocialContactsWorkspace() {
               <input
                 type="url"
                 value={form.githubUrl}
-                onChange={(e) => setForm({ ...form, githubUrl: e.target.value })}
+                onChange={(e) => handleFieldChange("githubUrl", e.target.value)}
                 placeholder="https://github.com/rizxstudio"
                 className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/30"
               />
@@ -238,23 +235,12 @@ export default function SocialContactsWorkspace() {
               <input
                 type="email"
                 value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onChange={(e) => handleFieldChange("email", e.target.value)}
                 placeholder="fomy@rizxstudio.com"
                 className="w-full bg-neutral-950 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-white/30"
               />
             </div>
           </div>
-        </div>
-
-        {/* Action Button */}
-        <div className="flex justify-end pt-2">
-          <button
-            type="submit"
-            className="px-6 py-3 rounded-xl text-black font-semibold text-xs shadow-lg transition-transform hover:scale-105 active:scale-95 cursor-pointer"
-            style={{ backgroundColor: primaryColor }}
-          >
-            {tr("Save & Apply All Contacts", "Simpan & Terapkan Semua Kontak", "Simpan & Tarapkan Sadonyo Kontak")}
-          </button>
         </div>
       </form>
     </div>

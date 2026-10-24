@@ -63,19 +63,8 @@ export default function ThemeColorWorkspace() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              resetToDefaults();
-              triggerSaved();
-            }}
-            className="px-4 py-2 rounded-xl text-xs font-medium text-neutral-400 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 transition-all flex items-center gap-1.5 cursor-pointer"
-          >
-            <HiArrowPath className="w-3.5 h-3.5" />
-            <span>{tr("Reset", "Reset Default", "Baliak Default")}</span>
-          </button>
-          {saveToast && (
+        {saveToast && (
+          <div className="flex items-center gap-3">
             <motion.div
               initial={{ opacity: 0, y: 5 }}
               animate={{ opacity: 1, y: 0 }}
@@ -86,8 +75,8 @@ export default function ThemeColorWorkspace() {
               <HiCheck className="w-3.5 h-3.5" />
               <span>{tr("Saved", "Tersimpan", "Tasimpan")}</span>
             </motion.div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* 1. DARK & LIGHT MODE SELECTOR */}
