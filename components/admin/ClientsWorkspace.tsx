@@ -1381,7 +1381,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-white tracking-tight">
+                  <h1
+                    onDoubleClick={() => onOpenEditFolder(selectedClient)}
+                    className="text-2xl font-bold text-white tracking-tight cursor-pointer hover:text-cyan-400 transition-colors"
+                    title={tr("Klik 2x untuk ganti nama folder", "Double-click to rename folder", "Klik 2x untuak ganti namo folder")}
+                  >
                     {selectedClient.clientName}
                   </h1>
                   <button
@@ -1405,17 +1409,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
             {/* Right Header Actions */}
             <div className="flex items-center gap-2 shrink-0 relative">
-              {/* Direct Rename Folder Button */}
-              <button
-                type="button"
-                onClick={() => onOpenEditFolder(selectedClient)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 text-xs font-semibold transition-all cursor-pointer shadow-sm active:scale-95 group/btn"
-                title={tr("Rename folder / edit brand name", "Ganti nama folder / edit brand", "Ganti namo folder / edit brand")}
-              >
-                <HiPencilSquare className="w-3.5 h-3.5 text-cyan-400 group-hover/btn:scale-110 transition-transform" />
-                <span>{tr("Rename Folder", "Rename Folder", "Rename Folder")}</span>
-              </button>
-
               {/* Delete Folder Button */}
               <button
                 type="button"
