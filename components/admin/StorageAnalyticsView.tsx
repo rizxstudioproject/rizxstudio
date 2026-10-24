@@ -284,19 +284,6 @@ export default function StorageAnalyticsView({
                 )}
               </p>
             </div>
-
-            {/* Quick Export Action */}
-            <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
-              <button
-                type="button"
-                onClick={handleExportBackup}
-                disabled={isExporting}
-                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 text-xs font-semibold transition-all active:scale-95 cursor-pointer shadow-lg shadow-cyan-500/10 disabled:opacity-50"
-              >
-                <HiArrowDownTray className="w-4 h-4" />
-                <span>{isExporting ? tr("Exporting...", "Mengekspor...", "Maekspor...") : tr("Backup JSON", "Download Backup", "Unduah Cadangan")}</span>
-              </button>
-            </div>
           </div>
         </div>
 
