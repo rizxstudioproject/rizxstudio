@@ -191,16 +191,14 @@ export default function Contact() {
 
         {/* ── MOBILE LAYOUT (below md) ── */}
         <div className="flex md:hidden flex-col items-center justify-center gap-5 text-center">
-          <div className="flex flex-wrap items-center justify-center gap-5 text-neutral-300 text-xs">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-neutral-300 text-xs">
             <a href="#clients" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.clients")}</a>
             <a href="#projects" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.work")}</a>
             <a href="#about" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.about")}</a>
-          </div>
 
-          {/* Mobile Footer Language Toggle — Interactive Sliding Pill */}
-          <div className="flex items-center text-xs text-neutral-300 font-mono py-1">
+            {/* Mobile Footer Language Toggle — Interactive Sliding Pill sejajar di samping About Me */}
             <div
-              className={`relative flex items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-[11px] font-mono h-8 ${
+              className={`relative inline-flex items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-[11px] font-mono h-7 ml-1 shrink-0 ${
                 isLangOpen
                   ? `w-[108px] ${isLight ? "bg-white/95 border-slate-300 shadow-md" : "bg-[#0c0e12]/95 border-white/20 shadow-lg"}`
                   : `w-[36px] ${isLight ? "bg-white border-slate-200 hover:border-slate-300 shadow-xs" : "bg-white/[0.04] border-white/10 hover:border-white/20"}`
