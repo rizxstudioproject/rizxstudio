@@ -72,6 +72,7 @@ import MotionEffectsWorkspace from "./admin/MotionEffectsWorkspace";
 import ThemeColorWorkspace from "./admin/ThemeColorWorkspace";
 import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
 import CrmAnalyticsView from "./admin/CrmAnalyticsView";
+import SeoWorkspace from "./admin/SeoWorkspace";
 import MetaSEO from "./MetaSEO";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 
@@ -2162,6 +2163,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
           )}
 
+          {/* 8.5. SEO & Search Engine Management */}
+          {sidebarTab === "seo" && (
+            <div className={`flex-1 overflow-y-auto ${
+              isLight ? "bg-slate-50 text-slate-800" : "bg-[#0b0f19] text-neutral-200"
+            }`}>
+              <SeoWorkspace />
+            </div>
+          )}
+
           {/* 9. All Other Real Portfolio Admin Sections */}
           {sidebarTab !== "clients" &&
             sidebarTab !== "resources" &&
@@ -2170,7 +2180,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             sidebarTab !== "motion" &&
             sidebarTab !== "theme" &&
             sidebarTab !== "social" &&
-            sidebarTab !== "crm" && (
+            sidebarTab !== "crm" &&
+            sidebarTab !== "seo" && (
             <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
               isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
             }`}>

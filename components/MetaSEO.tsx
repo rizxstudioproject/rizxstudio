@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useEffect } from "react";
-import Head from "next/head";
+import React, { useEffect, useState } from "react";
+import { getSeoConfig, SeoConfig, DEFAULT_SEO_CONFIG } from "@/lib/seoService";
 
 interface MetaSEOProps {
   title?: string;
@@ -11,64 +11,117 @@ interface MetaSEOProps {
 }
 
 export default function MetaSEO({
-  title = "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
-  description = "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
-  ogImage = "/og-image-square.png",
+  title,
+  description,
+  ogImage,
   isAdmin = false,
 }: MetaSEOProps) {
+  const [config, setConfig] = useState<SeoConfig>(DEFAULT_SEO_CONFIG);
+
   useEffect(() => {
-    // Dynamic robots meta tag adjustment for security in Admin Mode
-    let robotsMeta = document.querySelector('meta[name="robots"]') as HTMLMetaElement | null;
-    if (!robotsMeta) {
-      robotsMeta = document.createElement("meta");
-      robotsMeta.name = "robots";
-      document.head.appendChild(robotsMeta);
-    }
+    // Load dynamic config from Supabase / localStorage
+    getSeoConfig().then((cfg) => {
+      setConfig(cfg);
+    });
+  }, []);
+
+  const activeTitle = title || config.metaTitle;
+  const activeDesc = description || config.metaDescription;
+  const activeOgImage = ogImage || config.ogImage;
+
+  useEffect(() => {
+    // Helper to safely set or create meta tag
+    const setMetaTag = (name: string, content: string, isProperty = false) => {
+      if (!content) return;
+      const attr = isProperty ? `meta[property="${name}"]` : `meta[name="${name}"]`;
+      let el = document.querySelector(attr) as HTMLMetaElement | null;
+      if (!el) {
+        el = document.createElement("meta");
+        if (isProperty) {
+          el.setAttribute("property", name);
+        } else {
+          el.setAttribute("name", name);
+        }
+        document.head.appendChild(el);
+      }
+      el.content = content;
+    };
+
+    // Helper to safely set link tag
+    const setLinkTag = (rel: string, href: string) => {
+      if (!href) return;
+      let el = document.querySelector(`link[rel="${rel}"]`) as HTMLLinkElement | null;
+      if (!el) {
+        el = document.createElement("link");
+        el.rel = rel;
+        document.head.appendChild(el);
+      }
+      el.href = href;
+    };
 
     if (isAdmin) {
-      robotsMeta.content = "noindex, nofollow, noarchive, nosnippet";
+      document.title = "Admin Studio Control Center — Rizxstudio";
+      setMetaTag("robots", "noindex, nofollow, noarchive, nosnippet");
+      setMetaTag("googlebot", "noindex, nofollow");
     } else {
-      robotsMeta.content = "index, follow, max-image-preview:large, max-snippet:-1";
+      document.title = activeTitle;
+      setMetaTag("robots", "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1");
+      setMetaTag("googlebot", "index, follow");
+      setMetaTag("description", activeDesc);
+      if (config.keywords) setMetaTag("keywords", config.keywords);
+      if (config.authorName) setMetaTag("author", config.authorName);
+      if (config.canonicalUrl) setLinkTag("canonical", config.canonicalUrl);
+
+      // Search Console Verifications
+      if (config.googleVerification) {
+        setMetaTag("google-site-verification", config.googleVerification);
+      }
+      if (config.bingVerification) {
+        setMetaTag("msvalidate.01", config.bingVerification);
+      }
+
+      // OpenGraph
+      setMetaTag("og:title", activeTitle, true);
+      setMetaTag("og:description", activeDesc, true);
+      setMetaTag("og:url", config.canonicalUrl || "https://rizxstudio.com", true);
+      setMetaTag("og:site_name", config.studioName || "Rizxstudio", true);
+      setMetaTag("og:type", "website", true);
+      setMetaTag("og:image", activeOgImage, true);
+
+      // Twitter Card
+      setMetaTag("twitter:card", "summary_large_image");
+      setMetaTag("twitter:title", activeTitle);
+      setMetaTag("twitter:description", activeDesc);
+      setMetaTag("twitter:image", activeOgImage);
     }
+  }, [isAdmin, activeTitle, activeDesc, activeOgImage, config]);
 
-    // Googlebot tag
-    let googlebotMeta = document.querySelector('meta[name="googlebot"]') as HTMLMetaElement | null;
-    if (!googlebotMeta) {
-      googlebotMeta = document.createElement("meta");
-      googlebotMeta.name = "googlebot";
-      document.head.appendChild(googlebotMeta);
-    }
-    googlebotMeta.content = isAdmin ? "noindex, nofollow" : "index, follow";
-
-    return () => {
-      // Cleanup to public indexable state
-      if (robotsMeta) robotsMeta.content = "index, follow";
-      if (googlebotMeta) googlebotMeta.content = "index, follow";
-    };
-  }, [isAdmin]);
-
-  // JSON-LD Schema
+  // Schema.org Structured Data
   const schemaData = {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
-    name: "Rizxstudio",
-    image: "https://rizxstudio.com/navbar-logo.png",
-    "@id": "https://rizxstudio.com",
-    url: "https://rizxstudio.com",
-    telephone: "+6282381769146",
-    priceRange: "$$$",
+    name: config.studioName || "Rizxstudio",
+    image: config.ogImage ? `${config.canonicalUrl}${config.ogImage}` : `${config.canonicalUrl}/og-image-square.png`,
+    "@id": config.canonicalUrl || "https://rizxstudio.com",
+    url: config.canonicalUrl || "https://rizxstudio.com",
+    telephone: config.telephone || "+6282381769146",
+    priceRange: config.priceRange || "$$$",
     founder: {
       "@type": "Person",
-      name: "FOMY R",
+      name: config.authorName || "FOMY R",
       jobTitle: "Creative Designer & Motion Specialist",
     },
-    description: description,
+    description: activeDesc,
     sameAs: [
       "https://www.instagram.com/rizxstudio/",
       "https://www.linkedin.com/in/rizxstudio/",
       "https://github.com/rizxstudio",
     ],
   };
+
+  if (isAdmin || !config.enableRichSnippets) {
+    return null;
+  }
 
   return (
     <script

@@ -16,6 +16,7 @@ import {
   RiPieChartFill,
   RiKeyFill,
   RiStackFill,
+  RiSearchEyeFill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -32,6 +33,7 @@ export type AdminSidebarTab =
   | "theme"
   | "social"
   | "crm"
+  | "seo"
   | "trash"
   | "storage"
   | "settings";
@@ -118,6 +120,11 @@ export default function AdminSidebar({
       id: "crm",
       label: tr("CRM & Analytics", "CRM & Prospek", "CRM & Prospek"),
       icon: RiLineChartFill,
+    },
+    {
+      id: "seo",
+      label: tr("SEO & Search Engine", "SEO & Mesin Pencari", "SEO & Masin Pancari"),
+      icon: RiSearchEyeFill,
     },
     {
       id: "trash",
