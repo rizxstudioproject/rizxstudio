@@ -77,7 +77,7 @@ function getToolPalette(name: string) {
 /**
  * ToolBadge — Visual icon badges for creative tools
  */
-function ToolBadge({ tool }: { tool: string }) {
+function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
   const normalized = tool.toLowerCase().trim();
 
   if (normalized === "photoshop" || normalized === "ps") {
@@ -89,7 +89,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#31A8FF] text-[#001E36] font-black text-[10px] flex items-center justify-center font-mono">
           Ps
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Photoshop
         </span>
       </div>
@@ -105,7 +105,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#FF9A00] text-[#330000] font-black text-[10px] flex items-center justify-center font-mono">
           Ai
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Illustrator
         </span>
       </div>
@@ -126,7 +126,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#9999FF] text-[#00005B] font-black text-[10px] flex items-center justify-center font-mono">
           Ae
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           After Effects
         </span>
       </div>
@@ -147,7 +147,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#FF3366] text-[#2D0014] font-black text-[10px] flex items-center justify-center font-mono">
           Id
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           InDesign
         </span>
       </div>
@@ -168,7 +168,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#EA77FF] text-[#1D0033] font-black text-[10px] flex items-center justify-center font-mono">
           Pr
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Premiere Pro
         </span>
       </div>
@@ -182,7 +182,7 @@ function ToolBadge({ tool }: { tool: string }) {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#EA7600]/15 border border-[#EA7600]/40 text-[#EA7600] shadow-sm select-none"
       >
         <SiBlender className="w-3.5 h-3.5 text-[#EA7600]" />
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Blender 3D
         </span>
       </div>
@@ -196,7 +196,7 @@ function ToolBadge({ tool }: { tool: string }) {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/15 text-[#F24E1E] shadow-sm select-none"
       >
         <SiFigma className="w-3 h-3 text-[#F24E1E]" />
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Figma
         </span>
       </div>
@@ -210,7 +210,7 @@ function ToolBadge({ tool }: { tool: string }) {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/15 border border-blue-400/40 text-blue-300 shadow-sm select-none"
       >
         <SiCinema4D className="w-3.5 h-3.5 text-blue-400" />
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Cinema 4D
         </span>
       </div>
@@ -224,7 +224,7 @@ function ToolBadge({ tool }: { tool: string }) {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/40 text-cyan-300 shadow-sm select-none"
       >
         <HiSparkles className="w-3 h-3 text-cyan-400" />
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Midjourney
         </span>
       </div>
@@ -238,7 +238,7 @@ function ToolBadge({ tool }: { tool: string }) {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#16b09f]/10 border border-[#16b09f]/40 text-[#16b09f] shadow-sm select-none"
       >
         <HiSparkles className="w-3 h-3 text-[#16b09f]" />
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Magnific AI
         </span>
       </div>
@@ -254,7 +254,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#10A37F] text-white font-black text-[8px] flex items-center justify-center font-mono">
           GPT
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           ChatGPT
         </span>
       </div>
@@ -268,7 +268,7 @@ function ToolBadge({ tool }: { tool: string }) {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-indigo-500/15 border border-indigo-400/40 text-indigo-300 shadow-sm select-none"
       >
         <SiGooglegemini className="w-3.5 h-3.5 text-[#799FFF]" />
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Gemini
         </span>
       </div>
@@ -284,7 +284,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-gradient-to-br from-[#FF6B4A] to-[#FF3D00] text-black font-black text-[10px] flex items-center justify-center font-mono shadow-sm">
           H
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Higgsfield
         </span>
       </div>
@@ -298,7 +298,7 @@ function ToolBadge({ tool }: { tool: string }) {
         className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#330011] border border-[#FF4081]/40 text-[#FF4081] shadow-sm select-none"
       >
         <HiSparkles className="w-3.5 h-3.5 text-[#FF4081]" />
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Firefly
         </span>
       </div>
@@ -314,7 +314,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#D97706] text-black font-black text-[10px] flex items-center justify-center font-mono">
           C
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Claude
         </span>
       </div>
@@ -330,7 +330,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#8B5CF6] text-white font-black text-[10px] flex items-center justify-center font-mono">
           R
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Runway
         </span>
       </div>
@@ -346,7 +346,7 @@ function ToolBadge({ tool }: { tool: string }) {
         <span className="w-4 h-4 rounded bg-[#00D2FF] text-[#00223A] font-black text-[10px] flex items-center justify-center font-mono shadow-sm">
           Af
         </span>
-        <span className="text-[10px] font-mono font-medium text-neutral-300">
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
           Affinity
         </span>
       </div>
@@ -367,7 +367,7 @@ function ToolBadge({ tool }: { tool: string }) {
       >
         {monogram}
       </span>
-      <span className="text-[10px] font-mono font-medium text-neutral-200">
+      <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: "#f8fafc" }}>
         {tool}
       </span>
     </div>
@@ -1774,7 +1774,7 @@ export default function Projects() {
                                     : caseStudy.tools;
 
                                 return resolvedTools.map((toolItem: string, idx: number) => (
-                                  <ToolBadge key={idx} tool={toolItem} />
+                                  <ToolBadge key={idx} tool={toolItem} isLight={isLight} />
                                 ));
                               })()}
                             </div>
