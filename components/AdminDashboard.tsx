@@ -1813,6 +1813,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         resetMotionTheme();
         showToast(tx("Pengaturan berhasil dikembalikan ke default!", "Settings successfully reset to default!"));
         break;
+      case "settings":
+        handleFullReset();
+        break;
       default:
         showToast(tx("Bagian ini sudah menggunakan konfigurasi aktif bawaan.", "This section is already using active default configuration."));
     }
@@ -5132,18 +5135,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       />
                     </div>
                   )}
-
-                  {/* Action Buttons */}
-                  <div className="flex items-center gap-3 pt-3">
-                    <button
-                      type="submit"
-                      disabled={isSavingAccount}
-                      className="flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      <HiCheck className="w-4 h-4" />
-                      <span>{isSavingAccount ? (tx("Menyimpan ke Cloud…", "Saving to Cloud…")) : (tx("Simpan Perubahan Akun", "Save Account Changes"))}</span>
-                    </button>
-                  </div>
                 </form>
               </div>
 
@@ -5189,23 +5180,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
             </div>
           </motion.div>
-        )}
-
-        {/* Factory Data Reset inside settings */}
-        {sidebarTab === "settings" && (
-          <div className="p-5 rounded-2xl bg-[#111419] border border-white/5 flex items-center justify-between">
-            <div>
-              <h4 className="text-xs font-bold text-white">Factory Data Reset</h4>
-              <p className="text-[11px] text-neutral-400">Kembalikan seluruh data portofolio ke bawaan default</p>
-            </div>
-            <button
-              type="button"
-              onClick={handleFullReset}
-              className="px-4 py-2 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-colors cursor-pointer"
-            >
-              Reset ke Default
-            </button>
-          </div>
         )}
       </div>
     </div>
