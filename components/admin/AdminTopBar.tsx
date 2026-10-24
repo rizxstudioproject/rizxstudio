@@ -71,10 +71,8 @@ export default function AdminTopBar({
   const isId = lang === "id";
   const isMin = lang === "min";
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const mobileSearchInputRef = useRef<HTMLInputElement>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
 
   // Close desktop search dropdown on click outside
@@ -91,15 +89,7 @@ export default function AdminTopBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Auto-focus mobile search input when mobile popup opens
-  useEffect(() => {
-    if (isMobileSearchOpen) {
-      const timer = setTimeout(() => {
-        mobileSearchInputRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [isMobileSearchOpen]);
+
 
   // Compute live search matches across clients, works, logos, and admin tabs
   const searchResults = useMemo(() => {
@@ -275,7 +265,7 @@ export default function AdminTopBar({
         isLight ? "bg-white border-slate-200" : "bg-[#0c0e12] border-white/5"
       }`}>
         {/* Left Side: Mobile Hamburger Menu & Search Controls */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-xl min-w-0">
+        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0 md:max-w-xl">
           {onToggleMobileMenu && (
             <button
               type="button"
@@ -291,23 +281,8 @@ export default function AdminTopBar({
             </button>
           )}
 
-          {/* Mobile Search Icon Button (Transforms search bar into an icon on mobile) */}
-          <button
-            type="button"
-            onClick={() => setIsMobileSearchOpen(true)}
-            className={`md:hidden p-2 rounded-xl border transition-colors cursor-pointer shrink-0 ${
-              isLight
-                ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-                : "bg-neutral-900 border-white/10 text-neutral-300 hover:text-white hover:bg-white/5"
-            }`}
-            aria-label={isId ? "Pencarian" : "Search"}
-            title={isId ? "Buka Pencarian" : "Open Search"}
-          >
-            <HiMagnifyingGlass className={`w-4 h-4 ${isLight ? "text-slate-600" : "text-neutral-300"}`} />
-          </button>
-
-          {/* Desktop Global Search Bar Container */}
-          <div ref={searchContainerRef} className="hidden md:block relative w-full">
+          {/* Global Search Bar (Mobile & Desktop) */}
+          <div ref={searchContainerRef} className="relative flex-1 w-full min-w-0">
             <HiMagnifyingGlass className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
               isLight ? "text-slate-400" : "text-neutral-500"
             }`} />
@@ -330,16 +305,16 @@ export default function AdminTopBar({
                   ? "Cari klien, karya visual, logo partner..."
                   : "Search clients, folders, assets"
               }
-              className={`w-full rounded-xl pl-9 ${
-                searchQuery ? "pr-8" : "pr-3"
+              className={`w-full rounded-full pl-9 ${
+                searchQuery ? "pr-8" : "pr-3.5"
               } py-2 text-xs transition-all outline-none border ${
                 isLight
-                  ? "bg-slate-100 hover:bg-slate-200/70 focus:bg-white border-slate-200 focus:border-[#16b09f] text-slate-900 placeholder-slate-400"
+                  ? "bg-slate-100/90 hover:bg-slate-100 focus:bg-white border-slate-200/90 focus:border-[#16b09f] text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-[#16b09f]/10 shadow-xs"
                   : "bg-[#12151a] hover:bg-[#161a20] focus:bg-[#161a20] border-white/5 focus:border-[#16b09f]/60 text-white placeholder-neutral-500"
               }`}
             />
 
-            {/* Quick Clear Button on Desktop */}
+            {/* Quick Clear Button */}
             {searchQuery && (
               <button
                 type="button"
@@ -348,16 +323,24 @@ export default function AdminTopBar({
                   setIsSearchOpen(false);
                   searchInputRef.current?.focus();
                 }}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-md text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-1 rounded-full transition-colors cursor-pointer ${
+                  isLight
+                    ? "text-slate-400 hover:text-slate-700 hover:bg-slate-200/80"
+                    : "text-neutral-400 hover:text-white hover:bg-white/10"
+                }`}
                 title={isId ? "Hapus pencarian" : "Clear search"}
               >
                 <HiXMark className="w-3.5 h-3.5" />
               </button>
             )}
 
-            {/* Desktop Autocomplete Palette Dropdown */}
+            {/* Autocomplete Palette Dropdown (Mobile & Desktop) */}
             {isSearchOpen && searchResults && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-[#12151a] border border-white/10 rounded-2xl shadow-2xl p-2.5 z-50 max-h-[75vh] overflow-y-auto space-y-3 animate-in fade-in zoom-in-95 backdrop-blur-xl">
+              <div className={`fixed inset-x-3 top-14 md:absolute md:top-full md:inset-x-0 md:mt-2 rounded-2xl shadow-2xl p-2.5 z-50 max-h-[75vh] overflow-y-auto space-y-3 animate-in fade-in zoom-in-95 backdrop-blur-xl border ${
+                isLight
+                  ? "bg-white/98 border-slate-200 text-slate-800 shadow-slate-300/50"
+                  : "bg-[#12151a]/98 border-white/10 text-white shadow-2xl"
+              }`}>
                 {/* 1. Clients & Folders */}
                 {searchResults.matchedClients.length > 0 && (
                   <div>
@@ -375,23 +358,35 @@ export default function AdminTopBar({
                             onSelectClient?.(client.id);
                             setIsSearchOpen(false);
                           }}
-                          className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/5 text-left transition-colors cursor-pointer group"
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer group ${
+                            isLight ? "hover:bg-slate-100" : "hover:bg-white/5"
+                          }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-7 h-7 rounded-lg bg-neutral-800 border border-white/5 flex items-center justify-center shrink-0 text-[#16b09f] group-hover:bg-[#16b09f] group-hover:text-black transition-colors">
+                            <div className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 text-[#16b09f] transition-colors ${
+                              isLight
+                                ? "bg-slate-100 border-slate-200 group-hover:bg-[#16b09f] group-hover:text-black"
+                                : "bg-neutral-800 border-white/5 group-hover:bg-[#16b09f] group-hover:text-black"
+                            }`}>
                               <HiFolder className="w-3.5 h-3.5" />
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs font-semibold text-white truncate group-hover:text-[#16b09f] transition-colors">
+                              <div className={`text-xs font-semibold truncate transition-colors ${
+                                isLight ? "text-slate-900 group-hover:text-[#16b09f]" : "text-white group-hover:text-[#16b09f]"
+                              }`}>
                                 {client.clientName}
                               </div>
-                              <div className="text-[10px] text-neutral-400 truncate">
+                              <div className={`text-[10px] truncate ${
+                                isLight ? "text-slate-500" : "text-neutral-400"
+                              }`}>
                                 {client.category || "Client Folder"} •{" "}
                                 {client.works?.length || 0} works
                               </div>
                             </div>
                           </div>
-                          <HiArrowRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors shrink-0" />
+                          <HiArrowRight className={`w-3.5 h-3.5 transition-colors shrink-0 ${
+                            isLight ? "text-slate-400 group-hover:text-slate-700" : "text-neutral-500 group-hover:text-white"
+                          }`} />
                         </button>
                       ))}
                     </div>
@@ -415,10 +410,14 @@ export default function AdminTopBar({
                             onSelectClient?.(work.clientId);
                             setIsSearchOpen(false);
                           }}
-                          className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/5 text-left transition-colors cursor-pointer group"
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer group ${
+                            isLight ? "hover:bg-slate-100" : "hover:bg-white/5"
+                          }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-7 h-7 rounded-lg bg-neutral-800 border border-white/5 overflow-hidden shrink-0">
+                            <div className={`w-7 h-7 rounded-lg border overflow-hidden shrink-0 ${
+                              isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-800 border-white/5"
+                            }`}>
                               {work.image ? (
                                 <img
                                   src={work.image}
@@ -426,24 +425,34 @@ export default function AdminTopBar({
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-neutral-500">
+                                <div className={`w-full h-full flex items-center justify-center ${
+                                  isLight ? "text-slate-400" : "text-neutral-500"
+                                }`}>
                                   <HiPhoto className="w-3.5 h-3.5" />
                                 </div>
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs font-medium text-white truncate group-hover:text-purple-300 transition-colors">
+                              <div className={`text-xs font-medium truncate transition-colors ${
+                                isLight ? "text-slate-900 group-hover:text-purple-600" : "text-white group-hover:text-purple-300"
+                              }`}>
                                 {work.title}
                               </div>
-                              <div className="text-[10px] text-neutral-400 truncate flex items-center gap-1.5">
+                              <div className={`text-[10px] truncate flex items-center gap-1.5 ${
+                                isLight ? "text-slate-500" : "text-neutral-400"
+                              }`}>
                                 <span>{work.clientName}</span>
-                                <span className="px-1 py-0.2 rounded bg-white/5 font-mono text-[9px] text-neutral-300">
+                                <span className={`px-1 py-0.2 rounded font-mono text-[9px] ${
+                                  isLight ? "bg-slate-100 text-slate-600 border border-slate-200" : "bg-white/5 text-neutral-300"
+                                }`}>
                                   {work.aspect}
                                 </span>
                               </div>
                             </div>
                           </div>
-                          <HiArrowRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors shrink-0" />
+                          <HiArrowRight className={`w-3.5 h-3.5 transition-colors shrink-0 ${
+                            isLight ? "text-slate-400 group-hover:text-slate-700" : "text-neutral-500 group-hover:text-white"
+                          }`} />
                         </button>
                       ))}
                     </div>
@@ -467,30 +476,40 @@ export default function AdminTopBar({
                             onOpenLogosTab?.();
                             setIsSearchOpen(false);
                           }}
-                          className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/5 text-left transition-colors cursor-pointer group"
+                          className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer group ${
+                            isLight ? "hover:bg-slate-100" : "hover:bg-white/5"
+                          }`}
                         >
                           <div className="flex items-center gap-2.5 min-w-0">
-                            <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center p-1 shrink-0">
+                            <div className={`w-7 h-7 rounded-lg border flex items-center justify-center p-1 shrink-0 ${
+                              isLight ? "bg-slate-100 border-slate-200" : "bg-white/5 border-white/5"
+                            }`}>
                               {logo.file ? (
                                 <img
                                   src={logo.file}
                                   alt={logo.name}
-                                  className="max-w-full max-h-full object-contain filter invert opacity-80"
+                                  className={`max-w-full max-h-full object-contain ${
+                                    isLight ? "opacity-90" : "filter invert opacity-80"
+                                  }`}
                                 />
                               ) : (
-                                <HiTag className="w-3.5 h-3.5 text-amber-400" />
+                                <HiTag className="w-3.5 h-3.5 text-amber-500" />
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="text-xs font-medium text-white truncate group-hover:text-amber-300 transition-colors">
+                              <div className={`text-xs font-medium truncate transition-colors ${
+                                isLight ? "text-slate-900 group-hover:text-amber-600" : "text-white group-hover:text-amber-300"
+                              }`}>
                                 {logo.name}
                               </div>
-                              <div className="text-[10px] text-neutral-400">
+                              <div className={`text-[10px] ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                                 Marquee Row {logo.row}
                               </div>
                             </div>
                           </div>
-                          <HiArrowRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors shrink-0" />
+                          <HiArrowRight className={`w-3.5 h-3.5 transition-colors shrink-0 ${
+                            isLight ? "text-slate-400 group-hover:text-slate-700" : "text-neutral-500 group-hover:text-white"
+                          }`} />
                         </button>
                       ))}
                     </div>
@@ -515,22 +534,34 @@ export default function AdminTopBar({
                               onSelectTab?.(sec.id);
                               setIsSearchOpen(false);
                             }}
-                            className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/5 text-left transition-colors cursor-pointer group"
+                            className={`w-full flex items-center justify-between p-2 rounded-xl text-left transition-colors cursor-pointer group ${
+                              isLight ? "hover:bg-slate-100" : "hover:bg-white/5"
+                            }`}
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
-                              <div className="w-7 h-7 rounded-lg bg-neutral-800 border border-white/5 flex items-center justify-center shrink-0 text-sky-400 group-hover:bg-sky-400 group-hover:text-black transition-colors">
+                              <div className={`w-7 h-7 rounded-lg border flex items-center justify-center shrink-0 transition-colors ${
+                                isLight
+                                  ? "bg-sky-50 border-sky-100 text-sky-600 group-hover:bg-sky-500 group-hover:text-white"
+                                  : "bg-neutral-800 border-white/5 text-sky-400 group-hover:bg-sky-400 group-hover:text-black"
+                              }`}>
                                 <Icon className="w-3.5 h-3.5" />
                               </div>
                               <div className="min-w-0">
-                                <div className="text-xs font-medium text-white truncate group-hover:text-sky-300 transition-colors">
+                                <div className={`text-xs font-medium truncate transition-colors ${
+                                  isLight ? "text-slate-900 group-hover:text-sky-600" : "text-white group-hover:text-sky-300"
+                                }`}>
                                   {sec.label}
                                 </div>
-                                <div className="text-[10px] text-neutral-400 truncate">
+                                <div className={`text-[10px] truncate ${
+                                  isLight ? "text-slate-500" : "text-neutral-400"
+                                }`}>
                                   {sec.sub}
                                 </div>
                               </div>
                             </div>
-                            <HiArrowRight className="w-3.5 h-3.5 text-neutral-500 group-hover:text-white transition-colors shrink-0" />
+                            <HiArrowRight className={`w-3.5 h-3.5 transition-colors shrink-0 ${
+                              isLight ? "text-slate-400 group-hover:text-slate-700" : "text-neutral-500 group-hover:text-white"
+                            }`} />
                           </button>
                         );
                       })}
@@ -541,12 +572,12 @@ export default function AdminTopBar({
                 {/* 5. Empty State */}
                 {searchResults.totalResults === 0 && (
                   <div className="p-4 text-center">
-                    <p className="text-xs text-neutral-300 font-medium">
+                    <p className={`text-xs font-medium ${isLight ? "text-slate-800" : "text-neutral-300"}`}>
                       {isId
                         ? `Tidak ada hasil untuk "${searchQuery}"`
                         : `No results found for "${searchQuery}"`}
                     </p>
-                    <p className="text-[11px] text-neutral-500 mt-1">
+                    <p className={`text-[11px] mt-1 ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
                       {isId
                         ? "Cari nama brand klien, karya visual, atau nama bagian menu."
                         : "Search by client brand, visual work, or menu section."}
@@ -557,7 +588,11 @@ export default function AdminTopBar({
                         onSelectTab?.("resources");
                         setIsSearchOpen(false);
                       }}
-                      className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-[#16b09f] border border-white/10 transition-colors cursor-pointer"
+                      className={`mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[#16b09f] border transition-colors cursor-pointer ${
+                        isLight
+                          ? "bg-slate-100 hover:bg-slate-200 border-slate-200"
+                          : "bg-white/5 hover:bg-white/10 border-white/10"
+                      }`}
                     >
                       <HiSquare3Stack3D className="w-3.5 h-3.5" />
                       <span>
@@ -733,285 +768,6 @@ export default function AdminTopBar({
           </button>
         </div>
       </header>
-
-      {/* ==============================================================
-          MOBILE FULLSCREEN SEARCH POPUP MODAL
-          ("ketika di pencet popup dan ketikan kita jelas terlihat")
-         ============================================================== */}
-      {isMobileSearchOpen && (
-        <div className="md:hidden fixed inset-0 z-[100] bg-[#0c0e12]/98 backdrop-blur-2xl flex flex-col p-4 animate-in fade-in zoom-in-95 duration-150">
-          {/* Top Bar with Clear, Large, Readable Input Field */}
-          <div className="flex items-center gap-2.5 pb-3 border-b border-white/10 shrink-0">
-            <div className="relative flex-1">
-              <HiMagnifyingGlass className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400 pointer-events-none" />
-              <input
-                ref={mobileSearchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                placeholder={
-                  isId
-                    ? "Cari klien, karya visual, logo partner..."
-                    : "Search clients, folders, assets..."
-                }
-                className="w-full bg-[#161a22] border border-white/15 focus:border-[#16b09f] rounded-2xl pl-11 pr-10 py-3.5 text-base font-semibold text-white placeholder-neutral-500 outline-none transition-colors shadow-inner"
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSearchChange("");
-                    mobileSearchInputRef.current?.focus();
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 cursor-pointer"
-                  title="Clear"
-                >
-                  <HiXMark className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setIsMobileSearchOpen(false)}
-              className="px-3.5 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 text-neutral-200 text-xs font-semibold cursor-pointer shrink-0 active:scale-95"
-            >
-              {isId ? "Tutup" : "Cancel"}
-            </button>
-          </div>
-
-          {/* Search Results Display inside Mobile Popup */}
-          <div className="flex-1 overflow-y-auto py-3 space-y-4">
-            {!searchQuery.trim() ? (
-              <div className="py-12 text-center">
-                <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-[#16b09f] mb-3">
-                  <HiMagnifyingGlass className="w-6 h-6" />
-                </div>
-                <p className="text-sm font-semibold text-white">
-                  {isId ? "Pencarian Cepat Studio" : "Studio Quick Search"}
-                </p>
-                <p className="text-xs text-neutral-400 mt-1 max-w-xs mx-auto">
-                  {isId
-                    ? "Ketik nama brand klien, karya visual, logo partner, atau bagian menu navigasi."
-                    : "Type client brands, visual works, logos, or menu navigation sections."}
-                </p>
-              </div>
-            ) : searchResults?.totalResults === 0 ? (
-              <div className="py-12 text-center">
-                <p className="text-sm font-semibold text-white">
-                  {isId
-                    ? `Tidak ada hasil untuk "${searchQuery}"`
-                    : `No results found for "${searchQuery}"`}
-                </p>
-                <p className="text-xs text-neutral-400 mt-1">
-                  {isId
-                    ? "Coba cari nama klien atau aset lainnya."
-                    : "Try searching with a different keyword."}
-                </p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSelectTab?.("resources");
-                    setIsMobileSearchOpen(false);
-                  }}
-                  className="mt-4 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#16b09f] text-black font-bold text-xs shadow-md shadow-[#16b09f]/20"
-                >
-                  <HiSquare3Stack3D className="w-4 h-4" />
-                  <span>
-                    {isId ? "Buka Resource Library" : "Open Resource Library"}
-                  </span>
-                </button>
-              </div>
-            ) : (
-              <>
-                {/* 1. Clients & Folders */}
-                {searchResults?.matchedClients &&
-                  searchResults.matchedClients.length > 0 && (
-                    <div>
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-[#16b09f] font-bold px-1 mb-2 block">
-                        {isId ? "Klien & Folder" : "Clients & Folders"} (
-                        {searchResults.matchedClients.length})
-                      </span>
-                      <div className="space-y-1.5">
-                        {searchResults.matchedClients.map((client) => (
-                          <button
-                            key={client.id}
-                            type="button"
-                            onClick={() => {
-                              onSelectTab?.("clients");
-                              onSelectClient?.(client.id);
-                              setIsMobileSearchOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between p-3 rounded-2xl bg-neutral-900/80 border border-white/5 text-left active:bg-white/10 transition-colors cursor-pointer"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-9 h-9 rounded-xl bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0 text-[#16b09f]">
-                                <HiFolder className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold text-white truncate">
-                                  {client.clientName}
-                                </p>
-                                <p className="text-xs text-neutral-400 truncate">
-                                  {client.category || "Client Folder"} •{" "}
-                                  {client.works?.length || 0} works
-                                </p>
-                              </div>
-                            </div>
-                            <HiArrowRight className="w-4 h-4 text-neutral-500 shrink-0" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* 2. Visual Works & Assets */}
-                {searchResults?.matchedWorks &&
-                  searchResults.matchedWorks.length > 0 && (
-                    <div>
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-purple-400 font-bold px-1 mb-2 block">
-                        {isId ? "Karya & Aset Visual" : "Works & Assets"} (
-                        {searchResults.matchedWorks.length})
-                      </span>
-                      <div className="space-y-1.5">
-                        {searchResults.matchedWorks.map((work) => (
-                          <button
-                            key={`${work.clientId}-${work.workId}`}
-                            type="button"
-                            onClick={() => {
-                              onSelectTab?.("clients");
-                              onSelectClient?.(work.clientId);
-                              setIsMobileSearchOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between p-3 rounded-2xl bg-neutral-900/80 border border-white/5 text-left active:bg-white/10 transition-colors cursor-pointer"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-10 h-10 rounded-xl bg-neutral-800 border border-white/10 overflow-hidden shrink-0">
-                                {work.image ? (
-                                  <img
-                                    src={work.image}
-                                    alt={work.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-neutral-500">
-                                    <HiPhoto className="w-4 h-4" />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold text-white truncate">
-                                  {work.title}
-                                </p>
-                                <p className="text-xs text-neutral-400 truncate flex items-center gap-1.5">
-                                  <span>{work.clientName}</span>
-                                  <span className="px-1.5 py-0.5 rounded bg-white/10 font-mono text-[10px] text-neutral-300">
-                                    {work.aspect}
-                                  </span>
-                                </p>
-                              </div>
-                            </div>
-                            <HiArrowRight className="w-4 h-4 text-neutral-500 shrink-0" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* 3. Partner Logos */}
-                {searchResults?.matchedLogos &&
-                  searchResults.matchedLogos.length > 0 && (
-                    <div>
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-amber-400 font-bold px-1 mb-2 block">
-                        {isId ? "Partner Logo Marquee" : "Partner Logos"} (
-                        {searchResults.matchedLogos.length})
-                      </span>
-                      <div className="space-y-1.5">
-                        {searchResults.matchedLogos.map((logo) => (
-                          <button
-                            key={logo.id}
-                            type="button"
-                            onClick={() => {
-                              onSelectTab?.("clients");
-                              onOpenLogosTab?.();
-                              setIsMobileSearchOpen(false);
-                            }}
-                            className="w-full flex items-center justify-between p-3 rounded-2xl bg-neutral-900/80 border border-white/5 text-left active:bg-white/10 transition-colors cursor-pointer"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center p-1.5 shrink-0">
-                                {logo.file ? (
-                                  <img
-                                    src={logo.file}
-                                    alt={logo.name}
-                                    className="max-w-full max-h-full object-contain filter invert opacity-80"
-                                  />
-                                ) : (
-                                  <HiTag className="w-4 h-4 text-amber-400" />
-                                )}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold text-white truncate">
-                                  {logo.name}
-                                </p>
-                                <p className="text-xs text-neutral-400">
-                                  Marquee Row {logo.row}
-                                </p>
-                              </div>
-                            </div>
-                            <HiArrowRight className="w-4 h-4 text-neutral-500 shrink-0" />
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {/* 4. Studio Navigation Sections */}
-                {searchResults?.matchedSections &&
-                  searchResults.matchedSections.length > 0 && (
-                    <div>
-                      <span className="text-[11px] font-mono uppercase tracking-wider text-sky-400 font-bold px-1 mb-2 block">
-                        {isId ? "Halaman Navigasi Admin" : "Studio Sections"} (
-                        {searchResults.matchedSections.length})
-                      </span>
-                      <div className="space-y-1.5">
-                        {searchResults.matchedSections.map((sec) => {
-                          const Icon = sec.icon;
-                          return (
-                            <button
-                              key={sec.id}
-                              type="button"
-                              onClick={() => {
-                                onSelectTab?.(sec.id);
-                                setIsMobileSearchOpen(false);
-                              }}
-                              className="w-full flex items-center justify-between p-3 rounded-2xl bg-neutral-900/80 border border-white/5 text-left active:bg-white/10 transition-colors cursor-pointer"
-                            >
-                              <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-9 h-9 rounded-xl bg-neutral-800 border border-white/10 flex items-center justify-center shrink-0 text-sky-400">
-                                  <Icon className="w-4 h-4" />
-                                </div>
-                                <div className="min-w-0">
-                                  <p className="text-sm font-semibold text-white truncate">
-                                    {sec.label}
-                                  </p>
-                                  <p className="text-xs text-neutral-400 truncate">
-                                    {sec.sub}
-                                  </p>
-                                </div>
-                              </div>
-                              <HiArrowRight className="w-4 h-4 text-neutral-500 shrink-0" />
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </>
   );
 }
