@@ -89,11 +89,11 @@ export default function About() {
               </p>
 
               {/* Blockquote: Core Philosophy */}
-              <div className="p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/[0.03] border-l-2 border-[#16b09f] border-y border-r border-white/5 backdrop-blur-sm">
+              <div className="about-philosophy-card p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-white/[0.03] border-l-2 border-[#16b09f] border-y border-r border-white/5 backdrop-blur-sm">
                 <span className="text-[11px] font-mono text-[#16b09f] uppercase tracking-wider block mb-1 font-semibold">
                   {displayPhilosophyTitle}
                 </span>
-                <p className="text-white/90 text-sm sm:text-base italic font-serif leading-relaxed">
+                <p className="about-philosophy-quote text-neutral-200 text-sm sm:text-base italic font-serif leading-relaxed">
                   &ldquo;{displayPhilosophyQuote}&rdquo;
                 </p>
               </div>

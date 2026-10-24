@@ -45,8 +45,27 @@ html.light h2,
 html.light h3,
 html.light h4,
 html[data-theme='light'] .text-white,
-html.light .text-white {
+html[data-theme='light'] .text-white\/90,
+html[data-theme='light'] .text-white\/80,
+html[data-theme='light'] .text-white\/70,
+html.light .text-white,
+html.light .text-white\/90,
+html.light .text-white\/80,
+html.light .text-white\/70 {
   color: #0f172a !important;
+}
+
+/* Core Philosophy quote in About Section */
+html[data-theme='light'] .about-philosophy-card,
+html.light .about-philosophy-card {
+  background-color: #f8fafc !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  border-left-color: #16b09f !important;
+}
+
+html[data-theme='light'] .about-philosophy-quote,
+html.light .about-philosophy-quote {
+  color: #1e293b !important;
 }
 
 /* Paragraphs & Subtitles in Light Mode */
