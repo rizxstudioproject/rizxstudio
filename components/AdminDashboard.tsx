@@ -1846,8 +1846,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           searchQuery={globalSearchQuery}
           onSearchChange={(q) => setGlobalSearchQuery(q)}
           onViewWebsite={() => {
-            if (onClose) onClose();
-            else setIsAdminMode(false);
+            if (typeof window !== "undefined") {
+              window.open("/", "_blank");
+            }
           }}
           onLogout={adminLogout}
           isCloudSyncActive={isCloudSyncActive}
@@ -1904,8 +1905,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               }}
               onReplaceCoverImage={handleReplaceCoverImage}
               onViewWebsite={() => {
-                if (onClose) onClose();
-                else setIsAdminMode(false);
+                if (typeof window !== "undefined") {
+                  window.open("/", "_blank");
+                }
               }}
               showToast={showToast}
               clSubtitle={clSubtitle}
@@ -1939,8 +1941,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               onDeleteWork={handleDeleteWork}
               showToast={showToast}
               onViewWebsite={() => {
-                if (onClose) onClose();
-                else setIsAdminMode(false);
+                if (typeof window !== "undefined") {
+                  window.open("/", "_blank");
+                }
               }}
             />
           )}
@@ -6020,18 +6023,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
               {/* View Public Web Shortcut in Mobile Drawer */}
               <div className="pt-2 border-t border-white/10">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    if (onClose) onClose();
-                    else setIsAdminMode(false);
-                  }}
-                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer"
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#14AF9E] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer no-underline"
                 >
                   <HiEye className="w-4 h-4" />
                   <span>{tx("Lihat Web Publik ↗", "View Public Web ↗")}</span>
-                </button>
+                </a>
               </div>
             </motion.div>
           </div>

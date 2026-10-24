@@ -618,14 +618,15 @@ export default function AdminTopBar({
           </div>
 
           {/* View Website Button (Hidden on Mobile Navbar as requested, accessible via mobile drawer) */}
-          <button
-            type="button"
-            onClick={onViewWebsite}
-            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer no-underline"
           >
             <span>{tr("View website", "Lihat website", "Caliak website")}</span>
             <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
-          </button>
+          </a>
 
           {/* Top Navbar Action: Reset to Default (Only here in navbar atas) */}
           {showResetDefault && onResetDefault && (

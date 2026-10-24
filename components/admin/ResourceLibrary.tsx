@@ -216,14 +216,15 @@ export default function ResourceLibrary({
             </button>
           )}
           {onViewWebsite && (
-            <button
-              type="button"
-              onClick={onViewWebsite}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer"
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer no-underline"
             >
               <span>{tr("View web", "Lihat Web", "Caliak Web")}</span>
               <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
-            </button>
+            </a>
           )}
         </div>
       </div>
