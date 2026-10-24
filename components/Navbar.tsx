@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
-import { HiBars3, HiXMark, HiArrowUp, HiSun, HiMoon } from "react-icons/hi2";
+import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
+import { RiSunFill, RiMoonFill } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 
@@ -216,9 +217,9 @@ export default function Navbar() {
               className="w-8 h-8 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer"
             >
               {themeMode === "dark" ? (
-                <HiSun className="w-4 h-4 text-amber-300" />
+                <RiSunFill className="w-4 h-4 text-amber-300" />
               ) : (
-                <HiMoon className="w-4 h-4 text-indigo-400" />
+                <RiMoonFill className="w-4 h-4 text-[#16b09f]" />
               )}
             </button>
 

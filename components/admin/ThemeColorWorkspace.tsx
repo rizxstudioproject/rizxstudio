@@ -83,7 +83,7 @@ export default function ThemeColorWorkspace() {
       <section className="space-y-4">
         <h3 className="text-base font-semibold text-white flex items-center gap-2">
           {themeMode === "dark" ? (
-            <HiMoon className="w-5 h-5 text-indigo-400" />
+            <HiMoon className="w-5 h-5 text-[#16b09f]" />
           ) : (
             <HiSun className="w-5 h-5 text-amber-400" />
           )}
@@ -117,7 +117,7 @@ export default function ThemeColorWorkspace() {
               </div>
             )}
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-neutral-800 border border-white/10 flex items-center justify-center text-indigo-400">
+              <div className="w-10 h-10 rounded-xl bg-neutral-800 border border-white/10 flex items-center justify-center text-[#16b09f]">
                 <HiMoon className="w-5 h-5" />
               </div>
               <div>
