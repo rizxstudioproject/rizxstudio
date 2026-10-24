@@ -128,11 +128,28 @@ html.light .invert.brightness-0 {
   filter: none !important;
 }
 
-/* Contact Footer Card in Light Mode */
-html[data-theme='light'] a.bg-white,
-html.light a.bg-white {
-  background-color: #0f172a !important;
-  color: #ffffff !important;
+/* Contact Footer in Light Mode */
+html[data-theme='light'] #contact a.border-white\/10,
+html.light #contact a.border-white\/10 {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] #contact a.border-white\/10:hover,
+html.light #contact a.border-white\/10:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html[data-theme='light'] #contact .bg-white\/\[0\.04\],
+html.light #contact .bg-white\/\[0\.04\] {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html[data-theme='light'] #contact a.hover\:text-white:hover,
+html.light #contact a.hover\:text-white:hover {
+  color: #0f172a !important;
 }
 
 /* Admin Dashboard in Light Mode */

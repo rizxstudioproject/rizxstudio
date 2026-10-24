@@ -17,18 +17,38 @@ export default function Contact() {
 
   return (
     <footer id="contact" className="relative pt-20 pb-16 px-4 sm:px-12 lg:px-24 max-w-7xl mx-auto">
-      <SpotlightCard className="p-8 sm:p-14 lg:p-16 mb-16 sm:mb-20">
+      {/* Subtle Ambient Brand Glow behind Footer Card */}
+      <div
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl h-[360px] pointer-events-none rounded-full blur-[140px] opacity-15 transition-colors duration-500"
+        style={{ backgroundColor: primaryColor }}
+      />
+
+      <SpotlightCard className="p-8 sm:p-14 lg:p-16 mb-16 sm:mb-20 relative overflow-hidden">
+        {/* Top brand accent border */}
+        <div
+          className="absolute top-0 left-0 right-0 h-[2px] opacity-80"
+          style={{
+            background: `linear-gradient(90deg, transparent 0%, ${primaryColor} 50%, transparent 100%)`,
+          }}
+        />
+
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8 sm:gap-10">
           <div className="max-w-2xl">
             <div
-              className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-mono tracking-widest uppercase mb-4 px-3 py-1 rounded-full border shadow-sm"
+              className="inline-flex items-center gap-2 text-[11px] sm:text-xs font-mono tracking-widest uppercase mb-4 px-3 py-1 rounded-full border shadow-sm transition-colors duration-300"
               style={{
-                color: "#16b09f",
-                backgroundColor: "rgba(22, 176, 159, 0.12)",
-                borderColor: "rgba(22, 176, 159, 0.3)",
+                color: primaryColor,
+                backgroundColor: `${primaryColor}1f`,
+                borderColor: `${primaryColor}4d`,
               }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse shadow-[0_0_8px_#16b09f]" />
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{
+                  backgroundColor: primaryColor,
+                  boxShadow: `0 0 8px ${primaryColor}`,
+                }}
+              />
               <span>{t("contact.badge")}</span>
             </div>
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
@@ -45,7 +65,12 @@ export default function Contact() {
               href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.2)] text-center magnetic-hover"
+              style={{
+                backgroundColor: primaryColor,
+                color: "#000000",
+                boxShadow: `0 0 28px ${primaryColor}55`,
+              }}
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 rounded-full font-bold text-sm hover:brightness-110 hover:scale-[1.03] active:scale-95 transition-all duration-300 text-center magnetic-hover cursor-pointer"
             >
               <FaWhatsapp className="w-4 h-4" />
               <span>WHATSAPP</span>
@@ -98,9 +123,10 @@ export default function Contact() {
               <button
                 type="button"
                 onClick={() => setLang("en")}
+                style={lang === "en" ? { backgroundColor: primaryColor } : undefined}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "en"
-                    ? "bg-[#16b09f] text-white font-bold"
+                    ? "text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="English"
@@ -110,9 +136,10 @@ export default function Contact() {
               <button
                 type="button"
                 onClick={() => setLang("id")}
+                style={lang === "id" ? { backgroundColor: primaryColor } : undefined}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "id"
-                    ? "bg-[#16b09f] text-white font-bold"
+                    ? "text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="Indonesia"
@@ -122,9 +149,10 @@ export default function Contact() {
               <button
                 type="button"
                 onClick={() => setLang("min")}
+                style={lang === "min" ? { backgroundColor: primaryColor } : undefined}
                 className={`px-2.5 py-1 transition-all cursor-pointer ${
                   lang === "min"
-                    ? "bg-[#16b09f] text-white font-bold"
+                    ? "text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
                 aria-label="Minang"
@@ -149,9 +177,10 @@ export default function Contact() {
               <button
                 type="button"
                 onClick={() => setLang("en")}
+                style={lang === "en" ? { backgroundColor: primaryColor } : undefined}
                 className={`px-3 py-1 transition-all ${
                   lang === "en"
-                    ? "bg-[#16b09f] text-white font-bold"
+                    ? "text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -160,9 +189,10 @@ export default function Contact() {
               <button
                 type="button"
                 onClick={() => setLang("id")}
+                style={lang === "id" ? { backgroundColor: primaryColor } : undefined}
                 className={`px-3 py-1 transition-all ${
                   lang === "id"
-                    ? "bg-[#16b09f] text-white font-bold"
+                    ? "text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
@@ -171,9 +201,10 @@ export default function Contact() {
               <button
                 type="button"
                 onClick={() => setLang("min")}
+                style={lang === "min" ? { backgroundColor: primaryColor } : undefined}
                 className={`px-3 py-1 transition-all ${
                   lang === "min"
-                    ? "bg-[#16b09f] text-white font-bold"
+                    ? "text-black font-bold shadow-sm"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
