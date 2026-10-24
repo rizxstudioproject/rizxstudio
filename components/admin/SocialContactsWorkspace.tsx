@@ -3,14 +3,14 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  HiChatBubbleLeftRight,
-  HiCheck,
-  HiArrowPath,
-  HiEnvelope,
-  HiGlobeAlt,
-  HiArrowTopRightOnSquare,
-  HiPhone,
-} from "react-icons/hi2";
+  RiChat3Fill as HiChatBubbleLeftRight,
+  RiCheckFill as HiCheck,
+  RiRestartFill as HiArrowPath,
+  RiMailFill as HiEnvelope,
+  RiGlobalFill as HiGlobeAlt,
+  RiExternalLinkFill as HiArrowTopRightOnSquare,
+  RiPhoneFill as HiPhone,
+} from "react-icons/ri";
 import { FaWhatsapp, FaInstagram, FaLinkedinIn, FaGithub } from "react-icons/fa6";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";

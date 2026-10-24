@@ -3,15 +3,15 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  HiPaintBrush,
-  HiSun,
-  HiMoon,
-  HiCheck,
-  HiSparkles,
-  HiArrowPath,
-  HiEye,
-  HiSwatch,
-} from "react-icons/hi2";
+  RiPaletteFill as HiPaintBrush,
+  RiSunFill as HiSun,
+  RiMoonFill as HiMoon,
+  RiCheckFill as HiCheck,
+  RiSparklingFill as HiSparkles,
+  RiRestartFill as HiArrowPath,
+  RiEyeFill as HiEye,
+  RiColorFilterFill as HiSwatch,
+} from "react-icons/ri";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
 

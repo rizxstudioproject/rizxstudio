@@ -2,18 +2,18 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import {
-  HiSquare3Stack3D,
-  HiPhoto,
-  HiArrowDownTray,
-  HiClipboardDocument,
-  HiEye,
-  HiTrash,
-  HiArrowTopRightOnSquare,
-  HiXMark,
-  HiTag,
-  HiSparkles,
-  HiCheck,
-} from "react-icons/hi2";
+  RiStackFill as HiSquare3Stack3D,
+  RiImageFill as HiPhoto,
+  RiDownload2Fill as HiArrowDownTray,
+  RiClipboardFill as HiClipboardDocument,
+  RiEyeFill as HiEye,
+  RiDeleteBinFill as HiTrash,
+  RiExternalLinkFill as HiArrowTopRightOnSquare,
+  RiCloseFill as HiXMark,
+  RiPriceTag3Fill as HiTag,
+  RiSparklingFill as HiSparkles,
+  RiCheckFill as HiCheck,
+} from "react-icons/ri";
 import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
 import { getCustomFramesFromDB, clearCustomFramesFromDB } from "@/lib/sequenceStorage";

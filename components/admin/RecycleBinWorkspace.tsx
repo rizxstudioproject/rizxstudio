@@ -2,19 +2,19 @@
 
 import React, { useState, useMemo } from "react";
 import {
-  HiTrash,
-  HiArrowPath,
-  HiMagnifyingGlass,
-  HiPhoto,
-  HiFolder,
-  HiVideoCamera,
-  HiSparkles,
-  HiTag,
-  HiCheck,
-  HiExclamationTriangle,
-  HiArrowUturnLeft,
-  HiInformationCircle,
-} from "react-icons/hi2";
+  RiDeleteBinFill as HiTrash,
+  RiRestartFill as HiArrowPath,
+  RiSearchFill as HiMagnifyingGlass,
+  RiImageFill as HiPhoto,
+  RiFolderFill as HiFolder,
+  RiMovieFill as HiVideoCamera,
+  RiSparklingFill as HiSparkles,
+  RiPriceTag3Fill as HiTag,
+  RiCheckFill as HiCheck,
+  RiAlertFill as HiExclamationTriangle,
+  RiArrowGoBackFill as HiArrowUturnLeft,
+  RiInformationFill as HiInformationCircle,
+} from "react-icons/ri";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePortfolioData, TrashItem } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";

@@ -3,17 +3,17 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  HiChartBar,
-  HiArrowTrendingUp,
-  HiUsers,
-  HiBanknotes,
-  HiArrowPath,
-  HiSignal,
-  HiCheckCircle,
-  HiInformationCircle,
-  HiPaperAirplane,
-  HiClock,
-} from "react-icons/hi2";
+  RiBarChartFill as HiChartBar,
+  RiLineChartFill as HiArrowTrendingUp,
+  RiTeamFill as HiUsers,
+  RiMoneyDollarCircleFill as HiBanknotes,
+  RiRestartFill as HiArrowPath,
+  RiSignalTowerFill as HiSignal,
+  RiCheckboxCircleFill as HiCheckCircle,
+  RiInformationFill as HiInformationCircle,
+  RiSendPlaneFill as HiPaperAirplane,
+  RiTimeFill as HiClock,
+} from "react-icons/ri";
 import {
   fetchCrmAnalytics,
   testCrmConnection,

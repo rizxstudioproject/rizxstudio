@@ -2,22 +2,21 @@
 
 import React from "react";
 import {
-  HiSquares2X2,
-  HiFolder,
-  HiPhoto,
-  HiSparkles,
-  HiVideoCamera,
-  HiTag,
-  HiUser,
-  HiKey,
-  HiSquare3Stack3D,
-  HiTrash,
-  HiChartPie,
-  HiCursorArrowRays,
-  HiPaintBrush,
-  HiChatBubbleLeftRight,
-  HiArrowTrendingUp,
-} from "react-icons/hi2";
+  RiFolderFill,
+  RiSparklingFill,
+  RiImageFill,
+  RiMovieFill,
+  RiGridFill,
+  RiUser3Fill,
+  RiCursorFill,
+  RiPaletteFill,
+  RiChat3Fill,
+  RiLineChartFill,
+  RiDeleteBinFill,
+  RiPieChartFill,
+  RiKeyFill,
+  RiStackFill,
+} from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 
@@ -73,69 +72,69 @@ export default function AdminSidebar({
       id: "clients",
       label: tr("Portfolio & Clients", "Portofolio & Klien", "Portofolio & Klien"),
       badge: totalClients > 0 ? totalClients : undefined,
-      icon: HiFolder,
+      icon: RiFolderFill,
     },
     {
       id: "hero-banner",
       label: tr("Hero Banner (Scrolly)", "Banner Utama (Scrolly)", "Banner Utamo (Scrolly)"),
-      icon: HiSparkles,
+      icon: RiSparklingFill,
     },
     {
       id: "hero-works",
       label: tr("Hero & Selected Works", "Hero & Karya Unggulan", "Hero & Karya Tapiliah"),
-      icon: HiPhoto,
+      icon: RiImageFill,
     },
     {
       id: "flagship",
       label: tr("Media Showcase (Stage 3)", "Pameran Media (Stage 3)", "Pameran Media (Stage 3)"),
-      icon: HiVideoCamera,
+      icon: RiMovieFill,
     },
     {
       id: "runner",
       label: tr("Running Portfolio (4:5)", "Portofolio Berjalan (4:5)", "Portofolio Baguliah (4:5)"),
-      icon: HiSquares2X2,
+      icon: RiGridFill,
     },
     {
       id: "about",
       label: tr("About Me Section", "Tentang Saya", "Tantang Ambo"),
-      icon: HiUser,
+      icon: RiUser3Fill,
     },
     {
       id: "motion",
       label: tr("Motion & Cursor", "Motion & Kursor", "Motion & Kursor"),
-      icon: HiCursorArrowRays,
+      icon: RiCursorFill,
     },
     {
       id: "theme",
       label: tr("Theme & Colors", "Warna & Tema", "Warna & Tema"),
-      icon: HiPaintBrush,
+      icon: RiPaletteFill,
     },
     {
       id: "social",
       label: tr("Contact & Socials", "Kontak & Sosmed", "Kontak & Sosmed"),
-      icon: HiChatBubbleLeftRight,
+      icon: RiChat3Fill,
     },
     {
       id: "crm",
       label: tr("CRM & Analytics", "CRM & Prospek", "CRM & Prospek"),
-      icon: HiArrowTrendingUp,
+      icon: RiLineChartFill,
     },
     {
       id: "trash",
       label: tr("Recycle Bin", "Tong Sampah", "Tong Sarok"),
       badge: trashCount > 0 ? trashCount : undefined,
-      icon: HiTrash,
+      icon: RiDeleteBinFill,
     },
     {
       id: "storage",
       label: tr("Storage & Analytics", "Kapasitas & Data", "Panyimpanan & Data"),
       badge: totalWorks > 0 ? totalWorks : undefined,
-      icon: HiChartPie,
+      icon: RiPieChartFill,
     },
     {
       id: "settings",
       label: tr("Password & Security", "Sandi & Keamanan Akun", "Kunci & Kaamanan Akun"),
-      icon: HiKey,
+      icon: RiKeyFill,
     },
   ];
 
@@ -228,7 +227,7 @@ export default function AdminSidebar({
         >
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-neutral-400 group-hover:text-[#14AF9E] transition-colors flex items-center gap-1.5">
-              <HiChartPie className="w-3.5 h-3.5 text-[#14AF9E]" />
+              <RiPieChartFill className="w-3.5 h-3.5 text-[#14AF9E]" />
               <span>{tr("Storage", "Penyimpanan", "Panyimpanan")}</span>
             </span>
             <span className="font-mono text-neutral-200">

@@ -2,21 +2,21 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  HiChartPie,
-  HiCircleStack,
-  HiPhoto,
-  HiFolder,
-  HiVideoCamera,
-  HiTrash,
-  HiArrowDownTray,
-  HiArrowPath,
-  HiCheckCircle,
-  HiSparkles,
-  HiServer,
-  HiCpuChip,
-  HiShieldCheck,
-  HiArrowTrendingUp,
-} from "react-icons/hi2";
+  RiPieChartFill as HiChartPie,
+  RiDatabase2Fill as HiCircleStack,
+  RiImageFill as HiPhoto,
+  RiFolderFill as HiFolder,
+  RiMovieFill as HiVideoCamera,
+  RiDeleteBinFill as HiTrash,
+  RiDownload2Fill as HiArrowDownTray,
+  RiRestartFill as HiArrowPath,
+  RiCheckboxCircleFill as HiCheckCircle,
+  RiSparklingFill as HiSparkles,
+  RiServerFill as HiServer,
+  RiCpuFill as HiCpuChip,
+  RiShieldCheckFill as HiShieldCheck,
+  RiLineChartFill as HiArrowTrendingUp,
+} from "react-icons/ri";
 import { motion } from "framer-motion";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";

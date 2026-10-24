@@ -4,16 +4,16 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLang } from "@/context/LanguageContext";
 import {
-  HiEye,
-  HiEyeSlash,
-  HiArrowRight,
-  HiExclamationTriangle,
-  HiLockClosed,
-  HiArrowLeft,
-  HiEnvelope,
-  HiCheckCircle,
-  HiKey,
-} from "react-icons/hi2";
+  RiEyeFill as HiEye,
+  RiEyeOffFill as HiEyeSlash,
+  RiArrowRightFill as HiArrowRight,
+  RiAlertFill as HiExclamationTriangle,
+  RiLockFill as HiLockClosed,
+  RiArrowLeftFill as HiArrowLeft,
+  RiMailFill as HiEnvelope,
+  RiCheckboxCircleFill as HiCheckCircle,
+  RiKeyFill as HiKey,
+} from "react-icons/ri";
 import {
   getAdminCredentials,
   saveAdminCredentials,

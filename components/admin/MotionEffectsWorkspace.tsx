@@ -3,16 +3,16 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  HiSparkles,
-  HiCursorArrowRays,
-  HiDevicePhoneMobile,
-  HiCheck,
-  HiEye,
-  HiBolt,
-  HiArrowPath,
-  HiAdjustmentsHorizontal,
-  HiArrowsPointingOut,
-} from "react-icons/hi2";
+  RiSparklingFill as HiSparkles,
+  RiCursorFill as HiCursorArrowRays,
+  RiSmartphoneFill as HiDevicePhoneMobile,
+  RiCheckFill as HiCheck,
+  RiEyeFill as HiEye,
+  RiFlashlightFill as HiBolt,
+  RiRestartFill as HiArrowPath,
+  RiEqualizerFill as HiAdjustmentsHorizontal,
+  RiFullscreenFill as HiArrowsPointingOut,
+} from "react-icons/ri";
 import { useMotionTheme, CursorEffectType } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
 
