@@ -731,38 +731,48 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
 
         if (parsed.heroWorks) {
-          setHeroWorks({
+          const loadedHeroWorks = {
             ...defaultHeroWorksData,
             ...parsed.heroWorks,
-          });
+          };
+          setHeroWorks(loadedHeroWorks);
+          heroWorksRef.current = loadedHeroWorks;
         }
 
         if (parsed.clientLogos) {
-          setClientLogos({
+          const loadedClientLogos = {
             ...defaultClientLogosData,
             ...parsed.clientLogos,
-          });
+          };
+          setClientLogos(loadedClientLogos);
+          clientLogosRef.current = loadedClientLogos;
         }
 
         if (parsed.portfolioIntro) {
-          setPortfolioIntro({
+          const loadedPortfolioIntro = {
             ...defaultPortfolioIntroData,
             ...parsed.portfolioIntro,
-          });
+          };
+          setPortfolioIntro(loadedPortfolioIntro);
+          portfolioIntroRef.current = loadedPortfolioIntro;
         }
 
         if (parsed.portfolioRunner) {
-          setPortfolioRunner({
+          const loadedPortfolioRunner = {
             ...defaultPortfolioRunnerData,
             ...parsed.portfolioRunner,
-          });
+          };
+          setPortfolioRunner(loadedPortfolioRunner);
+          portfolioRunnerRef.current = loadedPortfolioRunner;
         }
 
         if (parsed.heroBanner) {
-          setHeroBanner({
+          const loadedHeroBanner = {
             ...defaultHeroBannerData,
             ...parsed.heroBanner,
-          });
+          };
+          setHeroBanner(loadedHeroBanner);
+          heroBannerRef.current = loadedHeroBanner;
         }
       }
 
@@ -1473,6 +1483,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setHeroWorks(updated);
+      heroWorksRef.current = updated;
       persistState(stage3, clients, about, updated, clientLogos, portfolioIntro);
 
       if (isSupabaseConfigured && supabase) {
@@ -1483,7 +1494,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             category: "Site Section Config",
             description: JSON.stringify(updated),
             updated_at: new Date().toISOString(),
-          });
+          }, { onConflict: "client_id" });
         } catch (err) {
           console.warn("Supabase hero works update notice:", err);
         }
@@ -1500,6 +1511,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setClientLogos(updated);
+      clientLogosRef.current = updated;
       persistState(stage3, clients, about, heroWorks, updated, portfolioIntro);
 
       if (isSupabaseConfigured && supabase) {
@@ -1510,7 +1522,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             category: "Site Section Config",
             description: JSON.stringify(updated),
             updated_at: new Date().toISOString(),
-          });
+          }, { onConflict: "client_id" });
         } catch (err) {
           console.warn("Supabase client logos update notice:", err);
         }
@@ -1527,6 +1539,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setPortfolioIntro(updated);
+      portfolioIntroRef.current = updated;
       persistState(stage3, clients, about, heroWorks, clientLogos, updated, portfolioRunner);
 
       if (isSupabaseConfigured && supabase) {
@@ -1537,7 +1550,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             category: "Site Section Config",
             description: JSON.stringify(updated),
             updated_at: new Date().toISOString(),
-          });
+          }, { onConflict: "client_id" });
         } catch (err) {
           console.warn("Supabase portfolio intro update notice:", err);
         }
@@ -1554,6 +1567,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setPortfolioRunner(updated);
+      portfolioRunnerRef.current = updated;
       persistState(stage3, clients, about, heroWorks, clientLogos, portfolioIntro, updated);
 
       if (isSupabaseConfigured && supabase) {
@@ -1564,7 +1578,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             category: "Site Section Config",
             description: JSON.stringify(updated),
             updated_at: new Date().toISOString(),
-          });
+          }, { onConflict: "client_id" });
         } catch (err) {
           console.warn("Supabase portfolio runner update notice:", err);
         }
@@ -1626,6 +1640,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         ...newData,
       };
       setHeroBanner(updated);
+      heroBannerRef.current = updated;
       persistState(stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, updated);
 
       if (isSupabaseConfigured && supabase) {
@@ -1636,7 +1651,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             category: "Site Section Config",
             description: JSON.stringify(updated),
             updated_at: new Date().toISOString(),
-          });
+          }, { onConflict: "client_id" });
         } catch (err) {
           console.warn("Supabase hero banner update notice:", err);
         }
