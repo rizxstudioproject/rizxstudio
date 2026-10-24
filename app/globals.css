@@ -239,6 +239,27 @@ html.light #projects .bg-white\/\[0\.04\] {
   color: #334155 !important;
 }
 
+/* Hero Scrollytelling Custom Colors - Priority over light/dark theme overrides */
+.hero-custom-color,
+html[data-theme='light'] .hero-custom-color,
+html.light .hero-custom-color,
+html[data-theme='light'] #hero-scrolly .hero-custom-color,
+html.light #hero-scrolly .hero-custom-color {
+  color: var(--hero-text-color) !important;
+}
+
+.hero-preview-mockup h1,
+.hero-preview-mockup p,
+.hero-preview-mockup span,
+html[data-theme='light'] .hero-preview-mockup h1,
+html[data-theme='light'] .hero-preview-mockup p,
+html[data-theme='light'] .hero-preview-mockup span,
+html.light .hero-preview-mockup h1,
+html.light .hero-preview-mockup p,
+html.light .hero-preview-mockup span {
+  color: inherit;
+}
+
 /* Portfolio Runner Marquee Section in Light Mode */
 html[data-theme='light'] .portfolio-runner-section,
 html.light .portfolio-runner-section {

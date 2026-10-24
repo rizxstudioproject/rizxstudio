@@ -351,14 +351,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   // Hero Banner Scrollytelling Form States
   // ==========================================
   const [hbName, setHbName] = useState(heroBanner?.name || defaultHeroBannerData.name);
+  const [hbNameColor, setHbNameColor] = useState(heroBanner?.nameColor || defaultHeroBannerData.nameColor || "#ffffff");
   const [hbRole, setHbRole] = useState(heroBanner?.role || defaultHeroBannerData.role);
+  const [hbRoleColor, setHbRoleColor] = useState(heroBanner?.roleColor || defaultHeroBannerData.roleColor || "#16b09f");
   const [hbScrollText, setHbScrollText] = useState(heroBanner?.scrollText || defaultHeroBannerData.scrollText);
+  const [hbScrollTextColor, setHbScrollTextColor] = useState(heroBanner?.scrollTextColor || defaultHeroBannerData.scrollTextColor || "#a3a3a3");
   const [hbSec2H1, setHbSec2H1] = useState(heroBanner?.sec2Headline1 || defaultHeroBannerData.sec2Headline1);
+  const [hbSec2H1Color, setHbSec2H1Color] = useState(heroBanner?.sec2Headline1Color || defaultHeroBannerData.sec2Headline1Color || "#ffffff");
   const [hbSec2H2, setHbSec2H2] = useState(heroBanner?.sec2Headline2 || defaultHeroBannerData.sec2Headline2);
+  const [hbSec2H2Color, setHbSec2H2Color] = useState(heroBanner?.sec2Headline2Color || defaultHeroBannerData.sec2Headline2Color || "#a3a3a3");
   const [hbSec2Body, setHbSec2Body] = useState(heroBanner?.sec2Body || defaultHeroBannerData.sec2Body);
+  const [hbSec2BodyColor, setHbSec2BodyColor] = useState(heroBanner?.sec2BodyColor || defaultHeroBannerData.sec2BodyColor || "#d4d4d4");
   const [hbSec3H1, setHbSec3H1] = useState(heroBanner?.sec3Headline1 || defaultHeroBannerData.sec3Headline1);
+  const [hbSec3H1Color, setHbSec3H1Color] = useState(heroBanner?.sec3Headline1Color || defaultHeroBannerData.sec3Headline1Color || "#ffffff");
   const [hbSec3H2, setHbSec3H2] = useState(heroBanner?.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
+  const [hbSec3H2Color, setHbSec3H2Color] = useState(heroBanner?.sec3Headline2Color || defaultHeroBannerData.sec3Headline2Color || "#a3a3a3");
   const [hbSec3Body, setHbSec3Body] = useState(heroBanner?.sec3Body || defaultHeroBannerData.sec3Body);
+  const [hbSec3BodyColor, setHbSec3BodyColor] = useState(heroBanner?.sec3BodyColor || defaultHeroBannerData.sec3BodyColor || "#d4d4d4");
 
   // Hero Photo Sequence States
   const [hbSeqMode, setHbSeqMode] = useState<"default" | "folder" | "custom">(
@@ -402,14 +411,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   useEffect(() => {
     if (heroBanner) {
       setHbName(heroBanner.name || defaultHeroBannerData.name);
+      setHbNameColor(heroBanner.nameColor || defaultHeroBannerData.nameColor || "#ffffff");
       setHbRole(heroBanner.role || defaultHeroBannerData.role);
+      setHbRoleColor(heroBanner.roleColor || defaultHeroBannerData.roleColor || "#16b09f");
       setHbScrollText(heroBanner.scrollText || defaultHeroBannerData.scrollText);
+      setHbScrollTextColor(heroBanner.scrollTextColor || defaultHeroBannerData.scrollTextColor || "#a3a3a3");
       setHbSec2H1(heroBanner.sec2Headline1 || defaultHeroBannerData.sec2Headline1);
+      setHbSec2H1Color(heroBanner.sec2Headline1Color || defaultHeroBannerData.sec2Headline1Color || "#ffffff");
       setHbSec2H2(heroBanner.sec2Headline2 || defaultHeroBannerData.sec2Headline2);
+      setHbSec2H2Color(heroBanner.sec2Headline2Color || defaultHeroBannerData.sec2Headline2Color || "#a3a3a3");
       setHbSec2Body(heroBanner.sec2Body || defaultHeroBannerData.sec2Body);
+      setHbSec2BodyColor(heroBanner.sec2BodyColor || defaultHeroBannerData.sec2BodyColor || "#d4d4d4");
       setHbSec3H1(heroBanner.sec3Headline1 || defaultHeroBannerData.sec3Headline1);
+      setHbSec3H1Color(heroBanner.sec3Headline1Color || defaultHeroBannerData.sec3Headline1Color || "#ffffff");
       setHbSec3H2(heroBanner.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
+      setHbSec3H2Color(heroBanner.sec3Headline2Color || defaultHeroBannerData.sec3Headline2Color || "#a3a3a3");
       setHbSec3Body(heroBanner.sec3Body || defaultHeroBannerData.sec3Body);
+      setHbSec3BodyColor(heroBanner.sec3BodyColor || defaultHeroBannerData.sec3BodyColor || "#d4d4d4");
       setHbSeqMode(heroBanner.sequenceMode || "default");
       setHbSeqTotal(heroBanner.sequenceTotalFrames || 121);
       setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
@@ -1063,14 +1081,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const handleSaveHeroBanner = async () => {
     await updateHeroBannerData({
       name: hbName.trim() || defaultHeroBannerData.name,
+      nameColor: hbNameColor,
       role: hbRole.trim() || defaultHeroBannerData.role,
+      roleColor: hbRoleColor,
       scrollText: hbScrollText.trim() || defaultHeroBannerData.scrollText,
+      scrollTextColor: hbScrollTextColor,
       sec2Headline1: hbSec2H1.trim() || defaultHeroBannerData.sec2Headline1,
+      sec2Headline1Color: hbSec2H1Color,
       sec2Headline2: hbSec2H2.trim() || defaultHeroBannerData.sec2Headline2,
+      sec2Headline2Color: hbSec2H2Color,
       sec2Body: hbSec2Body.trim() || defaultHeroBannerData.sec2Body,
+      sec2BodyColor: hbSec2BodyColor,
       sec3Headline1: hbSec3H1.trim() || defaultHeroBannerData.sec3Headline1,
+      sec3Headline1Color: hbSec3H1Color,
       sec3Headline2: hbSec3H2.trim() || defaultHeroBannerData.sec3Headline2,
+      sec3Headline2Color: hbSec3H2Color,
       sec3Body: hbSec3Body.trim() || defaultHeroBannerData.sec3Body,
+      sec3BodyColor: hbSec3BodyColor,
       sequenceMode: hbSeqMode,
       sequenceTotalFrames: Number(hbSeqTotal) || 121,
       sequenceFolder: hbSeqFolder.trim(),
@@ -1089,14 +1116,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const handleCancelHeroBanner = () => {
     if (heroBanner) {
       setHbName(heroBanner.name || defaultHeroBannerData.name);
+      setHbNameColor(heroBanner.nameColor || defaultHeroBannerData.nameColor || "#ffffff");
       setHbRole(heroBanner.role || defaultHeroBannerData.role);
+      setHbRoleColor(heroBanner.roleColor || defaultHeroBannerData.roleColor || "#16b09f");
       setHbScrollText(heroBanner.scrollText || defaultHeroBannerData.scrollText);
+      setHbScrollTextColor(heroBanner.scrollTextColor || defaultHeroBannerData.scrollTextColor || "#a3a3a3");
       setHbSec2H1(heroBanner.sec2Headline1 || defaultHeroBannerData.sec2Headline1);
+      setHbSec2H1Color(heroBanner.sec2Headline1Color || defaultHeroBannerData.sec2Headline1Color || "#ffffff");
       setHbSec2H2(heroBanner.sec2Headline2 || defaultHeroBannerData.sec2Headline2);
+      setHbSec2H2Color(heroBanner.sec2Headline2Color || defaultHeroBannerData.sec2Headline2Color || "#a3a3a3");
       setHbSec2Body(heroBanner.sec2Body || defaultHeroBannerData.sec2Body);
+      setHbSec2BodyColor(heroBanner.sec2BodyColor || defaultHeroBannerData.sec2BodyColor || "#d4d4d4");
       setHbSec3H1(heroBanner.sec3Headline1 || defaultHeroBannerData.sec3Headline1);
+      setHbSec3H1Color(heroBanner.sec3Headline1Color || defaultHeroBannerData.sec3Headline1Color || "#ffffff");
       setHbSec3H2(heroBanner.sec3Headline2 || defaultHeroBannerData.sec3Headline2);
+      setHbSec3H2Color(heroBanner.sec3Headline2Color || defaultHeroBannerData.sec3Headline2Color || "#a3a3a3");
       setHbSec3Body(heroBanner.sec3Body || defaultHeroBannerData.sec3Body);
+      setHbSec3BodyColor(heroBanner.sec3BodyColor || defaultHeroBannerData.sec3BodyColor || "#d4d4d4");
       setHbSeqMode(heroBanner.sequenceMode || "default");
       setHbSeqTotal(heroBanner.sequenceTotalFrames || 121);
       setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
@@ -1122,14 +1158,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     ) {
       await updateHeroBannerData(defaultHeroBannerData);
       setHbName(defaultHeroBannerData.name);
+      setHbNameColor(defaultHeroBannerData.nameColor || "#ffffff");
       setHbRole(defaultHeroBannerData.role);
+      setHbRoleColor(defaultHeroBannerData.roleColor || "#16b09f");
       setHbScrollText(defaultHeroBannerData.scrollText);
+      setHbScrollTextColor(defaultHeroBannerData.scrollTextColor || "#a3a3a3");
       setHbSec2H1(defaultHeroBannerData.sec2Headline1);
+      setHbSec2H1Color(defaultHeroBannerData.sec2Headline1Color || "#ffffff");
       setHbSec2H2(defaultHeroBannerData.sec2Headline2);
+      setHbSec2H2Color(defaultHeroBannerData.sec2Headline2Color || "#a3a3a3");
       setHbSec2Body(defaultHeroBannerData.sec2Body);
+      setHbSec2BodyColor(defaultHeroBannerData.sec2BodyColor || "#d4d4d4");
       setHbSec3H1(defaultHeroBannerData.sec3Headline1);
+      setHbSec3H1Color(defaultHeroBannerData.sec3Headline1Color || "#ffffff");
       setHbSec3H2(defaultHeroBannerData.sec3Headline2);
+      setHbSec3H2Color(defaultHeroBannerData.sec3Headline2Color || "#a3a3a3");
       setHbSec3Body(defaultHeroBannerData.sec3Body);
+      setHbSec3BodyColor(defaultHeroBannerData.sec3BodyColor || "#d4d4d4");
       setHbSeqMode("default");
       setHbSeqTotal(121);
       setHbSeqFolder("/sequence");
@@ -2079,21 +2124,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
 
             {/* Live Visual Preview Mockup */}
-            <div className="p-6 rounded-2xl bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border border-white/15 text-center flex flex-col items-center justify-center min-h-[200px] shadow-2xl relative overflow-hidden">
+            <div className="hero-preview-mockup p-6 rounded-2xl bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border border-white/15 text-center flex flex-col items-center justify-center min-h-[200px] shadow-2xl relative overflow-hidden">
               <div className="absolute top-3 left-4 text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
                 {tx("Live Preview Hero", "Hero Live Preview")}
               </div>
-              <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-tight mb-1">
+              <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-1" style={{ color: hbNameColor }}>
                 {hbName || "Fomy R"}<span className="text-neutral-500 font-normal">.</span>
               </h1>
-              <p className="text-xs sm:text-sm font-mono tracking-widest text-[#16b09f] mt-1">
+              <p className="text-xs sm:text-sm font-mono tracking-widest mt-1" style={{ color: hbRoleColor }}>
                 {hbRole || "AI-Powered Creative Designer"}
               </p>
               <div className="flex flex-col items-center gap-1.5 mt-5">
                 <div className="w-4 h-6 rounded-full border border-neutral-500 flex justify-center pt-1">
                   <span className="w-1 h-1.5 rounded-full bg-neutral-400 animate-bounce" />
                 </div>
-                <span className="text-[9px] font-mono tracking-widest text-neutral-500 uppercase">
+                <span className="text-[9px] font-mono tracking-widest uppercase" style={{ color: hbScrollTextColor }}>
                   {hbScrollText || "SCROLL"}
                 </span>
               </div>
@@ -2475,44 +2520,92 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* 1. Main Name */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {tx("Nama Utama (Besar)", "Main Name (Large)")} *
-                  </label>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {tx("Nama Utama (Besar)", "Main Name (Large)")} *
+                    </label>
+                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                      <input
+                        type="color"
+                        value={hbNameColor}
+                        onChange={(e) => setHbNameColor(e.target.value)}
+                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                        title={tx("Color Wheel", "Color Wheel")}
+                      />
+                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                        {hbNameColor}
+                      </span>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={hbName}
                     onChange={(e) => setHbName(e.target.value)}
+                    style={{ color: hbNameColor }}
                     placeholder="Contoh: Fomy R"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
                   />
                   <p className="text-[10px] text-neutral-500 font-mono">Tampil dengan ukuran font paling besar di tengah.</p>
                 </div>
 
+                {/* 2. Role / Subtitle */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {tx("Profesi / Subtitle Role", "Role / Subtitle")} *
-                  </label>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {tx("Profesi / Subtitle Role", "Role / Subtitle")} *
+                    </label>
+                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                      <input
+                        type="color"
+                        value={hbRoleColor}
+                        onChange={(e) => setHbRoleColor(e.target.value)}
+                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                        title={tx("Color Wheel", "Color Wheel")}
+                      />
+                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                        {hbRoleColor}
+                      </span>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={hbRole}
                     onChange={(e) => setHbRole(e.target.value)}
+                    style={{ color: hbRoleColor }}
                     placeholder="Contoh: AI-Powered Creative Designer"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
                   />
                   <p className="text-[10px] text-neutral-500 font-mono">Teks di bawah nama utama dengan gaya font mono.</p>
                 </div>
 
+                {/* 3. Scroll Indicator Text */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {tx("Teks Indikator Scroll", "Scroll Indicator Text")}
-                  </label>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {tx("Teks Indikator Scroll", "Scroll Indicator Text")}
+                    </label>
+                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                      <input
+                        type="color"
+                        value={hbScrollTextColor}
+                        onChange={(e) => setHbScrollTextColor(e.target.value)}
+                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                        title={tx("Color Wheel", "Color Wheel")}
+                      />
+                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                        {hbScrollTextColor}
+                      </span>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={hbScrollText}
                     onChange={(e) => setHbScrollText(e.target.value)}
+                    style={{ color: hbScrollTextColor }}
                     placeholder="Contoh: SCROLL atau GULIR"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
                   />
                   <p className="text-[10px] text-neutral-500 font-mono">Teks di bawah ikon mouse berkedip.</p>
                 </div>
@@ -2530,43 +2623,91 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Sec 2 Headline Line 1 */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {tx("Judul Baris 1 (Putih)", "Headline Line 1 (White)")}
-                  </label>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {tx("Judul Baris 1", "Headline Line 1")}
+                    </label>
+                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                      <input
+                        type="color"
+                        value={hbSec2H1Color}
+                        onChange={(e) => setHbSec2H1Color(e.target.value)}
+                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                        title={tx("Color Wheel", "Color Wheel")}
+                      />
+                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                        {hbSec2H1Color}
+                      </span>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={hbSec2H1}
                     onChange={(e) => setHbSec2H1(e.target.value)}
+                    style={{ color: hbSec2H1Color }}
                     placeholder="Contoh: Results-driven"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
                   />
                 </div>
 
+                {/* Sec 2 Headline Line 2 */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {tx("Judul Baris 2 (Abu-abu / Aksen)", "Headline Line 2 (Accent)")}
-                  </label>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {tx("Judul Baris 2 (Aksen)", "Headline Line 2 (Accent)")}
+                    </label>
+                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                      <input
+                        type="color"
+                        value={hbSec2H2Color}
+                        onChange={(e) => setHbSec2H2Color(e.target.value)}
+                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                        title={tx("Color Wheel", "Color Wheel")}
+                      />
+                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                        {hbSec2H2Color}
+                      </span>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={hbSec2H2}
                     onChange={(e) => setHbSec2H2(e.target.value)}
+                    style={{ color: hbSec2H2Color }}
                     placeholder="Contoh: creative"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
                   />
                 </div>
               </div>
 
+              {/* Sec 2 Body */}
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-semibold text-neutral-300">
-                  {tx("Paragraf Deskripsi Sisi Kiri", "Left Description Paragraph")}
-                </label>
+                <div className="flex items-center justify-between gap-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {tx("Paragraf Deskripsi Sisi Kiri", "Left Description Paragraph")}
+                  </label>
+                  <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <input
+                      type="color"
+                      value={hbSec2BodyColor}
+                      onChange={(e) => setHbSec2BodyColor(e.target.value)}
+                      className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                      title={tx("Color Wheel", "Color Wheel")}
+                    />
+                    <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      {hbSec2BodyColor}
+                    </span>
+                  </div>
+                </div>
                 <textarea
                   rows={3}
                   value={hbSec2Body}
                   onChange={(e) => setHbSec2Body(e.target.value)}
+                  style={{ color: hbSec2BodyColor }}
                   placeholder="Deskripsi keahlian dan pengalaman..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed"
+                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed transition-colors"
                 />
               </div>
             </div>
@@ -2582,41 +2723,89 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Sec 3 Headline Line 1 */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {tx("Judul Baris 1 (Putih)", "Headline Line 1 (White)")}
-                  </label>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {tx("Judul Baris 1", "Headline Line 1")}
+                    </label>
+                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                      <input
+                        type="color"
+                        value={hbSec3H1Color}
+                        onChange={(e) => setHbSec3H1Color(e.target.value)}
+                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                        title={tx("Color Wheel", "Color Wheel")}
+                      />
+                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                        {hbSec3H1Color}
+                      </span>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={hbSec3H1}
                     onChange={(e) => setHbSec3H1(e.target.value)}
+                    style={{ color: hbSec3H1Color }}
                     placeholder="Contoh: Creative"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
                   />
                 </div>
 
+                {/* Sec 3 Headline Line 2 */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    {tx("Judul Baris 2 (Abu-abu / Aksen)", "Headline Line 2 (Accent)")}
-                  </label>
+                  <div className="flex items-center justify-between gap-1.5">
+                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                      {tx("Judul Baris 2 (Aksen)", "Headline Line 2 (Accent)")}
+                    </label>
+                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                      <input
+                        type="color"
+                        value={hbSec3H2Color}
+                        onChange={(e) => setHbSec3H2Color(e.target.value)}
+                        className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                        title={tx("Color Wheel", "Color Wheel")}
+                      />
+                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                        {hbSec3H2Color}
+                      </span>
+                    </div>
+                  </div>
                   <input
                     type="text"
                     value={hbSec3H2}
                     onChange={(e) => setHbSec3H2(e.target.value)}
+                    style={{ color: hbSec3H2Color }}
                     placeholder="Contoh: meets AI"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
                   />
                 </div>
               </div>
 
+              {/* Sec 3 Body */}
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-semibold text-neutral-300">
-                  {tx("Paragraf Deskripsi Sisi Kanan", "Right Description Paragraph")}
-                </label>
+                <div className="flex items-center justify-between gap-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    {tx("Paragraf Deskripsi Sisi Kanan", "Right Description Paragraph")}
+                  </label>
+                  <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <input
+                      type="color"
+                      value={hbSec3BodyColor}
+                      onChange={(e) => setHbSec3BodyColor(e.target.value)}
+                      className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
+                      title={tx("Color Wheel", "Color Wheel")}
+                    />
+                    <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      {hbSec3BodyColor}
+                    </span>
+                  </div>
+                </div>
                 <textarea
                   rows={3}
                   value={hbSec3Body}
                   onChange={(e) => setHbSec3Body(e.target.value)}
+                  style={{ color: hbSec3BodyColor }}
                   placeholder="Deskripsi AI workflow dan modern vision..."
                   className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed"
                 />

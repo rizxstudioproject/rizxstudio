@@ -139,10 +139,16 @@ export default function Overlay({ progress }: OverlayProps) {
         }}
         className="absolute inset-x-0 top-[48%] sm:top-[50%] -translate-y-1/2 flex flex-col items-center justify-center text-center px-4 transition-none"
       >
-        <h1 className="text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight text-white mb-2 leading-tight">
+        <h1
+          style={{ "--hero-text-color": heroBanner?.nameColor || "#ffffff" } as React.CSSProperties}
+          className="hero-custom-color text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight mb-2 leading-tight"
+        >
           {displayName}<span className="text-neutral-500 font-normal">.</span>
         </h1>
-        <p className="text-sm sm:text-base font-mono tracking-wider sm:tracking-widest text-neutral-300 mt-2 sm:mt-3">
+        <p
+          style={{ "--hero-text-color": heroBanner?.roleColor || "#16b09f" } as React.CSSProperties}
+          className="hero-custom-color text-sm sm:text-base font-mono tracking-wider sm:tracking-widest mt-2 sm:mt-3"
+        >
           {displayRole}
         </p>
 
@@ -151,7 +157,10 @@ export default function Overlay({ progress }: OverlayProps) {
           <div className="w-5 h-8 sm:w-5 sm:h-9 rounded-full border-2 border-neutral-400/60 flex justify-center pt-1.5">
             <span className="w-1 h-2 rounded-full bg-neutral-300 animate-bounce" />
           </div>
-          <span className="text-xs font-mono uppercase tracking-[0.25em] text-neutral-400">
+          <span
+            style={{ "--hero-text-color": heroBanner?.scrollTextColor || "#a3a3a3" } as React.CSSProperties}
+            className="hero-custom-color text-xs font-mono uppercase tracking-[0.25em]"
+          >
             {displayScroll}
           </span>
         </div>
@@ -168,11 +177,26 @@ export default function Overlay({ progress }: OverlayProps) {
         }}
         className="absolute inset-x-0 px-6 sm:px-0 sm:left-12 md:left-16 lg:left-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left flex flex-col justify-center transition-none"
       >
-        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-[1.15]">
-          {displaySec2H1}<br />
-          <span className="text-neutral-400 font-bold">{displaySec2H2}</span><span className="text-neutral-500 font-normal">.</span>
+        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-3 sm:mb-4 leading-[1.15]">
+          <span
+            style={{ "--hero-text-color": heroBanner?.sec2Headline1Color || "#ffffff" } as React.CSSProperties}
+            className="hero-custom-color"
+          >
+            {displaySec2H1}
+          </span>
+          <br />
+          <span
+            style={{ "--hero-text-color": heroBanner?.sec2Headline2Color || "#a3a3a3" } as React.CSSProperties}
+            className="hero-custom-color font-bold"
+          >
+            {displaySec2H2}
+          </span>
+          <span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg">
+        <p
+          style={{ "--hero-text-color": heroBanner?.sec2BodyColor || "#d4d4d4" } as React.CSSProperties}
+          className="hero-custom-color text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-xs sm:max-w-lg"
+        >
           {displaySec2Body}
         </p>
       </div>
@@ -188,11 +212,26 @@ export default function Overlay({ progress }: OverlayProps) {
         }}
         className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-right flex flex-col items-end justify-center transition-none ml-auto"
       >
-        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight text-white mb-3 sm:mb-4 leading-[1.15]">
-          {displaySec3H1}<br />
-          <span className="text-neutral-400 font-bold">{displaySec3H2}</span><span className="text-neutral-500 font-normal">.</span>
+        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-3 sm:mb-4 leading-[1.15]">
+          <span
+            style={{ "--hero-text-color": heroBanner?.sec3Headline1Color || "#ffffff" } as React.CSSProperties}
+            className="hero-custom-color"
+          >
+            {displaySec3H1}
+          </span>
+          <br />
+          <span
+            style={{ "--hero-text-color": heroBanner?.sec3Headline2Color || "#a3a3a3" } as React.CSSProperties}
+            className="hero-custom-color font-bold"
+          >
+            {displaySec3H2}
+          </span>
+          <span className="text-neutral-500 font-normal">.</span>
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-neutral-300 font-light leading-relaxed max-w-xs sm:max-w-lg text-right">
+        <p
+          style={{ "--hero-text-color": heroBanner?.sec3BodyColor || "#d4d4d4" } as React.CSSProperties}
+          className="hero-custom-color text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-xs sm:max-w-lg text-right"
+        >
           {displaySec3Body}
         </p>
       </div>

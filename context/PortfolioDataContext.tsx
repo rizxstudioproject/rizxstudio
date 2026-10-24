@@ -11,14 +11,23 @@ const SESSION_KEY = "rizx_admin_session";
 
 export interface HeroBannerData {
   name: string;
+  nameColor?: string;
   role: string;
+  roleColor?: string;
   scrollText: string;
+  scrollTextColor?: string;
   sec2Headline1: string;
+  sec2Headline1Color?: string;
   sec2Headline2: string;
+  sec2Headline2Color?: string;
   sec2Body: string;
+  sec2BodyColor?: string;
   sec3Headline1: string;
+  sec3Headline1Color?: string;
   sec3Headline2: string;
+  sec3Headline2Color?: string;
   sec3Body: string;
+  sec3BodyColor?: string;
   // Hero photo sequence controls
   sequenceMode?: "default" | "folder" | "custom";
   sequenceTotalFrames?: number;
@@ -33,16 +42,25 @@ export interface HeroBannerData {
 
 export const defaultHeroBannerData: HeroBannerData = {
   name: "Fomy R",
+  nameColor: "#ffffff",
   role: "AI-Powered Creative Designer",
+  roleColor: "#16b09f",
   scrollText: "SCROLL",
+  scrollTextColor: "#a3a3a3",
   sec2Headline1: "Results-driven",
+  sec2Headline1Color: "#ffffff",
   sec2Headline2: "creative",
+  sec2Headline2Color: "#a3a3a3",
   sec2Body:
     "Combining 11+ years of creative expertise with modern workflows to produce impactful visuals, distinctive brand identities, and high-performing digital campaigns.",
+  sec2BodyColor: "#d4d4d4",
   sec3Headline1: "Creative",
+  sec3Headline1Color: "#ffffff",
   sec3Headline2: "meets AI",
+  sec3Headline2Color: "#a3a3a3",
   sec3Body:
     "Where human creativity and modern creative workflows converge - crafting visuals, brands, and campaigns that move people and perform at scale.",
+  sec3BodyColor: "#d4d4d4",
   sequenceMode: "default",
   sequenceTotalFrames: 121,
   sequenceFolder: "/sequence",
