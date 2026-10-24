@@ -113,6 +113,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   >("hero-banner");
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [clientsWorkspaceView, setClientsWorkspaceView] = useState<"folders" | "logos">("folders");
+  const [storageSubTab, setStorageSubTab] = useState<"analytics" | "resources">("analytics");
+
+  // Redirect legacy / external resources links into storage workspace
+  useEffect(() => {
+    if (sidebarTab === "resources") {
+      setStorageSubTab("resources");
+      setSidebarTab("storage");
+    }
+  }, [sidebarTab]);
 
   // Legacy activeTab support
   const [activeTab, setActiveTab] = useState<
@@ -1931,37 +1940,71 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             />
           )}
 
-          {/* 2. Resource Library (Media Explorer & Storage Inspector) */}
-          {sidebarTab === "resources" && (
-            <ResourceLibrary
-              clients={clients}
-              clLogos={clLogos}
-              onSelectClientFolder={(id) => {
-                setSelectedClientId(id);
-                setSidebarTab("clients");
-              }}
-              onOpenUploadWork={() => setIsUploadModalOpen(true)}
-              onDeleteWork={handleDeleteWork}
-              showToast={showToast}
-              onViewWebsite={() => {
-                if (typeof window !== "undefined") {
-                  window.open("/", "_blank");
-                }
-              }}
-            />
-          )}
-
           {/* 3. Recycle Bin / Tong Sampah & System Restore */}
           {sidebarTab === "trash" && (
             <RecycleBinWorkspace showToast={showToast} />
           )}
 
-          {/* 4. Storage Capacity & Animated Data Graphics */}
-          {sidebarTab === "storage" && (
-            <StorageAnalyticsView
-              showToast={showToast}
-              onNavigateToTrash={() => setSidebarTab("trash")}
-            />
+          {/* 4. Storage Capacity, Animated Data Graphics & Resource Library */}
+          {(sidebarTab === "storage" || sidebarTab === "resources") && (
+            <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+              {/* Sub-view Switcher Header */}
+              <div className="px-4 sm:px-6 py-2.5 border-b border-white/5 bg-[#0a0c10] flex items-center justify-between gap-3 shrink-0">
+                <div className="flex items-center gap-1.5 p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs font-mono">
+                  <button
+                    type="button"
+                    onClick={() => setStorageSubTab("analytics")}
+                    className={`py-1.5 px-3 rounded-lg font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      storageSubTab === "analytics"
+                        ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    <HiChartPie className="w-3.5 h-3.5" />
+                    <span>{tx("Grafik & Alokasi Data", "Storage Analytics", "Grafik & Panyimpanan")}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setStorageSubTab("resources")}
+                    className={`py-1.5 px-3 rounded-lg font-semibold transition-all flex items-center gap-1.5 cursor-pointer ${
+                      storageSubTab === "resources"
+                        ? "bg-[#14AF9E] text-black shadow-md shadow-[#14AF9E]/30"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    <HiSquare3Stack3D className="w-3.5 h-3.5" />
+                    <span>{tx("Resource Library", "Resource Library", "Gudang Aset Media")}</span>
+                  </button>
+                </div>
+
+                <span className="text-[11px] font-mono text-neutral-500 hidden sm:inline">
+                  {storageSubTab === "analytics"
+                    ? tx("Visualisasi memori & donat interaktif", "Memory usage & interactive gauge", "Visualisasi memori & grafik donat")
+                    : tx("Eksplorasi visual karya & logo partner", "Visual explorer for works & logos", "Eksplorasi karya & logo")}
+                </span>
+              </div>
+
+              {/* View 1: Animated Storage Analytics */}
+              {storageSubTab === "analytics" ? (
+                <StorageAnalyticsView
+                  showToast={showToast}
+                  onNavigateToTrash={() => setSidebarTab("trash")}
+                />
+              ) : (
+                /* View 2: Resource Library */
+                <ResourceLibrary
+                  clients={clients}
+                  clLogos={clLogos}
+                  onSelectClientFolder={(id) => {
+                    setSelectedClientId(id);
+                    setSidebarTab("clients");
+                  }}
+                  onOpenUploadWork={() => setIsUploadModalOpen(true)}
+                  onDeleteWork={handleDeleteWork}
+                  showToast={showToast}
+                />
+              )}
+            </div>
           )}
 
           {/* 5. Motion Scroll & Mouse Follower Settings */}
@@ -5897,12 +5940,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     icon: HiFolder,
                   },
                   {
-                    id: "resources" as AdminSidebarTab,
-                    label: "Resource Library",
-                    sub: tx("Semua aset media & visual vault", "All media assets & visual vault", "Gudang kasadonyo media & aset"),
-                    icon: HiSquare3Stack3D,
-                  },
-                  {
                     id: "hero-banner" as AdminSidebarTab,
                     label: "Hero Banner",
                     sub: tx("Hero Banner & animasi scrolly", "Hero banner & scrolly motion", "Hero Banner & animasi scrolly"),
@@ -5941,7 +5978,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {
                     id: "storage" as AdminSidebarTab,
                     label: tx("Kapasitas & Data", "Storage & Analytics", "Panyimpanan & Data"),
-                    sub: tx("Grafik animasi data terpakai", "Animated data usage graphics", "Grafik visual panyimpanan data"),
+                    sub: tx("Grafik animasi & Resource Library", "Storage graphics & Resource Library", "Grafik visual & Resource Library"),
                     icon: HiChartPie,
                   },
                   {

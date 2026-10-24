@@ -77,12 +77,6 @@ export default function AdminSidebar({
       icon: HiFolder,
     },
     {
-      id: "resources",
-      label: tr("Resource Library", "Gudang Aset Media", "Gudang Aset Media"),
-      badge: totalWorks > 0 ? totalWorks : undefined,
-      icon: HiSquare3Stack3D,
-    },
-    {
       id: "hero-banner",
       label: tr("Hero Banner (Scrolly)", "Banner Utama (Scrolly)", "Banner Utamo (Scrolly)"),
       icon: HiSparkles,
@@ -136,6 +130,7 @@ export default function AdminSidebar({
     {
       id: "storage",
       label: tr("Storage & Analytics", "Kapasitas & Data", "Panyimpanan & Data"),
+      badge: totalWorks > 0 ? totalWorks : undefined,
       icon: HiChartPie,
     },
     {
