@@ -365,6 +365,100 @@ html.light .hero-preview-mockup span {
   color: inherit;
 }
 
+html[data-theme='light'] .hero-preview-mockup,
+html.light .hero-preview-mockup {
+  background: linear-gradient(to bottom, #f1f5f9, #ffffff, #f8fafc) !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* =========================================================================
+   LIGHT STUDIO THEME MODE FOR ADMIN PANEL (#admin-dashboard)
+   ========================================================================= */
+html[data-theme='light'] #admin-dashboard,
+html.light #admin-dashboard {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] #admin-dashboard .bg-\[\#0d0f13\],
+html.light #admin-dashboard .bg-\[\#0d0f13\],
+html[data-theme='light'] #admin-dashboard .bg-\[\#08090a\],
+html.light #admin-dashboard .bg-\[\#08090a\] {
+  background-color: #f8fafc !important;
+}
+
+html[data-theme='light'] #admin-dashboard .bg-\[\#0e0f14\],
+html.light #admin-dashboard .bg-\[\#0e0f14\] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+html[data-theme='light'] #admin-dashboard .bg-neutral-900\/50,
+html[data-theme='light'] #admin-dashboard .bg-neutral-900\/60,
+html[data-theme='light'] #admin-dashboard .bg-neutral-900\/40,
+html.light #admin-dashboard .bg-neutral-900\/50,
+html.light #admin-dashboard .bg-neutral-900\/60,
+html.light #admin-dashboard .bg-neutral-900\/40 {
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme='light'] #admin-dashboard .bg-neutral-950,
+html[data-theme='light'] #admin-dashboard .bg-neutral-950\/70,
+html[data-theme='light'] #admin-dashboard .bg-neutral-900,
+html.light #admin-dashboard .bg-neutral-950,
+html.light #admin-dashboard .bg-neutral-950\/70,
+html.light #admin-dashboard .bg-neutral-900 {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme='light'] #admin-dashboard input:not([type="color"]):not([type="range"]),
+html[data-theme='light'] #admin-dashboard textarea,
+html[data-theme='light'] #admin-dashboard select,
+html.light #admin-dashboard input:not([type="color"]):not([type="range"]),
+html.light #admin-dashboard textarea,
+html.light #admin-dashboard select {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] #admin-dashboard input::placeholder,
+html[data-theme='light'] #admin-dashboard textarea::placeholder,
+html.light #admin-dashboard input::placeholder,
+html.light #admin-dashboard textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+html[data-theme='light'] #admin-dashboard .border-white\/10,
+html[data-theme='light'] #admin-dashboard .border-white\/15,
+html[data-theme='light'] #admin-dashboard .border-white\/20,
+html[data-theme='light'] #admin-dashboard .border-white\/5,
+html.light #admin-dashboard .border-white\/10,
+html.light #admin-dashboard .border-white\/15,
+html.light #admin-dashboard .border-white\/20,
+html.light #admin-dashboard .border-white\/5 {
+  border-color: #e2e8f0 !important;
+}
+
+html[data-theme='light'] #admin-dashboard .text-neutral-300,
+html.light #admin-dashboard .text-neutral-300 {
+  color: #334155 !important;
+}
+
+html[data-theme='light'] #admin-dashboard .text-neutral-400,
+html.light #admin-dashboard .text-neutral-400 {
+  color: #475569 !important;
+}
+
+html[data-theme='light'] #admin-dashboard .text-neutral-500,
+html.light #admin-dashboard .text-neutral-500 {
+  color: #64748b !important;
+}
+
 /* Portfolio Runner Marquee Section in Light Mode */
 html[data-theme='light'] .portfolio-runner-section,
 html.light .portfolio-runner-section {

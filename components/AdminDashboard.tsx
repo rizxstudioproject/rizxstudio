@@ -1885,7 +1885,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   return (
-    <div id="admin-dashboard" className="admin-dashboard-root fixed inset-0 z-50 bg-[#08090a] text-neutral-200 flex h-screen w-screen overflow-hidden font-sans select-none">
+    <div id="admin-dashboard" className={`admin-dashboard-root fixed inset-0 z-50 flex h-screen w-screen overflow-hidden font-sans select-none ${
+      isLight ? "bg-slate-50 text-slate-800" : "bg-[#08090a] text-neutral-200"
+    }`}>
       <MetaSEO isAdmin={true} />
       {/* Desktop Far Left Sidebar (240px wide) */}
       <div className="hidden md:flex h-full shrink-0">
@@ -1906,7 +1908,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       </div>
 
       {/* Main Workspace Column */}
-      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-[#0d0f13]">
+      <div className={`flex-1 flex flex-col h-full min-w-0 overflow-hidden ${
+        isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
+      }`}>
         {/* Top Header Bar */}
         <AdminTopBar
           searchQuery={globalSearchQuery}
@@ -2072,28 +2076,36 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
           {/* 5. Motion Scroll & Mouse Follower Settings */}
           {sidebarTab === "motion" && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+            <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
+              isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
+            }`}>
               <MotionEffectsWorkspace />
             </div>
           )}
 
           {/* 6. Dynamic Theme & Color Picker */}
           {sidebarTab === "theme" && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+            <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
+              isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
+            }`}>
               <ThemeColorWorkspace />
             </div>
           )}
 
           {/* 7. Contact & Social Media Configuration */}
           {sidebarTab === "social" && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+            <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
+              isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
+            }`}>
               <SocialContactsWorkspace />
             </div>
           )}
 
           {/* 8. CRM Telemetry & Leads Analytics */}
           {sidebarTab === "crm" && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+            <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
+              isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
+            }`}>
               <CrmAnalyticsView />
             </div>
           )}
@@ -2107,7 +2119,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             sidebarTab !== "theme" &&
             sidebarTab !== "social" &&
             sidebarTab !== "crm" && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+            <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
+              isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
+            }`}>
               <div className="max-w-6xl mx-auto space-y-6">
                 {/* ========================================================
                     TAB 1: HERO BANNER SCROLLYTELLING MANAGEMENT
@@ -2139,19 +2153,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
 
             {/* Live Visual Preview Mockup */}
-            <div className="hero-preview-mockup p-6 rounded-2xl bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border border-white/15 text-center flex flex-col items-center justify-center min-h-[200px] shadow-2xl relative overflow-hidden">
-              <div className="absolute top-3 left-4 text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
+            <div className={`hero-preview-mockup p-6 rounded-2xl border text-center flex flex-col items-center justify-center min-h-[200px] shadow-2xl relative overflow-hidden ${
+              isLight
+                ? "bg-gradient-to-b from-slate-100 via-white to-slate-50 border-slate-200 shadow-slate-200/60"
+                : "bg-gradient-to-b from-neutral-950 via-neutral-900 to-black border-white/15 shadow-2xl"
+            }`}>
+              <div className={`absolute top-3 left-4 text-[10px] font-mono uppercase tracking-widest ${
+                isLight ? "text-slate-500" : "text-neutral-500"
+              }`}>
                 {tx("Live Preview Hero", "Hero Live Preview")}
               </div>
               <h1 className="text-3xl sm:text-5xl font-bold tracking-tight mb-1" style={{ color: hbNameColor }}>
-                {hbName || "Fomy R"}<span className="text-neutral-500 font-normal">.</span>
+                {hbName || "Fomy R"}<span className={isLight ? "text-slate-400 font-normal" : "text-neutral-500 font-normal"}>.</span>
               </h1>
               <p className="text-xs sm:text-sm font-mono tracking-widest mt-1" style={{ color: hbRoleColor }}>
                 {hbRole || "AI-Powered Creative Designer"}
               </p>
               <div className="flex flex-col items-center gap-1.5 mt-5">
-                <div className="w-4 h-6 rounded-full border border-neutral-500 flex justify-center pt-1">
-                  <span className="w-1 h-1.5 rounded-full bg-neutral-400 animate-bounce" />
+                <div className={`w-4 h-6 rounded-full border flex justify-center pt-1 ${
+                  isLight ? "border-slate-400" : "border-neutral-500"
+                }`}>
+                  <span className={`w-1 h-1.5 rounded-full animate-bounce ${
+                    isLight ? "bg-slate-500" : "bg-neutral-400"
+                  }`} />
                 </div>
                 <span className="text-[9px] font-mono tracking-widest uppercase" style={{ color: hbScrollTextColor }}>
                   {hbScrollText || "SCROLL"}
@@ -2162,17 +2186,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             {/* ========================================================
                 KONTROL SEQUENCE FOTO HERO (CANVAS SCROLLYTELLING)
                ======================================================== */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-6 ${
+              isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-[#0e0f14] border border-white/10"
+            }`}>
               {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+              <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-4 ${
+                isLight ? "border-slate-100" : "border-white/10"
+              }`}>
                 <div>
                   <div className="flex items-center gap-2">
                     <HiPhoto className="w-5 h-5 text-[#16b09f]" />
-                    <h3 className="text-base sm:text-lg font-bold text-white">
+                    <h3 className={`text-base sm:text-lg font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
                       {tx("Sequence Foto Hero Banner (3D Canvas Scrollytelling)", "Hero Banner Photo Sequence (3D Canvas Scrollytelling)")}
                     </h3>
                   </div>
-                  <p className="text-xs text-neutral-400 mt-1">
+                  <p className={`text-xs mt-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                     {tx("Kelola dan update rangkaian foto portrait / visual hero yang berputar mulus saat pengunjung menggulir layar.", "Manage and update the sequence of portrait / visual photos that smoothly rotate as visitors scroll.")}
                   </p>
                 </div>
@@ -2181,7 +2209,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <span
                     className={`px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-wider ${
                       hbSeqMode === "default"
-                        ? "bg-neutral-800 text-neutral-300 border border-white/10"
+                        ? isLight
+                          ? "bg-slate-100 text-slate-700 border border-slate-200"
+                          : "bg-neutral-800 text-neutral-300 border border-white/10"
                         : "bg-[#16b09f]/20 text-[#16b09f] border border-[#16b09f]/40"
                     }`}
                   >
@@ -2254,8 +2284,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
 
                   {/* Scrubber Range Slider Control */}
-                  <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-neutral-900/60 border border-white/10">
-                    <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400">
+                  <div className={`flex flex-col gap-1.5 p-3 rounded-xl border ${
+                    isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-900/60 border border-white/10"
+                  }`}>
+                    <div className={`flex items-center justify-between text-[10px] font-mono ${
+                      isLight ? "text-slate-600" : "text-neutral-400"
+                    }`}>
                       <span>0% (Awal)</span>
                       <span className="text-[#16b09f] font-semibold">
                         {tx("Geser slider untuk memutar preview sequence", "Scrub slider to rotate sequence preview")}
@@ -2271,7 +2305,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         setSeqScrubIdx(Number(e.target.value));
                         setSeqIsAutoPlaying(false);
                       }}
-                      className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-[#16b09f]"
+                      className={`w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#16b09f] ${
+                        isLight ? "bg-slate-200" : "bg-neutral-800"
+                      }`}
                     />
                   </div>
                 </div>
@@ -2279,14 +2315,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* Right: Upload & Setting Panel */}
                 <div className="lg:col-span-5 flex flex-col gap-3">
                   {/* Mode Tabs */}
-                  <div className="flex p-1 rounded-xl bg-neutral-950 border border-white/10">
+                  <div className={`flex p-1 rounded-xl border ${
+                    isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-950 border border-white/10"
+                  }`}>
                     <button
                       type="button"
                       onClick={() => setSeqActiveTab("upload")}
                       className={`flex-1 py-1.5 text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
                         seqActiveTab === "upload"
                           ? "bg-[#16b09f] text-black font-bold shadow-sm"
-                          : "text-neutral-400 hover:text-white"
+                          : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
                       }`}
                     >
                       {tx("1. Upload File Foto", "1. Batch File Upload")}
@@ -2297,7 +2335,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className={`flex-1 py-1.5 text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
                         seqActiveTab === "folder"
                           ? "bg-[#16b09f] text-black font-bold shadow-sm"
-                          : "text-neutral-400 hover:text-white"
+                          : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
                       }`}
                     >
                       {tx("2. Folder & Pattern", "2. Folder & Pattern")}
@@ -2306,12 +2344,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   {/* TAB 1: UPLOAD BATCH FOTO */}
                   {seqActiveTab === "upload" && (
-                    <div className="flex-1 flex flex-col justify-between p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
+                    <div className={`flex-1 flex flex-col justify-between p-4 rounded-xl border space-y-3 ${
+                      isLight ? "bg-slate-50/90 border-slate-200" : "bg-neutral-950/70 border border-white/10"
+                    }`}>
                       <div>
-                        <span className="text-xs font-semibold text-white block">
+                        <span className={`text-xs font-semibold block ${isLight ? "text-slate-900" : "text-white"}`}>
                           {tx("Pilih Rangkaian Foto Sequence Baru", "Select Sequence Photo Frames")}
                         </span>
-                        <p className="text-[11px] text-neutral-400 mt-1 leading-relaxed">
+                        <p className={`text-[11px] mt-1 leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                           {tx("Pilih banyak file foto sekaligus (format JPG, PNG, atau WebP). Sistem akan otomatis mengurutkan nama file secara natural (frame_000, frame_001, dst).", "Select multiple image files (JPG, PNG, or WebP). Files will be naturally sorted by name.")}
                         </p>
                       </div>
@@ -2327,23 +2367,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                       <div
                         onClick={() => seqFileInputRef.current?.click()}
-                        className="p-4 rounded-xl border border-dashed border-white/20 hover:border-[#16b09f]/60 bg-neutral-900/40 hover:bg-neutral-900/80 transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-2 group"
+                        className={`p-4 rounded-xl border border-dashed transition-all text-center cursor-pointer flex flex-col items-center justify-center gap-2 group ${
+                          isLight
+                            ? "border-slate-300 hover:border-[#16b09f] bg-white hover:bg-slate-50/80"
+                            : "border-white/20 hover:border-[#16b09f]/60 bg-neutral-900/40 hover:bg-neutral-900/80"
+                        }`}
                       >
                         <HiArrowUpTray className="w-6 h-6 text-[#16b09f] group-hover:scale-110 transition-transform" />
                         <div>
-                          <span className="text-xs font-semibold text-white">
+                          <span className={`text-xs font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
                             {seqSelectedFiles.length > 0
                               ? tx(`${seqSelectedFiles.length} file dipilih (klik untuk ganti)`, `${seqSelectedFiles.length} files selected (click to change)`)
                               : tx("Klik untuk memilih file foto sequence", "Click to select sequence photos")}
                           </span>
-                          <span className="text-[10px] text-neutral-500 font-mono block mt-0.5">
+                          <span className={`text-[10px] font-mono block mt-0.5 ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
                             {tx("Bisa pilih 10 s/d 121+ file foto", "Can select 10 to 121+ frames")}
                           </span>
                         </div>
                       </div>
 
                       {seqUploadMsg && (
-                        <div className="p-2.5 rounded-lg bg-neutral-900 border border-white/10 text-[11px] font-mono text-[#16b09f]">
+                        <div className={`p-2.5 rounded-lg border text-[11px] font-mono ${
+                          isLight ? "bg-slate-100 border-slate-200 text-teal-700" : "bg-neutral-900 border-white/10 text-[#16b09f]"
+                        }`}>
                           {seqUploadMsg}
                         </div>
                       )}
@@ -2371,19 +2417,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   {/* TAB 2: FOLDER & PATTERN CONFIGURATION */}
                   {seqActiveTab === "folder" && (
-                    <div className="flex-1 flex flex-col justify-between p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
+                    <div className={`flex-1 flex flex-col justify-between p-4 rounded-xl border space-y-3 ${
+                      isLight ? "bg-slate-50/90 border-slate-200" : "bg-neutral-950/70 border border-white/10"
+                    }`}>
                       <div>
-                        <span className="text-xs font-semibold text-white block">
+                        <span className={`text-xs font-semibold block ${isLight ? "text-slate-900" : "text-white"}`}>
                           {tx("Konfigurasi Path Folder / URL", "Folder Path / URL Configuration")}
                         </span>
-                        <p className="text-[11px] text-neutral-400 mt-0.5">
+                        <p className={`text-[11px] mt-0.5 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                           {tx("Arahkan ke folder static atau CDN hosting rangkaian frame foto.", "Point to a static folder or CDN hosting image sequence frames.")}
                         </p>
                       </div>
 
                       <div className="space-y-2 text-xs">
                         <div>
-                          <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                          <label className={`text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                             Folder / Base URL
                           </label>
                           <input
@@ -2391,13 +2439,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             value={hbSeqFolder}
                             onChange={(e) => setHbSeqFolder(e.target.value)}
                             placeholder="/sequence"
-                            className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
+                            className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                              isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                            }`}
                           />
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                            <label className={`text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                               File Pattern
                             </label>
                             <input
@@ -2405,12 +2455,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               value={hbSeqPattern}
                               onChange={(e) => setHbSeqPattern(e.target.value)}
                               placeholder="frame_{padded}.webp"
-                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
+                              className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                                isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                              }`}
                             />
                           </div>
 
                           <div>
-                            <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                            <label className={`text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                               Total Frame
                             </label>
                             <input
@@ -2419,14 +2471,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               max={300}
                               value={hbSeqTotal}
                               onChange={(e) => setHbSeqTotal(Number(e.target.value))}
-                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
+                              className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                                isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                              }`}
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                            <label className={`text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                               Zero Padding
                             </label>
                             <input
@@ -2436,12 +2490,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               value={hbSeqPadding}
                               onChange={(e) => setHbSeqPadding(Number(e.target.value))}
                               placeholder="6"
-                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
+                              className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                                isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                              }`}
                             />
                           </div>
 
                           <div>
-                            <label className="text-[11px] font-mono text-neutral-400 block mb-1">
+                            <label className={`text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                               Start Index
                             </label>
                             <input
@@ -2451,7 +2507,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               value={hbSeqStart}
                               onChange={(e) => setHbSeqStart(Number(e.target.value))}
                               placeholder="0"
-                              className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white font-mono text-xs focus:border-[#16b09f] focus:outline-none"
+                              className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                                isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                              }`}
                             />
                           </div>
                         </div>
@@ -2460,7 +2518,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <button
                         type="button"
                         onClick={handleApplyFolderConfig}
-                        className="w-full py-2.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-xs sm:text-sm border border-white/15 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+                        className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm border transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${
+                          isLight
+                            ? "bg-slate-800 hover:bg-slate-700 text-white border-slate-700"
+                            : "bg-neutral-800 hover:bg-neutral-700 text-white border-white/15"
+                        }`}
                       >
                         <HiCheck className="w-4 h-4 text-[#16b09f]" />
                         <span>{tx("Terapkan Folder & Muat Sequence", "Apply Folder & Load Sequence")}</span>
@@ -2471,21 +2533,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
 
               {/* MOUSE TRACKING TOGGLE & INTENSITY CONTROL */}
-              <div className="p-4 rounded-xl bg-neutral-900/50 border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                isLight ? "bg-slate-50 border-slate-200/90" : "bg-neutral-900/50 border border-white/10"
+              }`}>
                 <div className="flex items-start gap-3">
                   <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f] shrink-0 mt-0.5">
                     <HiSparkles className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-xs sm:text-sm font-bold text-white">
+                      <span className={`text-xs sm:text-sm font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
                         {tx("Gerakan Mengikuti Kursor Mouse (Interactive Mouse Tracking)", "Interactive Mouse Tracking")}
                       </span>
                       <span className="px-2 py-0.5 rounded-full text-[9px] font-mono bg-[#16b09f]/20 text-[#16b09f] font-semibold">
                         {hbSeqMouseTracking ? (tx("AKTIF", "ENABLED")) : (tx("NONAKTIF", "DISABLED"))}
                       </span>
                     </div>
-                    <p className="text-[11px] text-neutral-400 mt-0.5">
+                    <p className={`text-[11px] mt-0.5 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                       {tx("Foto portrait di hero akan secara dinamis menoleh dan bergerak mengikuti arah gerakan kursor mouse dengan efek parallax 3D halus.", "Portrait photo smoothly turns and looks towards cursor movements with subtle 3D stereoscopic parallax.")}
                     </p>
                   </div>
@@ -2494,13 +2558,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="flex items-center gap-3 self-end sm:self-center shrink-0 flex-wrap">
                   {hbSeqMouseTracking && (
                     <div className="flex items-center gap-1.5 text-xs font-mono">
-                      <span className="text-neutral-400 text-[11px]">
+                      <span className={`text-[11px] ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                         {tx("Sensitivitas:", "Sensitivity:")}
                       </span>
                       <select
                         value={hbSeqMouseIntensity}
                         onChange={(e) => setHbSeqMouseIntensity(Number(e.target.value))}
-                        className="px-2.5 py-1.5 rounded-lg bg-neutral-800 border border-white/15 text-white text-xs font-mono focus:border-[#16b09f] focus:outline-none cursor-pointer"
+                        className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono focus:border-[#16b09f] focus:outline-none cursor-pointer ${
+                          isLight
+                            ? "bg-white border-slate-200 text-slate-900"
+                            : "bg-neutral-800 border-white/15 text-white"
+                        }`}
                       >
                         <option value={14}>{tx("Halus (14 Frame)", "Subtle (14 Frames)")}</option>
                         <option value={26}>{tx("Sedang / Natural (26 Frame)", "Medium / Natural (26 Frames)")}</option>
@@ -2515,6 +2583,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className={`px-3.5 py-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer ${
                       hbSeqMouseTracking
                         ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
+                        : isLight
+                        ? "bg-slate-200 hover:bg-slate-300 text-slate-800 border border-slate-300"
                         : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-white/10"
                     }`}
                   >
@@ -2525,23 +2595,35 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
 
             {/* Bagian 1: Identitas Hero Utama */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
+              isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-[#0e0f14] border border-white/10"
+            }`}>
+              <div className={`flex items-center justify-between border-b pb-3 ${
+                isLight ? "border-slate-100" : "border-white/10"
+              }`}>
+                <h3 className={`text-sm font-bold flex items-center gap-2 ${
+                  isLight ? "text-slate-900" : "text-white"
+                }`}>
                   <HiSparkles className="w-4 h-4 text-[#16b09f]" />
                   <span>{tx("Bagian 1: Identitas Hero Utama (Layar Pertama)", "Part 1: Primary Hero Identity (First Screen)")}</span>
                 </h3>
-                <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 0% - 25%</span>
+                <span className={`text-[10px] font-mono uppercase ${
+                  isLight ? "text-slate-500" : "text-neutral-500"
+                }`}>Scroll 0% - 25%</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {/* 1. Main Name */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-1.5">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                    <label className={`text-xs font-mono font-semibold ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {tx("Nama Utama (Besar)", "Main Name (Large)")} *
                     </label>
-                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                      isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                    }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                       <input
                         type="color"
                         value={hbNameColor}
@@ -2549,7 +2631,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                         title={tx("Color Wheel", "Color Wheel")}
                       />
-                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                        isLight ? "text-slate-700" : "text-neutral-300"
+                      }`}>
                         {hbNameColor}
                       </span>
                     </div>
@@ -2560,18 +2644,26 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setHbName(e.target.value)}
                     style={{ color: hbNameColor }}
                     placeholder="Contoh: Fomy R"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
+                      isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                    }`}
                   />
-                  <p className="text-[10px] text-neutral-500 font-mono">Tampil dengan ukuran font paling besar di tengah.</p>
+                  <p className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                    Tampil dengan ukuran font paling besar di tengah.
+                  </p>
                 </div>
 
                 {/* 2. Role / Subtitle */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-1.5">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                    <label className={`text-xs font-mono font-semibold ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {tx("Profesi / Subtitle Role", "Role / Subtitle")} *
                     </label>
-                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                      isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                    }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                       <input
                         type="color"
                         value={hbRoleColor}
@@ -2579,7 +2671,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                         title={tx("Color Wheel", "Color Wheel")}
                       />
-                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                        isLight ? "text-slate-700" : "text-neutral-300"
+                      }`}>
                         {hbRoleColor}
                       </span>
                     </div>
@@ -2590,18 +2684,26 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setHbRole(e.target.value)}
                     style={{ color: hbRoleColor }}
                     placeholder="Contoh: AI-Powered Creative Designer"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
+                      isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                    }`}
                   />
-                  <p className="text-[10px] text-neutral-500 font-mono">Teks di bawah nama utama dengan gaya font mono.</p>
+                  <p className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                    Teks di bawah nama utama dengan gaya font mono.
+                  </p>
                 </div>
 
                 {/* 3. Scroll Indicator Text */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-1.5">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                    <label className={`text-xs font-mono font-semibold ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {tx("Teks Indikator Scroll", "Scroll Indicator Text")}
                     </label>
-                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                      isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                    }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                       <input
                         type="color"
                         value={hbScrollTextColor}
@@ -2609,7 +2711,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                         title={tx("Color Wheel", "Color Wheel")}
                       />
-                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                        isLight ? "text-slate-700" : "text-neutral-300"
+                      }`}>
                         {hbScrollTextColor}
                       </span>
                     </div>
@@ -2620,31 +2724,47 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setHbScrollText(e.target.value)}
                     style={{ color: hbScrollTextColor }}
                     placeholder="Contoh: SCROLL atau GULIR"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
+                      isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                    }`}
                   />
-                  <p className="text-[10px] text-neutral-500 font-mono">Teks di bawah ikon mouse berkedip.</p>
+                  <p className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                    Teks di bawah ikon mouse berkedip.
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Bagian 2: Teks Narasi Scroll Kiri (Fase 30% - 60%) */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
+              isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-[#0e0f14] border border-white/10"
+            }`}>
+              <div className={`flex items-center justify-between border-b pb-3 ${
+                isLight ? "border-slate-100" : "border-white/10"
+              }`}>
+                <h3 className={`text-sm font-bold flex items-center gap-2 ${
+                  isLight ? "text-slate-900" : "text-white"
+                }`}>
                   <HiTag className="w-4 h-4 text-cyan-400" />
                   <span>{tx("Bagian 2: Narasi Sisi Kiri (Fase Scroll 30% - 60%)", "Part 2: Left-Aligned Narrative (Scroll 30% - 60%)")}</span>
                 </h3>
-                <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 30% - 60%</span>
+                <span className={`text-[10px] font-mono uppercase ${
+                  isLight ? "text-slate-500" : "text-neutral-500"
+                }`}>Scroll 30% - 60%</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Sec 2 Headline Line 1 */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-1.5">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                    <label className={`text-xs font-mono font-semibold ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {tx("Judul Baris 1", "Headline Line 1")}
                     </label>
-                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                      isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                    }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                       <input
                         type="color"
                         value={hbSec2H1Color}
@@ -2652,7 +2772,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                         title={tx("Color Wheel", "Color Wheel")}
                       />
-                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                        isLight ? "text-slate-700" : "text-neutral-300"
+                      }`}>
                         {hbSec2H1Color}
                       </span>
                     </div>
@@ -2663,17 +2785,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setHbSec2H1(e.target.value)}
                     style={{ color: hbSec2H1Color }}
                     placeholder="Contoh: Results-driven"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
+                      isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                    }`}
                   />
                 </div>
 
                 {/* Sec 2 Headline Line 2 */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-1.5">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                    <label className={`text-xs font-mono font-semibold ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {tx("Judul Baris 2 (Aksen)", "Headline Line 2 (Accent)")}
                     </label>
-                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                      isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                    }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                       <input
                         type="color"
                         value={hbSec2H2Color}
@@ -2681,7 +2809,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                         title={tx("Color Wheel", "Color Wheel")}
                       />
-                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                        isLight ? "text-slate-700" : "text-neutral-300"
+                      }`}>
                         {hbSec2H2Color}
                       </span>
                     </div>
@@ -2692,7 +2822,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setHbSec2H2(e.target.value)}
                     style={{ color: hbSec2H2Color }}
                     placeholder="Contoh: creative"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
+                      isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                    }`}
                   />
                 </div>
               </div>
@@ -2700,10 +2832,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {/* Sec 2 Body */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                  <label className={`text-xs font-mono font-semibold ${
+                    isLight ? "text-slate-700" : "text-neutral-300"
+                  }`}>
                     {tx("Paragraf Deskripsi Sisi Kiri", "Left Description Paragraph")}
                   </label>
-                  <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                  <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                    isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                  }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                     <input
                       type="color"
                       value={hbSec2BodyColor}
@@ -2711,7 +2847,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                       title={tx("Color Wheel", "Color Wheel")}
                     />
-                    <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                    <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {hbSec2BodyColor}
                     </span>
                   </div>
@@ -2722,29 +2860,43 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onChange={(e) => setHbSec2Body(e.target.value)}
                   style={{ color: hbSec2BodyColor }}
                   placeholder="Deskripsi keahlian dan pengalaman..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed transition-colors"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed transition-colors ${
+                    isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                  }`}
                 />
               </div>
             </div>
 
             {/* Bagian 3: Teks Narasi Scroll Kanan (Fase 65% - 95%) */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
+              isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-[#0e0f14] border border-white/10"
+            }`}>
+              <div className={`flex items-center justify-between border-b pb-3 ${
+                isLight ? "border-slate-100" : "border-white/10"
+              }`}>
+                <h3 className={`text-sm font-bold flex items-center gap-2 ${
+                  isLight ? "text-slate-900" : "text-white"
+                }`}>
                   <HiTag className="w-4 h-4 text-purple-400" />
                   <span>{tx("Bagian 3: Narasi Sisi Kanan (Fase Scroll 65% - 95%)", "Part 3: Right-Aligned Narrative (Scroll 65% - 95%)")}</span>
                 </h3>
-                <span className="text-[10px] font-mono text-neutral-500 uppercase">Scroll 65% - 95%</span>
+                <span className={`text-[10px] font-mono uppercase ${
+                  isLight ? "text-slate-500" : "text-neutral-500"
+                }`}>Scroll 65% - 95%</span>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Sec 3 Headline Line 1 */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-1.5">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                    <label className={`text-xs font-mono font-semibold ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {tx("Judul Baris 1", "Headline Line 1")}
                     </label>
-                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                      isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                    }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                       <input
                         type="color"
                         value={hbSec3H1Color}
@@ -2752,7 +2904,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                         title={tx("Color Wheel", "Color Wheel")}
                       />
-                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                        isLight ? "text-slate-700" : "text-neutral-300"
+                      }`}>
                         {hbSec3H1Color}
                       </span>
                     </div>
@@ -2763,17 +2917,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setHbSec3H1(e.target.value)}
                     style={{ color: hbSec3H1Color }}
                     placeholder="Contoh: Creative"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
+                      isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                    }`}
                   />
                 </div>
 
                 {/* Sec 3 Headline Line 2 */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between gap-1.5">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
+                    <label className={`text-xs font-mono font-semibold ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {tx("Judul Baris 2 (Aksen)", "Headline Line 2 (Accent)")}
                     </label>
-                    <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                      isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                    }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                       <input
                         type="color"
                         value={hbSec3H2Color}
@@ -2781,7 +2941,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                         title={tx("Color Wheel", "Color Wheel")}
                       />
-                      <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                      <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                        isLight ? "text-slate-700" : "text-neutral-300"
+                      }`}>
                         {hbSec3H2Color}
                       </span>
                     </div>
@@ -2792,7 +2954,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setHbSec3H2(e.target.value)}
                     style={{ color: hbSec3H2Color }}
                     placeholder="Contoh: meets AI"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-sm focus:outline-none focus:border-[#16b09f] transition-colors"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
+                      isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                    }`}
                   />
                 </div>
               </div>
@@ -2800,10 +2964,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               {/* Sec 3 Body */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between gap-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                  <label className={`text-xs font-mono font-semibold ${
+                    isLight ? "text-slate-700" : "text-neutral-300"
+                  }`}>
                     {tx("Paragraf Deskripsi Sisi Kanan", "Right Description Paragraph")}
                   </label>
-                  <div className="flex items-center gap-1.5 bg-neutral-900/90 px-2 py-0.5 rounded-lg border border-white/10 shadow-sm" title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
+                  <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg border shadow-sm ${
+                    isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/90 border-white/10"
+                  }`} title={tx("Pilih warna dengan Color Wheel", "Choose color with Color Wheel")}>
                     <input
                       type="color"
                       value={hbSec3BodyColor}
@@ -2811,7 +2979,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="w-4 h-4 rounded-full border border-white/20 p-0 cursor-pointer overflow-hidden appearance-none bg-transparent"
                       title={tx("Color Wheel", "Color Wheel")}
                     />
-                    <span className="text-[10px] font-mono uppercase text-neutral-300 font-semibold select-all">
+                    <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
+                      isLight ? "text-slate-700" : "text-neutral-300"
+                    }`}>
                       {hbSec3BodyColor}
                     </span>
                   </div>
@@ -2822,7 +2992,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   onChange={(e) => setHbSec3Body(e.target.value)}
                   style={{ color: hbSec3BodyColor }}
                   placeholder="Deskripsi AI workflow dan modern vision..."
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed"
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed transition-colors ${
+                    isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
+                  }`}
                 />
               </div>
             </div>
