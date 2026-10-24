@@ -134,6 +134,50 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
   // Mobile Navigation Drawer State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [viewportBottomOffset, setViewportBottomOffset] = useState(0);
+
+  // Auto-scroll focused inputs above mobile on-screen keyboard & adapt viewport
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const handleFocusIn = (e: FocusEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      const tag = target.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select") {
+        setTimeout(() => {
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 300);
+      }
+    };
+
+    const handleViewportChange = () => {
+      if (window.visualViewport) {
+        const offset = Math.max(0, window.innerHeight - window.visualViewport.height);
+        setViewportBottomOffset(offset);
+        const active = document.activeElement as HTMLElement | null;
+        if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA" || active.tagName === "SELECT")) {
+          setTimeout(() => {
+            active.scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 100);
+        }
+      }
+    };
+
+    window.addEventListener("focusin", handleFocusIn);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", handleViewportChange);
+      window.visualViewport.addEventListener("scroll", handleViewportChange);
+    }
+
+    return () => {
+      window.removeEventListener("focusin", handleFocusIn);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener("resize", handleViewportChange);
+        window.visualViewport.removeEventListener("scroll", handleViewportChange);
+      }
+    };
+  }, []);
 
   // Admin Account & Password Management State
   const { lang, setLang } = useLang();
@@ -1889,9 +1933,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   return (
-    <div id="admin-dashboard" className={`admin-dashboard-root fixed inset-0 z-50 flex h-screen w-screen overflow-hidden font-sans select-none ${
-      isLight ? "bg-slate-50 text-slate-800" : "bg-[#08090a] text-neutral-200"
-    }`}>
+    <div
+      id="admin-dashboard"
+      style={viewportBottomOffset > 0 ? { bottom: `${viewportBottomOffset}px` } : undefined}
+      className={`admin-dashboard-root fixed inset-0 z-50 flex h-screen w-screen overflow-hidden font-sans select-none ${
+        isLight ? "bg-slate-50 text-slate-800" : "bg-[#08090a] text-neutral-200"
+      }`}
+    >
       <MetaSEO isAdmin={true} />
       {/* Desktop Far Left Sidebar (240px wide) */}
       <div className="hidden md:flex h-full shrink-0">
