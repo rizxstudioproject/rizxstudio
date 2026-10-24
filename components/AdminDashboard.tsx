@@ -3879,7 +3879,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     className="px-5 py-2.5 rounded-xl bg-[#14AF9E] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#14AF9E]/25 transition-all flex items-center gap-2 cursor-pointer active:scale-95"
                   >
                     <HiPlus className="w-4 h-4" />
-                    <span>{tx("Tambah ke Running Portofolio", "Add to Running Portfolio")}</span>
+                    <span>Running</span>
                   </button>
                 </div>
 
