@@ -2654,7 +2654,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hbName}
                     onChange={(e) => setHbName(e.target.value)}
-                    style={{ color: hbNameColor }}
+                    style={{ color: isLight ? "#0f172a" : hbNameColor }}
                     placeholder="Contoh: Fomy R"
                     className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
                       isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
@@ -2702,7 +2702,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hbRole}
                     onChange={(e) => setHbRole(e.target.value)}
-                    style={{ color: hbRoleColor }}
+                    style={{ color: isLight ? "#0f172a" : hbRoleColor }}
                     placeholder="Contoh: AI-Powered Creative Designer"
                     className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
                       isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
@@ -2750,7 +2750,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hbScrollText}
                     onChange={(e) => setHbScrollText(e.target.value)}
-                    style={{ color: hbScrollTextColor }}
+                    style={{ color: isLight ? "#0f172a" : hbScrollTextColor }}
                     placeholder="Contoh: SCROLL atau GULIR"
                     className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
                       isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
@@ -2819,7 +2819,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hbSec2H1}
                     onChange={(e) => setHbSec2H1(e.target.value)}
-                    style={{ color: hbSec2H1Color }}
+                    style={{ color: isLight ? "#0f172a" : hbSec2H1Color }}
                     placeholder="Contoh: Results-driven"
                     className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
                       isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
@@ -2864,7 +2864,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hbSec2H2}
                     onChange={(e) => setHbSec2H2(e.target.value)}
-                    style={{ color: hbSec2H2Color }}
+                    style={{ color: isLight ? "#0f172a" : hbSec2H2Color }}
                     placeholder="Contoh: creative"
                     className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
                       isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
@@ -2910,7 +2910,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   rows={3}
                   value={hbSec2Body}
                   onChange={(e) => setHbSec2Body(e.target.value)}
-                  style={{ color: hbSec2BodyColor }}
+                  style={{ color: isLight ? "#0f172a" : hbSec2BodyColor }}
                   placeholder="Deskripsi keahlian dan pengalaman..."
                   className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed transition-colors ${
                     isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
@@ -2975,7 +2975,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hbSec3H1}
                     onChange={(e) => setHbSec3H1(e.target.value)}
-                    style={{ color: hbSec3H1Color }}
+                    style={{ color: isLight ? "#0f172a" : hbSec3H1Color }}
                     placeholder="Contoh: Creative"
                     className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
                       isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
@@ -3020,7 +3020,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hbSec3H2}
                     onChange={(e) => setHbSec3H2(e.target.value)}
-                    style={{ color: hbSec3H2Color }}
+                    style={{ color: isLight ? "#0f172a" : hbSec3H2Color }}
                     placeholder="Contoh: meets AI"
                     className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] transition-colors ${
                       isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
@@ -3066,7 +3066,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   rows={3}
                   value={hbSec3Body}
                   onChange={(e) => setHbSec3Body(e.target.value)}
-                  style={{ color: hbSec3BodyColor }}
+                  style={{ color: isLight ? "#0f172a" : hbSec3BodyColor }}
                   placeholder="Deskripsi AI workflow dan modern vision..."
                   className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none focus:border-[#16b09f] leading-relaxed transition-colors ${
                     isLight ? "bg-white border-slate-200 placeholder:text-slate-400" : "bg-neutral-950 border-white/15 placeholder:text-neutral-500"
