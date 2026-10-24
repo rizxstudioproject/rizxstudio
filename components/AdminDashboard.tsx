@@ -1884,7 +1884,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#08090a] text-neutral-200 flex h-screen w-screen overflow-hidden font-sans select-none">
+    <div id="admin-dashboard" className="admin-dashboard-root fixed inset-0 z-50 bg-[#08090a] text-neutral-200 flex h-screen w-screen overflow-hidden font-sans select-none">
       <MetaSEO isAdmin={true} />
       {/* Desktop Far Left Sidebar (240px wide) */}
       <div className="hidden md:flex h-full shrink-0">
