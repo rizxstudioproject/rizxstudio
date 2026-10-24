@@ -4,9 +4,16 @@ import React from "react";
 import SpotlightCard from "./SpotlightCard";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export default function Contact() {
   const { t, lang, setLang } = useLang();
+  const { socialContacts, primaryColor } = useMotionTheme();
+
+  const cleanWaNumber = (socialContacts.whatsappNumber || "6282381769146").replace(/[^0-9]/g, "");
+  const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
+    socialContacts.whatsappMessage || "Halo Fomy R / Rizx Studio, saya ingin berkonsultasi mengenai proyek."
+  )}`;
 
   return (
     <footer id="contact" className="relative pt-20 pb-16 px-4 sm:px-12 lg:px-24 max-w-7xl mx-auto">
@@ -28,28 +35,28 @@ export default function Contact() {
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 w-full lg:w-auto">
             <a
-              href="https://wa.me/6282381769146"
+              href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.2)] text-center"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 sm:py-4 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all duration-300 shadow-[0_0_25px_rgba(255,255,255,0.2)] text-center magnetic-hover"
             >
               <FaWhatsapp className="w-4 h-4" />
               <span>WHATSAPP</span>
             </a>
             <a
-              href="https://www.instagram.com/rizxstudio/"
+              href={socialContacts.instagramUrl || "https://www.instagram.com/rizxstudio/"}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center magnetic-hover"
             >
               <FaInstagram className="w-4 h-4" />
               <span>INSTAGRAM</span>
             </a>
             <a
-              href="https://www.linkedin.com/in/rizxstudio/"
+              href={socialContacts.linkedinUrl || "https://www.linkedin.com/in/rizxstudio/"}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center"
+              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center magnetic-hover"
             >
               <FaLinkedinIn className="w-4 h-4" />
               <span>LINKEDIN</span>

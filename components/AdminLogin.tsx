@@ -20,6 +20,7 @@ import {
   DEFAULT_ADMIN_CREDENTIALS,
   AdminCredentials,
 } from "@/lib/adminAuth";
+import MetaSEO from "./MetaSEO";
 
 interface AdminLoginProps {
   onSuccess: () => void;
@@ -175,6 +176,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#080809] font-sans overflow-hidden relative">
+      <MetaSEO isAdmin={true} />
       {/* Full-screen subtle grain texture overlay */}
       <div
         className="absolute inset-0 opacity-[0.025] pointer-events-none"

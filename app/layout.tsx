@@ -3,6 +3,10 @@ import "./globals.css";
 import ContentGuard from "@/components/ContentGuard";
 import { LanguageProvider } from "@/context/LanguageContext";
 import { PortfolioDataProvider } from "@/context/PortfolioDataContext";
+import { MotionThemeProvider } from "@/context/MotionThemeContext";
+import CanvasMouseFollower from "@/components/effects/CanvasMouseFollower";
+import MotionScrollController from "@/components/effects/MotionScrollController";
+import MetaSEO from "@/components/MetaSEO";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://rizxstudio.com"),
@@ -63,15 +67,20 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-[#0a0a0a] text-neutral-300 selection:bg-white/20 selection:text-white antialiased min-h-screen relative">
+      <body className="bg-[#0a0a0a] text-neutral-300 selection:bg-white/20 selection:text-white antialiased min-h-screen relative transition-colors duration-300">
         {/* Subtle cinematic ambient glow / film grain */}
         <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-40" />
         {/* Multi-layer content protection: anti-rightclick, anti-drag, anti-snip */}
         <ContentGuard />
+        <MetaSEO isAdmin={false} />
         <LanguageProvider>
-          <PortfolioDataProvider>
-            {children}
-          </PortfolioDataProvider>
+          <MotionThemeProvider>
+            <PortfolioDataProvider>
+              <CanvasMouseFollower />
+              <MotionScrollController />
+              {children}
+            </PortfolioDataProvider>
+          </MotionThemeProvider>
         </LanguageProvider>
       </body>
     </html>

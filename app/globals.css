@@ -5,8 +5,41 @@
 @tailwind utilities;
 
 :root {
+  --primary-color: #14AF9E;
+  --primary-rgb: 20, 175, 158;
+  --accent-color: #06B6D4;
   --background: #0a0a0a;
   --foreground: #d4d4d4;
+  --surface: #121214;
+  --border-subtle: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme='light'],
+body.light {
+  --background: #f8fafc;
+  --foreground: #1e293b;
+  --surface: #ffffff;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+html[data-theme='light'] body {
+  background-color: #f8fafc;
+  color: #1e293b;
+}
+
+/* Scroll reveal animations */
+.reveal-hidden {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.revealed {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
 html {

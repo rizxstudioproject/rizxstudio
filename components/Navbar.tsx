@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
-import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
+import { HiBars3, HiXMark, HiArrowUp, HiSun, HiMoon } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState<string>("");
@@ -14,6 +15,12 @@ export default function Navbar() {
   const [isHovered, setIsHovered] = useState(false);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { lang, setLang, t } = useLang();
+  const { themeMode, toggleThemeMode, socialContacts, primaryColor } = useMotionTheme();
+
+  const cleanWaNumber = (socialContacts.whatsappNumber || "6282381769146").replace(/[^0-9]/g, "");
+  const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
+    socialContacts.whatsappMessage || "Halo Fomy R / Rizx Studio, saya tertarik untuk berdiskusi proyek."
+  )}`;
 
   const resetHideTimer = useCallback(() => {
     setIsVisible(true);
@@ -185,18 +192,36 @@ export default function Navbar() {
               {t("nav.work")}
             </button>
             <a
-              href="https://wa.me/6282381769146"
+              href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 transition-colors duration-200 text-neutral-400 hover:text-[#14AF9E]"
+              className="flex items-center gap-1.5 transition-colors duration-200 text-neutral-400 hover:text-white"
             >
               <span>{t("nav.contact")}</span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#14AF9E] animate-pulse" />
+              <span
+                className="w-1.5 h-1.5 rounded-full animate-pulse"
+                style={{ backgroundColor: primaryColor }}
+              />
             </a>
           </div>
 
-          {/* Right: Language Switcher + Social Links (Desktop) & Hamburger Button (Mobile) */}
+          {/* Right: Theme Toggle + Language Switcher + Social Links (Desktop) & Hamburger Button (Mobile) */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Dark / Light Mode Toggle Button */}
+            <button
+              type="button"
+              onClick={toggleThemeMode}
+              aria-label="Toggle Dark and Light Mode"
+              title={themeMode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              className="w-8 h-8 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer"
+            >
+              {themeMode === "dark" ? (
+                <HiSun className="w-4 h-4 text-amber-300" />
+              ) : (
+                <HiMoon className="w-4 h-4 text-indigo-400" />
+              )}
+            </button>
+
             {/* Language Toggle — Desktop & Mobile (EN, ID, MIN) */}
             <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
               <button
@@ -240,7 +265,7 @@ export default function Navbar() {
             {/* Desktop Socials - Icon only */}
             <div className="hidden md:flex items-center gap-2">
               <a
-                href="https://www.instagram.com/rizxstudio/"
+                href={socialContacts.instagramUrl || "https://www.instagram.com/rizxstudio/"}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram Profile"
@@ -249,7 +274,7 @@ export default function Navbar() {
                 <FaInstagram className="w-3.5 h-3.5" />
               </a>
               <a
-                href="https://www.linkedin.com/in/rizxstudio/"
+                href={socialContacts.linkedinUrl || "https://www.linkedin.com/in/rizxstudio/"}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn Profile"
@@ -310,17 +335,26 @@ export default function Navbar() {
 
           {/* Contact Direct WhatsApp Link in Mobile Drawer */}
           <a
-            href="https://wa.me/6282381769146"
+            href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center justify-between py-2.5 px-3.5 rounded-xl bg-[#14AF9E]/15 border border-[#14AF9E]/30 text-white font-medium text-sm hover:bg-[#14AF9E]/25 transition-all mt-1"
+            className="flex items-center justify-between py-2.5 px-3.5 rounded-xl border text-white font-medium text-sm transition-all mt-1"
+            style={{
+              backgroundColor: `${primaryColor}20`,
+              borderColor: `${primaryColor}40`,
+            }}
           >
             <span className="flex items-center gap-2">
-              <FaWhatsapp className="w-4 h-4 text-[#14AF9E]" />
+              <FaWhatsapp className="w-4 h-4" style={{ color: primaryColor }} />
               <span>{t("nav.contact")} (WhatsApp)</span>
             </span>
-            <span className="text-[11px] font-mono text-[#14AF9E] font-semibold">{t("nav.direct")}</span>
+            <span
+              className="text-[11px] font-mono font-semibold"
+              style={{ color: primaryColor }}
+            >
+              {t("nav.direct")}
+            </span>
           </a>
 
           {/* Mobile Language Switcher Row in Drawer */}
@@ -366,7 +400,7 @@ export default function Navbar() {
           {/* Mobile Social Links in Drawer */}
           <div className="flex items-center gap-3 pt-3 border-t border-white/10">
             <a
-              href="https://www.instagram.com/rizxstudio/"
+              href={socialContacts.instagramUrl || "https://www.instagram.com/rizxstudio/"}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-neutral-300 text-xs"
@@ -375,7 +409,7 @@ export default function Navbar() {
               <span>Instagram</span>
             </a>
             <a
-              href="https://www.linkedin.com/in/rizxstudio/"
+              href={socialContacts.linkedinUrl || "https://www.linkedin.com/in/rizxstudio/"}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-neutral-300 text-xs"

@@ -64,6 +64,11 @@ import ClientsWorkspace from "./admin/ClientsWorkspace";
 import ResourceLibrary from "./admin/ResourceLibrary";
 import RecycleBinWorkspace from "./admin/RecycleBinWorkspace";
 import StorageAnalyticsView from "./admin/StorageAnalyticsView";
+import MotionEffectsWorkspace from "./admin/MotionEffectsWorkspace";
+import ThemeColorWorkspace from "./admin/ThemeColorWorkspace";
+import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
+import CrmAnalyticsView from "./admin/CrmAnalyticsView";
+import MetaSEO from "./MetaSEO";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const {
@@ -1733,6 +1738,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-[#08090a] text-neutral-200 flex h-screen w-screen overflow-hidden font-sans select-none">
+      <MetaSEO isAdmin={true} />
       {/* Desktop Far Left Sidebar (240px wide) */}
       <div className="hidden md:flex h-full shrink-0">
         <AdminSidebar
@@ -1866,11 +1872,43 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             />
           )}
 
-          {/* 5. All Other Real Portfolio Admin Sections */}
+          {/* 5. Motion Scroll & Mouse Follower Settings */}
+          {sidebarTab === "motion" && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+              <MotionEffectsWorkspace />
+            </div>
+          )}
+
+          {/* 6. Dynamic Theme & Color Picker */}
+          {sidebarTab === "theme" && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+              <ThemeColorWorkspace />
+            </div>
+          )}
+
+          {/* 7. Contact & Social Media Configuration */}
+          {sidebarTab === "social" && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+              <SocialContactsWorkspace />
+            </div>
+          )}
+
+          {/* 8. CRM Telemetry & Leads Analytics */}
+          {sidebarTab === "crm" && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
+              <CrmAnalyticsView />
+            </div>
+          )}
+
+          {/* 9. All Other Real Portfolio Admin Sections */}
           {sidebarTab !== "clients" &&
             sidebarTab !== "resources" &&
             sidebarTab !== "trash" &&
-            sidebarTab !== "storage" && (
+            sidebarTab !== "storage" &&
+            sidebarTab !== "motion" &&
+            sidebarTab !== "theme" &&
+            sidebarTab !== "social" &&
+            sidebarTab !== "crm" && (
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#0d0f13]">
               <div className="max-w-6xl mx-auto space-y-6">
                 {/* ========================================================

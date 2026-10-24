@@ -14,8 +14,13 @@ import {
   HiSquare3Stack3D,
   HiTrash,
   HiChartPie,
+  HiCursorArrowRays,
+  HiPaintBrush,
+  HiChatBubbleLeftRight,
+  HiArrowTrendingUp,
 } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export type AdminSidebarTab =
   | "clients"
@@ -25,6 +30,10 @@ export type AdminSidebarTab =
   | "flagship"
   | "runner"
   | "about"
+  | "motion"
+  | "theme"
+  | "social"
+  | "crm"
   | "trash"
   | "storage"
   | "settings";
@@ -53,6 +62,7 @@ export default function AdminSidebar({
   onOpenProfileMenu,
 }: AdminSidebarProps) {
   const { lang, tr } = useLang();
+  const { primaryColor } = useMotionTheme();
 
   const menuItems: {
     id: AdminSidebarTab;
@@ -96,6 +106,26 @@ export default function AdminSidebar({
       id: "about",
       label: tr("About Me Section", "Tentang Saya", "Tantang Ambo"),
       icon: HiUser,
+    },
+    {
+      id: "motion",
+      label: tr("Motion & Cursor", "Motion & Kursor", "Motion & Kursor"),
+      icon: HiCursorArrowRays,
+    },
+    {
+      id: "theme",
+      label: tr("Theme & Colors", "Warna & Tema", "Warna & Tema"),
+      icon: HiPaintBrush,
+    },
+    {
+      id: "social",
+      label: tr("Contact & Socials", "Kontak & Sosmed", "Kontak & Sosmed"),
+      icon: HiChatBubbleLeftRight,
+    },
+    {
+      id: "crm",
+      label: tr("CRM & Analytics", "CRM & Prospek", "CRM & Prospek"),
+      icon: HiArrowTrendingUp,
     },
     {
       id: "trash",
@@ -160,25 +190,31 @@ export default function AdminSidebar({
               onClick={() => onSelectTab(item.id)}
               className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer ${
                 isActive
-                  ? "bg-[#14AF9E]/15 text-[#14AF9E] font-semibold border-l-2 border-[#14AF9E]"
+                  ? "font-semibold border-l-2"
                   : "text-neutral-400 hover:text-white hover:bg-white/[0.04]"
               }`}
+              style={{
+                backgroundColor: isActive ? `${primaryColor}20` : undefined,
+                color: isActive ? primaryColor : undefined,
+                borderLeftColor: isActive ? primaryColor : undefined,
+              }}
             >
               <div className="flex items-center gap-2.5 min-w-0">
-                <Icon
-                  className={`w-4 h-4 shrink-0 transition-colors ${
-                    isActive ? "text-[#14AF9E]" : "text-neutral-500"
-                  }`}
-                />
+                <span
+                  className="shrink-0 flex items-center justify-center"
+                  style={{ color: isActive ? primaryColor : undefined }}
+                >
+                  <Icon className="w-4 h-4 transition-colors" />
+                </span>
                 <span className="truncate">{item.label}</span>
               </div>
               {item.badge !== undefined && (
                 <span
-                  className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
-                    isActive
-                      ? "bg-[#14AF9E]/25 text-[#14AF9E]"
-                      : "bg-white/5 text-neutral-400"
-                  }`}
+                  className="text-[10px] font-mono px-1.5 py-0.2 rounded-full"
+                  style={{
+                    backgroundColor: isActive ? `${primaryColor}35` : "rgba(255,255,255,0.05)",
+                    color: isActive ? primaryColor : "#a3a3a3",
+                  }}
                 >
                   {item.badge}
                 </span>

@@ -4,16 +4,21 @@ import React, { useState, useEffect } from "react";
 import { FaWhatsapp } from "react-icons/fa6";
 import { HiXMark } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
-const WA_NUMBER = "6282381769146";
-const WA_URL = `https://wa.me/${WA_NUMBER}`;
 const DISMISS_KEY = "wa_popup_dismissed";
 const SHOW_DELAY_MS = 3500; // show after 3.5s
 
 export default function WhatsAppPopup() {
   const { lang } = useLang();
+  const { socialContacts, primaryColor } = useMotionTheme();
   const isId = lang === "id";
   const isMin = lang === "min";
+
+  const cleanWaNumber = (socialContacts.whatsappNumber || "6282381769146").replace(/[^0-9]/g, "");
+  const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
+    socialContacts.whatsappMessage || "Halo Fomy R / Rizx Studio, saya tertarik untuk berdiskusi proyek."
+  )}`;
 
   const [visible, setVisible] = useState(false);
   const [animIn, setAnimIn] = useState(false);
@@ -40,7 +45,7 @@ export default function WhatsAppPopup() {
   };
 
   const handleChat = () => {
-    window.open(WA_URL, "_blank", "noopener,noreferrer");
+    window.open(waUrl, "_blank", "noopener,noreferrer");
     handleDismiss();
   };
 
@@ -59,8 +64,13 @@ export default function WhatsAppPopup() {
     >
       {/* Card */}
       <div className="relative rounded-2xl bg-neutral-900 border border-white/10 shadow-[0_24px_64px_rgba(0,0,0,0.85)] backdrop-blur-xl overflow-hidden">
-        {/* Top teal accent bar */}
-        <div className="h-[3px] w-full bg-gradient-to-r from-[#14AF9E] via-cyan-400 to-transparent" />
+        {/* Top accent bar */}
+        <div
+          className="h-[3px] w-full"
+          style={{
+            background: `linear-gradient(to right, ${primaryColor}, #22d3ee, transparent)`,
+          }}
+        />
 
         <div className="p-4 sm:p-5">
           {/* Close button */}
@@ -84,8 +94,11 @@ export default function WhatsAppPopup() {
                 />
               </div>
               {/* Avatar 2 — WhatsApp icon circle */}
-              <div className="w-10 h-10 rounded-full bg-[#14AF9E]/20 border-2 border-neutral-900 flex items-center justify-center flex-shrink-0">
-                <FaWhatsapp className="w-5 h-5 text-[#14AF9E]" />
+              <div
+                className="w-10 h-10 rounded-full border-2 border-neutral-900 flex items-center justify-center flex-shrink-0"
+                style={{ backgroundColor: `${primaryColor}25` }}
+              >
+                <FaWhatsapp className="w-5 h-5" style={{ color: primaryColor }} />
               </div>
               {/* Online dot */}
               <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-[#25D366] border-2 border-neutral-900" />
@@ -96,7 +109,10 @@ export default function WhatsAppPopup() {
               <span className="text-xs font-semibold text-white leading-tight">
                 {isId ? "Rizx Studio" : "Rizx Studio"}
               </span>
-              <span className="text-[10px] text-[#14AF9E] font-mono flex items-center gap-1">
+              <span
+                className="text-[10px] font-mono flex items-center gap-1"
+                style={{ color: primaryColor }}
+              >
                 <span className="w-1.5 h-1.5 rounded-full bg-[#25D366] animate-pulse inline-block" />
                 {isMin ? "Online kini" : isId ? "Online sekarang" : "Online now"}
               </span>
