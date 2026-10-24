@@ -836,3 +836,138 @@ html[data-theme='light'] #clients,
 html.light #clients {
   border-top-color: transparent !important;
 }
+
+/* ========================================================
+   ADMIN MOBILE DRAWER & MOBILE TOP CONTROLS IN LIGHT MODE
+   ======================================================== */
+html[data-theme='light'] .admin-mobile-drawer,
+html.light .admin-mobile-drawer {
+  background-color: #ffffff !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+  box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.12) !important;
+}
+
+html[data-theme='light'] .admin-mobile-drawer h3,
+html.light .admin-mobile-drawer h3 {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-mobile-drawer p.text-neutral-400,
+html.light .admin-mobile-drawer p.text-neutral-400 {
+  color: #64748b !important;
+}
+
+html[data-theme='light'] .admin-drawer-logo,
+html.light .admin-drawer-logo {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] .admin-drawer-logo img,
+html.light .admin-drawer-logo img {
+  filter: none !important;
+}
+
+html[data-theme='light'] .admin-drawer-close,
+html.light .admin-drawer-close {
+  background-color: #f1f5f9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-drawer-close:hover,
+html.light .admin-drawer-close:hover {
+  background-color: #e2e8f0 !important;
+}
+
+html[data-theme='light'] .admin-drawer-reset,
+html.light .admin-drawer-reset {
+  background-color: #f1f5f9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #334155 !important;
+}
+
+html[data-theme='light'] .admin-drawer-lang-box,
+html.light .admin-drawer-lang-box {
+  background-color: #f8fafc !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+html[data-theme='light'] .admin-drawer-lang-box span,
+html.light .admin-drawer-lang-box span {
+  color: #475569 !important;
+}
+
+html[data-theme='light'] .admin-drawer-lang-pill,
+html.light .admin-drawer-lang-pill {
+  background-color: #e2e8f0 !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+}
+
+html[data-theme='light'] .admin-drawer-lang-pill button:not(.bg-\[\#16b09f\]),
+html.light .admin-drawer-lang-pill button:not(.bg-\[\#16b09f\]) {
+  color: #475569 !important;
+}
+
+html[data-theme='light'] .admin-drawer-nav-item,
+html.light .admin-drawer-nav-item {
+  background-color: #f8fafc !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-drawer-nav-item:hover,
+html.light .admin-drawer-nav-item:hover {
+  background-color: #f1f5f9 !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+html[data-theme='light'] .admin-drawer-nav-item p.font-bold,
+html.light .admin-drawer-nav-item p.font-bold {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .admin-drawer-nav-item p.font-mono,
+html.light .admin-drawer-nav-item p.font-mono {
+  color: #64748b !important;
+}
+
+html[data-theme='light'] .admin-drawer-nav-item .admin-drawer-nav-icon,
+html.light .admin-drawer-nav-item .admin-drawer-nav-icon {
+  background-color: #e2e8f0 !important;
+  color: #0d9488 !important;
+}
+
+/* Selected nav item stays vibrant teal #16b09f with solid black text */
+html[data-theme='light'] .admin-mobile-drawer button.bg-\[\#16b09f\],
+html.light .admin-mobile-drawer button.bg-\[\#16b09f\] {
+  background-color: #16b09f !important;
+  color: #000000 !important;
+  border-color: #16b09f !important;
+  box-shadow: 0 4px 15px rgba(22, 176, 159, 0.35) !important;
+}
+
+html[data-theme='light'] .admin-mobile-drawer button.bg-\[\#16b09f\] p,
+html.light .admin-mobile-drawer button.bg-\[\#16b09f\] p {
+  color: #000000 !important;
+}
+
+html[data-theme='light'] .admin-mobile-drawer button.bg-\[\#16b09f\] .admin-drawer-nav-icon,
+html.light .admin-mobile-drawer button.bg-\[\#16b09f\] .admin-drawer-nav-icon {
+  background-color: rgba(0, 0, 0, 0.12) !important;
+  color: #000000 !important;
+}
+
+/* Header buttons on mobile in Light Mode */
+html[data-theme='light'] #admin-dashboard header button.md\:hidden,
+html.light #admin-dashboard header button.md\:hidden {
+  background-color: #f1f5f9 !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] #admin-dashboard header button.md\:hidden svg,
+html.light #admin-dashboard header button.md\:hidden svg {
+  color: #0f172a !important;
+}

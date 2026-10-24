@@ -6149,12 +6149,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="w-full bg-[#0d0e14] border-t border-white/15 rounded-t-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4"
+              className="admin-mobile-drawer w-full bg-[#0d0e14] border-t border-white/15 rounded-t-3xl p-6 shadow-2xl max-h-[85vh] overflow-y-auto space-y-4"
             >
               {/* Drawer Header */}
               <div className="flex items-center justify-between pb-3 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-neutral-900 border border-white/10 flex items-center justify-center p-1.5 shadow-md shadow-black/40 shrink-0">
+                  <div className="admin-drawer-logo w-8 h-8 rounded-lg bg-neutral-900 border border-white/10 flex items-center justify-center p-1.5 shadow-md shadow-black/40 shrink-0">
                     <img
                       src="/navbar-logo.png"
                       alt="Rizx Studio"
@@ -6169,7 +6169,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <button
                   type="button"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                  className="admin-drawer-close w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <HiXMark className="w-5 h-5" />
                 </button>
@@ -6196,7 +6196,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       await handleTopBarReset();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="py-2.5 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+                    className="admin-drawer-reset py-2.5 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 font-medium text-xs flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer"
                     title={tx("Kembalikan pengaturan ke default", "Reset to default settings", "Baliakkan ka setelan awal")}
                   >
                     <HiArrowPath className="w-3.5 h-3.5 text-neutral-400" />
@@ -6204,9 +6204,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </button>
                 </div>
 
-                <div className="flex items-center justify-between bg-neutral-900/90 px-3 py-2 rounded-xl border border-white/10">
+                <div className="admin-drawer-lang-box flex items-center justify-between bg-neutral-900/90 px-3 py-2 rounded-xl border border-white/10">
                   <span className="text-[11px] font-mono text-neutral-400">{tx("Bahasa UI", "Interface Language", "Bahaso UI")}:</span>
-                  <div className="flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5">
+                  <div className="admin-drawer-lang-pill flex items-center gap-1 bg-black/40 p-0.5 rounded-lg border border-white/5">
                     {(["id", "en", "min"] as const).map((l) => (
                       <button
                         key={l}
@@ -6297,13 +6297,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className={`w-full p-3.5 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
                         isSelected
                           ? "bg-[#16b09f] text-black border-[#16b09f] shadow-lg shadow-[#16b09f]/25 font-bold"
-                          : "bg-neutral-900/60 hover:bg-neutral-900 text-neutral-300 border-white/10"
+                          : "admin-drawer-nav-item bg-neutral-900/60 hover:bg-neutral-900 text-neutral-300 border-white/10"
                       }`}
                     >
                       <div className="flex items-center gap-3">
                         <div
                           className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                            isSelected ? "bg-black/15 text-black" : "bg-white/5 text-[#16b09f]"
+                            isSelected ? "admin-drawer-nav-icon bg-black/15 text-black" : "admin-drawer-nav-icon bg-white/5 text-[#16b09f]"
                           }`}
                         >
                           <Icon className="w-5 h-5" />
