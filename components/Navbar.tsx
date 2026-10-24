@@ -385,46 +385,6 @@ export default function Navbar() {
             </span>
           </a>
 
-          {/* Mobile Language Switcher Row in Drawer */}
-          <div className="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-neutral-400 font-mono">
-            <span>{t("nav.langLabel")}</span>
-            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px]">
-              <button
-                type="button"
-                onClick={() => setLang("en")}
-                className={`px-3 py-1 transition-all ${
-                  lang === "en"
-                    ? "bg-[#16b09f] text-white font-bold"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-              >
-                EN (English)
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang("id")}
-                className={`px-3 py-1 transition-all ${
-                  lang === "id"
-                    ? "bg-[#16b09f] text-white font-bold"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-              >
-                ID (Indonesia)
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang("min")}
-                className={`px-3 py-1 transition-all ${
-                  lang === "min"
-                    ? "bg-[#16b09f] text-white font-bold"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-              >
-                MIN (Minang)
-              </button>
-            </div>
-          </div>
-
           {/* Mobile Social Links in Drawer */}
           <div className="flex items-center gap-3 pt-3 border-t border-white/10">
             <a

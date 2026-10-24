@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import SpotlightCard from "./SpotlightCard";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { useLang } from "@/context/LanguageContext";
@@ -8,7 +8,28 @@ import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export default function Contact() {
   const { t, lang, setLang } = useLang();
-  const { socialContacts, primaryColor } = useMotionTheme();
+  const { themeMode, socialContacts, primaryColor } = useMotionTheme();
+  const isLight = themeMode === "light";
+
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const langContainerRef = useRef<HTMLDivElement>(null);
+
+  const languages = [
+    { code: "en", label: "EN" },
+    { code: "id", label: "ID" },
+    { code: "min", label: "MIN" },
+  ] as const;
+  const activeLangIndex = Math.max(0, languages.findIndex((l) => l.code === lang));
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (langContainerRef.current && !langContainerRef.current.contains(e.target as Node)) {
+        setIsLangOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const cleanWaNumber = (socialContacts.whatsappNumber || "6282381769146").replace(/[^0-9]/g, "");
   const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
@@ -118,47 +139,52 @@ export default function Contact() {
 
           {/* Right: Language Switcher */}
           <div className="flex items-center">
-            {/* Footer Language Toggle (EN, ID, MIN) */}
-            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-[11px] font-mono">
-              <button
-                type="button"
-                onClick={() => setLang("en")}
-                style={lang === "en" ? { backgroundColor: primaryColor } : undefined}
-                className={`px-2.5 py-1 transition-all cursor-pointer ${
-                  lang === "en"
-                    ? "text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-                aria-label="English"
+            {/* Footer Language Toggle — Interactive Sliding Pill */}
+            <div
+              ref={langContainerRef}
+              className={`relative flex items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-[11px] font-mono h-8 ${
+                isLangOpen
+                  ? `w-[108px] ${isLight ? "bg-white/95 border-slate-300 shadow-md" : "bg-[#0c0e12]/95 border-white/20 shadow-lg"}`
+                  : `w-[36px] ${isLight ? "bg-white border-slate-200 hover:border-slate-300 shadow-xs" : "bg-white/[0.04] border-white/10 hover:border-white/20"}`
+              }`}
+            >
+              <div
+                className="flex items-center w-[108px] h-full transition-transform duration-300 ease-out"
+                style={{
+                  transform: isLangOpen ? "translateX(0px)" : `translateX(-${activeLangIndex * 36}px)`,
+                }}
               >
-                EN
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang("id")}
-                style={lang === "id" ? { backgroundColor: primaryColor } : undefined}
-                className={`px-2.5 py-1 transition-all cursor-pointer ${
-                  lang === "id"
-                    ? "text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-                aria-label="Indonesia"
-              >
-                ID
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang("min")}
-                style={lang === "min" ? { backgroundColor: primaryColor } : undefined}
-                className={`px-2.5 py-1 transition-all cursor-pointer ${
-                  lang === "min"
-                    ? "text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-                aria-label="Minang"
-              >
-                MIN
-              </button>
+                {languages.map((l) => {
+                  const isSelected = lang === l.code;
+                  return (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isLangOpen) {
+                          setIsLangOpen(true);
+                        } else {
+                          setLang(l.code);
+                          setIsLangOpen(false);
+                        }
+                      }}
+                      style={isSelected ? { backgroundColor: primaryColor } : undefined}
+                      className={`w-[36px] h-full shrink-0 flex items-center justify-center transition-colors cursor-pointer select-none rounded-full ${
+                        isSelected
+                          ? "text-white font-bold shadow-xs"
+                          : isLight
+                          ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                          : "text-neutral-400 hover:text-white hover:bg-white/10"
+                      }`}
+                      aria-label={`Switch to ${l.label}`}
+                      title={!isLangOpen ? "Klik untuk ganti bahasa" : l.label}
+                    >
+                      {l.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -171,45 +197,52 @@ export default function Contact() {
             <a href="#about" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.about")}</a>
           </div>
 
-          {/* Mobile Footer Language Toggle */}
+          {/* Mobile Footer Language Toggle — Interactive Sliding Pill */}
           <div className="flex items-center text-xs text-neutral-300 font-mono py-1">
-            <div className="flex items-center rounded-full border border-white/10 bg-white/[0.04] overflow-hidden text-xs">
-              <button
-                type="button"
-                onClick={() => setLang("en")}
-                style={lang === "en" ? { backgroundColor: primaryColor } : undefined}
-                className={`px-3 py-1 transition-all ${
-                  lang === "en"
-                    ? "text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
+            <div
+              className={`relative flex items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-[11px] font-mono h-8 ${
+                isLangOpen
+                  ? `w-[108px] ${isLight ? "bg-white/95 border-slate-300 shadow-md" : "bg-[#0c0e12]/95 border-white/20 shadow-lg"}`
+                  : `w-[36px] ${isLight ? "bg-white border-slate-200 hover:border-slate-300 shadow-xs" : "bg-white/[0.04] border-white/10 hover:border-white/20"}`
+              }`}
+            >
+              <div
+                className="flex items-center w-[108px] h-full transition-transform duration-300 ease-out"
+                style={{
+                  transform: isLangOpen ? "translateX(0px)" : `translateX(-${activeLangIndex * 36}px)`,
+                }}
               >
-                EN
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang("id")}
-                style={lang === "id" ? { backgroundColor: primaryColor } : undefined}
-                className={`px-3 py-1 transition-all ${
-                  lang === "id"
-                    ? "text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-              >
-                ID
-              </button>
-              <button
-                type="button"
-                onClick={() => setLang("min")}
-                style={lang === "min" ? { backgroundColor: primaryColor } : undefined}
-                className={`px-3 py-1 transition-all ${
-                  lang === "min"
-                    ? "text-black font-bold shadow-sm"
-                    : "text-neutral-400 hover:text-white"
-                }`}
-              >
-                MIN
-              </button>
+                {languages.map((l) => {
+                  const isSelected = lang === l.code;
+                  return (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isLangOpen) {
+                          setIsLangOpen(true);
+                        } else {
+                          setLang(l.code);
+                          setIsLangOpen(false);
+                        }
+                      }}
+                      style={isSelected ? { backgroundColor: primaryColor } : undefined}
+                      className={`w-[36px] h-full shrink-0 flex items-center justify-center transition-colors cursor-pointer select-none rounded-full ${
+                        isSelected
+                          ? "text-white font-bold shadow-xs"
+                          : isLight
+                          ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                          : "text-neutral-400 hover:text-white hover:bg-white/10"
+                      }`}
+                      aria-label={`Switch to ${l.label}`}
+                      title={!isLangOpen ? "Klik untuk ganti bahasa" : l.label}
+                    >
+                      {l.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
