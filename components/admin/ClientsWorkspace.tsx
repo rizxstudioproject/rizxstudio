@@ -42,7 +42,7 @@ interface ClientsWorkspaceProps {
   onSaveClientDescription: (clientId: string, desc: string, tools: string[]) => void;
   onUpdateClientFolder?: (clientId: string, updates: Partial<ClientItem>) => void;
   onReplaceCoverImage?: (clientId: string, file: File) => void;
-  onViewWebsite: () => void;
+  onViewWebsite?: () => void;
   showToast: (msg: string) => void;
   workspaceView?: "folders" | "logos";
   onWorkspaceViewChange?: (view: "folders" | "logos") => void;
@@ -1338,16 +1338,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
             {/* Right Header Actions */}
             <div className="flex items-center gap-2 shrink-0 relative">
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-white border border-white/10 text-xs font-medium transition-colors cursor-pointer no-underline"
-              >
-                <span>View website</span>
-                <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
-              </a>
-
               {/* More Menu Dropdown */}
               <div className="relative">
                 <button
