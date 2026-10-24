@@ -249,7 +249,6 @@ export default function AdminSidebar({
           </div>
           <div className="flex items-center justify-between text-[10px] text-neutral-500 font-mono">
             <span>{totalWorks} {tr("total works", "total karya", "karya kasadonyo")}</span>
-            <span className="text-cyan-400 group-hover:underline">{tr("Graphic ↗", "Grafik ↗", "Grafik ↗")}</span>
           </div>
         </button>
 

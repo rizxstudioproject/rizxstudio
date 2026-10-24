@@ -388,15 +388,6 @@ export default function StorageAnalyticsView({
                     <span className="text-neutral-400 font-normal">/ {stats.totalCapacityMB} MB</span>
                   )}
                 </span>
-                {activeCategory !== "all" ? (
-                  <span className="text-[9px] font-mono text-cyan-400/80 mt-1 hover:text-cyan-300 underline">
-                    {tr("← Click to view all", "← Klik untuk semua data", "← Klik untuak kasadonyo")}
-                  </span>
-                ) : (
-                  <span className="text-[9px] font-mono text-neutral-400 mt-1">
-                    {tr("Click card to change color", "Klik kartu untuk ubah warna", "Klik kartu untuak ubah warna")}
-                  </span>
-                )}
               </button>
             </div>
 
