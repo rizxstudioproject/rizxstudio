@@ -249,7 +249,7 @@ export default function MobileAdminApp({
     },
     {
       id: "theme" as AdminSidebarTab,
-      label: tr("Warna Tema", "UI Theme", "Warna Tema"),
+      label: tr("Thema", "Theme", "Thema"),
       icon: RiPaletteFill,
       bg: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
     },

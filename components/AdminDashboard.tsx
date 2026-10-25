@@ -1956,7 +1956,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       case "seo":
         return tx("SEO Google & Mesin Pencari", "Google SEO", "SEO Google");
       case "theme":
-        return tx("Warna & Tema UI", "Theme & Colors", "Warna & Tema UI");
+        return tx("Thema & Warna UI", "Theme & Colors", "Thema & Warna UI");
       case "social":
         return tx("Kontak WhatsApp & Sosmed", "Contacts & Socials", "Kontak WhatsApp & Sosmed");
       case "motion":
