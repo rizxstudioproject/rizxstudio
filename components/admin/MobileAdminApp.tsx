@@ -35,6 +35,7 @@ import {
   RiGoogleFill,
   RiSunFill,
   RiMoonClearFill,
+  RiCloseLine,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -402,9 +403,11 @@ export default function MobileAdminApp({
   ];
 
   const activeDockId = currentScreen === "home" ? "home" : activeTab;
+  const mobileFrameRef = useRef<HTMLDivElement>(null);
   const dockScrollRef = useRef<HTMLDivElement>(null);
   const dockItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [gliderX, setGliderX] = useState<number | null>(null);
+  const [isSaveFabExpanded, setIsSaveFabExpanded] = useState<boolean>(false);
 
   const updateGliderPosition = useCallback((targetId: string) => {
     const el = dockItemRefs.current[targetId];
@@ -451,6 +454,7 @@ export default function MobileAdminApp({
 
   return (
     <div
+      ref={mobileFrameRef}
       className={`mobile-admin-app flex flex-col h-screen w-screen overflow-hidden font-sans select-none relative ${
         isLight ? "bg-[#f4f6fa] text-slate-900" : "bg-[#090b10] text-slate-100"
       }`}
@@ -1074,38 +1078,109 @@ export default function MobileAdminApp({
               renderWorkspaceContent(activeTab)}
           </div>
 
-          {/* Floating Sticky Save Bar (Positioned gracefully above the bottom dock bar) */}
-          <div
-            className={`fixed bottom-[84px] left-4 right-4 z-40 p-3 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 ${
-              isLight ? "bg-white/95 border-slate-200" : "bg-[#090b10]/95 border-white/10"
-            }`}
+          {/* DRAGGABLE FLOATING SAVE ACTION (Bisa digeser bebas di dalam frame, tap untuk slide/expand) */}
+          <motion.div
+            drag
+            dragConstraints={mobileFrameRef}
+            dragElastic={0.08}
+            dragMomentum={false}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="fixed bottom-[92px] right-4 z-40 cursor-grab active:cursor-grabbing select-none"
+            style={{ touchAction: "none" }}
           >
-            <div className="text-xs">
-              <span className="text-neutral-400 block text-[10px]">
-                {tr("Status Sinkronisasi", "Sync Status", "Status Sinkronisasi")}
-              </span>
-              <span className="font-bold text-emerald-400 flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>{savedSuccess ? tr("Tersimpan!", "Saved!", "Tasimpan!") : tr("Cloud Siap", "Cloud Ready", "Cloud Siap")}</span>
-              </span>
-            </div>
+            <AnimatePresence mode="wait">
+              {!isSaveFabExpanded ? (
+                /* 1. COMPACT FLOATING ICON BUBBLE (Tapped to slide open) */
+                <motion.button
+                  key="fab-bubble"
+                  type="button"
+                  layoutId="floatingSaveContainer"
+                  initial={{ scale: 0.85, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.85, opacity: 0 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsSaveFabExpanded(true)}
+                  className="relative flex items-center justify-center rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-2 border-white/25 backdrop-blur-xl transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: primaryColor,
+                    boxShadow: `0 8px 24px ${primaryColor}66`,
+                    width: "52px",
+                    height: "52px",
+                  }}
+                  title={tr("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}
+                >
+                  <RiSave3Fill className="w-5 h-5 text-white drop-shadow" />
+                  {/* Status Pulse Pip */}
+                  <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#090b10]" />
+                  </span>
+                </motion.button>
+              ) : (
+                /* 2. EXPANDED SLIDER CARD (Slide open with Sync Status & Save Changes Button) */
+                <motion.div
+                  key="fab-slider"
+                  layoutId="floatingSaveContainer"
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.9, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                  className={`flex items-center gap-2.5 p-2 pl-3 rounded-2xl border shadow-2xl backdrop-blur-2xl max-w-[340px] ${
+                    isLight
+                      ? "bg-white/98 border-slate-200/90 shadow-[0_14px_40px_rgba(15,23,42,0.18)]"
+                      : "bg-[#0c101a]/98 border-white/15 shadow-[0_16px_45px_rgba(0,0,0,0.85)]"
+                  }`}
+                >
+                  {/* Sync Status Badge */}
+                  <div className="flex flex-col text-left shrink-0 pr-1">
+                    <span className="text-neutral-400 block text-[9px] font-medium leading-tight">
+                      {tr("Status Sinkron", "Sync Status", "Status Sinkron")}
+                    </span>
+                    <span className="font-bold text-emerald-400 text-[11px] flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>{savedSuccess ? tr("Tersimpan!", "Saved!", "Tasimpan!") : tr("Cloud Siap", "Cloud Ready", "Cloud Siap")}</span>
+                    </span>
+                  </div>
 
-            <button
-              type="button"
-              onClick={handleSaveWorkspace}
-              disabled={savingAction}
-              className="flex-1 py-3 px-6 rounded-2xl text-xs font-bold text-white shadow-xl shadow-primary/30 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <RiSave3Fill className="w-4 h-4" />
-              <span>
-                {savingAction
-                  ? tr("Menyimpan ke Cloud...", "Saving to Cloud...", "Manyimpan ka Cloud...")
-                  : tr("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}
-              </span>
-              <RiArrowRightLine className="w-4 h-4" />
-            </button>
-          </div>
+                  {/* Save Changes Action Button */}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await handleSaveWorkspace();
+                      // Auto-collapse after save
+                      setTimeout(() => setIsSaveFabExpanded(false), 800);
+                    }}
+                    disabled={savingAction}
+                    className="flex-1 py-2 px-3.5 rounded-xl text-xs font-bold text-white shadow-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                    style={{
+                      backgroundColor: primaryColor,
+                      boxShadow: `0 6px 18px ${primaryColor}55`,
+                    }}
+                  >
+                    <RiSave3Fill className="w-3.5 h-3.5" />
+                    <span>
+                      {savingAction
+                        ? tr("Menyimpan...", "Saving...", "Manyimpan...")
+                        : tr("Simpan Perubahan", "Save Changes", "Simpan")}
+                    </span>
+                    <RiArrowRightLine className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Collapse / Close Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsSaveFabExpanded(false)}
+                    className="p-1.5 rounded-lg text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                    title={tr("Tutup", "Close", "Tutuik")}
+                  >
+                    <RiCloseLine className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         </div>
       )}
 
