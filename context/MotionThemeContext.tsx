@@ -1,6 +1,13 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  SocialContactsConfig,
+  DEFAULT_SOCIAL_CONTACTS,
+  getSocialContacts,
+  saveSocialContacts,
+  normalizeSocialUrl,
+} from "@/lib/socialService";
 
 export type CursorEffectType = "off" | "ink" | "hologram" | "ghost" | "particles" | "fluid";
 export type ThemeMode = "dark" | "light";
@@ -11,14 +18,8 @@ export interface MotionScrollConfig {
   scrollReveal: boolean;
 }
 
-export interface SocialContactsConfig {
-  whatsappNumber: string;
-  whatsappMessage: string;
-  instagramUrl: string;
-  linkedinUrl: string;
-  email: string;
-  githubUrl: string;
-}
+export type { SocialContactsConfig };
+export { normalizeSocialUrl };
 
 export interface ColorPreset {
   id: string;
@@ -161,7 +162,7 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
   const [socialContacts, setSocialContactsState] = useState<SocialContactsConfig>(defaultSettings.socialContacts);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Hydrate from localStorage
+  // Hydrate from localStorage & Supabase Cloud
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -184,6 +185,14 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
     } catch (e) {
       console.warn("Failed to load motion theme settings:", e);
     }
+
+    // Fetch latest cloud-persisted social contacts from Supabase Cloud
+    getSocialContacts()
+      .then((cloudContacts) => {
+        setSocialContactsState(cloudContacts);
+      })
+      .catch((err) => console.warn("Notice loading cloud social contacts:", err));
+
     setIsHydrated(true);
   }, []);
 
@@ -261,7 +270,17 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
   };
 
   const updateSocialContacts = (contacts: Partial<SocialContactsConfig>) => {
-    setSocialContactsState((prev) => ({ ...prev, ...contacts }));
+    setSocialContactsState((prev) => {
+      const updated: SocialContactsConfig = {
+        ...prev,
+        ...contacts,
+        instagramUrl: contacts.instagramUrl !== undefined ? normalizeSocialUrl(contacts.instagramUrl, "instagram") : prev.instagramUrl,
+        linkedinUrl: contacts.linkedinUrl !== undefined ? normalizeSocialUrl(contacts.linkedinUrl, "linkedin") : prev.linkedinUrl,
+        githubUrl: contacts.githubUrl !== undefined ? normalizeSocialUrl(contacts.githubUrl, "github") : prev.githubUrl,
+      };
+      saveSocialContacts(updated).catch((err) => console.warn("Notice saving cloud social contacts:", err));
+      return updated;
+    });
   };
 
   const resetToDefaults = () => {

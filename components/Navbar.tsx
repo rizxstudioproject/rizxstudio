@@ -6,6 +6,7 @@ import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
 import { RiSunFill, RiMoonFill } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import { normalizeSocialUrl, formatWhatsAppUrl } from "@/lib/socialService";
 
 export default function Navbar() {
   const [activeSection, setActiveSection] = useState<string>("");
@@ -37,10 +38,9 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const cleanWaNumber = (socialContacts.whatsappNumber || "6282381769146").replace(/[^0-9]/g, "");
-  const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
-    socialContacts.whatsappMessage || "Halo Fomy R / Rizx Studio, saya tertarik untuk berdiskusi proyek."
-  )}`;
+  const waUrl = formatWhatsAppUrl(socialContacts.whatsappNumber, socialContacts.whatsappMessage);
+  const instagramUrl = normalizeSocialUrl(socialContacts.instagramUrl, "instagram") || "https://www.instagram.com/rizxstudio/";
+  const linkedinUrl = normalizeSocialUrl(socialContacts.linkedinUrl, "linkedin") || "https://www.linkedin.com/in/rizxstudio/";
 
   const resetHideTimer = useCallback(() => {
     setIsVisible(true);
@@ -293,7 +293,7 @@ export default function Navbar() {
             {/* Desktop Socials - Icon only */}
             <div className="hidden md:flex items-center gap-2">
               <a
-                href={socialContacts.instagramUrl || "https://www.instagram.com/rizxstudio/"}
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram Profile"
@@ -302,7 +302,7 @@ export default function Navbar() {
                 <FaInstagram className="w-3.5 h-3.5" />
               </a>
               <a
-                href={socialContacts.linkedinUrl || "https://www.linkedin.com/in/rizxstudio/"}
+                href={linkedinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn Profile"
@@ -388,7 +388,7 @@ export default function Navbar() {
           {/* Mobile Social Links in Drawer */}
           <div className="flex items-center gap-3 pt-3 border-t border-white/10">
             <a
-              href={socialContacts.instagramUrl || "https://www.instagram.com/rizxstudio/"}
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-neutral-300 text-xs"
@@ -397,7 +397,7 @@ export default function Navbar() {
               <span>Instagram</span>
             </a>
             <a
-              href={socialContacts.linkedinUrl || "https://www.linkedin.com/in/rizxstudio/"}
+              href={linkedinUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-neutral-300 text-xs"

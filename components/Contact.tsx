@@ -6,6 +6,7 @@ import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { addRealLead } from "@/lib/crmService";
+import { normalizeSocialUrl, formatWhatsAppUrl } from "@/lib/socialService";
 
 export default function Contact() {
   const { t, lang, setLang } = useLang();
@@ -32,10 +33,9 @@ export default function Contact() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const cleanWaNumber = (socialContacts.whatsappNumber || "6282381769146").replace(/[^0-9]/g, "");
-  const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
-    socialContacts.whatsappMessage || "Halo Fomy R / Rizx Studio, saya ingin berkonsultasi mengenai proyek."
-  )}`;
+  const waUrl = formatWhatsAppUrl(socialContacts.whatsappNumber, socialContacts.whatsappMessage);
+  const instagramUrl = normalizeSocialUrl(socialContacts.instagramUrl, "instagram") || "https://www.instagram.com/rizxstudio/";
+  const linkedinUrl = normalizeSocialUrl(socialContacts.linkedinUrl, "linkedin") || "https://www.linkedin.com/in/rizxstudio/";
 
   const handleWhatsAppClick = () => {
     try {
@@ -114,7 +114,7 @@ export default function Contact() {
               <span>WHATSAPP</span>
             </a>
             <a
-              href={socialContacts.instagramUrl || "https://www.instagram.com/rizxstudio/"}
+              href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center magnetic-hover"
@@ -123,7 +123,7 @@ export default function Contact() {
               <span>INSTAGRAM</span>
             </a>
             <a
-              href={socialContacts.linkedinUrl || "https://www.linkedin.com/in/rizxstudio/"}
+              href={linkedinUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center magnetic-hover"
@@ -213,51 +213,33 @@ export default function Contact() {
             <a href="#projects" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.work")}</a>
             <a href="#about" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.about")}</a>
 
-            {/* Mobile Footer Language Toggle — Interactive Sliding Pill sejajar di samping About Me */}
+            {/* Mobile Footer Language Selector — Open 3-segment pill with instant 1-touch switching */}
             <div
-              className={`relative inline-flex items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-[11px] font-mono h-7 ml-1 shrink-0 ${
-                isLangOpen
-                  ? `w-[108px] ${isLight ? "bg-white/95 border-slate-300 shadow-md" : "bg-[#0c0e12]/95 border-white/20 shadow-lg"}`
-                  : `w-[36px] ${isLight ? "bg-white border-slate-200 hover:border-slate-300 shadow-xs" : "bg-white/[0.04] border-white/10 hover:border-white/20"}`
+              className={`inline-flex items-center rounded-full p-0.5 border ${
+                isLight ? "bg-slate-100 border-slate-300 shadow-xs" : "bg-neutral-900/90 border-white/15 shadow-sm"
               }`}
             >
-              <div
-                className="flex items-center w-[108px] h-full transition-transform duration-300 ease-out"
-                style={{
-                  transform: isLangOpen ? "translateX(0px)" : `translateX(-${activeLangIndex * 36}px)`,
-                }}
-              >
-                {languages.map((l) => {
-                  const isSelected = lang === l.code;
-                  return (
-                    <button
-                      key={l.code}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!isLangOpen) {
-                          setIsLangOpen(true);
-                        } else {
-                          setLang(l.code);
-                          setIsLangOpen(false);
-                        }
-                      }}
-                      style={isSelected ? { backgroundColor: primaryColor } : undefined}
-                      className={`w-[36px] h-full shrink-0 flex items-center justify-center transition-colors cursor-pointer select-none rounded-full ${
-                        isSelected
-                          ? "text-white font-bold shadow-xs"
-                          : isLight
-                          ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                          : "text-neutral-400 hover:text-white hover:bg-white/10"
-                      }`}
-                      aria-label={`Switch to ${l.label}`}
-                      title={!isLangOpen ? "Klik untuk ganti bahasa" : l.label}
-                    >
-                      {l.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {languages.map((l) => {
+                const isSelected = lang === l.code;
+                return (
+                  <button
+                    key={l.code}
+                    type="button"
+                    onClick={() => setLang(l.code)}
+                    style={isSelected ? { backgroundColor: primaryColor } : undefined}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono transition-all cursor-pointer ${
+                      isSelected
+                        ? "text-white font-bold shadow-xs"
+                        : isLight
+                        ? "text-slate-600 hover:text-slate-900"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                    aria-label={`Switch to ${l.label}`}
+                  >
+                    {l.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

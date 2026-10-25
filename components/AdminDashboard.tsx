@@ -75,6 +75,7 @@ import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
 import CrmAnalyticsView from "./admin/CrmAnalyticsView";
 import SeoWorkspace from "./admin/SeoWorkspace";
 import MetaSEO from "./MetaSEO";
+import { saveSocialContacts } from "@/lib/socialService";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
@@ -1862,7 +1863,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  const { resetToDefaults: resetMotionTheme, themeMode } = useMotionTheme();
+  const { resetToDefaults: resetMotionTheme, themeMode, socialContacts } = useMotionTheme();
   const isLight = themeMode === "light";
 
   const handleTopBarSave = async () => {
@@ -1890,7 +1891,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         }
         break;
       case "social":
-        showToast(tx("Pengaturan kontak & sosmed berhasil disimpan!", "Contact & social settings saved!"));
+        await saveSocialContacts(socialContacts);
+        showToast(tx("Pengaturan kontak & sosmed berhasil disimpan & disinkronkan ke Cloud!", "Contact & social settings saved & synced to Cloud!"));
         break;
       case "motion":
         showToast(tx("Pengaturan motion & kursor berhasil disimpan!", "Motion & cursor settings saved!"));

@@ -6,6 +6,7 @@ import { HiXMark } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { addRealLead } from "@/lib/crmService";
+import { formatWhatsAppUrl } from "@/lib/socialService";
 
 const DISMISS_KEY = "wa_popup_dismissed";
 const SHOW_DELAY_MS = 3500; // show after 3.5s
@@ -16,10 +17,7 @@ export default function WhatsAppPopup() {
   const isId = lang === "id";
   const isMin = lang === "min";
 
-  const cleanWaNumber = (socialContacts.whatsappNumber || "6282381769146").replace(/[^0-9]/g, "");
-  const waUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(
-    socialContacts.whatsappMessage || "Halo Fomy R / Rizx Studio, saya tertarik untuk berdiskusi proyek."
-  )}`;
+  const waUrl = formatWhatsAppUrl(socialContacts.whatsappNumber, socialContacts.whatsappMessage);
 
   const [visible, setVisible] = useState(false);
   const [animIn, setAnimIn] = useState(false);
