@@ -41,7 +41,7 @@ import {
   RiArrowRightLine,
   RiHome5Fill,
 } from "react-icons/ri";
-import { useLang, toMinang } from "@/context/LanguageContext";
+import { useLang, toMinang, resolveTrPair } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
 import {
   usePortfolioData,
@@ -192,10 +192,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const { lang, setLang } = useLang();
   const isId = lang === "id";
   const isMin = lang === "min";
-  const tx = (idVal: string, enVal: string, minVal?: string) => {
-    if (lang === "min") return minVal || toMinang(idVal);
-    if (lang === "id") return idVal;
-    return enVal;
+  const tx = (arg1: string, arg2?: string, minVal?: string) => {
+    if (!arg2) return arg1;
+    const pair = resolveTrPair(arg1, arg2);
+    if (lang === "min") return minVal || toMinang(pair.id);
+    if (lang === "id") return pair.id;
+    return pair.en;
   };
   const [adminUser, setAdminUser] = useState("admin");
   const [adminPass, setAdminPass] = useState("");

@@ -576,6 +576,89 @@ export const translations: Record<Lang, Record<string, string>> = {
   },
 };
 
+const ID_WORDS_SET = new Set([
+  "dan", "yang", "di", "ke", "dari", "untuk", "dengan", "ini", "itu", "atau", "serta",
+  "berhasil", "gagal", "simpan", "tersimpan", "parubahan", "perubahan", "hapus", "dihapus",
+  "ubah", "diubah", "tambah", "ditambahkan", "pilih", "dipilih", "pengaturan", "warna", "tema",
+  "kursor", "proyek", "karya", "klien", "portofolio", "selesai", "bahasa", "tentang", "saya",
+  "anda", "sanak", "peringatan", "masukkan", "kembali", "tutup", "buka", "lihat", "gulir",
+  "unduh", "diunduh", "unggah", "diunggah", "salin", "disalin", "tautan", "sampah", "kapasitas",
+  "penyimpanan", "kontak", "keamanan", "sandi", "bawaan", "kustom", "aktif", "nonaktif",
+  "baris", "kecepatan", "putaran", "detik", "gerakan", "efek", "gelombang", "sentuhan",
+  "melayang", "koleksi", "pengunjung", "halaman", "tampilan", "layar", "kategori", "judul",
+  "gambar", "keterangan", "deskripsi", "wajib", "silakan", "mohon", "harap", "apakah",
+  "yakin", "semua", "seluruh", "tidak", "bukan", "sudah", "belum", "sedang", "akan",
+  "dapat", "bisa", "hanya", "pada", "foto", "pratinjau", "unggul", "unggulan", "terpilih",
+  "pilihan", "pulihkan", "bersihkan", "kuota", "ruang", "berkas", "keluar", "masuk",
+  "sinkron", "sinkronisasi", "koneksi", "basis", "data", "pesan", "sosial", "media", "taun",
+  "tahun", "pangalaman", "pengalaman", "kunci", "sesuaikan", "kelola", "rangkaian", "tuntong",
+  "ambo", "kito", "bahaso", "tasimpan", "tapiliah", "tahapuih", "barasia", "tong", "sarok",
+  "thema", "profil", "materi", "tata", "letak", "prospek"
+]);
+
+const EN_WORDS_SET = new Set([
+  "the", "and", "in", "to", "from", "for", "with", "this", "that", "or", "as",
+  "success", "successfully", "failed", "save", "saved", "changes", "delete", "deleted",
+  "edit", "edited", "add", "added", "select", "selected", "settings", "color", "colors",
+  "theme", "cursor", "project", "projects", "work", "works", "client", "clients", "portfolio",
+  "completed", "done", "language", "about", "me", "you", "your", "warning", "enter",
+  "back", "close", "open", "view", "scroll", "download", "downloaded", "upload", "uploaded",
+  "copy", "copied", "link", "trash", "bin", "recycle", "storage", "capacity", "analytics",
+  "contact", "contacts", "security", "password", "default", "defaults", "custom", "active",
+  "inactive", "enabled", "disabled", "row", "speed", "round", "seconds", "sec", "motion",
+  "effect", "effects", "wave", "ripple", "floating", "collection", "visitor", "visitors",
+  "page", "display", "screen", "category", "title", "image", "images", "description",
+  "required", "please", "confirm", "are", "sure", "all", "not", "already", "will", "can",
+  "only", "on", "photo", "photos", "preview", "top", "restore", "clean", "clear", "quota",
+  "space", "file", "files", "logout", "login", "sync", "connection", "message", "social",
+  "media", "years", "year", "experience", "key", "manage", "sequence", "frame", "frames",
+  "reel", "reels", "showcase", "banner", "hero", "lead", "leads", "profile", "layout"
+]);
+
+function scoreText(text: string) {
+  if (!text || typeof text !== "string") return { idScore: 0, enScore: 0 };
+  const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(Boolean);
+  let idScore = 0;
+  let enScore = 0;
+  for (const w of words) {
+    if (ID_WORDS_SET.has(w)) idScore += 2;
+    if (EN_WORDS_SET.has(w)) enScore += 2;
+  }
+  return { idScore, enScore };
+}
+
+export function resolveTrPair(a: string, b: string): { en: string; id: string } {
+  if (!a && !b) return { en: "", id: "" };
+  if (!b) return { en: a, id: a };
+  if (!a) return { en: b, id: b };
+
+  const sa = scoreText(a);
+  const sb = scoreText(b);
+
+  // If a has ID signal and b has EN signal
+  if (sa.idScore > sa.enScore && sb.enScore >= sb.idScore) {
+    return { id: a, en: b };
+  }
+  // If a has EN signal and b has ID signal
+  if (sa.enScore > sa.idScore && sb.idScore >= sb.enScore) {
+    return { id: b, en: a };
+  }
+  // One-sided signals
+  if (sb.enScore > sb.idScore && sa.enScore <= sa.idScore) {
+    return { id: a, en: b };
+  }
+  if (sa.enScore > sa.idScore && sb.enScore <= sb.idScore) {
+    return { id: b, en: a };
+  }
+  if (sa.idScore > sa.enScore && sb.idScore <= sb.enScore) {
+    return { id: a, en: b };
+  }
+  if (sb.idScore > sb.enScore && sa.idScore <= sa.enScore) {
+    return { id: b, en: a };
+  }
+  return { en: a, id: b };
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
 
@@ -598,11 +681,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const tr = (en: string, id: string, min?: string): string => {
-    if (lang === "en") return en;
-    if (lang === "id") return id;
-    if (lang === "min") return min || toMinang(id);
-    return en;
+  const tr = (arg1: string, arg2?: string, arg3?: string): string => {
+    if (!arg2) return arg1;
+    const pair = resolveTrPair(arg1, arg2);
+    if (lang === "en") return pair.en;
+    if (lang === "id") return pair.id;
+    if (lang === "min") return arg3 || toMinang(pair.id);
+    return pair.en;
   };
 
   return (
