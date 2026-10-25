@@ -211,10 +211,11 @@ export default function MobileAdminApp({
   // Quick Access circular icons matching reference image
   const quickAccessItems = [
     {
-      id: "clients" as AdminSidebarTab,
-      label: tr("Portofolio", "Portfolio", "Portofolio"),
-      icon: RiFolderFill,
-      bg: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      id: "trash" as AdminSidebarTab,
+      label: tr("Sampah", "Trash Bin", "Tong Sarok"),
+      icon: RiDeleteBinFill,
+      bg: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+      badge: trashCount > 0 ? trashCount : undefined,
     },
     {
       id: "crm" as AdminSidebarTab,
@@ -468,8 +469,15 @@ export default function MobileAdminApp({
                       onClick={() => navigateToWorkspace(item.id)}
                       className="flex flex-col items-center gap-1.5 p-2 rounded-2xl transition-all active:scale-90 cursor-pointer"
                     >
-                      <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center border shadow-xs ${item.bg}`}>
-                        <Icon className="w-6 h-6" />
+                      <div className="relative">
+                        <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center border shadow-xs ${item.bg}`}>
+                          <Icon className="w-6 h-6" />
+                        </div>
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
+                            {item.badge}
+                          </span>
+                        )}
                       </div>
                       <span className="text-[11px] font-semibold text-center truncate max-w-[68px] leading-tight">
                         {item.label}
