@@ -255,6 +255,11 @@ export default function StorageAnalyticsView({
     }
   }, [activeCategory, stats, tr, circumference]);
 
+  const currentPercent = activeCategory === "all" ? animatedPercent : activeDetails.percent;
+  // Inner liquid reservoir radius (fits inside stroke of radius 80 and width 14)
+  const innerRadius = 72;
+  const liquidLevelY = 182 - (Math.min(Math.max(currentPercent, 0), 100) / 100) * (innerRadius * 2);
+
   return (
     <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 select-none ${isLight ? "bg-[#f8fafc]" : "bg-[#0d0f13]"}`}>
       <div className="max-w-6xl mx-auto space-y-6">
@@ -310,8 +315,129 @@ export default function StorageAnalyticsView({
             }`} />
 
             <div className="relative flex flex-col items-center my-3">
-              {/* SVG Radial Meter */}
-              <svg width="220" height="220" className="transform -rotate-90">
+              {/* CSS Animation for 60fps Liquid Wave Ripple */}
+              <style dangerouslySetInnerHTML={{ __html: `
+                @keyframes liquidWaveFrontAnim {
+                  0% { transform: translate3d(0, 0, 0); }
+                  100% { transform: translate3d(-220px, 0, 0); }
+                }
+                @keyframes liquidWaveBackAnim {
+                  0% { transform: translate3d(-110px, 0, 0); }
+                  100% { transform: translate3d(-330px, 0, 0); }
+                }
+                .liquid-wave-front {
+                  animation: liquidWaveFrontAnim 4s linear infinite;
+                  will-change: transform;
+                }
+                .liquid-wave-back {
+                  animation: liquidWaveBackAnim 7s linear infinite;
+                  will-change: transform;
+                }
+              ` }} />
+
+              {/* LAYER 1: Liquid Wave Water Reservoir (Upright, non-rotated) */}
+              <svg width="220" height="220" className="absolute inset-0 pointer-events-none">
+                <defs>
+                  {/* Clip Path circle fitting snugly inside the progress track */}
+                  <clipPath id="storageLiquidClip">
+                    <circle cx="110" cy="110" r={innerRadius} />
+                  </clipPath>
+
+                  {/* Liquid Wave Gradients */}
+                  <linearGradient id="liquidWaveGradFront_all" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#06B6D4" stopOpacity="0.75" />
+                    <stop offset="100%" stopColor="#16b09f" stopOpacity="0.9" />
+                  </linearGradient>
+                  <linearGradient id="liquidWaveGradBack_all" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#06B6D4" stopOpacity="0.6" />
+                  </linearGradient>
+
+                  <linearGradient id="liquidWaveGradFront_works" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#2DD4BF" stopOpacity="0.75" />
+                    <stop offset="100%" stopColor="#0D9488" stopOpacity="0.9" />
+                  </linearGradient>
+                  <linearGradient id="liquidWaveGradBack_works" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#14B8A6" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#0F766E" stopOpacity="0.6" />
+                  </linearGradient>
+
+                  <linearGradient id="liquidWaveGradFront_video" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#818CF8" stopOpacity="0.75" />
+                    <stop offset="100%" stopColor="#6366F1" stopOpacity="0.9" />
+                  </linearGradient>
+                  <linearGradient id="liquidWaveGradBack_video" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#A5B4FC" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#4F46E5" stopOpacity="0.6" />
+                  </linearGradient>
+
+                  <linearGradient id="liquidWaveGradFront_frames" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#FCD34D" stopOpacity="0.75" />
+                    <stop offset="100%" stopColor="#D97706" stopOpacity="0.9" />
+                  </linearGradient>
+                  <linearGradient id="liquidWaveGradBack_frames" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#FDE68A" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#B45309" stopOpacity="0.6" />
+                  </linearGradient>
+
+                  <linearGradient id="liquidWaveGradFront_trash" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#FB7185" stopOpacity="0.75" />
+                    <stop offset="100%" stopColor="#E11D48" stopOpacity="0.9" />
+                  </linearGradient>
+                  <linearGradient id="liquidWaveGradBack_trash" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#FDA4AF" stopOpacity="0.4" />
+                    <stop offset="100%" stopColor="#BE123C" stopOpacity="0.6" />
+                  </linearGradient>
+                </defs>
+
+                {/* Glass orb chamber background */}
+                <circle
+                  cx="110"
+                  cy="110"
+                  r={innerRadius}
+                  fill={isLight ? "rgba(15, 23, 42, 0.03)" : "rgba(255, 255, 255, 0.02)"}
+                />
+
+                {/* Clipped Liquid Wave Group */}
+                <g clipPath="url(#storageLiquidClip)">
+                  {/* Dynamic rising/falling liquid level */}
+                  <motion.g
+                    initial={false}
+                    animate={{ y: liquidLevelY }}
+                    transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+                  >
+                    {/* Back Wave (Subtle Cross Ripple) */}
+                    <g className="liquid-wave-back">
+                      <path
+                        d="M 0 0 C 55 5 55 5 110 0 C 165 -5 165 -5 220 0 C 275 5 275 5 330 0 C 385 -5 385 -5 440 0 L 440 220 L 0 220 Z"
+                        fill={`url(#liquidWaveGradBack_${activeCategory})`}
+                      />
+                    </g>
+
+                    {/* Front Wave (Main Fluid Wave) */}
+                    <g className="liquid-wave-front">
+                      <path
+                        d="M 0 0 C 55 -6 55 -6 110 0 C 165 6 165 6 220 0 C 275 -6 275 -6 330 0 C 385 6 385 6 440 0 L 440 220 L 0 220 Z"
+                        fill={`url(#liquidWaveGradFront_${activeCategory})`}
+                      />
+                    </g>
+                  </motion.g>
+
+                  {/* 3D Glass Specular Sheen Reflection (Top-Left) */}
+                  <ellipse
+                    cx="88"
+                    cy="68"
+                    rx="26"
+                    ry="12"
+                    fill="white"
+                    opacity={isLight ? "0.22" : "0.09"}
+                    transform="rotate(-28 88 68)"
+                  />
+                </g>
+              </svg>
+
+              {/* LAYER 2: SVG Radial Meter */}
+              <svg width="220" height="220" className="transform -rotate-90 pointer-events-none">
                 <defs>
                   <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stopColor="#16b09f" />
@@ -371,27 +497,28 @@ export default function StorageAnalyticsView({
                 />
               </svg>
 
-              {/* Center Counter & Interactive Label */}
+              {/* LAYER 3: Center Counter & Interactive Label */}
               <button
                 type="button"
                 onClick={() => setActiveCategory("all")}
-                className="absolute inset-0 flex flex-col items-center justify-center text-center p-3 rounded-full group cursor-pointer focus:outline-none transition-transform active:scale-95"
+                className="absolute inset-0 flex flex-col items-center justify-center text-center p-3 rounded-full group cursor-pointer focus:outline-none transition-transform active:scale-95 z-10"
                 title={activeCategory !== "all" ? tr("Click to reset to all data", "Klik untuk reset ke semua data", "Klik untuak reset ka sadonyo data") : ""}
               >
                 <span
-                  className="text-[10px] font-mono tracking-widest uppercase font-bold mb-0.5 transition-colors duration-300"
+                  className="text-[10px] font-mono tracking-widest uppercase font-bold mb-0.5 transition-colors duration-300 drop-shadow-sm"
                   style={{ color: activeDetails.colorHex }}
                 >
                   {activeDetails.title}
                 </span>
-                <span className={`text-3xl sm:text-4xl font-extrabold tracking-tight flex items-baseline ${isLight ? "text-slate-900" : "text-white"}`}>
+                <span className={`text-3xl sm:text-4xl font-extrabold tracking-tight flex items-baseline drop-shadow-md ${isLight ? "text-slate-900" : "text-white"}`}>
                   {activeCategory === "all" ? animatedPercent : activeDetails.percent}%
                 </span>
                 {/* PROMINENT SIZE IN MB BADGE */}
                 <span
-                  className="mt-1 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wide transition-all shadow-lg flex items-center gap-1.5"
+                  className={`mt-1 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wide transition-all shadow-lg flex items-center gap-1.5 backdrop-blur-md ${
+                    isLight ? "bg-white/85" : "bg-black/50"
+                  }`}
                   style={{
-                    backgroundColor: `${activeDetails.colorHex}25`,
                     borderColor: `${activeDetails.colorHex}60`,
                     color: activeDetails.colorHex,
                     borderWidth: 1,
