@@ -1113,13 +1113,13 @@ export default function MobileAdminApp({
             }}
           />
 
-          {/* Scrollable Container with Headroom for Elevated Bubble */}
+          {/* Scrollable Container with Headroom for Elevated Bubble (No double border - Clean Niuuguo Silhouette) */}
           <div
             ref={dockScrollRef}
-            className={`relative flex items-center gap-1 px-3 h-[68px] pt-3.5 pb-1 rounded-full border shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
+            className={`relative flex items-center gap-1 px-3 h-[68px] pt-3.5 pb-1 rounded-full shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
               isLight
-                ? "bg-white/95 border-slate-200/90 shadow-slate-300/70"
-                : "bg-[#0b0f19]/95 border-white/15 shadow-black/90"
+                ? "bg-white/98 shadow-[0_14px_35px_rgba(15,23,42,0.12)]"
+                : "bg-[#0c101a]/98 shadow-[0_16px_45px_rgba(0,0,0,0.85)]"
             }`}
             style={{
               WebkitOverflowScrolling: "touch",
@@ -1143,7 +1143,7 @@ export default function MobileAdminApp({
                   style={{ minWidth: "54px" }}
                   title={item.label}
                 >
-                  {/* 1. GLIDING NOTCH SCOOP (Niuuguo Tabbar No.04 Fluid Curved Cradle) */}
+                  {/* 1. GLIDING NOTCH SCOOP (Niuuguo Tabbar No.04 Fluid Curved Cradle - Single Clean Silhouette) */}
                   {isActive && (
                     <motion.div
                       layoutId="curvedBarNotch"
@@ -1151,22 +1151,13 @@ export default function MobileAdminApp({
                       className="absolute -top-[15px] left-1/2 -translate-x-1/2 pointer-events-none z-10 w-[84px] h-[26px]"
                     >
                       <svg width="84" height="26" viewBox="0 0 84 26" fill="none">
-                        {/* Fluid Cutout Body (Page Background Fill) */}
+                        {/* Fluid Cutout Body (Page Background Fill - Carves the solid bar cleanly) */}
                         <path
                           d="M 0,0 
                              C 16,0 20,24 42,24 
                              C 64,24 68,0 84,0 
                              Z"
                           fill={isLight ? "#f4f6fa" : "#090b10"}
-                        />
-                        {/* Seamless Curved Cradle Rim */}
-                        <path
-                          d="M 0,0 
-                             C 16,0 20,24 42,24 
-                             C 64,24 68,0 84,0"
-                          stroke={isLight ? "rgba(203, 213, 225, 0.9)" : "rgba(255, 255, 255, 0.16)"}
-                          strokeWidth="1.2"
-                          fill="none"
                         />
                       </svg>
                     </motion.div>
@@ -1180,7 +1171,6 @@ export default function MobileAdminApp({
                       className={`w-12 h-12 rounded-full shadow-xl absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none z-10 bg-gradient-to-tr ${item.gradient}`}
                       style={{
                         boxShadow: `0 8px 24px ${item.glow}`,
-                        border: isLight ? "3px solid #ffffff" : "3px solid #0b0f19",
                       }}
                     />
                   )}

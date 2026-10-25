@@ -6008,31 +6008,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   )}
 </div>
 
-        {/* Mobile Sticky Save Bar (Only visible on mobile when inside workspace) */}
-        <div className={`md:hidden fixed bottom-0 left-0 right-0 p-3.5 border-t backdrop-blur-xl z-40 flex items-center justify-between gap-3 ${
-          isLight ? "bg-white/95 border-slate-200" : "bg-[#090b10]/95 border-white/10"
-        }`}>
-          <div className="text-xs">
-            <span className="text-neutral-400 block text-[10px]">
-              {tx("Status Sinkronisasi", "Sync Status", "Status Sinkronisasi")}
-            </span>
-            <span className="font-bold text-emerald-400 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>{tx("Cloud Siap", "Cloud Ready", "Cloud Siap")}</span>
-            </span>
-          </div>
 
-          <button
-            type="button"
-            onClick={handleTopBarSave}
-            className="flex-1 py-3 px-6 rounded-2xl text-xs font-bold text-white shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
-            style={{ backgroundColor: primaryColor }}
-          >
-            <RiSave3Fill className="w-4 h-4" />
-            <span>{tx("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}</span>
-            <RiArrowRightLine className="w-4 h-4" />
-          </button>
-        </div>
 </div>
 
       {/* MODAL: UPLOAD GAMBAR PORTOFOLIO BARU */}
