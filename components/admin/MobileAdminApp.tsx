@@ -1110,47 +1110,47 @@ export default function MobileAdminApp({
       )}
 
       {/* ==============================================================
-          FLOATING ANIMATED CURVED BOTTOM DOCK / TAB BAR (SCROLL & TAP)
+          FULL-WIDTH BOTTOM DOCK / TAB BAR (SCROLL & TAP)
+          Full-width frame to bottom (bottom-0) and left/right (left-0 right-0).
           Pin Bar (Notch & Bubble) glides across the dock.
-          Icons stay firmly anchored in their own slots (Image Reference).
          ============================================================== */}
-      <div className="fixed bottom-3 left-3 right-3 z-40 flex justify-center pointer-events-none">
+      <div className="fixed bottom-0 left-0 right-0 z-40 w-full pointer-events-auto select-none">
         <motion.div
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 350, damping: 25 }}
-          className="pointer-events-auto w-full max-w-md relative"
+          className="w-full relative"
         >
           {/* Ambient Background Glow behind Dock */}
           <div
-            className="absolute inset-x-4 bottom-1 top-4 rounded-full blur-xl opacity-25 pointer-events-none transition-all duration-500"
+            className="absolute inset-x-0 bottom-0 top-4 blur-2xl opacity-20 pointer-events-none transition-all duration-500"
             style={{
               backgroundColor:
                 bottomDockItems.find((it) => it.id === activeDockId)?.accentColor || "#10b981",
             }}
           />
 
+          {/* Full-width Base Bar Background (Spans edge-to-edge, full to bottom) */}
+          <div
+            className={`absolute inset-x-0 top-[18px] bottom-0 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] backdrop-blur-2xl transition-all ${
+              isLight
+                ? "bg-white/98 border-t border-slate-200/90"
+                : "bg-[#0c101a]/98 border-t border-white/10"
+            }`}
+          />
+
           {/* Scrollable Container with Headroom for Elevated Cutout Notch */}
           <div
             ref={dockScrollRef}
-            className="relative flex items-center h-[76px] overflow-x-auto no-scrollbar scroll-smooth"
+            className="relative flex items-center h-[76px] w-full overflow-x-auto no-scrollbar scroll-smooth"
             style={{
               WebkitOverflowScrolling: "touch",
               scrollbarWidth: "none",
               msOverflowStyle: "none",
             }}
           >
-            <div className="relative flex items-center min-w-full h-full px-2">
-              {/* 1. Base Pill Bar Background */}
-              <div
-                className={`absolute inset-x-0 top-[18px] bottom-0 rounded-full shadow-2xl backdrop-blur-2xl transition-all ${
-                  isLight
-                    ? "bg-white/95 border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)]"
-                    : "bg-[#0c101a]/95 border border-white/10 shadow-[0_14px_40px_rgba(0,0,0,0.85)]"
-                }`}
-              />
-
-              {/* 2. Gliding Cutout Notch & Elevated Circle (Niuuguo Tabbar No.04 Concept) */}
+            <div className="relative flex items-center min-w-full h-full px-4">
+              {/* 1. Gliding Cutout Notch & Elevated Circle (Niuuguo Tabbar No.04 Concept) */}
               {gliderX !== null && (
                 <motion.div
                   initial={false}
@@ -1224,7 +1224,7 @@ export default function MobileAdminApp({
                 </motion.div>
               )}
 
-              {/* 3. Stationary Dock Buttons (Icons stay firmly in their slots, hiding only when active under the glider) */}
+              {/* 2. Stationary Dock Buttons (Icons stay firmly in their slots, hiding only when active under the glider) */}
               <div className="z-10 flex items-center gap-1 w-full h-full pt-[18px]">
                 {bottomDockItems.map((item) => {
                   const Icon = item.icon;
