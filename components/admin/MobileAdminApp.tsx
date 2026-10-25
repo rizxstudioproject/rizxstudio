@@ -50,6 +50,7 @@ import MotionEffectsWorkspace from "./MotionEffectsWorkspace";
 import RecycleBinWorkspace from "./RecycleBinWorkspace";
 import StorageAnalyticsView from "./StorageAnalyticsView";
 import SecuritySettingsWorkspace from "./SecuritySettingsWorkspace";
+import HeroBannerWorkspace from "./HeroBannerWorkspace";
 import { getRealLeads, CrmLead } from "@/lib/crmService";
 
 interface MobileAdminAppProps {
@@ -260,13 +261,11 @@ export default function MobileAdminApp({
       case "storage":
         return tr("Kapasitas & Penyimpanan", "Storage & Analytics", "Panyimpanan & Data");
       case "hero-banner":
-        return tr("Banner Utama (Scrolly)", "Hero Banner", "Banner Utamo");
+      case "flagship":
+      case "runner":
+        return tr("Hero Banner & Media Reels", "Hero Banner & Media Reels", "Hero Banner & Media Reels");
       case "hero-works":
         return tr("Karya Unggulan", "Top Works", "Karya Tapiliah");
-      case "flagship":
-        return tr("Pameran Media Reels", "Media Showcase", "Media Reels");
-      case "runner":
-        return tr("Media Reels (Portofolio Berjalan)", "Media Reels (Running Portfolio)", "Media Reels (Portofolio Baguliah)");
       case "about":
         return tr("Tentang Saya (About)", "About Me", "Tantang Ambo");
       default:
@@ -354,7 +353,7 @@ export default function MobileAdminApp({
     },
     {
       id: "hero-banner",
-      label: tr("Banner", "Banner", "Banner"),
+      label: tr("Banner & Reels", "Banner & Reels", "Banner & Reels"),
       icon: RiSparklingFill,
       accentColor: "#f59e0b",
       gradient: "from-amber-500 to-orange-400",
@@ -367,14 +366,6 @@ export default function MobileAdminApp({
       accentColor: "#f43f5e",
       gradient: "from-rose-500 to-pink-500",
       glow: "rgba(244, 63, 94, 0.45)",
-    },
-    {
-      id: "runner",
-      label: tr("Media Reels", "Media Reels", "Media Reels"),
-      icon: RiMovieFill,
-      accentColor: "#06b6d4",
-      gradient: "from-cyan-500 to-blue-500",
-      glow: "rgba(6, 182, 212, 0.45)",
     },
     {
       id: "theme",
@@ -1058,6 +1049,18 @@ export default function MobileAdminApp({
               />
             )}
 
+            {activeTab === "hero-banner" && (
+              <HeroBannerWorkspace showToast={showToast || (() => {})} />
+            )}
+
+            {activeTab === "runner" && (
+              <HeroBannerWorkspace initialTab="reels" showToast={showToast || (() => {})} />
+            )}
+
+            {activeTab === "flagship" && (
+              <HeroBannerWorkspace initialTab="showcase" showToast={showToast || (() => {})} />
+            )}
+
             {activeTab === "settings" && (
               <SecuritySettingsWorkspace
                 showToast={showToast || (() => {})}
@@ -1074,6 +1077,9 @@ export default function MobileAdminApp({
               activeTab !== "motion" &&
               activeTab !== "trash" &&
               activeTab !== "storage" &&
+              activeTab !== "hero-banner" &&
+              activeTab !== "runner" &&
+              activeTab !== "flagship" &&
               activeTab !== "settings" &&
               renderWorkspaceContent(activeTab)}
           </div>

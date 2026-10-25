@@ -78,23 +78,13 @@ export default function AdminSidebar({
     },
     {
       id: "hero-banner",
-      label: tr("Hero Banner (Scrolly)", "Banner Utama (Scrolly)", "Banner Utamo (Scrolly)"),
+      label: tr("Hero Banner & Media Reels", "Banner & Media Reels", "Banner & Media Reels"),
       icon: RiSparklingFill,
     },
     {
       id: "hero-works",
       label: tr("Hero & Selected Works", "Hero & Karya Unggulan", "Hero & Karya Tapiliah"),
       icon: RiImageFill,
-    },
-    {
-      id: "flagship",
-      label: tr("Media Showcase (Stage 3)", "Pameran Media (Stage 3)", "Pameran Media (Stage 3)"),
-      icon: RiMovieFill,
-    },
-    {
-      id: "runner",
-      label: tr("Running Portfolio (4:5)", "Portofolio Berjalan (4:5)", "Portofolio Baguliah (4:5)"),
-      icon: RiGridFill,
     },
     {
       id: "about",

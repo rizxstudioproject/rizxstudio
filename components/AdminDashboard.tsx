@@ -2305,6 +2305,57 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             exit={{ opacity: 0, y: -10 }}
             className="space-y-8"
           >
+            {/* Segmented Sub-tab Navigation for Hero Banner, Media Showcase & Media Reels Hub */}
+            <div
+              className={`p-1.5 rounded-2xl border backdrop-blur-xl flex items-center gap-1.5 overflow-x-auto shadow-sm select-none ${
+                isLight ? "bg-white/90 border-slate-200" : "bg-neutral-900/80 border-white/10"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => setSidebarTab("hero-banner")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "hero-banner"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiSparkles className="w-4 h-4" />
+                <span>{tx("🌟 Hero Banner (Scrolly)", "🌟 Hero Banner (Scrolly)")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSidebarTab("flagship")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "flagship"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiVideoCamera className="w-4 h-4" />
+                <span>{tx("🎬 Media Showcase (Stage 3)", "🎬 Media Showcase (Stage 3)")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSidebarTab("runner")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "runner"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiSquares2X2 className="w-4 h-4" />
+                <span>{tx("🎞️ Media Reels (Portofolio Berjalan 4:5)", "🎞️ Media Reels (Running Portfolio 4:5)")}</span>
+              </button>
+            </div>
             {/* Header Explainer */}
             <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
               isLight
@@ -4252,6 +4303,57 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             exit={{ opacity: 0, y: -10 }}
             className="space-y-8"
           >
+            {/* Segmented Sub-tab Navigation for Hero Banner, Media Showcase & Media Reels Hub */}
+            <div
+              className={`p-1.5 rounded-2xl border backdrop-blur-xl flex items-center gap-1.5 overflow-x-auto shadow-sm select-none ${
+                isLight ? "bg-white/90 border-slate-200" : "bg-neutral-900/80 border-white/10"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => setSidebarTab("hero-banner")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "hero-banner"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiSparkles className="w-4 h-4" />
+                <span>{tx("🌟 Hero Banner (Scrolly)", "🌟 Hero Banner (Scrolly)")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSidebarTab("flagship")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "flagship"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiVideoCamera className="w-4 h-4" />
+                <span>{tx("🎬 Media Showcase (Stage 3)", "🎬 Media Showcase (Stage 3)")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSidebarTab("runner")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "runner"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiSquares2X2 className="w-4 h-4" />
+                <span>{tx("🎞️ Media Reels (Portofolio Berjalan 4:5)", "🎞️ Media Reels (Running Portfolio 4:5)")}</span>
+              </button>
+            </div>
             {/* Header Explainer */}
             <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
               isLight
@@ -5205,6 +5307,57 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             exit={{ opacity: 0, y: -10 }}
             className="space-y-6"
           >
+            {/* Segmented Sub-tab Navigation for Hero Banner, Media Showcase & Media Reels Hub */}
+            <div
+              className={`p-1.5 rounded-2xl border backdrop-blur-xl flex items-center gap-1.5 overflow-x-auto shadow-sm select-none ${
+                isLight ? "bg-white/90 border-slate-200" : "bg-neutral-900/80 border-white/10"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => setSidebarTab("hero-banner")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "hero-banner"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiSparkles className="w-4 h-4" />
+                <span>{tx("🌟 Hero Banner (Scrolly)", "🌟 Hero Banner (Scrolly)")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSidebarTab("flagship")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "flagship"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiVideoCamera className="w-4 h-4" />
+                <span>{tx("🎬 Media Showcase (Stage 3)", "🎬 Media Showcase (Stage 3)")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSidebarTab("runner")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "runner"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiSquares2X2 className="w-4 h-4" />
+                <span>{tx("🎞️ Media Reels (Portofolio Berjalan 4:5)", "🎞️ Media Reels (Running Portfolio 4:5)")}</span>
+              </button>
+            </div>
             {/* Section Explainer Banner */}
             <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
               isLight
