@@ -461,7 +461,7 @@ export default function MobileAdminApp({
             {/* 1. TOP GREETING & PROFILE HEADER */}
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-3">
-                {/* User Avatar with Status Ring */}
+                {/* User Avatar */}
                 <div className="relative">
                   <div className="w-12 h-12 rounded-full overflow-hidden p-1 border-2 border-primary shadow-sm bg-neutral-900">
                     <img
@@ -470,7 +470,6 @@ export default function MobileAdminApp({
                       className="w-full h-full object-contain brightness-0 invert"
                     />
                   </div>
-                  <span className="absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white dark:border-neutral-900 animate-pulse" />
                 </div>
                 <div>
                   <span className="text-xs text-neutral-400 font-medium block">
