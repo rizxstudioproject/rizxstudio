@@ -1113,13 +1113,13 @@ export default function MobileAdminApp({
             }}
           />
 
-          {/* Scrollable Container with Headroom for Elevated Bubble (No double border - Clean Niuuguo Silhouette) */}
+          {/* Scrollable Container (Clean, compact, perfect alignment) */}
           <div
             ref={dockScrollRef}
-            className={`relative flex items-center gap-1 px-3 h-[68px] pt-3.5 pb-1 rounded-full shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
+            className={`relative flex items-center gap-1 px-3 h-[58px] rounded-full shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
               isLight
-                ? "bg-white/98 shadow-[0_14px_35px_rgba(15,23,42,0.12)]"
-                : "bg-[#0c101a]/98 shadow-[0_16px_45px_rgba(0,0,0,0.85)]"
+                ? "bg-white/95 border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)]"
+                : "bg-[#0c101a]/95 border border-white/10 shadow-[0_14px_40px_rgba(0,0,0,0.85)]"
             }`}
             style={{
               WebkitOverflowScrolling: "touch",
@@ -1140,45 +1140,42 @@ export default function MobileAdminApp({
                   type="button"
                   onClick={() => handleDockClick(item.id)}
                   className="relative flex items-center justify-center shrink-0 cursor-pointer focus:outline-none select-none h-full"
-                  style={{ minWidth: "54px" }}
+                  style={{ minWidth: "52px" }}
                   title={item.label}
                 >
-                  {/* 1. GLIDING ACTIVE CIRCULAR BUBBLE (Moves with spring motion to active tab) */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="activeDockBubble"
-                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                      className={`w-12 h-12 rounded-full shadow-xl absolute -top-3 left-1/2 -translate-x-1/2 pointer-events-none z-10 bg-gradient-to-tr ${item.gradient}`}
-                      style={{
-                        boxShadow: `0 8px 24px ${item.glow}`,
-                        border: isLight ? "3px solid #ffffff" : "3px solid #0c101a",
-                      }}
-                    />
-                  )}
-
-                  {/* 2. STATIONARY ANCHORED ICON (Stays firmly in this exact slot at all times) */}
-                  <motion.div
-                    initial={false}
-                    animate={{
-                      y: isActive ? -12 : 0,
-                      scale: isActive ? 1.1 : 1.0,
-                    }}
-                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                    className={`relative z-20 flex items-center justify-center pointer-events-none transition-colors duration-200 ${
-                      isActive
-                        ? "text-white"
-                        : isLight
-                        ? "text-slate-400 hover:text-slate-800"
-                        : "text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    <Icon className="w-5 h-5 drop-shadow-sm transition-transform" />
-                    {item.badge !== undefined && item.badge > 0 && (
-                      <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
-                        {item.badge}
-                      </span>
+                  {/* Unified Circular Target: Icon is 100% dead-center in the gliding circle */}
+                  <div className="relative flex items-center justify-center w-11 h-11">
+                    {/* Active Gliding Circular Bubble (Glides across bar to active tab) */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeDockBubble"
+                        transition={{ type: "spring", stiffness: 420, damping: 28 }}
+                        className={`absolute inset-0 rounded-full shadow-lg z-10 bg-gradient-to-tr ${item.gradient}`}
+                        style={{
+                          boxShadow: `0 6px 18px ${item.glow}`,
+                          border: isLight ? "2.5px solid #ffffff" : "2.5px solid #0c101a",
+                        }}
+                      />
                     )}
-                  </motion.div>
+
+                    {/* Stationary Anchored Icon: Always centered inside circle, no jumping */}
+                    <span
+                      className={`relative z-20 flex items-center justify-center transition-all duration-200 ${
+                        isActive
+                          ? "text-white scale-105"
+                          : isLight
+                          ? "text-slate-400 hover:text-slate-700"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <Icon className="w-5 h-5 drop-shadow-sm" />
+                      {item.badge !== undefined && item.badge > 0 && (
+                        <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
+                          {item.badge}
+                        </span>
+                      )}
+                    </span>
+                  </div>
                 </button>
               );
             })}
