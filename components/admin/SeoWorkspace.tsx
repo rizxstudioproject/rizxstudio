@@ -49,8 +49,30 @@ export default function SeoWorkspace() {
     });
   }, []);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (!loading && typeof window !== "undefined") {
+      try {
+        localStorage.setItem("rizx_seo_config", JSON.stringify(config));
+      } catch (e) {
+        console.warn("SEO local cache notice:", e);
+      }
+    }
+  }, [config, loading]);
+
+  useEffect(() => {
+    const onTriggerSave = () => {
+      saveSeoConfig(config).then((ok) => {
+        if (ok) {
+          showToast("Pengaturan SEO berhasil disimpan & disinkronkan ke Cloud!");
+        }
+      });
+    };
+    window.addEventListener("app:trigger-seo-save", onTriggerSave);
+    return () => window.removeEventListener("app:trigger-seo-save", onTriggerSave);
+  }, [config, showToast]);
+
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     setSaving(true);
     try {
       const ok = await saveSeoConfig(config);
@@ -130,16 +152,6 @@ export default function SeoWorkspace() {
           >
             <RiRestartFill className="w-4 h-4 inline mr-1.5" />
             Reset Default
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-            style={{ backgroundColor: primaryColor }}
-          >
-            <RiSave3Fill className="w-4 h-4" />
-            <span>{saving ? "Menyimpan..." : "Simpan SEO Cloud"}</span>
           </button>
         </div>
       </div>
@@ -504,19 +516,6 @@ export default function SeoWorkspace() {
               <RiShareBoxLine className="w-4 h-4 text-slate-400" />
             </a>
           </div>
-        </div>
-
-        {/* Bottom Save Bar */}
-        <div className="flex items-center justify-end gap-3 pt-4">
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-xs font-bold text-white shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-            style={{ backgroundColor: primaryColor }}
-          >
-            <RiSave3Fill className="w-4 h-4" />
-            <span>{saving ? "Menyimpan ke Cloud..." : "Simpan Semua Pengaturan SEO"}</span>
-          </button>
         </div>
       </form>
     </div>

@@ -1906,6 +1906,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       case "theme":
         showToast(tx("Skema warna tampilan berhasil disimpan!", "Color scheme & theme saved!"));
         break;
+      case "seo":
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("app:trigger-seo-save"));
+        }
+        showToast(tx("Pengaturan SEO berhasil disimpan & disinkronkan ke Cloud!", "SEO settings saved & synced to Cloud!"));
+        break;
       case "settings":
         await handleSaveAccount({ preventDefault: () => {} } as any);
         break;
