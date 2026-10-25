@@ -137,6 +137,27 @@ export default function MobileAdminApp({
   const isLight = themeMode === "light";
 
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
+  const mobileLangRef = useRef<HTMLDivElement>(null);
+  const languagesList = [
+    { code: "en" as const, label: "EN" },
+    { code: "id" as const, label: "ID" },
+    { code: "min" as const, label: "MIN" },
+  ];
+  const activeLangIndex = Math.max(0, languagesList.findIndex((l) => l.code === lang));
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      if (mobileLangRef.current && !mobileLangRef.current.contains(e.target as Node)) {
+        setIsLangMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, []);
 
   // Navigation: 'home' shows the native home dashboard from reference mockup
   // When activeTab !== 'home', it shows the specific workspace screen
@@ -501,58 +522,61 @@ export default function MobileAdminApp({
                   <RiSunFill className={`w-4 h-4 ${isLight ? "text-amber-500" : "text-amber-400"}`} />
                 </button>
 
-                {/* 2. Language Switcher Circular Button (Teal circle with bold uppercase text - Image 1 Style) */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                    className="w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer font-black text-xs text-white shadow-md bg-teal-500 hover:bg-teal-600 border border-teal-400/40 select-none"
-                    title={tr("Pilih Bahasa", "Change Language", "Pilih Bahaso")}
+                {/* 2. Language Switcher Sliding Pill (Mirip pada Website Navbar: 1 compact circular pill -> slides open horizontally on tap) */}
+                <div
+                  ref={mobileLangRef}
+                  className={`relative flex items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-xs font-mono h-9 ${
+                    isLangMenuOpen
+                      ? `w-[114px] ${isLight ? "bg-white/95 border-slate-300 shadow-md" : "bg-[#0c0e12]/95 border-white/20 shadow-lg"}`
+                      : `w-9 ${isLight ? "border-slate-200 shadow-xs" : "border-white/15 shadow-sm"}`
+                  }`}
+                  style={{
+                    backgroundColor: !isLangMenuOpen ? (primaryColor || "#16b09f") : undefined,
+                  }}
+                >
+                  <div
+                    className="flex items-center w-[114px] h-full transition-transform duration-300 ease-out"
+                    style={{
+                      transform: isLangMenuOpen ? "translateX(0px)" : `translateX(-${activeLangIndex * 38}px)`,
+                    }}
                   >
-                    <span>{lang.toUpperCase()}</span>
-                  </button>
-
-                  <AnimatePresence>
-                    {isLangMenuOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 5 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 5 }}
-                        transition={{ duration: 0.15 }}
-                        className={`absolute right-0 top-11 z-50 p-1.5 rounded-2xl border shadow-2xl backdrop-blur-xl flex flex-col gap-1 min-w-[125px] ${
-                          isLight ? "bg-white/95 border-slate-200" : "bg-[#0f1422]/95 border-white/15"
-                        }`}
-                      >
-                        {[
-                          { code: "id" as const, label: "Indonesia", flag: "🇮🇩" },
-                          { code: "en" as const, label: "English", flag: "🇺🇸" },
-                          { code: "min" as const, label: "Minang", flag: "🏛️" },
-                        ].map((item) => (
-                          <button
-                            key={item.code}
-                            type="button"
-                            onClick={() => {
-                              setLang(item.code);
+                    {languagesList.map((l) => {
+                      const isSelected = lang === l.code;
+                      return (
+                        <button
+                          key={l.code}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (!isLangMenuOpen) {
+                              setIsLangMenuOpen(true);
+                            } else {
+                              setLang(l.code);
                               setIsLangMenuOpen(false);
-                            }}
-                            className={`flex items-center justify-between px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                              lang === item.code
-                                ? "bg-teal-500/20 text-teal-400 font-bold border border-teal-500/30"
-                                : isLight
-                                ? "hover:bg-slate-100 text-slate-700"
-                                : "hover:bg-white/10 text-neutral-300"
-                            }`}
-                          >
-                            <span className="flex items-center gap-1.5">
-                              <span>{item.flag}</span>
-                              <span>{item.code.toUpperCase()}</span>
-                            </span>
-                            {lang === item.code && <RiCheckFill className="w-3.5 h-3.5 text-teal-400" />}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                            }
+                          }}
+                          style={
+                            isSelected && isLangMenuOpen
+                              ? { backgroundColor: primaryColor || "#16b09f" }
+                              : undefined
+                          }
+                          className={`w-[38px] h-full shrink-0 flex items-center justify-center font-bold tracking-wider transition-all duration-200 cursor-pointer select-none ${
+                            !isLangMenuOpen
+                              ? "text-black font-black"
+                              : isSelected
+                              ? "text-black shadow-xs font-black rounded-full"
+                              : isLight
+                              ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                              : "text-neutral-400 hover:text-white hover:bg-white/10"
+                          }`}
+                          aria-label={`Ganti ke ${l.label}`}
+                          title={!isLangMenuOpen ? tr("Pilih Bahasa", "Change Language", "Pilih Bahaso") : l.label}
+                        >
+                          {l.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <a
