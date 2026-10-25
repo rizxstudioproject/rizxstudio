@@ -1915,6 +1915,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         showToast(tx("Pengaturan SEO berhasil disimpan & disinkronkan ke Cloud!", "SEO settings saved & synced to Cloud!"));
         break;
       case "settings":
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("app:trigger-settings-save"));
+        }
         await handleSaveAccount({ preventDefault: () => {} } as any);
         break;
       default:

@@ -117,6 +117,14 @@ export default function SecuritySettingsWorkspace({
     }
   };
 
+  useEffect(() => {
+    const onTriggerSave = () => {
+      handleSave();
+    };
+    window.addEventListener("app:trigger-settings-save", onTriggerSave);
+    return () => window.removeEventListener("app:trigger-settings-save", onTriggerSave);
+  }, [adminUser, adminEmail, adminSecretKey, newPassword, confirmPassword]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
@@ -363,24 +371,7 @@ export default function SecuritySettingsWorkspace({
               </motion.div>
             )}
 
-            {/* Submit Button */}
-            <div className="pt-2">
-              <button
-                type="submit"
-                disabled={isSaving}
-                className="w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold text-white shadow-lg shadow-teal-500/20 flex items-center justify-center gap-2 transition-all active:scale-98 cursor-pointer disabled:opacity-50"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <RiSave3Fill className="w-4 h-4" />
-                <span>
-                  {isSaving
-                    ? tr("Menyimpan ke Cloud...", "Saving to Cloud...", "Manyimpan ka Cloud...")
-                    : savedSuccess
-                    ? tr("Perubahan Berhasil Disimpan!", "Changes Saved!", "Parubahan Tasimpan!")
-                    : tr("Simpan Pengaturan Akun & Keamanan", "Save Security & Account", "Simpan Pangaturan Akun & Kaamanan")}
-                </span>
-              </button>
-            </div>
+
           </form>
         </div>
 
