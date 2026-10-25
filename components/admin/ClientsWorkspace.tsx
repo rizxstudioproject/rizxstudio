@@ -236,6 +236,14 @@ export default function ClientsWorkspace({
   // Filter clients for the middle column
   const filteredClients = useMemo(() => {
     return clients.filter((c) => {
+      if (
+        !c.id ||
+        c.id.startsWith("site-") ||
+        c.id.startsWith("system-") ||
+        c.id.startsWith("config-")
+      ) {
+        return false;
+      }
       const matchSearch =
         !clientSearch ||
         c.clientName.toLowerCase().includes(clientSearch.toLowerCase()) ||
@@ -255,9 +263,26 @@ export default function ClientsWorkspace({
     });
   }, [clients, clientSearch, filterTab, favorites]);
 
-  // Count metrics for tabs
+  // Count metrics for tabs (strictly genuine clients only)
+  const validClientsCount = useMemo(() => {
+    return clients.filter(
+      (c) =>
+        c.id &&
+        !c.id.startsWith("site-") &&
+        !c.id.startsWith("system-") &&
+        !c.id.startsWith("config-")
+    ).length;
+  }, [clients]);
+
   const favoriteCount = useMemo(() => {
-    return clients.filter((c) => favorites[c.id]).length;
+    return clients.filter(
+      (c) =>
+        c.id &&
+        !c.id.startsWith("site-") &&
+        !c.id.startsWith("system-") &&
+        !c.id.startsWith("config-") &&
+        favorites[c.id]
+    ).length;
   }, [clients, favorites]);
 
   // Tools toggle helper
@@ -644,7 +669,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     : "bg-white/10 text-neutral-300"
                 }`}
               >
-                {clients.length}
+                {validClientsCount}
               </span>
             </button>
             <button
@@ -706,7 +731,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
-                  {tr("All", "Semua", "Kasadonyo")} {clients.length}
+                  {tr("All", "Semua", "Kasadonyo")} {validClientsCount}
                 </button>
                 <button
                   type="button"
@@ -973,7 +998,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               }}
               className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
             >
-              {tr(`View all ${clients.length} clients`, `Lihat semua ${clients.length} klien`, `Caliak kasadonyo ${clients.length} klien`)}
+              {tr(`View all ${validClientsCount} clients`, `Lihat semua ${validClientsCount} klien`, `Caliak kasadonyo ${validClientsCount} klien`)}
             </button>
           ) : (
             <div className="space-y-1.5">

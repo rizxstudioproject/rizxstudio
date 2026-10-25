@@ -475,6 +475,26 @@ function cleanDriveId(id: string): string {
 
 const PortfolioDataContext = createContext<PortfolioDataContextType | undefined>(undefined);
 
+export const isSystemConfigId = (id: string): boolean => {
+  if (!id || typeof id !== "string") return false;
+  return (
+    id.startsWith("site-") ||
+    id.startsWith("system-") ||
+    id.startsWith("config-") ||
+    id === "site-seo-settings" ||
+    id === "site-crm-leads" ||
+    id === "site-social-profiles" ||
+    id === "site-admin-credentials" ||
+    id === "site-about-section" ||
+    id === "site-hero-works" ||
+    id === "site-client-logos" ||
+    id === "site-portfolio-intro" ||
+    id === "site-portfolio-runner" ||
+    id === "site-hero-banner" ||
+    id === "site-stage3-showcase"
+  );
+};
+
 export function PortfolioDataProvider({ children }: { children: React.ReactNode }) {
   // Synchronous initial state from LocalStorage on client to eliminate SSR flash/glitch
   const [stage3, setStage3] = useState<{
@@ -704,6 +724,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
 
         if (parsed.clients && Array.isArray(parsed.clients)) {
+          const cleanSavedClients = parsed.clients.filter((c: any) => !isSystemConfigId(c.id));
           // Merge saved data onto default clients
           const mergedClients = antigravityData.stage4.clients.map((defaultClient) => {
             const saved = parsed.clients.find((c: any) => c.id === defaultClient.id);
@@ -720,9 +741,10 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           });
 
           // Also restore any admin-created custom folders
-          const customFolders = parsed.clients.filter(
+          const customFolders = (cleanSavedClients || parsed.clients).filter(
             (c: any) =>
               c.isCustom === true &&
+              !isSystemConfigId(c.id) &&
               !antigravityData.stage4.clients.find((d: any) => d.id === c.id)
           );
           const customClientItems: ClientItem[] = customFolders.map((c: any) => ({
@@ -738,7 +760,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             isCustom: true,
           }));
 
-          const finalInitialClients = [...(mergedClients as ClientItem[]), ...customClientItems];
+          const finalInitialClients = [...(mergedClients as ClientItem[]), ...customClientItems].filter((c) => !isSystemConfigId(c.id));
           setClients(finalInitialClients);
           clientsRef.current = finalInitialClients;
         }
@@ -1003,17 +1025,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               } catch (_) {}
             }
 
-            // Exclude system keys from regular client folders list
+            // Exclude ALL system & internal config keys from regular client folders list
             const regularClientRows = clientRows.filter(
-              (r) =>
-                r.client_id !== "site-about-section" &&
-                r.client_id !== "site-hero-works" &&
-                r.client_id !== "site-client-logos" &&
-                r.client_id !== "site-portfolio-intro" &&
-                r.client_id !== "site-portfolio-runner" &&
-                r.client_id !== "site-hero-banner" &&
-                r.client_id !== "site-stage3-showcase" &&
-                r.client_id !== "site-admin-credentials"
+              (r) => !isSystemConfigId(r.client_id)
             );
 
             const defaultClients = antigravityData.stage4.clients;
@@ -1089,7 +1103,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             const finalClients: ClientItem[] = [
               ...(mergedDefaults as ClientItem[]),
               ...cloudCustoms,
-            ];
+            ].filter((c) => !isSystemConfigId(c.id));
             setClients(finalClients);
             clientsRef.current = finalClients;
             try {
