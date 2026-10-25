@@ -252,7 +252,7 @@ export default function MobileAdminApp({
       case "social":
         return tr("Kontak & Media Sosial", "Socials & Contacts", "Kontak & Sosmed");
       case "theme":
-        return tr("Warna & Tema UI", "Theme & Colors", "Warna & Tema");
+        return tr("Warna, Tema & Kursor", "Theme, Colors & Cursor", "Warna, Tema & Kursor");
       case "motion":
         return tr("Motion & Efek Gerak", "Motion & Cursor", "Motion & Garakan");
       case "trash":
