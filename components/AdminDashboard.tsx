@@ -5985,6 +5985,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         Supabase Database Aktif
                       </span>
                     </div>
+
+                    {/* Tombol Logout Sesi Admin di dalam Setting */}
+                    <div className="pt-2">
+                      <button
+                        type="button"
+                        onClick={adminLogout}
+                        className="w-full py-2.5 px-4 rounded-xl bg-rose-600/90 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <HiArrowRightOnRectangle className="w-4 h-4" />
+                        <span>{tx("Keluar dari Sesi Admin (Logout)", "Logout from Admin", "Kalua dari Sesi Admin")}</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

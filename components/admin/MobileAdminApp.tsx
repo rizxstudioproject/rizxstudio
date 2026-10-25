@@ -557,18 +557,6 @@ export default function MobileAdminApp({
                 >
                   <RiEyeLine className="w-4 h-4" />
                 </a>
-                <button
-                  type="button"
-                  onClick={onLogout}
-                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer ${
-                    isLight
-                      ? "bg-rose-50 text-rose-600 border border-rose-200"
-                      : "bg-rose-500/10 text-rose-400 border border-rose-500/20"
-                  }`}
-                  title={tr("Keluar Admin", "Logout", "Kalua")}
-                >
-                  <RiLogoutBoxRFill className="w-4 h-4" />
-                </button>
               </div>
             </div>
 
@@ -1050,7 +1038,10 @@ export default function MobileAdminApp({
             )}
 
             {activeTab === "settings" && (
-              <SecuritySettingsWorkspace showToast={showToast || (() => {})} />
+              <SecuritySettingsWorkspace
+                showToast={showToast || (() => {})}
+                onLogout={onLogout}
+              />
             )}
 
             {renderWorkspaceContent &&
