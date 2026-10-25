@@ -36,6 +36,9 @@ import {
   RiChat3Fill,
   RiLineChartFill,
   RiSearchEyeFill,
+  RiArrowLeftLine,
+  RiSave3Fill,
+  RiArrowRightLine,
 } from "react-icons/ri";
 import { useLang, toMinang } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
@@ -116,6 +119,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
   // Studio OS Sidebar Tab: 'dashboard' | 'clients' | 'portfolio' | 'ai-prompt' | 'brand' | 'resources' | 'settings'
   const [sidebarTab, setSidebarTab] = useState<AdminSidebarTab>("clients");
+  const [mobileScreen, setMobileScreen] = useState<"home" | "workspace">("home");
   const [portfolioSubTab, setPortfolioSubTab] = useState<
     "hero-banner" | "hero-works" | "flagship" | "runner" | "about"
   >("hero-banner");
@@ -1864,7 +1868,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  const { resetToDefaults: resetMotionTheme, themeMode, socialContacts } = useMotionTheme();
+  const { resetToDefaults: resetMotionTheme, themeMode, socialContacts, primaryColor } = useMotionTheme();
   const isLight = themeMode === "light";
 
   const handleTopBarSave = async () => {
@@ -1937,6 +1941,41 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
+  const getMobileTabTitle = (tab: AdminSidebarTab) => {
+    switch (tab) {
+      case "hero-banner":
+        return tx("Banner Utama (Scrolly)", "Hero Banner (Scrolly)", "Banner Utamo (Scrolly)");
+      case "hero-works":
+        return tx("Hero & Karya Unggulan", "Hero & Selected Works", "Hero & Karya Tapiliah");
+      case "flagship":
+        return tx("Pameran Media Reels", "Media Reels Showcase", "Pameran Media Reels");
+      case "clients":
+        return tx("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien");
+      case "crm":
+        return tx("CRM & Prospek Leads", "CRM & Leads", "CRM & Prospek Leads");
+      case "seo":
+        return tx("SEO Google & Mesin Pencari", "Google SEO", "SEO Google");
+      case "theme":
+        return tx("Warna & Tema UI", "Theme & Colors", "Warna & Tema UI");
+      case "social":
+        return tx("Kontak WhatsApp & Sosmed", "Contacts & Socials", "Kontak WhatsApp & Sosmed");
+      case "motion":
+        return tx("Motion & Efek Gerak", "Motion Effects", "Motion & Garakan");
+      case "trash":
+        return tx("Tong Sampah (Recycle Bin)", "Recycle Bin", "Tong Sarok");
+      case "storage":
+        return tx("Penyimpanan & Kapasitas", "Storage & Analytics", "Panyimpanan & Kapasitas");
+      case "runner":
+        return tx("Portofolio Berjalan (4:5)", "Running Portfolio", "Portofolio Baguliah");
+      case "about":
+        return tx("Tentang Saya (About Me)", "About Me", "Tantang Ambo");
+      case "settings":
+        return tx("Setting Admin & Keamanan", "Admin Security & Settings", "Setting Admin & Kaamanan");
+      default:
+        return tab;
+    }
+  };
+
   return (
     <div
       id="admin-dashboard"
@@ -1965,12 +2004,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       </div>
 
       {/* Mobile Native App Experience (< 768px, Reference Mockup UI/UX) */}
-      <div className="flex md:hidden h-full w-full overflow-hidden">
+      <div className={`${mobileScreen === "home" ? "flex" : "hidden"} md:hidden h-full w-full overflow-hidden`}>
         <MobileAdminApp
           activeTab={sidebarTab}
           onSelectTab={(tab) => {
             setSidebarTab(tab);
             setActiveTab(tab as any);
+            setMobileScreen("workspace");
           }}
           clients={clients}
           selectedClientId={selectedClientId}
@@ -2018,46 +2058,78 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         />
       </div>
 
-      {/* Main Workspace Column (Desktop & Tablet >= 768px) */}
-      <div className={`hidden md:flex flex-1 flex-col h-full min-w-0 overflow-hidden ${
+      {/* Main Workspace Column (Desktop & Tablet >= 768px, and Mobile when mobileScreen === "workspace") */}
+      <div className={`${mobileScreen === "workspace" ? "flex" : "hidden md:flex"} flex-1 flex-col h-full min-w-0 overflow-hidden relative ${
         isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
       }`}>
-        {/* Top Header Bar */}
-        <AdminTopBar
-          searchQuery={globalSearchQuery}
-          onSearchChange={(q) => setGlobalSearchQuery(q)}
-          onViewWebsite={() => {
-            if (typeof window !== "undefined") {
-              window.open("/", "_blank");
-            }
-          }}
-          onLogout={adminLogout}
-          isCloudSyncActive={isCloudSyncActive}
-          onToggleMobileMenu={() => setIsMobileMenuOpen(true)}
-          clients={clients}
-          clLogos={clLogos}
-          onSelectClient={(id) => {
-            setSelectedClientId(id);
-            setSidebarTab("clients");
-            setClientsWorkspaceView("folders");
-            showToast("Membuka folder klien");
-          }}
-          onSelectTab={(tab) => {
-            setSidebarTab(tab);
-          }}
-          onOpenLogosTab={() => {
-            setSidebarTab("clients");
-            setClientsWorkspaceView("logos");
-            showToast("Membuka Partner Logos Marquee");
-          }}
-          onResetDefault={handleTopBarReset}
-          onSaveChanges={handleTopBarSave}
-          showResetDefault={sidebarTab !== "trash" && sidebarTab !== "storage" && sidebarTab !== "crm"}
-          showSaveChanges={sidebarTab !== "trash" && sidebarTab !== "storage"}
-        />
+        {/* Mobile Workspace Top Navigation Bar (Only visible on mobile when inside workspace) */}
+        <div className={`flex md:hidden px-4 py-3 border-b items-center justify-between shrink-0 z-30 ${
+          isLight ? "bg-white border-slate-200" : "bg-[#0d1017] border-white/10"
+        }`}>
+          <button
+            type="button"
+            onClick={() => setMobileScreen("home")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer ${
+              isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800" : "bg-white/10 text-white"
+            }`}
+          >
+            <RiArrowLeftLine className="w-4 h-4" />
+            <span>{tx("Beranda", "Home", "Barando")}</span>
+          </button>
+
+          <span className="text-xs font-bold tracking-tight truncate max-w-[170px]">
+            {getMobileTabTitle(sidebarTab)}
+          </span>
+
+          <button
+            type="button"
+            onClick={handleTopBarSave}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-md shadow-teal-500/20 transition-all active:scale-95 cursor-pointer"
+            style={{ backgroundColor: primaryColor }}
+          >
+            <RiSave3Fill className="w-3.5 h-3.5" />
+            <span>{tx("Simpan", "Save", "Simpan")}</span>
+          </button>
+        </div>
+
+        {/* Desktop Top Header Bar (Only visible on md+) */}
+        <div className="hidden md:block shrink-0">
+          <AdminTopBar
+            searchQuery={globalSearchQuery}
+            onSearchChange={(q) => setGlobalSearchQuery(q)}
+            onViewWebsite={() => {
+              if (typeof window !== "undefined") {
+                window.open("/", "_blank");
+              }
+            }}
+            onLogout={adminLogout}
+            isCloudSyncActive={isCloudSyncActive}
+            onToggleMobileMenu={() => setIsMobileMenuOpen(true)}
+            clients={clients}
+            clLogos={clLogos}
+            onSelectClient={(id) => {
+              setSelectedClientId(id);
+              setSidebarTab("clients");
+              setClientsWorkspaceView("folders");
+              showToast("Membuka folder klien");
+            }}
+            onSelectTab={(tab) => {
+              setSidebarTab(tab);
+            }}
+            onOpenLogosTab={() => {
+              setSidebarTab("clients");
+              setClientsWorkspaceView("logos");
+              showToast("Membuka Partner Logos Marquee");
+            }}
+            onResetDefault={handleTopBarReset}
+            onSaveChanges={handleTopBarSave}
+            showResetDefault={sidebarTab !== "trash" && sidebarTab !== "storage" && sidebarTab !== "crm"}
+            showSaveChanges={sidebarTab !== "trash" && sidebarTab !== "storage"}
+          />
+        </div>
 
         {/* Dynamic Workspace Canvas */}
-        <div className="flex-1 flex min-h-0 overflow-hidden relative">
+        <div className="flex-1 flex min-h-0 overflow-hidden relative pb-20 md:pb-0">
           {/* 1. Clients Studio OS Workspace (Matches User's Mockup) */}
           {sidebarTab === "clients" && (
             <ClientsWorkspace
@@ -5924,6 +5996,32 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     </div>
   )}
 </div>
+
+        {/* Mobile Sticky Save Bar (Only visible on mobile when inside workspace) */}
+        <div className={`md:hidden fixed bottom-0 left-0 right-0 p-3.5 border-t backdrop-blur-xl z-40 flex items-center justify-between gap-3 ${
+          isLight ? "bg-white/95 border-slate-200" : "bg-[#090b10]/95 border-white/10"
+        }`}>
+          <div className="text-xs">
+            <span className="text-neutral-400 block text-[10px]">
+              {tx("Status Sinkronisasi", "Sync Status", "Status Sinkronisasi")}
+            </span>
+            <span className="font-bold text-emerald-400 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{tx("Cloud Siap", "Cloud Ready", "Cloud Siap")}</span>
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleTopBarSave}
+            className="flex-1 py-3 px-6 rounded-2xl text-xs font-bold text-white shadow-xl shadow-teal-500/30 flex items-center justify-center gap-2 transition-all active:scale-95 cursor-pointer"
+            style={{ backgroundColor: primaryColor }}
+          >
+            <RiSave3Fill className="w-4 h-4" />
+            <span>{tx("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}</span>
+            <RiArrowRightLine className="w-4 h-4" />
+          </button>
+        </div>
 </div>
 
       {/* MODAL: UPLOAD GAMBAR PORTOFOLIO BARU */}
@@ -6798,6 +6896,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         setSidebarTab(item.id);
                         setActiveTab(item.id as any);
                         setIsMobileMenuOpen(false);
+                        setMobileScreen("workspace");
                       }}
                       className={`w-full p-3 rounded-2xl border transition-all text-left flex items-center justify-between cursor-pointer ${
                         isSelected
