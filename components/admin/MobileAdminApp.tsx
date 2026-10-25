@@ -1107,17 +1107,17 @@ export default function MobileAdminApp({
           >
             {/* Ambient Background Glow behind Dock */}
             <div
-              className="absolute -inset-1 rounded-full blur-xl opacity-20 pointer-events-none transition-all duration-500"
+              className="absolute inset-x-4 bottom-1 top-4 rounded-full blur-xl opacity-25 pointer-events-none transition-all duration-500"
               style={{
                 backgroundColor:
                   bottomDockItems.find((it) => it.id === activeDockId)?.accentColor || "#10b981",
               }}
             />
 
-            {/* Scrollable Curved Dock Bar Shell */}
+            {/* Scrollable Container with Headroom for Elevated Bubble */}
             <div
               ref={dockScrollRef}
-              className={`relative flex items-center gap-1.5 px-3 py-2 pt-3 rounded-full border shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
+              className={`relative flex items-center gap-1 px-3 h-[68px] pt-3.5 pb-1 rounded-full border shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
                 isLight
                   ? "bg-white/95 border-slate-200/90 shadow-slate-300/70"
                   : "bg-[#0b0f19]/95 border-white/15 shadow-black/90"
@@ -1140,17 +1140,41 @@ export default function MobileAdminApp({
                     }}
                     type="button"
                     onClick={() => handleDockClick(item.id)}
-                    className="relative flex flex-col items-center justify-center shrink-0 cursor-pointer focus:outline-none transition-all select-none"
-                    style={{ minWidth: "58px" }}
+                    className="relative flex items-center justify-center shrink-0 cursor-pointer focus:outline-none select-none h-full"
+                    style={{ minWidth: "54px" }}
                     title={item.label}
                   >
                     {isActive ? (
-                      /* Active Elevated Notch Bubble (Image 3 Style) */
-                      <div className="flex flex-col items-center -translate-y-2.5 transition-transform duration-300">
+                      /* Active State with Morphing Curved Scoop & Elevated Bubble (Image 4 & 5 Style) */
+                      <div className="relative flex items-center justify-center w-full h-full">
+                        {/* 1. Curved Notch Scoop Cutout (Glides across bar with layoutId) */}
+                        <motion.div
+                          layoutId="curvedBarNotch"
+                          transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                          className="absolute -top-[15px] left-1/2 -translate-x-1/2 pointer-events-none z-10 w-[74px] h-[24px]"
+                        >
+                          <svg width="74" height="24" viewBox="0 0 74 24" fill="none">
+                            {/* Cutout Body - Revealing Page Background */}
+                            <path
+                              d="M 0 0 C 14 0 16 20 37 20 C 58 20 60 0 74 0 L 74 0 L 0 0 Z"
+                              fill={isLight ? "#f4f6fa" : "#090b10"}
+                            />
+                            {/* Smooth Curved Notch Lip / Border */}
+                            <path
+                              d="M 0 0 C 14 0 16 20 37 20 C 58 20 60 0 74 0"
+                              stroke={isLight ? "rgba(203, 213, 225, 0.9)" : "rgba(255, 255, 255, 0.15)"}
+                              strokeWidth="1.5"
+                              fill="none"
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                        </motion.div>
+
+                        {/* 2. Elevated Floating Active Bubble (Glides across bar with layoutId) */}
                         <motion.div
                           layoutId="activeDockBubble"
-                          transition={{ type: "spring", stiffness: 450, damping: 26 }}
-                          className={`w-11 h-11 rounded-full flex items-center justify-center text-white shadow-xl relative z-20 bg-gradient-to-tr ${item.gradient}`}
+                          transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                          className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-xl relative z-20 -translate-y-3 bg-gradient-to-tr ${item.gradient}`}
                           style={{
                             boxShadow: `0 8px 24px ${item.glow}`,
                             border: isLight ? "3px solid #ffffff" : "3px solid #0b0f19",
@@ -1163,34 +1187,24 @@ export default function MobileAdminApp({
                             </span>
                           )}
                         </motion.div>
-                        <span
-                          className={`text-[10px] font-extrabold tracking-tight mt-0.5 truncate max-w-[58px] text-center ${
-                            isLight ? "text-slate-900" : "text-white"
-                          }`}
-                        >
-                          {item.label}
-                        </span>
                       </div>
                     ) : (
-                      /* Inactive Flat Dock Icon */
+                      /* Inactive Icon Only (No Text Label - Matches Image 1, 2, 3, 4, 5) */
                       <div
-                        className={`flex flex-col items-center py-1 transition-all duration-200 active:scale-90 hover:opacity-100 ${
+                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 hover:opacity-100 ${
                           isLight
                             ? "text-slate-400 hover:text-slate-800"
                             : "text-neutral-400 hover:text-white"
                         }`}
                       >
-                        <div className="relative w-8 h-8 rounded-xl flex items-center justify-center">
-                          <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
+                        <div className="relative flex items-center justify-center">
+                          <Icon className="w-5 h-5 transition-transform hover:scale-110" />
                           {item.badge !== undefined && item.badge > 0 && (
-                            <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
+                            <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
                               {item.badge}
                             </span>
                           )}
                         </div>
-                        <span className="text-[9px] font-medium tracking-tight mt-0.5 truncate max-w-[52px] text-center opacity-75">
-                          {item.label}
-                        </span>
                       </div>
                     )}
                   </button>
