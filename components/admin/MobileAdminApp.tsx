@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RiHome5Fill,
@@ -404,6 +404,15 @@ export default function MobileAdminApp({
   const activeDockId = currentScreen === "home" ? "home" : activeTab;
   const dockScrollRef = useRef<HTMLDivElement>(null);
   const dockItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [gliderX, setGliderX] = useState<number | null>(null);
+
+  const updateGliderPosition = useCallback((targetId: string) => {
+    const el = dockItemRefs.current[targetId];
+    if (el) {
+      const center = el.offsetLeft + el.offsetWidth / 2;
+      setGliderX(center - 40);
+    }
+  }, []);
 
   const scrollActiveItemIntoView = (id: string, smooth = true) => {
     const el = dockItemRefs.current[id];
@@ -417,13 +426,21 @@ export default function MobileAdminApp({
   };
 
   useEffect(() => {
+    updateGliderPosition(activeDockId);
     const timer = setTimeout(() => {
+      updateGliderPosition(activeDockId);
       scrollActiveItemIntoView(activeDockId, true);
-    }, 150);
-    return () => clearTimeout(timer);
-  }, [activeDockId]);
+    }, 50);
+    const handleResize = () => updateGliderPosition(activeDockId);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [activeDockId, updateGliderPosition]);
 
   const handleDockClick = (id: string) => {
+    updateGliderPosition(id);
     scrollActiveItemIntoView(id, true);
     if (id === "home") {
       setCurrentScreen("home");
@@ -1113,72 +1130,139 @@ export default function MobileAdminApp({
             }}
           />
 
-          {/* Scrollable Container (Clean, compact, perfect alignment) */}
+          {/* Scrollable Container with Headroom for Elevated Cutout Notch */}
           <div
             ref={dockScrollRef}
-            className={`relative flex items-center gap-1 px-3 h-[58px] rounded-full shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
-              isLight
-                ? "bg-white/95 border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)]"
-                : "bg-[#0c101a]/95 border border-white/10 shadow-[0_14px_40px_rgba(0,0,0,0.85)]"
-            }`}
+            className="relative flex items-center h-[76px] overflow-x-auto no-scrollbar scroll-smooth"
             style={{
               WebkitOverflowScrolling: "touch",
               scrollbarWidth: "none",
               msOverflowStyle: "none",
             }}
           >
-            {bottomDockItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeDockId === item.id;
+            <div className="relative flex items-center min-w-full h-full px-2">
+              {/* 1. Base Pill Bar Background */}
+              <div
+                className={`absolute inset-x-0 top-[18px] bottom-0 rounded-full shadow-2xl backdrop-blur-2xl transition-all ${
+                  isLight
+                    ? "bg-white/95 border border-slate-200/80 shadow-[0_12px_35px_rgba(15,23,42,0.12)]"
+                    : "bg-[#0c101a]/95 border border-white/10 shadow-[0_14px_40px_rgba(0,0,0,0.85)]"
+                }`}
+              />
 
-              return (
-                <button
-                  key={item.id}
-                  ref={(el) => {
-                    dockItemRefs.current[item.id] = el;
-                  }}
-                  type="button"
-                  onClick={() => handleDockClick(item.id)}
-                  className="relative flex items-center justify-center shrink-0 cursor-pointer focus:outline-none select-none h-full"
-                  style={{ minWidth: "52px" }}
-                  title={item.label}
+              {/* 2. Gliding Cutout Notch & Elevated Circle (Niuuguo Tabbar No.04 Concept) */}
+              {gliderX !== null && (
+                <motion.div
+                  initial={false}
+                  animate={{ x: gliderX }}
+                  transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                  className="absolute top-0 left-0 w-[80px] h-[76px] pointer-events-none z-20"
                 >
-                  {/* Unified Circular Target: Icon is 100% dead-center in the gliding circle */}
-                  <div className="relative flex items-center justify-center w-11 h-11">
-                    {/* Active Gliding Circular Bubble (Glides across bar to active tab) */}
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeDockBubble"
-                        transition={{ type: "spring", stiffness: 420, damping: 28 }}
-                        className={`absolute inset-0 rounded-full shadow-lg z-10 bg-gradient-to-tr ${item.gradient}`}
-                        style={{
-                          boxShadow: `0 6px 18px ${item.glow}`,
-                          border: isLight ? "2.5px solid #ffffff" : "2.5px solid #0c101a",
-                        }}
-                      />
-                    )}
+                  {/* Cutout Notch SVG: Cuts into the bar with page background color and fluid curved border */}
+                  <svg
+                    className="absolute left-0 top-[18px] w-[80px] h-[38px] pointer-events-none"
+                    viewBox="0 0 80 38"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M 0 0 C 14 0, 18 20, 26 29 C 33 35, 47 35, 54 29 C 62 20, 66 0, 80 0 L 80 -4 L 0 -4 Z"
+                      fill={isLight ? "#f4f6fa" : "#090b10"}
+                    />
+                    <path
+                      d="M 0 0 C 14 0, 18 20, 26 29 C 33 35, 47 35, 54 29 C 62 20, 66 0, 80 0"
+                      fill="none"
+                      stroke={isLight ? "rgba(203, 213, 225, 0.9)" : "rgba(255, 255, 255, 0.15)"}
+                      strokeWidth="1.5"
+                    />
+                  </svg>
 
-                    {/* Stationary Anchored Icon: Always centered inside circle, no jumping */}
-                    <span
-                      className={`relative z-20 flex items-center justify-center transition-all duration-200 ${
-                        isActive
-                          ? "text-white scale-105"
-                          : isLight
-                          ? "text-slate-400 hover:text-slate-700"
-                          : "text-neutral-400 hover:text-white"
-                      }`}
-                    >
-                      <Icon className="w-5 h-5 drop-shadow-sm" />
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
-                          {item.badge}
-                        </span>
-                      )}
-                    </span>
+                  {/* Floating Elevated Active Circle Bubble */}
+                  <div
+                    className={`absolute left-[17px] top-[3px] w-[46px] h-[46px] rounded-full flex items-center justify-center shadow-xl bg-gradient-to-tr ${
+                      bottomDockItems.find((it) => it.id === activeDockId)?.gradient ||
+                      "from-emerald-500 to-teal-400"
+                    }`}
+                    style={{
+                      boxShadow: `0 8px 24px ${
+                        bottomDockItems.find((it) => it.id === activeDockId)?.glow ||
+                        "rgba(16, 185, 129, 0.45)"
+                      }`,
+                      border: isLight ? "3px solid #ffffff" : "3px solid #090b10",
+                    }}
+                  >
+                    <AnimatePresence mode="wait">
+                      {(() => {
+                        const curItem = bottomDockItems.find((it) => it.id === activeDockId);
+                        const CurIcon = curItem ? curItem.icon : RiHome5Fill;
+                        return (
+                          <motion.div
+                            key={activeDockId}
+                            initial={{ scale: 0.6, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.6, opacity: 0 }}
+                            transition={{ duration: 0.18 }}
+                            className="flex items-center justify-center"
+                          >
+                            <CurIcon className="w-5 h-5 text-white drop-shadow-sm" />
+                          </motion.div>
+                        );
+                      })()}
+                    </AnimatePresence>
+                    {(() => {
+                      const curItem = bottomDockItems.find((it) => it.id === activeDockId);
+                      if (curItem?.badge !== undefined && curItem.badge > 0) {
+                        return (
+                          <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
+                            {curItem.badge}
+                          </span>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
-                </button>
-              );
-            })}
+                </motion.div>
+              )}
+
+              {/* 3. Stationary Dock Buttons (Icons stay firmly in their slots, hiding only when active under the glider) */}
+              <div className="z-10 flex items-center gap-1 w-full h-full pt-[18px]">
+                {bottomDockItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeDockId === item.id;
+
+                  return (
+                    <button
+                      key={item.id}
+                      ref={(el) => {
+                        dockItemRefs.current[item.id] = el;
+                      }}
+                      type="button"
+                      onClick={() => handleDockClick(item.id)}
+                      className="relative flex items-center justify-center shrink-0 cursor-pointer focus:outline-none select-none h-full"
+                      style={{ minWidth: "54px" }}
+                      title={item.label}
+                    >
+                      <span
+                        className={`transition-all duration-200 flex items-center justify-center ${
+                          isActive
+                            ? "opacity-0 scale-75"
+                            : isLight
+                            ? "opacity-100 text-slate-400 hover:text-slate-800 scale-100"
+                            : "opacity-100 text-neutral-400 hover:text-white scale-100"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5 drop-shadow-sm" />
+                        {item.badge !== undefined && item.badge > 0 && (
+                          <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
+                            {item.badge}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>
