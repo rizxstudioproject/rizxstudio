@@ -58,7 +58,11 @@ export default function SocialContactsWorkspace() {
   };
 
   const handleFieldChange = (field: keyof SocialContactsConfig, value: string) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [field]: value };
+      updateSocialContacts(next);
+      return next;
+    });
   };
 
   const handleSave = async (e?: React.FormEvent) => {
@@ -148,32 +152,6 @@ export default function SocialContactsWorkspace() {
               "Atua nomor WhatsApp, pasan default, sarato link Instagram jo LinkedIn. Otomatis disinkronkan ka Supabase Cloud sarato marubah tampilan di Footer, Navbar, jo Pop-up WhatsApp."
             )}
           </p>
-        </div>
-
-        {/* Action Controls */}
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={handleReset}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all ${
-              isLight
-                ? "bg-white border-slate-300 text-slate-600 hover:bg-slate-100"
-                : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiArrowPath className="w-3.5 h-3.5 inline mr-1" />
-            Reset
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-5 py-2 rounded-xl text-xs font-bold text-white shadow-lg shadow-primary/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 cursor-pointer"
-            style={{ backgroundColor: primaryColor }}
-          >
-            <RiSave3Fill className="w-4 h-4" />
-            <span>{saving ? tr("Menyimpan...", "Saving...", "Manyimpan...") : tr("Simpan ke Cloud", "Save to Cloud", "Simpan ka Cloud")}</span>
-          </button>
         </div>
       </div>
 
@@ -405,12 +383,24 @@ export default function SocialContactsWorkspace() {
           </div>
         </div>
 
-        {/* Big Mobile & Desktop Save Button */}
-        <div className="pt-2 flex flex-col sm:flex-row items-center justify-end gap-3">
+        {/* Desktop Save & Reset Button (Hidden on Mobile: Mobile utilizes sticky bottom action bar & top bar save) */}
+        <div className="pt-2 hidden md:flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={handleReset}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              isLight
+                ? "bg-white border-slate-300 text-slate-600 hover:bg-slate-100"
+                : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiArrowPath className="w-3.5 h-3.5 inline mr-1" />
+            Reset
+          </button>
           <button
             type="submit"
             disabled={saving}
-            className="w-full sm:w-auto px-8 py-3 rounded-xl text-xs font-bold text-white shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+            className="px-8 py-2.5 rounded-xl text-xs font-bold text-white shadow-xl shadow-primary/30 transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             style={{ backgroundColor: primaryColor }}
           >
             <RiSave3Fill className="w-4 h-4" />
