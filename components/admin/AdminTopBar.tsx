@@ -5,7 +5,6 @@ import {
   RiSearchFill as HiMagnifyingGlass,
   RiNotification3Fill as HiBell,
   RiExternalLinkFill as HiArrowTopRightOnSquare,
-  RiLogoutBoxRFill as HiArrowRightOnRectangle,
   RiCheckboxCircleFill as HiCheckCircle,
   RiCloudFill as HiCloud,
   RiMenuFill as HiBars3,
@@ -791,16 +790,6 @@ export default function AdminTopBar({
               MIN
             </button>
           </div>
-
-          {/* Logout Button (Desktop Only - Mobile in Burger Menu) */}
-          <button
-            type="button"
-            onClick={onLogout}
-            className="hidden md:block p-2 rounded-xl text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-            title="Logout Admin"
-          >
-            <HiArrowRightOnRectangle className="w-4 h-4" />
-          </button>
         </div>
       </header>
     </>

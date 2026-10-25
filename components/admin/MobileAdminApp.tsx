@@ -22,7 +22,6 @@ import {
   RiArrowLeftLine,
   RiArrowRightLine,
   RiEyeLine,
-  RiLogoutBoxRFill,
   RiSave3Fill,
   RiCheckFill,
   RiNotification3Line,
