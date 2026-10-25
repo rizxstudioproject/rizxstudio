@@ -1091,7 +1091,7 @@ export default function MobileAdminApp({
             dragMomentum={false}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="fixed bottom-[92px] right-4 z-40 cursor-grab active:cursor-grabbing select-none"
+            className="fixed bottom-[104px] right-4 z-40 cursor-grab active:cursor-grabbing select-none"
             style={{ touchAction: "none" }}
           >
             <AnimatePresence mode="wait">
@@ -1222,7 +1222,7 @@ export default function MobileAdminApp({
           {/* Scrollable Container with Headroom for Elevated Cutout Notch */}
           <div
             ref={dockScrollRef}
-            className="relative flex items-center h-[76px] w-full overflow-x-auto no-scrollbar scroll-smooth"
+            className="relative flex items-center h-[88px] sm:h-[92px] w-full overflow-x-auto no-scrollbar scroll-smooth"
             style={{
               WebkitOverflowScrolling: "touch",
               scrollbarWidth: "none",
@@ -1236,7 +1236,7 @@ export default function MobileAdminApp({
                   initial={false}
                   animate={{ x: gliderX }}
                   transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                  className="absolute top-0 left-0 w-[80px] h-[76px] pointer-events-none z-20"
+                  className="absolute top-0 left-0 w-[80px] h-[88px] sm:h-[92px] pointer-events-none z-20"
                 >
                   {/* Cutout Notch SVG: Cuts into the bar with page background color and fluid curved border */}
                   <svg
@@ -1259,7 +1259,7 @@ export default function MobileAdminApp({
 
                   {/* Floating Elevated Active Circle Bubble */}
                   <div
-                    className={`absolute left-[17px] top-[3px] w-[46px] h-[46px] rounded-full flex items-center justify-center shadow-xl bg-gradient-to-tr ${
+                    className={`absolute left-[16px] top-[2px] w-[48px] h-[48px] rounded-full flex items-center justify-center shadow-xl bg-gradient-to-tr ${
                       bottomDockItems.find((it) => it.id === activeDockId)?.gradient ||
                       "from-emerald-500 to-teal-400"
                     }`}
@@ -1284,7 +1284,7 @@ export default function MobileAdminApp({
                             transition={{ duration: 0.18 }}
                             className="flex items-center justify-center"
                           >
-                            <CurIcon className="w-5 h-5 text-white drop-shadow-sm" />
+                            <CurIcon className="w-6 h-6 text-white drop-shadow-sm" />
                           </motion.div>
                         );
                       })()}
@@ -1305,7 +1305,7 @@ export default function MobileAdminApp({
               )}
 
               {/* 2. Stationary Dock Buttons (Icons stay firmly in their slots, hiding only when active under the glider) */}
-              <div className="z-10 flex items-center gap-1 w-full h-full pt-[18px]">
+              <div className="z-10 flex items-center gap-1.5 w-full h-full pt-[14px] pb-[max(14px,env(safe-area-inset-bottom,14px))]">
                 {bottomDockItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = activeDockId === item.id;
@@ -1318,8 +1318,8 @@ export default function MobileAdminApp({
                       }}
                       type="button"
                       onClick={() => handleDockClick(item.id)}
-                      className="relative flex items-center justify-center shrink-0 cursor-pointer focus:outline-none select-none h-full"
-                      style={{ minWidth: "54px" }}
+                      className="relative flex items-center justify-center shrink-0 cursor-pointer focus:outline-none select-none h-full py-1"
+                      style={{ minWidth: "58px" }}
                       title={item.label}
                     >
                       <span
@@ -1331,7 +1331,7 @@ export default function MobileAdminApp({
                             : "opacity-100 text-neutral-400 hover:text-white scale-100"
                         }`}
                       >
-                        <Icon className="w-5 h-5 drop-shadow-sm" />
+                        <Icon className="w-6 h-6 drop-shadow-sm" />
                         {item.badge !== undefined && item.badge > 0 && (
                           <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
                             {item.badge}
