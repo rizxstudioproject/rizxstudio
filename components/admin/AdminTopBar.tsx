@@ -70,7 +70,7 @@ export default function AdminTopBar({
   showSaveChanges = true,
 }: AdminTopBarProps) {
   const { lang, setLang, tr } = useLang();
-  const { themeMode } = useMotionTheme();
+  const { themeMode, primaryColor } = useMotionTheme();
   const isLight = themeMode === "light";
   const isId = lang === "id";
   const isMin = lang === "min";
@@ -78,6 +78,29 @@ export default function AdminTopBar({
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  // Language Slider State & Outside Click (Matches Website Navbar & Mobile Admin Slider System)
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const langContainerRef = useRef<HTMLDivElement>(null);
+  const languagesList = [
+    { code: "id", label: "ID" },
+    { code: "en", label: "EN" },
+    { code: "min", label: "MIN" },
+  ] as const;
+  const activeLangIndex = Math.max(0, languagesList.findIndex((l) => l.code === lang));
+
+  useEffect(() => {
+    const handleLangClickOutside = (e: MouseEvent) => {
+      if (
+        langContainerRef.current &&
+        !langContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsLangOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleLangClickOutside);
+    return () => document.removeEventListener("mousedown", handleLangClickOutside);
+  }, []);
 
   // Close desktop search dropdown on click outside
   useEffect(() => {
@@ -746,49 +769,75 @@ export default function AdminTopBar({
             </button>
           )}
 
-          {/* Language Switcher (Desktop Only - Mobile in Burger Menu) */}
-          <div className={`hidden md:flex items-center p-0.5 rounded-xl border ${
-            isLight ? "bg-slate-100 border-slate-200" : "bg-[#12151a] border-white/10"
-          }`}>
-            <button
-              type="button"
-              onClick={() => setLang("id")}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                lang === "id"
-                  ? "bg-[#16b09f] text-black shadow-sm"
-                  : isLight
-                  ? "text-slate-600 hover:text-slate-900"
-                  : "text-neutral-400 hover:text-white"
-              }`}
+          {/* Language Switcher Sliding Pill (Desktop Only - Matches Website Navbar & Mobile Admin Slider System) */}
+          <div
+            ref={langContainerRef}
+            className={`hidden md:flex relative items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-xs font-mono h-8.5 select-none ${
+              isLangOpen
+                ? `w-[114px] ${
+                    isLight
+                      ? "bg-white/95 border-slate-300 shadow-md"
+                      : "bg-[#0c0e12]/95 border-white/20 shadow-lg"
+                  }`
+                : `w-8.5 ${
+                    isLight
+                      ? "border-slate-200 shadow-2xs hover:border-slate-300"
+                      : "border-white/15 shadow-sm hover:border-white/25"
+                  }`
+            }`}
+            style={{
+              backgroundColor: !isLangOpen ? (primaryColor || "#16b09f") : undefined,
+            }}
+          >
+            <div
+              className="flex items-center w-[114px] h-full transition-transform duration-300 ease-out"
+              style={{
+                transform: isLangOpen
+                  ? "translateX(0px)"
+                  : `translateX(-${activeLangIndex * 38}px)`,
+              }}
             >
-              ID
-            </button>
-            <button
-              type="button"
-              onClick={() => setLang("en")}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                lang === "en"
-                  ? "bg-[#16b09f] text-black shadow-sm"
-                  : isLight
-                  ? "text-slate-600 hover:text-slate-900"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-            >
-              EN
-            </button>
-            <button
-              type="button"
-              onClick={() => setLang("min")}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                lang === "min"
-                  ? "bg-[#16b09f] text-black shadow-sm"
-                  : isLight
-                  ? "text-slate-600 hover:text-slate-900"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-            >
-              MIN
-            </button>
+              {languagesList.map((l) => {
+                const isSelected = lang === l.code;
+                return (
+                  <button
+                    key={l.code}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (!isLangOpen) {
+                        setIsLangOpen(true);
+                      } else {
+                        setLang(l.code);
+                        setIsLangOpen(false);
+                      }
+                    }}
+                    style={
+                      isSelected && isLangOpen
+                        ? { backgroundColor: primaryColor || "#16b09f" }
+                        : undefined
+                    }
+                    className={`w-[38px] h-full shrink-0 flex items-center justify-center font-bold tracking-wider transition-all duration-200 cursor-pointer select-none ${
+                      !isLangOpen
+                        ? "text-black font-black"
+                        : isSelected
+                        ? "text-black shadow-xs font-black rounded-full"
+                        : isLight
+                        ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                        : "text-neutral-400 hover:text-white hover:bg-white/10"
+                    }`}
+                    aria-label={`Switch to ${l.label}`}
+                    title={
+                      !isLangOpen
+                        ? tr("Pilih Bahasa", "Change Language", "Pilih Bahaso")
+                        : l.label
+                    }
+                  >
+                    {l.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </header>
