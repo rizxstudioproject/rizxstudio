@@ -1143,35 +1143,41 @@ export default function MobileAdminApp({
                   style={{ minWidth: "54px" }}
                   title={item.label}
                 >
-                  {/* 1. GLIDING NOTCH SCOOP (MOVES WITH layoutId) */}
+                  {/* 1. GLIDING NOTCH SCOOP (Niuuguo Tabbar No.04 Fluid Curved Cradle) */}
                   {isActive && (
                     <motion.div
                       layoutId="curvedBarNotch"
-                      transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                      className="absolute -top-[15px] left-1/2 -translate-x-1/2 pointer-events-none z-10 w-[74px] h-[24px]"
+                      transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                      className="absolute -top-[15px] left-1/2 -translate-x-1/2 pointer-events-none z-10 w-[84px] h-[26px]"
                     >
-                      <svg width="74" height="24" viewBox="0 0 74 24" fill="none">
+                      <svg width="84" height="26" viewBox="0 0 84 26" fill="none">
+                        {/* Fluid Cutout Body (Page Background Fill) */}
                         <path
-                          d="M 0 0 C 14 0 16 20 37 20 C 58 20 60 0 74 0 L 74 0 L 0 0 Z"
+                          d="M 0,0 
+                             C 16,0 20,24 42,24 
+                             C 64,24 68,0 84,0 
+                             Z"
                           fill={isLight ? "#f4f6fa" : "#090b10"}
                         />
+                        {/* Seamless Curved Cradle Rim */}
                         <path
-                          d="M 0 0 C 14 0 16 20 37 20 C 58 20 60 0 74 0"
-                          stroke={isLight ? "rgba(203, 213, 225, 0.9)" : "rgba(255, 255, 255, 0.15)"}
-                          strokeWidth="1.5"
+                          d="M 0,0 
+                             C 16,0 20,24 42,24 
+                             C 64,24 68,0 84,0"
+                          stroke={isLight ? "rgba(203, 213, 225, 0.9)" : "rgba(255, 255, 255, 0.16)"}
+                          strokeWidth="1.2"
                           fill="none"
-                          strokeLinecap="round"
                         />
                       </svg>
                     </motion.div>
                   )}
 
-                  {/* 2. GLIDING ACTIVE CIRCULAR BUBBLE BACKGROUND ONLY (MOVES WITH layoutId - NO ICON INSIDE!) */}
+                  {/* 2. GLIDING ACTIVE CIRCULAR BUBBLE (Niuuguo Tabbar No.04 Elevated Indicator - Empty Background) */}
                   {isActive && (
                     <motion.div
                       layoutId="activeDockBubble"
-                      transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                      className={`w-12 h-12 rounded-full shadow-xl absolute -top-3 left-1/2 -translate-x-1/2 pointer-events-none z-10 bg-gradient-to-tr ${item.gradient}`}
+                      transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                      className={`w-12 h-12 rounded-full shadow-xl absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none z-10 bg-gradient-to-tr ${item.gradient}`}
                       style={{
                         boxShadow: `0 8px 24px ${item.glow}`,
                         border: isLight ? "3px solid #ffffff" : "3px solid #0b0f19",
@@ -1179,14 +1185,14 @@ export default function MobileAdminApp({
                     />
                   )}
 
-                  {/* 3. STATIONARY ICON (STAYS IN THIS EXACT SLOT AT ALL TIMES) */}
+                  {/* 3. STATIONARY ANCHORED ICON (Stays in its exact slot at all times) */}
                   <motion.div
                     initial={false}
                     animate={{
-                      y: isActive ? -12 : 0,
-                      scale: isActive ? 1.08 : 1.0,
+                      y: isActive ? -16 : 0,
+                      scale: isActive ? 1.1 : 1.0,
                     }}
-                    transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
                     className={`relative z-20 flex items-center justify-center pointer-events-none transition-colors duration-200 ${
                       isActive
                         ? "text-white"
