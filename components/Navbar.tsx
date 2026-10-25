@@ -181,7 +181,7 @@ export default function Navbar() {
             <img
               src="/navbar-logo.png"
               alt="Rizx Studio Logo"
-              className="h-8 sm:h-9 w-auto object-contain brightness-0 invert"
+              className={`h-8 sm:h-9 w-auto object-contain ${isLight ? "" : "brightness-0 invert"}`}
             />
           </button>
 
@@ -189,24 +189,30 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-7 text-xs sm:text-sm font-medium tracking-wide">
             <button
               onClick={() => scrollTo("clients")}
-              className={`transition-colors duration-200 hover:text-white ${
-                activeSection === "clients" ? "text-white" : "text-neutral-400"
+              className={`transition-colors duration-200 ${
+                activeSection === "clients"
+                  ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                  : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
               }`}
             >
               {t("nav.clients")}
             </button>
             <button
               onClick={() => scrollTo("about")}
-              className={`transition-colors duration-200 hover:text-white ${
-                activeSection === "about" ? "text-white" : "text-neutral-400"
+              className={`transition-colors duration-200 ${
+                activeSection === "about"
+                  ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                  : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
               }`}
             >
               {t("nav.about")}
             </button>
             <button
               onClick={() => scrollTo("projects")}
-              className={`transition-colors duration-200 hover:text-white ${
-                activeSection === "projects" ? "text-white" : "text-neutral-400"
+              className={`transition-colors duration-200 ${
+                activeSection === "projects"
+                  ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                  : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
               }`}
             >
               {t("nav.work")}
@@ -215,7 +221,9 @@ export default function Navbar() {
               href={waUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 transition-colors duration-200 text-neutral-400 hover:text-white"
+              className={`flex items-center gap-1.5 transition-colors duration-200 ${
+                isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+              }`}
             >
               <span>{t("nav.contact")}</span>
               <span
@@ -317,15 +325,17 @@ export default function Navbar() {
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle Mobile Menu"
-              className="md:hidden p-2 text-white hover:text-neutral-300 active:opacity-70 transition-opacity shrink-0 cursor-pointer focus:outline-none"
+              className={`md:hidden p-2 transition-opacity shrink-0 cursor-pointer focus:outline-none ${
+                isLight ? "text-slate-900 hover:text-slate-700" : "text-white hover:text-neutral-300"
+              }`}
             >
               {mobileMenuOpen ? (
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg className={`w-6 h-6 ${isLight ? "text-slate-900" : "text-white"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
               ) : (
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg className={`w-6 h-6 ${isLight ? "text-slate-900" : "text-white"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="4" y1="7" x2="20" y2="7"></line>
                   <line x1="4" y1="12" x2="20" y2="12"></line>
                   <line x1="4" y1="17" x2="20" y2="17"></line>
@@ -341,22 +351,28 @@ export default function Navbar() {
           mobileMenuOpen ? "max-h-[360px] opacity-100 pt-4 pb-2" : "max-h-0 opacity-0 py-0"
         }`}
       >
-        <div className="flex flex-col gap-3.5 border-t border-white/10 pt-4 px-2">
+        <div className={`flex flex-col gap-3.5 border-t pt-4 px-2 ${isLight ? "border-slate-200" : "border-white/10"}`}>
           <button
             onClick={() => scrollTo("clients")}
-            className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+            className={`text-left py-1 text-sm font-medium transition-colors ${
+              isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
+            }`}
           >
             {t("nav.clients")}
           </button>
           <button
             onClick={() => scrollTo("about")}
-            className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+            className={`text-left py-1 text-sm font-medium transition-colors ${
+              isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
+            }`}
           >
             {t("nav.about")}
           </button>
           <button
             onClick={() => scrollTo("projects")}
-            className="text-left py-1 text-sm font-medium text-neutral-300 hover:text-white transition-colors"
+            className={`text-left py-1 text-sm font-medium transition-colors ${
+              isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
+            }`}
           >
             {t("nav.work")}
           </button>

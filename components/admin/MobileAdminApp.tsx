@@ -467,6 +467,7 @@ export default function MobileAdminApp({
   return (
     <div
       ref={mobileFrameRef}
+      id="admin-dashboard"
       className={`mobile-admin-app flex flex-col h-screen w-screen overflow-hidden font-sans select-none relative ${
         isLight ? "bg-[#f4f6fa] text-slate-900" : "bg-[#090b10] text-slate-100"
       }`}

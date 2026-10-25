@@ -2016,7 +2016,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
 
             {/* SECTION 2: HERO ("Design. Motion. AI.") */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-6 ${
+              isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#0e0f14] border-white/10"
+            }`}>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f]">
@@ -2260,7 +2262,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
 
             {/* SECTION 1: SELECTED WORKS ("A Range of Work. One Creative Vision.") */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-6 ${
+              isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#0e0f14] border-white/10"
+            }`}>
               <div className="flex items-center justify-between border-b border-white/10 pb-4">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f]">
@@ -2505,7 +2509,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
             <form onSubmit={handleSaveAbout} className="space-y-6">
               {/* 1. Main Headline & Bio */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+              <div className={`p-5 sm:p-6 rounded-2xl border backdrop-blur-sm space-y-4 ${
+                isLight ? "bg-white border-slate-200 shadow-xs" : "bg-neutral-900/60 border-white/10"
+              }`}>
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                     BAGIAN 1 · HEADER & NARASI UTAMA
@@ -2571,7 +2577,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
 
               {/* 2. Filosofi Inti (Core Philosophy) */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+              <div className={`p-5 sm:p-6 rounded-2xl border backdrop-blur-sm space-y-4 ${
+                isLight ? "bg-white border-slate-200 shadow-xs" : "bg-neutral-900/60 border-white/10"
+              }`}>
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                     BAGIAN 2 · FILOSOFI INTI
@@ -2611,7 +2619,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
 
               {/* 3. Tiga Statistik Utama (3 Key Stats) */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+              <div className={`p-5 sm:p-6 rounded-2xl border backdrop-blur-sm space-y-4 ${
+                isLight ? "bg-white border-slate-200 shadow-xs" : "bg-neutral-900/60 border-white/10"
+              }`}>
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                     BAGIAN 3 · STATISTIK PENGALAMAN
@@ -2688,7 +2698,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               </div>
 
               {/* 4. Sidebar Cards (Global Collaboration & Disciplines) */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+              <div className={`p-5 sm:p-6 rounded-2xl border backdrop-blur-sm space-y-4 ${
+                isLight ? "bg-white border-slate-200 shadow-xs" : "bg-neutral-900/60 border-white/10"
+              }`}>
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
                     BAGIAN 4 · KARTU SAMPING (SIDEBAR CARDS)
@@ -4477,7 +4489,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
 
                 {/* 2. Portfolio Works Gallery & Upload Section (My Work Panel) */}
-                <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className={`p-5 sm:p-6 rounded-2xl border backdrop-blur-sm space-y-4 ${
+                isLight ? "bg-white border-slate-200 shadow-xs" : "bg-neutral-900/60 border-white/10"
+              }`}>
                   {/* Gallery Header + Upload Trigger Button */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
                     <div>
@@ -4710,7 +4724,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
 
             {/* Kontrol Animasi, Kecepatan, Gerakan & Efek Gelombang */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-6 ${
+              isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#0e0f14] border-white/10"
+            }`}>
               <div className="flex items-center justify-between border-b border-white/10 pb-3">
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <HiSparkles className="w-4 h-4 text-[#16b09f]" />

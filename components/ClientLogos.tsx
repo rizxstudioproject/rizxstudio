@@ -3,15 +3,28 @@
 import React from "react";
 import { useLang } from "@/context/LanguageContext";
 import { usePortfolioData, ClientLogoItem } from "@/context/PortfolioDataContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
-function LogoItem({ logo }: { logo: ClientLogoItem }) {
+function LogoItem({ logo, isLight }: { logo: ClientLogoItem; isLight: boolean }) {
   return (
-    <div className="flex items-center justify-center px-6 py-3.5 mx-3 rounded-2xl bg-white/[0.02] border border-white/[0.06] hover:border-white/25 hover:bg-white/[0.06] transition-all duration-300 cursor-default select-none shrink-0 group min-w-[90px] h-14">
-      <div className="relative flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity brightness-0 invert">
+    <div
+      className={`client-logo-card flex items-center justify-center px-6 py-3.5 mx-3 rounded-2xl border transition-all duration-300 cursor-default select-none shrink-0 group min-w-[90px] h-14 ${
+        isLight
+          ? "bg-white border-slate-200/80 shadow-xs hover:border-slate-300 hover:shadow-sm"
+          : "bg-white/[0.02] border-white/[0.06] hover:border-white/25 hover:bg-white/[0.06]"
+      }`}
+    >
+      <div
+        className={`client-logo-wrapper relative flex items-center justify-center transition-all ${
+          isLight
+            ? "brightness-0 opacity-60 group-hover:opacity-100"
+            : "brightness-0 invert opacity-70 group-hover:opacity-100"
+        }`}
+      >
         <img
           src={logo.file}
           alt={logo.name}
-          className="h-6 sm:h-7 w-auto object-contain max-h-7"
+          className="client-logo-img h-6 sm:h-7 w-auto object-contain max-h-7"
         />
       </div>
     </div>
@@ -21,6 +34,8 @@ function LogoItem({ logo }: { logo: ClientLogoItem }) {
 export default function ClientLogos() {
   const { t, lang } = useLang();
   const { clientLogos } = usePortfolioData();
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
 
   const row1Logos = clientLogos?.logos?.filter((l) => l.row === 1) || [];
   const row2Logos = clientLogos?.logos?.filter((l) => l.row === 2) || [];
@@ -38,7 +53,9 @@ export default function ClientLogos() {
 
       {/* Label */}
       <div className="mb-10 text-center px-4">
-        <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-neutral-400 font-semibold">
+        <span className={`text-xs sm:text-xs font-mono uppercase tracking-[0.25em] font-semibold ${
+          isLight ? "text-slate-600" : "text-neutral-400"
+        }`}>
           {subtitleText}
         </span>
       </div>
@@ -51,7 +68,7 @@ export default function ClientLogos() {
             style={{ animation: "marquee-left 45s linear infinite", willChange: "transform" }}
           >
             {row1Logos.map((logo, i) => (
-              <LogoItem key={`r1a-${logo.id || i}`} logo={logo} />
+              <LogoItem key={`r1a-${logo.id || i}`} logo={logo} isLight={isLight} />
             ))}
           </div>
           <div
@@ -60,7 +77,7 @@ export default function ClientLogos() {
             style={{ animation: "marquee-left 45s linear infinite", willChange: "transform" }}
           >
             {row1Logos.map((logo, i) => (
-              <LogoItem key={`r1b-${logo.id || i}`} logo={logo} />
+              <LogoItem key={`r1b-${logo.id || i}`} logo={logo} isLight={isLight} />
             ))}
           </div>
         </div>
@@ -74,7 +91,7 @@ export default function ClientLogos() {
             style={{ animation: "marquee-right 45s linear infinite", willChange: "transform" }}
           >
             {row2Logos.map((logo, i) => (
-              <LogoItem key={`r2a-${logo.id || i}`} logo={logo} />
+              <LogoItem key={`r2a-${logo.id || i}`} logo={logo} isLight={isLight} />
             ))}
           </div>
           <div
@@ -83,7 +100,7 @@ export default function ClientLogos() {
             style={{ animation: "marquee-right 45s linear infinite", willChange: "transform" }}
           >
             {row2Logos.map((logo, i) => (
-              <LogoItem key={`r2b-${logo.id || i}`} logo={logo} />
+              <LogoItem key={`r2b-${logo.id || i}`} logo={logo} isLight={isLight} />
             ))}
           </div>
         </div>

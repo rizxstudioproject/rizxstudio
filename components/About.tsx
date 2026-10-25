@@ -6,6 +6,7 @@ import SpotlightCard from "./SpotlightCard";
 import { HiSparkles, HiGlobeAmericas, HiCheckBadge } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 function AnimatedStatCounter({
   value,
@@ -111,6 +112,8 @@ export const DISCIPLINE_TRANSLATIONS: Record<string, { id: string; min: string }
 export default function About() {
   const { t, lang, toMinang } = useLang();
   const { about } = usePortfolioData();
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
   const isId = lang === "id";
   const isMin = lang === "min";
   const isLocalized = isId || isMin;
@@ -162,7 +165,7 @@ export default function About() {
         <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#16b09f] mb-2 font-semibold">
           {displayEyebrow}
         </span>
-        <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight text-white">
+        <h2 className={`text-3xl sm:text-4xl md:text-5xl font-light tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
           {displayTitle}<span className="text-neutral-500 font-normal">.</span>
         </h2>
         <div className="w-12 h-px bg-[#16b09f]/60 mt-3" />
@@ -174,12 +177,12 @@ export default function About() {
           <div className="flex flex-col justify-between h-full gap-6">
             <div className="space-y-4 sm:space-y-5 text-neutral-300 font-light leading-relaxed">
               {/* Main Headline */}
-              <h3 className="text-white text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-snug">
+              <h3 className={`text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-snug ${isLight ? "text-slate-900" : "text-white"}`}>
                 {displayHeadline}
               </h3>
 
               {/* Paragraph 1 */}
-              <p className="text-neutral-300 text-[15px] sm:text-base md:text-lg leading-relaxed font-light whitespace-pre-line">
+              <p className={`text-[15px] sm:text-base md:text-lg leading-relaxed font-light whitespace-pre-line ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                 {displayBio}
               </p>
 
@@ -213,7 +216,7 @@ export default function About() {
                 <span className="text-2xl sm:text-3xl lg:text-4xl block leading-tight">
                   <AnimatedStatCounter
                     value={about.stat2Num || t("about.stat2.num") || "100+"}
-                    colorClass="text-white group-hover:text-cyan-300 drop-shadow-[0_0_18px_rgba(255,255,255,0.2)] transition-colors"
+                    colorClass={isLight ? "text-slate-900 group-hover:text-cyan-600 transition-colors" : "text-white group-hover:text-cyan-300 drop-shadow-[0_0_18px_rgba(255,255,255,0.2)] transition-colors"}
                     delay={0.25}
                   />
                 </span>
@@ -230,7 +233,7 @@ export default function About() {
                 <span className="text-2xl sm:text-3xl lg:text-4xl block leading-tight">
                   <AnimatedStatCounter
                     value={about.stat3Num || t("about.stat3.num") || "20+"}
-                    colorClass="text-white group-hover:text-teal-300 drop-shadow-[0_0_18px_rgba(255,255,255,0.2)] transition-colors"
+                    colorClass={isLight ? "text-slate-900 group-hover:text-teal-600 transition-colors" : "text-white group-hover:text-teal-300 drop-shadow-[0_0_18px_rgba(255,255,255,0.2)] transition-colors"}
                     delay={0.4}
                   />
                 </span>
@@ -249,10 +252,10 @@ export default function About() {
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-cyan-400 mb-3 sm:mb-4 shrink-0">
                 <HiGlobeAmericas className="w-5 h-5 text-[#16b09f]" />
               </div>
-              <h3 className="text-base sm:text-lg font-medium text-white mb-2">
+              <h3 className={`text-base sm:text-lg font-medium mb-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                 {displayCollabTitle}
               </h3>
-              <p className="text-sm text-neutral-300 font-light leading-relaxed whitespace-pre-line">
+              <p className={`text-sm font-light leading-relaxed whitespace-pre-line ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                 {displayCollabDesc}
               </p>
             </div>
@@ -263,7 +266,7 @@ export default function About() {
               <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/[0.03] border border-white/10 flex items-center justify-center text-emerald-400 mb-3 sm:mb-4 shrink-0">
                 <HiCheckBadge className="w-5 h-5 text-emerald-400" />
               </div>
-              <h3 className="text-base sm:text-lg font-medium text-white mb-2.5 sm:mb-3">
+              <h3 className={`text-base sm:text-lg font-medium mb-2.5 sm:mb-3 ${isLight ? "text-slate-900" : "text-white"}`}>
                 {displayDisciplinesTitle}
               </h3>
               <div className="flex flex-wrap gap-1.5 sm:gap-2 pb-1">

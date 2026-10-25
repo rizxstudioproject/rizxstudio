@@ -395,10 +395,12 @@ html.light .hero-preview-mockup {
 }
 
 /* =========================================================================
-   LIGHT STUDIO THEME MODE FOR ADMIN PANEL (#admin-dashboard)
+   LIGHT STUDIO THEME MODE FOR ADMIN PANEL (#admin-dashboard & .mobile-admin-app)
    ========================================================================= */
 html[data-theme='light'] #admin-dashboard,
-html.light #admin-dashboard {
+html[data-theme='light'] .mobile-admin-app,
+html.light #admin-dashboard,
+html.light .mobile-admin-app {
   background-color: #f8fafc !important;
   color: #0f172a !important;
 }
@@ -406,12 +408,24 @@ html.light #admin-dashboard {
 html[data-theme='light'] #admin-dashboard .bg-\[\#0d0f13\],
 html.light #admin-dashboard .bg-\[\#0d0f13\],
 html[data-theme='light'] #admin-dashboard .bg-\[\#08090a\],
-html.light #admin-dashboard .bg-\[\#08090a\] {
+html.light #admin-dashboard .bg-\[\#08090a\],
+html[data-theme='light'] .mobile-admin-app .bg-\[\#0d0f13\],
+html.light .mobile-admin-app .bg-\[\#0d0f13\],
+html[data-theme='light'] .mobile-admin-app .bg-\[\#08090a\],
+html.light .mobile-admin-app .bg-\[\#08090a\] {
   background-color: #f8fafc !important;
 }
 
+html[data-theme='light'] .bg-\[\#0e0f14\],
+html[data-theme='light'] .bg-\[\#0e1015\],
+html[data-theme='light'] .bg-\[\#0b0f19\],
+html.light .bg-\[\#0e0f14\],
+html.light .bg-\[\#0e1015\],
+html.light .bg-\[\#0b0f19\],
 html[data-theme='light'] #admin-dashboard .bg-\[\#0e0f14\],
-html.light #admin-dashboard .bg-\[\#0e0f14\] {
+html.light #admin-dashboard .bg-\[\#0e0f14\],
+html[data-theme='light'] .mobile-admin-app .bg-\[\#0e0f14\],
+html.light .mobile-admin-app .bg-\[\#0e0f14\] {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
@@ -422,7 +436,13 @@ html[data-theme='light'] #admin-dashboard .bg-neutral-900\/60,
 html[data-theme='light'] #admin-dashboard .bg-neutral-900\/40,
 html.light #admin-dashboard .bg-neutral-900\/50,
 html.light #admin-dashboard .bg-neutral-900\/60,
-html.light #admin-dashboard .bg-neutral-900\/40 {
+html.light #admin-dashboard .bg-neutral-900\/40,
+html[data-theme='light'] .mobile-admin-app .bg-neutral-900\/50,
+html[data-theme='light'] .mobile-admin-app .bg-neutral-900\/60,
+html[data-theme='light'] .mobile-admin-app .bg-neutral-900\/40,
+html.light .mobile-admin-app .bg-neutral-900\/50,
+html.light .mobile-admin-app .bg-neutral-900\/60,
+html.light .mobile-admin-app .bg-neutral-900\/40 {
   background-color: #f1f5f9 !important;
   border-color: #e2e8f0 !important;
 }
@@ -432,17 +452,29 @@ html[data-theme='light'] #admin-dashboard .bg-neutral-950\/70,
 html[data-theme='light'] #admin-dashboard .bg-neutral-900,
 html.light #admin-dashboard .bg-neutral-950,
 html.light #admin-dashboard .bg-neutral-950\/70,
-html.light #admin-dashboard .bg-neutral-900 {
+html.light #admin-dashboard .bg-neutral-900,
+html[data-theme='light'] .mobile-admin-app .bg-neutral-950,
+html[data-theme='light'] .mobile-admin-app .bg-neutral-950\/70,
+html[data-theme='light'] .mobile-admin-app .bg-neutral-900,
+html.light .mobile-admin-app .bg-neutral-950,
+html.light .mobile-admin-app .bg-neutral-950\/70,
+html.light .mobile-admin-app .bg-neutral-900 {
   background-color: #ffffff !important;
   border-color: #e2e8f0 !important;
 }
 
-html[data-theme='light'] #admin-dashboard input:not([type="color"]):not([type="range"]),
+html[data-theme='light'] #admin-dashboard input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
 html[data-theme='light'] #admin-dashboard textarea,
 html[data-theme='light'] #admin-dashboard select,
-html.light #admin-dashboard input:not([type="color"]):not([type="range"]),
+html.light #admin-dashboard input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
 html.light #admin-dashboard textarea,
-html.light #admin-dashboard select {
+html.light #admin-dashboard select,
+html[data-theme='light'] .mobile-admin-app input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html[data-theme='light'] .mobile-admin-app textarea,
+html[data-theme='light'] .mobile-admin-app select,
+html.light .mobile-admin-app input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html.light .mobile-admin-app textarea,
+html.light .mobile-admin-app select {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
@@ -451,7 +483,11 @@ html.light #admin-dashboard select {
 html[data-theme='light'] #admin-dashboard input::placeholder,
 html[data-theme='light'] #admin-dashboard textarea::placeholder,
 html.light #admin-dashboard input::placeholder,
-html.light #admin-dashboard textarea::placeholder {
+html.light #admin-dashboard textarea::placeholder,
+html[data-theme='light'] .mobile-admin-app input::placeholder,
+html[data-theme='light'] .mobile-admin-app textarea::placeholder,
+html.light .mobile-admin-app input::placeholder,
+html.light .mobile-admin-app textarea::placeholder {
   color: #94a3b8 !important;
 }
 
@@ -462,23 +498,88 @@ html[data-theme='light'] #admin-dashboard .border-white\/5,
 html.light #admin-dashboard .border-white\/10,
 html.light #admin-dashboard .border-white\/15,
 html.light #admin-dashboard .border-white\/20,
-html.light #admin-dashboard .border-white\/5 {
+html.light #admin-dashboard .border-white\/5,
+html[data-theme='light'] .mobile-admin-app .border-white\/10,
+html[data-theme='light'] .mobile-admin-app .border-white\/15,
+html[data-theme='light'] .mobile-admin-app .border-white\/20,
+html[data-theme='light'] .mobile-admin-app .border-white\/5,
+html.light .mobile-admin-app .border-white\/10,
+html.light .mobile-admin-app .border-white\/15,
+html.light .mobile-admin-app .border-white\/20,
+html.light .mobile-admin-app .border-white\/5 {
   border-color: #e2e8f0 !important;
 }
 
 html[data-theme='light'] #admin-dashboard .text-neutral-300,
-html.light #admin-dashboard .text-neutral-300 {
+html.light #admin-dashboard .text-neutral-300,
+html[data-theme='light'] .mobile-admin-app .text-neutral-300,
+html.light .mobile-admin-app .text-neutral-300 {
   color: #334155 !important;
 }
 
 html[data-theme='light'] #admin-dashboard .text-neutral-400,
-html.light #admin-dashboard .text-neutral-400 {
+html.light #admin-dashboard .text-neutral-400,
+html[data-theme='light'] .mobile-admin-app .text-neutral-400,
+html.light .mobile-admin-app .text-neutral-400 {
   color: #475569 !important;
 }
 
 html[data-theme='light'] #admin-dashboard .text-neutral-500,
-html.light #admin-dashboard .text-neutral-500 {
+html.light #admin-dashboard .text-neutral-500,
+html[data-theme='light'] .mobile-admin-app .text-neutral-500,
+html.light .mobile-admin-app .text-neutral-500 {
   color: #64748b !important;
+}
+
+/* White text protection on colorful buttons, badges, floating FAB, and elevated dock icons */
+html[data-theme='light'] button[style*="background"],
+html[data-theme='light'] button[style*="background-color"],
+html[data-theme='light'] a[style*="background"],
+html[data-theme='light'] a[style*="background-color"],
+html[data-theme='light'] .btn-primary,
+html[data-theme='light'] [class*="bg-rose-"],
+html[data-theme='light'] [class*="bg-emerald-"],
+html[data-theme='light'] [class*="bg-teal-"],
+html[data-theme='light'] [class*="bg-cyan-"],
+html[data-theme='light'] [class*="bg-blue-"],
+html[data-theme='light'] [class*="bg-indigo-"],
+html.light button[style*="background"],
+html.light button[style*="background-color"],
+html.light a[style*="background"],
+html.light a[style*="background-color"],
+html.light .btn-primary,
+html.light [class*="bg-rose-"],
+html.light [class*="bg-emerald-"],
+html.light [class*="bg-teal-"],
+html.light [class*="bg-cyan-"],
+html.light [class*="bg-blue-"],
+html.light [class*="bg-indigo-"] {
+  color: #ffffff !important;
+}
+
+html[data-theme='light'] button[style*="background"] *,
+html[data-theme='light'] button[style*="background-color"] *,
+html[data-theme='light'] a[style*="background"] *,
+html[data-theme='light'] a[style*="background-color"] *,
+html[data-theme='light'] .btn-primary *,
+html[data-theme='light'] [class*="bg-rose-"] *,
+html[data-theme='light'] [class*="bg-emerald-"] *,
+html[data-theme='light'] [class*="bg-teal-"] *,
+html[data-theme='light'] [class*="bg-cyan-"] *,
+html[data-theme='light'] [class*="bg-blue-"] *,
+html[data-theme='light'] [class*="bg-indigo-"] *,
+html.light button[style*="background"] *,
+html.light button[style*="background-color"] *,
+html.light a[style*="background"] *,
+html.light a[style*="background-color"] *,
+html.light .btn-primary *,
+html.light [class*="bg-rose-"] *,
+html.light [class*="bg-emerald-"] *,
+html.light [class*="bg-teal-"] *,
+html.light [class*="bg-cyan-"] *,
+html.light [class*="bg-blue-"] *,
+html.light [class*="bg-indigo-"] * {
+  color: #ffffff !important;
 }
 
 /* Portfolio Runner Marquee Section in Light Mode */
