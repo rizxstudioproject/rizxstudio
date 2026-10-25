@@ -980,7 +980,7 @@ export default function MobileAdminApp({
           </div>
 
           {/* Workspace Body Container with bottom padding for sticky bar */}
-          <div className="flex-1 overflow-y-auto pb-24">
+          <div className="flex-1 overflow-y-auto pb-48">
             {activeTab === "clients" && (
               <ClientsWorkspace
                 clients={clients}
@@ -1057,9 +1057,9 @@ export default function MobileAdminApp({
               renderWorkspaceContent(activeTab)}
           </div>
 
-          {/* Floating Sticky Save Bar (Matches Screen 3 Bottom Bar in Mockup) */}
+          {/* Floating Sticky Save Bar (Positioned gracefully above the bottom dock bar) */}
           <div
-            className={`fixed bottom-0 left-0 right-0 p-3.5 border-t backdrop-blur-xl z-40 flex items-center justify-between gap-3 ${
+            className={`fixed bottom-[84px] left-4 right-4 z-40 p-3 rounded-2xl border shadow-2xl backdrop-blur-xl flex items-center justify-between gap-3 ${
               isLight ? "bg-white/95 border-slate-200" : "bg-[#090b10]/95 border-white/10"
             }`}
           >
@@ -1094,126 +1094,120 @@ export default function MobileAdminApp({
 
       {/* ==============================================================
           FLOATING ANIMATED CURVED BOTTOM DOCK / TAB BAR (SCROLL & TAP)
-          Houses all 8 requested tools + Home, Portofolio & Settings
-          Matches Image 3 Reference Mockup with Elevated Active Notch
+          Pin Bar (Notch & Bubble) glides across the dock.
+          Icons stay firmly anchored in their own slots (Image Reference).
          ============================================================== */}
-      {currentScreen === "home" && (
-        <div className="fixed bottom-3 left-3 right-3 z-40 flex justify-center pointer-events-none">
-          <motion.div
-            initial={{ y: 25, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 350, damping: 25 }}
-            className="pointer-events-auto w-full max-w-md relative"
+      <div className="fixed bottom-3 left-3 right-3 z-40 flex justify-center pointer-events-none">
+        <motion.div
+          initial={{ y: 25, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 350, damping: 25 }}
+          className="pointer-events-auto w-full max-w-md relative"
+        >
+          {/* Ambient Background Glow behind Dock */}
+          <div
+            className="absolute inset-x-4 bottom-1 top-4 rounded-full blur-xl opacity-25 pointer-events-none transition-all duration-500"
+            style={{
+              backgroundColor:
+                bottomDockItems.find((it) => it.id === activeDockId)?.accentColor || "#10b981",
+            }}
+          />
+
+          {/* Scrollable Container with Headroom for Elevated Bubble */}
+          <div
+            ref={dockScrollRef}
+            className={`relative flex items-center gap-1 px-3 h-[68px] pt-3.5 pb-1 rounded-full border shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
+              isLight
+                ? "bg-white/95 border-slate-200/90 shadow-slate-300/70"
+                : "bg-[#0b0f19]/95 border-white/15 shadow-black/90"
+            }`}
+            style={{
+              WebkitOverflowScrolling: "touch",
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
           >
-            {/* Ambient Background Glow behind Dock */}
-            <div
-              className="absolute inset-x-4 bottom-1 top-4 rounded-full blur-xl opacity-25 pointer-events-none transition-all duration-500"
-              style={{
-                backgroundColor:
-                  bottomDockItems.find((it) => it.id === activeDockId)?.accentColor || "#10b981",
-              }}
-            />
+            {bottomDockItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeDockId === item.id;
 
-            {/* Scrollable Container with Headroom for Elevated Bubble */}
-            <div
-              ref={dockScrollRef}
-              className={`relative flex items-center gap-1 px-3 h-[68px] pt-3.5 pb-1 rounded-full border shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
-                isLight
-                  ? "bg-white/95 border-slate-200/90 shadow-slate-300/70"
-                  : "bg-[#0b0f19]/95 border-white/15 shadow-black/90"
-              }`}
-              style={{
-                WebkitOverflowScrolling: "touch",
-                scrollbarWidth: "none",
-                msOverflowStyle: "none",
-              }}
-            >
-              {bottomDockItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeDockId === item.id;
+              return (
+                <button
+                  key={item.id}
+                  ref={(el) => {
+                    dockItemRefs.current[item.id] = el;
+                  }}
+                  type="button"
+                  onClick={() => handleDockClick(item.id)}
+                  className="relative flex items-center justify-center shrink-0 cursor-pointer focus:outline-none select-none h-full"
+                  style={{ minWidth: "54px" }}
+                  title={item.label}
+                >
+                  {/* 1. GLIDING NOTCH SCOOP (MOVES WITH layoutId) */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="curvedBarNotch"
+                      transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                      className="absolute -top-[15px] left-1/2 -translate-x-1/2 pointer-events-none z-10 w-[74px] h-[24px]"
+                    >
+                      <svg width="74" height="24" viewBox="0 0 74 24" fill="none">
+                        <path
+                          d="M 0 0 C 14 0 16 20 37 20 C 58 20 60 0 74 0 L 74 0 L 0 0 Z"
+                          fill={isLight ? "#f4f6fa" : "#090b10"}
+                        />
+                        <path
+                          d="M 0 0 C 14 0 16 20 37 20 C 58 20 60 0 74 0"
+                          stroke={isLight ? "rgba(203, 213, 225, 0.9)" : "rgba(255, 255, 255, 0.15)"}
+                          strokeWidth="1.5"
+                          fill="none"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </motion.div>
+                  )}
 
-                return (
-                  <button
-                    key={item.id}
-                    ref={(el) => {
-                      dockItemRefs.current[item.id] = el;
+                  {/* 2. GLIDING ACTIVE CIRCULAR BUBBLE BACKGROUND ONLY (MOVES WITH layoutId - NO ICON INSIDE!) */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeDockBubble"
+                      transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                      className={`w-12 h-12 rounded-full shadow-xl absolute -top-3 left-1/2 -translate-x-1/2 pointer-events-none z-10 bg-gradient-to-tr ${item.gradient}`}
+                      style={{
+                        boxShadow: `0 8px 24px ${item.glow}`,
+                        border: isLight ? "3px solid #ffffff" : "3px solid #0b0f19",
+                      }}
+                    />
+                  )}
+
+                  {/* 3. STATIONARY ICON (STAYS IN THIS EXACT SLOT AT ALL TIMES) */}
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      y: isActive ? -12 : 0,
+                      scale: isActive ? 1.08 : 1.0,
                     }}
-                    type="button"
-                    onClick={() => handleDockClick(item.id)}
-                    className="relative flex items-center justify-center shrink-0 cursor-pointer focus:outline-none select-none h-full"
-                    style={{ minWidth: "54px" }}
-                    title={item.label}
+                    transition={{ type: "spring", stiffness: 380, damping: 28 }}
+                    className={`relative z-20 flex items-center justify-center pointer-events-none transition-colors duration-200 ${
+                      isActive
+                        ? "text-white"
+                        : isLight
+                        ? "text-slate-400 hover:text-slate-800"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
                   >
-                    {isActive ? (
-                      /* Active State with Morphing Curved Scoop & Elevated Bubble (Image 4 & 5 Style) */
-                      <div className="relative flex items-center justify-center w-full h-full">
-                        {/* 1. Curved Notch Scoop Cutout (Glides across bar with layoutId) */}
-                        <motion.div
-                          layoutId="curvedBarNotch"
-                          transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                          className="absolute -top-[15px] left-1/2 -translate-x-1/2 pointer-events-none z-10 w-[74px] h-[24px]"
-                        >
-                          <svg width="74" height="24" viewBox="0 0 74 24" fill="none">
-                            {/* Cutout Body - Revealing Page Background */}
-                            <path
-                              d="M 0 0 C 14 0 16 20 37 20 C 58 20 60 0 74 0 L 74 0 L 0 0 Z"
-                              fill={isLight ? "#f4f6fa" : "#090b10"}
-                            />
-                            {/* Smooth Curved Notch Lip / Border */}
-                            <path
-                              d="M 0 0 C 14 0 16 20 37 20 C 58 20 60 0 74 0"
-                              stroke={isLight ? "rgba(203, 213, 225, 0.9)" : "rgba(255, 255, 255, 0.15)"}
-                              strokeWidth="1.5"
-                              fill="none"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </motion.div>
-
-                        {/* 2. Elevated Floating Active Bubble (Glides across bar with layoutId) */}
-                        <motion.div
-                          layoutId="activeDockBubble"
-                          transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                          className={`w-12 h-12 rounded-full flex items-center justify-center text-white shadow-xl relative z-20 -translate-y-3 bg-gradient-to-tr ${item.gradient}`}
-                          style={{
-                            boxShadow: `0 8px 24px ${item.glow}`,
-                            border: isLight ? "3px solid #ffffff" : "3px solid #0b0f19",
-                          }}
-                        >
-                          <Icon className="w-5 h-5 drop-shadow-sm" />
-                          {item.badge !== undefined && item.badge > 0 && (
-                            <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
-                              {item.badge}
-                            </span>
-                          )}
-                        </motion.div>
-                      </div>
-                    ) : (
-                      /* Inactive Icon Only (No Text Label - Matches Image 1, 2, 3, 4, 5) */
-                      <div
-                        className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 active:scale-90 hover:opacity-100 ${
-                          isLight
-                            ? "text-slate-400 hover:text-slate-800"
-                            : "text-neutral-400 hover:text-white"
-                        }`}
-                      >
-                        <div className="relative flex items-center justify-center">
-                          <Icon className="w-5 h-5 transition-transform hover:scale-110" />
-                          {item.badge !== undefined && item.badge > 0 && (
-                            <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
-                      </div>
+                    <Icon className="w-5 h-5 drop-shadow-sm transition-transform" />
+                    {item.badge !== undefined && item.badge > 0 && (
+                      <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
+                        {item.badge}
+                      </span>
                     )}
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        </div>
-      )}
+                  </motion.div>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }
