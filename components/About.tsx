@@ -196,22 +196,14 @@ export default function About() {
 
             {/* 3 Key Stats: 11+ Years Experience | 100+ Projects | 20+ Clients with Dynamic Motion */}
             <div className="pt-6 border-t border-white/5 grid grid-cols-3 gap-3 sm:gap-6 text-xs font-mono mt-auto">
-              <motion.div
-                whileHover={{ y: -3, scale: 1.04 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="group flex flex-col cursor-default"
-              >
-                <span className="text-2xl sm:text-3xl lg:text-4xl block leading-tight">
-                  <AnimatedStatCounter
-                    value={about.stat1Num || t("about.stat1.num") || "11+"}
-                    colorClass="text-[#16b09f] drop-shadow-[0_0_18px_rgba(22,176,159,0.35)]"
-                    delay={0.1}
-                  />
+              <div className="group flex flex-col cursor-default">
+                <span className="text-[#16b09f] block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight leading-tight font-mono select-none">
+                  {about.stat1Num || t("about.stat1.num") || "11+"}
                 </span>
-                <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block group-hover:text-neutral-200 transition-colors">
+                <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
                   {displayStat1Label}
                 </span>
-              </motion.div>
+              </div>
 
               <motion.div
                 whileHover={{ y: -3, scale: 1.04 }}
