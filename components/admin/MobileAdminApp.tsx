@@ -31,6 +31,8 @@ import {
   RiRestartFill,
   RiSearchLine,
   RiGlobalLine,
+  RiArrowDownSLine,
+  RiGoogleFill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -153,6 +155,77 @@ export default function MobileAdminApp({
     }
     return `Rp ${val.toLocaleString("id-ID")}`;
   };
+
+  // CRM & SEO Infographic Chart State (Image 2 mockup design)
+  const [chartMode, setChartMode] = useState<"crm" | "seo">("crm");
+  const [activeDayIdx, setActiveDayIdx] = useState<number>(3); // Default Thursday (Kamis / thu) as in reference
+  const [selectedPeriod, setSelectedPeriod] = useState<string>("Sep");
+  const [isPeriodMenuOpen, setIsPeriodMenuOpen] = useState<boolean>(false);
+
+  const crmChartData = [
+    { key: "mon", label: "mon", idLabel: "Sen", x: 10, y: 52, val: "Rp 42 Jt", desc: "Senin: 1 Deal Baru" },
+    { key: "tue", label: "tue", idLabel: "Sel", x: 70, y: 20, val: "Rp 88 Jt", desc: "Selasa: 3 Prospek Masuk" },
+    { key: "wed", label: "wed", idLabel: "Rab", x: 135, y: 64, val: "Rp 32 Jt", desc: "Rabu: Follow-up Negosiasi" },
+    { key: "thu", label: "thu", idLabel: "Kam", x: 200, y: 25, val: "Rp 76 Jt", desc: "Kamis: 2 Kontrak Deal Won" },
+    { key: "fri", label: "fri", idLabel: "Jum", x: 260, y: 38, val: "Rp 64 Jt", desc: "Jumat: Invoice Terbit" },
+  ];
+
+  const seoChartData = [
+    { key: "mon", label: "mon", idLabel: "Sen", x: 10, y: 48, val: "1.4k Clicks", desc: "Senin: 5.2k Impresi Google" },
+    { key: "tue", label: "tue", idLabel: "Sel", x: 70, y: 22, val: "3.9k Clicks", desc: "Selasa: Peringkat #1 Keywords" },
+    { key: "wed", label: "wed", idLabel: "Rab", x: 135, y: 62, val: "1.8k Clicks", desc: "Rabu: Traffic Organik" },
+    { key: "thu", label: "thu", idLabel: "Kam", x: 200, y: 26, val: "4.8k Clicks", desc: "Kamis: Viral Social Traffic" },
+    { key: "fri", label: "fri", idLabel: "Jum", x: 260, y: 36, val: "3.6k Clicks", desc: "Jumat: Google SERP Snippet" },
+  ];
+
+  const currentDataset = chartMode === "crm" ? crmChartData : seoChartData;
+  const activePoint = currentDataset[activeDayIdx] || currentDataset[3];
+
+  const crmWavePoints = [
+    { x: 10, y: 52 },
+    { x: 70, y: 20 },
+    { x: 105, y: 82 },
+    { x: 135, y: 64 },
+    { x: 165, y: 72 },
+    { x: 200, y: 25 },
+    { x: 232, y: 55 },
+    { x: 260, y: 38 },
+  ];
+
+  const seoWavePoints = [
+    { x: 10, y: 48 },
+    { x: 70, y: 22 },
+    { x: 105, y: 80 },
+    { x: 135, y: 62 },
+    { x: 165, y: 70 },
+    { x: 200, y: 26 },
+    { x: 232, y: 52 },
+    { x: 260, y: 36 },
+  ];
+
+  const activeWavePoints = chartMode === "crm" ? crmWavePoints : seoWavePoints;
+
+  const getSvgCurvePath = (pts: { x: number; y: number }[]) => {
+    if (pts.length === 0) return "";
+    let d = `M ${pts[0].x} ${pts[0].y}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i === 0 ? 0 : i - 1];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2 < pts.length ? i + 2 : i + 1];
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    }
+    return d;
+  };
+
+  const strokeCurve = getSvgCurvePath(activeWavePoints);
+  const areaCurve = `${strokeCurve} L 260 100 L 10 100 Z`;
 
   const getTabTitle = (tab: AdminSidebarTab) => {
     switch (tab) {
@@ -391,59 +464,322 @@ export default function MobileAdminApp({
               </div>
             </div>
 
-            {/* 2. HERO HIGHLIGHT METRIC CARD (Matches Reference Image Card) */}
+            {/* 2. INFOGRAPHIC GRAPHIC METRIC CARD (CRM & SEO Wavy Curve Chart) */}
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="relative overflow-hidden rounded-3xl p-5 shadow-xl bg-gradient-to-br from-[#0c1322] via-[#11192e] to-[#0a0f1d] border border-white/10 text-white"
+              className={`relative overflow-hidden rounded-3xl p-5 shadow-xl border transition-all ${
+                isLight
+                  ? "bg-white border-slate-200/90 text-slate-800 shadow-slate-200/50"
+                  : "bg-gradient-to-br from-[#0c1322] via-[#11192e] to-[#0a0f1d] border-white/10 text-white"
+              }`}
             >
-              {/* Subtle ambient light glow */}
-              <div
-                className="absolute top-0 right-0 w-44 h-44 rounded-full blur-3xl opacity-20 pointer-events-none"
-                style={{ backgroundColor: primaryColor }}
-              />
+              {/* Subtle ambient light glow (Dark mode) */}
+              {!isLight && (
+                <div
+                  className="absolute top-0 right-0 w-44 h-44 rounded-full blur-3xl opacity-20 pointer-events-none"
+                  style={{ backgroundColor: chartMode === "crm" ? primaryColor : "#06b6d4" }}
+                />
+              )}
 
-              <div className="flex items-start justify-between relative z-10">
-                <div>
-                  <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-medium mb-1">
-                    <RiShieldCheckFill className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>{tr("Status Studio & Pipeline", "Studio Pipeline Status", "Status Studio & Pipeline")}</span>
-                  </div>
-                  <div className="text-2xl font-black tracking-tight text-white mt-1">
-                    {pipelineValue > 0 ? formatPipeline(pipelineValue) : "Rp 183.000.000"}
-                  </div>
-                  <p className="text-xs text-neutral-400 mt-1">
-                    {totalLeadsCount > 0 ? `${totalLeadsCount} Prospek Klien Terdaftar` : "Potensi Kontrak Berjalan"}
-                  </p>
+              {/* Top Row: CRM vs SEO Switcher Tabs */}
+              <div className="flex items-center justify-between mb-3 relative z-10">
+                <div
+                  className={`inline-flex items-center p-1 rounded-2xl border transition-all ${
+                    isLight
+                      ? "bg-slate-100/90 border-slate-200/80"
+                      : "bg-white/5 border-white/10"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setChartMode("crm")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      chartMode === "crm"
+                        ? isLight
+                          ? "bg-white text-slate-900 shadow-xs"
+                          : "bg-white/20 text-white shadow-xs"
+                        : isLight
+                        ? "text-slate-500 hover:text-slate-900"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    <RiShieldCheckFill className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>CRM Pipeline</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setChartMode("seo")}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      chartMode === "seo"
+                        ? isLight
+                          ? "bg-white text-slate-900 shadow-xs"
+                          : "bg-white/20 text-white shadow-xs"
+                        : isLight
+                        ? "text-slate-500 hover:text-slate-900"
+                        : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    <RiSearchEyeFill className="w-3.5 h-3.5 text-cyan-500" />
+                    <span>SEO Google</span>
+                  </button>
                 </div>
 
-                {/* 3D Visual Icon / Camera Emblem */}
-                <div
-                  className="w-14 h-14 rounded-2xl flex items-center justify-center p-2.5 border shadow-lg"
-                  style={{
-                    backgroundColor: `${primaryColor}20`,
-                    borderColor: `${primaryColor}40`,
-                  }}
-                >
-                  <RiSparklingFill className="w-8 h-8" style={{ color: primaryColor }} />
+                {/* Period Selector Dropdown Button matching Image 2 ("Sep v") */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setIsPeriodMenuOpen(!isPeriodMenuOpen)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                      isLight
+                        ? "bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-xs"
+                        : "bg-white/5 border-white/15 text-slate-200 hover:bg-white/10"
+                    }`}
+                  >
+                    <span>{selectedPeriod}</span>
+                    <RiArrowDownSLine className="w-3.5 h-3.5 text-slate-400" />
+                  </button>
+
+                  <AnimatePresence>
+                    {isPeriodMenuOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -4 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95, y: -4 }}
+                        className={`absolute right-0 top-full mt-1.5 w-28 rounded-xl border p-1 shadow-xl z-30 ${
+                          isLight
+                            ? "bg-white border-slate-200 text-slate-800"
+                            : "bg-[#141b2a] border-white/15 text-white"
+                        }`}
+                      >
+                        {["Sep", "Okt", "Nov", "Minggu Ini"].map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => {
+                              setSelectedPeriod(p);
+                              setIsPeriodMenuOpen(false);
+                            }}
+                            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
+                              selectedPeriod === p
+                                ? "bg-emerald-500/10 text-emerald-500 font-bold"
+                                : isLight
+                                ? "hover:bg-slate-100"
+                                : "hover:bg-white/10"
+                            }`}
+                          >
+                            {p}
+                          </button>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* Main Metric Header Row (Big Value + Trend Subtitle) */}
+              <div className="relative z-10 mb-2">
+                <div className="text-2xl font-black tracking-tight flex items-baseline gap-2">
+                  <span className={isLight ? "text-slate-900" : "text-white"}>
+                    {chartMode === "crm"
+                      ? pipelineValue > 0
+                        ? formatPipeline(pipelineValue)
+                        : "Rp 238 Jt"
+                      : "14.8k Clicks"}
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                    {chartMode === "crm" ? "+18.4%" : "+24.2%"}
+                  </span>
+                </div>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  {chartMode === "crm"
+                    ? totalLeadsCount > 0
+                      ? `${totalLeadsCount} Prospek Klien Terdaftar`
+                      : "7 Prospek Klien Terdaftar"
+                    : "Google Search Console Aktif & Terindeks"}
+                </p>
+              </div>
+
+              {/* Graphic Area Wave Chart with Y-Axis (Matches Image 2) */}
+              <div className="mt-3 flex items-stretch gap-2 relative">
+                {/* Y-Axis Column matching Image 2: 100, 80, 60, 40, 20, 0 */}
+                <div className="flex flex-col justify-between text-[10px] font-mono text-slate-400 select-none pb-5 text-right w-6 shrink-0">
+                  <span>100</span>
+                  <span>80</span>
+                  <span>60</span>
+                  <span>40</span>
+                  <span>20</span>
+                  <span>0</span>
+                </div>
+
+                {/* SVG Curve Wave Chart Container */}
+                <div className="flex-1 relative pb-5">
+                  {/* Floating active point tooltip */}
+                  <div
+                    className={`absolute -top-3 px-2 py-0.5 rounded-md text-[10px] font-bold shadow-md pointer-events-none transition-all duration-300 border ${
+                      isLight
+                        ? "bg-slate-900 text-white border-slate-700"
+                        : "bg-white text-slate-900 border-white/20"
+                    }`}
+                    style={{
+                      left: `${(activePoint.x / 270) * 100}%`,
+                      transform: "translateX(-50%)",
+                    }}
+                  >
+                    {activePoint.val}
+                  </div>
+
+                  <svg viewBox="0 0 270 100" className="w-full h-28 overflow-visible" preserveAspectRatio="none">
+                    <defs>
+                      {/* Dynamic Gradient for Area Fill */}
+                      <linearGradient id="chartWaveFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop
+                          offset="0%"
+                          stopColor={chartMode === "crm" ? "#8b5cf6" : "#06b6d4"}
+                          stopOpacity={isLight ? "0.85" : "0.75"}
+                        />
+                        <stop
+                          offset="60%"
+                          stopColor={chartMode === "crm" ? "#a855f7" : "#10b981"}
+                          stopOpacity={isLight ? "0.45" : "0.25"}
+                        />
+                        <stop
+                          offset="100%"
+                          stopColor={chartMode === "crm" ? "#c084fc" : "#10b981"}
+                          stopOpacity="0.0"
+                        />
+                      </linearGradient>
+
+                      {/* Dynamic Gradient for Curve Line */}
+                      <linearGradient id="chartWaveStroke" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor={chartMode === "crm" ? "#3b82f6" : "#0ea5e9"} />
+                        <stop offset="50%" stopColor={chartMode === "crm" ? "#8b5cf6" : "#06b6d4"} />
+                        <stop offset="100%" stopColor={chartMode === "crm" ? "#a855f7" : "#10b981"} />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Horizontal Grid Lines at 100, 80, 60, 40, 20, 0 */}
+                    {[5, 24, 43, 62, 81, 98].map((yVal, idx) => (
+                      <line
+                        key={idx}
+                        x1="0"
+                        y1={yVal}
+                        x2="270"
+                        y2={yVal}
+                        stroke={isLight ? "#f1f5f9" : "rgba(255, 255, 255, 0.08)"}
+                        strokeWidth="1"
+                      />
+                    ))}
+
+                    {/* Filled Area Wave */}
+                    <motion.path
+                      key={`area-${chartMode}`}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.4 }}
+                      d={areaCurve}
+                      fill="url(#chartWaveFill)"
+                    />
+
+                    {/* Stroke Curve Line */}
+                    <motion.path
+                      key={`stroke-${chartMode}`}
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.5, ease: "easeInOut" }}
+                      d={strokeCurve}
+                      fill="none"
+                      stroke="url(#chartWaveStroke)"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+
+                    {/* Interactive Highlight Dot Marker (Image 2 style) */}
+                    <g className="transition-all duration-300">
+                      <circle
+                        cx={activePoint.x}
+                        cy={activePoint.y}
+                        r="9"
+                        fill={isLight ? "rgba(148, 163, 184, 0.35)" : "rgba(255, 255, 255, 0.25)"}
+                      />
+                      <circle
+                        cx={activePoint.x}
+                        cy={activePoint.y}
+                        r="7"
+                        fill={isLight ? "#cbd5e1" : "rgba(255, 255, 255, 0.45)"}
+                      />
+                      <circle
+                        cx={activePoint.x}
+                        cy={activePoint.y}
+                        r="4"
+                        fill={isLight ? "#64748b" : "#ffffff"}
+                      />
+                    </g>
+                  </svg>
+
+                  {/* X-Axis Day Labels: mon, tue, wed, thu, fri (Image 2 style) */}
+                  <div className="flex justify-between mt-1 text-[11px] font-mono select-none">
+                    {currentDataset.map((item, idx) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => setActiveDayIdx(idx)}
+                        className={`transition-all duration-200 cursor-pointer px-1 py-0.5 rounded ${
+                          activeDayIdx === idx
+                            ? isLight
+                              ? "text-slate-900 font-bold scale-105"
+                              : "text-white font-bold scale-105"
+                            : isLight
+                            ? "text-slate-400 hover:text-slate-600"
+                            : "text-neutral-500 hover:text-neutral-300"
+                        }`}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* Bottom Card Row */}
-              <div className="mt-4 pt-3.5 border-t border-white/10 flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5 text-neutral-300 font-mono text-[11px]">
-                  <RiCalendarLine className="w-3.5 h-3.5 text-neutral-400" />
-                  <span>{new Date().toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}</span>
+              <div
+                className={`mt-2 pt-3 border-t flex items-center justify-between text-xs ${
+                  isLight ? "border-slate-100" : "border-white/10"
+                }`}
+              >
+                <div className="flex items-center gap-1.5 text-neutral-400 font-mono text-[11px]">
+                  <RiCalendarLine className="w-3.5 h-3.5" />
+                  <span>
+                    {new Date().toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => navigateToWorkspace("crm")}
-                  className="text-xs font-bold text-emerald-400 flex items-center gap-1 hover:underline"
-                >
-                  <span>{tr("Kelola CRM", "Manage CRM", "Atua CRM")}</span>
-                  <RiArrowRightLine className="w-3.5 h-3.5" />
-                </button>
+
+                {chartMode === "crm" ? (
+                  <button
+                    type="button"
+                    onClick={() => navigateToWorkspace("crm")}
+                    className="text-xs font-bold text-emerald-500 flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <span>{tr("Kelola CRM", "Manage CRM", "Atua CRM")}</span>
+                    <RiArrowRightLine className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigateToWorkspace("seo")}
+                    className="text-xs font-bold text-cyan-500 flex items-center gap-1 hover:underline cursor-pointer"
+                  >
+                    <span>{tr("Buka SEO & SERP", "Open SEO", "Bukak SEO")}</span>
+                    <RiArrowRightLine className="w-3.5 h-3.5" />
+                  </button>
+                )}
               </div>
             </motion.div>
 
