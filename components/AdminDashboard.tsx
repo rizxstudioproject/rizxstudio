@@ -2005,7 +2005,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       </div>
 
       {/* Mobile Native App Experience (< 768px, Reference Mockup UI/UX) */}
-      <div className={`${mobileScreen === "home" ? "flex" : "hidden"} md:hidden h-full w-full overflow-hidden`}>
+      <div className="flex md:hidden h-full w-full overflow-hidden">
         <MobileAdminApp
           activeTab={sidebarTab}
           currentScreen={mobileScreen}
@@ -2061,36 +2061,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         />
       </div>
 
-      {/* Main Workspace Column (Desktop & Tablet >= 768px, and Mobile when mobileScreen === "workspace") */}
-      <div className={`${mobileScreen === "workspace" ? "flex" : "hidden md:flex"} flex-1 flex-col h-full min-w-0 overflow-hidden relative ${
+      {/* Main Workspace Column (Desktop & Tablet >= 768px) */}
+      <div className={`hidden md:flex flex-1 flex-col h-full min-w-0 overflow-hidden relative ${
         isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
       }`}>
-        {/* Mobile Workspace Top Navigation Bar (Only visible on mobile when inside workspace) */}
-        <div className={`flex md:hidden px-4 py-3 border-b items-center justify-between shrink-0 z-30 ${
-          isLight ? "bg-white border-slate-200" : "bg-[#0d1017] border-white/10"
-        }`}>
-          {/* Home Icon Only Button (Without Text - Matches User Request) */}
-          <button
-            type="button"
-            onClick={() => setMobileScreen("home")}
-            className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-sm ${
-              isLight
-                ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
-                : "bg-white/10 hover:bg-white/15 text-white border border-white/10"
-            }`}
-            title="Home"
-          >
-            <RiHome5Fill className="w-4 h-4 text-emerald-400" />
-          </button>
-
-          <span className="text-xs font-bold tracking-tight truncate max-w-[200px]">
-            {getMobileTabTitle(sidebarTab)}
-          </span>
-
-          {/* Spacer for balanced title centering */}
-          <div className="w-9 h-9" />
-        </div>
-
         {/* Desktop Top Header Bar (Only visible on md+) */}
         <div className="hidden md:block shrink-0">
           <AdminTopBar

@@ -445,7 +445,7 @@ export default function MobileAdminApp({
       {currentScreen === "home" ? (
         <div className="flex-1 flex flex-col h-full overflow-hidden">
           {/* Scrollable Container */}
-          <div className="flex-1 overflow-y-auto px-5 pt-4 pb-28 space-y-5">
+          <div className="flex-1 overflow-y-auto px-5 pt-4 pb-36 space-y-5">
             {/* 1. TOP GREETING & PROFILE HEADER */}
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-3">
@@ -1143,46 +1143,27 @@ export default function MobileAdminApp({
                   style={{ minWidth: "54px" }}
                   title={item.label}
                 >
-                  {/* 1. GLIDING NOTCH SCOOP (Niuuguo Tabbar No.04 Fluid Curved Cradle - Single Clean Silhouette) */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="curvedBarNotch"
-                      transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
-                      className="absolute -top-[15px] left-1/2 -translate-x-1/2 pointer-events-none z-10 w-[84px] h-[26px]"
-                    >
-                      <svg width="84" height="26" viewBox="0 0 84 26" fill="none">
-                        {/* Fluid Cutout Body (Page Background Fill - Carves the solid bar cleanly) */}
-                        <path
-                          d="M 0,0 
-                             C 16,0 20,24 42,24 
-                             C 64,24 68,0 84,0 
-                             Z"
-                          fill={isLight ? "#f4f6fa" : "#090b10"}
-                        />
-                      </svg>
-                    </motion.div>
-                  )}
-
-                  {/* 2. GLIDING ACTIVE CIRCULAR BUBBLE (Niuuguo Tabbar No.04 Elevated Indicator - Empty Background) */}
+                  {/* 1. GLIDING ACTIVE CIRCULAR BUBBLE (Moves with spring motion to active tab) */}
                   {isActive && (
                     <motion.div
                       layoutId="activeDockBubble"
-                      transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
-                      className={`w-12 h-12 rounded-full shadow-xl absolute -top-4 left-1/2 -translate-x-1/2 pointer-events-none z-10 bg-gradient-to-tr ${item.gradient}`}
+                      transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                      className={`w-12 h-12 rounded-full shadow-xl absolute -top-3 left-1/2 -translate-x-1/2 pointer-events-none z-10 bg-gradient-to-tr ${item.gradient}`}
                       style={{
                         boxShadow: `0 8px 24px ${item.glow}`,
+                        border: isLight ? "3px solid #ffffff" : "3px solid #0c101a",
                       }}
                     />
                   )}
 
-                  {/* 3. STATIONARY ANCHORED ICON (Stays in its exact slot at all times) */}
+                  {/* 2. STATIONARY ANCHORED ICON (Stays firmly in this exact slot at all times) */}
                   <motion.div
                     initial={false}
                     animate={{
-                      y: isActive ? -16 : 0,
+                      y: isActive ? -12 : 0,
                       scale: isActive ? 1.1 : 1.0,
                     }}
-                    transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
                     className={`relative z-20 flex items-center justify-center pointer-events-none transition-colors duration-200 ${
                       isActive
                         ? "text-white"
