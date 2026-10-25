@@ -771,20 +771,20 @@ export default function AdminTopBar({
             </button>
           )}
 
-          {/* Language Switcher Sliding Pill (Desktop Only - Matches Website Navbar & Mobile Admin Slider System) */}
+          {/* Language Switcher Sliding Pill (Desktop Only - Matches Circular Image 1 Style) */}
           <div
             ref={langContainerRef}
-            className={`hidden md:flex relative items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-xs font-mono h-8.5 select-none ${
+            className={`hidden md:flex relative items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-xs font-sans h-9 select-none shrink-0 ${
               isLangOpen
                 ? `w-[114px] ${
                     isLight
                       ? "bg-white/95 border-slate-300 shadow-md"
                       : "bg-[#0c0e12]/95 border-white/20 shadow-lg"
                   }`
-                : `w-8.5 ${
+                : `w-9 ${
                     isLight
-                      ? "border-slate-200 shadow-2xs hover:border-slate-300"
-                      : "border-white/15 shadow-sm hover:border-white/25"
+                      ? "border-transparent shadow-xs hover:opacity-90"
+                      : "border-transparent shadow-xs hover:opacity-90"
                   }`
             }`}
             style={{
@@ -819,14 +819,14 @@ export default function AdminTopBar({
                         ? { backgroundColor: primaryColor || "#16b09f" }
                         : undefined
                     }
-                    className={`w-[38px] h-full shrink-0 flex items-center justify-center font-bold tracking-wider transition-all duration-200 cursor-pointer select-none ${
+                    className={`w-[38px] h-full shrink-0 flex items-center justify-center font-bold text-xs tracking-tight transition-all duration-200 cursor-pointer select-none ${
                       !isLangOpen
-                        ? "text-black font-black"
+                        ? "text-white font-bold drop-shadow-xs"
                         : isSelected
-                        ? "text-black shadow-xs font-black rounded-full"
+                        ? "text-white shadow-xs font-bold rounded-full"
                         : isLight
-                        ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                        : "text-neutral-400 hover:text-white hover:bg-white/10"
+                        ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full"
+                        : "text-neutral-400 hover:text-white hover:bg-white/10 rounded-full"
                     }`}
                     aria-label={`Switch to ${l.label}`}
                     title={
@@ -846,7 +846,7 @@ export default function AdminTopBar({
           <button
             type="button"
             onClick={toggleThemeMode}
-            className={`hidden md:flex w-8.5 h-8.5 rounded-full items-center justify-center transition-all active:scale-95 cursor-pointer select-none ${
+            className={`hidden md:flex w-9 h-9 rounded-full items-center justify-center transition-all active:scale-95 cursor-pointer select-none shrink-0 ${
               isLight
                 ? "bg-white text-teal-600 border border-slate-200 hover:bg-slate-50 shadow-xs"
                 : "bg-white/10 text-amber-400 border border-white/10 hover:bg-white/15"

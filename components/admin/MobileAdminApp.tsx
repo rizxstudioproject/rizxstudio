@@ -564,14 +564,14 @@ export default function MobileAdminApp({
                               ? { backgroundColor: primaryColor || "#16b09f" }
                               : undefined
                           }
-                          className={`w-[38px] h-full shrink-0 flex items-center justify-center font-bold tracking-wider transition-all duration-200 cursor-pointer select-none ${
+                          className={`w-[38px] h-full shrink-0 flex items-center justify-center font-bold text-xs tracking-tight transition-all duration-200 cursor-pointer select-none ${
                             !isLangMenuOpen
-                              ? "text-black font-black"
+                              ? "text-white font-bold drop-shadow-xs"
                               : isSelected
-                              ? "text-black shadow-xs font-black rounded-full"
+                              ? "text-white shadow-xs font-bold rounded-full"
                               : isLight
-                              ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                              : "text-neutral-400 hover:text-white hover:bg-white/10"
+                              ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full"
+                              : "text-neutral-400 hover:text-white hover:bg-white/10 rounded-full"
                           }`}
                           aria-label={`Ganti ke ${l.label}`}
                           title={!isLangMenuOpen ? tr("Pilih Bahasa", "Change Language", "Pilih Bahaso") : l.label}
