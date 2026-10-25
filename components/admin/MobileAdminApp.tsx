@@ -178,7 +178,7 @@ export default function MobileAdminApp({
       case "flagship":
         return tr("Pameran Media Reels", "Media Showcase", "Media Reels");
       case "runner":
-        return tr("Portofolio Berjalan", "Running Portfolio", "Portofolio Baguliah");
+        return tr("Media Reels (Portofolio Berjalan)", "Media Reels (Running Portfolio)", "Media Reels (Portofolio Baguliah)");
       case "about":
         return tr("Tentang Saya (About)", "About Me", "Tantang Ambo");
       default:
@@ -242,8 +242,8 @@ export default function MobileAdminApp({
       bg: "bg-rose-500/10 text-rose-500 border-rose-500/20",
     },
     {
-      id: "flagship" as AdminSidebarTab,
-      label: tr("Media Reels", "Reels Video", "Media Reels"),
+      id: "runner" as AdminSidebarTab,
+      label: tr("Media Reels", "Media Reels", "Media Reels"),
       icon: RiMovieFill,
       bg: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
     },

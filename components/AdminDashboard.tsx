@@ -1966,7 +1966,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       case "storage":
         return tx("Penyimpanan & Kapasitas", "Storage & Analytics", "Panyimpanan & Kapasitas");
       case "runner":
-        return tx("Portofolio Berjalan (4:5)", "Running Portfolio", "Portofolio Baguliah");
+        return tx("Media Reels (Portofolio Berjalan)", "Media Reels (Running Portfolio)", "Media Reels (Portofolio Baguliah)");
       case "about":
         return tx("Tentang Saya (About Me)", "About Me", "Tantang Ambo");
       case "settings":
