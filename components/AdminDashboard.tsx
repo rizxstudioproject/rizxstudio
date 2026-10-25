@@ -1881,7 +1881,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         await handleSaveHeroBanner();
         break;
       case "hero-works":
-        await handleSaveHeroWorks();
+        if (mobileHeroSubTab === "about") {
+          handleSaveAbout({ preventDefault: () => {} } as any);
+        } else {
+          await handleSaveHeroWorks();
+        }
         break;
       case "flagship":
         await handleSaveVideo();
