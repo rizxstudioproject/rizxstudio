@@ -52,11 +52,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/logo-public.png", sizes: "any" },
       { url: "/favicon.ico", sizes: "any" },
+      { url: "/icon.png", sizes: "32x32", type: "image/png" },
+      { url: "/logo-public.png", sizes: "192x192", type: "image/png" },
     ],
-    shortcut: "/logo-public.png",
-    apple: "/logo-public.png",
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
   },
   verification: {
     google: "3gmIFS0RsobGQ6m2I_llFqh8q9R7LYeS5p4jzFSNP5E",
