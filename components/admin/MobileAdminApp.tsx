@@ -482,13 +482,17 @@ export default function MobileAdminApp({
             {/* 1. TOP GREETING & PROFILE HEADER */}
             <div className="flex items-center justify-between pt-2">
               <div className="flex items-center gap-3">
-                {/* User Avatar */}
+                {/* User Avatar / Brand Logo */}
                 <div className="relative">
-                  <div className="w-12 h-12 rounded-full overflow-hidden p-1 border-2 border-primary shadow-sm bg-neutral-900">
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center p-2 shadow-sm ${
+                    isLight
+                      ? "bg-slate-100 border border-slate-200"
+                      : "bg-neutral-900 border border-white/10"
+                  }`}>
                     <img
                       src="/navbar-logo.png"
                       alt="Rizx Studio"
-                      className="w-full h-full object-contain brightness-0 invert"
+                      className={`w-full h-full object-contain ${isLight ? "" : "brightness-0 invert"}`}
                     />
                   </div>
                 </div>
