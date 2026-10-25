@@ -744,16 +744,16 @@ export default function MobileAdminApp({
               <RiFolderFill className="w-5 h-5" />
             </button>
 
-            {/* 3. CRM Leads Tab */}
+            {/* 3. SEO Tab */}
             <button
               type="button"
-              onClick={() => navigateToWorkspace("crm")}
+              onClick={() => navigateToWorkspace("seo")}
               className={`p-2.5 rounded-full transition-all cursor-pointer ${
                 isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
               }`}
-              title="CRM Leads"
+              title={tr("SEO Google & Mesin Pencari", "Google SEO", "SEO Google")}
             >
-              <RiLineChartFill className="w-5 h-5" />
+              <RiSearchEyeFill className="w-5 h-5" />
             </button>
 
             {/* 4. Settings & Security Tab */}
