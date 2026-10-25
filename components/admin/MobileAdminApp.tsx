@@ -285,7 +285,7 @@ export default function MobileAdminApp({
       case "runner":
         return tr("Hero Banner & Media Reels", "Hero Banner & Media Reels", "Hero Banner & Media Reels");
       case "hero-works":
-        return tr("Karya Unggulan", "Top Works", "Karya Tapiliah");
+        return tr("Top Works & About", "Top Works & About", "Top Works & About");
       case "about":
         return tr("Tentang Saya (About)", "About Me", "Tantang Ambo");
       default:
@@ -381,7 +381,7 @@ export default function MobileAdminApp({
     },
     {
       id: "hero-works",
-      label: tr("Unggulan", "Top Works", "Tapiliah"),
+      label: tr("Top Works", "Top Works", "Top Works"),
       icon: RiImageFill,
       accentColor: "#f43f5e",
       gradient: "from-rose-500 to-pink-500",

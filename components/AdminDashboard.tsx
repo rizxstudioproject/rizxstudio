@@ -144,6 +144,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   // Mobile Navigation Drawer State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [viewportBottomOffset, setViewportBottomOffset] = useState(0);
+  const [mobileHeroSubTab, setMobileHeroSubTab] = useState<"works" | "about">("works");
 
   // Auto-scroll focused inputs above mobile on-screen keyboard & adapt viewport
   useEffect(() => {
@@ -2863,14 +2864,55 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           newLogoFile={newLogoFile}
           setNewLogoFile={setNewLogoFile}
           renderWorkspaceContent={(tab) => {
-            if (tab === "hero-works") {
+            if (tab === "hero-works" || tab === "about") {
               return (
                 <div className="p-4 sm:p-6 space-y-6">
-                  {renderHeroWorksWorkspace()}
+                  {/* Segmented Sub-Tab Switcher: Top Works vs About Me */}
+                  <div className={`p-1.5 rounded-2xl border flex items-center gap-2 max-w-md mx-auto ${
+                    isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900/80 border-white/10"
+                  }`}>
+                    <button
+                      type="button"
+                      onClick={() => setMobileHeroSubTab("works")}
+                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                        (tab === "about" ? "about" : mobileHeroSubTab) === "works"
+                          ? isLight
+                            ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                            : "bg-white/10 text-white shadow-md border border-white/15"
+                          : isLight
+                          ? "text-slate-600 hover:text-slate-900"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                      style={(tab === "about" ? "about" : mobileHeroSubTab) === "works" ? { borderColor: `${primaryColor}55`, color: primaryColor } : {}}
+                    >
+                      <HiPhoto className="w-4 h-4" />
+                      <span>{tx("Karya Unggulan", "Top Works", "Karya Unggulan")}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setMobileHeroSubTab("about")}
+                      className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                        (tab === "about" ? "about" : mobileHeroSubTab) === "about"
+                          ? isLight
+                            ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                            : "bg-white/10 text-white shadow-md border border-white/15"
+                          : isLight
+                          ? "text-slate-600 hover:text-slate-900"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                      style={(tab === "about" ? "about" : mobileHeroSubTab) === "about" ? { borderColor: `${primaryColor}55`, color: primaryColor } : {}}
+                    >
+                      <HiUser className="w-4 h-4" />
+                      <span>{tx("Tentang Saya (About)", "About Me", "Tantang Ambo")}</span>
+                    </button>
+                  </div>
+
+                  {(tab === "about" ? "about" : mobileHeroSubTab) === "works" ? renderHeroWorksWorkspace() : renderAboutWorkspace()}
                 </div>
               );
             }
-            if (tab === "about") {
+            if (false) {
               return (
                 <div className="p-4 sm:p-6 space-y-6">
                   {renderAboutWorkspace()}
