@@ -1985,6 +1985,787 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
+
+  const renderHeroWorksWorkspace = () => (
+    <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-8"
+          >
+            {/* Header Explainer */}
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
+              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                isLight ? "text-teal-700" : "text-[#16b09f]"
+              }`}>
+                SECTION CONTROL: HERO & SELECTED WORKS
+              </span>
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                Editor Section Hero (Design. Motion. AI.) & Selected Works
+              </h2>
+              <p className={`text-xs sm:text-sm mt-1.5 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                Edit seluruh teks headline, subheadline, tags, tombol CTA, serta tambah, ganti, atau hapus gambar kartu preview bertumpuk dan melengkung secara fleksibel.
+              </p>
+            </div>
+
+            {/* SECTION 2: HERO ("Design. Motion. AI.") */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f]">
+                    <HiSparkles className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-white">
+                      1. Section Hero (Overview & AI-Driven Creative)
+                    </h3>
+                    <p className="text-xs text-neutral-400">
+                      Teks dan kartu preview bertumpuk di layar Stage 2
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Category Tag (Atas)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2Tag}
+                    onChange={(e) => setHwStage2Tag(e.target.value)}
+                    placeholder="AI-DRIVEN CREATIVE"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Headline Utama
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2Headline}
+                    onChange={(e) => setHwStage2Headline(e.target.value)}
+                    placeholder="Design. Motion. AI."
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Deskripsi Hero
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={hwStage2Desc}
+                    onChange={(e) => setHwStage2Desc(e.target.value)}
+                    placeholder="Senior Graphic Designer & Digital Artist..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Teks Tombol CTA
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2BtnText}
+                    onChange={(e) => setHwStage2BtnText(e.target.value)}
+                    placeholder="Explore My Work"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Badge Pegangan / Handle (Pisahkan koma)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2Badges}
+                    onChange={(e) => setHwStage2Badges(e.target.value)}
+                    placeholder="@rizx, @malaka"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Daftar Pill / Skill Tags (Pisahkan koma)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage2Skills}
+                    onChange={(e) => setHwStage2Skills(e.target.value)}
+                    placeholder="Branding, Motion, 3D Design, UI/UX, AI Visuals"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+              </div>
+
+              {/* Overlapping Cards Management */}
+              <div className="pt-4 border-t border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-white">
+                      Kartu Gambar Bertumpuk (Overlapping Cards)
+                    </h4>
+                    <p className="text-xs text-neutral-400">
+                      Tumpukan kartu yang tampil di samping kanan tulisan hero
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-neutral-400">
+                    Total: {hwOverlappingCards.length} Kartu
+                  </span>
+                </div>
+
+                {/* Grid Existing Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {hwOverlappingCards.map((card, idx) => (
+                    <div
+                      key={card.id || idx}
+                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 space-y-2.5 flex flex-col justify-between"
+                    >
+                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black border border-white/10 group">
+                        <img
+                          src={card.image}
+                          alt={card.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-xs text-white font-medium gap-1">
+                          <HiArrowUpTray className="w-5 h-5 text-[#16b09f]" />
+                          <span>Ganti Gambar</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              handleGenericImageFile(e, (dataUrl) => {
+                                setHwOverlappingCards((prev) =>
+                                  prev.map((c, i) => (i === idx ? { ...c, image: dataUrl } : c))
+                                );
+                                showToast(`Gambar kartu "${card.title}" diganti.`);
+                              })
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <input
+                          type="text"
+                          value={card.title}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setHwOverlappingCards((prev) =>
+                              prev.map((c, i) => (i === idx ? { ...c, title: val } : c))
+                            );
+                          }}
+                          placeholder="Judul Kartu"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#16b09f]"
+                        />
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (°):</span>
+                          <input
+                            type="number"
+                            value={card.rotate}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              setHwOverlappingCards((prev) =>
+                                prev.map((c, i) => (i === idx ? { ...c, rotate: val } : c))
+                              );
+                            }}
+                            className="w-16 px-2 py-1 rounded bg-neutral-900 border border-white/10 text-white text-xs font-mono"
+                          />
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOverlappingCard(card.id)}
+                        className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <HiTrash className="w-3.5 h-3.5" />
+                        <span>{tx("Hapus Kartu", "Delete Card")}</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Form Tambah Kartu Baru */}
+                <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <HiPlus className="w-4 h-4 text-[#16b09f]" />
+                    <span>{tx("Tambah Kartu Hero Baru", "Add New Hero Card")}</span>
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      value={newOverTitle}
+                      onChange={(e) => setNewOverTitle(e.target.value)}
+                      placeholder="Judul Kartu (contoh: 3D Visual)"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#16b09f]"
+                    />
+                    <input
+                      type="number"
+                      value={newOverRotate}
+                      onChange={(e) => setNewOverRotate(e.target.value)}
+                      placeholder="Rotasi derajat (contoh: 5)"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
+                    />
+                    <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
+                      <HiPhoto className="w-4 h-4 text-[#16b09f]" />
+                      <span className="truncate">
+                        {newOverImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          handleGenericImageFile(e, (dataUrl) => setNewOverImage(dataUrl))
+                        }
+                      />
+                    </label>
+                  </div>
+                  {newOverImage && (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={newOverImage}
+                        alt="Preview"
+                        className="w-12 h-12 rounded-lg object-cover border border-white/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddOverlappingCard}
+                        className="px-4 py-2 rounded-xl bg-[#16b09f] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
+                      >
+                        + Masukkan Kartu ke Hero
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* SECTION 1: SELECTED WORKS ("A Range of Work. One Creative Vision.") */}
+            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f]">
+                    <HiFolder className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-white">
+                      2. Section Selected Works (Layar Awal & Fan-out Cards)
+                    </h3>
+                    <p className="text-xs text-neutral-400">
+                      Teks headline besar dan 5 kartu melengkung di Stage 1
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Badge Kecil (Atas)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage1Badge}
+                    onChange={(e) => setHwStage1Badge(e.target.value)}
+                    placeholder="SELECTED WORKS"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Headline Besar
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage1Headline}
+                    onChange={(e) => setHwStage1Headline(e.target.value)}
+                    placeholder="A Range of Work. One Creative Vision."
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+
+                <div className="md:col-span-2 space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Subheadline Paragraf
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={hwStage1Subheadline}
+                    onChange={(e) => setHwStage1Subheadline(e.target.value)}
+                    placeholder="Explore selected projects across branding, motion..."
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                    Teks Hint Scroll (Bawah)
+                  </label>
+                  <input
+                    type="text"
+                    value={hwStage1ScrollText}
+                    onChange={(e) => setHwStage1ScrollText(e.target.value)}
+                    placeholder="Scroll down ↓"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  />
+                </div>
+              </div>
+
+              {/* Deck Cards Management */}
+              <div className="pt-4 border-t border-white/10 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-white">
+                      Kartu Preview Melengkung (Deck Cards Fan-out)
+                    </h4>
+                    <p className="text-xs text-neutral-400">
+                      Kartu-kartu yang mekar dan menyebar melengkung saat halaman di-scroll
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono text-neutral-400">
+                    Total: {hwDeckCards.length} Kartu
+                  </span>
+                </div>
+
+                {/* Grid Existing Deck Cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {hwDeckCards.map((card, idx) => (
+                    <div
+                      key={card.id || idx}
+                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 space-y-2.5 flex flex-col justify-between"
+                    >
+                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black border border-white/10 group">
+                        <img
+                          src={card.image}
+                          alt={card.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-xs text-white font-medium gap-1">
+                          <HiArrowUpTray className="w-5 h-5 text-[#16b09f]" />
+                          <span>Ganti Gambar</span>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) =>
+                              handleGenericImageFile(e, (dataUrl) => {
+                                setHwDeckCards((prev) =>
+                                  prev.map((c, i) => (i === idx ? { ...c, image: dataUrl } : c))
+                                );
+                                showToast(`Gambar kartu "${card.title}" diganti.`);
+                              })
+                            }
+                          />
+                        </label>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <input
+                          type="text"
+                          value={card.title}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setHwDeckCards((prev) =>
+                              prev.map((c, i) => (i === idx ? { ...c, title: val } : c))
+                            );
+                          }}
+                          placeholder="Judul"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#16b09f]"
+                        />
+                        <input
+                          type="text"
+                          value={card.category}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setHwDeckCards((prev) =>
+                              prev.map((c, i) => (i === idx ? { ...c, category: val } : c))
+                            );
+                          }}
+                          placeholder="Kategori"
+                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDeckCard(card.id)}
+                        className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <HiTrash className="w-3.5 h-3.5" />
+                        <span>{tx("Hapus Kartu", "Delete Card")}</span>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Form Tambah Kartu Deck Baru */}
+                <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                    <HiPlus className="w-4 h-4 text-[#16b09f]" />
+                    <span>{tx("Tambah Kartu Deck Baru", "Add New Deck Card")}</span>
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <input
+                      type="text"
+                      value={newDeckTitle}
+                      onChange={(e) => setNewDeckTitle(e.target.value)}
+                      placeholder="Judul (contoh: Motion Design)"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#16b09f]"
+                    />
+                    <input
+                      type="text"
+                      value={newDeckCategory}
+                      onChange={(e) => setNewDeckCategory(e.target.value)}
+                      placeholder="Kategori (contoh: 3D & AI)"
+                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
+                    />
+                    <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
+                      <HiPhoto className="w-4 h-4 text-[#16b09f]" />
+                      <span className="truncate">
+                        {newDeckImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) =>
+                          handleGenericImageFile(e, (dataUrl) => setNewDeckImage(dataUrl))
+                        }
+                      />
+                    </label>
+                  </div>
+                  {newDeckImage && (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={newDeckImage}
+                        alt="Preview"
+                        className="w-12 h-12 rounded-lg object-cover border border-white/10"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddDeckCard}
+                        className="px-4 py-2 rounded-xl bg-[#16b09f] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
+                      >
+                        + Masukkan Kartu ke Selected Works
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+  );
+
+  const renderAboutWorkspace = () => (
+    <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
+            {/* Header Explainer */}
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
+              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                isLight ? "text-teal-700" : "text-[#16b09f]"
+              }`}>
+                SECTION CONTROL: ABOUT ME (WHO AM I)
+              </span>
+              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                Kustomisasi Seluruh Teks Section About Me
+              </h2>
+              <p className={`text-xs sm:text-sm mt-1 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                Ubah headline, narasi profil, filosofi inti, 3 statistik pengalaman, teks kolaborasi global, dan disiplin keahlian. Setiap perubahan langsung disimpan ke Supabase Cloud & LocalStorage dan tayang langsung di web publik.
+              </p>
+            </div>
+
+            <form onSubmit={handleSaveAbout} className="space-y-6">
+              {/* 1. Main Headline & Bio */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className="pb-3 border-b border-white/10">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
+                    BAGIAN 1 · HEADER & NARASI UTAMA
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    Judul & Deskripsi Utama Profil
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Sub-header / Eyebrow Tag
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutEyebrow}
+                      onChange={(e) => setAboutEyebrow(e.target.value)}
+                      placeholder="WHO AM I"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] font-mono transition-all"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Judul Section (Title)
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutTitle}
+                      onChange={(e) => setAboutTitle(e.target.value)}
+                      placeholder="About Me"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    Headline Utama (Besar)
+                  </label>
+                  <input
+                    type="text"
+                    value={aboutHeadline}
+                    onChange={(e) => setAboutHeadline(e.target.value)}
+                    placeholder="Creative Designer & Motion Specialist | 11+ Years | Agency & Global Brands"
+                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-semibold focus:outline-none focus:border-[#16b09f] transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    Paragraf Narasi / Bio
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={aboutBio}
+                    onChange={(e) => setAboutBio(e.target.value)}
+                    placeholder="With 11+ years in creative design, I've evolved alongside the industry..."
+                    className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm leading-relaxed focus:outline-none focus:border-[#16b09f] transition-all resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* 2. Filosofi Inti (Core Philosophy) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className="pb-3 border-b border-white/10">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
+                    BAGIAN 2 · FILOSOFI INTI
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    Quote & Core Philosophy
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Label / Tag Box
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutPhilosophyTitle}
+                      onChange={(e) => setAboutPhilosophyTitle(e.target.value)}
+                      placeholder="CORE PHILOSOPHY"
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] transition-all"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                      Isi Kutipan / Quote Filosofi
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutPhilosophyQuote}
+                      onChange={(e) => setAboutPhilosophyQuote(e.target.value)}
+                      placeholder="A creative professional's greatest advantage isn't resisting change — it's adapting faster."
+                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm italic focus:outline-none focus:border-[#16b09f] transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Tiga Statistik Utama (3 Key Stats) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className="pb-3 border-b border-white/10">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
+                    BAGIAN 3 · STATISTIK PENGALAMAN
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    3 Angka Prestasi & Pengalaman
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  {/* Stat 1 */}
+                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
+                    <label className="block text-[11px] font-mono text-[#16b09f] font-semibold uppercase">
+                      Statistik 1 (Warna Aksen Hijau/Cyan)
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutStat1Num}
+                      onChange={(e) => setAboutStat1Num(e.target.value)}
+                      placeholder="11+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
+                    />
+                    <input
+                      type="text"
+                      value={aboutStat1Label}
+                      onChange={(e) => setAboutStat1Label(e.target.value)}
+                      placeholder="YEARS EXPERIENCE"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
+                    />
+                  </div>
+
+                  {/* Stat 2 */}
+                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
+                    <label className="block text-[11px] font-mono text-neutral-400 font-semibold uppercase">
+                      Statistik 2
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutStat2Num}
+                      onChange={(e) => setAboutStat2Num(e.target.value)}
+                      placeholder="100+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
+                    />
+                    <input
+                      type="text"
+                      value={aboutStat2Label}
+                      onChange={(e) => setAboutStat2Label(e.target.value)}
+                      placeholder="PROJECTS"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
+                    />
+                  </div>
+
+                  {/* Stat 3 */}
+                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
+                    <label className="block text-[11px] font-mono text-neutral-400 font-semibold uppercase">
+                      Statistik 3
+                    </label>
+                    <input
+                      type="text"
+                      value={aboutStat3Num}
+                      onChange={(e) => setAboutStat3Num(e.target.value)}
+                      placeholder="20+"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
+                    />
+                    <input
+                      type="text"
+                      value={aboutStat3Label}
+                      onChange={(e) => setAboutStat3Label(e.target.value)}
+                      placeholder="CLIENTS"
+                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Sidebar Cards (Global Collaboration & Disciplines) */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
+                <div className="pb-3 border-b border-white/10">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
+                    BAGIAN 4 · KARTU SAMPING (SIDEBAR CARDS)
+                  </span>
+                  <h3 className="text-base sm:text-lg font-bold text-white">
+                    Kolaborasi Global & Disiplin Keahlian
+                  </h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Kolaborasi Global */}
+                  <div className="space-y-3 p-4 rounded-xl bg-neutral-950 border border-white/10">
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                        Judul Kartu Kolaborasi
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutCollabTitle}
+                        onChange={(e) => setAboutCollabTitle(e.target.value)}
+                        placeholder="Global Collaboration"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                        Deskripsi Kolaborasi
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={aboutCollabDesc}
+                        onChange={(e) => setAboutCollabDesc(e.target.value)}
+                        placeholder="Producing scalable visual content, high-performing ads..."
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-[#16b09f] resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Disiplin Keahlian */}
+                  <div className="space-y-3 p-4 rounded-xl bg-neutral-950 border border-white/10">
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                        Judul Kartu Disiplin
+                      </label>
+                      <input
+                        type="text"
+                        value={aboutDisciplinesTitle}
+                        onChange={(e) => setAboutDisciplinesTitle(e.target.value)}
+                        placeholder="Disciplines"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-mono text-neutral-300 font-medium">
+                          Daftar Keahlian (Pisahkan dengan koma)
+                        </label>
+                        <span className="text-[10px] font-mono text-cyan-400">
+                          {aboutDisciplinesInput.split(",").filter((t) => t.trim()).length} Tags
+                        </span>
+                      </div>
+                      <textarea
+                        rows={3}
+                        value={aboutDisciplinesInput}
+                        onChange={(e) => setAboutDisciplinesInput(e.target.value)}
+                        placeholder="Creative Direction, Motion Graphics, Branding & Identity, UI/UX Design, Digital Advertising, Video Production"
+                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono leading-relaxed focus:outline-none focus:border-[#16b09f] resize-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 4. Sidebar Cards (Global Collaboration & Disciplines) end */}
+            </form>
+          </motion.div>
+  );
+
   return (
     <div
       id="admin-dashboard"
@@ -2066,6 +2847,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           setNewLogoRow={setNewLogoRow}
           newLogoFile={newLogoFile}
           setNewLogoFile={setNewLogoFile}
+          renderWorkspaceContent={(tab) => {
+            if (tab === "hero-works") {
+              return (
+                <div className="p-4 sm:p-6 space-y-6">
+                  {renderHeroWorksWorkspace()}
+                </div>
+              );
+            }
+            if (tab === "about") {
+              return (
+                <div className="p-4 sm:p-6 space-y-6">
+                  {renderAboutWorkspace()}
+                </div>
+              );
+            }
+            return null;
+          }}
         />
       </div>
 
@@ -3807,494 +4605,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         {/* ========================================================
             TAB 2: HERO & SELECTED WORKS SECTION MANAGEMENT
            ======================================================== */}
-        {sidebarTab === "hero-works" && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-8"
-          >
-            {/* Header Explainer */}
-            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
-              isLight
-                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
-                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
-            }`}>
-              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
-                isLight ? "text-teal-700" : "text-[#16b09f]"
-              }`}>
-                SECTION CONTROL: HERO & SELECTED WORKS
-              </span>
-              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-                Editor Section Hero (Design. Motion. AI.) & Selected Works
-              </h2>
-              <p className={`text-xs sm:text-sm mt-1.5 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
-                Edit seluruh teks headline, subheadline, tags, tombol CTA, serta tambah, ganti, atau hapus gambar kartu preview bertumpuk dan melengkung secara fleksibel.
-              </p>
-            </div>
-
-            {/* SECTION 2: HERO ("Design. Motion. AI.") */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f]">
-                    <HiSparkles className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg font-bold text-white">
-                      1. Section Hero (Overview & AI-Driven Creative)
-                    </h3>
-                    <p className="text-xs text-neutral-400">
-                      Teks dan kartu preview bertumpuk di layar Stage 2
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Text Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Category Tag (Atas)
-                  </label>
-                  <input
-                    type="text"
-                    value={hwStage2Tag}
-                    onChange={(e) => setHwStage2Tag(e.target.value)}
-                    placeholder="AI-DRIVEN CREATIVE"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Headline Utama
-                  </label>
-                  <input
-                    type="text"
-                    value={hwStage2Headline}
-                    onChange={(e) => setHwStage2Headline(e.target.value)}
-                    placeholder="Design. Motion. AI."
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Deskripsi Hero
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={hwStage2Desc}
-                    onChange={(e) => setHwStage2Desc(e.target.value)}
-                    placeholder="Senior Graphic Designer & Digital Artist..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Teks Tombol CTA
-                  </label>
-                  <input
-                    type="text"
-                    value={hwStage2BtnText}
-                    onChange={(e) => setHwStage2BtnText(e.target.value)}
-                    placeholder="Explore My Work"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Badge Pegangan / Handle (Pisahkan koma)
-                  </label>
-                  <input
-                    type="text"
-                    value={hwStage2Badges}
-                    onChange={(e) => setHwStage2Badges(e.target.value)}
-                    placeholder="@rizx, @malaka"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Daftar Pill / Skill Tags (Pisahkan koma)
-                  </label>
-                  <input
-                    type="text"
-                    value={hwStage2Skills}
-                    onChange={(e) => setHwStage2Skills(e.target.value)}
-                    placeholder="Branding, Motion, 3D Design, UI/UX, AI Visuals"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-              </div>
-
-              {/* Overlapping Cards Management */}
-              <div className="pt-4 border-t border-white/10 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-bold text-white">
-                      Kartu Gambar Bertumpuk (Overlapping Cards)
-                    </h4>
-                    <p className="text-xs text-neutral-400">
-                      Tumpukan kartu yang tampil di samping kanan tulisan hero
-                    </p>
-                  </div>
-                  <span className="text-xs font-mono text-neutral-400">
-                    Total: {hwOverlappingCards.length} Kartu
-                  </span>
-                </div>
-
-                {/* Grid Existing Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {hwOverlappingCards.map((card, idx) => (
-                    <div
-                      key={card.id || idx}
-                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 space-y-2.5 flex flex-col justify-between"
-                    >
-                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black border border-white/10 group">
-                        <img
-                          src={card.image}
-                          alt={card.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-xs text-white font-medium gap-1">
-                          <HiArrowUpTray className="w-5 h-5 text-[#16b09f]" />
-                          <span>Ganti Gambar</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) =>
-                              handleGenericImageFile(e, (dataUrl) => {
-                                setHwOverlappingCards((prev) =>
-                                  prev.map((c, i) => (i === idx ? { ...c, image: dataUrl } : c))
-                                );
-                                showToast(`Gambar kartu "${card.title}" diganti.`);
-                              })
-                            }
-                          />
-                        </label>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <input
-                          type="text"
-                          value={card.title}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setHwOverlappingCards((prev) =>
-                              prev.map((c, i) => (i === idx ? { ...c, title: val } : c))
-                            );
-                          }}
-                          placeholder="Judul Kartu"
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#16b09f]"
-                        />
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (°):</span>
-                          <input
-                            type="number"
-                            value={card.rotate}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value) || 0;
-                              setHwOverlappingCards((prev) =>
-                                prev.map((c, i) => (i === idx ? { ...c, rotate: val } : c))
-                              );
-                            }}
-                            className="w-16 px-2 py-1 rounded bg-neutral-900 border border-white/10 text-white text-xs font-mono"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteOverlappingCard(card.id)}
-                        className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <HiTrash className="w-3.5 h-3.5" />
-                        <span>{tx("Hapus Kartu", "Delete Card")}</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Form Tambah Kartu Baru */}
-                <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
-                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <HiPlus className="w-4 h-4 text-[#16b09f]" />
-                    <span>{tx("Tambah Kartu Hero Baru", "Add New Hero Card")}</span>
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input
-                      type="text"
-                      value={newOverTitle}
-                      onChange={(e) => setNewOverTitle(e.target.value)}
-                      placeholder="Judul Kartu (contoh: 3D Visual)"
-                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#16b09f]"
-                    />
-                    <input
-                      type="number"
-                      value={newOverRotate}
-                      onChange={(e) => setNewOverRotate(e.target.value)}
-                      placeholder="Rotasi derajat (contoh: 5)"
-                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
-                    />
-                    <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
-                      <HiPhoto className="w-4 h-4 text-[#16b09f]" />
-                      <span className="truncate">
-                        {newOverImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) =>
-                          handleGenericImageFile(e, (dataUrl) => setNewOverImage(dataUrl))
-                        }
-                      />
-                    </label>
-                  </div>
-                  {newOverImage && (
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={newOverImage}
-                        alt="Preview"
-                        className="w-12 h-12 rounded-lg object-cover border border-white/10"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddOverlappingCard}
-                        className="px-4 py-2 rounded-xl bg-[#16b09f] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
-                      >
-                        + Masukkan Kartu ke Hero
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* SECTION 1: SELECTED WORKS ("A Range of Work. One Creative Vision.") */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-6">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-[#16b09f]/15 border border-[#16b09f]/30 flex items-center justify-center text-[#16b09f]">
-                    <HiFolder className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h3 className="text-base sm:text-lg font-bold text-white">
-                      2. Section Selected Works (Layar Awal & Fan-out Cards)
-                    </h3>
-                    <p className="text-xs text-neutral-400">
-                      Teks headline besar dan 5 kartu melengkung di Stage 1
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Text Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Badge Kecil (Atas)
-                  </label>
-                  <input
-                    type="text"
-                    value={hwStage1Badge}
-                    onChange={(e) => setHwStage1Badge(e.target.value)}
-                    placeholder="SELECTED WORKS"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Headline Besar
-                  </label>
-                  <input
-                    type="text"
-                    value={hwStage1Headline}
-                    onChange={(e) => setHwStage1Headline(e.target.value)}
-                    placeholder="A Range of Work. One Creative Vision."
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-
-                <div className="md:col-span-2 space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Subheadline Paragraf
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={hwStage1Subheadline}
-                    onChange={(e) => setHwStage1Subheadline(e.target.value)}
-                    placeholder="Explore selected projects across branding, motion..."
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
-                    Teks Hint Scroll (Bawah)
-                  </label>
-                  <input
-                    type="text"
-                    value={hwStage1ScrollText}
-                    onChange={(e) => setHwStage1ScrollText(e.target.value)}
-                    placeholder="Scroll down ↓"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                  />
-                </div>
-              </div>
-
-              {/* Deck Cards Management */}
-              <div className="pt-4 border-t border-white/10 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="text-sm font-bold text-white">
-                      Kartu Preview Melengkung (Deck Cards Fan-out)
-                    </h4>
-                    <p className="text-xs text-neutral-400">
-                      Kartu-kartu yang mekar dan menyebar melengkung saat halaman di-scroll
-                    </p>
-                  </div>
-                  <span className="text-xs font-mono text-neutral-400">
-                    Total: {hwDeckCards.length} Kartu
-                  </span>
-                </div>
-
-                {/* Grid Existing Deck Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                  {hwDeckCards.map((card, idx) => (
-                    <div
-                      key={card.id || idx}
-                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 space-y-2.5 flex flex-col justify-between"
-                    >
-                      <div className="relative aspect-square w-full rounded-lg overflow-hidden bg-black border border-white/10 group">
-                        <img
-                          src={card.image}
-                          alt={card.title}
-                          className="w-full h-full object-cover"
-                        />
-                        <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-xs text-white font-medium gap-1">
-                          <HiArrowUpTray className="w-5 h-5 text-[#16b09f]" />
-                          <span>Ganti Gambar</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) =>
-                              handleGenericImageFile(e, (dataUrl) => {
-                                setHwDeckCards((prev) =>
-                                  prev.map((c, i) => (i === idx ? { ...c, image: dataUrl } : c))
-                                );
-                                showToast(`Gambar kartu "${card.title}" diganti.`);
-                              })
-                            }
-                          />
-                        </label>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <input
-                          type="text"
-                          value={card.title}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setHwDeckCards((prev) =>
-                              prev.map((c, i) => (i === idx ? { ...c, title: val } : c))
-                            );
-                          }}
-                          placeholder="Judul"
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#16b09f]"
-                        />
-                        <input
-                          type="text"
-                          value={card.category}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setHwDeckCards((prev) =>
-                              prev.map((c, i) => (i === idx ? { ...c, category: val } : c))
-                            );
-                          }}
-                          placeholder="Kategori"
-                          className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
-                        />
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteDeckCard(card.id)}
-                        className="w-full py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <HiTrash className="w-3.5 h-3.5" />
-                        <span>{tx("Hapus Kartu", "Delete Card")}</span>
-                      </button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Form Tambah Kartu Deck Baru */}
-                <div className="p-4 rounded-xl bg-neutral-900/50 border border-dashed border-white/20 space-y-3">
-                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <HiPlus className="w-4 h-4 text-[#16b09f]" />
-                    <span>{tx("Tambah Kartu Deck Baru", "Add New Deck Card")}</span>
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input
-                      type="text"
-                      value={newDeckTitle}
-                      onChange={(e) => setNewDeckTitle(e.target.value)}
-                      placeholder="Judul (contoh: Motion Design)"
-                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs focus:outline-none focus:border-[#16b09f]"
-                    />
-                    <input
-                      type="text"
-                      value={newDeckCategory}
-                      onChange={(e) => setNewDeckCategory(e.target.value)}
-                      placeholder="Kategori (contoh: 3D & AI)"
-                      className="px-3 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
-                    />
-                    <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
-                      <HiPhoto className="w-4 h-4 text-[#16b09f]" />
-                      <span className="truncate">
-                        {newDeckImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) =>
-                          handleGenericImageFile(e, (dataUrl) => setNewDeckImage(dataUrl))
-                        }
-                      />
-                    </label>
-                  </div>
-                  {newDeckImage && (
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={newDeckImage}
-                        alt="Preview"
-                        className="w-12 h-12 rounded-lg object-cover border border-white/10"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleAddDeckCard}
-                        className="px-4 py-2 rounded-xl bg-[#16b09f] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer"
-                      >
-                        + Masukkan Kartu ke Selected Works
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
+        {sidebarTab === "hero-works" && renderHeroWorksWorkspace()}
         {/* ========================================================
             TAB 4: PORTFOLIO RUNNER (4:5 MARQUEE) CRUD MANAGEMENT
            ======================================================== */}
@@ -5009,298 +5320,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         {/* ========================================================
             TAB 5: ABOUT ME SECTION MANAGEMENT
            ======================================================== */}
-        {sidebarTab === "about" && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
-            {/* Header Explainer */}
-            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
-              isLight
-                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
-                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
-            }`}>
-              <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
-                isLight ? "text-teal-700" : "text-[#16b09f]"
-              }`}>
-                SECTION CONTROL: ABOUT ME (WHO AM I)
-              </span>
-              <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-                Kustomisasi Seluruh Teks Section About Me
-              </h2>
-              <p className={`text-xs sm:text-sm mt-1 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
-                Ubah headline, narasi profil, filosofi inti, 3 statistik pengalaman, teks kolaborasi global, dan disiplin keahlian. Setiap perubahan langsung disimpan ke Supabase Cloud & LocalStorage dan tayang langsung di web publik.
-              </p>
-            </div>
-
-            <form onSubmit={handleSaveAbout} className="space-y-6">
-              {/* 1. Main Headline & Bio */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
-                <div className="pb-3 border-b border-white/10">
-                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                    BAGIAN 1 · HEADER & NARASI UTAMA
-                  </span>
-                  <h3 className="text-base sm:text-lg font-bold text-white">
-                    Judul & Deskripsi Utama Profil
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                      Sub-header / Eyebrow Tag
-                    </label>
-                    <input
-                      type="text"
-                      value={aboutEyebrow}
-                      onChange={(e) => setAboutEyebrow(e.target.value)}
-                      placeholder="WHO AM I"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] font-mono transition-all"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                      Judul Section (Title)
-                    </label>
-                    <input
-                      type="text"
-                      value={aboutTitle}
-                      onChange={(e) => setAboutTitle(e.target.value)}
-                      placeholder="About Me"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    Headline Utama (Besar)
-                  </label>
-                  <input
-                    type="text"
-                    value={aboutHeadline}
-                    onChange={(e) => setAboutHeadline(e.target.value)}
-                    placeholder="Creative Designer & Motion Specialist | 11+ Years | Agency & Global Brands"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-semibold focus:outline-none focus:border-[#16b09f] transition-all"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    Paragraf Narasi / Bio
-                  </label>
-                  <textarea
-                    rows={4}
-                    value={aboutBio}
-                    onChange={(e) => setAboutBio(e.target.value)}
-                    placeholder="With 11+ years in creative design, I've evolved alongside the industry..."
-                    className="w-full px-4 py-3 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm leading-relaxed focus:outline-none focus:border-[#16b09f] transition-all resize-none"
-                  />
-                </div>
-              </div>
-
-              {/* 2. Filosofi Inti (Core Philosophy) */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
-                <div className="pb-3 border-b border-white/10">
-                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                    BAGIAN 2 · FILOSOFI INTI
-                  </span>
-                  <h3 className="text-base sm:text-lg font-bold text-white">
-                    Quote & Core Philosophy
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                      Label / Tag Box
-                    </label>
-                    <input
-                      type="text"
-                      value={aboutPhilosophyTitle}
-                      onChange={(e) => setAboutPhilosophyTitle(e.target.value)}
-                      placeholder="CORE PHILOSOPHY"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] transition-all"
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                      Isi Kutipan / Quote Filosofi
-                    </label>
-                    <input
-                      type="text"
-                      value={aboutPhilosophyQuote}
-                      onChange={(e) => setAboutPhilosophyQuote(e.target.value)}
-                      placeholder="A creative professional's greatest advantage isn't resisting change — it's adapting faster."
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm italic focus:outline-none focus:border-[#16b09f] transition-all"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. Tiga Statistik Utama (3 Key Stats) */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
-                <div className="pb-3 border-b border-white/10">
-                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                    BAGIAN 3 · STATISTIK PENGALAMAN
-                  </span>
-                  <h3 className="text-base sm:text-lg font-bold text-white">
-                    3 Angka Prestasi & Pengalaman
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  {/* Stat 1 */}
-                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
-                    <label className="block text-[11px] font-mono text-[#16b09f] font-semibold uppercase">
-                      Statistik 1 (Warna Aksen Hijau/Cyan)
-                    </label>
-                    <input
-                      type="text"
-                      value={aboutStat1Num}
-                      onChange={(e) => setAboutStat1Num(e.target.value)}
-                      placeholder="11+"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
-                    />
-                    <input
-                      type="text"
-                      value={aboutStat1Label}
-                      onChange={(e) => setAboutStat1Label(e.target.value)}
-                      placeholder="YEARS EXPERIENCE"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
-                    />
-                  </div>
-
-                  {/* Stat 2 */}
-                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
-                    <label className="block text-[11px] font-mono text-neutral-400 font-semibold uppercase">
-                      Statistik 2
-                    </label>
-                    <input
-                      type="text"
-                      value={aboutStat2Num}
-                      onChange={(e) => setAboutStat2Num(e.target.value)}
-                      placeholder="100+"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
-                    />
-                    <input
-                      type="text"
-                      value={aboutStat2Label}
-                      onChange={(e) => setAboutStat2Label(e.target.value)}
-                      placeholder="PROJECTS"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
-                    />
-                  </div>
-
-                  {/* Stat 3 */}
-                  <div className="p-3.5 rounded-xl bg-neutral-950 border border-white/10 space-y-2">
-                    <label className="block text-[11px] font-mono text-neutral-400 font-semibold uppercase">
-                      Statistik 3
-                    </label>
-                    <input
-                      type="text"
-                      value={aboutStat3Num}
-                      onChange={(e) => setAboutStat3Num(e.target.value)}
-                      placeholder="20+"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-white text-base font-bold font-mono focus:outline-none focus:border-[#16b09f]"
-                    />
-                    <input
-                      type="text"
-                      value={aboutStat3Label}
-                      onChange={(e) => setAboutStat3Label(e.target.value)}
-                      placeholder="CLIENTS"
-                      className="w-full px-3 py-1.5 rounded-lg bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono uppercase focus:outline-none focus:border-[#16b09f]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. Sidebar Cards (Global Collaboration & Disciplines) */}
-              <div className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-4">
-                <div className="pb-3 border-b border-white/10">
-                  <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                    BAGIAN 4 · KARTU SAMPING (SIDEBAR CARDS)
-                  </span>
-                  <h3 className="text-base sm:text-lg font-bold text-white">
-                    Kolaborasi Global & Disiplin Keahlian
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Kolaborasi Global */}
-                  <div className="space-y-3 p-4 rounded-xl bg-neutral-950 border border-white/10">
-                    <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                        Judul Kartu Kolaborasi
-                      </label>
-                      <input
-                        type="text"
-                        value={aboutCollabTitle}
-                        onChange={(e) => setAboutCollabTitle(e.target.value)}
-                        placeholder="Global Collaboration"
-                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                        Deskripsi Kolaborasi
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={aboutCollabDesc}
-                        onChange={(e) => setAboutCollabDesc(e.target.value)}
-                        placeholder="Producing scalable visual content, high-performing ads..."
-                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm leading-relaxed focus:outline-none focus:border-[#16b09f] resize-none"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Disiplin Keahlian */}
-                  <div className="space-y-3 p-4 rounded-xl bg-neutral-950 border border-white/10">
-                    <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                        Judul Kartu Disiplin
-                      </label>
-                      <input
-                        type="text"
-                        value={aboutDisciplinesTitle}
-                        onChange={(e) => setAboutDisciplinesTitle(e.target.value)}
-                        placeholder="Disciplines"
-                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-mono text-neutral-300 font-medium">
-                          Daftar Keahlian (Pisahkan dengan koma)
-                        </label>
-                        <span className="text-[10px] font-mono text-cyan-400">
-                          {aboutDisciplinesInput.split(",").filter((t) => t.trim()).length} Tags
-                        </span>
-                      </div>
-                      <textarea
-                        rows={3}
-                        value={aboutDisciplinesInput}
-                        onChange={(e) => setAboutDisciplinesInput(e.target.value)}
-                        placeholder="Creative Direction, Motion Graphics, Branding & Identity, UI/UX Design, Digital Advertising, Video Production"
-                        className="w-full px-3.5 py-2 rounded-lg bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono leading-relaxed focus:outline-none focus:border-[#16b09f] resize-none"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. Sidebar Cards (Global Collaboration & Disciplines) end */}
-            </form>
-          </motion.div>
-        )}
-
+        {sidebarTab === "about" && renderAboutWorkspace()}
         {/* TAB 6: FLAGSHIP SHOWCASE YOUTUBE / DRIVE / IMAGE EMBED */}
         {sidebarTab === "flagship" && (
           <motion.div
