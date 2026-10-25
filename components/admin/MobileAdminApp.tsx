@@ -33,6 +33,8 @@ import {
   RiGlobalLine,
   RiArrowDownSLine,
   RiGoogleFill,
+  RiSunFill,
+  RiMoonClearFill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -125,7 +127,7 @@ export default function MobileAdminApp({
   setNewLogoFile,
 }: MobileAdminAppProps) {
   const { lang, setLang, tr } = useLang();
-  const { themeMode, primaryColor, accentColor, socialContacts } = useMotionTheme();
+  const { themeMode, toggleThemeMode, primaryColor, accentColor, socialContacts } = useMotionTheme();
   const isLight = themeMode === "light";
 
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
@@ -375,21 +377,34 @@ export default function MobileAdminApp({
                 </div>
               </div>
 
-              {/* Action Buttons: Language Selector, Live Web & Logout */}
+              {/* Action Buttons: Theme Mode, Language Selector, Live Web & Logout (Image 1 Style) */}
               <div className="flex items-center gap-2 relative">
-                {/* Language Switcher Pill */}
+                {/* 1. Theme Mode Toggle (Light/Dark Mode Circular Button - Image 1 Style) */}
+                <button
+                  type="button"
+                  onClick={toggleThemeMode}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-sm ${
+                    isLight
+                      ? "bg-slate-100 text-amber-500 border border-slate-200 hover:bg-slate-200"
+                      : "bg-[#182030] text-amber-400 border border-white/10 hover:bg-white/10"
+                  }`}
+                  title={
+                    isLight
+                      ? tr("Beralih ke Mode Gelap", "Switch to Dark Mode", "Pindah ka Mode Galok")
+                      : tr("Beralih ke Mode Terang", "Switch to Light Mode", "Pindah ka Mode Tarang")
+                  }
+                >
+                  <RiSunFill className={`w-4 h-4 ${isLight ? "text-amber-500" : "text-amber-400"}`} />
+                </button>
+
+                {/* 2. Language Switcher Circular Button (Teal circle with bold uppercase text - Image 1 Style) */}
                 <div className="relative">
                   <button
                     type="button"
                     onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-                    className={`h-9 px-2.5 rounded-full flex items-center gap-1.5 transition-all text-xs font-bold font-mono cursor-pointer active:scale-95 ${
-                      isLight
-                        ? "bg-white text-slate-800 shadow-sm border border-slate-200"
-                        : "bg-white/10 text-white border border-white/10"
-                    }`}
+                    className="w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer font-black text-xs text-white shadow-md bg-teal-500 hover:bg-teal-600 border border-teal-400/40 select-none"
                     title={tr("Pilih Bahasa", "Change Language", "Pilih Bahaso")}
                   >
-                    <RiGlobalLine className="w-3.5 h-3.5 text-teal-400" />
                     <span>{lang.toUpperCase()}</span>
                   </button>
 
