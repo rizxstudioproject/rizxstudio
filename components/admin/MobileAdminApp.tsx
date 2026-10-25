@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RiHome5Fill,
@@ -295,58 +295,142 @@ export default function MobileAdminApp({
     }
   };
 
-  // Quick Access circular icons matching reference image
-  const quickAccessItems = [
+  // ==============================================================
+  // FULL BOTTOM DOCK ITEMS: 8 REQUESTED TOOLS + HOME, PORTOFOLIO & SETTINGS
+  // Animated Curved Elevated Notch Dock with Touch Horizontal Scroll & Tap (Image 3 Style)
+  // ==============================================================
+  interface BottomDockItem {
+    id: "home" | AdminSidebarTab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    accentColor: string;
+    gradient: string;
+    glow: string;
+    badge?: number;
+  }
+
+  const bottomDockItems: BottomDockItem[] = [
     {
-      id: "trash" as AdminSidebarTab,
+      id: "home",
+      label: tr("Home", "Home", "Home"),
+      icon: RiHome5Fill,
+      accentColor: "#10b981",
+      gradient: "from-emerald-500 to-teal-400",
+      glow: "rgba(16, 185, 129, 0.45)",
+    },
+    {
+      id: "clients",
+      label: tr("Portofolio", "Portfolio", "Portofolio"),
+      icon: RiFolderFill,
+      accentColor: "#3b82f6",
+      gradient: "from-blue-500 to-indigo-500",
+      glow: "rgba(59, 130, 246, 0.45)",
+    },
+    {
+      id: "trash",
       label: tr("Sampah", "Trash Bin", "Tong Sarok"),
       icon: RiDeleteBinFill,
-      bg: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+      accentColor: "#ef4444",
+      gradient: "from-rose-500 to-red-600",
+      glow: "rgba(239, 68, 68, 0.45)",
       badge: trashCount > 0 ? trashCount : undefined,
     },
     {
-      id: "crm" as AdminSidebarTab,
+      id: "crm",
       label: tr("CRM Leads", "CRM Leads", "CRM Prospek"),
       icon: RiLineChartFill,
-      bg: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      accentColor: "#10b981",
+      gradient: "from-emerald-500 to-teal-500",
+      glow: "rgba(16, 185, 129, 0.45)",
     },
     {
-      id: "seo" as AdminSidebarTab,
+      id: "seo",
       label: tr("SEO Google", "Google SEO", "SEO Google"),
       icon: RiSearchEyeFill,
-      bg: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+      accentColor: "#a855f7",
+      gradient: "from-purple-500 to-violet-600",
+      glow: "rgba(168, 85, 247, 0.45)",
     },
     {
-      id: "hero-banner" as AdminSidebarTab,
+      id: "hero-banner",
       label: tr("Banner", "Banner", "Banner"),
       icon: RiSparklingFill,
-      bg: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      accentColor: "#f59e0b",
+      gradient: "from-amber-500 to-orange-400",
+      glow: "rgba(245, 158, 11, 0.45)",
     },
     {
-      id: "hero-works" as AdminSidebarTab,
+      id: "hero-works",
       label: tr("Unggulan", "Top Works", "Tapiliah"),
       icon: RiImageFill,
-      bg: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+      accentColor: "#f43f5e",
+      gradient: "from-rose-500 to-pink-500",
+      glow: "rgba(244, 63, 94, 0.45)",
     },
     {
-      id: "runner" as AdminSidebarTab,
+      id: "runner",
       label: tr("Media Reels", "Media Reels", "Media Reels"),
       icon: RiMovieFill,
-      bg: "bg-cyan-500/10 text-cyan-500 border-cyan-500/20",
+      accentColor: "#06b6d4",
+      gradient: "from-cyan-500 to-blue-500",
+      glow: "rgba(6, 182, 212, 0.45)",
     },
     {
-      id: "theme" as AdminSidebarTab,
+      id: "theme",
       label: tr("Thema", "Theme", "Thema"),
       icon: RiPaletteFill,
-      bg: "bg-indigo-500/10 text-indigo-500 border-indigo-500/20",
+      accentColor: "#6366f1",
+      gradient: "from-indigo-500 to-blue-600",
+      glow: "rgba(99, 102, 241, 0.45)",
     },
     {
-      id: "social" as AdminSidebarTab,
+      id: "social",
       label: tr("Sosmed WA", "Socials", "Sosmed WA"),
       icon: RiChat3Fill,
-      bg: "bg-teal-500/10 text-teal-500 border-teal-500/20",
+      accentColor: "#14b8a6",
+      gradient: "from-teal-500 to-emerald-500",
+      glow: "rgba(20, 184, 166, 0.45)",
+    },
+    {
+      id: "settings",
+      label: tr("Setting", "Settings", "Setting"),
+      icon: RiSettings4Fill,
+      accentColor: "#64748b",
+      gradient: "from-slate-600 to-slate-800",
+      glow: "rgba(100, 116, 139, 0.45)",
     },
   ];
+
+  const activeDockId = currentScreen === "home" ? "home" : activeTab;
+  const dockScrollRef = useRef<HTMLDivElement>(null);
+  const dockItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+
+  const scrollActiveItemIntoView = (id: string, smooth = true) => {
+    const el = dockItemRefs.current[id];
+    if (el && dockScrollRef.current) {
+      el.scrollIntoView({
+        behavior: smooth ? "smooth" : "auto",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      scrollActiveItemIntoView(activeDockId, true);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [activeDockId]);
+
+  const handleDockClick = (id: string) => {
+    scrollActiveItemIntoView(id, true);
+    if (id === "home") {
+      setCurrentScreen("home");
+    } else {
+      navigateToWorkspace(id as AdminSidebarTab);
+    }
+  };
 
   return (
     <div
@@ -870,45 +954,7 @@ export default function MobileAdminApp({
               </div>
             </div>
 
-            {/* 4. QUICK ACCESS CIRCULAR BUTTONS (Matches "Quick Access" in Reference) */}
-            <div>
-              <div className="flex items-center justify-between mb-3 px-1">
-                <h2 className="text-sm font-bold tracking-tight">
-                  {tr("Akses Cepat Pengaturan", "Quick Access", "Akses Capek")}
-                </h2>
-                <span className="text-[11px] font-mono text-neutral-400">
-                  {quickAccessItems.length} {tr("Menu", "Tools", "Menu")}
-                </span>
-              </div>
 
-              <div className="grid grid-cols-4 gap-3">
-                {quickAccessItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => navigateToWorkspace(item.id)}
-                      className="flex flex-col items-center gap-1.5 p-2 rounded-2xl transition-all active:scale-90 cursor-pointer"
-                    >
-                      <div className="relative">
-                        <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center border shadow-xs ${item.bg}`}>
-                          <Icon className="w-6 h-6" />
-                        </div>
-                        {item.badge !== undefined && item.badge > 0 && (
-                          <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
-                            {item.badge}
-                          </span>
-                        )}
-                      </div>
-                      <span className="text-[11px] font-semibold text-center truncate max-w-[68px] leading-tight">
-                        {item.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
           </div>
         </div>
       ) : (
@@ -1056,71 +1102,110 @@ export default function MobileAdminApp({
       )}
 
       {/* ==============================================================
-          FLOATING NATIVE iOS BOTTOM DOCK / TAB BAR
-          Matches the curved floating navigation bar in the Reference Mockup
+          FLOATING ANIMATED CURVED BOTTOM DOCK / TAB BAR (SCROLL & TAP)
+          Houses all 8 requested tools + Home, Portofolio & Settings
+          Matches Image 3 Reference Mockup with Elevated Active Notch
          ============================================================== */}
       {currentScreen === "home" && (
-        <div className="fixed bottom-4 left-5 right-5 z-40 flex justify-center pointer-events-none">
+        <div className="fixed bottom-3 left-3 right-3 z-40 flex justify-center pointer-events-none">
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
+            initial={{ y: 25, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            className={`pointer-events-auto flex items-center justify-around w-full max-w-sm px-3 py-2 rounded-full border shadow-2xl backdrop-blur-xl ${
-              isLight
-                ? "bg-white/95 border-slate-200/80 shadow-slate-300/50"
-                : "bg-[#0e121a]/95 border-white/15 shadow-black/80"
-            }`}
+            transition={{ type: "spring", stiffness: 350, damping: 25 }}
+            className="pointer-events-auto w-full max-w-md relative"
           >
-            {/* 1. Home Tab */}
-            <button
-              type="button"
-              onClick={() => setCurrentScreen("home")}
-              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                currentScreen === "home"
-                  ? "bg-neutral-900 text-white dark:bg-white dark:text-neutral-900 shadow-md"
-                  : isLight
-                  ? "text-slate-500 hover:text-slate-900"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-            >
-              <RiHome5Fill className="w-4 h-4" />
-              <span>Home</span>
-            </button>
+            {/* Ambient Background Glow behind Dock */}
+            <div
+              className="absolute -inset-1 rounded-full blur-xl opacity-20 pointer-events-none transition-all duration-500"
+              style={{
+                backgroundColor:
+                  bottomDockItems.find((it) => it.id === activeDockId)?.accentColor || "#10b981",
+              }}
+            />
 
-            {/* 2. Portfolio Works Tab */}
-            <button
-              type="button"
-              onClick={() => navigateToWorkspace("clients")}
-              className={`p-2.5 rounded-full transition-all cursor-pointer ${
-                isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+            {/* Scrollable Curved Dock Bar Shell */}
+            <div
+              ref={dockScrollRef}
+              className={`relative flex items-center gap-1.5 px-3 py-2 pt-3 rounded-full border shadow-2xl backdrop-blur-2xl overflow-x-auto no-scrollbar scroll-smooth transition-all ${
+                isLight
+                  ? "bg-white/95 border-slate-200/90 shadow-slate-300/70"
+                  : "bg-[#0b0f19]/95 border-white/15 shadow-black/90"
               }`}
-              title="Portofolio"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                scrollbarWidth: "none",
+                msOverflowStyle: "none",
+              }}
             >
-              <RiFolderFill className="w-5 h-5" />
-            </button>
+              {bottomDockItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeDockId === item.id;
 
-            {/* 3. SEO Tab */}
-            <button
-              type="button"
-              onClick={() => navigateToWorkspace("seo")}
-              className={`p-2.5 rounded-full transition-all cursor-pointer ${
-                isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
-              }`}
-              title={tr("SEO Google & Mesin Pencari", "Google SEO", "SEO Google")}
-            >
-              <RiSearchEyeFill className="w-5 h-5" />
-            </button>
-
-            {/* 4. Settings & Security Tab */}
-            <button
-              type="button"
-              onClick={() => navigateToWorkspace("settings")}
-              className={`p-2.5 rounded-full transition-all cursor-pointer ${
-                isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
-              }`}
-              title={tr("Setting Admin & Keamanan", "Admin Settings & Security", "Setting Admin & Kaamanan")}
-            >
-              <RiSettings4Fill className="w-5 h-5" />
-            </button>
+                return (
+                  <button
+                    key={item.id}
+                    ref={(el) => {
+                      dockItemRefs.current[item.id] = el;
+                    }}
+                    type="button"
+                    onClick={() => handleDockClick(item.id)}
+                    className="relative flex flex-col items-center justify-center shrink-0 cursor-pointer focus:outline-none transition-all select-none"
+                    style={{ minWidth: "58px" }}
+                    title={item.label}
+                  >
+                    {isActive ? (
+                      /* Active Elevated Notch Bubble (Image 3 Style) */
+                      <div className="flex flex-col items-center -translate-y-2.5 transition-transform duration-300">
+                        <motion.div
+                          layoutId="activeDockBubble"
+                          transition={{ type: "spring", stiffness: 450, damping: 26 }}
+                          className={`w-11 h-11 rounded-full flex items-center justify-center text-white shadow-xl relative z-20 bg-gradient-to-tr ${item.gradient}`}
+                          style={{
+                            boxShadow: `0 8px 24px ${item.glow}`,
+                            border: isLight ? "3px solid #ffffff" : "3px solid #0b0f19",
+                          }}
+                        >
+                          <Icon className="w-5 h-5 drop-shadow-sm" />
+                          {item.badge !== undefined && item.badge > 0 && (
+                            <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
+                              {item.badge}
+                            </span>
+                          )}
+                        </motion.div>
+                        <span
+                          className={`text-[10px] font-extrabold tracking-tight mt-0.5 truncate max-w-[58px] text-center ${
+                            isLight ? "text-slate-900" : "text-white"
+                          }`}
+                        >
+                          {item.label}
+                        </span>
+                      </div>
+                    ) : (
+                      /* Inactive Flat Dock Icon */
+                      <div
+                        className={`flex flex-col items-center py-1 transition-all duration-200 active:scale-90 hover:opacity-100 ${
+                          isLight
+                            ? "text-slate-400 hover:text-slate-800"
+                            : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        <div className="relative w-8 h-8 rounded-xl flex items-center justify-center">
+                          <Icon className="w-5 h-5 transition-transform group-hover:scale-110" />
+                          {item.badge !== undefined && item.badge > 0 && (
+                            <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white font-mono text-[9px] font-bold shadow-md">
+                              {item.badge}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[9px] font-medium tracking-tight mt-0.5 truncate max-w-[52px] text-center opacity-75">
+                          {item.label}
+                        </span>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </motion.div>
         </div>
       )}
