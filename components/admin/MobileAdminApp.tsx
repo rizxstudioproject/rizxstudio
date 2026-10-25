@@ -925,21 +925,12 @@ export default function MobileAdminApp({
               <span>{tr("Beranda", "Home", "Barando")}</span>
             </button>
 
-            <span className="text-xs font-bold tracking-tight truncate max-w-[170px]">
+            <span className="text-xs font-bold tracking-tight truncate max-w-[200px]">
               {getTabTitle(activeTab)}
             </span>
 
-            {/* Quick Save in Top Bar */}
-            <button
-              type="button"
-              onClick={handleSaveWorkspace}
-              disabled={savingAction}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-white shadow-md shadow-primary/20 transition-all active:scale-95"
-              style={{ backgroundColor: primaryColor }}
-            >
-              <RiSave3Fill className="w-3.5 h-3.5" />
-              <span>{savingAction ? "..." : tr("Simpan", "Save", "Simpan")}</span>
-            </button>
+            {/* Spacer for balanced title centering */}
+            <div className="w-[80px]" />
           </div>
 
           {/* Workspace Body Container with bottom padding for sticky bar */}

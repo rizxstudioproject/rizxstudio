@@ -4,8 +4,6 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
   RiPaletteFill as HiPaintBrush,
-  RiSunFill as HiSun,
-  RiMoonFill as HiMoon,
   RiCheckFill as HiCheck,
   RiSparklingFill as HiSparkles,
   RiRestartFill as HiArrowPath,
@@ -80,127 +78,7 @@ export default function ThemeColorWorkspace() {
         )}
       </div>
 
-      {/* 1. DARK & LIGHT MODE SELECTOR */}
-      <section className="space-y-4">
-        <h3 className={`text-base font-semibold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
-          {themeMode === "dark" ? (
-            <HiMoon className="w-5 h-5 text-[#16b09f]" />
-          ) : (
-            <HiSun className="w-5 h-5 text-amber-500" />
-          )}
-          <span>{tr("Theme Mode (Dark / Light)", "Mode Gelap & Terang", "Mode Kalam & Tarang")}</span>
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Dark Mode Card */}
-          <button
-            type="button"
-            onClick={() => {
-              setThemeMode("dark");
-              triggerSaved();
-            }}
-            style={{
-              borderColor: themeMode === "dark" ? primaryColor : undefined,
-              boxShadow: themeMode === "dark" ? `0 0 0 2px ${primaryColor}55, 0 10px 25px -5px rgba(0,0,0,0.5)` : undefined,
-            }}
-            className={`p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden group ${
-              themeMode === "dark"
-                ? isLight
-                  ? "bg-white border-[#16b09f] shadow-md ring-2 ring-[#16b09f]/20"
-                  : "bg-neutral-900 border-white/30"
-                : isLight
-                  ? "bg-slate-50/80 hover:bg-slate-100 border-slate-200"
-                  : "bg-neutral-950/60 border-white/5 hover:border-white/10"
-            }`}
-          >
-            {themeMode === "dark" && (
-              <div
-                className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <HiCheck className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`w-10 h-10 rounded-xl border flex items-center justify-center text-[#16b09f] ${
-                isLight ? "bg-white border-slate-200 shadow-sm" : "bg-neutral-800 border-white/10"
-              }`}>
-                <HiMoon className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
-                  {tr("Dark Space Mode (Default)", "Mode Gelap / Deep Space", "Mode Kalam / Deep Space")}
-                </h4>
-                <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                  #0a0a0a / High Contrast
-                </span>
-              </div>
-            </div>
-            <p className={`text-xs leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
-              {tr(
-                "Cinematic deep dark aesthetic optimal for showcasing motion graphics, video sequences, and 3D lighting.",
-                "Tampilan gelap sinematik elegan, sangat ideal untuk memamerkan karya motion, video sequence, dan pencahayaan 3D.",
-                "Tampilan kalam sinematik rancak, pas bana untuak mamamerkan karya motion, video, sarato 3D."
-              )}
-            </p>
-          </button>
-
-          {/* Light Mode Card */}
-          <button
-            type="button"
-            onClick={() => {
-              setThemeMode("light");
-              triggerSaved();
-            }}
-            style={{
-              borderColor: themeMode === "light" ? primaryColor : undefined,
-              boxShadow: themeMode === "light" ? `0 0 0 2px ${primaryColor}55, 0 10px 25px -5px rgba(0,0,0,0.15)` : undefined,
-            }}
-            className={`p-5 rounded-2xl border text-left transition-all duration-200 cursor-pointer relative overflow-hidden group ${
-              themeMode === "light"
-                ? isLight
-                  ? "bg-white border-[#16b09f] shadow-lg shadow-[#16b09f]/10 ring-2 ring-[#16b09f]/20"
-                  : "bg-neutral-800 border-white/30"
-                : isLight
-                  ? "bg-slate-50/80 hover:bg-slate-100 border-slate-200"
-                  : "bg-neutral-950/60 border-white/5 hover:border-white/10"
-            }`}
-          >
-            {themeMode === "light" && (
-              <div
-                className="absolute top-3 right-3 w-5 h-5 rounded-full flex items-center justify-center text-white text-xs shadow"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <HiCheck className="w-3.5 h-3.5" />
-              </div>
-            )}
-            <div className="flex items-center gap-3 mb-2">
-              <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${
-                isLight ? "bg-amber-100 border-amber-300 text-amber-600 shadow-sm" : "bg-amber-500/20 border-amber-500/30 text-amber-300"
-              }`}>
-                <HiSun className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
-                  {tr("Light Studio Mode", "Mode Terang / Clean Studio", "Mode Tarang / Barasiah")}
-                </h4>
-                <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                  #f8fafc / Clean Architectural
-                </span>
-              </div>
-            </div>
-            <p className={`text-xs leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
-              {tr(
-                "Clean, crisp high-readability architectural daylight layout with balanced gray contrasts.",
-                "Tampilan cerah arsitektural yang bersih dengan kontras teks tajam dan tata letak minimalis modern.",
-                "Tampilan tarang nan barasiah jo tulisan jaleh sarato tata latak minimalis modern."
-              )}
-            </p>
-          </button>
-        </div>
-      </section>
-
-      {/* 2. CURATED COLOR PRESETS */}
+      {/* 1. CURATED COLOR PRESETS */}
       <section className="space-y-4">
         <h3 className={`text-base font-semibold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
           <HiSwatch className={`w-5 h-5 ${isLight ? "text-slate-600" : "text-neutral-400"}`} />
