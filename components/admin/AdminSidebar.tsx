@@ -92,13 +92,8 @@ export default function AdminSidebar({
       icon: RiUser3Fill,
     },
     {
-      id: "motion",
-      label: tr("Motion & Cursor", "Motion & Kursor", "Motion & Kursor"),
-      icon: RiCursorFill,
-    },
-    {
       id: "theme",
-      label: tr("Theme & Colors", "Warna & Tema", "Warna & Tema"),
+      label: tr("Theme, Colors & Cursor", "Warna, Tema & Kursor", "Warna, Tema & Kursor"),
       icon: RiPaletteFill,
     },
     {

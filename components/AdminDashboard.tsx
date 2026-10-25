@@ -73,7 +73,7 @@ import ClientsWorkspace from "./admin/ClientsWorkspace";
 import ResourceLibrary from "./admin/ResourceLibrary";
 import RecycleBinWorkspace from "./admin/RecycleBinWorkspace";
 import StorageAnalyticsView from "./admin/StorageAnalyticsView";
-import MotionEffectsWorkspace from "./admin/MotionEffectsWorkspace";
+
 import ThemeColorWorkspace from "./admin/ThemeColorWorkspace";
 import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
 import CrmAnalyticsView from "./admin/CrmAnalyticsView";
@@ -3056,7 +3056,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
               isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
             }`}>
-              <MotionEffectsWorkspace />
+              <ThemeColorWorkspace />
             </div>
           )}
 
@@ -6997,14 +6997,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     icon: HiUser,
                   },
                   {
+
                     id: "motion" as AdminSidebarTab,
-                    label: tx("Motion & Cursor", "Motion & Kursor", "Motion & Kursor"),
                     sub: tx("Efek gerak, scroll & kursor magnetik", "Motion effects, scroll & magnetic cursor", "Efek garak, scroll & kursor magnetik"),
                     icon: RiCursorFill,
                   },
                   {
                     id: "theme" as AdminSidebarTab,
-                    label: tx("Theme & Colors", "Warna & Tema", "Warna & Tema"),
+                    label: tx("Theme, Colors & Cursor", "Warna, Tema & Kursor", "Warna, Tema & Kursor"),
                     sub: tx("Skema warna aksen & kustomisasi UI", "Accent colors & UI themes", "Skema warna aksen & kustomisasi UI"),
                     icon: RiPaletteFill,
                   },
@@ -7046,7 +7046,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     sub: tx("Sandi, verifikasi & keamanan", "Password & account security", "Kunci, verifikasi & kaamanan akun"),
                     icon: HiKey,
                   },
-                ].map((item) => {
+                ].filter((item) => item.id !== "motion").map((item) => {
                   const Icon = item.icon;
                   const isSelected = sidebarTab === item.id;
                   return (

@@ -45,7 +45,7 @@ import CrmAnalyticsView from "./CrmAnalyticsView";
 import SeoWorkspace from "./SeoWorkspace";
 import SocialContactsWorkspace from "./SocialContactsWorkspace";
 import ThemeColorWorkspace from "./ThemeColorWorkspace";
-import MotionEffectsWorkspace from "./MotionEffectsWorkspace";
+
 import RecycleBinWorkspace from "./RecycleBinWorkspace";
 import StorageAnalyticsView from "./StorageAnalyticsView";
 import SecuritySettingsWorkspace from "./SecuritySettingsWorkspace";
@@ -1063,7 +1063,7 @@ export default function MobileAdminApp({
 
             {activeTab === "theme" && <ThemeColorWorkspace />}
 
-            {activeTab === "motion" && <MotionEffectsWorkspace />}
+            {activeTab === "motion" && <ThemeColorWorkspace />}
 
             {activeTab === "trash" && (
               <RecycleBinWorkspace showToast={showToast || (() => {})} />

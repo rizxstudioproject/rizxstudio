@@ -28,6 +28,8 @@ import {
   RiChat3Fill,
   RiLineChartFill,
   RiSearchEyeFill,
+  RiMoonFill,
+  RiSunFill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -70,7 +72,7 @@ export default function AdminTopBar({
   showSaveChanges = true,
 }: AdminTopBarProps) {
   const { lang, setLang, tr } = useLang();
-  const { themeMode, primaryColor } = useMotionTheme();
+  const { themeMode, primaryColor, toggleThemeMode } = useMotionTheme();
   const isLight = themeMode === "light";
   const isId = lang === "id";
   const isMin = lang === "min";
@@ -839,6 +841,28 @@ export default function AdminTopBar({
               })}
             </div>
           </div>
+
+          {/* Theme Mode Toggle (Desktop Admin - Matches Circular Moon/Sun Button Style) */}
+          <button
+            type="button"
+            onClick={toggleThemeMode}
+            className={`hidden md:flex w-8.5 h-8.5 rounded-full items-center justify-center transition-all active:scale-95 cursor-pointer select-none ${
+              isLight
+                ? "bg-white text-teal-600 border border-slate-200 hover:bg-slate-50 shadow-xs"
+                : "bg-white/10 text-amber-400 border border-white/10 hover:bg-white/15"
+            }`}
+            title={
+              isLight
+                ? tr("Beralih ke Mode Gelap", "Switch to Dark Mode", "Pindah ka Mode Galok")
+                : tr("Beralih ke Mode Terang", "Switch to Light Mode", "Pindah ka Mode Tarang")
+            }
+          >
+            {isLight ? (
+              <RiMoonFill className="w-4 h-4 text-teal-600" />
+            ) : (
+              <RiSunFill className="w-4 h-4 text-amber-400" />
+            )}
+          </button>
         </div>
       </header>
     </>

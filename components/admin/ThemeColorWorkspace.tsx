@@ -229,7 +229,7 @@ export default function ThemeColorWorkspace() {
           style={activeSubTab === "cursor" ? { borderColor: `${primaryColor}55`, color: primaryColor } : {}}
         >
           <HiCursorArrowRays className="w-4 h-4" />
-          <span>{tr("Efek Kursor (6)", "Cursor Effects (6)", "Efek Kursor (6)")}</span>
+          <span>{tr("Kursor & Efek Motion (6)", "Cursor & Motion Effects (6)", "Kursor & Efek Motion (6)")}</span>
         </button>
       </div>
 
@@ -665,7 +665,122 @@ export default function ThemeColorWorkspace() {
             </div>
           </section>
 
-          {/* 3. LIVE CURSOR TESTING PLAYGROUND */}
+          {/* 3. MOTION SCROLL & TRACKPAD PARAMETERS */}
+          <section className="space-y-4">
+            <h3 className={`text-base font-semibold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
+              <HiAdjustmentsHorizontal className={`w-5 h-5 ${isLight ? "text-slate-500" : "text-neutral-400"}`} />
+              <span>{tr("Motion Scroll & Trackpad", "Pengaturan Motion Scroll & Trackpad", "Aturan Motion Scroll & Trackpad")}</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+              {/* Smooth Inertial Scroll */}
+              <div className={`p-4 rounded-2xl border space-y-3 ${
+                isLight ? "bg-white border-slate-200/90 shadow-2xs" : "bg-neutral-900/50 border-white/5"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-medium ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {tr("Smooth Inertial Scroll", "Scroll Halus Berinersia", "Scroll Haluih Bainersia")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMotionScroll({ smoothInertia: !motionScroll.smoothInertia });
+                      triggerSaved();
+                    }}
+                    className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${
+                      isLight && !motionScroll.smoothInertia ? "bg-slate-200" : "bg-[#262626]"
+                    }`}
+                    style={{ backgroundColor: motionScroll.smoothInertia ? primaryColor : undefined }}
+                  >
+                    <span
+                      className={`block w-4 h-4 rounded-full bg-white shadow transform transition-transform ${
+                        motionScroll.smoothInertia ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+                <p className={`text-xs leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                  {tr(
+                    "Silky smooth deceleration when scrolling via mouse wheel or precision trackpads.",
+                    "Pengereman scroll yang halus ketika digulir dengan mouse wheel atau trackpad.",
+                    "Pangarian scroll nan haluih kutiko diguliah jo mouse atau trackpad."
+                  )}
+                </p>
+              </div>
+
+              {/* Parallax Motion */}
+              <div className={`p-4 rounded-2xl border space-y-3 ${
+                isLight ? "bg-white border-slate-200/90 shadow-2xs" : "bg-neutral-900/50 border-white/5"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-medium ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {tr("Parallax Depth Motion", "Efek Parallax Bertingkat", "Efek Parallax Batingkek")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMotionScroll({ parallax: !motionScroll.parallax });
+                      triggerSaved();
+                    }}
+                    className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${
+                      isLight && !motionScroll.parallax ? "bg-slate-200" : "bg-[#262626]"
+                    }`}
+                    style={{ backgroundColor: motionScroll.parallax ? primaryColor : undefined }}
+                  >
+                    <span
+                      className={`block w-4 h-4 rounded-full bg-white shadow transform transition-transform ${
+                        motionScroll.parallax ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+                <p className={`text-xs leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                  {tr(
+                    "Background glows and typography travel at multi-speed depth layers during scroll.",
+                    "Cahaya ambient dan tipografi bergerak pada kecepatan berbeda menciptakan ilusi kedalaman 3D.",
+                    "Cahayo ambient jo tulisan bagarak babeda kacepatan mambuek ilusi kadalaman 3D."
+                  )}
+                </p>
+              </div>
+
+              {/* Scroll Reveal Animations */}
+              <div className={`p-4 rounded-2xl border space-y-3 ${
+                isLight ? "bg-white border-slate-200/90 shadow-2xs" : "bg-neutral-900/50 border-white/5"
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className={`text-sm font-medium ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {tr("Scroll Reveal Elements", "Animasi Elemen Muncul", "Animasi Elemen Kalua")}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMotionScroll({ scrollReveal: !motionScroll.scrollReveal });
+                      triggerSaved();
+                    }}
+                    className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${
+                      isLight && !motionScroll.scrollReveal ? "bg-slate-200" : "bg-[#262626]"
+                    }`}
+                    style={{ backgroundColor: motionScroll.scrollReveal ? primaryColor : undefined }}
+                  >
+                    <span
+                      className={`block w-4 h-4 rounded-full bg-white shadow transform transition-transform ${
+                        motionScroll.scrollReveal ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    />
+                  </button>
+                </div>
+                <p className={`text-xs leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                  {tr(
+                    "Section elements fade in and slide into view as the viewport scrolls down.",
+                    "Komponen halaman muncul berurutan dengan transisi lembut saat masuk viewport.",
+                    "Komponen laman kalua sacaro barurutan jo transisi lambuik kutiko nampak."
+                  )}
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* 4. LIVE CURSOR TESTING PLAYGROUND */}
           <section className={`p-4 sm:p-6 rounded-2xl border space-y-3 ${
             isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/80 border-white/10"
           }`}>
