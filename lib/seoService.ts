@@ -21,9 +21,9 @@ export interface SeoConfig {
 }
 
 export const DEFAULT_SEO_CONFIG: SeoConfig = {
-  metaTitle: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
+  metaTitle: "Rizxstudio — Creative, Motion & UI/UX Design Studio",
   metaDescription:
-    "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
+    "Creative studio by FOMY with 11+ years of experience in digital advertising, branding, UI/UX, 3D motion graphics, and video production for global clients.",
   keywords:
     "Rizxstudio, FOMY, Fomy R, Creative Designer, Motion Specialist, Digital Advertising, Branding, UI/UX Design, Motion Graphics, Video Production, Creative Production",
   authorName: "FOMY R",

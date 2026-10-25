@@ -10,9 +10,9 @@ import MetaSEO from "@/components/MetaSEO";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://rizxstudio.com"),
-  title: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
+  title: "Rizxstudio — Creative, Motion & UI/UX Design Studio",
   description:
-    "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
+    "Creative studio by FOMY with 11+ years of experience in digital advertising, branding, UI/UX, 3D motion graphics, and video production for global clients.",
   keywords: [
     "Rizxstudio",
     "FOMY",
@@ -27,9 +27,9 @@ export const metadata: Metadata = {
     "Creative Production",
   ],
   openGraph: {
-    title: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
+    title: "Rizxstudio — Creative, Motion & UI/UX Design Studio",
     description:
-      "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
+      "Creative studio by FOMY with 11+ years of experience in digital advertising, branding, UI/UX, 3D motion graphics, and video production for global clients.",
     url: "https://rizxstudio.com",
     siteName: "Rizxstudio",
     locale: "en_US",
@@ -39,15 +39,15 @@ export const metadata: Metadata = {
         url: "/og-image-square.png",
         width: 1000,
         height: 1000,
-        alt: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
+        alt: "Rizxstudio — Creative, Motion & UI/UX Design Studio",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Rizxstudio — Professional Creative, Motion & UI/UX Design Studio",
+    title: "Rizxstudio — Creative, Motion & UI/UX Design Studio",
     description:
-      "Professional creative studio by FOMY with 11+ years of experience specializing in digital advertising, branding, UI/UX, motion graphics, video, and creative production for global clients.",
+      "Creative studio by FOMY with 11+ years of experience in digital advertising, branding, UI/UX, 3D motion graphics, and video production for global clients.",
     images: ["/og-image-square.png"],
   },
   icons: {
