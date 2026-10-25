@@ -87,6 +87,8 @@ interface MobileAdminAppProps {
   setNewLogoRow?: any;
   newLogoFile?: any;
   setNewLogoFile?: any;
+  currentScreen?: "home" | "workspace";
+  onScreenChange?: (screen: "home" | "workspace") => void;
 }
 
 export default function MobileAdminApp({
@@ -125,6 +127,8 @@ export default function MobileAdminApp({
   setNewLogoRow,
   newLogoFile,
   setNewLogoFile,
+  currentScreen: propCurrentScreen,
+  onScreenChange,
 }: MobileAdminAppProps) {
   const { lang, setLang, tr } = useLang();
   const { themeMode, toggleThemeMode, primaryColor, accentColor, socialContacts } = useMotionTheme();
@@ -134,7 +138,12 @@ export default function MobileAdminApp({
 
   // Navigation: 'home' shows the native home dashboard from reference mockup
   // When activeTab !== 'home', it shows the specific workspace screen
-  const [currentScreen, setCurrentScreen] = useState<"home" | "workspace">("home");
+  const [internalScreen, setInternalScreen] = useState<"home" | "workspace">("home");
+  const currentScreen = propCurrentScreen !== undefined ? propCurrentScreen : internalScreen;
+  const setCurrentScreen = (screen: "home" | "workspace") => {
+    setInternalScreen(screen);
+    if (onScreenChange) onScreenChange(screen);
+  };
   const [leads, setLeads] = useState<CrmLead[]>([]);
   const [savingAction, setSavingAction] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -908,21 +917,24 @@ export default function MobileAdminApp({
             With Native Back Navigation & Sticky Bottom Action Bar
            ============================================================== */
         <div className="flex-1 flex flex-col h-full overflow-hidden">
-          {/* Top Navigation Bar with Back Button */}
+          {/* Top Navigation Bar with Home Button */}
           <div
             className={`px-4 py-3 border-b flex items-center justify-between shrink-0 ${
               isLight ? "bg-white border-slate-200" : "bg-[#0d1017] border-white/10"
             }`}
           >
+            {/* Home Icon Only Button (Without Text - Matches User Request) */}
             <button
               type="button"
               onClick={handleBackToHome}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800" : "bg-white/10 text-white"
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-sm ${
+                isLight
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200"
+                  : "bg-white/10 hover:bg-white/15 text-white border border-white/10"
               }`}
+              title="Home"
             >
-              <RiArrowLeftLine className="w-4 h-4" />
-              <span>{tr("Beranda", "Home", "Barando")}</span>
+              <RiHome5Fill className="w-4 h-4 text-emerald-400" />
             </button>
 
             <span className="text-xs font-bold tracking-tight truncate max-w-[200px]">
@@ -930,7 +942,7 @@ export default function MobileAdminApp({
             </span>
 
             {/* Spacer for balanced title centering */}
-            <div className="w-[80px]" />
+            <div className="w-9 h-9" />
           </div>
 
           {/* Workspace Body Container with bottom padding for sticky bar */}
