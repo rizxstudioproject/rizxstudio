@@ -1,10 +1,84 @@
 "use client";
 
-import React from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
+import { motion, useInView, animate } from "framer-motion";
 import SpotlightCard from "./SpotlightCard";
 import { HiSparkles, HiGlobeAmericas, HiCheckBadge } from "react-icons/hi2";
 import { useLang } from "@/context/LanguageContext";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
+
+function AnimatedStatCounter({
+  value,
+  colorClass = "text-white",
+  delay = 0,
+}: {
+  value: string;
+  colorClass?: string;
+  delay?: number;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: false, amount: 0.3 });
+
+  // Extract prefix, numeric portion, and suffix (e.g. "100+" -> prefix: "", targetNum: 100, suffix: "+")
+  const { prefix, targetNum, suffix } = useMemo(() => {
+    const raw = String(value || "").trim();
+    const match = raw.match(/^([^\d]*)(\d+(?:\.\d+)?)(.*)$/);
+    if (!match) return { prefix: "", targetNum: 0, suffix: raw };
+    return {
+      prefix: match[1] || "",
+      targetNum: parseFloat(match[2]) || 0,
+      suffix: match[3] || "",
+    };
+  }, [value]);
+
+  const [currentNum, setCurrentNum] = useState(0);
+
+  useEffect(() => {
+    if (!isInView) {
+      setCurrentNum(0);
+      return;
+    }
+
+    let timeoutId: NodeJS.Timeout;
+    let controls: { stop: () => void } | null = null;
+
+    timeoutId = setTimeout(() => {
+      controls = animate(0, targetNum, {
+        duration: 1.8,
+        ease: [0.16, 1, 0.3, 1], // easeOutExpo: swift energetic start, gliding into the final count
+        onUpdate: (latest) => {
+          setCurrentNum(Math.floor(latest));
+        },
+      });
+    }, delay * 1000);
+
+    return () => {
+      clearTimeout(timeoutId);
+      if (controls) controls.stop();
+    };
+  }, [isInView, targetNum, delay]);
+
+  return (
+    <motion.span
+      ref={ref}
+      initial={{ opacity: 0, y: 14, scale: 0.9 }}
+      animate={isInView ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 14, scale: 0.9 }}
+      transition={{ duration: 0.6, delay, ease: [0.16, 1, 0.3, 1] }}
+      className={`inline-flex items-baseline font-black tracking-tight select-none ${colorClass}`}
+    >
+      {prefix && <span>{prefix}</span>}
+      <span className="tabular-nums font-mono">{isInView ? currentNum : 0}</span>
+      <motion.span
+        initial={{ opacity: 0, scale: 0.6 }}
+        animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
+        transition={{ duration: 0.3, delay: delay + 0.4 }}
+        className="ml-0.5 text-inherit"
+      >
+        {suffix}
+      </motion.span>
+    </motion.span>
+  );
+}
 
 export const DISCIPLINE_TRANSLATIONS: Record<string, { id: string; min: string }> = {
   "creative direction": { id: "Pengarahan Kreatif", min: "Pangaturan Kreatif" },
@@ -120,32 +194,58 @@ export default function About() {
               </div>
             </div>
 
-            {/* 3 Key Stats: 11+ Years Experience | 100+ Projects | 20+ Clients */}
+            {/* 3 Key Stats: 11+ Years Experience | 100+ Projects | 20+ Clients with Dynamic Motion */}
             <div className="pt-6 border-t border-white/5 grid grid-cols-3 gap-3 sm:gap-6 text-xs font-mono mt-auto">
-              <div>
-                <span className="text-[#16b09f] block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight">
-                  {about.stat1Num || t("about.stat1.num")}
+              <motion.div
+                whileHover={{ y: -3, scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="group flex flex-col cursor-default"
+              >
+                <span className="text-2xl sm:text-3xl lg:text-4xl block leading-tight">
+                  <AnimatedStatCounter
+                    value={about.stat1Num || t("about.stat1.num") || "11+"}
+                    colorClass="text-[#16b09f] drop-shadow-[0_0_18px_rgba(22,176,159,0.35)]"
+                    delay={0.1}
+                  />
                 </span>
-                <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
+                <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block group-hover:text-neutral-200 transition-colors">
                   {displayStat1Label}
                 </span>
-              </div>
-              <div>
-                <span className="text-white block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight">
-                  {about.stat2Num || t("about.stat2.num")}
+              </motion.div>
+
+              <motion.div
+                whileHover={{ y: -3, scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="group flex flex-col cursor-default"
+              >
+                <span className="text-2xl sm:text-3xl lg:text-4xl block leading-tight">
+                  <AnimatedStatCounter
+                    value={about.stat2Num || t("about.stat2.num") || "100+"}
+                    colorClass="text-white group-hover:text-cyan-300 drop-shadow-[0_0_18px_rgba(255,255,255,0.2)] transition-colors"
+                    delay={0.25}
+                  />
                 </span>
-                <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
+                <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block group-hover:text-neutral-200 transition-colors">
                   {displayStat2Label}
                 </span>
-              </div>
-              <div>
-                <span className="text-white block font-black text-2xl sm:text-3xl lg:text-4xl tracking-tight">
-                  {about.stat3Num || t("about.stat3.num")}
+              </motion.div>
+
+              <motion.div
+                whileHover={{ y: -3, scale: 1.04 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="group flex flex-col cursor-default"
+              >
+                <span className="text-2xl sm:text-3xl lg:text-4xl block leading-tight">
+                  <AnimatedStatCounter
+                    value={about.stat3Num || t("about.stat3.num") || "20+"}
+                    colorClass="text-white group-hover:text-teal-300 drop-shadow-[0_0_18px_rgba(255,255,255,0.2)] transition-colors"
+                    delay={0.4}
+                  />
                 </span>
-                <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block">
+                <span className="text-neutral-400 uppercase tracking-wider text-[11px] sm:text-xs mt-1 block group-hover:text-neutral-200 transition-colors">
                   {displayStat3Label}
                 </span>
-              </div>
+              </motion.div>
             </div>
           </div>
         </SpotlightCard>
