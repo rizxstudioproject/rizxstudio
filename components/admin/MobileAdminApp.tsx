@@ -44,6 +44,7 @@ import ThemeColorWorkspace from "./ThemeColorWorkspace";
 import MotionEffectsWorkspace from "./MotionEffectsWorkspace";
 import RecycleBinWorkspace from "./RecycleBinWorkspace";
 import StorageAnalyticsView from "./StorageAnalyticsView";
+import SecuritySettingsWorkspace from "./SecuritySettingsWorkspace";
 import { getRealLeads, CrmLead } from "@/lib/crmService";
 
 interface MobileAdminAppProps {
@@ -149,6 +150,41 @@ export default function MobileAdminApp({
       return `Rp ${(val / 1000000).toLocaleString("id-ID", { maximumFractionDigits: 1 })} Jt`;
     }
     return `Rp ${val.toLocaleString("id-ID")}`;
+  };
+
+  const getTabTitle = (tab: AdminSidebarTab) => {
+    switch (tab) {
+      case "clients":
+        return tr("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien");
+      case "crm":
+        return tr("CRM & Prospek Leads", "CRM & Leads", "CRM & Prospek");
+      case "seo":
+        return tr("SEO & Mesin Pencari", "SEO & Search Engine", "SEO & Masin Pancari");
+      case "settings":
+        return tr("Setting Admin & Keamanan", "Admin Security & Settings", "Setting Admin & Kaamanan");
+      case "social":
+        return tr("Kontak & Media Sosial", "Socials & Contacts", "Kontak & Sosmed");
+      case "theme":
+        return tr("Warna & Tema UI", "Theme & Colors", "Warna & Tema");
+      case "motion":
+        return tr("Motion & Efek Gerak", "Motion & Cursor", "Motion & Garakan");
+      case "trash":
+        return tr("Tong Sampah (Restore)", "Recycle Bin", "Tong Sarok");
+      case "storage":
+        return tr("Kapasitas & Penyimpanan", "Storage & Analytics", "Panyimpanan & Data");
+      case "hero-banner":
+        return tr("Banner Utama (Scrolly)", "Hero Banner", "Banner Utamo");
+      case "hero-works":
+        return tr("Karya Unggulan", "Top Works", "Karya Tapiliah");
+      case "flagship":
+        return tr("Pameran Media Reels", "Media Showcase", "Media Reels");
+      case "runner":
+        return tr("Portofolio Berjalan", "Running Portfolio", "Portofolio Baguliah");
+      case "about":
+        return tr("Tentang Saya (About)", "About Me", "Tantang Ambo");
+      default:
+        return tab;
+    }
   };
 
   const navigateToWorkspace = (tab: AdminSidebarTab) => {
@@ -494,8 +530,8 @@ export default function MobileAdminApp({
               <span>{tr("Beranda", "Home", "Barando")}</span>
             </button>
 
-            <span className="text-xs font-bold tracking-tight capitalize truncate max-w-[160px]">
-              {activeTab}
+            <span className="text-xs font-bold tracking-tight truncate max-w-[170px]">
+              {getTabTitle(activeTab)}
             </span>
 
             {/* Quick Save in Top Bar */}
@@ -569,6 +605,10 @@ export default function MobileAdminApp({
               />
             )}
 
+            {activeTab === "settings" && (
+              <SecuritySettingsWorkspace showToast={showToast || (() => {})} />
+            )}
+
             {renderWorkspaceContent &&
               activeTab !== "clients" &&
               activeTab !== "crm" &&
@@ -578,6 +618,7 @@ export default function MobileAdminApp({
               activeTab !== "motion" &&
               activeTab !== "trash" &&
               activeTab !== "storage" &&
+              activeTab !== "settings" &&
               renderWorkspaceContent(activeTab)}
           </div>
 
@@ -671,14 +712,14 @@ export default function MobileAdminApp({
               <RiLineChartFill className="w-5 h-5" />
             </button>
 
-            {/* 4. Settings / Tools Tab */}
+            {/* 4. Settings & Security Tab */}
             <button
               type="button"
-              onClick={() => navigateToWorkspace("seo")}
+              onClick={() => navigateToWorkspace("settings")}
               className={`p-2.5 rounded-full transition-all cursor-pointer ${
                 isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
               }`}
-              title="SEO & Settings"
+              title={tr("Setting Admin & Keamanan", "Admin Settings & Security", "Setting Admin & Kaamanan")}
             >
               <RiSettings4Fill className="w-5 h-5" />
             </button>
