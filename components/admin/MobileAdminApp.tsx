@@ -25,7 +25,6 @@ import {
   RiLogoutBoxRFill,
   RiSave3Fill,
   RiCheckFill,
-  RiWhatsappLine,
   RiNotification3Line,
   RiCalendarLine,
   RiShieldCheckFill,
@@ -478,31 +477,6 @@ export default function MobileAdminApp({
                     </button>
                   );
                 })}
-              </div>
-            </div>
-
-            {/* 5. RECENT ACTIVITY BANNER (Matches "Talk to a Specialist" in Reference) */}
-            <div
-              onClick={() => navigateToWorkspace("social")}
-              className={`p-4 rounded-2xl border flex items-center justify-between gap-3 cursor-pointer transition-all active:scale-98 ${
-                isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#111622] border-white/10"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0">
-                  <RiWhatsappLine className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-xs font-bold leading-tight">
-                    {tr("WhatsApp & Kontak Klien", "WhatsApp & Inbound Reach", "WhatsApp & Kontak Klien")}
-                  </h3>
-                  <p className="text-[11px] text-neutral-400 mt-0.5">
-                    {socialContacts.whatsappNumber || "6282381769146"} • Aktif
-                  </p>
-                </div>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-neutral-400">
-                <RiArrowRightLine className="w-4 h-4" />
               </div>
             </div>
           </div>
