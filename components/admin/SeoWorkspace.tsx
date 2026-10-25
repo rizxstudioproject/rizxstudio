@@ -382,8 +382,14 @@ export default function SeoWorkspace() {
               <input
                 type="text"
                 value={config.googleVerification}
-                onChange={(e) => setConfig({ ...config, googleVerification: e.target.value })}
-                placeholder="Contoh: aBcDeFgHiJkLmNoPqRsTuVwXyZ"
+                onChange={(e) => {
+                  let val = e.target.value.trim();
+                  // Auto extract content if user pastes whole <meta ... content="..." />
+                  const match = val.match(/content=["']([^"']+)["']/i);
+                  if (match) val = match[1];
+                  setConfig({ ...config, googleVerification: val });
+                }}
+                placeholder="Contoh: 3gmIFS0RsobGQ6..."
                 className={`w-full px-3.5 py-2.5 rounded-xl border outline-none font-mono ${
                   isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-white/5 border-white/10 text-white"
                 }`}

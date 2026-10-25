@@ -30,7 +30,7 @@ export const DEFAULT_SEO_CONFIG: SeoConfig = {
   studioName: "Rizxstudio",
   canonicalUrl: "https://rizxstudio.com",
   ogImage: "/og-image-square.png",
-  googleVerification: "",
+  googleVerification: "3gmIFS0RsobGQ6m2I_llFqh8q9R7LYeS5p4jzFSNP5E",
   bingVerification: "",
   telephone: "+6282381769146",
   priceRange: "$$$",
