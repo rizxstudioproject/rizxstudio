@@ -24,6 +24,11 @@ import {
   RiPieChartFill as HiChartPie,
   RiCheckFill as HiCheck,
   RiRestartFill as HiArrowPath,
+  RiCursorFill,
+  RiPaletteFill,
+  RiChat3Fill,
+  RiLineChartFill,
+  RiSearchEyeFill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -191,6 +196,36 @@ export default function AdminTopBar({
         label: tr("About Me Section", "Tentang Saya", "Tantang Ambo"),
         sub: tr("Profile bio & contacts", "Profil, biografi & kontak", "Profil, biografi & kontak"),
         icon: HiUser,
+      },
+      {
+        id: "motion",
+        label: tr("Motion & Cursor", "Motion & Kursor", "Motion & Kursor"),
+        sub: tr("Motion effects & cursor", "Efek gerak & kursor magnetik", "Efek garak & kursor magnetik"),
+        icon: RiCursorFill,
+      },
+      {
+        id: "theme",
+        label: tr("Theme & Colors", "Warna & Tema", "Warna & Tema"),
+        sub: tr("Accent colors & theme", "Skema warna aksen & tema UI", "Skema warna aksen & tema UI"),
+        icon: RiPaletteFill,
+      },
+      {
+        id: "social",
+        label: tr("Contact & Socials", "Kontak & Sosmed", "Kontak & Sosmed"),
+        sub: tr("WhatsApp, email & social links", "WhatsApp, email & tautan sosial", "WhatsApp, email & tautan sosial"),
+        icon: RiChat3Fill,
+      },
+      {
+        id: "crm",
+        label: tr("CRM & Analytics", "CRM & Prospek", "CRM & Prospek"),
+        sub: tr("Visitor telemetry & leads", "Data telemetri pengunjung & prospek", "Data telemetri pangunjuang & prospek"),
+        icon: RiLineChartFill,
+      },
+      {
+        id: "seo",
+        label: tr("SEO & Search Engine", "SEO & Mesin Pencari", "SEO & Masin Pancari"),
+        sub: tr("Google meta tags & search verification", "Meta tag Google, verifikasi & pratinjau medsos", "Meta tag Google & verifikasi"),
+        icon: RiSearchEyeFill,
       },
       {
         id: "trash",

@@ -35,6 +35,7 @@ import {
   RiPaletteFill,
   RiChat3Fill,
   RiLineChartFill,
+  RiSearchEyeFill,
 } from "react-icons/ri";
 import { useLang, toMinang } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
@@ -6702,6 +6703,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     label: tx("CRM & Analytics", "CRM & Prospek", "CRM & Prospek"),
                     sub: tx("Data telemetri pengunjung & prospek lead", "Visitor telemetry & leads analytics", "Data pangunjuang & prospek lead"),
                     icon: RiLineChartFill,
+                  },
+                  {
+                    id: "seo" as AdminSidebarTab,
+                    label: tx("SEO & Search Engine", "SEO & Mesin Pencari", "SEO & Masin Pancari"),
+                    sub: tx("Meta tag Google, verifikasi & pratinjau medsos", "Google meta tags, verification & social previews", "Meta tag Google, verifikasi & pratinjau medsos"),
+                    icon: RiSearchEyeFill,
                   },
                   {
                     id: "trash" as AdminSidebarTab,
