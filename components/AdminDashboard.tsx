@@ -74,6 +74,7 @@ import ThemeColorWorkspace from "./admin/ThemeColorWorkspace";
 import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
 import CrmAnalyticsView from "./admin/CrmAnalyticsView";
 import SeoWorkspace from "./admin/SeoWorkspace";
+import MobileAdminApp from "./admin/MobileAdminApp";
 import MetaSEO from "./MetaSEO";
 import { saveSocialContacts } from "@/lib/socialService";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -1963,8 +1964,62 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         />
       </div>
 
-      {/* Main Workspace Column */}
-      <div className={`flex-1 flex flex-col h-full min-w-0 overflow-hidden ${
+      {/* Mobile Native App Experience (< 768px, Reference Mockup UI/UX) */}
+      <div className="flex md:hidden h-full w-full overflow-hidden">
+        <MobileAdminApp
+          activeTab={sidebarTab}
+          onSelectTab={(tab) => {
+            setSidebarTab(tab);
+            setActiveTab(tab as any);
+          }}
+          clients={clients}
+          selectedClientId={selectedClientId}
+          onSelectClient={(id) => setSelectedClientId(id)}
+          clientsWorkspaceView={clientsWorkspaceView}
+          onWorkspaceViewChange={setClientsWorkspaceView}
+          totalWorks={clients.reduce((acc, c) => acc + (c.works?.length || 0), 0)}
+          trashCount={trashItems.length}
+          onLogout={adminLogout}
+          onTopBarSave={handleTopBarSave}
+          onTopBarReset={handleTopBarReset}
+          isCloudSyncActive={isCloudSyncActive}
+          adminUser={adminUser === "admin" ? "FOMY R" : adminUser}
+          onOpenAddFolder={() => setIsAddFolderOpen(true)}
+          onOpenEditFolder={handleOpenEditFolder}
+          onDeleteFolder={handleDeleteFolder}
+          onOpenUploadWork={() => setIsUploadModalOpen(true)}
+          onOpenEditWork={handleOpenEditWork}
+          onDeleteWork={handleDeleteWork}
+          onSaveClientDescription={(id, desc, tools) => {
+            updateClientDescription(id, desc, tools);
+          }}
+          onUpdateClientFolder={(id, updates) => {
+            const c = clients.find((item) => item.id === id);
+            if (c) {
+              updateClientFolder(id, {
+                clientName: updates.clientName || c.clientName,
+                category: updates.category !== undefined ? updates.category : c.category,
+                logo: updates.logo !== undefined ? updates.logo : (c.logo || ""),
+              });
+            }
+          }}
+          onReplaceCoverImage={handleReplaceCoverImage}
+          showToast={showToast}
+          clSubtitle={clSubtitle}
+          setClSubtitle={setClSubtitle}
+          clLogos={clLogos}
+          setClLogos={setClLogos}
+          newLogoName={newLogoName}
+          setNewLogoName={setNewLogoName}
+          newLogoRow={newLogoRow}
+          setNewLogoRow={setNewLogoRow}
+          newLogoFile={newLogoFile}
+          setNewLogoFile={setNewLogoFile}
+        />
+      </div>
+
+      {/* Main Workspace Column (Desktop & Tablet >= 768px) */}
+      <div className={`hidden md:flex flex-1 flex-col h-full min-w-0 overflow-hidden ${
         isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
       }`}>
         {/* Top Header Bar */}
