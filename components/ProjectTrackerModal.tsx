@@ -54,6 +54,17 @@ export default function ProjectTrackerModal({
     }
   }, [initialCode]);
 
+  // Live auto-update when studio updates project progress
+  useEffect(() => {
+    const handleTrackerUpdate = () => {
+      if (inputCode) {
+        handleSearch(inputCode);
+      }
+    };
+    window.addEventListener("rizx_tracker_updated", handleTrackerUpdate);
+    return () => window.removeEventListener("rizx_tracker_updated", handleTrackerUpdate);
+  }, [inputCode]);
+
   const handleSearch = async (codeToSearch?: string) => {
     const code = (codeToSearch || inputCode).trim();
     if (!code) return;

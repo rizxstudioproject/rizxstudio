@@ -24,6 +24,8 @@ export interface ProjectTrackingItem {
   notes?: string;
   deliverables?: string[];
   previewUrl?: string;
+  brief?: string;
+  confirmedAt?: string;
   completedAt?: string;
   updatedAt: string;
 }
@@ -175,10 +177,11 @@ export async function getAllTrackedProjects(): Promise<ProjectTrackingItem[]> {
  * Save all tracked projects to Supabase Cloud + LocalStorage
  */
 export async function saveAllTrackedProjects(records: ProjectTrackingItem[]): Promise<boolean> {
-  // 1. Save LocalStorage
+  // 1. Save LocalStorage & Broadcast Live Sync Event
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+      window.dispatchEvent(new CustomEvent("rizx_tracker_updated", { detail: records }));
     } catch (e) {
       console.warn("LocalStorage project tracker save notice:", e);
     }
@@ -273,6 +276,43 @@ export async function updateProjectProgress(
     notes: notes !== undefined ? notes : current[idx].notes,
     previewUrl: previewUrl !== undefined ? previewUrl : current[idx].previewUrl,
     completedAt: stage === "completed" ? (current[idx].completedAt || now) : undefined,
+    updatedAt: now,
+  };
+
+  current[idx] = updatedItem;
+  await saveAllTrackedProjects(current);
+  return updatedItem;
+}
+
+/**
+ * Confirm project kickoff (Change stage to in_progress, set initial progress & confirmation note)
+ */
+export async function confirmProjectKickoff(
+  refCode: string,
+  initialProgress: number = 30,
+  kickoffNote?: string
+): Promise<ProjectTrackingItem | null> {
+  const current = await getAllTrackedProjects();
+  const cleanCode = refCode.trim().toUpperCase();
+  const idx = current.findIndex(
+    (i) =>
+      i.refCode.toUpperCase() === cleanCode ||
+      i.refCode.toUpperCase().replace(/[^A-Z0-9]/g, "") === cleanCode.replace(/[^A-Z0-9]/g, "")
+  );
+
+  if (idx < 0) return null;
+
+  const now = new Date().toISOString();
+  const defaultNote =
+    kickoffNote ||
+    "Pesanan telah dikonfirmasi oleh Studio Rizx. Proyek resmi dimulai & masuk proses produksi kreatif sesuai brief.";
+
+  const updatedItem: ProjectTrackingItem = {
+    ...current[idx],
+    currentStage: "in_progress",
+    progressPercent: Math.max(initialProgress, current[idx].progressPercent || 30),
+    notes: defaultNote,
+    confirmedAt: current[idx].confirmedAt || now,
     updatedAt: now,
   };
 

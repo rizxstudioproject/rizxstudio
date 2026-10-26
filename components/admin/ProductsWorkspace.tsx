@@ -29,6 +29,7 @@ import {
   RiSparklingLine,
   RiSave3Line,
   RiTranslate2,
+  RiUserFollowLine,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -44,6 +45,8 @@ import {
   ProductPackage,
   DEFAULT_CATEGORIES,
 } from "@/lib/productsService";
+import { getAllTrackedProjects, ProjectTrackingItem } from "@/lib/projectTrackerService";
+import ClientOrdersManager from "./ClientOrdersManager";
 
 const AVAILABLE_ICONS = [
   { name: "RiPaintLine", label: "Branding / Paint", icon: RiPaintLine },
@@ -67,6 +70,10 @@ export default function ProductsWorkspace() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [statusMessage, setStatusMessage] = useState<string>("");
+
+  // Main Workspace Tab (Catalog vs Incoming Client Orders)
+  const [activeMainTab, setActiveMainTab] = useState<"catalog" | "orders">("catalog");
+  const [trackedOrders, setTrackedOrders] = useState<ProjectTrackingItem[]>([]);
 
   // Modal edit states
   const [editingProduct, setEditingProduct] = useState<ProductItem | null>(null);
@@ -96,14 +103,39 @@ export default function ProductsWorkspace() {
   useEffect(() => {
     loadData();
 
+    // Fetch tracked orders for badge
+    const fetchOrders = async () => {
+      try {
+        const data = await getAllTrackedProjects();
+        setTrackedOrders(data);
+      } catch (err) {
+        console.warn("Tracker badge fetch notice:", err);
+      }
+    };
+    fetchOrders();
+
     const handleSync = (e: Event) => {
       const custom = e as CustomEvent<ProductItem[]>;
       if (custom.detail) {
         setProducts(custom.detail);
       }
     };
+
+    const handleTrackerSync = (e: Event) => {
+      const custom = e as CustomEvent<ProjectTrackingItem[]>;
+      if (custom.detail) {
+        setTrackedOrders(custom.detail);
+      } else {
+        fetchOrders();
+      }
+    };
+
     window.addEventListener("rizx_products_updated", handleSync);
-    return () => window.removeEventListener("rizx_products_updated", handleSync);
+    window.addEventListener("rizx_tracker_updated", handleTrackerSync);
+    return () => {
+      window.removeEventListener("rizx_products_updated", handleSync);
+      window.removeEventListener("rizx_tracker_updated", handleTrackerSync);
+    };
   }, []);
 
   const showToast = (msg: string) => {
@@ -115,6 +147,8 @@ export default function ProductsWorkspace() {
   const totalCount = products.length;
   const activeCount = products.filter((p) => !p.isClosed).length;
   const closedCount = products.filter((p) => p.isClosed).length;
+  const pendingOrdersCount = trackedOrders.filter((o) => o.currentStage === "queued").length;
+  const totalOrdersCount = trackedOrders.length;
 
   // Filtered list
   const filteredProducts = useMemo(() => {
@@ -611,8 +645,71 @@ export default function ProductsWorkspace() {
         </div>
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Top Workspace View Switcher (Catalog vs Incoming Client Orders) */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => setActiveMainTab("catalog")}
+          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer ${
+            activeMainTab === "catalog"
+              ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20"
+              : "text-neutral-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <RiBox3Line className="w-4 h-4" />
+          <span>{tr("Katalog Produk & Paket", "Katalog Produk & Paket", "Katalog Produk & Paket")}</span>
+          <span
+            className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+              activeMainTab === "catalog"
+                ? "bg-black/25 text-black font-bold"
+                : "bg-white/10 text-neutral-400"
+            }`}
+          >
+            {products.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab("orders")}
+          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer ${
+            activeMainTab === "orders"
+              ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20"
+              : "text-neutral-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <RiUserFollowLine className="w-4 h-4" />
+          <span>
+            {tr(
+              "Kelola Klien Masuk & Konfirmasi Pengerjaan",
+              "Kelola Klien Masuk & Konfirmasi Pengerjaan",
+              "Kelola Klien Masuak & Konfirmasi"
+            )}
+          </span>
+          {pendingOrdersCount > 0 ? (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-amber-400 text-black font-bold animate-pulse">
+              {pendingOrdersCount} Butuh Kickoff
+            </span>
+          ) : (
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                activeMainTab === "orders"
+                  ? "bg-black/25 text-black font-bold"
+                  : "bg-white/10 text-neutral-400"
+              }`}
+            >
+              {totalOrdersCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {activeMainTab === "orders" ? (
+        <ClientOrdersManager />
+      ) : (
+        <>
+          {/* Metric Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-neutral-900/60 border border-white/5 flex items-center justify-between">
           <div>
             <p className="text-xs text-neutral-400 font-mono uppercase tracking-wider">
@@ -844,6 +941,8 @@ export default function ProductsWorkspace() {
             );
           })}
         </div>
+      )}
+      </>
       )}
 
       {/* FULL EDIT / CREATE MODAL */}

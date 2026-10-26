@@ -278,6 +278,7 @@ export default function ProductsPage() {
       progressPercent: 15,
       notes: "Pesanan masuk dari formulir website. Menunggu konfirmasi & jadwal kickoff.",
       deliverables: selectedPackageObj.deliverables,
+      brief: projectBrief.trim() || undefined,
       updatedAt: new Date().toISOString(),
     }).catch(e => console.warn("Tracker registration notice:", e));
 
