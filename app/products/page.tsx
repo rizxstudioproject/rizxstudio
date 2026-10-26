@@ -803,17 +803,37 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                   <select
                     value={formProduct}
                     onChange={(e) => setFormProduct(e.target.value)}
-                    className={`w-full px-4 py-3 rounded-xl text-xs sm:text-sm border outline-none font-medium cursor-pointer ${
+                    className={`w-full px-4 py-3.5 rounded-xl text-sm border outline-none font-medium cursor-pointer transition-colors ${
                       isLight
                         ? "bg-slate-50 border-slate-300 text-slate-900 focus:border-[#16b09f]"
-                        : "bg-white/[0.04] border-white/10 text-white focus:border-white/30"
+                        : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
                     }`}
                   >
-                    {localizedProducts.map((p) => (
-                      <option key={p.id} value={p.id} className="bg-neutral-900 text-white">
-                        {p.title} — ({p.categoryLabel}) {p.isClosed ? `[${tr("Orders Closed", "Slot Penuh", "Slot Panuah")}]` : ""}
-                      </option>
-                    ))}
+                    {dynamicCategories
+                      .filter((cat) => cat.id !== "all")
+                      .map((cat) => {
+                        const catProducts = localizedProducts.filter(
+                          (p) => p.category === cat.id
+                        );
+                        if (catProducts.length === 0) return null;
+                        return (
+                          <optgroup
+                            key={cat.id}
+                            label={cat.label}
+                            className="bg-neutral-950 text-[#16b09f] font-bold py-1"
+                          >
+                            {catProducts.map((p) => (
+                              <option
+                                key={p.id}
+                                value={p.id}
+                                className="bg-neutral-900 text-white py-2"
+                              >
+                                {p.title} {p.isClosed ? `[${tr("Closed", "Slot Penuh", "Slot Panuah")}]` : ""}
+                              </option>
+                            ))}
+                          </optgroup>
+                        );
+                      })}
                   </select>
                 </div>
 
@@ -860,20 +880,20 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
 
               {/* Active Selected Package Snapshot Pill */}
               <div
-                className="p-3.5 rounded-xl border flex items-center justify-between text-xs font-mono"
+                className="p-3.5 sm:p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-mono"
                 style={{
                   backgroundColor: `${primaryColor}10`,
                   borderColor: `${primaryColor}30`,
                 }}
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: primaryColor }} />
-                  <span className="text-white font-semibold">
+                  <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: primaryColor }} />
+                  <span className="text-white font-semibold leading-snug">
                     {selectedProductObj.title} — {selectedPackageObj.name}
                   </span>
                 </div>
-                <span className="text-neutral-400 text-[11px]">
-                  Estimasi: {selectedPackageObj.duration}
+                <span className="text-neutral-400 text-[11px] sm:text-xs shrink-0">
+                  {tr("Duration", "Estimasi", "Kiro-kiro")}: {selectedPackageObj.duration}
                 </span>
               </div>
 
