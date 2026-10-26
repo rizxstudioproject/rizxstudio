@@ -285,10 +285,9 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
           <button
             type="button"
             onClick={handleOpenAdd}
-            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-400 text-black shadow-lg shadow-teal-500/20 active:scale-95 transition flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-400 text-black shadow-lg shadow-teal-500/20 active:scale-95 transition flex items-center justify-center cursor-pointer shrink-0"
           >
-            <RiAddLine className="w-4 h-4 text-black" />
-            <span>Tambah Rekening / QRIS</span>
+            <span>Add Bank & QRIS</span>
           </button>
 
           <button
@@ -610,7 +609,7 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
               <div className="flex items-center gap-2">
                 <RiBankCardLine className="w-5 h-5 text-teal-400" />
                 <h4 className="font-bold text-base">
-                  {editingId ? "Edit Rekening / Metode Pembayaran" : "Tambah Rekening / QRIS Baru"}
+                  {editingId ? "Edit Bank & QRIS" : "Add Bank & QRIS"}
                 </h4>
               </div>
               <button
