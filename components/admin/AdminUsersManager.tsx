@@ -459,13 +459,16 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
 
       {/* ── MODAL: TAMBAH ADMIN BARU ── */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
           <div
-            className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto ${
+            className={`w-full max-w-lg rounded-2xl sm:rounded-3xl border shadow-2xl flex flex-col max-h-[90vh] overflow-hidden ${
               isLight ? "bg-white border-slate-300 text-slate-900" : "bg-[#0f1217] border-white/15 text-white"
             }`}
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            {/* Sticky Header */}
+            <div className={`px-5 py-4 border-b flex items-center justify-between shrink-0 ${
+              isLight ? "border-slate-200 bg-slate-50/80" : "border-white/10 bg-[#0d1015]"
+            }`}>
               <div className="flex items-center gap-2">
                 <RiUserAddLine className="w-5 h-5 text-teal-400" />
                 <h4 className="font-bold text-base">Tambah Akun Admin Baru</h4>
@@ -473,146 +476,153 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded-lg text-neutral-400 hover:text-white"
+                className="p-1 rounded-lg text-neutral-400 hover:text-white cursor-pointer"
               >
                 <RiCloseLine className="w-5 h-5" />
               </button>
             </div>
 
-            {formError && (
-              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                <RiInformationLine className="w-4 h-4 shrink-0" />
-                <span>{formError}</span>
-              </div>
-            )}
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleAddSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="p-5 overflow-y-auto flex-1 space-y-3.5 text-xs">
+                {formError && (
+                  <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <RiInformationLine className="w-4 h-4 shrink-0" />
+                    <span>{formError}</span>
+                  </div>
+                )}
 
-            <form onSubmit={handleAddSubmit} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-mono font-medium mb-1">
-                  Username <span className="text-teal-400">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
-                    placeholder="misal: admin2, manager, sarah"
-                    className={`w-full px-3.5 py-2 pl-9 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
-                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
-                    }`}
-                  />
-                  <RiUser3Line className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                </div>
-                <span className="text-[10px] text-neutral-400 font-mono mt-0.5 block">
-                  Hanya huruf kecil, angka, minus, & underscore (tanpa spasi).
-                </span>
-              </div>
-
-              <div>
-                <label className="block font-mono font-medium mb-1">Nama Lengkap / Panggilan</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="misal: Sarah Creative Lead"
-                  className={`w-full px-3.5 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
-                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
-                  }`}
-                />
-              </div>
-
-              <div>
-                <label className="block font-mono font-medium mb-1">
-                  Email Verifikasi / OTP <span className="text-teal-400">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin2@rizxstudio.com"
-                    className={`w-full px-3.5 py-2 pl-9 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
-                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
-                    }`}
-                  />
-                  <RiMailLine className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-mono font-medium mb-1">Hak Akses / Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as any)}
-                  className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
-                    isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-black border-white/10 text-white"
-                  }`}
-                >
-                  <option value="superadmin">Super Admin (Akses Penuh Seluruh Sistem)</option>
-                  <option value="admin">Admin (Akses Katalog, Proyek, & Leads)</option>
-                  <option value="editor">Editor (Manajemen Konten & Produk)</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
                   <label className="block font-mono font-medium mb-1">
-                    Password Baru <span className="text-teal-400">*</span>
+                    Username <span className="text-teal-400">*</span>
                   </label>
                   <div className="relative">
                     <input
-                      type={showPassword ? "text" : "password"}
+                      type="text"
                       required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Min. 6 karakter"
-                      className={`w-full px-3.5 py-2 pr-8 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                      placeholder="misal: admin2, manager, sarah"
+                      className={`w-full px-3.5 py-2 pl-9 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
                         isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
                       }`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
-                    >
-                      {showPassword ? <RiEyeOffLine className="w-4 h-4" /> : <RiEyeLine className="w-4 h-4" />}
-                    </button>
+                    <RiUser3Line className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  </div>
+                  <span className="text-[10px] text-neutral-400 font-mono mt-0.5 block">
+                    Hanya huruf kecil, angka, minus, & underscore (tanpa spasi).
+                  </span>
+                </div>
+
+                <div>
+                  <label className="block font-mono font-medium mb-1">Nama Lengkap / Panggilan</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="misal: Sarah Creative Lead"
+                    className={`w-full px-3.5 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono font-medium mb-1">
+                    Email Verifikasi / OTP <span className="text-teal-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="admin2@rizxstudio.com"
+                      className={`w-full px-3.5 py-2 pl-9 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                        isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                      }`}
+                    />
+                    <RiMailLine className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block font-mono font-medium mb-1">
-                    Konfirmasi Password <span className="text-teal-400">*</span>
-                  </label>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Ulangi password"
-                    className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
-                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                  <label className="block font-mono font-medium mb-1">Hak Akses / Role</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as any)}
+                    className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-black border-white/10 text-white"
                     }`}
-                  />
+                  >
+                    <option value="superadmin">Super Admin (Akses Penuh Seluruh Sistem)</option>
+                    <option value="admin">Admin (Akses Katalog, Proyek, & Leads)</option>
+                    <option value="editor">Editor (Manajemen Konten & Produk)</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block font-mono font-medium mb-1">
+                      Password Baru <span className="text-teal-400">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Min. 6 karakter"
+                        className={`w-full px-3.5 py-2 pr-8 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                          isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                        }`}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white cursor-pointer"
+                      >
+                        {showPassword ? <RiEyeOffLine className="w-4 h-4" /> : <RiEyeLine className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block font-mono font-medium mb-1">
+                      Konfirmasi Password <span className="text-teal-400">*</span>
+                    </label>
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="Ulangi password"
+                      className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                        isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                      }`}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+              {/* Sticky Bottom Actions */}
+              <div className={`px-5 py-3.5 border-t flex items-center justify-between gap-3 shrink-0 ${
+                isLight ? "border-slate-200 bg-slate-50" : "border-white/10 bg-[#0d1015]"
+              }`}>
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer font-medium"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-md active:scale-95 transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-lg active:scale-95 transition cursor-pointer flex items-center gap-1.5"
                 >
-                  {isSubmitting ? "Menyimpan..." : "Simpan Akun"}
+                  <RiUserAddLine className="w-4 h-4" />
+                  <span>{isSubmitting ? "Menyimpan ke Cloud..." : "+ Simpan Akun Admin"}</span>
                 </button>
               </div>
             </form>
@@ -622,13 +632,16 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
 
       {/* ── MODAL: EDIT DATA ADMIN ── */}
       {editingUser && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
           <div
-            className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto ${
+            className={`w-full max-w-lg rounded-2xl sm:rounded-3xl border shadow-2xl flex flex-col max-h-[90vh] overflow-hidden ${
               isLight ? "bg-white border-slate-300 text-slate-900" : "bg-[#0f1217] border-white/15 text-white"
             }`}
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            {/* Sticky Header */}
+            <div className={`px-5 py-4 border-b flex items-center justify-between shrink-0 ${
+              isLight ? "border-slate-200 bg-slate-50/80" : "border-white/10 bg-[#0d1015]"
+            }`}>
               <div className="flex items-center gap-2">
                 <RiEditLine className="w-5 h-5 text-teal-400" />
                 <h4 className="font-bold text-base">Edit Data Admin (@{editingUser.username})</h4>
@@ -636,91 +649,98 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
               <button
                 type="button"
                 onClick={() => setEditingUser(null)}
-                className="p-1 rounded-lg text-neutral-400 hover:text-white"
+                className="p-1 rounded-lg text-neutral-400 hover:text-white cursor-pointer"
               >
                 <RiCloseLine className="w-5 h-5" />
               </button>
             </div>
 
-            {formError && (
-              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                <RiInformationLine className="w-4 h-4 shrink-0" />
-                <span>{formError}</span>
-              </div>
-            )}
+            {/* Scrollable Form Body */}
+            <form onSubmit={handleEditSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="p-5 overflow-y-auto flex-1 space-y-3.5 text-xs">
+                {formError && (
+                  <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <RiInformationLine className="w-4 h-4 shrink-0" />
+                    <span>{formError}</span>
+                  </div>
+                )}
 
-            <form onSubmit={handleEditSubmit} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-mono font-medium mb-1">
-                  Username <span className="text-teal-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
-                  className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
-                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
-                  }`}
-                />
+                <div>
+                  <label className="block font-mono font-medium mb-1">
+                    Username <span className="text-teal-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
+                    className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono font-medium mb-1">Nama Lengkap / Panggilan</label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className={`w-full px-3.5 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono font-medium mb-1">
+                    Email Verifikasi / OTP <span className="text-teal-400">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                    }`}
+                  />
+                </div>
+
+                <div>
+                  <label className="block font-mono font-medium mb-1">Hak Akses / Role</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value as any)}
+                    className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-black border-white/10 text-white"
+                    }`}
+                  >
+                    <option value="superadmin">Super Admin (Akses Penuh Seluruh Sistem)</option>
+                    <option value="admin">Admin (Akses Katalog, Proyek, & Leads)</option>
+                    <option value="editor">Editor (Manajemen Konten & Produk)</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block font-mono font-medium mb-1">Nama Lengkap / Panggilan</label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className={`w-full px-3.5 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
-                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
-                  }`}
-                />
-              </div>
-
-              <div>
-                <label className="block font-mono font-medium mb-1">
-                  Email Verifikasi / OTP <span className="text-teal-400">*</span>
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
-                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
-                  }`}
-                />
-              </div>
-
-              <div>
-                <label className="block font-mono font-medium mb-1">Hak Akses / Role</label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as any)}
-                  className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
-                    isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-black border-white/10 text-white"
-                  }`}
-                >
-                  <option value="superadmin">Super Admin (Akses Penuh)</option>
-                  <option value="admin">Admin (Akses Operasional)</option>
-                  <option value="editor">Editor (Manajemen Konten)</option>
-                </select>
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+              {/* Sticky Bottom Actions */}
+              <div className={`px-5 py-3.5 border-t flex items-center justify-between gap-3 shrink-0 ${
+                isLight ? "border-slate-200 bg-slate-50" : "border-white/10 bg-[#0d1015]"
+              }`}>
                 <button
                   type="button"
                   onClick={() => setEditingUser(null)}
-                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer font-medium"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-md active:scale-95 transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-lg active:scale-95 transition cursor-pointer flex items-center gap-1.5"
                 >
-                  {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
+                  <RiCheckLine className="w-4 h-4" />
+                  <span>{isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}</span>
                 </button>
               </div>
             </form>
@@ -730,13 +750,16 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
 
       {/* ── MODAL: GANTI PASSWORD USER ── */}
       {passwordModalUser && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
           <div
-            className={`w-full max-w-md rounded-2xl border shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto ${
+            className={`w-full max-w-md rounded-2xl sm:rounded-3xl border shadow-2xl flex flex-col max-h-[90vh] overflow-hidden ${
               isLight ? "bg-white border-slate-300 text-slate-900" : "bg-[#0f1217] border-white/15 text-white"
             }`}
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            {/* Sticky Header */}
+            <div className={`px-5 py-4 border-b flex items-center justify-between shrink-0 ${
+              isLight ? "border-slate-200 bg-slate-50/80" : "border-white/10 bg-[#0d1015]"
+            }`}>
               <div className="flex items-center gap-2">
                 <RiKey2Line className="w-5 h-5 text-amber-400" />
                 <h4 className="font-bold text-base">Ganti Password @{passwordModalUser.username}</h4>
@@ -744,75 +767,82 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
               <button
                 type="button"
                 onClick={() => setPasswordModalUser(null)}
-                className="p-1 rounded-lg text-neutral-400 hover:text-white"
+                className="p-1 rounded-lg text-neutral-400 hover:text-white cursor-pointer"
               >
                 <RiCloseLine className="w-5 h-5" />
               </button>
             </div>
 
-            {formError && (
-              <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                <RiInformationLine className="w-4 h-4 shrink-0" />
-                <span>{formError}</span>
-              </div>
-            )}
+            {/* Scrollable Form Body */}
+            <form onSubmit={handlePasswordSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              <div className="p-5 overflow-y-auto flex-1 space-y-3.5 text-xs">
+                {formError && (
+                  <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <RiInformationLine className="w-4 h-4 shrink-0" />
+                    <span>{formError}</span>
+                  </div>
+                )}
 
-            <form onSubmit={handlePasswordSubmit} className="space-y-3.5 text-xs">
-              <div>
-                <label className="block font-mono font-medium mb-1">
-                  Password Baru <span className="text-teal-400">*</span>
-                </label>
-                <div className="relative">
+                <div>
+                  <label className="block font-mono font-medium mb-1">
+                    Password Baru <span className="text-teal-400">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showNewPassword ? "text" : "password"}
+                      required
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="Minimal 6 karakter"
+                      className={`w-full px-3.5 py-2 pr-8 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                        isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white cursor-pointer"
+                    >
+                      {showNewPassword ? <RiEyeOffLine className="w-4 h-4" /> : <RiEyeLine className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block font-mono font-medium mb-1">
+                    Konfirmasi Password Baru <span className="text-teal-400">*</span>
+                  </label>
                   <input
                     type={showNewPassword ? "text" : "password"}
                     required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Minimal 6 karakter"
-                    className={`w-full px-3.5 py-2 pr-8 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    placeholder="Ulangi password baru"
+                    className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
                       isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
                     }`}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white cursor-pointer"
-                  >
-                    {showNewPassword ? <RiEyeOffLine className="w-4 h-4" /> : <RiEyeLine className="w-4 h-4" />}
-                  </button>
                 </div>
               </div>
 
-              <div>
-                <label className="block font-mono font-medium mb-1">
-                  Konfirmasi Password Baru <span className="text-teal-400">*</span>
-                </label>
-                <input
-                  type={showNewPassword ? "text" : "password"}
-                  required
-                  value={confirmNewPassword}
-                  onChange={(e) => setConfirmNewPassword(e.target.value)}
-                  placeholder="Ulangi password baru"
-                  className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
-                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
-                  }`}
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+              {/* Sticky Bottom Actions */}
+              <div className={`px-5 py-3.5 border-t flex items-center justify-between gap-3 shrink-0 ${
+                isLight ? "border-slate-200 bg-slate-50" : "border-white/10 bg-[#0d1015]"
+              }`}>
                 <button
                   type="button"
                   onClick={() => setPasswordModalUser(null)}
-                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer font-medium"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs shadow-md active:scale-95 transition cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs shadow-lg active:scale-95 transition cursor-pointer flex items-center gap-1.5"
                 >
-                  {isSubmitting ? "Menyimpan..." : "Ubah Password"}
+                  <RiKey2Line className="w-4 h-4" />
+                  <span>{isSubmitting ? "Menyimpan..." : "Ubah Password"}</span>
                 </button>
               </div>
             </form>

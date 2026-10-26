@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { antigravityData } from "@/data/projectsData";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { saveStage3ImageToDB, getStage3ImageFromDB, clearStage3ImageFromDB } from "@/lib/sequenceStorage";
-import { getAdminCredentials } from "@/lib/adminAuth";
+import { getAdminCredentials, mergeAdminUserLists } from "@/lib/adminAuth";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 
 const STORAGE_KEY = "rizx_portfolio_custom_data_v1";
@@ -1071,7 +1071,26 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             try {
               const parsedCreds = JSON.parse(credsRow.description);
               if (parsedCreds.username && parsedCreds.password && typeof window !== "undefined") {
-                localStorage.setItem("rizx_admin_credentials", JSON.stringify(parsedCreds));
+                let mergedCreds = parsedCreds;
+                try {
+                  const currentLocal = localStorage.getItem("rizx_admin_credentials");
+                  if (currentLocal) {
+                    const parsedLocal = JSON.parse(currentLocal);
+                    const mergedUsers = mergeAdminUserLists(
+                      Array.isArray(parsedCreds.adminUsers) ? parsedCreds.adminUsers : [],
+                      Array.isArray(parsedLocal.adminUsers) ? parsedLocal.adminUsers : []
+                    );
+                    mergedCreds = {
+                      ...parsedLocal,
+                      ...parsedCreds,
+                      adminUsers: mergedUsers,
+                    };
+                  }
+                } catch (_) {}
+                localStorage.setItem("rizx_admin_credentials", JSON.stringify(mergedCreds));
+                window.dispatchEvent(
+                  new CustomEvent("rizx_admin_credentials_updated", { detail: mergedCreds })
+                );
               }
             } catch (_) {}
           }

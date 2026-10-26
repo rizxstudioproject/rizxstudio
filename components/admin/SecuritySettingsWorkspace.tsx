@@ -98,11 +98,13 @@ export default function SecuritySettingsWorkspace({
 
     setIsSaving(true);
     try {
+      const currentCreds = await getAdminCredentials();
       const cleanSecret = adminSecretKey.trim().replace(/^[\?&]?(login=)?/, "") || "secret";
       const updated = await saveAdminCredentials({
         username: adminUser.trim() || "admin",
         email: adminEmail.trim() || "rizxstudioproject@gmail.com",
         secretParam: cleanSecret,
+        adminUsers: currentCreds.adminUsers,
         ...(newPassword ? { password: newPassword.trim() } : {}),
       });
 

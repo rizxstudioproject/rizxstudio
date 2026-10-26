@@ -81,7 +81,46 @@ function ensureAdminUsers(parsed: any): AdminUserItem[] {
   return list;
 }
 
+export function mergeAdminUserLists(
+  primary: AdminUserItem[] = [],
+  secondary: AdminUserItem[] = []
+): AdminUserItem[] {
+  const map = new Map<string, AdminUserItem>();
+  for (const u of secondary) {
+    if (u && u.username) {
+      map.set(u.username.toLowerCase(), u);
+    }
+  }
+  for (const u of primary) {
+    if (u && u.username) {
+      map.set(u.username.toLowerCase(), u);
+    }
+  }
+  return Array.from(map.values());
+}
+
 export async function getAdminCredentials(): Promise<AdminCredentials> {
+  // Read local storage first for pending or locally created accounts
+  let localCreds: AdminCredentials | null = null;
+  if (typeof window !== "undefined") {
+    try {
+      const local = localStorage.getItem(STORAGE_KEY);
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (parsed.username && parsed.password) {
+          localCreds = {
+            username: parsed.username,
+            password: parsed.password,
+            email: parsed.email || DEFAULT_ADMIN_CREDENTIALS.email,
+            secretParam: parsed.secretParam || DEFAULT_ADMIN_CREDENTIALS.secretParam,
+            updatedAt: parsed.updatedAt,
+            adminUsers: ensureAdminUsers(parsed),
+          };
+        }
+      }
+    } catch (_) {}
+  }
+
   // 1. Try Supabase Cloud
   if (isSupabaseConfigured && supabase) {
     try {
@@ -94,14 +133,15 @@ export async function getAdminCredentials(): Promise<AdminCredentials> {
       if (!error && data && data.description) {
         const parsed = JSON.parse(data.description);
         if (parsed.username && parsed.password) {
-          const adminUsers = ensureAdminUsers(parsed);
+          const cloudUsers = ensureAdminUsers(parsed);
+          const mergedUsers = mergeAdminUserLists(cloudUsers, localCreds?.adminUsers || []);
           const creds: AdminCredentials = {
             username: parsed.username,
             password: parsed.password,
             email: parsed.email || DEFAULT_ADMIN_CREDENTIALS.email,
             secretParam: parsed.secretParam || DEFAULT_ADMIN_CREDENTIALS.secretParam,
-            updatedAt: data.updated_at,
-            adminUsers,
+            updatedAt: data.updated_at || parsed.updatedAt,
+            adminUsers: mergedUsers,
           };
           if (typeof window !== "undefined") {
             try {
@@ -116,24 +156,9 @@ export async function getAdminCredentials(): Promise<AdminCredentials> {
     }
   }
 
-  // 2. Try LocalStorage
-  if (typeof window !== "undefined") {
-    try {
-      const local = localStorage.getItem(STORAGE_KEY);
-      if (local) {
-        const parsed = JSON.parse(local);
-        if (parsed.username && parsed.password) {
-          const adminUsers = ensureAdminUsers(parsed);
-          return {
-            username: parsed.username,
-            password: parsed.password,
-            email: parsed.email || DEFAULT_ADMIN_CREDENTIALS.email,
-            secretParam: parsed.secretParam || DEFAULT_ADMIN_CREDENTIALS.secretParam,
-            adminUsers,
-          };
-        }
-      }
-    } catch (_) {}
+  // 2. Return LocalStorage
+  if (localCreds) {
+    return localCreds;
   }
 
   return DEFAULT_ADMIN_CREDENTIALS;
@@ -194,13 +219,16 @@ export async function saveAdminCredentials(
   // 2. Save Supabase Cloud
   if (isSupabaseConfigured && supabase) {
     try {
-      await supabase.from("client_descriptions").upsert({
+      const { error } = await supabase.from("client_descriptions").upsert({
         client_id: "site-admin-credentials",
         client_name: "Admin Credentials & Recovery",
         category: "System Auth Config",
         description: JSON.stringify(updated),
         updated_at: updated.updatedAt,
       });
+      if (error) {
+        console.warn("Supabase admin credentials save notice:", error);
+      }
     } catch (err) {
       console.warn("Supabase admin credentials save notice:", err);
     }
