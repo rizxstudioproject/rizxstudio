@@ -1361,8 +1361,8 @@ export default function ProductsWorkspace() {
                 </button>
               </div>
 
-              {/* Multilingual Switcher + Auto Translate button */}
-              <div className="flex items-center gap-2">
+              {/* Multilingual Switcher + Auto Translate button (Hidden on mobile) */}
+              <div className="hidden md:flex items-center gap-2">
                 <div className="flex items-center p-0.5 rounded-lg bg-neutral-900 border border-white/10">
                   <button
                     onClick={() => setActiveLangTab("id")}
