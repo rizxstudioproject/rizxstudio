@@ -346,7 +346,7 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
         <button
           type="button"
           onClick={handleOpenAddModal}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-teal-500 hover:bg-teal-400 text-black shadow-lg shadow-teal-500/20 active:scale-95 transition cursor-pointer self-start sm:self-auto shrink-0"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-teal-500 hover:bg-teal-400 text-black shadow-lg shadow-teal-500/20 active:scale-95 transition cursor-pointer w-full sm:w-auto shrink-0"
         >
           <RiUserAddLine className="w-4 h-4 text-black" />
           <span>{tr("+ Tambah Admin Baru", "+ Add New Admin", "+ Tambah Admin Baru")}</span>
@@ -368,7 +368,7 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
           {users.map((u, idx) => (
             <div
               key={u.id || idx}
-              className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+              className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-all ${
                 isLight
                   ? "bg-slate-50/80 hover:bg-slate-50 border-slate-200 hover:border-slate-300"
                   : "bg-black/40 hover:bg-black/60 border-white/10 hover:border-white/20"
@@ -412,19 +412,19 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+              <div className="flex items-center gap-2 self-stretch sm:self-center justify-end shrink-0 pt-2 sm:pt-0 border-t border-white/5 sm:border-t-0">
                 <button
                   type="button"
                   onClick={() => handleOpenPasswordModal(u)}
                   title="Ganti Password Akun Ini"
                   className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-medium flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
                     isLight
-                      ? "bg-white hover:bg-slate-100 border-slate-300 text-slate-700"
+                      ? "bg-white hover:bg-slate-100 border-slate-300 text-slate-700 shadow-2xs"
                       : "bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300 hover:text-white"
                   }`}
                 >
                   <RiKey2Line className="w-3.5 h-3.5 text-amber-400" />
-                  <span className="hidden md:inline">Password</span>
+                  <span>Password</span>
                 </button>
 
                 <button
@@ -433,7 +433,7 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                   title="Edit Data Akun"
                   className={`px-3 py-1.5 rounded-lg border text-xs font-mono font-medium flex items-center gap-1.5 transition cursor-pointer active:scale-95 ${
                     isLight
-                      ? "bg-white hover:bg-slate-100 border-slate-300 text-slate-700"
+                      ? "bg-white hover:bg-slate-100 border-slate-300 text-slate-700 shadow-2xs"
                       : "bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300 hover:text-white"
                   }`}
                 >
@@ -459,9 +459,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
 
       {/* ── MODAL: TAMBAH ADMIN BARU ── */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div
-            className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden p-6 space-y-4 ${
+            className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto ${
               isLight ? "bg-white border-slate-300 text-slate-900" : "bg-[#0f1217] border-white/15 text-white"
             }`}
           >
@@ -498,9 +498,11 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                     value={username}
                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
                     placeholder="misal: admin2, manager, sarah"
-                    className="w-full px-3.5 py-2 pl-9 rounded-xl border border-white/10 bg-black/60 font-mono text-white focus:outline-none focus:border-teal-500"
+                    className={`w-full px-3.5 py-2 pl-9 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                    }`}
                   />
-                  <RiUser3Line className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <RiUser3Line className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>
                 <span className="text-[10px] text-neutral-400 font-mono mt-0.5 block">
                   Hanya huruf kecil, angka, minus, & underscore (tanpa spasi).
@@ -514,7 +516,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="misal: Sarah Creative Lead"
-                  className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-black/60 text-white focus:outline-none focus:border-teal-500"
+                  className={`w-full px-3.5 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
+                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                  }`}
                 />
               </div>
 
@@ -529,9 +533,11 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="admin2@rizxstudio.com"
-                    className="w-full px-3.5 py-2 pl-9 rounded-xl border border-white/10 bg-black/60 font-mono text-white focus:outline-none focus:border-teal-500"
+                    className={`w-full px-3.5 py-2 pl-9 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                    }`}
                   />
-                  <RiMailLine className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <RiMailLine className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 </div>
               </div>
 
@@ -540,7 +546,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl border border-white/10 bg-black text-white focus:outline-none focus:border-teal-500"
+                  className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
+                    isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-black border-white/10 text-white"
+                  }`}
                 >
                   <option value="superadmin">Super Admin (Akses Penuh Seluruh Sistem)</option>
                   <option value="admin">Admin (Akses Katalog, Proyek, & Leads)</option>
@@ -560,7 +568,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Min. 6 karakter"
-                      className="w-full px-3.5 py-2 pr-8 rounded-xl border border-white/10 bg-black/60 font-mono text-white focus:outline-none focus:border-teal-500"
+                      className={`w-full px-3.5 py-2 pr-8 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                        isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                      }`}
                     />
                     <button
                       type="button"
@@ -582,7 +592,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Ulangi password"
-                    className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-black/60 font-mono text-white focus:outline-none focus:border-teal-500"
+                    className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                    }`}
                   />
                 </div>
               </div>
@@ -591,14 +603,14 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs"
+                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-md active:scale-95 transition"
+                  className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-md active:scale-95 transition cursor-pointer"
                 >
                   {isSubmitting ? "Menyimpan..." : "Simpan Akun"}
                 </button>
@@ -610,9 +622,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
 
       {/* ── MODAL: EDIT DATA ADMIN ── */}
       {editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div
-            className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden p-6 space-y-4 ${
+            className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto ${
               isLight ? "bg-white border-slate-300 text-slate-900" : "bg-[#0f1217] border-white/15 text-white"
             }`}
           >
@@ -647,7 +659,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_-]/g, ""))}
-                  className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-black/60 font-mono text-white focus:outline-none focus:border-teal-500"
+                  className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                  }`}
                 />
               </div>
 
@@ -657,7 +671,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-black/60 text-white focus:outline-none focus:border-teal-500"
+                  className={`w-full px-3.5 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
+                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                  }`}
                 />
               </div>
 
@@ -670,7 +686,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-black/60 font-mono text-white focus:outline-none focus:border-teal-500"
+                  className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                  }`}
                 />
               </div>
 
@@ -679,7 +697,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as any)}
-                  className="w-full px-3 py-2 rounded-xl border border-white/10 bg-black text-white focus:outline-none focus:border-teal-500"
+                  className={`w-full px-3 py-2 rounded-xl border focus:outline-none focus:border-teal-500 ${
+                    isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-black border-white/10 text-white"
+                  }`}
                 >
                   <option value="superadmin">Super Admin (Akses Penuh)</option>
                   <option value="admin">Admin (Akses Operasional)</option>
@@ -691,14 +711,14 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                 <button
                   type="button"
                   onClick={() => setEditingUser(null)}
-                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs"
+                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-md active:scale-95 transition"
+                  className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-md active:scale-95 transition cursor-pointer"
                 >
                   {isSubmitting ? "Menyimpan..." : "Simpan Perubahan"}
                 </button>
@@ -710,9 +730,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
 
       {/* ── MODAL: GANTI PASSWORD USER ── */}
       {passwordModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div
-            className={`w-full max-w-md rounded-2xl border shadow-2xl overflow-hidden p-6 space-y-4 ${
+            className={`w-full max-w-md rounded-2xl border shadow-2xl overflow-hidden p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto ${
               isLight ? "bg-white border-slate-300 text-slate-900" : "bg-[#0f1217] border-white/15 text-white"
             }`}
           >
@@ -749,12 +769,14 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Minimal 6 karakter"
-                    className="w-full px-3.5 py-2 pr-8 rounded-xl border border-white/10 bg-black/60 font-mono text-white focus:outline-none focus:border-teal-500"
+                    className={`w-full px-3.5 py-2 pr-8 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                    }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowNewPassword(!showNewPassword)}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white cursor-pointer"
                   >
                     {showNewPassword ? <RiEyeOffLine className="w-4 h-4" /> : <RiEyeLine className="w-4 h-4" />}
                   </button>
@@ -771,7 +793,9 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}
                   placeholder="Ulangi password baru"
-                  className="w-full px-3.5 py-2 rounded-xl border border-white/10 bg-black/60 font-mono text-white focus:outline-none focus:border-teal-500"
+                  className={`w-full px-3.5 py-2 rounded-xl border font-mono focus:outline-none focus:border-teal-500 ${
+                    isLight ? "bg-slate-50 border-slate-300 text-slate-900 focus:bg-white" : "bg-black/60 border-white/10 text-white"
+                  }`}
                 />
               </div>
 
@@ -779,16 +803,16 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                 <button
                   type="button"
                   onClick={() => setPasswordModalUser(null)}
-                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs"
+                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white text-xs cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs shadow-md active:scale-95 transition"
+                  className="px-5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-black font-bold text-xs shadow-md active:scale-95 transition cursor-pointer"
                 >
-                  {isSubmitting ? "Menyimpan..." : "Update Password"}
+                  {isSubmitting ? "Menyimpan..." : "Ubah Password"}
                 </button>
               </div>
             </form>

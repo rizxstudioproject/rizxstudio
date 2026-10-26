@@ -37,6 +37,8 @@ import {
   RiCloseLine,
   RiBox3Fill,
   RiCompass3Fill,
+  RiShieldUserFill,
+  RiTeamFill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -180,6 +182,7 @@ export default function MobileAdminApp({
   const [savingAction, setSavingAction] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [incomingOrderAlert, setIncomingOrderAlert] = useState<ProjectTrackingItem | null>(null);
+  const [settingsInitialSection, setSettingsInitialSection] = useState<"team" | "credentials" | "all">("team");
 
   useEffect(() => {
     const unsubscribe = subscribeToNewOrderNotifications((newOrder) => {
@@ -568,13 +571,20 @@ export default function MobileAdminApp({
           <div className="flex-1 overflow-y-auto px-5 pt-4 pb-36 space-y-5">
             {/* 1. TOP GREETING & PROFILE HEADER */}
             <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-3">
+              <div
+                onClick={() => {
+                  setSettingsInitialSection("team");
+                  navigateToWorkspace("settings");
+                }}
+                className="flex items-center gap-3 cursor-pointer group active:scale-95 transition-all select-none"
+                title={tr("Kelola Akun Admin & Tim", "Manage Admin & Team Accounts", "Kelola Akun Admin")}
+              >
                 {/* User Avatar / Brand Logo */}
                 <div className="relative">
-                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center p-2 shadow-sm ${
+                  <div className={`w-11 h-11 rounded-xl flex items-center justify-center p-2 shadow-sm transition-all ${
                     isLight
-                      ? "bg-slate-100 border border-slate-200"
-                      : "bg-neutral-900 border border-white/10"
+                      ? "bg-slate-100 border border-slate-200 group-hover:border-teal-500"
+                      : "bg-neutral-900 border border-white/10 group-hover:border-teal-500/50"
                   }`}>
                     <img
                       src="/navbar-logo.png"
@@ -582,19 +592,40 @@ export default function MobileAdminApp({
                       className={`w-full h-full object-contain ${isLight ? "" : "brightness-0 invert"}`}
                     />
                   </div>
+                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-teal-500 border-2 border-[#090b10] flex items-center justify-center text-[9px] text-black font-extrabold shadow-xs">
+                    ✓
+                  </span>
                 </div>
                 <div>
-                  <span className="text-xs text-neutral-400 font-medium block">
+                  <span className="text-xs text-neutral-400 font-medium block flex items-center gap-1">
                     {tr("Selamat Datang,", "Good Morning,", "Salamaik Datang,")}
+                    <span className="text-[10px] text-teal-400 font-mono font-semibold underline ml-1">Admin ⚙</span>
                   </span>
-                  <h1 className="text-lg font-extrabold tracking-tight">
+                  <h1 className="text-lg font-extrabold tracking-tight group-hover:text-teal-400 transition-colors">
                     {adminUser === "admin" ? "FOMY R" : adminUser}
                   </h1>
                 </div>
               </div>
 
-              {/* Action Buttons: Theme Mode, Language Selector, Live Web & Logout (Image 1 Style) */}
+              {/* Action Buttons: Admin Manager, Theme Mode, Language Selector */}
               <div className="flex items-center gap-2 relative">
+                {/* 0. Admin Quick Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSettingsInitialSection("team");
+                    navigateToWorkspace("settings");
+                  }}
+                  className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-sm ${
+                    isLight
+                      ? "bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100"
+                      : "bg-teal-500/10 text-teal-300 border border-teal-500/30 hover:bg-teal-500/20"
+                  }`}
+                  title={tr("Kelola Akun Admin (Multi-User)", "Admin Team Accounts", "Kelola Akun Admin")}
+                >
+                  <RiShieldCheckFill className="w-4 h-4 text-teal-400" />
+                </button>
+
                 {/* 1. Theme Mode Toggle (Light/Dark Mode Circular Button - Image 1 Style) */}
                 <button
                   type="button"
@@ -1097,6 +1128,44 @@ export default function MobileAdminApp({
                   </div>
                 </div>
               </div>
+
+              {/* Row 3: Admin Team & Multi-User Management Quick Card */}
+              <div
+                onClick={() => {
+                  setSettingsInitialSection("team");
+                  navigateToWorkspace("settings");
+                }}
+                className={`mt-3 p-3.5 rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center justify-between gap-3 ${
+                  isLight
+                    ? "bg-gradient-to-r from-teal-50/80 via-white to-slate-50 border-teal-200/90 shadow-xs hover:border-teal-300"
+                    : "bg-gradient-to-r from-[#0c1a1e] via-[#0f1422] to-[#121622] border-teal-500/30 hover:border-teal-500/50 shadow-md"
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-400 flex items-center justify-center shrink-0">
+                    <RiShieldUserFill className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-semibold text-teal-400 uppercase tracking-wider font-mono">
+                        Multi-User Admin
+                      </span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
+                    </div>
+                    <div className="text-xs sm:text-sm font-bold truncate">
+                      {tr("Kelola Akun Admin Tim", "Manage Admin Team Accounts", "Kelola Akun Admin Tim")}
+                    </div>
+                    <span className={`text-[10px] block truncate ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                      {tr("+ Tambah Admin Baru & Beda User", "+ Add New Admin & Multi-User", "+ Tambah Admin Baru & Beda User")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-teal-500 text-black text-xs font-bold shrink-0 shadow-sm active:scale-95">
+                  <span>+ Admin</span>
+                  <RiArrowRightLine className="w-3.5 h-3.5" />
+                </div>
+              </div>
             </div>
 
 
@@ -1214,6 +1283,7 @@ export default function MobileAdminApp({
               <SecuritySettingsWorkspace
                 showToast={showToast || (() => {})}
                 onLogout={onLogout}
+                initialSection={settingsInitialSection}
               />
             )}
 

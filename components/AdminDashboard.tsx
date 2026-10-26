@@ -6298,8 +6298,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
                 </div>
               </div>
+            </div>
 
-              {/* Multi-User Admin Team Management (Tambah & Kelola Akun Admin Beda User) */}
+            {/* Multi-User Admin Team Management (Tambah & Kelola Akun Admin Beda User) */}
+            <div className="w-full">
               <AdminUsersManager showToast={showToast} />
             </div>
           </motion.div>

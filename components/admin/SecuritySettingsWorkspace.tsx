@@ -17,6 +17,7 @@ import {
   RiCloudLine,
   RiKeyboardLine,
   RiLogoutBoxRFill,
+  RiTeamLine,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -27,16 +28,22 @@ interface SecuritySettingsWorkspaceProps {
   showToast?: (msg: string) => void;
   onCredentialsUpdated?: (creds: AdminCredentials) => void;
   onLogout?: () => void;
+  initialSection?: "team" | "credentials" | "all";
 }
 
 export default function SecuritySettingsWorkspace({
   showToast,
   onCredentialsUpdated,
   onLogout,
+  initialSection = "all",
 }: SecuritySettingsWorkspaceProps) {
   const { tr } = useLang();
   const { themeMode, primaryColor } = useMotionTheme();
   const isLight = themeMode === "light";
+
+  const [activeSection, setActiveSection] = useState<"team" | "credentials" | "all">(
+    initialSection
+  );
 
   const [adminUser, setAdminUser] = useState("admin");
   const [adminEmail, setAdminEmail] = useState("rizxstudioproject@gmail.com");
@@ -166,6 +173,56 @@ export default function SecuritySettingsWorkspace({
         </p>
       </div>
 
+      {/* Sub-tab Navigation (Memudahkan Akses Langsung di Mobile & Desktop) */}
+      <div className={`flex items-center p-1 rounded-2xl border ${isLight ? "bg-slate-100 border-slate-200" : "bg-black/40 border-white/10"}`}>
+        <button
+          type="button"
+          onClick={() => setActiveSection("all")}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+            activeSection === "all"
+              ? isLight ? "bg-white text-slate-900 shadow-xs font-extrabold" : "bg-white/15 text-white shadow-xs font-extrabold"
+              : isLight ? "text-slate-500 hover:text-slate-800" : "text-neutral-400 hover:text-white"
+          }`}
+        >
+          {tr("Semua", "All", "Kasadonyo")}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSection("team")}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            activeSection === "team"
+              ? isLight ? "bg-white text-teal-700 shadow-xs font-extrabold" : "bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-xs font-extrabold"
+              : isLight ? "text-slate-500 hover:text-slate-800" : "text-neutral-400 hover:text-white"
+          }`}
+        >
+          <RiTeamLine className="w-3.5 h-3.5 text-teal-400" />
+          <span>{tr("Kelola Akun Admin", "Admin Accounts", "Kelola Akun Admin")}</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveSection("credentials")}
+          className={`flex-1 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+            activeSection === "credentials"
+              ? isLight ? "bg-white text-slate-900 shadow-xs font-extrabold" : "bg-white/15 text-white shadow-xs font-extrabold"
+              : isLight ? "text-slate-500 hover:text-slate-800" : "text-neutral-400 hover:text-white"
+          }`}
+        >
+          <RiKeyFill className="w-3.5 h-3.5 text-amber-400" />
+          <span>{tr("Password & URL", "Password & URL", "Password & URL")}</span>
+        </button>
+      </div>
+
+      {/* Multi-User Admin Team Management (Tampil di atas ketika tab team aktif) */}
+      {activeSection === "team" && (
+        <div className="w-full">
+          <AdminUsersManager showToast={showToast} />
+        </div>
+      )}
+
+      {/* Kredensial & Info Akses Grid */}
+      {(activeSection === "credentials" || activeSection === "all") && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         {/* Form Kolom Kiri */}
         <div
@@ -507,11 +564,16 @@ export default function SecuritySettingsWorkspace({
               )}
             </div>
           </div>
-
-          {/* Multi-User Admin Team Management (Login Beda User) */}
-          <AdminUsersManager showToast={showToast} />
         </div>
       </div>
+      )}
+
+      {/* Multi-User Admin Team Management (Tampil di bawah ketika tab 'all' aktif) */}
+      {activeSection === "all" && (
+        <div className="w-full">
+          <AdminUsersManager showToast={showToast} />
+        </div>
+      )}
     </motion.div>
   );
 }
