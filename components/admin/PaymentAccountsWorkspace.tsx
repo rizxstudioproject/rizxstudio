@@ -274,7 +274,7 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
             </span>
           </div>
           <h2 className={`text-lg sm:text-xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-            Pengaturan Nomor Rekening Bank & QRIS (Web Produk)
+            Bank & QRIS (Web Produk)
           </h2>
           <p className={`text-xs mt-1 leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
             Kelola nomor rekening bank resmi, QRIS, dan e-wallet yang tampil secara publik pada formulir pemesanan produk dan struk resi digital.

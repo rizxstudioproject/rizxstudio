@@ -382,7 +382,7 @@ export default function ProjectTrackerWorkspace({
           }`}
         >
           <RiBankCardLine className="w-4 h-4" />
-          <span>{tr("Nomor Rekening Bank & QRIS", "Nomor Rekening Bank & QRIS", "Rekening Bank & QRIS")}</span>
+          <span>{tr("Bank & QRIS", "Bank & QRIS", "Bank & QRIS")}</span>
           <span
             className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
               activeMainTab === "payments"
