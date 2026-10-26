@@ -613,23 +613,18 @@ export default function StorageAnalyticsView({
                 <span className={`text-3xl sm:text-4xl font-extrabold tracking-tight flex items-baseline drop-shadow-md ${isLight ? "text-slate-900" : "text-white"}`}>
                   {activeCategory === "all" ? animatedPercent : activeDetails.percent}%
                 </span>
-                {/* PROMINENT SIZE IN MB BADGE */}
-                <span
-                  className={`mt-1 px-3 py-1 rounded-full text-xs font-mono font-bold tracking-wide transition-all shadow-lg flex items-center gap-1.5 backdrop-blur-md ${
-                    isLight ? "bg-white/85" : "bg-black/50"
-                  }`}
+                {/* SIZE IN MB DISPLAY WITHOUT FRAME */}
+                <div
+                  className="mt-1 text-xs font-mono font-bold tracking-wide flex items-center gap-1"
                   style={{
-                    borderColor: `${activeDetails.colorHex}60`,
                     color: activeDetails.colorHex,
-                    borderWidth: 1,
                   }}
                 >
-                  <HiSparkles className="w-3.5 h-3.5 animate-pulse" />
                   <span>{activeDetails.sizeText}</span>
                   {activeCategory === "all" && (
                     <span className={`font-normal ${isLight ? "text-slate-500" : "text-neutral-400"}`}>/ {stats.totalCapacityMB} MB</span>
                   )}
-                </span>
+                </div>
               </button>
             </div>
 
