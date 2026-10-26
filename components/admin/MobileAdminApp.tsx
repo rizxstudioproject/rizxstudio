@@ -1178,10 +1178,13 @@ export default function MobileAdminApp({
               activeTab !== "settings" &&
               renderWorkspaceContent(activeTab)}
           </div>
+        </div>
+      )}
 
-          {/* DRAGGABLE FLOATING SAVE ACTION (Bisa digeser bebas di dalam frame, tap untuk slide/expand) */}
-          <motion.div
-            drag
+      {/* DRAGGABLE FLOATING SAVE ACTION (Bisa digeser bebas di dalam frame, tap untuk slide/expand)
+          Muncul dari awal di beranda dashboard mobile maupun di dalam seluruh workspace */}
+      <motion.div
+        drag
             dragConstraints={mobileFrameRef}
             dragElastic={0.08}
             dragMomentum={false}
@@ -1293,8 +1296,6 @@ export default function MobileAdminApp({
               )}
             </AnimatePresence>
           </motion.div>
-        </div>
-      )}
 
       {/* ==============================================================
           FULL-WIDTH BOTTOM DOCK / TAB BAR (SCROLL & TAP)
