@@ -414,9 +414,8 @@ export default function ProjectTrackerWorkspace({
             type="button"
             onClick={() => setIsAddModalOpen(true)}
             style={{ backgroundColor: primaryColor, color: "#000000" }}
-            className="px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md shadow-[#16b09f]/20 cursor-pointer active:scale-95 shrink-0"
+            className="px-3.5 py-2 rounded-xl font-bold text-xs shadow-md shadow-[#16b09f]/20 cursor-pointer active:scale-95 shrink-0"
           >
-            <RiAddLine className="w-4 h-4" />
             <span>Add Project</span>
           </button>
         </div>

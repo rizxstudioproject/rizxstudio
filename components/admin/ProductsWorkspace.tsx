@@ -957,9 +957,8 @@ export default function ProductsWorkspace() {
         <div className="flex items-center gap-2.5 flex-wrap">
           <button
             onClick={handleStartCreate}
-            className="px-4 py-2 text-xs font-semibold rounded-xl bg-teal-500 hover:bg-teal-400 text-black transition flex items-center gap-2 shadow-lg shadow-teal-500/20"
+            className="px-4 py-2 text-xs font-semibold rounded-xl bg-teal-500 hover:bg-teal-400 text-black transition shadow-lg shadow-teal-500/20 active:scale-95 cursor-pointer"
           >
-            <RiAddLine className="w-4 h-4" />
             <span>{tr("Add New Product", "Tambah Produk Baru", "Tambah Produk Baru")}</span>
           </button>
         </div>
