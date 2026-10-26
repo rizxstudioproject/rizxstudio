@@ -51,7 +51,6 @@ import {
   addProduct,
   deleteProduct,
   toggleProductClosed,
-  resetProductsToDefault,
   subscribeToProductsRealtime,
   ProductItem,
   ProductPackage,
@@ -579,35 +578,6 @@ export default function ProductsWorkspace() {
     }
   };
 
-  // Reset to default
-  const handleReset = async () => {
-    if (
-      !confirm(
-        tr(
-          "Reset all products to default 13 items with complete multilingual data?",
-          "Kembalikan semua produk ke 13 layanan standar dengan data 3 bahasa lengkap?",
-          "Baliakkan kasadonyo produk ka 13 jaso standar jo data 3 bahaso langkok?"
-        )
-      )
-    ) {
-      return;
-    }
-    try {
-      await resetProductsToDefault();
-      await loadData();
-      showToast(
-        tr(
-          "Products catalog reset to default successfully",
-          "Katalog produk berhasil direset ke standar bawaan",
-          "Katalog produk barasia dibaliakkan ka standar"
-        )
-      );
-    } catch (e) {
-      console.error(e);
-      showToast("Gagal reset katalog produk");
-    }
-  };
-
   // Open edit modal
   const handleStartEdit = (product: ProductItem) => {
     // Clone deeply to avoid mutation before save
@@ -988,14 +958,6 @@ export default function ProductsWorkspace() {
 
         {/* Action Buttons */}
         <div className="flex items-center gap-2.5 flex-wrap">
-          <button
-            onClick={handleReset}
-            className="px-3.5 py-2 text-xs font-medium rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition flex items-center gap-1.5"
-            title="Reset ke 13 layanan bawaan"
-          >
-            <RiRefreshLine className="w-4 h-4" />
-            <span>{tr("Reset Default", "Reset Standar", "Reset Standar")}</span>
-          </button>
           <button
             onClick={handleStartCreate}
             className="px-4 py-2 text-xs font-semibold rounded-xl bg-teal-500 hover:bg-teal-400 text-black transition flex items-center gap-2 shadow-lg shadow-teal-500/20"

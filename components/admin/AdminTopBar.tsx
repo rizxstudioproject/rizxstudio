@@ -48,9 +48,7 @@ interface AdminTopBarProps {
   onSelectClient?: (clientId: string) => void;
   onSelectTab?: (tab: AdminSidebarTab) => void;
   onOpenLogosTab?: () => void;
-  onResetDefault?: () => void;
   onSaveChanges?: () => void;
-  showResetDefault?: boolean;
   showSaveChanges?: boolean;
 }
 
@@ -66,9 +64,7 @@ export default function AdminTopBar({
   onSelectClient,
   onSelectTab,
   onOpenLogosTab,
-  onResetDefault,
   onSaveChanges,
-  showResetDefault = true,
   showSaveChanges = true,
 }: AdminTopBarProps) {
   const { lang, setLang, tr } = useLang();
@@ -438,7 +434,7 @@ export default function AdminTopBar({
                               <div className={`text-[10px] truncate ${
                                 isLight ? "text-slate-500" : "text-neutral-400"
                               }`}>
-                                {client.category || "Client Folder"} •{" "}
+                                {client.category || "Client Folder"} â€¢{" "}
                                 {client.works?.length || 0} works
                               </div>
                             </div>

@@ -88,13 +88,6 @@ export default function SeoWorkspace() {
     }
   };
 
-  const handleReset = () => {
-    if (confirm("Reset pengaturan SEO ke rekomendasi bawaan?")) {
-      setConfig({ ...DEFAULT_SEO_CONFIG });
-      showToast("Pengaturan SEO dikembalikan ke bawaan");
-    }
-  };
-
   const titleLength = config.metaTitle.length;
   const descLength = config.metaDescription.length;
 
@@ -139,21 +132,6 @@ export default function SeoWorkspace() {
           </p>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleReset}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all ${
-              isLight
-                ? "bg-white border-slate-300 text-slate-600 hover:bg-slate-100"
-                : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <RiRestartFill className="w-4 h-4 inline mr-1.5" />
-            Reset Default
-          </button>
-        </div>
       </div>
 
       {/* Live SERP & Social Previews */}

@@ -576,12 +576,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
     setTempAiTools((prev) => prev.filter((t) => t.toLowerCase() !== toolName.toLowerCase()));
   };
 
-  const handleResetDefaultTools = () => {
-    setTempDesignTools([...DEFAULT_DESIGN_TOOLS]);
-    setTempAiTools([...DEFAULT_AI_TOOLS]);
-    showToast(tr("Tools reset to default.", "Daftar tool dikembalikan ke bawaan.", "Daftar tool dibaliakkan ka samulo."));
-  };
-
   const handleSaveManageTools = () => {
     setDesignTools(tempDesignTools);
     setAiTools(tempAiTools);
@@ -1009,7 +1003,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 className="md:hidden w-full py-2.5 px-3 rounded-xl bg-[#16b09f] text-black font-bold text-xs shadow-md shadow-[#16b09f]/20 cursor-pointer flex items-center justify-center gap-1.5 active:scale-95"
               >
                 <HiPencilSquare className="w-4 h-4" />
-                <span>{tr("Open Editor & Add Logo →", "Buka Editor & Tambah Logo →", "Bukak Editor & Tambah Logo →")}</span>
+                <span>{tr("Open Editor & Add Logo â†’", "Buka Editor & Tambah Logo â†’", "Bukak Editor & Tambah Logo â†’")}</span>
               </button>
               <button
                 type="button"
@@ -1161,7 +1155,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     {tr("Logo File (SVG / PNG / WebP)", "File Logo (SVG / PNG / WebP)", "File Logo (SVG / PNG / WebP)")}
                   </label>
                   <span className="text-[10px] font-mono text-[#16b09f] bg-[#16b09f]/10 border border-[#16b09f]/30 px-2 py-0.5 rounded-full font-semibold">
-                    Frame: 160 × 56 px
+                    Frame: 160 Ã— 56 px
                   </span>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-2">
@@ -1177,7 +1171,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     <HiPhoto className="w-4 h-4 text-[#16b09f]" />
                     <span className="truncate">
                       {newLogoFile
-                        ? tr("✓ File Dipilih", "✓ File Dipilih", "✓ File Dipiliah")
+                        ? tr("âœ“ File Dipilih", "âœ“ File Dipilih", "âœ“ File Dipiliah")
                         : tr("Upload File", "Upload File", "Upload File")}
                     </span>
                     <input
@@ -1193,12 +1187,12 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   </label>
                 </div>
                 <p className="text-[11px] text-neutral-400 font-mono leading-relaxed mt-1">
-                  📐 <strong>{tr("Frame Display Size:", "Ukuran Frame Tampil:", "Ukuran Frame Tampil:")}</strong>{" "}
-                  <span className="text-white font-semibold">160 × 56 pixel</span> ({tr("logo height:", "tinggi logo:", "tinggi logo:")} 28px).
+                  ðŸ“ <strong>{tr("Frame Display Size:", "Ukuran Frame Tampil:", "Ukuran Frame Tampil:")}</strong>{" "}
+                  <span className="text-white font-semibold">160 Ã— 56 pixel</span> ({tr("logo height:", "tinggi logo:", "tinggi logo:")} 28px).
                   <br />
-                  ✨ <strong>{tr("Recommended File Size:", "Ukuran File Disarankan:", "Ukuran File Disarankan:")}</strong>{" "}
-                  <span className="text-[#16b09f] font-semibold">200 × 60 px</span> {tr("to", "s/d", "s/d")}{" "}
-                  <span className="text-[#16b09f] font-semibold">300 × 80 px</span> ({tr("Transparent SVG or PNG format", "Format SVG atau PNG Transparan", "Format SVG atau PNG Transparan")}).
+                  âœ¨ <strong>{tr("Recommended File Size:", "Ukuran File Disarankan:", "Ukuran File Disarankan:")}</strong>{" "}
+                  <span className="text-[#16b09f] font-semibold">200 Ã— 60 px</span> {tr("to", "s/d", "s/d")}{" "}
+                  <span className="text-[#16b09f] font-semibold">300 Ã— 80 px</span> ({tr("Transparent SVG or PNG format", "Format SVG atau PNG Transparan", "Format SVG atau PNG Transparan")}).
                 </p>
               </div>
             </div>
@@ -1237,7 +1231,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
                   <span>
-                    {tr("Row 1 — Scroll Left Animation", "Baris 1 — Scroll Bergerak ke Kiri", "Barih 1 — Scroll Bagarak ka Kida")}
+                    {tr("Row 1 â€” Scroll Left Animation", "Baris 1 â€” Scroll Bergerak ke Kiri", "Barih 1 â€” Scroll Bagarak ka Kida")}
                   </span>
                 </h3>
                 <span className="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
@@ -1295,7 +1289,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           }}
                           className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors cursor-pointer"
                         >
-                          ↓ {tr("Row 2", "Baris 2", "Barih 2")}
+                          â†“ {tr("Row 2", "Baris 2", "Barih 2")}
                         </button>
                         <button
                           type="button"
@@ -1317,7 +1311,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <h3 className="text-sm font-bold text-white flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
                   <span>
-                    {tr("Row 2 — Scroll Right Animation", "Baris 2 — Scroll Bergerak ke Kanan", "Barih 2 — Scroll Bagarak ka Kanan")}
+                    {tr("Row 2 â€” Scroll Right Animation", "Baris 2 â€” Scroll Bergerak ke Kanan", "Barih 2 â€” Scroll Bagarak ka Kanan")}
                   </span>
                 </h3>
                 <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
@@ -1375,7 +1369,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           }}
                           className="text-[10px] font-mono text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
                         >
-                          ↑ {tr("Row 1", "Baris 1", "Barih 1")}
+                          â†‘ {tr("Row 1", "Baris 1", "Barih 1")}
                         </button>
                         <button
                           type="button"
@@ -1490,7 +1484,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   </span>
                 </div>
                 <p className="text-xs text-neutral-400 mt-1">
-                  {selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`} · {selectedClient.works?.length || 0} {selectedClient.works?.length === 1 ? "work" : "works"}
+                  {selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`} Â· {selectedClient.works?.length || 0} {selectedClient.works?.length === 1 ? "work" : "works"}
                 </p>
               </div>
             </div>
@@ -1834,7 +1828,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                         {work.title}
                       </h4>
                       <p className="text-[10px] text-neutral-400 mt-0.5 truncate">
-                        {work.year || "2026"} · {work.aspect || "4:5"}
+                        {work.year || "2026"} Â· {work.aspect || "4:5"}
                       </p>
                     </div>
                   </div>
@@ -1944,7 +1938,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     Design Tools ({tempDesignTools.length})
                   </span>
                   <span className="text-[11px] text-neutral-500 font-mono">
-                    {tr("Click ✕ to remove", "Klik ✕ untuk mengurangi/menghapus", "Klik ✕ untuak mangurangi/mahapuih")}
+                    {tr("Click âœ• to remove", "Klik âœ• untuk mengurangi/menghapus", "Klik âœ• untuak mangurangi/mahapuih")}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-neutral-950/40 border border-white/5 min-h-[50px]">
@@ -1980,7 +1974,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     AI Tools ({tempAiTools.length})
                   </span>
                   <span className="text-[11px] text-neutral-500 font-mono">
-                    {tr("Click ✕ to remove", "Klik ✕ untuk mengurangi/menghapus", "Klik ✕ untuak mangurangi/mahapuih")}
+                    {tr("Click âœ• to remove", "Klik âœ• untuk mengurangi/menghapus", "Klik âœ• untuak mangurangi/mahapuih")}
                   </span>
                 </div>
                 <div className="flex flex-wrap gap-2 p-3 rounded-xl bg-neutral-950/40 border border-white/5 min-h-[50px]">
@@ -2011,15 +2005,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             </div>
 
             {/* Modal Footer */}
-            <div className="p-4 border-t border-white/10 bg-neutral-950/60 flex items-center justify-between gap-3">
-              <button
-                type="button"
-                onClick={handleResetDefaultTools}
-                className="text-xs text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer underline"
-              >
-                {tr("Reset Defaults", "Kembalikan ke Default", "Baliakkan ka Bawaan")}
-              </button>
-
+            <div className="p-4 border-t border-white/10 bg-neutral-950/60 flex items-center justify-end gap-3">
               <div className="flex items-center gap-2">
                 <button
                   type="button"

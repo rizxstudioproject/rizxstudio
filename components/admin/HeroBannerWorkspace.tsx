@@ -172,17 +172,6 @@ export default function HeroBannerWorkspace({
     }
   };
 
-  const handleResetHeroBanner = async () => {
-    if (confirm(tr("Reset teks & sequence Hero Banner ke pengaturan awal?", "Reset Hero Banner texts and sequence to default?", "Reset teks & sequence Hero Banner ka default?"))) {
-      await updateHeroBannerData(defaultHeroBannerData);
-      await clearCustomFramesFromDB();
-      setSeqPreviewUrls([]);
-      setSeqSelectedFiles([]);
-      setSeqScrubIdx(0);
-      notify("info", tr("Di-reset", "Reset", "Di-reset"), tr("Hero Banner kembali ke pengaturan bawaan.", "Hero Banner reset to default values.", "Hero Banner babaliak ka default."));
-    }
-  };
-
   const handleSelectBatchFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const fileList = e.target.files;
     if (!fileList || fileList.length === 0) return;
@@ -717,17 +706,6 @@ export default function HeroBannerWorkspace({
                     ? tr("Mode: Bawaan (121 Frame WebP)", "Mode: Default (121 WebP Frames)", "Mode: Default (121 Frame)")
                     : tr(`Mode: Kustom (${activeScrubberFrames.length} Frame)`, `Mode: Custom (${activeScrubberFrames.length} Frames)`, `Mode: Kustom (${activeScrubberFrames.length} Frame)`)}
                 </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleResetHeroBanner}
-                  className="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-[10px] font-mono flex items-center gap-1 transition-all cursor-pointer"
-                >
-                  <RiRefreshLine className="w-3 h-3" />
-                  <span>{tr("Reset Default", "Reset Default", "Reset")}</span>
-                </button>
               </div>
             </div>
 
@@ -1547,23 +1525,6 @@ export default function HeroBannerWorkspace({
                   </div>
                 </div>
               ))}
-            </div>
-
-            {/* Reset to default button */}
-            <div className="pt-2 flex justify-end">
-              <button
-                type="button"
-                onClick={async () => {
-                  if (confirm("Reset daftar Media Reels ke susunan bawaan?")) {
-                    await resetPortfolioRunner();
-                    notify("info", "Di-reset", "Daftar Media Reels kembali ke bawaan.");
-                  }
-                }}
-                className="px-3 py-1.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-400 hover:text-white border border-white/10 text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <RiRefreshLine className="w-3 h-3" />
-                <span>Reset ke Daftar Bawaan</span>
-              </button>
             </div>
           </div>
         </motion.div>

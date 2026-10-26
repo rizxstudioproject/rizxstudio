@@ -97,15 +97,6 @@ export default function SocialContactsWorkspace() {
     }
   };
 
-  const handleReset = () => {
-    if (confirm(tr("Kembalikan kontak & sosial media ke bawaan?", "Reset contacts & socials to default?", "Baliakkan kontak & sosmed ka setelan awal?"))) {
-      setForm({ ...DEFAULT_SOCIAL_CONTACTS });
-      updateSocialContacts(DEFAULT_SOCIAL_CONTACTS);
-      saveSocialContacts(DEFAULT_SOCIAL_CONTACTS);
-      showToast(tr("Pengaturan dikembalikan ke bawaan", "Reset to defaults", "Setelan dibaliakkan ka awal"));
-    }
-  };
-
   const cleanWaNumber = (form.whatsappNumber || "").replace(/[^0-9]/g, "");
   const waTestUrl = `https://wa.me/${cleanWaNumber}?text=${encodeURIComponent(form.whatsappMessage || "")}`;
   const igTestUrl = normalizeSocialUrl(form.instagramUrl, "instagram");
@@ -383,20 +374,8 @@ export default function SocialContactsWorkspace() {
           </div>
         </div>
 
-        {/* Desktop Save & Reset Button (Hidden on Mobile: Mobile utilizes sticky bottom action bar & top bar save) */}
-        <div className="pt-2 hidden md:flex items-center justify-end gap-3">
-          <button
-            type="button"
-            onClick={handleReset}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-              isLight
-                ? "bg-white border-slate-300 text-slate-600 hover:bg-slate-100"
-                : "bg-white/5 border-white/10 text-slate-400 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiArrowPath className="w-3.5 h-3.5 inline mr-1" />
-            Reset
-          </button>
+        {/* Desktop Save Button (Hidden on Mobile: Mobile utilizes sticky bottom action bar & top bar save) */}
+        <div className="pt-2 hidden md:flex items-center justify-end">
           <button
             type="submit"
             disabled={saving}
