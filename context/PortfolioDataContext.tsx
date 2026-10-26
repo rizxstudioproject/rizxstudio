@@ -9,6 +9,43 @@ import { getAdminCredentials } from "@/lib/adminAuth";
 const STORAGE_KEY = "rizx_portfolio_custom_data_v1";
 const SESSION_KEY = "rizx_admin_session";
 
+export const SUPABASE_MEDIA_BASE = "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media";
+
+export function migrateMediaPaths<T>(data: T): T {
+  if (!data) return data;
+  try {
+    let str = typeof data === "string" ? data : JSON.stringify(data);
+    if (
+      str.includes("/works/") ||
+      str.includes("/assets/") ||
+      str.includes("/sequence/") ||
+      str.includes('"/sequence"') ||
+      str.includes("'/sequence'") ||
+      str.includes("/logos/")
+    ) {
+      str = str.replace(/"\/sequence"/g, `"${SUPABASE_MEDIA_BASE}/sequence"`);
+      str = str.replace(/'\/sequence'/g, `'${SUPABASE_MEDIA_BASE}/sequence'`);
+      str = str.replace(/"\/(works|assets|sequence|logos)\/([^"]+)"/g, (_, folder, path) => {
+        const encoded = `${folder}/${path}`
+          .split("/")
+          .map((s) => encodeURIComponent(decodeURIComponent(s)))
+          .join("/");
+        return `"${SUPABASE_MEDIA_BASE}/${encoded}"`;
+      });
+      return typeof data === "string" ? (str as unknown as T) : JSON.parse(str);
+    }
+  } catch {
+    // fallback
+  }
+  return data;
+}
+
+export function safeJsonParseMedia<T = any>(jsonString: string): T {
+  const parsed = JSON.parse(jsonString);
+  return migrateMediaPaths(parsed);
+}
+
+
 export interface HeroBannerData {
   name: string;
   nameColor?: string;
@@ -63,7 +100,7 @@ export const defaultHeroBannerData: HeroBannerData = {
   sec3BodyColor: "#d4d4d4",
   sequenceMode: "default",
   sequenceTotalFrames: 121,
-  sequenceFolder: "/sequence",
+  sequenceFolder: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence",
   sequencePattern: "frame_{padded}.webp",
   sequencePadding: 6,
   sequenceStartIndex: 0,
@@ -506,7 +543,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
-          const parsed = JSON.parse(stored);
+          const parsed = safeJsonParseMedia(stored);
           if (parsed.stage3) {
             const raw = parsed.stage3.heroCard?.image;
             const validImage = (raw && raw !== "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg") ? raw : "";
@@ -556,7 +593,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       try {
         const stored = localStorage.getItem("rizx_recycle_bin_items");
         if (stored) {
-          const parsed = JSON.parse(stored);
+          const parsed = safeJsonParseMedia(stored);
           if (Array.isArray(parsed)) return parsed;
         }
       } catch (_) {}
@@ -686,7 +723,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
+        const parsed = safeJsonParseMedia(stored);
         if (parsed.stage3) {
           const defaultHero = antigravityData.stage3.heroCard;
           const parsedHero = parsed.stage3.heroCard || {};
@@ -906,7 +943,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             const stage3Row = clientRows.find((r) => r.client_id === "site-stage3-showcase");
             if (stage3Row && stage3Row.description) {
               try {
-                const parsedStage3 = JSON.parse(stage3Row.description);
+                const parsedStage3 = safeJsonParseMedia(stage3Row.description);
                 setStage3((prev) => {
                   const rawParsedImg = parsedStage3.heroCard?.image;
                   const cloudImg =
@@ -934,7 +971,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             let latestAbout = defaultAboutData;
             if (aboutRow && aboutRow.description) {
               try {
-                const parsedAbout = JSON.parse(aboutRow.description);
+                const parsedAbout = safeJsonParseMedia(aboutRow.description);
                 latestAbout = {
                   ...defaultAboutData,
                   ...parsedAbout,
@@ -948,7 +985,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             const heroWorksRow = clientRows.find((r) => r.client_id === "site-hero-works");
             if (heroWorksRow && heroWorksRow.description) {
               try {
-                const parsedHero = JSON.parse(heroWorksRow.description);
+                const parsedHero = safeJsonParseMedia(heroWorksRow.description);
                 const loadedHero = {
                   ...defaultHeroWorksData,
                   ...parsedHero,
@@ -962,7 +999,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             const clientLogosRow = clientRows.find((r) => r.client_id === "site-client-logos");
             if (clientLogosRow && clientLogosRow.description) {
               try {
-                const parsedLogos = JSON.parse(clientLogosRow.description);
+                const parsedLogos = safeJsonParseMedia(clientLogosRow.description);
                 const loadedLogos = {
                   ...defaultClientLogosData,
                   ...parsedLogos,
@@ -976,7 +1013,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             const portfolioIntroRow = clientRows.find((r) => r.client_id === "site-portfolio-intro");
             if (portfolioIntroRow && portfolioIntroRow.description) {
               try {
-                const parsedIntro = JSON.parse(portfolioIntroRow.description);
+                const parsedIntro = safeJsonParseMedia(portfolioIntroRow.description);
                 const loadedIntro = {
                   ...defaultPortfolioIntroData,
                   ...parsedIntro,
@@ -990,7 +1027,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             const portfolioRunnerRow = clientRows.find((r) => r.client_id === "site-portfolio-runner");
             if (portfolioRunnerRow && portfolioRunnerRow.description) {
               try {
-                const parsedRunner = JSON.parse(portfolioRunnerRow.description);
+                const parsedRunner = safeJsonParseMedia(portfolioRunnerRow.description);
                 const loadedRunner = {
                   ...defaultPortfolioRunnerData,
                   ...parsedRunner,
@@ -1004,7 +1041,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             const heroBannerRow = clientRows.find((r) => r.client_id === "site-hero-banner");
             if (heroBannerRow && heroBannerRow.description) {
               try {
-                const parsedHeroBanner = JSON.parse(heroBannerRow.description);
+                const parsedHeroBanner = safeJsonParseMedia(heroBannerRow.description);
                 const loadedBanner = {
                   ...defaultHeroBannerData,
                   ...parsedHeroBanner,
@@ -1044,7 +1081,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               if (row && row.description) {
                 if (typeof row.description === "string" && row.description.startsWith("{")) {
                   try {
-                    const parsed = JSON.parse(row.description);
+                    const parsed = safeJsonParseMedia(row.description);
                     text = parsed.text !== undefined ? parsed.text : row.description;
                     if (Array.isArray(parsed.tools) && parsed.tools.length > 0) tools = parsed.tools;
                     if (Array.isArray(parsed.works) && parsed.works.length > 0) works = parsed.works;

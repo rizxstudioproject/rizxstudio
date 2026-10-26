@@ -521,7 +521,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     // Default sequence
     const list: string[] = [];
     for (let i = 0; i < 121; i++) {
-      list.push(`/sequence/frame_${String(i).padStart(6, "0")}.webp`);
+      list.push(`https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence/frame_${String(i).padStart(6, "0")}.webp`);
     }
     return list;
   }, [

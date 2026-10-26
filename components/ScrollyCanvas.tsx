@@ -68,7 +68,10 @@ export default function ScrollyCanvas() {
       }
 
       if (sequenceMode === "folder") {
-        const folder = (heroBanner?.sequenceFolder || "/sequence").replace(/\/$/, "");
+        let folder = (heroBanner?.sequenceFolder || "").replace(/\/$/, "");
+        if (!folder || folder === "/sequence") {
+          folder = "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence";
+        }
         const pattern = heroBanner?.sequencePattern || "frame_{padded}.webp";
         const padding = heroBanner?.sequencePadding ?? 6;
         const startIdx = heroBanner?.sequenceStartIndex ?? 0;
@@ -78,9 +81,9 @@ export default function ScrollyCanvas() {
         return `${folder}/${filename}`;
       }
 
-      // Default built-in 121-frame WebP sequence
+      // Default built-in 121-frame WebP sequence from Supabase Storage CDN
       const padded = String(index).padStart(6, "0");
-      return `/sequence/frame_${padded}.webp`;
+      return `https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence/frame_${padded}.webp`;
     },
     [
       sequenceMode,
