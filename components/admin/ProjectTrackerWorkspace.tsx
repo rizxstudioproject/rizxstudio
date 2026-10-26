@@ -244,10 +244,9 @@ export default function ProjectTrackerWorkspace() {
             type="button"
             onClick={() => setIsAddModalOpen(true)}
             style={{ backgroundColor: primaryColor, color: "#000000" }}
-            className="px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:brightness-110 active:scale-95 shadow-md shadow-[#16b09f]/30 cursor-pointer"
+            className="px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center hover:brightness-110 active:scale-95 shadow-md shadow-[#16b09f]/30 cursor-pointer"
           >
-            <RiAddLine className="w-4 h-4" />
-            <span>+ Buat Kode Proyek Baru</span>
+            <span>Buat Kode Proyek Baru</span>
           </button>
         </div>
       </div>
