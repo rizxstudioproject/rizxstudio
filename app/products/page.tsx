@@ -8,11 +8,13 @@ import WhatsAppPopup from "@/components/WhatsAppPopup";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
 import { registerTrackedProject } from "@/lib/projectTrackerService";
 import {
-  PRODUCTS_DATA,
-  PRODUCT_CATEGORIES,
+  getAllProducts,
+  DEFAULT_PRODUCTS,
+  DEFAULT_CATEGORIES,
+  getLocalizedProduct,
   ProductItem,
   ProductPackage,
-} from "@/data/productsData";
+} from "@/lib/productsService";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { addRealLead } from "@/lib/crmService";
@@ -44,6 +46,7 @@ import {
   RiFileCopyLine,
   RiArrowLeftLine,
   RiFileList3Line,
+  RiLockLine,
 } from "react-icons/ri";
 
 export default function ProductsPage() {
@@ -51,16 +54,62 @@ export default function ProductsPage() {
   const { themeMode, primaryColor, socialContacts } = useMotionTheme();
   const isLight = themeMode === "light";
 
+  // Dynamic products catalog state connected to Supabase & LocalStorage
+  const [productsList, setProductsList] = useState<ProductItem[]>(DEFAULT_PRODUCTS);
+
+  useEffect(() => {
+    let isMounted = true;
+    getAllProducts().then((data) => {
+      if (isMounted && data && data.length > 0) {
+        setProductsList(data);
+      }
+    });
+
+    const handleSync = (e: Event) => {
+      const custom = e as CustomEvent<ProductItem[]>;
+      if (custom.detail) {
+        setProductsList(custom.detail);
+      }
+    };
+    window.addEventListener("rizx_products_updated", handleSync);
+    return () => {
+      isMounted = false;
+      window.removeEventListener("rizx_products_updated", handleSync);
+    };
+  }, []);
+
+  // Multilingual synchronized products
+  const localizedProducts = useMemo(() => {
+    return productsList.map((p) => getLocalizedProduct(p, lang));
+  }, [productsList, lang]);
+
+  // Dynamic category tabs with accurate counts
+  const dynamicCategories = useMemo(() => {
+    return DEFAULT_CATEGORIES.map((cat) => {
+      const count =
+        cat.id === "all"
+          ? localizedProducts.length
+          : localizedProducts.filter((p) => p.category === cat.id).length;
+      const label =
+        lang === "en"
+          ? cat.labelEn || cat.label
+          : lang === "min"
+          ? cat.labelMin || cat.label
+          : cat.label;
+      return { id: cat.id, label, count };
+    });
+  }, [localizedProducts, lang]);
+
   // Filter & Search states
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Package selection per card (defaults to "pro")
-  const [activePackages, setActivePackages] = useState<Record<string, "starter" | "pro" | "enterprise">>({});
+  const [activePackages, setActivePackages] = useState<Record<string, string>>({});
 
   // Form states
   const [formProduct, setFormProduct] = useState<string>("logo-branding");
-  const [formPackage, setFormPackage] = useState<"starter" | "pro" | "enterprise">("pro");
+  const [formPackage, setFormPackage] = useState<string>("pro");
   const [clientName, setClientName] = useState<string>("");
   const [clientPhone, setClientPhone] = useState<string>("");
   const [clientEmail, setClientEmail] = useState<string>("");
@@ -102,11 +151,11 @@ export default function ProductsPage() {
   }, [tr]);
 
   // Handle get card active package
-  const getActivePackage = (productId: string): "starter" | "pro" | "enterprise" => {
+  const getActivePackage = (productId: string): string => {
     return activePackages[productId] || "pro";
   };
 
-  const handlePackageToggle = (productId: string, pkgId: "starter" | "pro" | "enterprise") => {
+  const handlePackageToggle = (productId: string, pkgId: string) => {
     setActivePackages((prev) => ({ ...prev, [productId]: pkgId }));
   };
 
@@ -125,7 +174,7 @@ export default function ProductsPage() {
 
   // Filtered Products
   const filteredProducts = useMemo(() => {
-    return PRODUCTS_DATA.filter((item) => {
+    return localizedProducts.filter((item) => {
       const matchCategory = selectedCategory === "all" || item.category === selectedCategory;
       const q = searchQuery.toLowerCase().trim();
       const matchSearch =
@@ -137,7 +186,7 @@ export default function ProductsPage() {
         item.keyFeatures.some((f) => f.toLowerCase().includes(q));
       return matchCategory && matchSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [localizedProducts, selectedCategory, searchQuery]);
 
   // Icon Resolver
   const renderProductIcon = (iconName: string) => {
@@ -176,8 +225,12 @@ export default function ProductsPage() {
 
   // Resolved Current Selected Product & Package for the Form
   const selectedProductObj = useMemo(() => {
-    return PRODUCTS_DATA.find((p) => p.id === formProduct) || PRODUCTS_DATA[0];
-  }, [formProduct]);
+    return (
+      localizedProducts.find((p) => p.id === formProduct) ||
+      localizedProducts[0] ||
+      getLocalizedProduct(DEFAULT_PRODUCTS[0], lang)
+    );
+  }, [localizedProducts, formProduct, lang]);
 
   const selectedPackageObj = useMemo(() => {
     return (
@@ -406,7 +459,7 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             {/* Category Filter Chips */}
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar">
-              {PRODUCT_CATEGORIES.map((cat) => {
+              {dynamicCategories.map((cat) => {
                 const isActive = selectedCategory === cat.id;
                 return (
                   <button
@@ -481,11 +534,26 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
               <div
                 key={product.id}
                 className={`group relative rounded-2xl border transition-all duration-300 flex flex-col justify-between overflow-hidden ${
-                  isLight
+                  product.isClosed
+                    ? "bg-neutral-950/90 border-rose-500/30 opacity-90"
+                    : isLight
                     ? "bg-white border-slate-200/90 shadow-lg hover:shadow-xl hover:border-slate-300"
                     : "bg-[#0f1115]/90 border-white/[0.09] shadow-2xl hover:border-white/25 hover:bg-[#12141a]"
                 }`}
               >
+                {/* Closed Order Ribbon */}
+                {product.isClosed && (
+                  <div className="bg-rose-500/15 border-b border-rose-500/30 px-4 py-2 flex items-center justify-between text-xs text-rose-300">
+                    <span className="flex items-center gap-1.5 font-semibold">
+                      <RiLockLine className="w-3.5 h-3.5" />
+                      {product.closeReason || tr("Orders Closed / Full Capacity", "Slot Penuh / Pesanan Ditutup", "Slot Panuah / Pasan Ditutuik")}
+                    </span>
+                    <span className="text-[10px] uppercase font-mono tracking-wider opacity-80">
+                      Closed
+                    </span>
+                  </div>
+                )}
+
                 {/* Accent top gradient on hover */}
                 <div
                   className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -646,18 +714,33 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
 
                 {/* Bottom CTA on each card */}
                 <div className="p-6 pt-0">
-                  <button
-                    onClick={() => handleSelectPackageCTA(product, currentPkg)}
-                    style={{
-                      backgroundColor: `${primaryColor}20`,
-                      borderColor: `${primaryColor}50`,
-                      color: primaryColor,
-                    }}
-                    className="w-full py-2.5 px-4 rounded-xl font-bold text-xs border hover:brightness-125 transition-all flex items-center justify-center gap-2 cursor-pointer group-hover:scale-[1.01]"
-                  >
-                    <span>{tr("Pilih Paket & Isi Brief Proyek", "Pilih Paket & Isi Brief Proyek", "Pilih Paket & Tulis Brief")}</span>
-                    <RiArrowRightLine className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-                  </button>
+                  {product.isClosed ? (
+                    <button
+                      onClick={() => {
+                        const targetPhone = socialContacts.whatsappNumber || "6282170214498";
+                        const inquiryMsg = `Halo Rizx Studio! Saya tertarik dengan layanan "${product.title}". Karena saat ini slot pemesanan sedang penuh, bisakah saya dimasukkan ke antrean / waiting list berikutnya? Terima kasih.`;
+                        const waUrl = formatWhatsAppUrl(targetPhone, inquiryMsg);
+                        window.open(waUrl, "_blank");
+                      }}
+                      className="w-full py-2.5 px-4 rounded-xl font-bold text-xs border border-rose-500/40 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <RiLockLine className="w-3.5 h-3.5" />
+                      <span>{tr("Orders Closed — Inquire Next Slot", "Slot Penuh — Tanya Antrean Berikutnya", "Slot Panuah — Tanyo Antrean")}</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleSelectPackageCTA(product, currentPkg)}
+                      style={{
+                        backgroundColor: `${primaryColor}20`,
+                        borderColor: `${primaryColor}50`,
+                        color: primaryColor,
+                      }}
+                      className="w-full py-2.5 px-4 rounded-xl font-bold text-xs border hover:brightness-125 transition-all flex items-center justify-center gap-2 cursor-pointer group-hover:scale-[1.01]"
+                    >
+                      <span>{tr("Select Package & Fill Brief", "Pilih Paket & Isi Brief Proyek", "Pilih Paket & Tulis Brief")}</span>
+                      <RiArrowRightLine className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </button>
+                  )}
                 </div>
               </div>
             );
@@ -726,9 +809,9 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                         : "bg-white/[0.04] border-white/10 text-white focus:border-white/30"
                     }`}
                   >
-                    {PRODUCTS_DATA.map((p) => (
+                    {localizedProducts.map((p) => (
                       <option key={p.id} value={p.id} className="bg-neutral-900 text-white">
-                        {p.title} — ({p.categoryLabel})
+                        {p.title} — ({p.categoryLabel}) {p.isClosed ? `[${tr("Orders Closed", "Slot Penuh", "Slot Panuah")}]` : ""}
                       </option>
                     ))}
                   </select>

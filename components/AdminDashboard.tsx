@@ -79,6 +79,7 @@ import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
 import CrmAnalyticsView from "./admin/CrmAnalyticsView";
 import SeoWorkspace from "./admin/SeoWorkspace";
 import ProjectTrackerWorkspace from "./admin/ProjectTrackerWorkspace";
+import ProductsWorkspace from "./admin/ProductsWorkspace";
 import MobileAdminApp from "./admin/MobileAdminApp";
 import MetaSEO from "./MetaSEO";
 import { saveSocialContacts } from "@/lib/socialService";
@@ -3134,7 +3135,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
           )}
 
-                    {/* Live Project Tracking & Progress Engine */}
+                    {/* Products & Services Catalog Workspace */}
+          {sidebarTab === "products" && (
+            <div className={`flex-1 overflow-y-auto ${
+              isLight ? "bg-slate-50 text-slate-800" : "bg-[#0b0f19] text-neutral-200"
+            }`}>
+              <ProductsWorkspace />
+            </div>
+          )}
+
+          {/* Live Project Tracking & Progress Engine */}
           {sidebarTab === "tracking" && (
             <div className={`flex-1 overflow-y-auto ${
               isLight ? "bg-slate-50 text-slate-800" : "bg-[#0b0f19] text-neutral-200"

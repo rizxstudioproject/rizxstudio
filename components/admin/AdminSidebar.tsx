@@ -18,6 +18,7 @@ import {
   RiStackFill,
   RiSearchEyeFill,
   RiCompass3Fill,
+  RiBox3Fill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -33,6 +34,7 @@ export type AdminSidebarTab =
   | "motion"
   | "theme"
   | "social"
+  | "products"
   | "tracking"
   | "crm"
   | "seo"
@@ -102,6 +104,12 @@ export default function AdminSidebar({
       id: "social",
       label: tr("Contact & Socials", "Kontak & Sosmed", "Kontak & Sosmed"),
       icon: RiChat3Fill,
+    },
+    {
+      id: "products",
+      label: tr("Products & Services", "Produk & Layanan", "Produk & Jaso"),
+      badge: "By-Project",
+      icon: RiBox3Fill,
     },
     {
       id: "tracking",
