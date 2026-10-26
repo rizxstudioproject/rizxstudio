@@ -432,7 +432,6 @@ export default function ProjectTrackerWorkspace({
                 Proyek Berjalan ({activeProjects.length})
               </h2>
             </div>
-            <span className="text-[10px] text-neutral-500 font-mono">Geser ➔</span>
           </div>
 
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none snap-x snap-mandatory">
