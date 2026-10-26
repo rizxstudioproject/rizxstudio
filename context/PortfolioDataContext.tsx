@@ -5,6 +5,7 @@ import { antigravityData } from "@/data/projectsData";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { saveStage3ImageToDB, getStage3ImageFromDB, clearStage3ImageFromDB } from "@/lib/sequenceStorage";
 import { getAdminCredentials } from "@/lib/adminAuth";
+import { normalizeMediaUrl } from "@/lib/mediaService";
 
 const STORAGE_KEY = "rizx_portfolio_custom_data_v1";
 const SESSION_KEY = "rizx_admin_session";
@@ -823,9 +824,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
 
         if (parsed.clientLogos) {
+          const rawLogos = parsed.clientLogos.logos || defaultClientLogosData.logos;
+          const normalizedLogos = rawLogos.map((l: any) => ({
+            ...l,
+            file: normalizeMediaUrl(l.file),
+          }));
           const loadedClientLogos = {
             ...defaultClientLogosData,
             ...parsed.clientLogos,
+            logos: normalizedLogos,
           };
           setClientLogos(loadedClientLogos);
           clientLogosRef.current = loadedClientLogos;
@@ -841,9 +848,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
 
         if (parsed.portfolioRunner) {
+          const rawItems = parsed.portfolioRunner.items || defaultPortfolioRunnerData.items;
+          const normalizedItems = rawItems.map((i: any) => ({
+            ...i,
+            image: normalizeMediaUrl(i.image),
+          }));
           const loadedPortfolioRunner = {
             ...defaultPortfolioRunnerData,
             ...parsed.portfolioRunner,
+            items: normalizedItems,
           };
           setPortfolioRunner(loadedPortfolioRunner);
           portfolioRunnerRef.current = loadedPortfolioRunner;
@@ -1025,7 +1038,16 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           if (portfolioRunnerRow && portfolioRunnerRow.description) {
             try {
               const parsedRunner = safeJsonParseMedia(portfolioRunnerRow.description);
-              latestRunner = { ...defaultPortfolioRunnerData, ...parsedRunner };
+              const rawItems = parsedRunner.items || defaultPortfolioRunnerData.items;
+              const normalizedItems = rawItems.map((i: any) => ({
+                ...i,
+                image: normalizeMediaUrl(i.image),
+              }));
+              latestRunner = {
+                ...defaultPortfolioRunnerData,
+                ...parsedRunner,
+                items: normalizedItems,
+              };
               setPortfolioRunner(latestRunner);
               portfolioRunnerRef.current = latestRunner;
             } catch (_) {}
@@ -1677,9 +1699,14 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   // Update Client Logos Marquee Section
   const updateClientLogosData = useCallback(
     async (newData: Partial<ClientLogosData>) => {
+      const normalizedLogos = (newData.logos || clientLogos.logos).map((l) => ({
+        ...l,
+        file: normalizeMediaUrl(l.file),
+      }));
       const updated: ClientLogosData = {
         ...clientLogos,
         ...newData,
+        logos: normalizedLogos,
       };
       setClientLogos(updated);
       clientLogosRef.current = updated;
@@ -1733,9 +1760,14 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   // Update Portfolio Runner Marquee Section
   const updatePortfolioRunnerData = useCallback(
     async (newData: Partial<PortfolioRunnerData>) => {
+      const normalizedItems = (newData.items || portfolioRunner.items).map((item) => ({
+        ...item,
+        image: normalizeMediaUrl(item.image),
+      }));
       const updated: PortfolioRunnerData = {
         ...portfolioRunner,
         ...newData,
+        items: normalizedItems,
       };
       setPortfolioRunner(updated);
       portfolioRunnerRef.current = updated;
@@ -1763,6 +1795,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     async (item: Omit<PortfolioRunnerItem, "id">) => {
       const newItem: PortfolioRunnerItem = {
         ...item,
+        image: normalizeMediaUrl(item.image),
         id: `pr-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
       };
       const updated: PortfolioRunnerData = {
@@ -1779,7 +1812,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     async (id: string, updatedFields: Partial<PortfolioRunnerItem>) => {
       const updated: PortfolioRunnerData = {
         ...portfolioRunner,
-        items: portfolioRunner.items.map((i) => (i.id === id ? { ...i, ...updatedFields } : i)),
+        items: portfolioRunner.items.map((i) =>
+          i.id === id
+            ? {
+                ...i,
+                ...updatedFields,
+                image: updatedFields.image ? normalizeMediaUrl(updatedFields.image) : i.image,
+              }
+            : i
+        ),
       };
       await updatePortfolioRunnerData(updated);
     },

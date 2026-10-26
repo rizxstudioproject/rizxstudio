@@ -1,11 +1,29 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useLang } from "@/context/LanguageContext";
 import { usePortfolioData, ClientLogoItem } from "@/context/PortfolioDataContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import { normalizeMediaUrl, getMediaFallbackUrls } from "@/lib/mediaService";
 
 function LogoItem({ logo, isLight }: { logo: ClientLogoItem; isLight: boolean }) {
+  const fallbacks = useMemo(() => getMediaFallbackUrls(logo.file), [logo.file]);
+  const [currentSrc, setCurrentSrc] = useState<string>(() => normalizeMediaUrl(logo.file));
+  const [fallbackIndex, setFallbackIndex] = useState<number>(0);
+
+  useEffect(() => {
+    setCurrentSrc(normalizeMediaUrl(logo.file));
+    setFallbackIndex(0);
+  }, [logo.file]);
+
+  const handleImageError = () => {
+    if (fallbackIndex + 1 < fallbacks.length) {
+      const nextIndex = fallbackIndex + 1;
+      setFallbackIndex(nextIndex);
+      setCurrentSrc(fallbacks[nextIndex]);
+    }
+  };
+
   return (
     <div
       className={`client-logo-card flex items-center justify-center px-6 py-3.5 mx-3 rounded-2xl border transition-all duration-300 cursor-default select-none shrink-0 group min-w-[90px] h-14 ${
@@ -22,8 +40,9 @@ function LogoItem({ logo, isLight }: { logo: ClientLogoItem; isLight: boolean })
         }`}
       >
         <img
-          src={logo.file}
+          src={currentSrc}
           alt={logo.name}
+          onError={handleImageError}
           className="client-logo-img h-6 sm:h-7 w-auto object-contain max-h-7"
         />
       </div>

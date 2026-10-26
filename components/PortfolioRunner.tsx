@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useMemo } from "react";
 import { usePortfolioData, PortfolioRunnerItem } from "@/context/PortfolioDataContext";
+import { normalizeMediaUrl, getMediaFallbackUrls } from "@/lib/mediaService";
 
 interface RunnerCardProps {
   item: PortfolioRunnerItem;
@@ -9,6 +10,27 @@ interface RunnerCardProps {
 }
 
 const RunnerCard = React.forwardRef<HTMLDivElement, RunnerCardProps>(({ item, onCardClick }, ref) => {
+  const fallbacks = useMemo(() => getMediaFallbackUrls(item.image), [item.image]);
+  const [currentSrc, setCurrentSrc] = useState<string>(() => normalizeMediaUrl(item.image));
+  const [fallbackIndex, setFallbackIndex] = useState<number>(0);
+  const [hasFailed, setHasFailed] = useState<boolean>(false);
+
+  useEffect(() => {
+    setCurrentSrc(normalizeMediaUrl(item.image));
+    setFallbackIndex(0);
+    setHasFailed(false);
+  }, [item.image]);
+
+  const handleImageError = () => {
+    if (fallbackIndex + 1 < fallbacks.length) {
+      const nextIndex = fallbackIndex + 1;
+      setFallbackIndex(nextIndex);
+      setCurrentSrc(fallbacks[nextIndex]);
+    } else {
+      setHasFailed(true);
+    }
+  };
+
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (item.link && item.link.trim() !== "") {
@@ -42,12 +64,20 @@ const RunnerCard = React.forwardRef<HTMLDivElement, RunnerCardProps>(({ item, on
       }}
       className="relative flex-shrink-0 w-[105px] sm:w-[125px] md:w-[145px] aspect-[4/5] rounded-xl overflow-hidden border border-white/10 bg-neutral-950 shadow-[0_8px_24px_rgba(0,0,0,0.6)] group transition-[transform,border-color,box-shadow] duration-200 ease-out mr-2.5 sm:mr-3.5 select-none cursor-pointer hover:border-[#16b09f]/60 hover:shadow-[0_12px_28px_rgba(22,176,159,0.25)]"
     >
-      <img
-        src={item.image}
-        alt={item.title}
-        loading="lazy"
-        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 pointer-events-none"
-      />
+      {!hasFailed ? (
+        <img
+          src={currentSrc}
+          alt={item.title}
+          loading="lazy"
+          onError={handleImageError}
+          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 pointer-events-none"
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-950 flex flex-col items-center justify-center p-2 text-center select-none pointer-events-none">
+          <span className="text-[10px] font-mono text-[#16b09f] font-bold">Rizx Studio</span>
+          <span className="text-[9px] text-neutral-400 truncate w-full mt-1">{item.title}</span>
+        </div>
+      )}
       {/* Dark gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent pointer-events-none" />
 
@@ -356,8 +386,17 @@ export default function PortfolioRunner() {
             {/* Image Preview 4:5 */}
             <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-neutral-900 border border-white/10 flex items-center justify-center">
               <img
-                src={selectedCard.image}
+                src={normalizeMediaUrl(selectedCard.image)}
                 alt={selectedCard.title}
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  const fbs = getMediaFallbackUrls(selectedCard.image);
+                  if (fbs[1] && target.src !== fbs[1]) {
+                    target.src = fbs[1];
+                  } else if (fbs[2] && target.src !== fbs[2]) {
+                    target.src = fbs[2];
+                  }
+                }}
                 className="w-full h-full object-cover"
               />
             </div>

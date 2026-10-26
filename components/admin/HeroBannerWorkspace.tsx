@@ -35,6 +35,7 @@ import {
 } from "@/context/PortfolioDataContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
+import { normalizeMediaUrl, getMediaFallbackUrls } from "@/lib/mediaService";
 import {
   saveCustomFramesToDB,
   clearCustomFramesFromDB,
@@ -326,7 +327,7 @@ export default function HeroBannerWorkspace({
 
   const handleAddRunnerItem = async () => {
     const finalTitle = newRunnerTitle.trim() || newRunnerCategory.trim() || "Creative Work";
-    const finalImage = newRunnerImage.trim();
+    const finalImage = normalizeMediaUrl(newRunnerImage.trim());
 
     if (!finalImage) {
       notify(
@@ -1343,7 +1344,8 @@ export default function HeroBannerWorkspace({
                       type="text"
                       value={newRunnerImage}
                       onChange={(e) => setNewRunnerImage(e.target.value)}
-                      placeholder="/works/... atau URL online"
+                      onBlur={() => setNewRunnerImage((prev) => normalizeMediaUrl(prev))}
+                      placeholder="/works/... atau Link Google Drive / URL online"
                       className="flex-1 px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
                     />
                     <label className="px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-neutral-300 text-xs font-mono flex items-center gap-1.5 cursor-pointer hover:bg-neutral-800">
@@ -1393,8 +1395,14 @@ export default function HeroBannerWorkspace({
                 <div className="relative w-32 aspect-[4/5] rounded-xl overflow-hidden border border-white/15 bg-neutral-950 shadow-xl flex items-center justify-center">
                   {newRunnerImage ? (
                     <img
-                      src={newRunnerImage}
+                      src={normalizeMediaUrl(newRunnerImage)}
                       alt="Preview"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const fbs = getMediaFallbackUrls(newRunnerImage);
+                        if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                        else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                      }}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -1464,8 +1472,14 @@ export default function HeroBannerWorkspace({
                   {/* Thumbnail 4:5 */}
                   <div className="relative aspect-[4/5] w-full bg-neutral-900 overflow-hidden">
                     <img
-                      src={item.image}
+                      src={normalizeMediaUrl(item.image)}
                       alt={item.title}
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const fbs = getMediaFallbackUrls(item.image);
+                        if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                        else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                      }}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
 
@@ -1739,8 +1753,14 @@ export default function HeroBannerWorkspace({
                 <div className="relative w-16 aspect-[4/5] rounded-lg overflow-hidden bg-neutral-950 border border-white/10 shrink-0">
                   {editingRunnerItem.image ? (
                     <img
-                      src={editingRunnerItem.image}
+                      src={normalizeMediaUrl(editingRunnerItem.image)}
                       alt="Preview"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const fbs = getMediaFallbackUrls(editingRunnerItem.image);
+                        if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                        else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                      }}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -1781,7 +1801,7 @@ export default function HeroBannerWorkspace({
                 onClick={async () => {
                   if (!editingRunnerItem) return;
                   const finalTitle = editingRunnerItem.title.trim() || editingRunnerItem.category.trim() || "Creative Work";
-                  const finalImg = editingRunnerItem.image.trim();
+                  const finalImg = normalizeMediaUrl(editingRunnerItem.image.trim());
                   if (!finalImg) {
                     notify("error", "Gambar Kosong", "Mohon isi atau upload gambar karya.");
                     return;

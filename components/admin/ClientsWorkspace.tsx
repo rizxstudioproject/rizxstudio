@@ -28,6 +28,7 @@ import {
 } from "react-icons/si";
 import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
+import { normalizeMediaUrl, getMediaFallbackUrls } from "@/lib/mediaService";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 
 interface ClientsWorkspaceProps {
@@ -1173,24 +1174,34 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     Frame: 160 × 56 px
                   </span>
                 </div>
-                <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/15 transition-colors">
-                  <HiPhoto className="w-4 h-4 text-[#16b09f]" />
-                  <span className="truncate">
-                    {newLogoFile
-                      ? tr("✓ Logo Selected", "✓ Logo Dipilih", "✓ Logo Dipiliah")
-                      : tr("Choose Logo File", "Pilih File Logo", "Piliah File Logo")}
-                  </span>
+                <div className="flex flex-col sm:flex-row gap-2">
                   <input
-                    type="file"
-                    accept="image/*,.svg"
-                    className="hidden"
-                    onChange={(e) => {
-                      if (onGenericImageFile) {
-                        onGenericImageFile(e, (dataUrl) => setNewLogoFile?.(dataUrl));
-                      }
-                    }}
+                    type="text"
+                    value={newLogoFile}
+                    onChange={(e) => setNewLogoFile?.(normalizeMediaUrl(e.target.value))}
+                    onBlur={() => setNewLogoFile?.(normalizeMediaUrl(newLogoFile))}
+                    placeholder={tr("Paste link Google Drive atau URL online...", "Paste link Google Drive atau URL online...", "Paste link Google Drive atau URL online...")}
+                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
                   />
-                </label>
+                  <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/15 transition-colors shrink-0">
+                    <HiPhoto className="w-4 h-4 text-[#16b09f]" />
+                    <span className="truncate">
+                      {newLogoFile
+                        ? tr("✓ File Dipilih", "✓ File Dipilih", "✓ File Dipiliah")
+                        : tr("Upload File", "Upload File", "Upload File")}
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*,.svg"
+                      className="hidden"
+                      onChange={(e) => {
+                        if (onGenericImageFile) {
+                          onGenericImageFile(e, (dataUrl) => setNewLogoFile?.(dataUrl));
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
                 <p className="text-[11px] text-neutral-400 font-mono leading-relaxed mt-1">
                   📐 <strong>{tr("Frame Display Size:", "Ukuran Frame Tampil:", "Ukuran Frame Tampil:")}</strong>{" "}
                   <span className="text-white font-semibold">160 × 56 pixel</span> ({tr("logo height:", "tinggi logo:", "tinggi logo:")} 28px).
@@ -1206,8 +1217,14 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <div className="flex items-center gap-4 pt-2">
                 <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center">
                   <img
-                    src={newLogoFile}
+                    src={normalizeMediaUrl(newLogoFile)}
                     alt="Preview"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      const fbs = getMediaFallbackUrls(newLogoFile);
+                      if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                      else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                    }}
                     className="h-8 max-w-[120px] object-contain invert brightness-0"
                   />
                 </div>
@@ -1248,8 +1265,14 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     >
                       <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
                         <img
-                          src={logo.file}
+                          src={normalizeMediaUrl(logo.file)}
                           alt={logo.name}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const fbs = getMediaFallbackUrls(logo.file);
+                            if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                            else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                          }}
                           className="max-h-7 max-w-full object-contain"
                         />
                       </div>
@@ -1322,8 +1345,14 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     >
                       <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
                         <img
-                          src={logo.file}
+                          src={normalizeMediaUrl(logo.file)}
                           alt={logo.name}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const fbs = getMediaFallbackUrls(logo.file);
+                            if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                            else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                          }}
                           className="max-h-7 max-w-full object-contain"
                         />
                       </div>
