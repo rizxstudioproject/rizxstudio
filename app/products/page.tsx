@@ -8,6 +8,7 @@ import ProjectTrackerModal from "@/components/ProjectTrackerModal";
 import { registerTrackedProject } from "@/lib/projectTrackerService";
 import {
   getAllProducts,
+  subscribeToProductsRealtime,
   DEFAULT_PRODUCTS,
   DEFAULT_CATEGORIES,
   getLocalizedProduct,
@@ -64,16 +65,26 @@ export default function ProductsPage() {
       }
     });
 
-    const handleSync = (e: Event) => {
-      const custom = e as CustomEvent<ProductItem[]>;
-      if (custom.detail) {
-        setProductsList(custom.detail);
+    // 1. Supabase Realtime + Cross-tab BroadcastChannel + Storage listener
+    const unsubscribe = subscribeToProductsRealtime((freshProducts) => {
+      if (isMounted && Array.isArray(freshProducts)) {
+        setProductsList(freshProducts);
       }
-    };
-    window.addEventListener("rizx_products_updated", handleSync);
+    });
+
+    // 2. Gentle interval poller (8s) as mobile network fallback
+    const intervalId = setInterval(() => {
+      getAllProducts().then((data) => {
+        if (isMounted && data && data.length > 0) {
+          setProductsList(data);
+        }
+      });
+    }, 8000);
+
     return () => {
       isMounted = false;
-      window.removeEventListener("rizx_products_updated", handleSync);
+      unsubscribe();
+      clearInterval(intervalId);
     };
   }, []);
 

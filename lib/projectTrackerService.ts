@@ -182,6 +182,11 @@ export async function saveAllTrackedProjects(records: ProjectTrackingItem[]): Pr
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
       window.dispatchEvent(new CustomEvent("rizx_tracker_updated", { detail: records }));
+      if (typeof BroadcastChannel !== "undefined") {
+        const bc = new BroadcastChannel("rizx_tracker_channel");
+        bc.postMessage({ type: "SYNC", records });
+        bc.close();
+      }
     } catch (e) {
       console.warn("LocalStorage project tracker save notice:", e);
     }
@@ -206,6 +211,105 @@ export async function saveAllTrackedProjects(records: ProjectTrackingItem[]): Pr
   }
 
   return true;
+}
+
+/**
+ * Subscribe to realtime tracker changes across tabs and devices
+ */
+export function subscribeToTrackerRealtime(
+  callback: (records: ProjectTrackingItem[]) => void
+): () => void {
+  // 1. In-page event listener
+  const handleLocal = (e: Event) => {
+    const custom = e as CustomEvent<ProjectTrackingItem[]>;
+    if (custom.detail && Array.isArray(custom.detail)) {
+      callback(custom.detail);
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("rizx_tracker_updated", handleLocal);
+  }
+
+  // 2. Cross-tab BroadcastChannel listener
+  let broadcastChannel: BroadcastChannel | null = null;
+  if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+    try {
+      broadcastChannel = new BroadcastChannel("rizx_tracker_channel");
+      broadcastChannel.onmessage = (event) => {
+        if (event.data && Array.isArray(event.data.records)) {
+          callback(event.data.records);
+        }
+      };
+    } catch (e) {
+      console.warn("BroadcastChannel tracker notice:", e);
+    }
+  }
+
+  // 3. Cross-tab Storage event fallback
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === STORAGE_KEY && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        if (Array.isArray(parsed)) {
+          callback(parsed);
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", handleStorage);
+  }
+
+  // 4. Supabase Cloud Realtime Channel (Cross-device, instant WebSocket)
+  let supabaseChannel: any = null;
+  if (isSupabaseConfigured && supabase) {
+    try {
+      supabaseChannel = supabase
+        .channel(`realtime-tracker-${Math.random().toString(36).substring(7)}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "client_descriptions",
+            filter: `client_id=eq.${SUPABASE_TRACKER_KEY}`,
+          },
+          (payload) => {
+            if (payload.new && (payload.new as any).description) {
+              try {
+                const parsed = JSON.parse((payload.new as any).description);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  if (typeof window !== "undefined") {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                  }
+                  callback(parsed);
+                }
+              } catch (err) {
+                console.warn("Realtime tracker parse notice:", err);
+              }
+            }
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn("Supabase Realtime tracker subscription notice:", err);
+    }
+  }
+
+  return () => {
+    if (typeof window !== "undefined") {
+      window.removeEventListener("rizx_tracker_updated", handleLocal);
+      window.removeEventListener("storage", handleStorage);
+    }
+    if (broadcastChannel) {
+      broadcastChannel.close();
+    }
+    if (supabase && supabaseChannel) {
+      supabase.removeChannel(supabaseChannel);
+    }
+  };
 }
 
 /**

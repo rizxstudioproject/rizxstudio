@@ -2255,11 +2255,16 @@ export async function getAllProducts(): Promise<ProductItem[]> {
  * Save all products to Supabase Cloud + LocalStorage & dispatch sync event
  */
 export async function saveAllProducts(products: ProductItem[]): Promise<boolean> {
-  // 1. Save LocalStorage
+  // 1. Save LocalStorage & Broadcast across tabs
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
       window.dispatchEvent(new CustomEvent("rizx_products_updated", { detail: products }));
+      if (typeof BroadcastChannel !== "undefined") {
+        const bc = new BroadcastChannel("rizx_products_channel");
+        bc.postMessage({ type: "SYNC", products });
+        bc.close();
+      }
     } catch (e) {
       console.warn("LocalStorage products save notice:", e);
     }
@@ -2288,6 +2293,106 @@ export async function saveAllProducts(products: ProductItem[]): Promise<boolean>
   }
 
   return true;
+}
+
+/**
+ * Subscribe to realtime product changes across tabs and devices
+ */
+export function subscribeToProductsRealtime(
+  callback: (products: ProductItem[]) => void
+): () => void {
+  // 1. In-page custom event listener
+  const handleLocal = (e: Event) => {
+    const custom = e as CustomEvent<ProductItem[]>;
+    if (custom.detail && Array.isArray(custom.detail)) {
+      callback(custom.detail);
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("rizx_products_updated", handleLocal);
+  }
+
+  // 2. Cross-tab BroadcastChannel listener
+  let broadcastChannel: BroadcastChannel | null = null;
+  if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+    try {
+      broadcastChannel = new BroadcastChannel("rizx_products_channel");
+      broadcastChannel.onmessage = (event) => {
+        if (event.data && Array.isArray(event.data.products)) {
+          callback(event.data.products);
+        }
+      };
+    } catch (e) {
+      console.warn("BroadcastChannel notice:", e);
+    }
+  }
+
+  // 3. Cross-tab Storage event fallback
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === STORAGE_KEY && e.newValue) {
+      try {
+        const parsed = JSON.parse(e.newValue);
+        if (Array.isArray(parsed)) {
+          callback(parsed);
+        }
+      } catch (err) {
+        // ignore
+      }
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", handleStorage);
+  }
+
+  // 4. Supabase Cloud Realtime Channel (Cross-device, instant WebSocket)
+  let supabaseChannel: any = null;
+  if (isSupabaseConfigured && supabase) {
+    try {
+      supabaseChannel = supabase
+        .channel(`realtime-products-${Math.random().toString(36).substring(7)}`)
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema: "public",
+            table: "client_descriptions",
+            filter: `client_id=eq.${SUPABASE_PRODUCTS_KEY}`,
+          },
+          (payload) => {
+            if (payload.new && (payload.new as any).description) {
+              try {
+                const parsed = JSON.parse((payload.new as any).description);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                  if (typeof window !== "undefined") {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                  }
+                  callback(parsed);
+                }
+              } catch (err) {
+                console.warn("Realtime products parse notice:", err);
+              }
+            }
+          }
+        )
+        .subscribe();
+    } catch (err) {
+      console.warn("Supabase Realtime subscription notice:", err);
+    }
+  }
+
+  // Return unsubscribe cleanup function
+  return () => {
+    if (typeof window !== "undefined") {
+      window.removeEventListener("rizx_products_updated", handleLocal);
+      window.removeEventListener("storage", handleStorage);
+    }
+    if (broadcastChannel) {
+      broadcastChannel.close();
+    }
+    if (supabase && supabaseChannel) {
+      supabase.removeChannel(supabaseChannel);
+    }
+  };
 }
 
 /**

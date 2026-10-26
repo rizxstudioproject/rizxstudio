@@ -22,6 +22,7 @@ import {
   ProjectTrackingItem,
   getProjectByRefCode,
   getStageMetadata,
+  subscribeToTrackerRealtime,
 } from "@/lib/projectTrackerService";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
@@ -52,15 +53,23 @@ export default function TrackingPage() {
     }
   }, []);
 
-  // Live auto-update when studio updates project progress
+  // Live realtime auto-update when studio updates project progress
   useEffect(() => {
-    const handleTrackerUpdate = () => {
+    const unsubscribe = subscribeToTrackerRealtime((records) => {
       if (inputCode) {
-        handleSearch(inputCode);
+        const cleanCode = inputCode.trim().toUpperCase();
+        const found = records.find(
+          (r) =>
+            r.refCode.toUpperCase() === cleanCode ||
+            r.refCode.toUpperCase().replace(/[^A-Z0-9]/g, "") === cleanCode.replace(/[^A-Z0-9]/g, "")
+        );
+        if (found) {
+          setProject(found);
+        }
       }
-    };
-    window.addEventListener("rizx_tracker_updated", handleTrackerUpdate);
-    return () => window.removeEventListener("rizx_tracker_updated", handleTrackerUpdate);
+    });
+
+    return () => unsubscribe();
   }, [inputCode]);
 
   const handleSearch = async (codeToSearch?: string) => {

@@ -41,11 +41,16 @@ import {
   deleteProduct,
   toggleProductClosed,
   resetProductsToDefault,
+  subscribeToProductsRealtime,
   ProductItem,
   ProductPackage,
   DEFAULT_CATEGORIES,
 } from "@/lib/productsService";
-import { getAllTrackedProjects, ProjectTrackingItem } from "@/lib/projectTrackerService";
+import {
+  getAllTrackedProjects,
+  ProjectTrackingItem,
+  subscribeToTrackerRealtime,
+} from "@/lib/projectTrackerService";
 import ClientOrdersManager from "./ClientOrdersManager";
 
 const AVAILABLE_ICONS = [
@@ -114,27 +119,22 @@ export default function ProductsWorkspace() {
     };
     fetchOrders();
 
-    const handleSync = (e: Event) => {
-      const custom = e as CustomEvent<ProductItem[]>;
-      if (custom.detail) {
-        setProducts(custom.detail);
+    // Realtime subscriptions across tabs and devices
+    const unsubscribeProducts = subscribeToProductsRealtime((freshProducts) => {
+      if (Array.isArray(freshProducts) && freshProducts.length > 0) {
+        setProducts(freshProducts);
       }
-    };
+    });
 
-    const handleTrackerSync = (e: Event) => {
-      const custom = e as CustomEvent<ProjectTrackingItem[]>;
-      if (custom.detail) {
-        setTrackedOrders(custom.detail);
-      } else {
-        fetchOrders();
+    const unsubscribeTracker = subscribeToTrackerRealtime((freshOrders) => {
+      if (Array.isArray(freshOrders)) {
+        setTrackedOrders(freshOrders);
       }
-    };
+    });
 
-    window.addEventListener("rizx_products_updated", handleSync);
-    window.addEventListener("rizx_tracker_updated", handleTrackerSync);
     return () => {
-      window.removeEventListener("rizx_products_updated", handleSync);
-      window.removeEventListener("rizx_tracker_updated", handleTrackerSync);
+      unsubscribeProducts();
+      unsubscribeTracker();
     };
   }, []);
 
@@ -488,26 +488,36 @@ export default function ProductsWorkspace() {
 
     setIsSaving(true);
     try {
+      const productToSave: ProductItem = {
+        ...editingProduct,
+        titleEn: editingProduct.titleEn || editingProduct.title,
+        titleMin: editingProduct.titleMin || toMinang(editingProduct.title),
+        taglineEn: editingProduct.taglineEn || editingProduct.tagline,
+        taglineMin: editingProduct.taglineMin || toMinang(editingProduct.tagline),
+        descriptionEn: editingProduct.descriptionEn || editingProduct.description,
+        descriptionMin: editingProduct.descriptionMin || toMinang(editingProduct.description),
+      };
+
       if (isNewProduct) {
-        await addProduct(editingProduct);
-        setProducts((prev) => [editingProduct, ...prev]);
+        await addProduct(productToSave);
+        setProducts((prev) => [productToSave, ...prev]);
         showToast(
           tr(
-            `Product "${editingProduct.title}" created successfully!`,
-            `Produk baru "${editingProduct.title}" berhasil ditambahkan!`,
-            `Produk baru "${editingProduct.title}" barasia ditambahkan!`
+            `Product "${productToSave.title}" created successfully!`,
+            `Produk baru "${productToSave.title}" berhasil ditambahkan!`,
+            `Produk baru "${productToSave.title}" barasia ditambahkan!`
           )
         );
       } else {
-        await updateProduct(editingProduct.id, editingProduct);
+        await updateProduct(productToSave.id, productToSave);
         setProducts((prev) =>
-          prev.map((p) => (p.id === editingProduct.id ? editingProduct : p))
+          prev.map((p) => (p.id === productToSave.id ? productToSave : p))
         );
         showToast(
           tr(
-            `Product "${editingProduct.title}" updated successfully!`,
-            `Perubahan produk "${editingProduct.title}" berhasil disimpan!`,
-            `Parubahan produk "${editingProduct.title}" barasia tasimpan!`
+            `Product "${productToSave.title}" updated successfully!`,
+            `Perubahan produk "${productToSave.title}" berhasil disimpan secara realtime!`,
+            `Parubahan produk "${productToSave.title}" barasia tasimpan sacaro realtime!`
           )
         );
       }
@@ -1260,7 +1270,13 @@ export default function ProductsWorkspace() {
                         } else if (activeLangTab === "min") {
                           setEditingProduct({ ...editingProduct, titleMin: val });
                         } else {
-                          setEditingProduct({ ...editingProduct, title: val });
+                          // ID is primary: automatically sync to EN and Minang
+                          setEditingProduct({
+                            ...editingProduct,
+                            title: val,
+                            titleEn: val,
+                            titleMin: toMinang(val),
+                          });
                         }
                       }}
                       className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-white/10 bg-black text-white focus:outline-none focus:border-teal-500"
@@ -1291,7 +1307,13 @@ export default function ProductsWorkspace() {
                         } else if (activeLangTab === "min") {
                           setEditingProduct({ ...editingProduct, taglineMin: val });
                         } else {
-                          setEditingProduct({ ...editingProduct, tagline: val });
+                          // ID is primary: automatically sync to EN and Minang
+                          setEditingProduct({
+                            ...editingProduct,
+                            tagline: val,
+                            taglineEn: val,
+                            taglineMin: toMinang(val),
+                          });
                         }
                       }}
                       className="w-full px-3.5 py-2 text-xs rounded-xl border border-white/10 bg-black text-white focus:outline-none focus:border-teal-500"
@@ -1360,7 +1382,13 @@ export default function ProductsWorkspace() {
                         } else if (activeLangTab === "min") {
                           setEditingProduct({ ...editingProduct, descriptionMin: val });
                         } else {
-                          setEditingProduct({ ...editingProduct, description: val });
+                          // ID is primary: automatically sync to EN and Minang
+                          setEditingProduct({
+                            ...editingProduct,
+                            description: val,
+                            descriptionEn: val,
+                            descriptionMin: toMinang(val),
+                          });
                         }
                       }}
                       className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-white/10 bg-black text-white focus:outline-none focus:border-teal-500 leading-relaxed"
@@ -1508,7 +1536,7 @@ export default function ProductsWorkspace() {
                                   if (p.id !== currentPkg.id) return p;
                                   if (activeLangTab === "en") return { ...p, nameEn: val };
                                   if (activeLangTab === "min") return { ...p, nameMin: val };
-                                  return { ...p, name: val };
+                                  return { ...p, name: val, nameEn: val, nameMin: toMinang(val) };
                                 }),
                               });
                             }}
@@ -1608,7 +1636,7 @@ export default function ProductsWorkspace() {
                                   if (p.id !== currentPkg.id) return p;
                                   if (activeLangTab === "en") return { ...p, durationEn: val };
                                   if (activeLangTab === "min") return { ...p, durationMin: val };
-                                  return { ...p, duration: val };
+                                  return { ...p, duration: val, durationEn: val, durationMin: toMinang(val) };
                                 }),
                               });
                             }}
@@ -1674,7 +1702,7 @@ export default function ProductsWorkspace() {
                                   if (p.id !== currentPkg.id) return p;
                                   if (activeLangTab === "en") return { ...p, descriptionEn: val };
                                   if (activeLangTab === "min") return { ...p, descriptionMin: val };
-                                  return { ...p, description: val };
+                                  return { ...p, description: val, descriptionEn: val, descriptionMin: toMinang(val) };
                                 }),
                               });
                           }}
