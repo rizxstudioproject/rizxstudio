@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  RiUserAddLine,
   RiTeamLine,
   RiShieldUserLine,
   RiKey2Line,
@@ -348,8 +347,8 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
           onClick={handleOpenAddModal}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-teal-500 hover:bg-teal-400 text-black shadow-lg shadow-teal-500/20 active:scale-95 transition cursor-pointer w-full sm:w-auto shrink-0"
         >
-          <RiUserAddLine className="w-4 h-4 text-black" />
-          <span>{tr("Tambah Admin Baru", "Add New Admin", "Tambah Admin Baru")}</span>
+          <RiUser3Line className="w-4 h-4 text-black" />
+          <span>{tr("Add New Admin", "Tambah Admin Baru", "Tambah Admin Baru")}</span>
         </button>
       </div>
 
@@ -470,8 +469,10 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
               isLight ? "border-slate-200 bg-slate-50/80" : "border-white/10 bg-[#0d1015]"
             }`}>
               <div className="flex items-center gap-2">
-                <RiUserAddLine className="w-5 h-5 text-teal-400" />
-                <h4 className="font-bold text-base">Tambah Akun Admin Baru</h4>
+                <RiUser3Line className="w-5 h-5 text-teal-400" />
+                <h4 className="font-bold text-base">
+                  {tr("Add New Admin Account", "Tambah Akun Admin Baru", "Tambah Akun Admin Baru")}
+                </h4>
               </div>
               <button
                 type="button"
@@ -621,8 +622,12 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                   disabled={isSubmitting}
                   className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-lg active:scale-95 transition cursor-pointer flex items-center gap-1.5"
                 >
-                  <RiUserAddLine className="w-4 h-4" />
-                  <span>{isSubmitting ? "Menyimpan ke Cloud..." : "Simpan Akun Admin"}</span>
+                  <RiUser3Line className="w-4 h-4" />
+                  <span>
+                    {isSubmitting
+                      ? tr("Saving to Cloud...", "Menyimpan ke Cloud...", "Manyimpan ka Cloud...")
+                      : tr("Save Admin Account", "Simpan Akun Admin", "Simpan Akun Admin")}
+                  </span>
                 </button>
               </div>
             </form>
