@@ -29,6 +29,7 @@ import {
   RiFlashlightFill,
   RiUserFollowLine,
   RiBankCardLine,
+  RiTicket2Line,
 } from "react-icons/ri";
 import {
   getAllTrackedProjects,
@@ -347,17 +348,11 @@ export default function ProjectTrackerWorkspace({
               : "text-neutral-400 hover:text-white hover:bg-white/5"
           }`}
         >
-          <RiUserFollowLine className="w-4 h-4" />
-          <span>
-            {tr(
-              "Kelola Klien Masuk & Konfirmasi Pengerjaan",
-              "Kelola Klien Masuk & Konfirmasi Pengerjaan",
-              "Kelola Klien Masuak & Konfirmasi"
-            )}
-          </span>
+          <RiTicket2Line className="w-4 h-4" />
+          <span>{tr("Task & Ticket", "Task & Ticket", "Task & Ticket")}</span>
           {pendingOrdersCount > 0 ? (
             <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-amber-400 text-black font-bold animate-pulse">
-              {pendingOrdersCount} Butuh Kickoff
+              {pendingOrdersCount}
             </span>
           ) : (
             <span
@@ -367,7 +362,7 @@ export default function ProjectTrackerWorkspace({
                   : "bg-white/10 text-neutral-400"
               }`}
             >
-              {projects.length}
+              0
             </span>
           )}
         </button>
