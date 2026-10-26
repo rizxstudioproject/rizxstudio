@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -28,291 +28,6 @@ interface StorageAnalyticsViewProps {
   onNavigateToTrash?: () => void;
 }
 
-// ==============================================================
-// 3D HARMONIC PARTICLE WAVE ORB (IMAGE 1 REFERENCE)
-// Dynamic Particle Mesh Wave following Storage Category Colors
-// ==============================================================
-interface StorageWaveOrbCanvasProps {
-  category: "all" | "works" | "video" | "frames" | "trash";
-  percent: number;
-  isLight: boolean;
-}
-
-const CATEGORY_PALETTES = {
-  all: {
-    primary: [6, 182, 212], // #06b6d4 (Cyan)
-    secondary: [22, 176, 159], // #16b09f (Teal)
-    crest: [255, 255, 255], // Pure white crest
-  },
-  works: {
-    primary: [16, 185, 129], // #10b981 (Emerald)
-    secondary: [13, 148, 136], // #0d9488 (Teal)
-    crest: [236, 253, 245],
-  },
-  video: {
-    primary: [99, 102, 241], // #6366f1 (Indigo)
-    secondary: [139, 92, 246], // #8b5cf6 (Violet)
-    crest: [245, 243, 255],
-  },
-  frames: {
-    primary: [245, 158, 11], // #f59e0b (Amber)
-    secondary: [217, 119, 6], // #d97706 (Gold)
-    crest: [255, 251, 235],
-  },
-  trash: {
-    primary: [244, 63, 94], // #f43f5e (Rose)
-    secondary: [225, 29, 72], // #e11d48 (Crimson)
-    crest: [255, 241, 242],
-  },
-};
-
-const StorageWaveOrbCanvas: React.FC<StorageWaveOrbCanvasProps> = ({
-  category,
-  percent,
-  isLight,
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const animFrameId = useRef<number | null>(null);
-
-  // Smooth color lerping transitions when category changes
-  const colorsRef = useRef({
-    primary: [6, 182, 212],
-    secondary: [22, 176, 159],
-    crest: [255, 255, 255],
-  });
-
-  const categoryRef = useRef(category);
-  useEffect(() => {
-    categoryRef.current = category;
-  }, [category]);
-
-  const percentRef = useRef(percent);
-  useEffect(() => {
-    percentRef.current = percent;
-  }, [percent]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // High DPI Retina scaling
-    const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
-    const size = 220;
-    canvas.width = size * dpr;
-    canvas.height = size * dpr;
-    ctx.scale(dpr, dpr);
-
-    const RINGS = 18;
-    const POINTS_PER_RING = 32;
-    const cx = size / 2;
-    const cy = size / 2;
-    const baseRadius = 56;
-    const fov = 160;
-
-    // Precalculate base ring angles on sphere
-    const grid: { phi: number; theta: number; baseY: number; baseRadiusAtY: number }[][] = [];
-    for (let r = 0; r < RINGS; r++) {
-      const ringPoints = [];
-      const phi = ((r + 0.5) / RINGS) * Math.PI;
-      const baseY = Math.cos(phi);
-      const baseRadiusAtY = Math.sin(phi);
-
-      for (let p = 0; p < POINTS_PER_RING; p++) {
-        const theta = (p / POINTS_PER_RING) * 2 * Math.PI;
-        ringPoints.push({ phi, theta, baseY, baseRadiusAtY });
-      }
-      grid.push(ringPoints);
-    }
-
-    const startTime = performance.now();
-
-    const render = (now: number) => {
-      const time = (now - startTime) * 0.0012;
-
-      // Color interpolation towards active category
-      const targetPalette = CATEGORY_PALETTES[categoryRef.current] || CATEGORY_PALETTES.all;
-      const cur = colorsRef.current;
-      for (let c = 0; c < 3; c++) {
-        cur.primary[c] += (targetPalette.primary[c] - cur.primary[c]) * 0.08;
-        cur.secondary[c] += (targetPalette.secondary[c] - cur.secondary[c]) * 0.08;
-        cur.crest[c] += (targetPalette.crest[c] - cur.crest[c]) * 0.08;
-      }
-
-      ctx.clearRect(0, 0, size, size);
-
-      // Clip inside circle gauge reservoir (inner radius 72)
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx, cy, 72, 0, Math.PI * 2);
-      ctx.clip();
-
-      const [pr, pg, pb] = cur.primary.map(Math.round);
-      const [sr, sg, sb] = cur.secondary.map(Math.round);
-      const [cr, cg, cb] = cur.crest.map(Math.round);
-
-      // Soft ambient background aura in active storage color
-      const bgGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 72);
-      bgGlow.addColorStop(0, `rgba(${pr}, ${pg}, ${pb}, ${isLight ? 0.08 : 0.18})`);
-      bgGlow.addColorStop(0.7, `rgba(${sr}, ${sg}, ${sb}, ${isLight ? 0.03 : 0.07})`);
-      bgGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
-      ctx.fillStyle = bgGlow;
-      ctx.fillRect(0, 0, size, size);
-
-      // Rotation angles for organic fluid orb
-      const rotY = time * 0.45;
-      const rotX = Math.sin(time * 0.28) * 0.22;
-      const rotZ = Math.cos(time * 0.22) * 0.12;
-
-      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
-      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
-      const cosZ = Math.cos(rotZ), sinZ = Math.sin(rotZ);
-
-      // Dynamic wave amplitude modulated by storage percent
-      const waveAmp = 0.22 + Math.min(percentRef.current / 100, 1) * 0.08;
-
-      interface ProjectedPt {
-        sx: number;
-        sy: number;
-        z: number;
-        scale: number;
-        wave: number;
-      }
-      const projectedGrid: ProjectedPt[][] = [];
-
-      for (let r = 0; r < RINGS; r++) {
-        const ringProj: ProjectedPt[] = [];
-        for (let p = 0; p < POINTS_PER_RING; p++) {
-          const pt = grid[r][p];
-
-          // 3D Harmonic Spherical Wave Equation (Matching Image 1)
-          const w1 = Math.sin(pt.theta * 3 + time * 1.8) * Math.cos(pt.phi * 2.5 + time * 1.2);
-          const w2 = Math.sin(pt.theta * 5 - time * 2.2 + pt.baseY * 3.5) * 0.42;
-          const w3 = Math.cos(pt.phi * 4 + time * 1.6) * 0.32;
-          const w4 = Math.sin(time * 0.9 + pt.baseY * 2.0) * 0.18;
-          const wave = w1 + w2 + w3 + w4;
-
-          const currentR = baseRadius * (1 + wave * waveAmp);
-
-          // 3D position
-          const px = pt.baseRadiusAtY * Math.cos(pt.theta) * currentR;
-          const py = pt.baseY * currentR;
-          const pz = pt.baseRadiusAtY * Math.sin(pt.theta) * currentR;
-
-          // Rotate Y
-          const x1 = px * cosY - pz * sinY;
-          const z1 = px * sinY + pz * cosY;
-
-          // Rotate X
-          const y2 = py * cosX - z1 * sinX;
-          const z2 = py * sinX + z1 * cosX;
-
-          // Rotate Z
-          const x3 = x1 * cosZ - y2 * sinZ;
-          const y3 = x1 * sinZ + y2 * cosZ;
-
-          // Perspective projection
-          const scale = fov / (fov + z2);
-          const sx = cx + x3 * scale;
-          const sy = cy + y3 * scale;
-
-          ringProj.push({ sx, sy, z: z2, scale, wave });
-        }
-        projectedGrid.push(ringProj);
-      }
-
-      // 1. Draw undulating contour ring filaments (Image 1 wireframe wave ribbons)
-      for (let r = 0; r < RINGS; r++) {
-        ctx.beginPath();
-        for (let p = 0; p < POINTS_PER_RING; p++) {
-          const pt = projectedGrid[r][p];
-          if (p === 0) {
-            ctx.moveTo(pt.sx, pt.sy);
-          } else {
-            ctx.lineTo(pt.sx, pt.sy);
-          }
-        }
-        ctx.closePath();
-
-        let avgZ = 0;
-        for (let p = 0; p < POINTS_PER_RING; p++) {
-          avgZ += projectedGrid[r][p].z;
-        }
-        avgZ /= POINTS_PER_RING;
-
-        const ringDepth = Math.max(0, Math.min(1, (avgZ + baseRadius) / (baseRadius * 2)));
-        const ringAlpha = (0.08 + ringDepth * 0.22) * (isLight ? 0.7 : 1.0);
-        ctx.strokeStyle = `rgba(${pr}, ${pg}, ${pb}, ${ringAlpha})`;
-        ctx.lineWidth = 0.75;
-        ctx.stroke();
-      }
-
-      // 2. Draw Particle Wave Dots (Sorted back to front for accurate depth)
-      const allDots: ProjectedPt[] = [];
-      for (let r = 0; r < RINGS; r++) {
-        for (let p = 0; p < POINTS_PER_RING; p++) {
-          allDots.push(projectedGrid[r][p]);
-        }
-      }
-      allDots.sort((a, b) => a.z - b.z);
-
-      for (let i = 0; i < allDots.length; i++) {
-        const dot = allDots[i];
-        const depthNorm = Math.max(0, Math.min(1, (dot.z + baseRadius) / (baseRadius * 2)));
-
-        // Particle size: 0.75px (far background) to 2.6px (near foreground)
-        const dotRadius = Math.max(0.6, (0.75 + depthNorm * 1.85) * dot.scale);
-
-        // Opacity: 0.18 to 0.95
-        const dotAlpha = (0.18 + depthNorm * 0.77) * (isLight ? 0.85 : 1.0);
-
-        // Wave crest highlight: wave > 0.35 transitions towards white crest
-        const isCrest = dot.wave > 0.35 && dot.z > -10;
-        const crestFactor = isCrest ? Math.min(1, (dot.wave - 0.35) * 2.2) : 0;
-
-        const red = Math.round(pr + (cr - pr) * crestFactor);
-        const green = Math.round(pg + (cg - pg) * crestFactor);
-        const blue = Math.round(pb + (cb - pb) * crestFactor);
-
-        ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${dotAlpha})`;
-
-        ctx.beginPath();
-        ctx.arc(dot.sx, dot.sy, dotRadius, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Shimmering glow on prominent wave peaks (matching Image 1)
-        if (isCrest && depthNorm > 0.6) {
-          ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${dotAlpha * 0.6})`;
-          ctx.beginPath();
-          ctx.arc(dot.sx, dot.sy, dotRadius * 1.8, 0, Math.PI * 2);
-          ctx.fill();
-        }
-      }
-
-      ctx.restore();
-
-      animFrameId.current = requestAnimationFrame(render);
-    };
-
-    animFrameId.current = requestAnimationFrame(render);
-
-    return () => {
-      if (animFrameId.current) {
-        cancelAnimationFrame(animFrameId.current);
-      }
-    };
-  }, [isLight]);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 pointer-events-none rounded-full"
-      style={{ width: 220, height: 220 }}
-    />
-  );
-};
 
 export default function StorageAnalyticsView({
   showToast,
@@ -598,14 +313,7 @@ export default function StorageAnalyticsView({
             }`} />
 
             <div className="relative flex flex-col items-center my-3">
-              {/* LAYER 1: 3D Harmonic Particle Wave Orb (Image 1 Reference - Follows Active Storage Colors) */}
-              <StorageWaveOrbCanvas
-                category={activeCategory}
-                percent={currentPercent}
-                isLight={isLight}
-              />
-
-              {/* LAYER 2: SVG Radial Meter */}
+              {/* SVG Radial Meter */}
               <svg width="220" height="220" className="transform -rotate-90 pointer-events-none">
                 <defs>
                   <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -816,7 +524,7 @@ export default function StorageAnalyticsView({
                       <span>{tr("Client Works & Images", "Foto & Karya Visual", "Foto & Karya Visual")}</span>
                       {activeCategory === "works" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#16b09f] text-black font-bold">
-                          ● {tr("Active", "Aktif", "Aktif")}
+                          â— {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
                     </p>
@@ -860,7 +568,7 @@ export default function StorageAnalyticsView({
                       <span>{tr("Flagship Video & Showcase", "Video & Stage 3 Media", "Video & Stage 3 Media")}</span>
                       {activeCategory === "video" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-indigo-500 text-white font-bold">
-                          ● {tr("Active", "Aktif", "Aktif")}
+                          â— {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
                     </p>
@@ -904,7 +612,7 @@ export default function StorageAnalyticsView({
                       <span>{tr("Scrollytelling Frames", "Cache Kanvas Scrolly", "Cache Kanvas Scrolly")}</span>
                       {activeCategory === "frames" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-400 text-black font-bold">
-                          ● {tr("Active", "Aktif", "Aktif")}
+                          â— {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
                     </p>
@@ -948,7 +656,7 @@ export default function StorageAnalyticsView({
                       <span>{tr("Recycle Bin (Trash)", "Tong Sampah (Pulihkan)", "Tong Sarok (Pulihan)")}</span>
                       {activeCategory === "trash" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500 text-white font-bold">
-                          ● {tr("Active", "Aktif", "Aktif")}
+                          â— {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
                     </p>
@@ -1047,7 +755,7 @@ export default function StorageAnalyticsView({
                   onClick={onNavigateToTrash}
                   className={`cursor-pointer font-semibold ${isLight ? "text-rose-600 hover:underline" : "text-rose-400 hover:underline"}`}
                 >
-                  {tr("View ↗", "Buka ↗", "Bukak ↗")}
+                  {tr("View â†—", "Buka â†—", "Bukak â†—")}
                 </button>
               )}
             </div>
