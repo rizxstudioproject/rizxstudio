@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   RiBox3Fill,
   RiBox3Line,
@@ -33,7 +33,15 @@ import {
   RiImageAddLine,
   RiUploadCloud2Line,
   RiImageLine,
+  RiDriveLine,
+  RiYoutubeFill,
+  RiHardDrive2Line,
+  RiInformationLine,
+  RiCheckboxCircleFill,
+  RiExternalLinkLine,
+  RiAlertLine,
 } from "react-icons/ri";
+import { parseMediaUrl, resolveThumbnailUrl } from "@/lib/mediaUrlHelper";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import {
@@ -68,6 +76,294 @@ const AVAILABLE_ICONS = [
   { name: "RiRocketLine", label: "Startup / Rocket", icon: RiRocketLine },
   { name: "RiSparklingLine", label: "Sparkles", icon: RiSparklingLine },
 ];
+
+
+interface ProductThumbnailUploaderFieldProps {
+  label: string;
+  sublabel?: string;
+  value: string;
+  onChange: (val: string) => void;
+  onUploadFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  isUploading: boolean;
+  onClear: () => void;
+  placeholder?: string;
+}
+
+function ProductThumbnailUploaderField({
+  label,
+  sublabel,
+  value,
+  onChange,
+  onUploadFile,
+  isUploading,
+  onClear,
+  placeholder,
+}: ProductThumbnailUploaderFieldProps) {
+  const [imageError, setImageError] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const parsed = useMemo(() => parseMediaUrl(value), [value]);
+  const resolved = useMemo(() => resolveThumbnailUrl(value), [value]);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [value, resolved]);
+
+  return (
+    <div className="p-4 rounded-xl bg-neutral-900/80 border border-white/10 space-y-3.5">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <label className="text-xs font-semibold text-neutral-200 flex items-center gap-1.5">
+          <RiImageLine className="w-4 h-4 text-teal-400 shrink-0" />
+          <span>{label}</span>
+          {sublabel && (
+            <span className="text-[11px] text-neutral-400 font-normal hidden sm:inline">
+              — {sublabel}
+            </span>
+          )}
+        </label>
+        {value && (
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-[11px] text-rose-400 hover:text-rose-300 transition cursor-pointer"
+          >
+            Hapus Gambar
+          </button>
+        )}
+      </div>
+
+      {/* Preset Source Quick Buttons (Upload Internal / Google Drive / YouTube / Web URL) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            fileInputRef.current?.click();
+          }}
+          className={`px-2.5 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition cursor-pointer ${
+            parsed.type === "direct" && value.includes("portfolio-media")
+              ? "bg-teal-500/20 border-teal-500/50 text-teal-300 shadow-sm"
+              : "bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300 hover:text-white"
+          }`}
+        >
+          <RiHardDrive2Line className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+          <span className="truncate">Upload Internal</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (!value) onChange("https://drive.google.com/file/d/");
+          }}
+          className={`px-2.5 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition cursor-pointer ${
+            parsed.type === "gdrive"
+              ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-sm"
+              : "bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300 hover:text-white"
+          }`}
+        >
+          <RiDriveLine className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <span className="truncate">Google Drive</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (!value) onChange("https://www.youtube.com/watch?v=");
+          }}
+          className={`px-2.5 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition cursor-pointer ${
+            parsed.type === "youtube"
+              ? "bg-rose-500/20 border-rose-500/50 text-rose-300 shadow-sm"
+              : "bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300 hover:text-white"
+          }`}
+        >
+          <RiYoutubeFill className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+          <span className="truncate">Link YouTube</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            if (!value) onChange("https://images.unsplash.com/");
+          }}
+          className={`px-2.5 py-2 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition cursor-pointer ${
+            parsed.type === "direct" && !value.includes("portfolio-media") && value
+              ? "bg-cyan-500/20 border-cyan-500/50 text-cyan-300 shadow-sm"
+              : "bg-white/5 hover:bg-white/10 border-white/10 text-neutral-300 hover:text-white"
+          }`}
+        >
+          <RiGlobalLine className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+          <span className="truncate">URL Web / CDN</span>
+        </button>
+      </div>
+
+      {/* Hidden File Input for Internal Device Upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        disabled={isUploading}
+        onChange={onUploadFile}
+        className="hidden"
+      />
+
+      {/* Main Container: Preview & Controls */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        {/* Preview Box */}
+        <div className="relative w-full sm:w-48 h-32 rounded-xl overflow-hidden bg-black/80 border border-white/10 shrink-0 flex items-center justify-center">
+          {resolved && !imageError ? (
+            <>
+              <img
+                src={resolved}
+                alt="Thumbnail Preview"
+                className="w-full h-full object-cover object-center"
+                onError={() => setImageError(true)}
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+
+              {/* Source Tag Badge */}
+              <div className="absolute bottom-2 left-2 right-2 flex items-center justify-between pointer-events-none">
+                {parsed.type === "gdrive" && (
+                  <span className="px-2 py-0.5 rounded-md bg-emerald-950/90 border border-emerald-500/50 text-emerald-300 text-[10px] font-mono flex items-center gap-1 shadow-md">
+                    <RiDriveLine className="w-3 h-3 text-emerald-400" />
+                    Google Drive
+                  </span>
+                )}
+                {parsed.type === "youtube" && (
+                  <span className="px-2 py-0.5 rounded-md bg-rose-950/90 border border-rose-500/50 text-rose-300 text-[10px] font-mono flex items-center gap-1 shadow-md">
+                    <RiYoutubeFill className="w-3 h-3 text-rose-400" />
+                    YouTube Cover
+                  </span>
+                )}
+                {parsed.type === "direct" && value.includes("portfolio-media") && (
+                  <span className="px-2 py-0.5 rounded-md bg-teal-950/90 border border-teal-500/50 text-teal-300 text-[10px] font-mono flex items-center gap-1 shadow-md">
+                    <RiHardDrive2Line className="w-3 h-3 text-teal-400" />
+                    Internal Storage
+                  </span>
+                )}
+                {parsed.type === "direct" && !value.includes("portfolio-media") && (
+                  <span className="px-2 py-0.5 rounded-md bg-neutral-900/90 border border-white/20 text-neutral-300 text-[10px] font-mono flex items-center gap-1 shadow-md">
+                    <RiGlobalLine className="w-3 h-3 text-cyan-400" />
+                    Web URL
+                  </span>
+                )}
+              </div>
+            </>
+          ) : imageError ? (
+            <div className="flex flex-col items-center justify-center text-amber-400 gap-1 text-center p-3">
+              <RiAlertLine className="w-6 h-6 text-amber-400" />
+              <span className="text-[10px] font-semibold">Gagal Memuat Gambar</span>
+              <span className="text-[9px] text-neutral-400 leading-tight">
+                {parsed.type === "gdrive"
+                  ? "Pastikan izin Google Drive: 'Siapa saja yang memiliki link'"
+                  : "Periksa kembali format URL gambar"}
+              </span>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-neutral-500 gap-1 text-center p-2">
+              <RiImageLine className="w-6 h-6 opacity-40" />
+              <span className="text-[10px]">Belum Ada Gambar</span>
+            </div>
+          )}
+
+          {isUploading && (
+            <div className="absolute inset-0 bg-black/85 flex flex-col items-center justify-center text-teal-400 text-xs font-semibold gap-1.5 z-10">
+              <RiRefreshLine className="w-5 h-5 animate-spin" />
+              <span>Mengunggah File Internal...</span>
+            </div>
+          )}
+        </div>
+
+        {/* Input & Helper Area */}
+        <div className="flex-1 space-y-2.5 w-full">
+          {/* Quick upload button */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              disabled={isUploading}
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-semibold transition active:scale-95 shadow-sm cursor-pointer"
+            >
+              <RiUploadCloud2Line className="w-4 h-4" />
+              <span>{isUploading ? "Mengunggah File..." : "Upload Gambar dari Internal (Komputer / HP)"}</span>
+            </button>
+          </div>
+
+          {/* Unified URL input */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-[10px] text-neutral-400 font-mono">
+              <span>Link Google Drive / YouTube / URL Gambar:</span>
+              {parsed.type === "youtube" && parsed.watchUrl && (
+                <a
+                  href={parsed.watchUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-rose-400 hover:text-rose-300 flex items-center gap-1 cursor-pointer"
+                >
+                  <span>Cek Video YouTube</span>
+                  <RiExternalLinkLine className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                value={value || ""}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder={
+                  placeholder ||
+                  "Contoh: drive.google.com/file/d/... ATAU youtube.com/watch?v=... ATAU https://..."
+                }
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-white/10 bg-black text-white placeholder-neutral-600 focus:outline-none focus:border-teal-500 font-mono pr-8"
+              />
+              {value && (
+                <button
+                  type="button"
+                  onClick={onClear}
+                  className="absolute right-2.5 text-neutral-400 hover:text-white"
+                  title="Kosongkan"
+                >
+                  <RiCloseLine className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Live Dynamic Helper Tips */}
+          {parsed.type === "gdrive" && (
+            <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-[11px] text-emerald-300 flex items-start gap-2 animate-fadeIn">
+              <RiDriveLine className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <div className="leading-snug">
+                <span className="font-semibold block">Link Google Drive Terdeteksi!</span>
+                <span className="text-emerald-400/90 text-[10px]">
+                  Otomatis dikonversi ke gambar langsung. Pastikan setelan berbagi di Google Drive diatur ke: <strong>"Siapa saja yang memiliki link" (Anyone with the link)</strong>.
+                </span>
+              </div>
+            </div>
+          )}
+
+          {parsed.type === "youtube" && (
+            <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-[11px] text-rose-300 flex items-start gap-2 animate-fadeIn">
+              <RiYoutubeFill className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <div className="leading-snug">
+                <span className="font-semibold block">Video YouTube Terdeteksi!</span>
+                <span className="text-rose-400/90 text-[10px]">
+                  Cover thumbnail resolusi tinggi otomatis diambil dari video (ID: <code>{parsed.youtubeId}</code>).
+                </span>
+              </div>
+            </div>
+          )}
+
+          {parsed.type === "direct" && value.includes("portfolio-media") && (
+            <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/20 text-[10px] text-teal-300 flex items-center gap-1.5">
+              <RiCheckboxCircleFill className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+              <span>Gambar tersimpan aman di internal storage Supabase CDN.</span>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ProductsWorkspace() {
   const { lang, tr, toMinang } = useLang();
@@ -894,7 +1190,7 @@ export default function ProductsWorkspace() {
                 <div className="relative w-full h-32 overflow-hidden bg-black/60 border-b border-white/5">
                   <img
                     src={
-                      product.thumbnailUrl ||
+                      resolveThumbnailUrl(product.thumbnailUrl) ||
                       "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"
                     }
                     alt={product.title}
@@ -1318,80 +1614,16 @@ export default function ProductsWorkspace() {
                     </div>
                   </div>
 
-                  {/* Thumbnail Image Uploader (Setiap paket ada thumbnail di atasnya & CRUD di admin) */}
-                  <div className="p-4 rounded-xl bg-neutral-900/80 border border-white/10 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-semibold text-neutral-200 flex items-center gap-1.5">
-                        <RiImageLine className="w-4 h-4 text-teal-400" />
-                        <span>{tr("Thumbnail Gambar Produk", "Thumbnail Gambar Produk", "Thumbnail Gambar Produk")}</span>
-                        <span className="text-[11px] text-neutral-400 font-normal hidden sm:inline">
-                          — Tampil di atas setiap kartu paket di website
-                        </span>
-                      </label>
-                      {editingProduct.thumbnailUrl && (
-                        <button
-                          type="button"
-                          onClick={() => setEditingProduct({ ...editingProduct, thumbnailUrl: "" })}
-                          className="text-[11px] text-rose-400 hover:text-rose-300 transition cursor-pointer"
-                        >
-                          Hapus Gambar
-                        </button>
-                      )}
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                      {/* Image Preview Box */}
-                      <div className="relative w-full sm:w-44 h-28 rounded-xl overflow-hidden bg-black/60 border border-white/10 shrink-0 flex items-center justify-center">
-                        {editingProduct.thumbnailUrl ? (
-                          <img
-                            src={editingProduct.thumbnailUrl}
-                            alt="Thumbnail Preview"
-                            className="w-full h-full object-cover object-center"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center justify-center text-neutral-500 gap-1 text-center p-2">
-                            <RiImageLine className="w-6 h-6 opacity-40" />
-                            <span className="text-[10px]">Belum Ada Gambar</span>
-                          </div>
-                        )}
-                        {uploadingThumb && (
-                          <div className="absolute inset-0 bg-black/75 flex items-center justify-center text-teal-400 text-xs font-semibold gap-1.5">
-                            <RiRefreshLine className="w-4 h-4 animate-spin" />
-                            <span>Mengunggah...</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Upload Controls & URL input */}
-                      <div className="flex-1 space-y-2.5 w-full">
-                        <div className="flex items-center gap-2">
-                          <label className="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-semibold transition active:scale-95 shadow-sm">
-                            <RiUploadCloud2Line className="w-4 h-4" />
-                            <span>{uploadingThumb ? "Mengunggah File..." : "Upload Gambar dari Komputer"}</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              disabled={uploadingThumb}
-                              onChange={(e) => handleUploadThumbnail(e, false)}
-                              className="hidden"
-                            />
-                          </label>
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-[10px] text-neutral-400 font-mono">
-                            Atau tempel URL gambar langsung (HTTPS):
-                          </span>
-                          <input
-                            type="url"
-                            value={editingProduct.thumbnailUrl || ""}
-                            onChange={(e) => setEditingProduct({ ...editingProduct, thumbnailUrl: e.target.value })}
-                            placeholder="https://images.unsplash.com/... atau Supabase Storage URL"
-                            className="w-full px-3 py-1.5 text-xs rounded-xl border border-white/10 bg-black text-white placeholder-neutral-600 focus:outline-none focus:border-teal-500 font-mono"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  {/* Thumbnail Image Uploader (Google Drive, YouTube, Internal Storage, & URL) */}
+                  <ProductThumbnailUploaderField
+                    label={tr("Thumbnail Gambar Produk", "Thumbnail Gambar Produk", "Thumbnail Gambar Produk")}
+                    sublabel="Tampil di atas setiap kartu paket di website"
+                    value={editingProduct.thumbnailUrl || ""}
+                    onChange={(val) => setEditingProduct({ ...editingProduct, thumbnailUrl: val })}
+                    onUploadFile={(e) => handleUploadThumbnail(e, false)}
+                    isUploading={uploadingThumb}
+                    onClear={() => setEditingProduct({ ...editingProduct, thumbnailUrl: "" })}
+                  />
 
                   {/* Title (Multilingual) */}
                   <div className="space-y-1.5">
@@ -1727,59 +1959,31 @@ export default function ProductsWorkspace() {
                         </div>
                       </div>
 
-                      {/* Optional Package-Specific Thumbnail */}
-                      <div className="p-3.5 rounded-xl bg-black/60 border border-white/5 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <label className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
-                            <RiImageLine className="w-3.5 h-3.5 text-teal-400" />
-                            <span>Thumbnail Khusus Paket Ini (Opsional)</span>
-                          </label>
-                          {currentPkg.thumbnailUrl && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingProduct({
-                                  ...editingProduct,
-                                  packages: editingProduct.packages.map((p) =>
-                                    p.id === currentPkg.id ? { ...p, thumbnailUrl: "" } : p
-                                  ),
-                                });
-                              }}
-                              className="text-[11px] text-rose-400 hover:text-rose-300 cursor-pointer"
-                            >
-                              Gunakan Thumbnail Produk
-                            </button>
-                          )}
-                        </div>
-                        <div className="flex flex-col sm:flex-row items-center gap-3">
-                          <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10 text-xs font-medium transition shrink-0">
-                            <RiUploadCloud2Line className="w-3.5 h-3.5 text-teal-400" />
-                            <span>Upload Thumbnail Paket</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              disabled={uploadingThumb}
-                              onChange={(e) => handleUploadThumbnail(e, true)}
-                              className="hidden"
-                            />
-                          </label>
-                          <input
-                            type="url"
-                            value={currentPkg.thumbnailUrl || ""}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setEditingProduct({
-                                ...editingProduct,
-                                packages: editingProduct.packages.map((p) =>
-                                  p.id === currentPkg.id ? { ...p, thumbnailUrl: val } : p
-                                ),
-                              });
-                            }}
-                            placeholder="URL thumbnail khusus paket ini (kosongkan jika pakai thumbnail produk)"
-                            className="flex-1 w-full px-3 py-1.5 text-xs rounded-lg border border-white/10 bg-black text-white placeholder-neutral-600 focus:outline-none focus:border-teal-500 font-mono"
-                          />
-                        </div>
-                      </div>
+                      {/* Optional Package-Specific Thumbnail (Google Drive, YouTube, Internal, etc.) */}
+                      <ProductThumbnailUploaderField
+                        label="Thumbnail Khusus Paket Ini (Opsional)"
+                        sublabel="Kosongkan jika ingin memakai thumbnail produk di atas"
+                        value={currentPkg.thumbnailUrl || ""}
+                        onChange={(val) => {
+                          setEditingProduct({
+                            ...editingProduct,
+                            packages: editingProduct.packages.map((p) =>
+                              p.id === currentPkg.id ? { ...p, thumbnailUrl: val } : p
+                            ),
+                          });
+                        }}
+                        onUploadFile={(e) => handleUploadThumbnail(e, true)}
+                        isUploading={uploadingThumb}
+                        onClear={() => {
+                          setEditingProduct({
+                            ...editingProduct,
+                            packages: editingProduct.packages.map((p) =>
+                              p.id === currentPkg.id ? { ...p, thumbnailUrl: "" } : p
+                            ),
+                          });
+                        }}
+                        placeholder="Link Google Drive, YouTube, atau gambar khusus paket ini"
+                      />
 
                       {/* Price Note, Duration, Revisions */}
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

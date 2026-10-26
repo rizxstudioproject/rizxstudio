@@ -49,7 +49,10 @@ import {
   RiLockLine,
   RiArrowDownSLine,
   RiShareForwardLine,
+  RiDriveLine,
+  RiYoutubeFill,
 } from "react-icons/ri";
+import { parseMediaUrl, resolveThumbnailUrl } from "@/lib/mediaUrlHelper";
 
 export default function ProductsPage() {
   const { lang, tr } = useLang();
@@ -540,6 +543,13 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
             const currentPkg =
               product.packages.find((p) => p.id === currentPkgId) || product.packages[0];
 
+            // Resolve media info (Google Drive, YouTube, Internal Storage, direct URL)
+            const rawThumb = currentPkg.thumbnailUrl || product.thumbnailUrl || "";
+            const parsedMedia = parseMediaUrl(rawThumb);
+            const resolvedThumb =
+              resolveThumbnailUrl(rawThumb) ||
+              "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80";
+
             return (
               <div
                 key={product.id}
@@ -575,14 +585,30 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                 {/* ── CARD THUMBNAIL ON TOP (Aku mau setiap paket ada thumbnail di atasnya) ── */}
                 <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-neutral-900/80 border-b border-white/[0.08]">
                   <img
-                    src={
-                      currentPkg.thumbnailUrl ||
-                      product.thumbnailUrl ||
-                      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"
-                    }
+                    src={resolvedThumb}
                     alt={product.title}
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
                     loading="lazy"
+                    onError={(e) => {
+                      // Fallback for Google Drive
+                      if (parsedMedia.type === "gdrive" && parsedMedia.driveId) {
+                        const fallbackDrive = `https://drive.google.com/thumbnail?id=${parsedMedia.driveId}&sz=w1000`;
+                        if ((e.target as HTMLImageElement).src !== fallbackDrive) {
+                          (e.target as HTMLImageElement).src = fallbackDrive;
+                          return;
+                        }
+                      }
+                      // Fallback for YouTube
+                      if (parsedMedia.type === "youtube" && parsedMedia.youtubeId) {
+                        const fallbackYt = `https://img.youtube.com/vi/${parsedMedia.youtubeId}/hqdefault.jpg`;
+                        if ((e.target as HTMLImageElement).src !== fallbackYt) {
+                          (e.target as HTMLImageElement).src = fallbackYt;
+                          return;
+                        }
+                      }
+                      (e.target as HTMLImageElement).src =
+                        "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80";
+                    }}
                   />
                   {/* Subtle Dark Vignette at bottom */}
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0f1115] via-[#0f1115]/40 to-transparent pointer-events-none" />
@@ -601,6 +627,32 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                     </span>
 
                     <div className="flex items-center gap-1.5 pointer-events-auto">
+                      {/* YouTube Video Badge & Link */}
+                      {parsedMedia.type === "youtube" && parsedMedia.watchUrl && (
+                        <a
+                          href={parsedMedia.watchUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          title={tr("Tonton video demo di YouTube", "Tonton video demo di YouTube", "Tonton video demo")}
+                          className="px-2 py-0.5 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white text-[10px] font-mono flex items-center gap-1 shadow-md backdrop-blur-md transition-all cursor-pointer"
+                        >
+                          <RiYoutubeFill className="w-3.5 h-3.5 text-white" />
+                          <span>Video</span>
+                        </a>
+                      )}
+
+                      {/* Google Drive Badge */}
+                      {parsedMedia.type === "gdrive" && (
+                        <span
+                          title={tr("Media Google Drive", "Media Google Drive", "Media Google Drive")}
+                          className="px-2 py-0.5 rounded-full bg-emerald-900/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono flex items-center gap-1 shadow-md backdrop-blur-md"
+                        >
+                          <RiDriveLine className="w-3 h-3 text-emerald-400" />
+                          <span>Drive</span>
+                        </span>
+                      )}
+
                       {product.popular && (
                         <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-400 text-black border border-amber-300 font-sans shadow-md flex items-center gap-1">
                           <RiSparklingLine className="w-3 h-3 text-black" />
