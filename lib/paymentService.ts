@@ -19,6 +19,54 @@ export interface PaymentAccount {
   isActive?: boolean;
 }
 
+/**
+ * Auto-generate a high-resolution QR code URL for DANA, GoPay, OVO, ShopeePay, or QRIS
+ */
+export function generateAutoQrUrl(
+  category: "bank" | "qris" | "ewallet" | string,
+  name: string,
+  number: string,
+  holder?: string
+): string {
+  if (!number || !number.trim()) return "";
+  const cleanNumber = number.replace(/[^\d+]/g, "").trim();
+  const lowerName = (name || "").toLowerCase();
+
+  let qrPayload = "";
+  // 1. Direct EMVCo QRIS string
+  if (number.startsWith("00020101")) {
+    qrPayload = number.trim();
+  }
+  // 2. DANA E-Wallet deep link & instant transfer payload
+  else if (lowerName.includes("dana") || (category === "ewallet" && lowerName.includes("dana"))) {
+    const intlPhone = cleanNumber.startsWith("0") ? "62" + cleanNumber.slice(1) : cleanNumber;
+    qrPayload = `https://link.dana.id/qr?user=${intlPhone}`;
+  }
+  // 3. GoPay / Gojek payment link
+  else if (lowerName.includes("gopay") || lowerName.includes("go-pay")) {
+    const intlPhone = cleanNumber.startsWith("0") ? "62" + cleanNumber.slice(1) : cleanNumber;
+    qrPayload = `https://gopay.co.id/pay?to=${intlPhone}`;
+  }
+  // 4. OVO payment link
+  else if (lowerName.includes("ovo")) {
+    const intlPhone = cleanNumber.startsWith("0") ? "62" + cleanNumber.slice(1) : cleanNumber;
+    qrPayload = `https://api.ovo.id/v1.0/transfer?phone=${intlPhone}`;
+  }
+  // 5. ShopeePay
+  else if (lowerName.includes("shopee") || lowerName.includes("spay")) {
+    const intlPhone = cleanNumber.startsWith("0") ? "62" + cleanNumber.slice(1) : cleanNumber;
+    qrPayload = `shopeepay://pay?phone=${intlPhone}`;
+  }
+  // 6. Generic QRIS / Bank Transfer
+  else if (category === "qris") {
+    qrPayload = `QRIS:${cleanNumber}${holder ? `:${holder.toUpperCase()}` : ""}`;
+  } else {
+    qrPayload = `PAYMENT:${(name || "ACCOUNT").toUpperCase()}:${cleanNumber}${holder ? `:${holder.toUpperCase()}` : ""}`;
+  }
+
+  return `https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=${encodeURIComponent(qrPayload)}&margin=8`;
+}
+
 export const PAYMENT_ACCOUNTS: PaymentAccount[] = [
   {
     id: "bca",
@@ -59,6 +107,7 @@ export const PAYMENT_ACCOUNTS: PaymentAccount[] = [
     accountHolder: "Rizx Studio / Fomi R",
     instructions: "Kirim saldo DANA ke nomor akun di atas tanpa biaya admin.",
     badge: "E-Wallet",
+    qrImageUrl: "https://api.qrserver.com/v1/create-qr-code/?size=350x350&data=https%3A%2F%2Flink.dana.id%2Fqr%3Fuser%3D6282170214498&margin=8",
     isActive: true,
   },
 ];

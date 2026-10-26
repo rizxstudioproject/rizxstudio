@@ -337,16 +337,16 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
                 </p>
               </div>
 
-              {/* QRIS Image Preview if selected */}
-              {activeReceipt.paymentMethod === "qris" && activeReceipt.accountDetails.qrImageUrl && (
+              {/* QR Image Preview if available (QRIS, DANA, GoPay, OVO, dll) */}
+              {activeReceipt.accountDetails?.qrImageUrl && (
                 <div className="pt-2 flex flex-col items-center justify-center p-3 rounded-xl bg-white text-black">
                   <img
                     src={activeReceipt.accountDetails.qrImageUrl}
-                    alt="QRIS Rizx Studio"
+                    alt={activeReceipt.accountDetails.name || "QR Payment"}
                     className="w-44 h-44 object-contain"
                   />
                   <span className="text-[10px] font-mono font-bold text-neutral-800 mt-1">
-                    Scan QRIS Resmi Rizx Studio
+                    Scan Barcode {activeReceipt.accountDetails.name || "QRIS"}
                   </span>
                 </div>
               )}

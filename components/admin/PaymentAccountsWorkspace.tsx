@@ -24,6 +24,7 @@ import {
   PaymentAccount,
   getPaymentAccounts,
   savePaymentAccounts,
+  generateAutoQrUrl,
   PAYMENT_ACCOUNTS as DEFAULT_ACCOUNTS,
 } from "@/lib/paymentService";
 
@@ -54,6 +55,7 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
   const [formBadge, setFormBadge] = useState<string>("");
   const [formQrImageUrl, setFormQrImageUrl] = useState<string>("");
   const [isUploadingQr, setIsUploadingQr] = useState<boolean>(false);
+  const [isAutoQrEnabled, setIsAutoQrEnabled] = useState<boolean>(true);
   const [formError, setFormError] = useState<string>("");
 
   // Live Preview selector
@@ -116,12 +118,13 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
   const handleOpenAdd = () => {
     setEditingId(null);
     setFormName("");
-    setFormCategory("bank");
+    setFormCategory("ewallet");
     setFormAccountNumber("");
     setFormAccountHolder("Rizx Studio / Fomi R");
-    setFormInstructions("Transfer melalui mobile banking, ATM, atau internet banking.");
+    setFormInstructions("Kirim saldo atau transfer melalui mobile banking / e-wallet ke akun di atas.");
     setFormBadge("");
     setFormQrImageUrl("");
+    setIsAutoQrEnabled(true);
     setFormError("");
     setIsModalOpen(true);
   };
@@ -136,8 +139,39 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
     setFormInstructions(acc.instructions);
     setFormBadge(acc.badge || "");
     setFormQrImageUrl(acc.qrImageUrl || "");
+    setIsAutoQrEnabled(!acc.qrImageUrl);
     setFormError("");
     setIsModalOpen(true);
+  };
+
+  // Auto Generate QR Code helper
+  const handleAutoGenerateQr = (
+    category = formCategory,
+    name = formName,
+    number = formAccountNumber,
+    holder = formAccountHolder
+  ) => {
+    if (!number.trim()) {
+      notify("Ketik nomor DANA / GoPay / Rekening terlebih dahulu!");
+      return;
+    }
+    const autoUrl = generateAutoQrUrl(category, name, number, holder);
+    if (autoUrl) {
+      setFormQrImageUrl(autoUrl);
+      setIsAutoQrEnabled(true);
+      notify("Barcode QR berhasil di-generate otomatis!");
+    }
+  };
+
+  // Handler saat nomor akun/rekening diketik
+  const handleAccountNumberChange = (val: string) => {
+    setFormAccountNumber(val);
+    if (isAutoQrEnabled && val.trim().length >= 6) {
+      const autoUrl = generateAutoQrUrl(formCategory, formName, val, formAccountHolder);
+      if (autoUrl) {
+        setFormQrImageUrl(autoUrl);
+      }
+    }
   };
 
   // Toggle Active
@@ -222,7 +256,7 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
       accountHolder: formAccountHolder.trim(),
       instructions: formInstructions.trim() || "Transfer sesuai nominal pesanan.",
       badge: formBadge.trim() || undefined,
-      qrImageUrl: formCategory === "qris" ? formQrImageUrl.trim() || undefined : undefined,
+      qrImageUrl: formQrImageUrl.trim() || undefined,
       isActive: true,
     };
 
@@ -429,16 +463,21 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
                             {acc.instructions}
                           </p>
 
-                          {isQris && acc.qrImageUrl && (
+                          {acc.qrImageUrl && (
                             <div className="pt-2 flex items-center gap-3">
                               <img
                                 src={acc.qrImageUrl}
-                                alt="QRIS Barcode"
+                                alt={`${acc.name} Barcode`}
                                 className="w-16 h-16 rounded-lg object-contain bg-white p-1 border border-white/20 shadow-sm"
                               />
-                              <span className="text-[10px] font-mono text-neutral-400">
-                                Barcode QRIS aktif untuk instant scan
-                              </span>
+                              <div className="space-y-0.5">
+                                <span className={`text-[10px] font-mono font-semibold block ${isLight ? "text-teal-700" : "text-teal-300"}`}>
+                                  Barcode {isQris ? "QRIS" : isEwallet ? "E-Wallet" : "Akun"} Aktif
+                                </span>
+                                <span className={`text-[10px] font-mono block ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                                  Dapat di-scan langsung untuk instant payment
+                                </span>
+                              </div>
                             </div>
                           )}
                         </div>
@@ -670,8 +709,8 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
                   type="text"
                   required
                   value={formAccountNumber}
-                  onChange={(e) => setFormAccountNumber(e.target.value)}
-                  placeholder="misal: 82170214498"
+                  onChange={(e) => handleAccountNumberChange(e.target.value)}
+                  placeholder="misal: 082170214498 (DANA / GoPay) atau 82170214498 (BCA)"
                   className={`w-full px-3.5 py-2 rounded-xl border font-mono font-bold focus:outline-none focus:border-teal-500 ${
                     isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-black/60 border-white/10 text-white"
                   }`}
@@ -720,21 +759,33 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
                 />
               </div>
 
-              {/* QRIS Image Options */}
-              {formCategory === "qris" && (
-                <div className="p-3.5 rounded-xl border border-white/10 bg-white/[0.02] space-y-2">
-                  <label className="block font-mono font-medium text-amber-400">
-                    Gambar Barcode QRIS
-                  </label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="text"
-                      value={formQrImageUrl}
-                      onChange={(e) => setFormQrImageUrl(e.target.value)}
-                      placeholder="URL Gambar Barcode QRIS..."
-                      className="flex-1 px-3 py-1.5 rounded-lg border border-white/10 bg-black/60 text-white text-xs font-mono"
-                    />
-                    <label className="px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs cursor-pointer flex items-center gap-1 shrink-0">
+              {/* QR Code Barcode Options (Auto-Gen for DANA, GoPay, OVO, QRIS or Upload) */}
+              <div className={`p-3.5 rounded-xl border space-y-2.5 ${
+                isLight ? "bg-slate-50 border-slate-200" : "border-white/10 bg-white/[0.02]"
+              }`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="block font-mono font-bold text-xs text-teal-400 flex items-center gap-1.5">
+                      <RiQrCodeLine className="w-4 h-4" />
+                      <span>Barcode QR Pembayaran (DANA, GoPay, OVO, QRIS)</span>
+                    </label>
+                    <p className={`text-[10px] ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                      Otomatis di-generate saat nomor akun/HP diketik, atau upload barcode manual.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleAutoGenerateQr()}
+                      className="px-2.5 py-1 rounded-lg bg-teal-400 hover:bg-teal-300 text-black font-bold text-[11px] shadow-sm active:scale-95 transition flex items-center gap-1 cursor-pointer"
+                      title="Generate Barcode QR Otomatis"
+                    >
+                      <RiRefreshLine className="w-3.5 h-3.5" />
+                      <span>Auto-Gen QR</span>
+                    </button>
+
+                    <label className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/15 text-white font-semibold text-[11px] border border-white/15 cursor-pointer flex items-center gap-1 shrink-0 active:scale-95 transition">
                       <RiUpload2Line className="w-3.5 h-3.5" />
                       <span>{isUploadingQr ? "..." : "Upload QR"}</span>
                       <input
@@ -745,18 +796,59 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
                       />
                     </label>
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={formQrImageUrl}
+                    onChange={(e) => {
+                      setFormQrImageUrl(e.target.value);
+                      setIsAutoQrEnabled(false);
+                    }}
+                    placeholder="URL Barcode QR (Otomatis terisi saat nomor diinput)..."
+                    className={`flex-1 px-3 py-1.5 rounded-lg border text-xs font-mono focus:outline-none focus:border-teal-500 ${
+                      isLight ? "bg-white border-slate-300 text-slate-900" : "border-white/10 bg-black/60 text-white"
+                    }`}
+                  />
                   {formQrImageUrl && (
-                    <div className="pt-1 flex items-center gap-2">
-                      <img
-                        src={formQrImageUrl}
-                        alt="Preview QR"
-                        className="w-16 h-16 rounded-lg bg-white p-1 object-contain border"
-                      />
-                      <span className="text-[10px] text-neutral-400">Preview QRIS siap ditampilkan</span>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormQrImageUrl("");
+                        setIsAutoQrEnabled(false);
+                      }}
+                      className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/10 cursor-pointer text-xs"
+                      title="Hapus Barcode QR"
+                    >
+                      <RiCloseLine className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
-              )}
+
+                {formQrImageUrl && (
+                  <div className={`p-2.5 rounded-xl border flex items-center gap-3 ${
+                    isLight ? "bg-white border-slate-200" : "bg-black/40 border-white/10"
+                  }`}>
+                    <img
+                      src={formQrImageUrl}
+                      alt="Preview QR Code"
+                      className="w-16 h-16 rounded-lg bg-white p-1 object-contain border border-neutral-300 shadow-sm shrink-0"
+                    />
+                    <div className="space-y-0.5 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className={`text-[11px] font-mono font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
+                          Barcode QR Siap Tampil
+                        </span>
+                      </div>
+                      <p className={`text-[10px] leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                        Barcode ini akan tampil pada card pembayaran &amp; struk invoice pemesanan klien untuk scan instan.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
                 <button
