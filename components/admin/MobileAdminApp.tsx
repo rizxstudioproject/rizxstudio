@@ -551,7 +551,7 @@ export default function MobileAdminApp({
             <button
               type="button"
               onClick={() => {
-                navigateToWorkspace("products");
+                navigateToWorkspace("tracking");
                 setIncomingOrderAlert(null);
               }}
               className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500 text-black font-bold text-xs shadow-md active:scale-95 text-center cursor-pointer"

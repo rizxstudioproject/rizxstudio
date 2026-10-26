@@ -136,6 +136,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [globalSearchQuery, setGlobalSearchQuery] = useState("");
   const [clientsWorkspaceView, setClientsWorkspaceView] = useState<"folders" | "logos">("folders");
   const [storageSubTab, setStorageSubTab] = useState<"analytics" | "resources">("analytics");
+  const [trackingInitialTab, setTrackingInitialTab] = useState<"tracking" | "orders" | "payments">("tracking");
 
   // Redirect legacy / external resources links into storage workspace
   useEffect(() => {
@@ -2863,12 +2864,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <button
               type="button"
               onClick={() => {
-                setSidebarTab("products");
+                setSidebarTab("tracking");
+                setTrackingInitialTab("orders");
                 setIncomingProjectAlert(null);
               }}
               className="flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs shadow-md shadow-emerald-500/25 transition active:scale-95 text-center cursor-pointer"
             >
-              Buka & Konfirmasi Pesanan â†’
+              Buka & Konfirmasi Pesanan →
             </button>
           </div>
         </div>
@@ -3223,7 +3225,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className={`flex-1 overflow-y-auto ${
               isLight ? "bg-slate-50 text-slate-800" : "bg-[#0b0f19] text-neutral-200"
             }`}>
-              <ProjectTrackerWorkspace />
+              <ProjectTrackerWorkspace initialTab={trackingInitialTab} />
             </div>
           )}
 

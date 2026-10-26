@@ -27,6 +27,8 @@ import {
   RiUser3Line,
   RiCheckDoubleLine,
   RiFlashlightFill,
+  RiUserFollowLine,
+  RiBankCardLine,
 } from "react-icons/ri";
 import {
   getAllTrackedProjects,
@@ -42,6 +44,8 @@ import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
 import ReceiptProofModal, { ReceiptProofData } from "./ReceiptProofModal";
+import ClientOrdersManager from "./ClientOrdersManager";
+import PaymentAccountsWorkspace from "./PaymentAccountsWorkspace";
 
 const STUDIO_WORKFLOW_MILESTONES = [
   {
@@ -81,16 +85,35 @@ const getMilestoneCompletion = (stage: ProjectProgressStage, pct: number) => {
   return 1;
 };
 
-export default function ProjectTrackerWorkspace() {
+interface ProjectTrackerWorkspaceProps {
+  initialTab?: "tracking" | "orders" | "payments";
+}
+
+export default function ProjectTrackerWorkspace({
+  initialTab = "tracking",
+}: ProjectTrackerWorkspaceProps) {
   const { primaryColor, themeMode, socialContacts } = useMotionTheme();
   const isLight = themeMode === "light";
   const { tr } = useLang();
+
+  const [activeMainTab, setActiveMainTab] = useState<"tracking" | "orders" | "payments">(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveMainTab(initialTab);
+    }
+  }, [initialTab]);
 
   const [projects, setProjects] = useState<ProjectTrackingItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [stageFilter, setStageFilter] = useState<string>("ALL");
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Count pending kickoff orders
+  const pendingOrdersCount = useMemo(() => {
+    return projects.filter((p) => p.currentStage === "queued").length;
+  }, [projects]);
 
   // Modals
   const [editingProject, setEditingProject] = useState<ProjectTrackingItem | null>(null);
@@ -291,8 +314,95 @@ export default function ProjectTrackerWorkspace() {
         )}
       </AnimatePresence>
 
-      {/* Mobile Top Header (Reference Screen 1 style) */}
-      <div className="block md:hidden pb-1">
+      {/* Top Workspace View Switcher (Live Tracking Engine vs Incoming Orders vs Bank Accounts) */}
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 backdrop-blur-md overflow-x-auto scrollbar-none">
+        <button
+          type="button"
+          onClick={() => setActiveMainTab("tracking")}
+          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
+            activeMainTab === "tracking"
+              ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20 font-bold"
+              : "text-neutral-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <RiCompass3Line className="w-4 h-4" />
+          <span>{tr("Pelacakan Proyek (Live)", "Pelacakan Proyek (Live)", "Pelacakan Proyek (Live)")}</span>
+          <span
+            className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+              activeMainTab === "tracking"
+                ? "bg-black/25 text-black font-bold"
+                : "bg-white/10 text-neutral-400"
+            }`}
+          >
+            {projects.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab("orders")}
+          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
+            activeMainTab === "orders"
+              ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20 font-bold"
+              : "text-neutral-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <RiUserFollowLine className="w-4 h-4" />
+          <span>
+            {tr(
+              "Kelola Klien Masuk & Konfirmasi Pengerjaan",
+              "Kelola Klien Masuk & Konfirmasi Pengerjaan",
+              "Kelola Klien Masuak & Konfirmasi"
+            )}
+          </span>
+          {pendingOrdersCount > 0 ? (
+            <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-amber-400 text-black font-bold animate-pulse">
+              {pendingOrdersCount} Butuh Kickoff
+            </span>
+          ) : (
+            <span
+              className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                activeMainTab === "orders"
+                  ? "bg-black/25 text-black font-bold"
+                  : "bg-white/10 text-neutral-400"
+              }`}
+            >
+              {projects.length}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveMainTab("payments")}
+          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
+            activeMainTab === "payments"
+              ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20 font-bold"
+              : "text-neutral-400 hover:text-white hover:bg-white/5"
+          }`}
+        >
+          <RiBankCardLine className="w-4 h-4" />
+          <span>{tr("Nomor Rekening Bank & QRIS", "Nomor Rekening Bank & QRIS", "Rekening Bank & QRIS")}</span>
+          <span
+            className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+              activeMainTab === "payments"
+                ? "bg-black/25 text-black font-bold"
+                : "bg-white/10 text-neutral-400"
+            }`}
+          >
+            Publikasi
+          </span>
+        </button>
+      </div>
+
+      {activeMainTab === "orders" ? (
+        <ClientOrdersManager />
+      ) : activeMainTab === "payments" ? (
+        <PaymentAccountsWorkspace showToast={showToast} />
+      ) : (
+        <>
+          {/* Mobile Top Header (Reference Screen 1 style) */}
+          <div className="block md:hidden pb-1">
         <div className="flex items-center justify-between gap-3 mb-2">
           <div>
             <span className="text-[10px] font-mono uppercase tracking-wider text-teal-400 font-bold block">
@@ -1506,6 +1616,8 @@ export default function ProjectTrackerWorkspace() {
           onClose={() => setClientPreviewCode(null)}
           initialCode={clientPreviewCode}
         />
+      )}
+        </>
       )}
 
       {/* High-Res Receipt Proof Viewer */}

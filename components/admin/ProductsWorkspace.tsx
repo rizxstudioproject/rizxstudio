@@ -62,8 +62,6 @@ import {
   ProjectTrackingItem,
   subscribeToTrackerRealtime,
 } from "@/lib/projectTrackerService";
-import ClientOrdersManager from "./ClientOrdersManager";
-import PaymentAccountsWorkspace from "./PaymentAccountsWorkspace";
 
 const AVAILABLE_ICONS = [
   { name: "RiPaintLine", label: "Branding / Paint", icon: RiPaintLine },
@@ -375,9 +373,6 @@ export default function ProductsWorkspace() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [statusMessage, setStatusMessage] = useState<string>("");
-
-  // Main Workspace Tab (Catalog vs Incoming Client Orders vs Bank Accounts)
-  const [activeMainTab, setActiveMainTab] = useState<"catalog" | "orders" | "payments">("catalog");
   const [trackedOrders, setTrackedOrders] = useState<ProjectTrackingItem[]>([]);
 
   // Modal edit states
@@ -970,95 +965,8 @@ export default function ProductsWorkspace() {
         </div>
       </div>
 
-      {/* Top Workspace View Switcher (Catalog vs Incoming Client Orders) */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-neutral-900/80 border border-white/10 backdrop-blur-md">
-        <button
-          type="button"
-          onClick={() => setActiveMainTab("catalog")}
-          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer ${
-            activeMainTab === "catalog"
-              ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20"
-              : "text-neutral-400 hover:text-white hover:bg-white/5"
-          }`}
-        >
-          <RiBox3Line className="w-4 h-4" />
-          <span>{tr("Katalog Produk & Paket", "Katalog Produk & Paket", "Katalog Produk & Paket")}</span>
-          <span
-            className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-              activeMainTab === "catalog"
-                ? "bg-black/25 text-black font-bold"
-                : "bg-white/10 text-neutral-400"
-            }`}
-          >
-            {products.length}
-          </span>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveMainTab("orders")}
-          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer ${
-            activeMainTab === "orders"
-              ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20"
-              : "text-neutral-400 hover:text-white hover:bg-white/5"
-          }`}
-        >
-          <RiUserFollowLine className="w-4 h-4" />
-          <span>
-            {tr(
-              "Kelola Klien Masuk & Konfirmasi Pengerjaan",
-              "Kelola Klien Masuk & Konfirmasi Pengerjaan",
-              "Kelola Klien Masuak & Konfirmasi"
-            )}
-          </span>
-          {pendingOrdersCount > 0 ? (
-            <span className="text-[10px] px-2 py-0.5 rounded-full font-mono bg-amber-400 text-black font-bold animate-pulse">
-              {pendingOrdersCount} Butuh Kickoff
-            </span>
-          ) : (
-            <span
-              className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-                activeMainTab === "orders"
-                  ? "bg-black/25 text-black font-bold"
-                  : "bg-white/10 text-neutral-400"
-              }`}
-            >
-              {totalOrdersCount}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveMainTab("payments")}
-          className={`flex-1 sm:flex-initial px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-2 cursor-pointer ${
-            activeMainTab === "payments"
-              ? "bg-teal-500 text-black shadow-lg shadow-teal-500/20"
-              : "text-neutral-400 hover:text-white hover:bg-white/5"
-          }`}
-        >
-          <RiBankCardLine className="w-4 h-4" />
-          <span>{tr("Nomor Rekening Bank & QRIS", "Bank Accounts & Payments", "Rekening Bank & QRIS")}</span>
-          <span
-            className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
-              activeMainTab === "payments"
-                ? "bg-black/25 text-black font-bold"
-                : "bg-white/10 text-neutral-400"
-            }`}
-          >
-            Publikasi
-          </span>
-        </button>
-      </div>
-
-      {activeMainTab === "orders" ? (
-        <ClientOrdersManager />
-      ) : activeMainTab === "payments" ? (
-        <PaymentAccountsWorkspace showToast={showToast} />
-      ) : (
-        <>
-          {/* Metric Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="p-4 rounded-xl bg-neutral-900/60 border border-white/5 flex items-center justify-between">
           <div>
             <p className="text-xs text-neutral-400 font-mono uppercase tracking-wider">
@@ -1309,8 +1217,6 @@ export default function ProductsWorkspace() {
             );
           })}
         </div>
-      )}
-      </>
       )}
 
       {/* FULL EDIT / CREATE MODAL */}
