@@ -187,35 +187,35 @@ export const defaultHeroWorksData: HeroWorksData = {
       id: "d1",
       title: "Brand Identity",
       category: "Brand Identity",
-      image: "/assets/antigravity/selected-brand-identity.jpg",
+      image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-brand-identity.jpg",
       gradient: "from-red-600/60 to-black",
     },
     {
       id: "d2",
       title: "Campaign Visuals",
       category: "Campaign Visuals",
-      image: "/assets/antigravity/selected-campaign-visuals.jpg",
+      image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-campaign-visuals.jpg",
       gradient: "from-blue-600/60 to-black",
     },
     {
       id: "d3",
       title: "Motion Graphics",
       category: "Motion Graphics",
-      image: "/assets/antigravity/selected-motion-graphics.jpg",
+      image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-motion-graphics.jpg",
       gradient: "from-amber-500/60 to-black",
     },
     {
       id: "d4",
       title: "3D Design",
       category: "3D Design",
-      image: "/assets/antigravity/selected-3d-design.jpg",
+      image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg",
       gradient: "from-pink-500/60 to-black",
     },
     {
       id: "d5",
       title: "UI/UX Design",
       category: "UI/UX Design",
-      image: "/assets/antigravity/selected-uiux-design.jpg",
+      image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-uiux-design.jpg",
       gradient: "from-cyan-500/60 to-black",
     },
   ],
@@ -230,10 +230,10 @@ export const defaultHeroWorksData: HeroWorksData = {
     { id: 2, text: "@malaka", color: "bg-neutral-800 text-white border-neutral-700" },
   ],
   overlappingCards: [
-    { id: "o1", title: "Branding", image: "/assets/antigravity/selected-brand-identity.jpg", rotate: -8 },
-    { id: "o2", title: "Motion", image: "/assets/antigravity/selected-motion-graphics.jpg", rotate: -3 },
-    { id: "o3", title: "UI/UX", image: "/assets/antigravity/selected-uiux-design.jpg", rotate: 3 },
-    { id: "o4", title: "AI Visuals", image: "/assets/antigravity/selected-3d-design.jpg", rotate: 7 },
+    { id: "o1", title: "Branding", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-brand-identity.jpg", rotate: -8 },
+    { id: "o2", title: "Motion", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-motion-graphics.jpg", rotate: -3 },
+    { id: "o3", title: "UI/UX", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-uiux-design.jpg", rotate: 3 },
+    { id: "o4", title: "AI Visuals", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg", rotate: 7 },
   ],
 };
 
@@ -252,39 +252,39 @@ export interface ClientLogosData {
 export const defaultClientLogosData: ClientLogosData = {
   subtitle: "Selected Clients & Creative Collaborations",
   logos: [
-    { id: "cl-1", name: "Tokopedia", file: "/logos/logo_01.svg", row: 1 },
-    { id: "cl-2", name: "11ST", file: "/logos/logo_02.svg", row: 1 },
-    { id: "cl-3", name: "Samsung", file: "/logos/logo_03.svg", row: 1 },
-    { id: "cl-4", name: "Nexon", file: "/logos/logo_04.svg", row: 1 },
-    { id: "cl-5", name: "Client", file: "/logos/logo_05.svg", row: 1 },
-    { id: "cl-6", name: "TruCarbon", file: "/logos/logo_06.svg", row: 1 },
-    { id: "cl-7", name: "Client", file: "/logos/logo_07.svg", row: 1 },
-    { id: "cl-8", name: "Client", file: "/logos/logo_07-1.svg", row: 1 },
-    { id: "cl-9", name: "Client", file: "/logos/logo_08.svg", row: 1 },
-    { id: "cl-10", name: "SuperSmart", file: "/logos/logo_09.svg", row: 1 },
-    { id: "cl-11", name: "Asian Trust Capital", file: "/logos/logo_10.svg", row: 1 },
-    { id: "cl-12", name: "Client", file: "/logos/logo_11.svg", row: 1 },
-    { id: "cl-13", name: "Client", file: "/logos/logo_12.svg", row: 1 },
-    { id: "cl-14", name: "Client", file: "/logos/logo_13.svg", row: 1 },
-    { id: "cl-15", name: "EDUF", file: "/logos/logo_14.svg", row: 1 },
-    { id: "cl-16", name: "Client", file: "/logos/logo_15.svg", row: 1 },
-    { id: "cl-17", name: "Client", file: "/logos/logo_16.svg", row: 2 },
-    { id: "cl-18", name: "Client", file: "/logos/logo_17.svg", row: 2 },
-    { id: "cl-19", name: "Client", file: "/logos/logo_18.svg", row: 2 },
-    { id: "cl-20", name: "Client", file: "/logos/logo_19.svg", row: 2 },
-    { id: "cl-21", name: "KB Bukopin", file: "/logos/logo_20.svg", row: 2 },
-    { id: "cl-22", name: "Burger King", file: "/logos/logo_21.svg", row: 2 },
-    { id: "cl-23", name: "Client", file: "/logos/logo_22.svg", row: 2 },
-    { id: "cl-24", name: "Withings", file: "/logos/logo_23.svg", row: 2 },
-    { id: "cl-25", name: "Client", file: "/logos/logo_24.svg", row: 2 },
-    { id: "cl-26", name: "Client", file: "/logos/logo_25.svg", row: 2 },
-    { id: "cl-27", name: "LINE", file: "/logos/logo_26.svg", row: 2 },
-    { id: "cl-28", name: "Client", file: "/logos/logo_26-1.svg", row: 2 },
-    { id: "cl-29", name: "Kotra", file: "/logos/logo_27.svg", row: 2 },
-    { id: "cl-30", name: "WebToon", file: "/logos/logo_28.svg", row: 2 },
-    { id: "cl-31", name: "Shortiz", file: "/logos/logo_29.svg", row: 2 },
-    { id: "cl-32", name: "iLOTTE", file: "/logos/logo_30.svg", row: 2 },
-    { id: "cl-33", name: "Client", file: "/logos/logo_31.svg", row: 2 },
+    { id: "cl-1", name: "Tokopedia", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_01.svg", row: 1 },
+    { id: "cl-2", name: "11ST", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_02.svg", row: 1 },
+    { id: "cl-3", name: "Samsung", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_03.svg", row: 1 },
+    { id: "cl-4", name: "Nexon", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_04.svg", row: 1 },
+    { id: "cl-5", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_05.svg", row: 1 },
+    { id: "cl-6", name: "TruCarbon", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_06.svg", row: 1 },
+    { id: "cl-7", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_07.svg", row: 1 },
+    { id: "cl-8", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_07-1.svg", row: 1 },
+    { id: "cl-9", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_08.svg", row: 1 },
+    { id: "cl-10", name: "SuperSmart", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_09.svg", row: 1 },
+    { id: "cl-11", name: "Asian Trust Capital", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_10.svg", row: 1 },
+    { id: "cl-12", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_11.svg", row: 1 },
+    { id: "cl-13", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_12.svg", row: 1 },
+    { id: "cl-14", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_13.svg", row: 1 },
+    { id: "cl-15", name: "EDUF", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_14.svg", row: 1 },
+    { id: "cl-16", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_15.svg", row: 1 },
+    { id: "cl-17", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_16.svg", row: 2 },
+    { id: "cl-18", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_17.svg", row: 2 },
+    { id: "cl-19", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_18.svg", row: 2 },
+    { id: "cl-20", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_19.svg", row: 2 },
+    { id: "cl-21", name: "KB Bukopin", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_20.svg", row: 2 },
+    { id: "cl-22", name: "Burger King", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_21.svg", row: 2 },
+    { id: "cl-23", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_22.svg", row: 2 },
+    { id: "cl-24", name: "Withings", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_23.svg", row: 2 },
+    { id: "cl-25", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_24.svg", row: 2 },
+    { id: "cl-26", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_25.svg", row: 2 },
+    { id: "cl-27", name: "LINE", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_26.svg", row: 2 },
+    { id: "cl-28", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_26-1.svg", row: 2 },
+    { id: "cl-29", name: "Kotra", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_27.svg", row: 2 },
+    { id: "cl-30", name: "WebToon", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_28.svg", row: 2 },
+    { id: "cl-31", name: "Shortiz", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_29.svg", row: 2 },
+    { id: "cl-32", name: "iLOTTE", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_30.svg", row: 2 },
+    { id: "cl-33", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_31.svg", row: 2 },
   ],
 };
 
@@ -329,24 +329,24 @@ export const defaultPortfolioRunnerData: PortfolioRunnerData = {
   title: "SELECTED WORKS",
   items: [
     // Row 1
-    { id: "pr-1", title: "KIA EV2 Concept", category: "Automotive", image: "/works/client-KIA/KIA EV2_B.jpg", row: 1 },
-    { id: "pr-2", title: "Brand Identity", category: "Branding", image: "/assets/antigravity/selected-brand-identity.jpg", row: 1 },
-    { id: "pr-3", title: "Burger King Campaign", category: "Campaign", image: "/works/client-Burger King/Burger_ads06.jpg", row: 1 },
-    { id: "pr-4", title: "UI/UX Design Platform", category: "UI/UX", image: "/assets/antigravity/selected-uiux-design.jpg", row: 1 },
-    { id: "pr-5", title: "Xeilos Digital Ad", category: "Advertising", image: "/works/client-Xeilos/ad01.jpg", row: 1 },
-    { id: "pr-6", title: "KIA PBV Concept", category: "Automotive", image: "/works/client-KIA/KIA PBV_A.jpg", row: 1 },
-    { id: "pr-7", title: "Motion Graphics Visual", category: "Motion", image: "/assets/antigravity/selected-motion-graphics.jpg", row: 1 },
-    { id: "pr-8", title: "Social Content Series", category: "Social Media", image: "/works/client-Hyashop/01A.jpg", row: 1 },
+    { id: "pr-1", title: "KIA EV2 Concept", category: "Automotive", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20EV2_B.jpg", row: 1 },
+    { id: "pr-2", title: "Brand Identity", category: "Branding", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-brand-identity.jpg", row: 1 },
+    { id: "pr-3", title: "Burger King Campaign", category: "Campaign", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Burger%20King/Burger_ads06.jpg", row: 1 },
+    { id: "pr-4", title: "UI/UX Design Platform", category: "UI/UX", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-uiux-design.jpg", row: 1 },
+    { id: "pr-5", title: "Xeilos Digital Ad", category: "Advertising", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Xeilos/ad01.jpg", row: 1 },
+    { id: "pr-6", title: "KIA PBV Concept", category: "Automotive", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20PBV_A.jpg", row: 1 },
+    { id: "pr-7", title: "Motion Graphics Visual", category: "Motion", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-motion-graphics.jpg", row: 1 },
+    { id: "pr-8", title: "Social Content Series", category: "Social Media", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Hyashop/01A.jpg", row: 1 },
 
     // Row 2
-    { id: "pr-9", title: "Digital Campaign Suite", category: "Advertising", image: "/works/client-Xeilos/ad07.jpg", row: 2 },
-    { id: "pr-10", title: "Lifestyle Visuals", category: "Social Media", image: "/works/client-Hyashop/1952.jpg", row: 2 },
-    { id: "pr-11", title: "KIA EV2 Emerald Edition", category: "Automotive", image: "/works/client-KIA/KIA EV2_G.jpg", row: 2 },
-    { id: "pr-12", title: "Burger King Visuals", category: "Campaign", image: "/works/client-Burger King/Burger_ads07.jpg", row: 2 },
-    { id: "pr-13", title: "Creative Flagship Banner", category: "Brand Vision", image: "/assets/antigravity/hero-large.jpg", row: 2 },
-    { id: "pr-14", title: "Permifast Brand Campaign", category: "Brand Identity", image: "/works/client-Permifast/Permifast04.jpg", row: 2 },
-    { id: "pr-15", title: "3D Spatial Design", category: "3D Design", image: "/assets/antigravity/selected-3d-design.jpg", row: 2 },
-    { id: "pr-16", title: "Campaign Motion Reel", category: "Visuals", image: "/assets/antigravity/selected-campaign-visuals.jpg", row: 2 },
+    { id: "pr-9", title: "Digital Campaign Suite", category: "Advertising", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Xeilos/ad07.jpg", row: 2 },
+    { id: "pr-10", title: "Lifestyle Visuals", category: "Social Media", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Hyashop/1952.jpg", row: 2 },
+    { id: "pr-11", title: "KIA EV2 Emerald Edition", category: "Automotive", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20EV2_G.jpg", row: 2 },
+    { id: "pr-12", title: "Burger King Visuals", category: "Campaign", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Burger%20King/Burger_ads07.jpg", row: 2 },
+    { id: "pr-13", title: "Creative Flagship Banner", category: "Brand Vision", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg", row: 2 },
+    { id: "pr-14", title: "Permifast Brand Campaign", category: "Brand Identity", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Permifast/Permifast04.jpg", row: 2 },
+    { id: "pr-15", title: "3D Spatial Design", category: "3D Design", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg", row: 2 },
+    { id: "pr-16", title: "Campaign Motion Reel", category: "Visuals", image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-campaign-visuals.jpg", row: 2 },
   ],
   speedRow1: 85,
   speedRow2: 95,
@@ -509,7 +509,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           const parsed = JSON.parse(stored);
           if (parsed.stage3) {
             const raw = parsed.stage3.heroCard?.image;
-            const validImage = (raw && raw !== "/assets/antigravity/hero-large.jpg") ? raw : "";
+            const validImage = (raw && raw !== "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg") ? raw : "";
             const parsedHero = parsed.stage3.heroCard || {};
             const resolvedMediaType = parsedHero.mediaType || (
               parsedHero.gdriveId || parsedHero.gdriveUrl ? "gdrive" :
@@ -702,7 +702,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             ? parsedHero.isVideoEnabled
             : (resolvedMediaType !== "image");
           const rawImg = parsedHero.image;
-          const validImg = (rawImg && rawImg !== "/assets/antigravity/hero-large.jpg") ? rawImg : "";
+          const validImg = (rawImg && rawImg !== "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg") ? rawImg : "";
 
           const loadedStage3 = {
             ...antigravityData.stage3,
@@ -823,7 +823,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         getStage3ImageFromDB().then((cachedImg) => {
           if (cachedImg) {
             setStage3((prev) => {
-              if (!prev.heroCard.image || prev.heroCard.image === "/assets/antigravity/hero-large.jpg") {
+              if (!prev.heroCard.image || prev.heroCard.image === "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg") {
                 const updated = {
                   ...prev,
                   heroCard: {
@@ -863,7 +863,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           if (!heroError && heroData) {
             setStage3((prev) => {
               const cloudImg =
-                !heroData.image_url || heroData.image_url === "/assets/antigravity/hero-large.jpg"
+                !heroData.image_url || heroData.image_url === "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg"
                   ? ""
                   : heroData.image_url;
               const ytUrl = heroData.youtube_url ?? prev.heroCard.youtubeUrl;
@@ -910,7 +910,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 setStage3((prev) => {
                   const rawParsedImg = parsedStage3.heroCard?.image;
                   const cloudImg =
-                    !rawParsedImg || rawParsedImg === "/assets/antigravity/hero-large.jpg"
+                    !rawParsedImg || rawParsedImg === "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg"
                       ? ""
                       : rawParsedImg;
                   const updated = {

@@ -5019,7 +5019,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         type="text"
                         value={newRunnerImage}
                         onChange={(e) => setNewRunnerImage(e.target.value)}
-                        placeholder="/works/client-KIA/KIA EV2_B.jpg atau URL online"
+                        placeholder="https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20EV2_B.jpg atau URL online"
                         className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                       />
                       <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
@@ -5692,7 +5692,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             type="text"
                             value={flagshipImageUrl.startsWith("data:") ? `[${tx("Gambar Terupload", "Uploaded Image", "Gambar Taupload")} - ${(flagshipImageUrl.length / 1024).toFixed(0)} KB]` : flagshipImageUrl}
                             onChange={(e) => setFlagshipImageUrl(e.target.value)}
-                            placeholder="/assets/antigravity/hero-large.jpg atau URL gambar"
+                            placeholder="https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg atau URL gambar"
                             readOnly={flagshipImageUrl.startsWith("data:")}
                             className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f]"
                           />

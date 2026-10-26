@@ -607,7 +607,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
   // Selected Cover Image: first work image or custom cover
   const coverImageUrl =
     selectedClient?.works?.[0]?.image ||
-    "/assets/antigravity/hero-large.jpg";
+    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg";
 
   const handleCoverFileSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

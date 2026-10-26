@@ -59,7 +59,7 @@ export default function CreativeJourney() {
   const isShowingYouTube = mediaType === "youtube" && Boolean(youtubeId);
   const isShowingGDrive = mediaType === "gdrive" && Boolean(gdriveId);
   const rawImage = stage3?.heroCard?.image;
-  const imageSrc = (rawImage && rawImage !== "/assets/antigravity/hero-large.jpg") ? rawImage : "";
+  const imageSrc = (rawImage && rawImage !== "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg") ? rawImage : "";
 
   return (
     <section id="creative-journey" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">

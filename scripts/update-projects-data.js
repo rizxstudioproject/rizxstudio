@@ -8,7 +8,7 @@ let content = fs.readFileSync(filePath, 'utf8');
 content = content.replace(
   /heroCard:\s*\{[\s\S]*?aspectRatio:\s*"16:9",?\s*\}/,
   `heroCard: {
-      image: "/assets/antigravity/hero-large.jpg",
+      image: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg",
       title: "From Visual Craft to Technology",
       category: "VISUAL CRAFT | DIGITAL | AI",
       aspectRatio: "16:9",

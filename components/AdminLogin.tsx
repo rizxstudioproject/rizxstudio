@@ -543,7 +543,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
           <div
             className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage: `url('/assets/antigravity/hero-large.jpg')`,
+              backgroundImage: `url('https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg')`,
               filter: "brightness(0.55) saturate(0.7)",
             }}
           />

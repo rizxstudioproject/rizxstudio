@@ -1,10 +1,26 @@
 import { NextResponse } from "next/server";
-import fs from "fs/promises";
-import path from "path";
+import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 // Allow up to 50MB payload for multi-frame sequence uploads
 export const runtime = "nodejs";
+
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://tbbfetcuiplwlxcyjayw.supabase.co";
+const SUPABASE_KEY =
+  process.env.SUPABASE_SERVICE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "sb_publishable_NCtw2Ef307vYdZsF27LlFQ_N9n7yPsh";
+
+const BUCKET = "portfolio-media";
+const SEQUENCE_PREFIX = "sequence";
+
+function getSupabase() {
+  return createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false },
+  });
+}
 
 export async function POST(req: Request) {
   try {
@@ -19,42 +35,76 @@ export async function POST(req: Request) {
     }
 
     // Natural sort by filename (e.g., frame_01, frame_02, ... frame_120)
-    const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
-    const sortedFiles = [...files].sort((a, b) => collator.compare(a.name, b.name));
+    const collator = new Intl.Collator(undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
+    const sortedFiles = [...files].sort((a, b) =>
+      collator.compare(a.name, b.name)
+    );
 
-    const targetDir = path.join(process.cwd(), "public", "uploads", "hero-sequence");
-    await fs.mkdir(targetDir, { recursive: true });
+    const supabase = getSupabase();
 
-    // Clean existing files in custom sequence directory before saving new batch
+    // Hapus frame-frame lama di Supabase Storage
     try {
-      const existing = await fs.readdir(targetDir);
-      for (const f of existing) {
-        await fs.unlink(path.join(targetDir, f)).catch(() => {});
+      const { data: existing } = await supabase.storage
+        .from(BUCKET)
+        .list(SEQUENCE_PREFIX);
+      if (existing && existing.length > 0) {
+        const oldPaths = existing.map((f) => `${SEQUENCE_PREFIX}/${f.name}`);
+        await supabase.storage.from(BUCKET).remove(oldPaths);
       }
     } catch {
-      // ignore readdir error if dir is new
+      // ignore jika folder sequence belum ada
     }
 
     const writtenUrls: string[] = [];
-    const firstExt = path.extname(sortedFiles[0].name) || ".webp";
+    const firstExt =
+      "." + (sortedFiles[0].name.split(".").pop() || "webp");
 
     for (let i = 0; i < sortedFiles.length; i++) {
       const file = sortedFiles[i];
-      const ext = path.extname(file.name) || firstExt;
+      const ext =
+        "." + (file.name.split(".").pop() || firstExt.slice(1));
       const padded = String(i).padStart(6, "0");
       const filename = `frame_${padded}${ext.toLowerCase()}`;
-      const filePath = path.join(targetDir, filename);
+      const remotePath = `${SEQUENCE_PREFIX}/${filename}`;
 
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
-      await fs.writeFile(filePath, buffer);
-      writtenUrls.push(`/uploads/hero-sequence/${filename}`);
+
+      const mimeType =
+        ext === ".webp"
+          ? "image/webp"
+          : ext === ".jpg" || ext === ".jpeg"
+          ? "image/jpeg"
+          : ext === ".png"
+          ? "image/png"
+          : "image/webp";
+
+      const { error } = await supabase.storage
+        .from(BUCKET)
+        .upload(remotePath, buffer, {
+          contentType: mimeType,
+          upsert: true,
+        });
+
+      if (error) {
+        console.error(`Error uploading ${filename}:`, error.message);
+        continue;
+      }
+
+      const { data } = supabase.storage
+        .from(BUCKET)
+        .getPublicUrl(remotePath);
+
+      writtenUrls.push(data.publicUrl);
     }
 
     return NextResponse.json({
       success: true,
-      totalFrames: sortedFiles.length,
-      folder: "/uploads/hero-sequence",
+      totalFrames: writtenUrls.length,
+      folder: `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${SEQUENCE_PREFIX}`,
       pattern: `frame_{padded}${firstExt.toLowerCase()}`,
       padding: 6,
       startIndex: 0,
@@ -71,9 +121,18 @@ export async function POST(req: Request) {
 
 export async function DELETE() {
   try {
-    const targetDir = path.join(process.cwd(), "public", "uploads", "hero-sequence");
-    await fs.rm(targetDir, { recursive: true, force: true }).catch(() => {});
-    return NextResponse.json({ success: true, message: "Sequence custom berhasil di-reset." });
+    const supabase = getSupabase();
+    const { data: existing } = await supabase.storage
+      .from(BUCKET)
+      .list(SEQUENCE_PREFIX);
+    if (existing && existing.length > 0) {
+      const paths = existing.map((f) => `${SEQUENCE_PREFIX}/${f.name}`);
+      await supabase.storage.from(BUCKET).remove(paths);
+    }
+    return NextResponse.json({
+      success: true,
+      message: "Sequence custom berhasil di-reset dari Supabase Storage.",
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err?.message }, { status: 500 });
   }

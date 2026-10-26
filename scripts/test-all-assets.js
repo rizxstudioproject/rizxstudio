@@ -36,7 +36,7 @@ async function testAll() {
     }
 
     // Verify first webp frame
-    const frameRes = await fetch("http://localhost:3000/sequence/frame_000000.webp");
+    const frameRes = await fetch("http://localhost:3000https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence/frame_000000.webp");
     console.log("\n4. Sequence Frame Check:");
     console.log("frame_000000.webp status:", frameRes.status, `(${frameRes.headers.get("content-type")})`);
 
