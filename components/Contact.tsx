@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import SpotlightCard from "./SpotlightCard";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { useLang } from "@/context/LanguageContext";
@@ -149,9 +150,10 @@ export default function Contact() {
 
           {/* Center: Nav links */}
           <div className="flex items-center gap-7 text-neutral-400 text-xs">
-            <a href="#clients" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.clients")}</a>
-            <a href="#projects" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.work")}</a>
-            <a href="#about" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.about")}</a>
+            <Link href="/#clients" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.clients")}</Link>
+            <Link href="/#projects" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.work")}</Link>
+            <Link href="/products" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.products")}</Link>
+            <Link href="/#about" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.about")}</Link>
           </div>
 
           {/* Right: Language Switcher */}
@@ -209,9 +211,10 @@ export default function Contact() {
         {/* ── MOBILE LAYOUT (below md) ── */}
         <div className="flex md:hidden flex-col items-center justify-center gap-5 text-center">
           <div className="flex flex-wrap items-center justify-center gap-4 text-neutral-300 text-xs">
-            <a href="#clients" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.clients")}</a>
-            <a href="#projects" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.work")}</a>
-            <a href="#about" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.about")}</a>
+            <Link href="/#clients" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.clients")}</Link>
+            <Link href="/#projects" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.work")}</Link>
+            <Link href="/products" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.products")}</Link>
+            <Link href="/#about" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.about")}</Link>
 
             {/* Mobile Footer Language Selector — Open 3-segment pill with instant 1-touch switching */}
             <div

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
 import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
 import { RiSunFill, RiMoonFill } from "react-icons/ri";
@@ -9,6 +11,9 @@ import { useMotionTheme } from "@/context/MotionThemeContext";
 import { normalizeSocialUrl, formatWhatsAppUrl } from "@/lib/socialService";
 
 export default function Navbar() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const isProductsPage = pathname === "/products";
   const [activeSection, setActiveSection] = useState<string>("");
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -114,6 +119,10 @@ export default function Navbar() {
 
   const scrollTo = (id: string) => {
     setMobileMenuOpen(false);
+    if (pathname !== "/") {
+      router.push(`/#${id}`);
+      return;
+    }
     const el = document.getElementById(id);
     if (el) {
       const yOffset = -70;
@@ -173,9 +182,13 @@ export default function Navbar() {
           <button
             onClick={() => {
               setMobileMenuOpen(false);
-              window.scrollTo({ top: 0, behavior: "smooth" });
+              if (pathname !== "/") {
+                router.push("/");
+              } else {
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }
             }}
-            className="flex items-center hover:opacity-80 transition-opacity"
+            className="flex items-center hover:opacity-80 transition-opacity cursor-pointer"
             aria-label="Back to top"
           >
             <img
@@ -209,14 +222,24 @@ export default function Navbar() {
             </button>
             <button
               onClick={() => scrollTo("projects")}
-              className={`transition-colors duration-200 ${
-                activeSection === "projects"
+              className={`transition-colors duration-200 cursor-pointer ${
+                activeSection === "projects" && !isProductsPage
                   ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
                   : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
               }`}
             >
               {t("nav.work")}
             </button>
+            <Link
+              href="/products"
+              className={`transition-colors duration-200 cursor-pointer ${
+                isProductsPage
+                  ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                  : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              {t("nav.products")}
+            </Link>
             <a
               href={waUrl}
               target="_blank"
@@ -370,12 +393,25 @@ export default function Navbar() {
           </button>
           <button
             onClick={() => scrollTo("projects")}
-            className={`text-left py-1 text-sm font-medium transition-colors ${
-              isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
+            className={`text-left py-1 text-sm font-medium transition-colors cursor-pointer ${
+              activeSection === "projects" && !isProductsPage
+                ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                : isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
             }`}
           >
             {t("nav.work")}
           </button>
+          <Link
+            href="/products"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`text-left py-1 text-sm font-medium transition-colors cursor-pointer ${
+              isProductsPage
+                ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                : isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
+            }`}
+          >
+            {t("nav.products")}
+          </Link>
 
           {/* Contact Direct WhatsApp Link in Mobile Drawer */}
           <a
