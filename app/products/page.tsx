@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import WhatsAppPopup from "@/components/WhatsAppPopup";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
 import ProductPackageCompareModal from "@/components/ProductPackageCompareModal";
+import ProductShareModal from "@/components/ProductShareModal";
 import OrderReceiptModal from "@/components/OrderReceiptModal";
 import { registerTrackedProject } from "@/lib/projectTrackerService";
 import { broadcastNewIncomingOrder } from "@/lib/adminNotificationService";
@@ -170,6 +171,12 @@ export default function ProductsPage() {
   const [compareProduct, setCompareProduct] = useState<any | null>(null);
   const [isCompareModalOpen, setIsCompareModalOpen] = useState<boolean>(false);
 
+  // Dedicated Product & Package Share Modal state
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [shareTargetProduct, setShareTargetProduct] = useState<any | null>(null);
+  const [shareTargetPkg, setShareTargetPkg] = useState<any | null>(null);
+  const [highlightedCardId, setHighlightedCardId] = useState<string | null>(null);
+
   const formRef = useRef<HTMLDivElement>(null);
 
   // Prevent background scrolling when product picker is open
@@ -195,6 +202,7 @@ export default function ProductsPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isProductPickerOpen]);
 
+  // Check URL params for tracking code, shared product, and shared package
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
@@ -202,6 +210,31 @@ export default function ProductsPage() {
       if (trackParam) {
         setTrackerInitialCode(trackParam);
         setIsTrackerModalOpen(true);
+      }
+
+      // Check for deep-linked shared product and package
+      const productParam =
+        params.get("product") ||
+        (window.location.hash ? window.location.hash.replace("#", "") : null);
+      const packageParam = params.get("package") || params.get("pkg");
+
+      if (productParam) {
+        if (packageParam) {
+          setActivePackages((prev) => ({ ...prev, [productParam]: packageParam }));
+        }
+        setHighlightedCardId(productParam);
+
+        // Smooth scroll to shared product card
+        setTimeout(() => {
+          const el = document.getElementById(productParam);
+          if (el) {
+            const yOffset = -90;
+            const y = el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
+        }, 400);
+
+        setTimeout(() => setHighlightedCardId(null), 4500);
       }
     }
   }, []);
@@ -257,46 +290,19 @@ export default function ProductsPage() {
     }
   };
 
-  // Share Product & Package
+  // Share Product & Package via dedicated Modal
   const [shareToast, setShareToast] = useState<string | null>(null);
 
-  const handleShareProduct = async (product: any, pkg?: any) => {
-    const pkgName = pkg?.name ? ` — Paket ${pkg.name}` : "";
-    const title = `${product.title}${pkgName} | Rizx Studio`;
-    const text = `Lihat layanan kreatif "${product.title}"${pkgName} di Rizx Studio:\n"${product.tagline}"`;
-    const shareUrl =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/products#${product.id}`
-        : "https://rizxstudio.com/products";
+  const handleShareProduct = (product: any, pkg?: any) => {
+    const currentPkgId = getActivePackage(product.id);
+    const activePkg =
+      pkg ||
+      product.packages?.find((p: any) => p.id === currentPkgId) ||
+      product.packages?.[0];
 
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text,
-          url: shareUrl,
-        });
-        return;
-      } catch (err) {
-        // User cancelled or share dismissed
-      }
-    }
-
-    if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
-      try {
-        await navigator.clipboard.writeText(`${title}\n${shareUrl}`);
-        setShareToast(
-          tr(
-            `Link for "${product.title}" copied to clipboard! Ready to share.`,
-            `Tautan paket "${product.title}" berhasil disalin! Siap dibagikan ke WhatsApp / Sosmed.`,
-            `Tautan paket "${product.title}" lah disalin! Siap dibagi-an.`
-          )
-        );
-        setTimeout(() => setShareToast(null), 3200);
-      } catch (e) {
-        console.warn("Clipboard copy failed:", e);
-      }
-    }
+    setShareTargetProduct(product);
+    setShareTargetPkg(activePkg);
+    setIsShareModalOpen(true);
   };
 
   // Filtered Products
@@ -598,11 +604,16 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
               resolveThumbnailUrl(rawThumb) ||
               "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80";
 
+            const isCardHighlighted = highlightedCardId === product.id;
+
             return (
               <div
                 key={product.id}
-                className={`group relative rounded-2xl border transition-all duration-300 flex flex-col justify-between overflow-hidden ${
-                  product.isClosed
+                id={product.id}
+                className={`group relative rounded-2xl border transition-all duration-500 flex flex-col justify-between overflow-hidden scroll-mt-28 ${
+                  isCardHighlighted
+                    ? "ring-2 ring-[#16b09f] shadow-[0_0_35px_rgba(22,176,159,0.35)] scale-[1.01]"
+                    : product.isClosed
                     ? "bg-neutral-950/90 border-rose-500/30 opacity-90"
                     : isLight
                     ? "bg-white border-slate-200/90 shadow-lg hover:shadow-xl hover:border-slate-300"
@@ -1670,6 +1681,16 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
         onClose={() => setIsCompareModalOpen(false)}
         product={compareProduct}
         onSelectPackage={handleSelectPackageFromCompare}
+        onSharePackage={(prod, pkg) => handleShareProduct(prod, pkg)}
+      />
+
+      {/* Dedicated In-App Package Share Modal (Menampilkan Paket yang Dibagikan) */}
+      <ProductShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        product={shareTargetProduct}
+        pkg={shareTargetPkg}
+        onOrderPackage={(prod, pkg) => handleSelectPackageCTA(prod, pkg)}
       />
 
       {/* Project Tracker Modal */}

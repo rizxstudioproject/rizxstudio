@@ -25,6 +25,7 @@ interface ProductPackageCompareModalProps {
   onClose: () => void;
   product: any | null; // Can be ProductItem or localized product object
   onSelectPackage: (productId: string, packageId: string) => void;
+  onSharePackage?: (product: any, packageObj: any) => void;
 }
 
 export default function ProductPackageCompareModal({
@@ -32,6 +33,7 @@ export default function ProductPackageCompareModal({
   onClose,
   product,
   onSelectPackage,
+  onSharePackage,
 }: ProductPackageCompareModalProps) {
   const { primaryColor, themeMode } = useMotionTheme();
   const isLight = themeMode === "light";
@@ -50,6 +52,10 @@ export default function ProductPackageCompareModal({
 
   const handleShare = async (specificPkg?: any) => {
     if (!product) return;
+    if (onSharePackage) {
+      onSharePackage(product, specificPkg);
+      return;
+    }
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     const shareUrl = `${origin}/products#${product.id}`;
     const pkgText = specificPkg
