@@ -769,11 +769,6 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
 
                   {/* Package Selector Tabs */}
                   <div className="mb-4">
-                    <div className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2 flex items-center justify-between">
-                      <span>{tr("PILIHAN PAKET:", "PILIHAN PAKET:", "PILIHAN PAKET:")}</span>
-                      <span className="text-[10px] text-neutral-500 lowercase">{tr("klik untuk membandingkan", "klik untuk membandingkan", "klik untuak maninjau")}</span>
-                    </div>
-
                     <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-white/[0.03] border border-white/10">
                       {(["starter", "pro", "enterprise"] as const).map((tierKey) => {
                         const isSelected = currentPkgId === tierKey;
