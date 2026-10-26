@@ -417,7 +417,7 @@ export default function ProjectTrackerWorkspace({
             className="px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md shadow-[#16b09f]/20 cursor-pointer active:scale-95 shrink-0"
           >
             <RiAddLine className="w-4 h-4" />
-            <span>+ Proyek</span>
+            <span>Add Project</span>
           </button>
         </div>
       </div>
@@ -1031,7 +1031,7 @@ export default function ProjectTrackerWorkspace({
             className={`w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-white/15 bg-[#101319] text-white p-5 sm:p-6 max-h-[92vh] overflow-y-auto shadow-2xl space-y-4`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Bar with Back Arrow & Delete Icon */}
+            {/* Top Bar with Back Arrow */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <button
                 type="button"
@@ -1041,26 +1041,13 @@ export default function ProjectTrackerWorkspace({
                 <RiArrowLeftLine className="w-4 h-4 text-teal-400" />
                 <span>Kembali ke Dashboard</span>
               </button>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    handleDelete(drilldownProject.refCode);
-                    setDrilldownProject(null);
-                  }}
-                  className="p-2 rounded-xl text-neutral-400 hover:text-red-400 hover:bg-red-500/10 border border-white/10 transition cursor-pointer active:scale-95"
-                  title="Hapus Proyek"
-                >
-                  <RiDeleteBinLine className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDrilldownProject(null)}
-                  className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition"
-                >
-                  <RiCloseLine className="w-5 h-5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setDrilldownProject(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition"
+              >
+                <RiCloseLine className="w-5 h-5" />
+              </button>
             </div>
 
             {/* Hero Card with Amber / Accent gradient (Screen 3 Top) */}

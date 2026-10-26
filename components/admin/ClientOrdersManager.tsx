@@ -792,7 +792,7 @@ export default function ClientOrdersManager() {
                           className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                           <RiAttachmentLine className="w-3.5 h-3.5 text-teal-400" />
-                          <span>+ Lampirkan Resi Manual</span>
+                          <span>Lampirkan Resi Manual</span>
                         </button>
                       )}
                     </div>
