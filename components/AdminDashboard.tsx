@@ -6293,7 +6293,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="w-full py-2.5 px-4 rounded-xl bg-rose-600/90 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
                       >
                         <HiArrowRightOnRectangle className="w-4 h-4" />
-                        <span>{tx("Keluar dari Sesi Admin (Logout)", "Logout from Admin", "Kalua dari Sesi Admin")}</span>
+                        <span>Logout</span>
                       </button>
                     </div>
                   </div>
@@ -7257,7 +7257,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   }`}
                 >
                   <HiArrowRightOnRectangle className="w-4 h-4" />
-                  <span>{tx("Keluar Admin (Logout)", "Logout Admin", "Kalua Admin")}</span>
+                  <span>Logout</span>
                 </button>
               </div>
             </motion.div>
