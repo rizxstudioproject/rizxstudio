@@ -97,6 +97,19 @@ export default function VisualOrderTracker({
 
   const formattedTargetArrival = project.targetDeadline || tr("7 - 10 Days", "7 - 10 Hari Kerja", "7 - 10 Hari");
 
+  // Mask client name for privacy (e.g. "Rizx Creative Partner" -> "Riz* Cre* Par*")
+  const maskClientName = (name?: string) => {
+    if (!name) return "";
+    const words = name.trim().split(/\s+/);
+    return words
+      .map((w) => {
+        if (w.length <= 2) return w[0] + "*";
+        if (w.length <= 4) return w.slice(0, 2) + "*".repeat(w.length - 2);
+        return w.slice(0, 3) + "*".repeat(Math.min(w.length - 3, 4));
+      })
+      .join(" ");
+  };
+
   // Construct WhatsApp Inquiry Url
   const waTarget = socialContacts.whatsappNumber || "6282170214498";
   const waInquiryMsg = `Halo Rizx Studio! Saya ingin menanyakan pembaruan progres proyek dengan Kode Referensi: ${project.refCode} (${project.serviceTitle} - ${project.packageName}).`;
@@ -162,7 +175,9 @@ export default function VisualOrderTracker({
             <p className="text-[11px] sm:text-xs text-neutral-400 font-medium">
               {project.serviceTitle} —{" "}
               <span className="text-teal-400 font-semibold">{project.packageName}</span>{" "}
-              <span className="text-neutral-500">({project.clientName})</span>
+              <span className="text-neutral-500 font-mono text-[11px]">
+                ({maskClientName(project.clientName)})
+              </span>
             </p>
           </div>
 

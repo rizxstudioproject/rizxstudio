@@ -136,7 +136,7 @@ export default function ProductsPage() {
   const [formHighlighted, setFormHighlighted] = useState<boolean>(false);
   const [isProductPickerOpen, setIsProductPickerOpen] = useState<boolean>(false);
   const [isTrackerModalOpen, setIsTrackerModalOpen] = useState<boolean>(false);
-  const [trackerInitialCode, setTrackerInitialCode] = useState<string>("RZX-PRJ-632153");
+  const [trackerInitialCode, setTrackerInitialCode] = useState<string>("");
   const formRef = useRef<HTMLDivElement>(null);
 
   // Prevent background scrolling when product picker is open
