@@ -1433,11 +1433,16 @@ export default function MobileAdminApp({
             <motion.div
               animate={{ rotate: isSaveFabExpanded ? 90 : 0, scale: isSaveFabExpanded ? 1.08 : 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
+              className="flex items-center justify-center"
             >
               {isSaveFabExpanded ? (
                 <RiCloseLine className="w-6 h-6 text-white drop-shadow" />
               ) : (
-                <RiSave3Fill className="w-5 h-5 text-white drop-shadow" />
+                <img
+                  src="/navbar-logo.png"
+                  alt="Rizx Studio Logo"
+                  className="w-5 h-5 object-contain brightness-0 invert drop-shadow select-none pointer-events-none"
+                />
               )}
             </motion.div>
 
