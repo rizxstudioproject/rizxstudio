@@ -15,6 +15,7 @@ export interface ProductPackage {
   badge?: string;
   badgeEn?: string;
   badgeMin?: string;
+  thumbnailUrl?: string; // Optional package-specific thumbnail
   priceNote: string;
   priceNoteEn?: string;
   priceNoteMin?: string;
@@ -42,6 +43,7 @@ export interface ProductItem {
   categoryLabel: string;
   categoryLabelEn?: string;
   categoryLabelMin?: string;
+  thumbnailUrl?: string; // High-impact thumbnail on top of product card
   tagline: string;
   taglineEn?: string;
   taglineMin?: string;
@@ -84,6 +86,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Branding & Identitas",
     categoryLabelEn: "Branding & Identity",
     categoryLabelMin: "Branding & Identitas",
+    thumbnailUrl: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80",
     tagline: "Identitas visual berkarakter kuat, relevan, dan dirancang untuk melekat di benak audiens.",
     taglineEn: "Bold, distinctive visual identity crafted to create an enduring impression.",
     taglineMin: "Identitas visual bakarakter kuek, relevan, sarato dirancang malakek di hati audiens.",
@@ -258,6 +261,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Branding & Identitas",
     categoryLabelEn: "Branding & Identity",
     categoryLabelMin: "Branding & Identitas",
+    thumbnailUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80",
     tagline: "Profil bisnis representatif dalam format cetak mewah dan dokumen digital interaktif.",
     taglineEn: "High-impact corporate profile in luxury print layout and interactive digital format.",
     taglineMin: "Profil bisnis rancak dalam bantuak cetak elegan sarato berkas digital interaktif.",
@@ -420,6 +424,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Web & App Development",
     categoryLabelEn: "Web & App Development",
     categoryLabelMin: "Web & App Development",
+    thumbnailUrl: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=800&q=80",
     tagline: "Website modern, super cepat, interaktif, responsif, dan siap melipatgandakan konversi bisnis.",
     taglineEn: "Modern, ultra-fast, responsive web experiences engineered for high conversion rates.",
     taglineMin: "Website modern, kancank bana, interaktif, sarato siap maningkek-an jualan bisnis.",
@@ -585,6 +590,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Web & App Development",
     categoryLabelEn: "Web & App Development",
     categoryLabelMin: "Web & App Development",
+    thumbnailUrl: "https://images.unsplash.com/photo-1581291518655-9523c932694b?auto=format&fit=crop&w=800&q=80",
     tagline: "Desain antarmuka aplikasi intuitif, estetis, dan teruji berdasarkan prinsip user psychology.",
     taglineEn: "Intuitive, aesthetic, user-tested digital product interfaces grounded in behavioral psychology.",
     taglineMin: "Desain aplikasi nan mudah dipahami, rancak di mato, sarato diuji sasuai kabutuhan pangguno.",
@@ -747,6 +753,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Video & Motion",
     categoryLabelEn: "Video & Motion",
     categoryLabelMin: "Video & Motion",
+    thumbnailUrl: "https://images.unsplash.com/photo-1579165466741-7f35e4755660?auto=format&fit=crop&w=800&q=80",
     tagline: "Produksi video komersial sinematik dengan visual kelas bioskop dan narasi emosional.",
     taglineEn: "High-end commercial video production featuring cinematic visuals and compelling storytelling.",
     taglineMin: "Produksi video komersial rancak jo gambar kelas bioskop sarato narasi manggugah.",
@@ -912,6 +919,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Marketing & Sosmed",
     categoryLabelEn: "Marketing & Social",
     categoryLabelMin: "Marketing & Sosmed",
+    thumbnailUrl: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&w=800&q=80",
     tagline: "Konten otentik, bergaya User Generated Content untuk mendongkrak click-through dan penjualan.",
     taglineEn: "Authentic, high-converting User Generated Content that supercharges ROAS and engagement.",
     taglineMin: "Konten alami gaya review pangguno asli untuak mandongkrak panjualan produk.",
@@ -1074,6 +1082,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Video & Motion",
     categoryLabelEn: "Video & Motion",
     categoryLabelMin: "Video & Motion",
+    thumbnailUrl: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80",
     tagline: "Animasi visual 2D & 2.5D memukau untuk menyederhanakan ide kompleks menjadi tontonan menarik.",
     taglineEn: "Mesmerizing 2D & 2.5D animation transforming complex narratives into intuitive visual stories.",
     taglineMin: "Animasi visual 2D & 2.5D rancak untuak manjalehan ide rumit jadi tontonan mudah dipahami.",
@@ -1239,6 +1248,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "3D & Creative Imaging",
     categoryLabelEn: "3D & Creative Imaging",
     categoryLabelMin: "3D & Creative Imaging",
+    thumbnailUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80",
     tagline: "Visualisasi 3D produk fotorealistik tingkat tinggi untuk iklan, packaging, dan eksplorasi konsep.",
     taglineEn: "Hyper-realistic 3D product visualization engineered for luxury advertising, packaging, and digital retail.",
     taglineMin: "Gambar 3D produk mode aslinyo untuak iklan, kemasan, jo presentasi jualan.",
@@ -1398,6 +1408,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "3D & Creative Imaging",
     categoryLabelEn: "3D & Creative Imaging",
     categoryLabelMin: "3D & Creative Imaging",
+    thumbnailUrl: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80",
     tagline: "Karya manipulasi foto kreatif dan key visual imajinatif beresolusi super tinggi.",
     taglineEn: "Imaginative composite photo manipulation and master advertising key visuals in ultra-high resolution.",
     taglineMin: "Karya manipulasi foto kreatif jo key visual imajinatif resolusi tinggi untuak iklan.",
@@ -1554,6 +1565,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "3D & Creative Imaging",
     categoryLabelEn: "3D & Creative Imaging",
     categoryLabelMin: "3D & Creative Imaging",
+    thumbnailUrl: "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=800&q=80",
     tagline: "Fotografi komersial bernilai estetika tinggi untuk produk, fashion, arsitektur, dan potret korporat.",
     taglineEn: "Commercial photography capturing product, fashion, architecture, and executive portraits.",
     taglineMin: "Fotografi komersial rancak untuak produk, fashion, bangunan, sarato potret pimpinan.",
@@ -1710,6 +1722,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Marketing & Sosmed",
     categoryLabelEn: "Marketing & Social",
     categoryLabelMin: "Marketing & Sosmed",
+    thumbnailUrl: "https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=800&q=80",
     tagline: "Pengelolaan media sosial menyeluruh didukung tim desainer, copywriter, dan content strategist berdedikasi.",
     taglineEn: "Comprehensive social media management executed by a dedicated team of designers, copywriters, and strategists.",
     taglineMin: "Pangalolaan media sosial panuah dibantu dek tim desainer, panulih, sarato ahli strategi.",
@@ -1872,6 +1885,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Drone & Pemetaan",
     categoryLabelEn: "Drone & Aerial",
     categoryLabelMin: "Drone & Pemetaan",
+    thumbnailUrl: "https://images.unsplash.com/photo-1508614589041-895b88991e3e?auto=format&fit=crop&w=800&q=80",
     tagline: "Fotogrametri udara, peta ortofoto presisi tinggi, dan survei kontur lahan untuk konstruksi dan properti.",
     taglineEn: "Precision drone photogrammetry, high-resolution orthomosaic mapping, and topographic contour surveys.",
     taglineMin: "Pametaan foto udaro presisi tinggi, survei tanah, sarato kontur untuak proyek jo properti.",
@@ -2031,6 +2045,7 @@ export const DEFAULT_PRODUCTS: ProductItem[] = [
     categoryLabel: "Web & App Development",
     categoryLabelEn: "Web & App Development",
     categoryLabelMin: "Web & App Development",
+    thumbnailUrl: "https://images.unsplash.com/photo-1551650975-87deedd944c3?auto=format&fit=crop&w=800&q=80",
     tagline: "Wujudkan ide startup menjadi produk digital nyata (MVP) yang siap diluncurkan dan diuji ke pasar.",
     taglineEn: "Transform visionary startup concepts into production-grade MVPs engineered for investor funding and market launch.",
     taglineMin: "Wujuikan ide startup jadi aplikasi nyato (MVP) nan siap diluncurkan sarato diuji ka pasar.",
@@ -2472,6 +2487,7 @@ export function getLocalizedProduct(
   title: string;
   category: string;
   categoryLabel: string;
+  thumbnailUrl?: string;
   tagline: string;
   description: string;
   popular?: boolean;
@@ -2483,6 +2499,7 @@ export function getLocalizedProduct(
     id: string;
     name: string;
     badge?: string;
+    thumbnailUrl?: string;
     priceNote: string;
     duration: string;
     revisions: string;
@@ -2583,6 +2600,7 @@ export function getLocalizedProduct(
       id: pkg.id,
       name: pkgName,
       badge: pkgBadge,
+      thumbnailUrl: pkg.thumbnailUrl,
       priceNote: pkgPriceNote,
       duration: pkgDuration,
       revisions: pkgRevisions,
@@ -2597,6 +2615,7 @@ export function getLocalizedProduct(
     title,
     category: item.category,
     categoryLabel,
+    thumbnailUrl: item.thumbnailUrl,
     tagline,
     description,
     popular: item.popular,

@@ -56,6 +56,12 @@ import ProductsWorkspace from "./ProductsWorkspace";
 import ProjectTrackerWorkspace from "./ProjectTrackerWorkspace";
 import { getRealLeads, CrmLead } from "@/lib/crmService";
 
+import {
+  subscribeToNewOrderNotifications,
+  playNotificationChime,
+} from "@/lib/adminNotificationService";
+import { ProjectTrackingItem } from "@/lib/projectTrackerService";
+
 interface MobileAdminAppProps {
   activeTab: AdminSidebarTab;
   onSelectTab: (tab: AdminSidebarTab) => void;
@@ -173,6 +179,15 @@ export default function MobileAdminApp({
   const [leads, setLeads] = useState<CrmLead[]>([]);
   const [savingAction, setSavingAction] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [incomingOrderAlert, setIncomingOrderAlert] = useState<ProjectTrackingItem | null>(null);
+
+  useEffect(() => {
+    const unsubscribe = subscribeToNewOrderNotifications((newOrder) => {
+      setIncomingOrderAlert(newOrder);
+      playNotificationChime();
+    });
+    return () => unsubscribe();
+  }, []);
 
   // Dynamic View Page URL based on active workspace
   const getViewPageUrl = () => {
@@ -502,6 +517,47 @@ export default function MobileAdminApp({
         isLight ? "bg-[#f4f6fa] text-slate-900" : "bg-[#090b10] text-slate-100"
       }`}
     >
+      {/* ── REALTIME INCOMING PROJECT ORDER NOTIFICATION ALERT BANNER (MOBILE) ── */}
+      {incomingOrderAlert && (
+        <div className="fixed top-3 left-3 right-3 z-50 bg-[#0e1320]/95 border border-emerald-500/60 shadow-[0_12px_40px_rgba(16,185,129,0.4)] backdrop-blur-xl rounded-2xl p-3.5 text-white animate-in slide-in-from-top-3 duration-300">
+          <div className="flex items-start justify-between gap-2.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xl animate-bounce">🔔</span>
+              <div>
+                <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400 font-bold block">
+                  Proyek Baru Masuk!
+                </span>
+                <h4 className="text-xs font-bold text-white truncate max-w-[200px]">
+                  {incomingOrderAlert.clientName}
+                </h4>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIncomingOrderAlert(null)}
+              className="text-neutral-400 hover:text-white p-1 rounded-lg"
+            >
+              ✕
+            </button>
+          </div>
+          <p className="text-[11px] text-neutral-300 mt-1 truncate">
+            {incomingOrderAlert.serviceTitle} ({incomingOrderAlert.packageName}) —{" "}
+            <span className="text-amber-400 font-mono font-semibold">{incomingOrderAlert.budget}</span>
+          </p>
+          <div className="mt-2.5 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                navigateToWorkspace("products");
+                setIncomingOrderAlert(null);
+              }}
+              className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500 text-black font-bold text-xs shadow-md active:scale-95 text-center cursor-pointer"
+            >
+              Buka & Konfirmasi Pesanan →
+            </button>
+          </div>
+        </div>
+      )}
       {/* ==============================================================
           SCREEN 1: NATIVE MOBILE APP DASHBOARD (HOME VIEW)
           Inspired by User's Reference Mockup

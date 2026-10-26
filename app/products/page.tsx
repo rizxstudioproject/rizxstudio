@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import WhatsAppPopup from "@/components/WhatsAppPopup";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
 import { registerTrackedProject } from "@/lib/projectTrackerService";
+import { broadcastNewIncomingOrder } from "@/lib/adminNotificationService";
 import {
   getAllProducts,
   subscribeToProductsRealtime,
@@ -299,7 +300,7 @@ export default function ProductsPage() {
     const randomCode = `RZX-PRJ-${Math.floor(100000 + Math.random() * 900000)}`;
     setOrderRefId(randomCode);
 
-    registerTrackedProject({
+    const newProjectData = {
       refCode: randomCode,
       clientName: clientName.trim(),
       clientPhone: clientPhone.trim(),
@@ -311,13 +312,16 @@ export default function ProductsPage() {
       budget: clientBudget,
       startDate: new Date().toISOString(),
       targetDeadline: clientTimeline,
-      currentStage: "queued",
+      currentStage: "queued" as const,
       progressPercent: 15,
       notes: "Pesanan masuk dari formulir website. Menunggu konfirmasi & jadwal kickoff.",
       deliverables: selectedPackageObj.deliverables,
       brief: projectBrief.trim() || undefined,
       updatedAt: new Date().toISOString(),
-    }).catch(e => console.warn("Tracker registration notice:", e));
+    };
+
+    registerTrackedProject(newProjectData).catch(e => console.warn("Tracker registration notice:", e));
+    broadcastNewIncomingOrder(newProjectData);
 
     setIsConfirmOpen(true);
   };
@@ -563,38 +567,52 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
 
                 {/* Accent top gradient on hover */}
                 <div
-                  className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
                   style={{
                     background: `linear-gradient(90deg, transparent, ${primaryColor}, transparent)`,
                   }}
                 />
 
-                <div className="p-6 sm:p-7">
-                  {/* Card Header: Category & Icon */}
-                  <div className="flex items-center justify-between gap-3 mb-4">
+                {/* ── CARD THUMBNAIL ON TOP (Aku mau setiap paket ada thumbnail di atasnya) ── */}
+                <div className="relative w-full h-44 sm:h-48 overflow-hidden bg-neutral-900/80 border-b border-white/[0.08]">
+                  <img
+                    src={
+                      currentPkg.thumbnailUrl ||
+                      product.thumbnailUrl ||
+                      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"
+                    }
+                    alt={product.title}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out"
+                    loading="lazy"
+                  />
+                  {/* Subtle Dark Vignette at bottom */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0f1115] via-[#0f1115]/40 to-transparent pointer-events-none" />
+
+                  {/* Badges Overlay on Thumbnail */}
+                  <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2 pointer-events-none z-10">
                     <span
-                      className="text-[10px] uppercase font-mono tracking-wider px-2.5 py-1 rounded-md border"
+                      className="text-[10px] uppercase font-mono tracking-wider px-2.5 py-1 rounded-md border backdrop-blur-md shadow-md"
                       style={{
                         color: primaryColor,
-                        backgroundColor: `${primaryColor}15`,
-                        borderColor: `${primaryColor}30`,
+                        backgroundColor: "rgba(10, 12, 18, 0.8)",
+                        borderColor: `${primaryColor}50`,
                       }}
                     >
                       {product.categoryLabel}
                     </span>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1.5">
                       {product.popular && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                          <RiSparklingLine className="w-3 h-3" />
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-400 text-black border border-amber-300 font-sans shadow-md flex items-center gap-1">
+                          <RiSparklingLine className="w-3 h-3 text-black" />
                           <span>Unggulan</span>
                         </span>
                       )}
                       <div
-                        className="w-8 h-8 rounded-lg flex items-center justify-center border text-white transition-colors"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center border text-white backdrop-blur-md shadow-md"
                         style={{
-                          backgroundColor: `${primaryColor}1a`,
-                          borderColor: `${primaryColor}40`,
+                          backgroundColor: "rgba(10, 12, 18, 0.8)",
+                          borderColor: `${primaryColor}50`,
                           color: primaryColor,
                         }}
                       >
@@ -602,7 +620,9 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                       </div>
                     </div>
                   </div>
+                </div>
 
+                <div className="p-6 sm:p-7">
                   {/* Title & Tagline */}
                   <h3 className="text-xl font-bold text-white mb-2 group-hover:text-[#16b09f] transition-colors">
                     {product.title}

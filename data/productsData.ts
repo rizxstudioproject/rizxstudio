@@ -2,6 +2,7 @@ export interface ProductPackage {
   id: "starter" | "pro" | "enterprise";
   name: string;
   badge?: string;
+  thumbnailUrl?: string;
   priceNote: string;
   duration: string;
   revisions: string;
@@ -14,6 +15,7 @@ export interface ProductItem {
   title: string;
   category: "branding" | "web-app" | "video-motion" | "visual-craft" | "marketing" | "aerial";
   categoryLabel: string;
+  thumbnailUrl?: string;
   tagline: string;
   description: string;
   popular?: boolean;

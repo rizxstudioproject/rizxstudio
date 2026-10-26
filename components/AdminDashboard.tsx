@@ -82,6 +82,12 @@ import ProjectTrackerWorkspace from "./admin/ProjectTrackerWorkspace";
 import ProductsWorkspace from "./admin/ProductsWorkspace";
 import MobileAdminApp from "./admin/MobileAdminApp";
 import MetaSEO from "./MetaSEO";
+import {
+  subscribeToNewOrderNotifications,
+  requestNotificationPermission,
+  playNotificationChime,
+} from "@/lib/adminNotificationService";
+import { ProjectTrackingItem } from "@/lib/projectTrackerService";
 import { saveSocialContacts } from "@/lib/socialService";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 
@@ -142,6 +148,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [activeTab, setActiveTab] = useState<
     "hero-banner" | "clients" | "hero-works" | "runner" | "about" | "flagship" | "account"
   >("clients");
+
+  // Realtime Incoming Project Order Notification Alert
+  const [incomingProjectAlert, setIncomingProjectAlert] = useState<ProjectTrackingItem | null>(null);
+
+  useEffect(() => {
+    // Request desktop push notification permission on dashboard open
+    requestNotificationPermission().catch(() => {});
+
+    // Listen to realtime incoming orders from clients
+    const unsubscribe = subscribeToNewOrderNotifications((newOrder) => {
+      setIncomingProjectAlert(newOrder);
+      playNotificationChime();
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Mobile Navigation Drawer State
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -2797,6 +2819,59 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       }`}
     >
       <MetaSEO isAdmin={true} />
+
+      {/* ── REALTIME INCOMING PROJECT ORDER NOTIFICATION ALERT BANNER ── */}
+      {incomingProjectAlert && (
+        <div className="fixed top-5 right-5 z-[99999] max-w-sm w-full bg-[#0d121f]/95 border-2 border-emerald-500/60 shadow-[0_15px_50px_rgba(16,185,129,0.35)] backdrop-blur-xl rounded-2xl p-4 text-white animate-in slide-in-from-top-4 duration-300">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-lg shrink-0 animate-bounce">
+                🔔
+              </div>
+              <div>
+                <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400 font-bold block">
+                  Proyek Baru Masuk!
+                </span>
+                <h4 className="text-sm font-extrabold text-white leading-tight">
+                  {incomingProjectAlert.clientName}
+                </h4>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIncomingProjectAlert(null)}
+              className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
+              title="Tutup Notifikasi"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mt-2.5 pt-2.5 border-t border-white/10 space-y-1 text-xs">
+            <p className="text-neutral-300 font-medium truncate">
+              📦 {incomingProjectAlert.serviceTitle} —{" "}
+              <span className="text-teal-400">{incomingProjectAlert.packageName}</span>
+            </p>
+            <div className="flex items-center justify-between text-[11px] text-neutral-400 font-mono">
+              <span>Ref: #{incomingProjectAlert.refCode}</span>
+              <span className="text-amber-400 font-bold">{incomingProjectAlert.budget}</span>
+            </div>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setSidebarTab("products");
+                setIncomingProjectAlert(null);
+              }}
+              className="flex-1 py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-extrabold text-xs shadow-md shadow-emerald-500/25 transition active:scale-95 text-center cursor-pointer"
+            >
+              Buka & Konfirmasi Pesanan →
+            </button>
+          </div>
+        </div>
+      )}
       {/* Desktop Far Left Sidebar (240px wide) */}
       <div className="hidden md:flex h-full shrink-0">
         <AdminSidebar

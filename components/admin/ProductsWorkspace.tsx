@@ -30,6 +30,9 @@ import {
   RiSave3Line,
   RiTranslate2,
   RiUserFollowLine,
+  RiImageAddLine,
+  RiUploadCloud2Line,
+  RiImageLine,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -87,6 +90,58 @@ export default function ProductsWorkspace() {
   const [activeLangTab, setActiveLangTab] = useState<"id" | "en" | "min">("id");
   const [activePkgTab, setActivePkgTab] = useState<string>("pro");
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [uploadingThumb, setUploadingThumb] = useState<boolean>(false);
+
+  // Upload thumbnail image directly to Supabase storage
+  const handleUploadThumbnail = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    isPackageLevel = false
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingProduct) return;
+    setUploadingThumb(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "products");
+      const res = await fetch("/api/admin/media-upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        if (isPackageLevel) {
+          setEditingProduct({
+            ...editingProduct,
+            packages: editingProduct.packages.map((p) =>
+              p.id === activePkgTab ? { ...p, thumbnailUrl: data.url } : p
+            ),
+          });
+        } else {
+          setEditingProduct({
+            ...editingProduct,
+            thumbnailUrl: data.url,
+          });
+        }
+        showToast(
+          tr(
+            "Thumbnail berhasil diunggah!",
+            "Thumbnail uploaded successfully!",
+            "Thumbnail barasia diunggah!"
+          )
+        );
+      } else {
+        alert("Gagal mengunggah gambar: " + (data.error || "Unknown error"));
+      }
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      alert("Gagal mengunggah thumbnail: " + (err.message || err));
+    } finally {
+      setUploadingThumb(false);
+      // Reset input value so same file can be re-selected if needed
+      e.target.value = "";
+    }
+  };
 
   // New deliverable / feature inputs
   const [newKeyFeature, setNewKeyFeature] = useState<string>("");
@@ -835,19 +890,38 @@ export default function ProductsWorkspace() {
                   </div>
                 )}
 
+                {/* Thumbnail Preview on Top of Admin Card */}
+                <div className="relative w-full h-32 overflow-hidden bg-black/60 border-b border-white/5">
+                  <img
+                    src={
+                      product.thumbnailUrl ||
+                      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80"
+                    }
+                    alt={product.title}
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/90 via-neutral-900/20 to-transparent pointer-events-none" />
+                  <div className="absolute bottom-2 left-3 right-3 flex items-center justify-between pointer-events-none">
+                    <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-black/70 border border-white/10 text-teal-300 backdrop-blur-md">
+                      {product.categoryLabel}
+                    </span>
+                    {product.popular && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/90 text-black border border-amber-400 font-sans shadow-sm flex items-center gap-1">
+                        <RiStarFill className="w-2.5 h-2.5" />
+                        Popular
+                      </span>
+                    )}
+                  </div>
+                </div>
+
                 <div className="p-5 space-y-4 flex-1">
                   {/* Top Badges */}
                   <div className="flex items-center justify-between gap-2">
                     <span className="text-[11px] font-mono px-2 py-0.5 rounded-md bg-white/5 text-neutral-400 border border-white/5">
-                      {product.categoryLabel}
+                      ID: {product.id}
                     </span>
                     <div className="flex items-center gap-1.5">
-                      {product.popular && (
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/20 flex items-center gap-1">
-                          <RiStarFill className="w-2.5 h-2.5" />
-                          Popular
-                        </span>
-                      )}
                       <span
                         className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${
                           isClosed
@@ -1244,6 +1318,81 @@ export default function ProductsWorkspace() {
                     </div>
                   </div>
 
+                  {/* Thumbnail Image Uploader (Setiap paket ada thumbnail di atasnya & CRUD di admin) */}
+                  <div className="p-4 rounded-xl bg-neutral-900/80 border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-neutral-200 flex items-center gap-1.5">
+                        <RiImageLine className="w-4 h-4 text-teal-400" />
+                        <span>{tr("Thumbnail Gambar Produk", "Thumbnail Gambar Produk", "Thumbnail Gambar Produk")}</span>
+                        <span className="text-[11px] text-neutral-400 font-normal hidden sm:inline">
+                          — Tampil di atas setiap kartu paket di website
+                        </span>
+                      </label>
+                      {editingProduct.thumbnailUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingProduct({ ...editingProduct, thumbnailUrl: "" })}
+                          className="text-[11px] text-rose-400 hover:text-rose-300 transition cursor-pointer"
+                        >
+                          Hapus Gambar
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                      {/* Image Preview Box */}
+                      <div className="relative w-full sm:w-44 h-28 rounded-xl overflow-hidden bg-black/60 border border-white/10 shrink-0 flex items-center justify-center">
+                        {editingProduct.thumbnailUrl ? (
+                          <img
+                            src={editingProduct.thumbnailUrl}
+                            alt="Thumbnail Preview"
+                            className="w-full h-full object-cover object-center"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-neutral-500 gap-1 text-center p-2">
+                            <RiImageLine className="w-6 h-6 opacity-40" />
+                            <span className="text-[10px]">Belum Ada Gambar</span>
+                          </div>
+                        )}
+                        {uploadingThumb && (
+                          <div className="absolute inset-0 bg-black/75 flex items-center justify-center text-teal-400 text-xs font-semibold gap-1.5">
+                            <RiRefreshLine className="w-4 h-4 animate-spin" />
+                            <span>Mengunggah...</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Upload Controls & URL input */}
+                      <div className="flex-1 space-y-2.5 w-full">
+                        <div className="flex items-center gap-2">
+                          <label className="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-semibold transition active:scale-95 shadow-sm">
+                            <RiUploadCloud2Line className="w-4 h-4" />
+                            <span>{uploadingThumb ? "Mengunggah File..." : "Upload Gambar dari Komputer"}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingThumb}
+                              onChange={(e) => handleUploadThumbnail(e, false)}
+                              className="hidden"
+                            />
+                          </label>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[10px] text-neutral-400 font-mono">
+                            Atau tempel URL gambar langsung (HTTPS):
+                          </span>
+                          <input
+                            type="url"
+                            value={editingProduct.thumbnailUrl || ""}
+                            onChange={(e) => setEditingProduct({ ...editingProduct, thumbnailUrl: e.target.value })}
+                            placeholder="https://images.unsplash.com/... atau Supabase Storage URL"
+                            className="w-full px-3 py-1.5 text-xs rounded-xl border border-white/10 bg-black text-white placeholder-neutral-600 focus:outline-none focus:border-teal-500 font-mono"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Title (Multilingual) */}
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
@@ -1574,6 +1723,60 @@ export default function ProductsWorkspace() {
                             }}
                             placeholder="Contoh: Paling Populer / UMKM"
                             className="w-full px-3.5 py-2 text-xs rounded-xl bg-black border border-white/10 text-white focus:outline-none focus:border-teal-500"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Optional Package-Specific Thumbnail */}
+                      <div className="p-3.5 rounded-xl bg-black/60 border border-white/5 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-medium text-neutral-300 flex items-center gap-1.5">
+                            <RiImageLine className="w-3.5 h-3.5 text-teal-400" />
+                            <span>Thumbnail Khusus Paket Ini (Opsional)</span>
+                          </label>
+                          {currentPkg.thumbnailUrl && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingProduct({
+                                  ...editingProduct,
+                                  packages: editingProduct.packages.map((p) =>
+                                    p.id === currentPkg.id ? { ...p, thumbnailUrl: "" } : p
+                                  ),
+                                });
+                              }}
+                              className="text-[11px] text-rose-400 hover:text-rose-300 cursor-pointer"
+                            >
+                              Gunakan Thumbnail Produk
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
+                          <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10 text-xs font-medium transition shrink-0">
+                            <RiUploadCloud2Line className="w-3.5 h-3.5 text-teal-400" />
+                            <span>Upload Thumbnail Paket</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              disabled={uploadingThumb}
+                              onChange={(e) => handleUploadThumbnail(e, true)}
+                              className="hidden"
+                            />
+                          </label>
+                          <input
+                            type="url"
+                            value={currentPkg.thumbnailUrl || ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setEditingProduct({
+                                ...editingProduct,
+                                packages: editingProduct.packages.map((p) =>
+                                  p.id === currentPkg.id ? { ...p, thumbnailUrl: val } : p
+                                ),
+                              });
+                            }}
+                            placeholder="URL thumbnail khusus paket ini (kosongkan jika pakai thumbnail produk)"
+                            className="flex-1 w-full px-3 py-1.5 text-xs rounded-lg border border-white/10 bg-black text-white placeholder-neutral-600 focus:outline-none focus:border-teal-500 font-mono"
                           />
                         </div>
                       </div>
