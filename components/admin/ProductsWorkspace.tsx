@@ -652,7 +652,7 @@ export default function ProductsWorkspace() {
   const currentPkg = editingProduct?.packages?.find((p) => p.id === activePkgTab);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 w-full max-w-[1600px] mx-auto">
       {/* Toast Alert */}
       {statusMessage && (
         <div className="fixed top-6 right-6 z-50 px-4 py-3 rounded-xl bg-teal-500/20 border border-teal-500/40 text-teal-300 backdrop-blur-md shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top duration-300">
@@ -863,7 +863,7 @@ export default function ProductsWorkspace() {
           {tr("No products found.", "Tidak ada produk yang cocok.", "Indak ado produk nan cocok.")}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-5">
           {filteredProducts.map((product) => {
             const isClosed = product.isClosed;
             const pkgCount = product.packages?.length || 0;

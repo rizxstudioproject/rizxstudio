@@ -3247,7 +3247,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             sidebarTab !== "social" &&
             sidebarTab !== "crm" &&
             sidebarTab !== "seo" &&
-            sidebarTab !== "tracking" && (
+            sidebarTab !== "tracking" &&
+            sidebarTab !== "products" && (
             <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
               isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
             }`}>
