@@ -1077,17 +1077,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               </span>
             </div>
 
-            {/* Direct Save Changes Button for Partner Logos */}
-            {onSaveClientLogos && (
-              <button
-                type="button"
-                onClick={onSaveClientLogos}
-                className="self-start sm:self-auto px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-[#16b09f] hover:from-emerald-400 hover:to-[#119889] text-black font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-500/25 active:scale-95 transition-all cursor-pointer"
-              >
-                <HiCheck className="w-4 h-4 stroke-[2.5]" />
-                <span>{tr("Simpan Perubahan Logo", "Save Logo Changes", "Simpan Parubahan Logo")}</span>
-              </button>
-            )}
+
           </div>
 
           {/* Header Explainer Banner */}
