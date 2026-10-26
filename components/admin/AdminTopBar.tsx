@@ -741,23 +741,6 @@ export default function AdminTopBar({
             <HiArrowTopRightOnSquare className="w-3.5 h-3.5 text-neutral-400" />
           </a>
 
-          {/* Top Navbar Action: Reset to Default (Desktop Only - Mobile in Burger Menu) */}
-          {showResetDefault && onResetDefault && (
-            <button
-              type="button"
-              onClick={onResetDefault}
-              className={`hidden md:flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-mono transition-colors cursor-pointer active:scale-95 ${
-                isLight
-                  ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-                  : "bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border-white/10"
-              }`}
-              title={tr("Reset to Default", "Reset ke Bawaan", "Baliak ka Bawaan")}
-            >
-              <HiArrowPath className={`w-3.5 h-3.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`} />
-              <span>{tr("Reset to Default", "Reset ke Bawaan", "Baliak Default")}</span>
-            </button>
-          )}
-
           {/* Top Navbar Action: Save Changes (Desktop Only - Mobile in Burger Menu) */}
           {showSaveChanges && onSaveChanges && (
             <button
