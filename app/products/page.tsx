@@ -5,8 +5,14 @@ import Navbar from "@/components/Navbar";
 import WhatsAppPopup from "@/components/WhatsAppPopup";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
 import ProductPackageCompareModal from "@/components/ProductPackageCompareModal";
+import OrderReceiptModal from "@/components/OrderReceiptModal";
 import { registerTrackedProject } from "@/lib/projectTrackerService";
 import { broadcastNewIncomingOrder } from "@/lib/adminNotificationService";
+import {
+  PAYMENT_ACCOUNTS,
+  createReceiptFromOrder,
+  OrderReceiptItem,
+} from "@/lib/paymentService";
 import {
   getAllProducts,
   subscribeToProductsRealtime,
@@ -52,6 +58,9 @@ import {
   RiShareForwardLine,
   RiDriveLine,
   RiYoutubeFill,
+  RiBankCardLine,
+  RiShieldCheckLine,
+  RiQrCodeLine,
 } from "react-icons/ri";
 import { parseMediaUrl, resolveThumbnailUrl } from "@/lib/mediaUrlHelper";
 
@@ -137,6 +146,13 @@ export default function ProductsPage() {
   const [clientTimeline, setClientTimeline] = useState<string>("Standar (1-2 Minggu)");
   const [clientBudget, setClientBudget] = useState<string>("5jt - 15jt IDR");
   const [projectBrief, setProjectBrief] = useState<string>("");
+
+  // Payment selection states
+  const [paymentPlan, setPaymentPlan] = useState<"dp50" | "full">("dp50");
+  const [paymentMethod, setPaymentMethod] = useState<"bca" | "mandiri" | "qris" | "dana">("bca");
+  const [activeReceipt, setActiveReceipt] = useState<OrderReceiptItem | null>(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState<boolean>(false);
+  const [copiedFormAccount, setCopiedFormAccount] = useState<boolean>(false);
 
   // Confirmation Modal states
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
@@ -391,7 +407,7 @@ export default function ProductsPage() {
       targetDeadline: clientTimeline,
       currentStage: "queued" as const,
       progressPercent: 15,
-      notes: "Pesanan masuk dari formulir website. Menunggu konfirmasi & jadwal kickoff.",
+      notes: `Pesanan formulir website (${paymentPlan === "dp50" ? "DP 50%" : "Full 100%"} via ${paymentMethod.toUpperCase()}). Menunggu verifikasi pembayaran.`,
       deliverables: selectedPackageObj.deliverables,
       brief: projectBrief.trim() || undefined,
       updatedAt: new Date().toISOString(),
@@ -400,19 +416,45 @@ export default function ProductsPage() {
     registerTrackedProject(newProjectData).catch(e => console.warn("Tracker registration notice:", e));
     broadcastNewIncomingOrder(newProjectData);
 
-    setIsConfirmOpen(true);
+    // Create official digital order receipt & slip
+    const receiptObj = createReceiptFromOrder({
+      refCode: randomCode,
+      clientName: clientName.trim(),
+      clientPhone: clientPhone.trim(),
+      clientEmail: clientEmail.trim() || undefined,
+      serviceTitle: selectedProductObj.title,
+      categoryLabel: selectedProductObj.categoryLabel,
+      packageName: selectedPackageObj.name,
+      packageDuration: selectedPackageObj.duration,
+      deliverables: selectedPackageObj.deliverables,
+      budget: clientBudget,
+      paymentPlan,
+      paymentMethod,
+      notes: projectBrief.trim() || undefined,
+    });
+    setActiveReceipt(receiptObj);
+    setIsReceiptModalOpen(true);
   };
 
   // Construct Formatted WhatsApp Message
   const buildWhatsAppMessage = () => {
-    return `*Halo Rizx Studio / FOMY!* 👋
-Saya ingin konsultasi & memesan proyek kreatif dengan detail berikut:
+    const activeAcc = PAYMENT_ACCOUNTS.find((a) => a.id === paymentMethod) || PAYMENT_ACCOUNTS[0];
+    const planText = paymentPlan === "dp50" ? "DP 50% (Uang Muka)" : "Pelunasan 100% (Full Payment)";
+    const origin = typeof window !== "undefined" ? window.location.origin : "https://rizxstudio.com";
+    const trackingLink = `${origin}/tracking?code=${orderRefId}`;
 
-📋 *KODE REFERENSI:* ${orderRefId}
+    return `*Halo Rizx Studio / FOMY!* 👋
+Saya ingin konsultasi & mengonfirmasi pesanan proyek kreatif dengan rincian berikut:
+
+📋 *KODE RESI / INVOICE:* ${activeReceipt?.receiptNumber || `RZ-INV-${orderRefId}`}
+🔑 *KODE TRACKING PROYEK:* ${orderRefId}
 📌 *LAYANAN:* ${selectedProductObj.title} (${selectedProductObj.categoryLabel})
 📦 *PAKET PILIHAN:* ${selectedPackageObj.name} (${selectedPackageObj.duration})
-💰 *ESTIMASI BUDGET:* ${clientBudget}
-⏱️ *TARGET TIMELINE:* ${clientTimeline}
+💰 *ESTIMASI BIAYA:* ${clientBudget}
+💳 *SKEMA PEMBAYARAN:* ${planText}
+🏦 *REKENING TUJUAN:* ${activeAcc.name} (${activeAcc.accountNumber})
+⏱️ *TARGET WAKTU:* ${clientTimeline}
+🔗 *LINK RESI & TRACKING:* ${trackingLink}
 
 👤 *DATA KLIEN:*
 - Nama / Brand: ${clientName}
@@ -422,7 +464,7 @@ ${clientEmail ? `- Email: ${clientEmail}` : ""}
 📝 *DETAIL BRIEF & KEBUTUHAN PROYEK:*
 ${projectBrief ? `"${projectBrief}"` : "Saya ingin berdiskusi lebih lanjut mengenai detail kebutuhan proyek."}
 
-Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
+Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Terima kasih!`;
   };
 
   // Final Action: Send to WhatsApp + Auto Log to CRM
@@ -437,7 +479,7 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
         service: `${selectedProductObj.title} — ${selectedPackageObj.name}`,
         budget: clientBudget,
         source: "Product Page Form",
-        notes: `Ref: ${orderRefId} | Timeline: ${clientTimeline} | Brief: ${projectBrief || "Tidak ada brief tertulis"}`,
+        notes: `Ref: ${orderRefId} | Bayar: ${paymentPlan} via ${paymentMethod} | Timeline: ${clientTimeline} | Brief: ${projectBrief || "Tidak ada brief tertulis"}`,
         value:
           clientBudget.includes("30jt")
             ? 35000000
@@ -1148,6 +1190,156 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                 />
               </div>
 
+              {/* 5. Payment Scheme & Accounts Selection */}
+              <div className="space-y-4 pt-2">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300">
+                      9. Skema & Metode Pembayaran Proyek
+                    </label>
+                    <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1">
+                      <RiShieldCheckLine className="w-3.5 h-3.5" />
+                      Resi Otomatis & Terverifikasi
+                    </span>
+                  </div>
+
+                  {/* Payment Plan: DP 50% vs Lunas 100% */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setPaymentPlan("dp50")}
+                      className={`p-3.5 rounded-xl border text-left transition-all relative cursor-pointer ${
+                        paymentPlan === "dp50"
+                          ? "border-[#16b09f] bg-[#16b09f]/10 shadow-[0_0_15px_rgba(22,176,159,0.15)]"
+                          : isLight
+                          ? "bg-slate-50 border-slate-200 hover:border-slate-300"
+                          : "bg-white/[0.03] border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                          <RiBankCardLine className="w-4 h-4 text-[#16b09f]" />
+                          DP 50% (Uang Muka)
+                        </span>
+                        {paymentPlan === "dp50" && (
+                          <RiCheckboxCircleFill className="w-4 h-4 text-[#16b09f]" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-neutral-400 leading-relaxed">
+                        Mulai pengerjaan dengan DP 50%. Pelunasan 50% setelah proyek selesai disetujui.
+                      </p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setPaymentPlan("full")}
+                      className={`p-3.5 rounded-xl border text-left transition-all relative cursor-pointer ${
+                        paymentPlan === "full"
+                          ? "border-[#16b09f] bg-[#16b09f]/10 shadow-[0_0_15px_rgba(22,176,159,0.15)]"
+                          : isLight
+                          ? "bg-slate-50 border-slate-200 hover:border-slate-300"
+                          : "bg-white/[0.03] border-white/10 hover:border-white/20"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                          <RiCheckboxCircleFill className="w-4 h-4 text-[#16b09f]" />
+                          Bayar Lunas 100%
+                        </span>
+                        {paymentPlan === "full" && (
+                          <RiCheckboxCircleFill className="w-4 h-4 text-[#16b09f]" />
+                        )}
+                      </div>
+                      <p className="text-[11px] text-neutral-400 leading-relaxed">
+                        Pembayaran penuh di awal. Antrean prioritas tinggi dan serah terima file tanpa jeda termin.
+                      </p>
+                    </button>
+                  </div>
+
+                  {/* Payment Accounts Options */}
+                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
+                    Pilih Rekening / Saluran Pembayaran:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+                    {PAYMENT_ACCOUNTS.map((acc) => {
+                      const isSelected = paymentMethod === acc.id;
+                      return (
+                        <button
+                          key={acc.id}
+                          type="button"
+                          onClick={() => setPaymentMethod(acc.id)}
+                          className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                            isSelected
+                              ? "border-[#16b09f] bg-[#16b09f]/15"
+                              : isLight
+                              ? "bg-slate-50 border-slate-200 hover:border-slate-300"
+                              : "bg-white/[0.02] border-white/10 hover:border-white/20"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[11px] font-bold text-white uppercase font-mono">
+                              {acc.id === "qris" ? "QRIS" : acc.id.toUpperCase()}
+                            </span>
+                            {isSelected && (
+                              <span className="w-2 h-2 rounded-full bg-[#16b09f] shadow-[0_0_8px_#16b09f]" />
+                            )}
+                          </div>
+                          <span className="text-[10px] text-neutral-400 truncate">
+                            {acc.category === "qris" ? "Semua Bank & E-Wallet" : acc.accountHolder}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Active Account Detail Box with 1-click Copy */}
+                  {(() => {
+                    const activeAcc =
+                      PAYMENT_ACCOUNTS.find((a) => a.id === paymentMethod) || PAYMENT_ACCOUNTS[0];
+                    return (
+                      <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-white">{activeAcc.name}</span>
+                            {activeAcc.badge && (
+                              <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#16b09f]/20 text-[#16b09f] font-mono">
+                                {activeAcc.badge}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-sm font-bold text-white tracking-wider">
+                              {activeAcc.accountNumber}
+                            </span>
+                            <span className="text-[11px] text-neutral-400">
+                              a.n. <strong className="text-neutral-200">{activeAcc.accountHolder}</strong>
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-neutral-400">
+                            {activeAcc.instructions}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (navigator.clipboard) {
+                              navigator.clipboard.writeText(activeAcc.accountNumber);
+                              setCopiedFormAccount(true);
+                              setTimeout(() => setCopiedFormAccount(false), 2000);
+                            }
+                          }}
+                          className="self-start sm:self-center shrink-0 px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border border-white/10"
+                        >
+                          <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
+                          <span>{copiedFormAccount ? "Tersalin!" : "Salin Rekening"}</span>
+                        </button>
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+
               {/* Submit CTA Button */}
               <div className="pt-2">
                 <button
@@ -1160,10 +1352,10 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                   className="w-full py-4 px-8 rounded-full font-bold text-sm sm:text-base hover:brightness-110 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-3"
                 >
                   <RiSendPlaneFill className="w-5 h-5" />
-                  <span>{tr("Confirm Order 🚀", "Konfirmasi Pesanan 🚀", "Konfirmasi Pesanan 🚀")}</span>
+                  <span>{tr("Confirm Order & View Receipt 🧾", "Konfirmasi Order & Terbitkan Resi 🧾", "Konfirmasi Order & Resi 🧾")}</span>
                 </button>
                 <p className="text-center text-[11px] text-neutral-500 font-mono mt-3">
-                  🔒 Data Anda terlindungi. Langkah selanjutnya akan membuka ringkasan konfirmasi resmi.
+                  🔒 Data Anda terlindungi. Resi digital resmi & link pembayaran akan langsung diterbitkan untuk konfirmasi langsung.
                 </p>
               </div>
             </form>
@@ -1261,6 +1453,18 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
 
             {/* Action Buttons */}
             <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsConfirmOpen(false);
+                  setIsReceiptModalOpen(true);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <RiFileList3Line className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Buka Resi & Panduan Bayar Digital 🧾</span>
+              </button>
+
               <button
                 type="button"
                 onClick={() => {
@@ -1473,6 +1677,18 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
         isOpen={isTrackerModalOpen}
         onClose={() => setIsTrackerModalOpen(false)}
         initialCode={trackerInitialCode}
+      />
+
+      {/* Official Order Digital Receipt Modal with Proof Upload & Tracking Link */}
+      <OrderReceiptModal
+        isOpen={isReceiptModalOpen}
+        onClose={() => setIsReceiptModalOpen(false)}
+        receipt={activeReceipt}
+        onOpenTracker={(code) => {
+          setIsReceiptModalOpen(false);
+          setTrackerInitialCode(code);
+          setIsTrackerModalOpen(true);
+        }}
       />
 
       {/* Floating Share Toast Notification */}
