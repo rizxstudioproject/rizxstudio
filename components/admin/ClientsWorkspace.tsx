@@ -1484,22 +1484,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   </span>
                 </div>
                 <p className="text-xs text-neutral-400 mt-1">
-                  {selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`} Â· {selectedClient.works?.length || 0} {selectedClient.works?.length === 1 ? "work" : "works"}
+                  {selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`} • {selectedClient.works?.length || 0} {selectedClient.works?.length === 1 ? "work" : "works"}
                 </p>
               </div>
-            </div>
-
-            {/* Right Header Actions */}
-            <div className="flex items-center gap-2 shrink-0 relative">
-              {/* Delete Folder Button */}
-              <button
-                type="button"
-                onClick={() => onDeleteFolder(selectedClient)}
-                className="p-1.5 rounded-xl bg-white/5 hover:bg-rose-500/15 text-neutral-400 hover:text-rose-400 border border-white/10 hover:border-rose-500/30 transition-all cursor-pointer shadow-sm active:scale-95"
-                title={tr("Hapus folder klien ini", "Delete this client folder", "Hapuih folder klien ko")}
-              >
-                <HiTrash className="w-4 h-4" />
-              </button>
             </div>
           </div>
 

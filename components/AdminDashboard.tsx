@@ -6954,19 +6954,33 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={editFolderCategory}
                     onChange={(e) => setEditFolderCategory(e.target.value)}
-                    placeholder={`Portfolio â€” ${editFolderName.trim() || editingFolder.clientName}`}
+                    placeholder={`Portfolio — ${editFolderName.trim() || editingFolder.clientName}`}
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-cyan-400 transition-all"
                   />
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-2 flex items-center justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const target = editingFolder;
+                      setEditingFolder(null);
+                      handleDeleteFolder(target);
+                    }}
+                    className="px-4 py-3 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer active:scale-95 shrink-0"
+                    title={tx(`Hapus brand ${editingFolder.clientName}`, `Delete brand ${editingFolder.clientName}`, `Hapuih brand ${editingFolder.clientName}`)}
+                  >
+                    <HiTrash className="w-4 h-4 text-rose-400" />
+                    <span>{tx("Hapus Brand", "Delete Brand", "Hapuih Brand")}</span>
+                  </button>
+
                   <button
                     type="submit"
                     disabled={!editFolderName.trim()}
-                    className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#16b09f] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#16b09f] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <HiCheck className="w-4 h-4" />
-                    <span>{tx("Simpan Perubahan Nama", "Save Brand Name")}</span>
+                    <span>{tx("Simpan Perubahan Nama", "Save Brand Name", "Simpan Parubahan Namo")}</span>
                   </button>
                 </div>
               </form>
