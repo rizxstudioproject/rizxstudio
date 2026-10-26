@@ -469,6 +469,34 @@ export default function MobileAdminApp({
   const dockItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const [gliderX, setGliderX] = useState<number | null>(null);
   const [isSaveFabExpanded, setIsSaveFabExpanded] = useState<boolean>(false);
+  const longPressTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isLongPressTriggered = useRef(false);
+
+  const handleFabPointerDown = () => {
+    isLongPressTriggered.current = false;
+    longPressTimeoutRef.current = setTimeout(() => {
+      isLongPressTriggered.current = true;
+      setIsSaveFabExpanded((prev) => !prev);
+      if (typeof window !== "undefined" && navigator.vibrate) {
+        navigator.vibrate(50);
+      }
+    }, 280);
+  };
+
+  const handleFabPointerCancel = () => {
+    if (longPressTimeoutRef.current) {
+      clearTimeout(longPressTimeoutRef.current);
+      longPressTimeoutRef.current = null;
+    }
+  };
+
+  const handleFabClick = () => {
+    if (isLongPressTriggered.current) {
+      isLongPressTriggered.current = false;
+      return;
+    }
+    setIsSaveFabExpanded((prev) => !prev);
+  };
 
   const updateGliderPosition = useCallback((targetId: string) => {
     const el = dockItemRefs.current[targetId];
@@ -1270,142 +1298,155 @@ export default function MobileAdminApp({
         </div>
       )}
 
-      {/* DRAGGABLE FLOATING SAVE ACTION (Bisa digeser bebas di dalam frame, tap untuk slide/expand)
-          Muncul dari awal di beranda dashboard mobile maupun di dalam seluruh workspace */}
+      {/* RADIAL SATELLITE ACTION MENU (Tahan / Tekan untuk memunculkan Save, View Page, Logout di sekitarnya) */}
+      {isSaveFabExpanded && (
+        <div
+          className="fixed inset-0 z-30 bg-black/35 backdrop-blur-[1.5px]"
+          onClick={() => setIsSaveFabExpanded(false)}
+        />
+      )}
+
       <motion.div
         drag
-            dragConstraints={mobileFrameRef}
-            dragElastic={0.08}
-            dragMomentum={false}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="fixed bottom-[104px] right-4 z-40 cursor-grab active:cursor-grabbing select-none"
-            style={{ touchAction: "none" }}
-          >
-            <AnimatePresence mode="wait">
-              {!isSaveFabExpanded ? (
-                /* 1. COMPACT FLOATING ICON BUBBLE (Tapped to slide open) */
+        dragConstraints={mobileFrameRef}
+        dragElastic={0.08}
+        dragMomentum={false}
+        onDragStart={handleFabPointerCancel}
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="fixed bottom-[104px] right-4 z-40 cursor-grab active:cursor-grabbing select-none"
+        style={{ touchAction: "none" }}
+      >
+        <div className="relative w-[52px] h-[52px]">
+          {/* ORBITING / SATELLITE ACTION BUTTONS */}
+          <AnimatePresence>
+            {isSaveFabExpanded && (
+              <>
+                {/* 1. SATELLITE: SAVE WORKSPACE */}
                 <motion.button
-                  key="fab-bubble"
+                  key="sat-save"
                   type="button"
-                  layoutId="floatingSaveContainer"
-                  initial={{ scale: 0.85, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.85, opacity: 0 }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setIsSaveFabExpanded(true)}
-                  className="relative flex items-center justify-center rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-2 border-white/25 backdrop-blur-xl transition-all cursor-pointer"
-                  style={{
-                    backgroundColor: primaryColor,
-                    boxShadow: `0 8px 24px ${primaryColor}66`,
-                    width: "52px",
-                    height: "52px",
+                  initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+                  animate={{ scale: 1, x: 0, y: -68, opacity: 1 }}
+                  exit={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.02 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    await handleSaveWorkspace();
+                    setTimeout(() => setIsSaveFabExpanded(false), 900);
                   }}
-                  title={tr("Simpan Perubahan & Lihat Web", "Save Changes & View Web", "Simpan & Caliak Web")}
+                  disabled={savingAction}
+                  className="absolute left-1 top-1 w-11 h-11 rounded-full shadow-[0_6px_20px_rgba(20,184,166,0.5)] border-2 border-white/30 flex items-center justify-center cursor-pointer transition-transform z-20 group"
+                  style={{ backgroundColor: primaryColor }}
+                  title="Simpan Perubahan (Save)"
                 >
-                  <RiSave3Fill className="w-5 h-5 text-white drop-shadow" />
-                  {/* Status Pulse Pip */}
-                  <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#090b10]" />
+                  <RiSave3Fill className="w-5 h-5 text-black drop-shadow" />
+                  <span className="absolute -left-16 text-[10px] font-bold text-white bg-black/90 px-2 py-0.5 rounded-md pointer-events-none whitespace-nowrap border border-white/15 shadow-md">
+                    {savingAction ? tr("Menyimpan...", "Saving...", "Manyimpan...") : savedSuccess ? tr("Tersimpan!", "Saved!", "Tasimpan!") : tr("Save", "Simpan", "Simpan")}
                   </span>
                 </motion.button>
-              ) : (
-                /* 2. EXPANDED SLIDER CARD (Slide open with Sync Status & Save Changes Button) */
-                <motion.div
-                  key="fab-slider"
-                  layoutId="floatingSaveContainer"
-                  initial={{ scale: 0.9, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  exit={{ scale: 0.9, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 28 }}
-                  className={`flex items-center gap-2.5 p-2 pl-3 rounded-2xl border shadow-2xl backdrop-blur-2xl max-w-[340px] ${
-                    isLight
-                      ? "bg-white/98 border-slate-200/90 shadow-[0_14px_40px_rgba(15,23,42,0.18)]"
-                      : "bg-[#0c101a]/98 border-white/15 shadow-[0_16px_45px_rgba(0,0,0,0.85)]"
-                  }`}
+
+                {/* 2. SATELLITE: VIEW PAGE */}
+                <motion.button
+                  key="sat-view"
+                  type="button"
+                  initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+                  animate={{ scale: 1, x: -52, y: -48, opacity: 1 }}
+                  exit={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.05 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open(getViewPageUrl(), "_blank");
+                    setIsSaveFabExpanded(false);
+                  }}
+                  className="absolute left-1 top-1 w-11 h-11 rounded-full bg-sky-500 shadow-[0_6px_20px_rgba(14,165,233,0.5)] border-2 border-white/30 flex items-center justify-center cursor-pointer transition-transform text-white z-20 group"
+                  title="Lihat Halaman Web (View Page)"
                 >
-                  {/* View Live Web Button (Eye Icon) */}
-                  <a
-                    href={getViewPageUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center justify-center shrink-0 cursor-pointer"
-                    title={tr("Lihat Halaman Web", "View Live Web", "Caliak Web")}
-                  >
-                    <RiEyeLine className="w-4 h-4" />
-                  </a>
+                  <RiEyeLine className="w-5 h-5 drop-shadow" />
+                  <span className="absolute -top-7 -left-6 text-[10px] font-bold text-white bg-black/90 px-2 py-0.5 rounded-md pointer-events-none whitespace-nowrap border border-white/15 shadow-md">
+                    {tr("View Page", "Lihat Web", "Caliak Web")}
+                  </span>
+                </motion.button>
 
-                  {/* Sync Status Badge */}
-                  <div className="flex flex-col text-left shrink-0 pr-1">
-                    <span className="text-neutral-400 block text-[9px] font-medium leading-tight">
-                      {tr("Status Sinkron", "Sync Status", "Status Sinkron")}
-                    </span>
-                    <span className="font-bold text-emerald-400 text-[11px] flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      <span>{savedSuccess ? tr("Tersimpan!", "Saved!", "Tasimpan!") : tr("Cloud Siap", "Cloud Ready", "Cloud Siap")}</span>
-                    </span>
-                  </div>
-
-                  {/* Save Changes Action Button */}
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      await handleSaveWorkspace();
-                      // Auto-collapse after save
-                      setTimeout(() => setIsSaveFabExpanded(false), 800);
-                    }}
-                    disabled={savingAction}
-                    className="flex-1 py-2 px-3 rounded-xl text-xs font-bold text-white shadow-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer whitespace-nowrap"
-                    style={{
-                      backgroundColor: primaryColor,
-                      boxShadow: `0 6px 18px ${primaryColor}55`,
-                    }}
-                  >
-                    <RiSave3Fill className="w-3.5 h-3.5" />
-                    <span>
-                      {savingAction
-                        ? tr("Menyimpan...", "Saving...", "Manyimpan...")
-                        : tr("Simpan", "Save", "Simpan")}
-                    </span>
-                  </button>
-
-                  {/* Logout Admin Session Button */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (
-                        confirm(
-                          tr(
-                            "Yakin ingin keluar dari sesi admin?",
-                            "Are you sure you want to logout from admin session?",
-                            "Yakin nio kalua dari sesi admin?"
-                          )
+                {/* 3. SATELLITE: LOGOUT */}
+                <motion.button
+                  key="sat-logout"
+                  type="button"
+                  initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+                  animate={{ scale: 1, x: -68, y: 0, opacity: 1 }}
+                  exit={{ scale: 0, x: 0, y: 0, opacity: 0 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.08 }}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsSaveFabExpanded(false);
+                    if (
+                      confirm(
+                        tr(
+                          "Yakin ingin keluar dari sesi admin?",
+                          "Are you sure you want to logout from admin session?",
+                          "Yakin nio kalua dari sesi admin?"
                         )
-                      ) {
-                        onLogout();
-                      }
-                    }}
-                    className="p-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 active:scale-95 text-rose-400 hover:text-rose-300 border border-rose-500/30 transition flex items-center justify-center shrink-0 cursor-pointer"
-                    title={tr("Keluar Sesi Admin (Logout)", "Logout Admin", "Kalua Sesi Admin")}
-                  >
-                    <RiLogoutBoxRFill className="w-4 h-4 text-rose-400" />
-                  </button>
+                      )
+                    ) {
+                      onLogout();
+                    }
+                  }}
+                  className="absolute left-1 top-1 w-11 h-11 rounded-full bg-rose-500 shadow-[0_6px_20px_rgba(244,63,94,0.5)] border-2 border-white/30 flex items-center justify-center cursor-pointer transition-transform text-white z-20 group"
+                  title="Keluar Sesi Admin (Logout)"
+                >
+                  <RiLogoutBoxRFill className="w-5 h-5 drop-shadow" />
+                  <span className="absolute -left-16 text-[10px] font-bold text-white bg-black/90 px-2 py-0.5 rounded-md pointer-events-none whitespace-nowrap border border-white/15 shadow-md">
+                    Logout
+                  </span>
+                </motion.button>
+              </>
+            )}
+          </AnimatePresence>
 
-                  {/* Collapse / Close Button */}
-                  <button
-                    type="button"
-                    onClick={() => setIsSaveFabExpanded(false)}
-                    className="p-1.5 rounded-lg text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                    title={tr("Tutup", "Close", "Tutuik")}
-                  >
-                    <RiCloseLine className="w-4 h-4" />
-                  </button>
-                </motion.div>
+          {/* MAIN FLOATING BUTTON (Hold / Tap to trigger satellites) */}
+          <motion.button
+            key="fab-main-bubble"
+            type="button"
+            onPointerDown={handleFabPointerDown}
+            onPointerUp={handleFabPointerCancel}
+            onPointerLeave={handleFabPointerCancel}
+            onClick={handleFabClick}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative w-[52px] h-[52px] flex items-center justify-center rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-2 border-white/25 backdrop-blur-xl transition-all cursor-pointer z-10"
+            style={{
+              backgroundColor: isSaveFabExpanded ? "#1e293b" : primaryColor,
+              boxShadow: `0 8px 24px ${isSaveFabExpanded ? "rgba(0,0,0,0.6)" : `${primaryColor}66`}`,
+            }}
+            title={isSaveFabExpanded ? "Tutup Menu Aksi" : "Tahan / Tekan untuk Menu Aksi (Save, View Page, Logout)"}
+          >
+            <motion.div
+              animate={{ rotate: isSaveFabExpanded ? 90 : 0, scale: isSaveFabExpanded ? 1.08 : 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            >
+              {isSaveFabExpanded ? (
+                <RiCloseLine className="w-6 h-6 text-white drop-shadow" />
+              ) : (
+                <RiSave3Fill className="w-5 h-5 text-white drop-shadow" />
               )}
-            </AnimatePresence>
-          </motion.div>
+            </motion.div>
+
+            {/* Status Pulse Pip (hanya saat idle / belum dibuka) */}
+            {!isSaveFabExpanded && (
+              <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#090b10]" />
+              </span>
+            )}
+          </motion.button>
+        </div>
+      </motion.div>
 
       {/* ==============================================================
           FULL-WIDTH BOTTOM DOCK / TAB BAR (SCROLL & TAP)
