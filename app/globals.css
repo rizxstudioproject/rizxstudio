@@ -77,6 +77,32 @@ html.light .text-white\/70 {
   color: #0f172a !important;
 }
 
+/* Preserve crisp white text on interactive buttons, colored badges, and dark CTA pills in Light Mode */
+html[data-theme='light'] button.text-white,
+html[data-theme='light'] button .text-white,
+html[data-theme='light'] .btn-primary,
+html[data-theme='light'] [class*="bg-teal"] .text-white,
+html[data-theme='light'] [class*="bg-[#16b09f]"] .text-white,
+html[data-theme='light'] [class*="bg-rose"] .text-white,
+html[data-theme='light'] [class*="bg-emerald"] .text-white,
+html[data-theme='light'] [class*="bg-blue"] .text-white,
+html[data-theme='light'] [class*="bg-neutral-900"] .text-white,
+html[data-theme='light'] [class*="bg-black"] .text-white,
+html[data-theme='light'] .keep-white,
+html.light button.text-white,
+html.light button .text-white,
+html.light .btn-primary,
+html.light [class*="bg-teal"] .text-white,
+html.light [class*="bg-[#16b09f]"] .text-white,
+html.light [class*="bg-rose"] .text-white,
+html.light [class*="bg-emerald"] .text-white,
+html.light [class*="bg-blue"] .text-white,
+html.light [class*="bg-neutral-900"] .text-white,
+html.light [class*="bg-black"] .text-white,
+html.light .keep-white {
+  color: #ffffff !important;
+}
+
 /* Core Philosophy quote in About Section */
 html[data-theme='light'] .about-philosophy-card,
 html.light .about-philosophy-card {

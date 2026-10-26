@@ -166,15 +166,58 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
 
   const isInitialLoad = useRef(true);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const sessionIdRef = useRef<string>(
+    typeof window !== "undefined"
+      ? `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+      : "server"
+  );
+  const lastLocalChangeTimeRef = useRef<number>(Date.now());
+
+  // Direct synchronous DOM updater for instant feedback without layout thrashing
+  const applyDomTheme = useCallback((mode: ThemeMode, primary?: string, accent?: string) => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    root.setAttribute("data-theme", mode);
+    if (mode === "dark") {
+      root.classList.add("dark");
+      root.classList.remove("light");
+      if (document.body) {
+        document.body.classList.add("dark");
+        document.body.classList.remove("light");
+      }
+    } else {
+      root.classList.add("light");
+      root.classList.remove("dark");
+      if (document.body) {
+        document.body.classList.add("light");
+        document.body.classList.remove("dark");
+      }
+    }
+
+    const pColor = primary || primaryColor;
+    const aColor = accent || accentColor;
+    root.style.setProperty("--primary-color", pColor);
+    root.style.setProperty("--accent-color", aColor);
+    const rgb = hexToRgb(pColor);
+    if (rgb) {
+      root.style.setProperty("--primary-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
+    }
+  }, [primaryColor, accentColor]);
 
   // Hydrate from localStorage & Supabase Cloud + Realtime Auto-Sync
   useEffect(() => {
+    let localSavedTimestamp = 0;
+
     // 1. First hydrate from local device storage for instantaneous UI response
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed.themeMode) setThemeModeState(parsed.themeMode);
+        if (parsed.updatedAt) localSavedTimestamp = Number(parsed.updatedAt);
+        if (parsed.themeMode) {
+          setThemeModeState(parsed.themeMode);
+          applyDomTheme(parsed.themeMode, parsed.primaryColor, parsed.accentColor);
+        }
         if (parsed.primaryColor) {
           setPrimaryColorState(parsed.primaryColor === "#14AF9E" ? "#16b09f" : parsed.primaryColor);
         }
@@ -191,7 +234,7 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
       console.warn("Failed to load local motion theme settings:", e);
     }
 
-    // 2. Fetch authoritative cloud-persisted theme & cursor settings from Supabase Cloud
+    // 2. Fetch cloud-persisted theme & cursor settings from Supabase Cloud
     if (isSupabaseConfigured && supabase) {
       (async () => {
         try {
@@ -203,15 +246,23 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
 
           if (!error && data && data.description) {
             const cloud = JSON.parse(data.description);
-            if (cloud.themeMode) setThemeModeState(cloud.themeMode);
-            if (cloud.primaryColor) setPrimaryColorState(cloud.primaryColor === "#14AF9E" ? "#16b09f" : cloud.primaryColor);
-            if (cloud.accentColor) setAccentColorState(cloud.accentColor);
-            if (cloud.cursorEffect) setCursorEffectState(cloud.cursorEffect);
-            if (typeof cloud.comboMode === "boolean") setComboModeState(cloud.comboMode);
-            if (typeof cloud.disableOnMobile === "boolean") setDisableOnMobileState(cloud.disableOnMobile);
-            if (cloud.motionScroll) setMotionScrollState(cloud.motionScroll);
+            const cloudTimestamp = cloud.updatedAt ? Number(cloud.updatedAt) : 0;
 
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ _v: 2, ...cloud }));
+            // Only overwrite local settings if cloud is strictly newer than what user saved locally
+            if (!localSavedTimestamp || cloudTimestamp >= localSavedTimestamp) {
+              if (cloud.themeMode) {
+                setThemeModeState(cloud.themeMode);
+                applyDomTheme(cloud.themeMode, cloud.primaryColor, cloud.accentColor);
+              }
+              if (cloud.primaryColor) setPrimaryColorState(cloud.primaryColor === "#14AF9E" ? "#16b09f" : cloud.primaryColor);
+              if (cloud.accentColor) setAccentColorState(cloud.accentColor);
+              if (cloud.cursorEffect) setCursorEffectState(cloud.cursorEffect);
+              if (typeof cloud.comboMode === "boolean") setComboModeState(cloud.comboMode);
+              if (typeof cloud.disableOnMobile === "boolean") setDisableOnMobileState(cloud.disableOnMobile);
+              if (cloud.motionScroll) setMotionScrollState(cloud.motionScroll);
+
+              localStorage.setItem(STORAGE_KEY, JSON.stringify({ _v: 2, ...cloud }));
+            }
           }
         } catch (err) {
           console.warn("Notice loading cloud theme settings:", err);
@@ -237,7 +288,22 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
               if (payload.new && (payload.new as any).description) {
                 try {
                   const updated = JSON.parse((payload.new as any).description);
-                  if (updated.themeMode) setThemeModeState(updated.themeMode);
+
+                  // Prevent echo loop from this same client session
+                  if (updated.sessionId && updated.sessionId === sessionIdRef.current) {
+                    return;
+                  }
+
+                  // Prevent stale network packets from reverting newer local changes
+                  const incomingTime = updated.updatedAt ? Number(updated.updatedAt) : 0;
+                  if (incomingTime && incomingTime < lastLocalChangeTimeRef.current) {
+                    return;
+                  }
+
+                  if (updated.themeMode) {
+                    setThemeModeState(updated.themeMode);
+                    applyDomTheme(updated.themeMode, updated.primaryColor, updated.accentColor);
+                  }
                   if (updated.primaryColor) setPrimaryColorState(updated.primaryColor);
                   if (updated.accentColor) setAccentColorState(updated.accentColor);
                   if (updated.cursorEffect) setCursorEffectState(updated.cursorEffect);
@@ -266,7 +332,21 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
         broadcastChannel.onmessage = (event) => {
           if (event.data && event.data.type === "THEME_SYNC" && event.data.payload) {
             const p = event.data.payload;
-            if (p.themeMode) setThemeModeState(p.themeMode);
+
+            // Ignore self-broadcasts
+            if (p.sessionId && p.sessionId === sessionIdRef.current) {
+              return;
+            }
+
+            const pTime = p.updatedAt ? Number(p.updatedAt) : 0;
+            if (pTime && pTime < lastLocalChangeTimeRef.current) {
+              return;
+            }
+
+            if (p.themeMode) {
+              setThemeModeState(p.themeMode);
+              applyDomTheme(p.themeMode, p.primaryColor, p.accentColor);
+            }
             if (p.primaryColor) setPrimaryColorState(p.primaryColor);
             if (p.accentColor) setAccentColorState(p.accentColor);
             if (p.cursorEffect) setCursorEffectState(p.cursorEffect);
@@ -289,7 +369,7 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
 
     setIsHydrated(true);
 
-    // After 1 second, enable cloud push for user interactions
+    // After 1.2s, enable cloud push for user interactions
     const initTimer = setTimeout(() => {
       isInitialLoad.current = false;
     }, 1200);
@@ -299,12 +379,13 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
       if (themeChannel) supabase?.removeChannel(themeChannel);
       if (broadcastChannel) broadcastChannel.close();
     };
-  }, []);
+  }, [applyDomTheme]);
 
   // Sync to localStorage & Supabase Cloud
   const persistSettings = useCallback(() => {
     if (typeof window === "undefined") return;
     try {
+      const now = Date.now();
       const payload = {
         _v: 2,
         themeMode,
@@ -315,7 +396,10 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
         disableOnMobile,
         motionScroll,
         socialContacts,
+        sessionId: sessionIdRef.current,
+        updatedAt: now,
       };
+
       // 1. LocalStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 
@@ -364,30 +448,21 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
 
   // Update Global CSS Variables on HTML element
   useEffect(() => {
-    if (typeof document === "undefined") return;
+    applyDomTheme(themeMode, primaryColor, accentColor);
+  }, [themeMode, primaryColor, accentColor, applyDomTheme]);
 
-    const root = document.documentElement;
-    root.style.setProperty("--primary-color", primaryColor);
-    root.style.setProperty("--accent-color", accentColor);
+  const setThemeMode = (mode: ThemeMode) => {
+    lastLocalChangeTimeRef.current = Date.now();
+    setThemeModeState(mode);
+    applyDomTheme(mode);
+  };
 
-    const rgb = hexToRgb(primaryColor);
-    if (rgb) {
-      root.style.setProperty("--primary-rgb", `${rgb.r}, ${rgb.g}, ${rgb.b}`);
-    }
-
-    // Set theme attribute & class
-    root.setAttribute("data-theme", themeMode);
-    if (themeMode === "dark") {
-      root.classList.add("dark");
-      root.classList.remove("light");
-    } else {
-      root.classList.add("light");
-      root.classList.remove("dark");
-    }
-  }, [themeMode, primaryColor, accentColor]);
-
-  const setThemeMode = (mode: ThemeMode) => setThemeModeState(mode);
-  const toggleThemeMode = () => setThemeModeState((prev) => (prev === "dark" ? "light" : "dark"));
+  const toggleThemeMode = () => {
+    lastLocalChangeTimeRef.current = Date.now();
+    const nextMode: ThemeMode = themeMode === "dark" ? "light" : "dark";
+    setThemeModeState(nextMode);
+    applyDomTheme(nextMode);
+  };
 
   const setPrimaryColor = (color: string) => setPrimaryColorState(color);
   const setAccentColor = (color: string) => setAccentColorState(color);

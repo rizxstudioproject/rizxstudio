@@ -655,13 +655,13 @@ export default function MobileAdminApp({
                   <RiShieldCheckFill className="w-4 h-4 text-teal-400" />
                 </button>
 
-                {/* 1. Theme Mode Toggle (Light/Dark Mode Circular Button - Image 1 Style) */}
+                {/* 1. Theme Mode Toggle (Light/Dark Mode Circular Button - Moon in Light / Sun in Dark) */}
                 <button
                   type="button"
                   onClick={toggleThemeMode}
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-sm ${
                     isLight
-                      ? "bg-slate-100 text-amber-500 border border-slate-200 hover:bg-slate-200"
+                      ? "bg-white text-teal-600 border border-slate-200 hover:bg-slate-50"
                       : "bg-[#182030] text-amber-400 border border-white/10 hover:bg-white/10"
                   }`}
                   title={
@@ -670,7 +670,11 @@ export default function MobileAdminApp({
                       : tr("Beralih ke Mode Terang", "Switch to Light Mode", "Pindah ka Mode Tarang")
                   }
                 >
-                  <RiSunFill className={`w-4 h-4 ${isLight ? "text-amber-500" : "text-amber-400"}`} />
+                  {isLight ? (
+                    <RiMoonClearFill className="w-4 h-4 text-teal-600" />
+                  ) : (
+                    <RiSunFill className="w-4 h-4 text-amber-400" />
+                  )}
                 </button>
 
                 {/* 2. Language Switcher Sliding Pill (Mirip pada Website Navbar: 1 compact circular pill -> slides open horizontally on tap) */}

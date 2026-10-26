@@ -14,6 +14,8 @@ import {
   RiFlashlightFill as HiBolt,
   RiEqualizerFill as HiAdjustmentsHorizontal,
   RiFullscreenFill as HiArrowsPointingOut,
+  RiSunFill,
+  RiMoonClearFill,
 } from "react-icons/ri";
 import { useMotionTheme, CursorEffectType } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
@@ -236,6 +238,89 @@ export default function ThemeColorWorkspace() {
       {/* TAB 1: COLORS & THEME */}
       {activeSubTab === "colors" && (
         <div className="space-y-6">
+          {/* 0. THEME MODE SELECTION (DARK VS LIGHT) */}
+          <section className="space-y-3.5">
+            <div className="flex items-center justify-between">
+              <h3 className={`text-sm sm:text-base font-semibold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
+                {isLight ? <RiMoonClearFill className="w-4 h-4 text-teal-600" /> : <RiSunFill className="w-4 h-4 text-amber-400" />}
+                <span>{tr("Theme Mode (Dark / Light)", "Mode Tampilan Tema (Gelap / Terang)", "Mode Tampilan Tema (Galok / Tarang)")}</span>
+              </h3>
+              <span className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full border ${
+                isLight ? "bg-teal-50 border-teal-200 text-teal-700 font-semibold" : "bg-white/5 border-white/10 text-neutral-400"
+              }`}>
+                {themeMode.toUpperCase()} MODE ACTIVE
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {/* Dark Mode Card */}
+              <button
+                type="button"
+                onClick={() => {
+                  setThemeMode("dark");
+                  triggerSaved();
+                }}
+                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex items-center gap-3.5 cursor-pointer relative group ${
+                  !isLight
+                    ? "bg-neutral-900/90 border-[#16b09f] shadow-lg ring-2 ring-[#16b09f]/30"
+                    : "bg-white hover:bg-slate-50 border-slate-200 shadow-sm"
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-neutral-950 border border-neutral-800 flex items-center justify-center shrink-0">
+                  <RiSunFill className="w-5 h-5 text-amber-400" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className={`text-sm font-semibold ${!isLight ? "text-white" : "text-slate-800"}`}>
+                      {tr("Dark Studio Mode", "Mode Studio Gelap (Default)", "Mode Studio Galok")}
+                    </h4>
+                    {!isLight && (
+                      <span className="w-5 h-5 rounded-full bg-[#16b09f] text-white flex items-center justify-center text-xs">
+                        <HiCheck className="w-3.5 h-3.5" />
+                      </span>
+                    )}
+                  </div>
+                  <p className={`text-xs mt-0.5 ${!isLight ? "text-neutral-400" : "text-slate-500"}`}>
+                    {tr("Deep space black canvas with vibrant glowing neon accents.", "Tampilan latar hitam pekat dengan aksen neon menyala.", "Latar hitam pakaik jo aksen neon tarang.")}
+                  </p>
+                </div>
+              </button>
+
+              {/* Light Mode Card */}
+              <button
+                type="button"
+                onClick={() => {
+                  setThemeMode("light");
+                  triggerSaved();
+                }}
+                className={`p-4 rounded-2xl border text-left transition-all duration-200 flex items-center gap-3.5 cursor-pointer relative group ${
+                  isLight
+                    ? "bg-white border-[#16b09f] shadow-lg ring-2 ring-[#16b09f]/30"
+                    : "bg-neutral-900/40 hover:bg-white/[0.04] border-white/10"
+                }`}
+              >
+                <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-300 flex items-center justify-center shrink-0">
+                  <RiMoonClearFill className="w-5 h-5 text-teal-600" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
+                      {tr("Light Studio Mode", "Mode Studio Terang", "Mode Studio Tarang")}
+                    </h4>
+                    {isLight && (
+                      <span className="w-5 h-5 rounded-full bg-[#16b09f] text-white flex items-center justify-center text-xs">
+                        <HiCheck className="w-3.5 h-3.5" />
+                      </span>
+                    )}
+                  </div>
+                  <p className={`text-xs mt-0.5 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                    {tr("Clean architectural slate background with high-contrast typography.", "Tampilan bersih bernuansa terang arsitektural kontras tinggi.", "Latar arsitektural tarang jo tulisan kontras tinggi.")}
+                  </p>
+                </div>
+              </button>
+            </div>
+          </section>
+
           {/* 1. CURATED COLOR PRESETS */}
           <section className="space-y-3.5">
             <h3 className={`text-sm sm:text-base font-semibold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
