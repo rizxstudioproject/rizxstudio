@@ -23,3 +23,8 @@ npm-debug.log*
 
 # Vercel
 .vercel
+
+# Local Backups (safe on disk, never committed to git/Vercel)
+backup_media_original.zip
+BACKUP_MEDIA_ORIGINAL/
+LOCAL_BACKUP_MEDIA/
