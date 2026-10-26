@@ -20,6 +20,13 @@ import {
   RiEyeLine,
   RiImageFill,
   RiAttachmentLine,
+  RiArrowLeftLine,
+  RiCalendarEventLine,
+  RiMoneyDollarCircleLine,
+  RiFileList3Line,
+  RiUser3Line,
+  RiCheckDoubleLine,
+  RiFlashlightFill,
 } from "react-icons/ri";
 import {
   getAllTrackedProjects,
@@ -35,6 +42,44 @@ import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
 import ReceiptProofModal, { ReceiptProofData } from "./ReceiptProofModal";
+
+const STUDIO_WORKFLOW_MILESTONES = [
+  {
+    stage: "queued" as ProjectProgressStage,
+    step: 1,
+    title: "1. Konseptualisasi & Riset Brief",
+    desc: "Mempelajari brief kebutuhan klien, referensi visual, dan arahan kreatif.",
+    pct: 15,
+  },
+  {
+    stage: "in_progress" as ProjectProgressStage,
+    step: 2,
+    title: "2. Sketsa & Eksplorasi Konsep",
+    desc: "Pembuatan draft alternatif, layout komposisi, dan moodboard visual.",
+    pct: 50,
+  },
+  {
+    stage: "review" as ProjectProgressStage,
+    step: 3,
+    title: "3. Eksekusi Digital & Detailing",
+    desc: "Penyempurnaan aset digital, pemilihan warna, tipografi, dan polishing.",
+    pct: 80,
+  },
+  {
+    stage: "completed" as ProjectProgressStage,
+    step: 4,
+    title: "4. Review, Revisi & Final Handover",
+    desc: "Pengecekan akhir bersama klien, export master file, dan serah terima aset.",
+    pct: 100,
+  },
+];
+
+const getMilestoneCompletion = (stage: ProjectProgressStage, pct: number) => {
+  if (stage === "completed" || pct >= 100) return 4;
+  if (stage === "review" || pct >= 80) return 3;
+  if (stage === "in_progress" || pct >= 50) return 2;
+  return 1;
+};
 
 export default function ProjectTrackerWorkspace() {
   const { primaryColor, themeMode, socialContacts } = useMotionTheme();
@@ -52,6 +97,7 @@ export default function ProjectTrackerWorkspace() {
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [clientPreviewCode, setClientPreviewCode] = useState<string | null>(null);
   const [selectedReceiptProof, setSelectedReceiptProof] = useState<ReceiptProofData | null>(null);
+  const [drilldownProject, setDrilldownProject] = useState<ProjectTrackingItem | null>(null);
 
   // Edit form state
   const [editStage, setEditStage] = useState<ProjectProgressStage>("in_progress");
@@ -104,6 +150,24 @@ export default function ProjectTrackerWorkspace() {
       return matchStage && matchSearch;
     });
   }, [projects, stageFilter, searchQuery]);
+
+  // Active projects for Mobile Highlight Carousel
+  const activeProjects = useMemo(() => {
+    return projects.filter(
+      (p) =>
+        p.currentStage === "in_progress" ||
+        p.currentStage === "queued" ||
+        p.currentStage === "review"
+    );
+  }, [projects]);
+
+  // Keep drilldown modal synced when projects state updates
+  useEffect(() => {
+    if (drilldownProject) {
+      const fresh = projects.find((p) => p.refCode === drilldownProject.refCode);
+      if (fresh) setDrilldownProject(fresh);
+    }
+  }, [projects]);
 
   // Open Edit Modal
   const openEditModal = (item: ProjectTrackingItem) => {
@@ -227,8 +291,96 @@ export default function ProjectTrackerWorkspace() {
         )}
       </AnimatePresence>
 
-      {/* Top Header */}
-      <div className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b ${isLight ? "border-slate-200" : "border-white/10"}`}>
+      {/* Mobile Top Header (Reference Screen 1 style) */}
+      <div className="block md:hidden pb-1">
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div>
+            <span className="text-[10px] font-mono uppercase tracking-wider text-teal-400 font-bold block">
+              Live Progress Engine
+            </span>
+            <h1 className="text-2xl font-black tracking-tight flex items-baseline gap-2">
+              <span className={isLight ? "text-slate-900" : "text-white"}>Project Dashboard</span>
+              <span className="text-base font-semibold text-neutral-400 font-mono">
+                ({projects.length})
+              </span>
+            </h1>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsAddModalOpen(true)}
+            style={{ backgroundColor: primaryColor, color: "#000000" }}
+            className="px-3.5 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md shadow-[#16b09f]/20 cursor-pointer active:scale-95 shrink-0"
+          >
+            <RiAddLine className="w-4 h-4" />
+            <span>+ Proyek</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Highlight Carousel: Active / Ongoing Projects (Reference Screen 1) */}
+      {activeProjects.length > 0 && (
+        <div className="block md:hidden space-y-2.5">
+          <div className="flex items-center justify-between px-0.5">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <h2 className="text-xs font-black uppercase tracking-wider font-mono text-neutral-300">
+                Proyek Berjalan ({activeProjects.length})
+              </h2>
+            </div>
+            <span className="text-[10px] text-neutral-500 font-mono">Geser ➔</span>
+          </div>
+
+          <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-none snap-x snap-mandatory">
+            {activeProjects.map((p, idx) => {
+              const meta = getStageMetadata(p.currentStage);
+              const compCount = getMilestoneCompletion(p.currentStage, p.progressPercent);
+              // Alternate gradient: amber for even, cyan for odd
+              const isAmber = idx % 2 === 0;
+              const gradientClass = isAmber
+                ? "bg-gradient-to-br from-[#f8be14] via-[#f5b301] to-[#e59d00] text-neutral-950"
+                : "bg-gradient-to-br from-[#1cdac5] via-[#16b09f] to-[#0ea5e9] text-neutral-950";
+
+              return (
+                <div
+                  key={p.refCode}
+                  onClick={() => setDrilldownProject(p)}
+                  className={`p-4 rounded-3xl min-w-[270px] max-w-[300px] snap-center shrink-0 cursor-pointer overflow-hidden transition-all duration-300 active:scale-95 shadow-lg ${gradientClass}`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-black/15 text-neutral-950 backdrop-blur-xs">
+                      <RiSparklingFill className="w-3 h-3" />
+                      <span>{meta.label.split(" ")[1] || "Ongoing"}</span>
+                    </span>
+                    <span className="font-mono text-[10px] font-bold opacity-80">
+                      {p.refCode}
+                    </span>
+                  </div>
+
+                  <h3 className="font-extrabold text-base leading-snug line-clamp-2 text-neutral-950 mb-1">
+                    {p.serviceTitle}
+                  </h3>
+                  <p className="text-xs font-semibold text-neutral-900 line-clamp-1 mb-3">
+                    {p.clientName} • {p.packageName}
+                  </p>
+
+                  <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-black/15 text-xs font-mono">
+                    <span className="flex items-center gap-1 font-bold text-[11px] text-neutral-950">
+                      <RiTimeLine className="w-3.5 h-3.5" />
+                      {p.targetDeadline || p.packageDuration || "7-10 Hari"}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full bg-black/90 text-white font-bold text-[10px]">
+                      {compCount} of 4 Tahap
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Top Header (Desktop View) */}
+      <div className={`hidden md:flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b ${isLight ? "border-slate-200" : "border-white/10"}`}>
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2.5">
@@ -256,8 +408,8 @@ export default function ProjectTrackerWorkspace() {
         </div>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
+      {/* KPI Cards (Desktop View) */}
+      <div className="hidden md:grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
           <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-slate-500" : "text-slate-400"}`}>Total Proyek</span>
           <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-slate-900" : "text-white"}`}>{projects.length}</div>
@@ -335,8 +487,8 @@ export default function ProjectTrackerWorkspace() {
         </div>
       </div>
 
-      {/* Table of Tracked Projects */}
-      <div className={`rounded-2xl border overflow-hidden shadow-xl ${isLight ? "bg-white border-slate-200" : "bg-neutral-950/90 border-white/10"}`}>
+      {/* Table of Tracked Projects (Desktop Only) */}
+      <div className={`hidden md:block rounded-2xl border overflow-hidden shadow-xl ${isLight ? "bg-white border-slate-200" : "bg-neutral-950/90 border-white/10"}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead className={`border-b font-mono uppercase tracking-wider ${isLight ? "bg-slate-50/90 border-slate-200 text-slate-600" : "bg-white/[0.04] border-white/10 text-slate-400"}`}>
@@ -564,6 +716,489 @@ export default function ProjectTrackerWorkspace() {
           </table>
         </div>
       </div>
+
+      {/* ── MOBILE PROJECT TASK CARDS LIST (Reference Screen 1 Bottom) ── */}
+      <div className="block md:hidden space-y-3">
+        <div className="flex items-center justify-between px-1 pt-1">
+          <span className="text-xs font-bold uppercase tracking-wider font-mono text-neutral-400">
+            Daftar Tugas Proyek ({filteredProjects.length})
+          </span>
+          <span className="text-[10px] text-teal-400 font-mono font-semibold">
+            Klik kartu untuk rincian
+          </span>
+        </div>
+
+        {filteredProjects.map((p) => {
+          const meta = getStageMetadata(p.currentStage);
+          const receiptInfo = getOrderReceipt(p.refCode);
+          const proofUrl = p.paymentProofUrl || receiptInfo?.paymentProofUrl;
+          const receiptNum = p.receiptNumber || receiptInfo?.receiptNumber;
+          const paymentMethodName = p.paymentMethod || receiptInfo?.paymentMethod;
+          const paymentPlanName = p.paymentPlan || receiptInfo?.paymentPlan;
+          const compCount = getMilestoneCompletion(p.currentStage, p.progressPercent);
+
+          const cardBgClass = isLight
+            ? p.currentStage === "in_progress"
+              ? "bg-amber-50/70 border-amber-200"
+              : p.currentStage === "review"
+              ? "bg-indigo-50/70 border-indigo-200"
+              : p.currentStage === "completed"
+              ? "bg-emerald-50/70 border-emerald-200"
+              : "bg-white border-slate-200 shadow-sm"
+            : p.currentStage === "in_progress"
+            ? "bg-amber-500/[0.04] border-amber-500/25"
+            : p.currentStage === "review"
+            ? "bg-indigo-500/[0.04] border-indigo-500/25"
+            : p.currentStage === "completed"
+            ? "bg-emerald-500/[0.04] border-emerald-500/25"
+            : "bg-neutral-900/60 border-white/10";
+
+          return (
+            <div
+              key={p.refCode}
+              className={`p-4 rounded-2xl border transition-all shadow-sm space-y-3 ${cardBgClass}`}
+            >
+              {/* Card Header: Title & Status Pill */}
+              <div className="flex items-start justify-between gap-2">
+                <div className="space-y-0.5">
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (navigator.clipboard) {
+                        navigator.clipboard.writeText(p.refCode);
+                        showToast(`Kode ${p.refCode} tersalin!`);
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 font-mono text-[10px] font-bold text-teal-400 bg-teal-500/10 border border-teal-500/20 px-2 py-0.5 rounded cursor-pointer hover:bg-teal-500/20 active:scale-95"
+                    title="Klik untuk salin kode"
+                  >
+                    <span>{p.refCode}</span>
+                    <RiFileCopyLine className="w-2.5 h-2.5" />
+                  </span>
+                  <h3
+                    onClick={() => setDrilldownProject(p)}
+                    className={`font-bold text-sm leading-snug cursor-pointer hover:underline ${
+                      isLight ? "text-slate-900" : "text-white"
+                    }`}
+                  >
+                    {p.serviceTitle}
+                  </h3>
+                  <p className="text-[11px] font-mono text-neutral-400">
+                    {p.packageName}
+                  </p>
+                </div>
+
+                {/* Status Pill Tag */}
+                <div
+                  className="px-2.5 py-1 rounded-full text-[11px] font-bold whitespace-nowrap border shrink-0 text-right"
+                  style={{
+                    backgroundColor: meta.badgeBg,
+                    borderColor: meta.badgeBorder,
+                    color: meta.color,
+                  }}
+                >
+                  {meta.label}
+                </div>
+              </div>
+
+              {/* Client & Timeline Details */}
+              <div className="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-white/5">
+                <div className="flex items-center gap-1.5 truncate">
+                  <RiUser3Line className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                  <span className={`font-medium truncate ${isLight ? "text-slate-800" : "text-neutral-200"}`}>
+                    {p.clientName}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 justify-end font-mono text-[11px] text-neutral-400">
+                  <RiCalendarEventLine className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+                  <span className="truncate">{p.targetDeadline || p.packageDuration || "7-10 Hari"}</span>
+                </div>
+              </div>
+
+              {/* Progress Bar + Completion stats */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-neutral-400">Progres ({compCount}/4 Tahap)</span>
+                  <span className="font-bold text-teal-400">{p.progressPercent}%</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-neutral-800 overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${p.progressPercent}%`,
+                      backgroundColor: meta.color,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Milestone Note bubble */}
+              {p.notes && (
+                <div className="text-[11px] text-neutral-300 bg-black/30 p-2.5 rounded-xl border border-white/5 flex items-start gap-2">
+                  <RiFileList3Line className="w-3.5 h-3.5 text-teal-400 shrink-0 mt-0.5" />
+                  <span className="line-clamp-2 leading-relaxed">
+                    {p.notes}
+                  </span>
+                </div>
+              )}
+
+              {/* Proof Receipt Tag if exists */}
+              {proofUrl && (
+                <div className="pt-0.5">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedReceiptProof({
+                        imageUrl: proofUrl,
+                        clientName: p.clientName,
+                        refCode: p.refCode,
+                        receiptNumber: receiptNum,
+                        budget: p.budget,
+                        serviceTitle: p.serviceTitle,
+                        packageName: p.packageName,
+                        clientPhone: p.clientPhone,
+                        paymentMethod: paymentMethodName,
+                        paymentPlan: paymentPlanName,
+                      });
+                    }}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 transition cursor-pointer active:scale-95"
+                  >
+                    <RiImageFill className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Lihat Bukti Resi Transfer 📄</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Action Buttons Row */}
+              <div className="flex items-center justify-between gap-1.5 pt-2 border-t border-white/5">
+                <div className="flex items-center gap-1.5">
+                  {/* Primary Drilldown button */}
+                  <button
+                    type="button"
+                    onClick={() => setDrilldownProject(p)}
+                    className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#16b09f] hover:bg-teal-400 text-black transition flex items-center gap-1 shadow-md shadow-[#16b09f]/15 cursor-pointer active:scale-95"
+                  >
+                    <span>Detail & Milestones</span>
+                    <RiCompass3Line className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Edit Progress button */}
+                  <button
+                    type="button"
+                    onClick={() => openEditModal(p)}
+                    className="p-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition cursor-pointer active:scale-95"
+                    title="Edit Progres"
+                  >
+                    <RiEditLine className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Client Preview */}
+                  <button
+                    type="button"
+                    onClick={() => setClientPreviewCode(p.refCode)}
+                    className="p-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-teal-400 border border-white/10 transition cursor-pointer active:scale-95"
+                    title="Tampilan Klien"
+                  >
+                    <RiEyeLine className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* WhatsApp */}
+                  {p.clientPhone && (
+                    <a
+                      href={`https://wa.me/${p.clientPhone.replace(/[^0-9]/g, "")}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-xl text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition"
+                      title="Chat WhatsApp Klien"
+                    >
+                      <RiWhatsappLine className="w-3.5 h-3.5" />
+                    </a>
+                  )}
+                </div>
+
+                {/* Delete button */}
+                <button
+                  type="button"
+                  onClick={() => handleDelete(p.refCode)}
+                  className="p-2 rounded-xl text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition cursor-pointer"
+                  title="Hapus Proyek"
+                >
+                  <RiDeleteBinLine className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {filteredProjects.length === 0 && (
+          <div className="py-12 text-center text-neutral-400 border border-white/10 rounded-2xl bg-white/[0.02]">
+            <RiFileList3Line className="w-8 h-8 mx-auto text-neutral-500 mb-2 opacity-50" />
+            <p className="text-xs">Tidak ada proyek yang sesuai filter / pencarian.</p>
+          </div>
+        )}
+      </div>
+
+      {/* ── MOBILE DRILLDOWN MODAL (Reference Screen 2 & 3) ── */}
+      {drilldownProject && (
+        <div
+          className="fixed inset-0 z-[125] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
+          onClick={() => setDrilldownProject(null)}
+        >
+          <div
+            className={`w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-white/15 bg-[#101319] text-white p-5 sm:p-6 max-h-[92vh] overflow-y-auto shadow-2xl space-y-4`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Bar with Back Arrow */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <button
+                type="button"
+                onClick={() => setDrilldownProject(null)}
+                className="flex items-center gap-2 text-xs font-bold text-neutral-400 hover:text-white transition cursor-pointer"
+              >
+                <RiArrowLeftLine className="w-4 h-4 text-teal-400" />
+                <span>Kembali ke Dashboard</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setDrilldownProject(null)}
+                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition"
+              >
+                <RiCloseLine className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Hero Card with Amber / Accent gradient (Screen 3 Top) */}
+            <div className="p-5 rounded-3xl bg-gradient-to-br from-[#f8be14] via-[#f5b301] to-[#e59d00] text-neutral-950 shadow-xl space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-black/15 text-neutral-950">
+                  <RiSparklingFill className="w-3 h-3" />
+                  <span>{getStageMetadata(drilldownProject.currentStage).label}</span>
+                </span>
+                <span className="font-mono text-xs font-bold opacity-80">
+                  {drilldownProject.refCode}
+                </span>
+              </div>
+              <h2 className="text-xl font-black leading-tight text-neutral-950">
+                {drilldownProject.serviceTitle}
+              </h2>
+              <p className="text-xs font-semibold text-neutral-900">
+                {drilldownProject.clientName} • {drilldownProject.packageName}
+              </p>
+            </div>
+
+            {/* Task Details Card (Screen 3 Black Card style) */}
+            <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-3">
+              <div className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
+                Rincian Proyek (Task Details)
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <span className="text-[10px] text-neutral-400 block font-mono">STATUS</span>
+                  <span className="text-xs font-bold text-teal-400 capitalize truncate block mt-0.5">
+                    {drilldownProject.currentStage.replace("_", " ")}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <span className="text-[10px] text-neutral-400 block font-mono">TARGET</span>
+                  <span className="text-xs font-bold text-neutral-200 truncate block mt-0.5">
+                    {drilldownProject.targetDeadline || drilldownProject.packageDuration || "10 Hari"}
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
+                  <span className="text-[10px] text-neutral-400 block font-mono">TAHAP</span>
+                  <span className="text-xs font-bold text-amber-400 block mt-0.5">
+                    {getMilestoneCompletion(drilldownProject.currentStage, drilldownProject.progressPercent)}/4 Selesai
+                  </span>
+                </div>
+              </div>
+
+              {/* Client Contact Info */}
+              <div className="flex items-center justify-between text-xs pt-1 border-t border-white/5">
+                <div className="flex items-center gap-1.5 text-neutral-300">
+                  <RiUser3Line className="w-3.5 h-3.5 text-neutral-400" />
+                  <span className="font-semibold">{drilldownProject.clientName}</span>
+                </div>
+                {drilldownProject.clientPhone && (
+                  <a
+                    href={`https://wa.me/${drilldownProject.clientPhone.replace(/[^0-9]/g, "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition"
+                  >
+                    <RiWhatsappLine className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>WhatsApp Klien</span>
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Subtasks & Milestones Checklist (Screen 3 Checklist style!) */}
+            <div className="space-y-3 pt-1">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider font-mono text-neutral-300">
+                  Subtasks & Tahapan Pengerjaan
+                </h3>
+                <span className="text-[10px] text-teal-400 font-mono">Klik untuk set tahap</span>
+              </div>
+
+              <div className="space-y-2">
+                {STUDIO_WORKFLOW_MILESTONES.map((m) => {
+                  const currentComp = getMilestoneCompletion(
+                    drilldownProject.currentStage,
+                    drilldownProject.progressPercent
+                  );
+                  const isDone = m.step < currentComp || (m.step === 4 && drilldownProject.currentStage === "completed");
+                  const isActive = m.stage === drilldownProject.currentStage && drilldownProject.currentStage !== "completed";
+
+                  return (
+                    <div
+                      key={m.step}
+                      onClick={() => handleQuickStageChange(drilldownProject.refCode, m.stage)}
+                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 ${
+                        isActive
+                          ? "bg-amber-500/10 border-amber-500/40 shadow-sm"
+                          : isDone
+                          ? "bg-teal-500/5 border-teal-500/20"
+                          : "bg-white/[0.02] border-white/5 opacity-70 hover:opacity-100"
+                      }`}
+                    >
+                      {/* Circular check indicator */}
+                      <div className="pt-0.5 shrink-0">
+                        {isDone ? (
+                          <div className="w-5 h-5 rounded-full bg-teal-500 text-black flex items-center justify-center font-bold text-xs shadow-sm">
+                            ✓
+                          </div>
+                        ) : isActive ? (
+                          <div className="w-5 h-5 rounded-full border-2 border-amber-400 flex items-center justify-center bg-amber-400/20 animate-pulse">
+                            <span className="w-2 h-2 rounded-full bg-amber-400" />
+                          </div>
+                        ) : (
+                          <div className="w-5 h-5 rounded-full border-2 border-neutral-600" />
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-grow min-w-0">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className={`text-xs font-bold leading-tight ${
+                            isActive ? "text-amber-300" : isDone ? "text-teal-300" : "text-neutral-300"
+                          }`}>
+                            {m.title}
+                          </h4>
+                          {isActive && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold shrink-0">
+                              Aktif Sekarang
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-neutral-400 mt-0.5 leading-relaxed">
+                          {m.desc}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Studio Notes & Latest Report */}
+            {drilldownProject.notes && (
+              <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold block">
+                  Catatan Milestone Terkini (Dibaca Klien)
+                </span>
+                <p className="text-xs text-neutral-200 leading-relaxed">
+                  {drilldownProject.notes}
+                </p>
+              </div>
+            )}
+
+            {/* Proof Receipt Photo if available */}
+            {(() => {
+              const receiptInfo = getOrderReceipt(drilldownProject.refCode);
+              const proofUrl = drilldownProject.paymentProofUrl || receiptInfo?.paymentProofUrl;
+              if (!proofUrl) return null;
+              return (
+                <div className="p-3.5 rounded-2xl bg-emerald-500/5 border border-emerald-500/20 space-y-2">
+                  <div className="flex items-center justify-between text-xs font-bold text-emerald-400">
+                    <span className="flex items-center gap-1.5">
+                      <RiImageFill className="w-4 h-4" />
+                      Bukti Resi Transfer Klien
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedReceiptProof({
+                          imageUrl: proofUrl,
+                          clientName: drilldownProject.clientName,
+                          refCode: drilldownProject.refCode,
+                          receiptNumber: drilldownProject.receiptNumber || receiptInfo?.receiptNumber,
+                          budget: drilldownProject.budget,
+                          serviceTitle: drilldownProject.serviceTitle,
+                          packageName: drilldownProject.packageName,
+                          clientPhone: drilldownProject.clientPhone,
+                          paymentMethod: drilldownProject.paymentMethod || receiptInfo?.paymentMethod,
+                          paymentPlan: drilldownProject.paymentPlan || receiptInfo?.paymentPlan,
+                        })
+                      }
+                      className="text-xs underline text-emerald-300 cursor-pointer"
+                    >
+                      Perbesar Foto 🔍
+                    </button>
+                  </div>
+                  <div
+                    onClick={() =>
+                      setSelectedReceiptProof({
+                        imageUrl: proofUrl,
+                        clientName: drilldownProject.clientName,
+                        refCode: drilldownProject.refCode,
+                        receiptNumber: drilldownProject.receiptNumber || receiptInfo?.receiptNumber,
+                        budget: drilldownProject.budget,
+                        serviceTitle: drilldownProject.serviceTitle,
+                        packageName: drilldownProject.packageName,
+                        clientPhone: drilldownProject.clientPhone,
+                        paymentMethod: drilldownProject.paymentMethod || receiptInfo?.paymentMethod,
+                        paymentPlan: drilldownProject.paymentPlan || receiptInfo?.paymentPlan,
+                      })
+                    }
+                    className="h-28 rounded-xl overflow-hidden border border-white/10 bg-black cursor-pointer hover:opacity-90 transition relative flex items-center justify-center"
+                  >
+                    <img src={proofUrl} alt="Resi" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-xs font-bold text-white gap-1">
+                      <RiEyeLine className="w-4 h-4" />
+                      <span>Klik untuk Lihat Foto Asli</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Bottom Actions Sticky Row */}
+            <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  openEditModal(drilldownProject);
+                }}
+                className="flex-1 py-3 px-4 rounded-xl text-xs font-bold bg-[#16b09f] hover:bg-teal-400 text-black transition flex items-center justify-center gap-2 shadow-lg shadow-[#16b09f]/20 cursor-pointer active:scale-95"
+              >
+                <RiEditLine className="w-4 h-4" />
+                <span>Update Laporan Progres</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setClientPreviewCode(drilldownProject.refCode)}
+                className="py-3 px-4 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-white border border-white/15 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                title="Lihat Tampilan Klien"
+              >
+                <RiEyeLine className="w-4 h-4 text-teal-400" />
+                <span>Cek Web</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Edit Progres Proyek */}
       {editingProject && (
