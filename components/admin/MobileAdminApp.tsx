@@ -1192,60 +1192,33 @@ export default function MobileAdminApp({
           >
             <AnimatePresence mode="wait">
               {!isSaveFabExpanded ? (
-                /* 1. COMPACT FLOATING CLUSTER (View Web Eye + Save Changes Bubble) */
-                <div key="fab-cluster" className="flex flex-col items-center gap-2">
-                  {/* View Live Page Button (Eye Icon) */}
-                  <motion.a
-                    href={getViewPageUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    initial={{ scale: 0.85, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.85, opacity: 0 }}
-                    whileHover={{ scale: 1.08 }}
-                    whileTap={{ scale: 0.92 }}
-                    className={`relative flex items-center justify-center rounded-full shadow-[0_8px_24px_rgba(0,0,0,0.5)] border-2 transition-all cursor-pointer ${
-                      isLight
-                        ? "bg-white/95 border-slate-300 text-slate-800 shadow-slate-300/60 hover:border-teal-500"
-                        : "bg-[#0b0e17]/95 border-white/20 text-white shadow-black/70 hover:border-teal-400"
-                    }`}
-                    style={{
-                      width: "44px",
-                      height: "44px",
-                    }}
-                    title={tr("Lihat Halaman Web Publik", "View Live Web Page", "Caliak Web Publik")}
-                  >
-                    <RiEyeLine className="w-5 h-5 drop-shadow" />
-                  </motion.a>
-
-                  {/* Save Changes Floating Bubble */}
-                  <motion.button
-                    key="fab-bubble"
-                    type="button"
-                    layoutId="floatingSaveContainer"
-                    initial={{ scale: 0.85, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.85, opacity: 0 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsSaveFabExpanded(true)}
-                    className="relative flex items-center justify-center rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-2 border-white/25 backdrop-blur-xl transition-all cursor-pointer"
-                    style={{
-                      backgroundColor: primaryColor,
-                      boxShadow: `0 8px 24px ${primaryColor}66`,
-                      width: "52px",
-                      height: "52px",
-                    }}
-                    title={tr("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}
-                  >
-                    <RiSave3Fill className="w-5 h-5 text-white drop-shadow" />
-                    {/* Status Pulse Pip */}
-                    <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#090b10]" />
-                    </span>
-                  </motion.button>
-                </div>
+                /* 1. COMPACT FLOATING ICON BUBBLE (Tapped to slide open) */
+                <motion.button
+                  key="fab-bubble"
+                  type="button"
+                  layoutId="floatingSaveContainer"
+                  initial={{ scale: 0.85, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.85, opacity: 0 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setIsSaveFabExpanded(true)}
+                  className="relative flex items-center justify-center rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.5)] border-2 border-white/25 backdrop-blur-xl transition-all cursor-pointer"
+                  style={{
+                    backgroundColor: primaryColor,
+                    boxShadow: `0 8px 24px ${primaryColor}66`,
+                    width: "52px",
+                    height: "52px",
+                  }}
+                  title={tr("Simpan Perubahan & Lihat Web", "Save Changes & View Web", "Simpan & Caliak Web")}
+                >
+                  <RiSave3Fill className="w-5 h-5 text-white drop-shadow" />
+                  {/* Status Pulse Pip */}
+                  <span className="absolute -top-0.5 -right-0.5 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-[#090b10]" />
+                  </span>
+                </motion.button>
               ) : (
                 /* 2. EXPANDED SLIDER CARD (Slide open with Sync Status & Save Changes Button) */
                 <motion.div
