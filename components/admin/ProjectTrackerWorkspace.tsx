@@ -1026,16 +1026,6 @@ export default function ProjectTrackerWorkspace({
                     </a>
                   )}
                 </div>
-
-                {/* Delete button */}
-                <button
-                  type="button"
-                  onClick={() => handleDelete(p.refCode)}
-                  className="p-2 rounded-xl text-neutral-500 hover:text-red-400 hover:bg-red-500/10 transition cursor-pointer"
-                  title="Hapus Proyek"
-                >
-                  <RiDeleteBinLine className="w-3.5 h-3.5" />
-                </button>
               </div>
             </div>
           );
@@ -1059,7 +1049,7 @@ export default function ProjectTrackerWorkspace({
             className={`w-full max-w-lg rounded-t-3xl sm:rounded-3xl border border-white/15 bg-[#101319] text-white p-5 sm:p-6 max-h-[92vh] overflow-y-auto shadow-2xl space-y-4`}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Top Bar with Back Arrow */}
+            {/* Top Bar with Back Arrow & Delete Icon */}
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <button
                 type="button"
@@ -1069,13 +1059,26 @@ export default function ProjectTrackerWorkspace({
                 <RiArrowLeftLine className="w-4 h-4 text-teal-400" />
                 <span>Kembali ke Dashboard</span>
               </button>
-              <button
-                type="button"
-                onClick={() => setDrilldownProject(null)}
-                className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition"
-              >
-                <RiCloseLine className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleDelete(drilldownProject.refCode);
+                    setDrilldownProject(null);
+                  }}
+                  className="p-2 rounded-xl text-neutral-400 hover:text-red-400 hover:bg-red-500/10 border border-white/10 transition cursor-pointer active:scale-95"
+                  title="Hapus Proyek"
+                >
+                  <RiDeleteBinLine className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDrilldownProject(null)}
+                  className="p-1 rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition"
+                >
+                  <RiCloseLine className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Hero Card with Amber / Accent gradient (Screen 3 Top) */}
@@ -1305,6 +1308,17 @@ export default function ProjectTrackerWorkspace({
                 <RiEyeLine className="w-4 h-4 text-teal-400" />
                 <span>Cek Web</span>
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleDelete(drilldownProject.refCode);
+                  setDrilldownProject(null);
+                }}
+                className="p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition flex items-center justify-center cursor-pointer active:scale-95"
+                title="Hapus Proyek"
+              >
+                <RiDeleteBinLine className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -1426,27 +1440,41 @@ export default function ProjectTrackerWorkspace({
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="pt-2 flex items-center justify-between gap-2">
                 <button
                   type="button"
-                  onClick={() => setEditingProject(null)}
-                  className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer ${
-                    isLight
-                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                      : "bg-neutral-900 hover:bg-neutral-800 text-slate-300"
-                  }`}
+                  onClick={() => {
+                    handleDelete(editingProject.refCode);
+                    setEditingProject(null);
+                  }}
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                  title="Hapus Proyek"
                 >
-                  Batal
+                  <RiDeleteBinLine className="w-3.5 h-3.5" />
+                  <span>Hapus</span>
                 </button>
-                <button
-                  type="button"
-                  disabled={isSaving}
-                  onClick={handleSaveProgress}
-                  style={{ backgroundColor: primaryColor, color: "#000000" }}
-                  className="px-5 py-2 rounded-xl font-bold text-xs hover:brightness-110 active:scale-95 shadow-md shadow-[#16b09f]/30 cursor-pointer"
-                >
-                  {isSaving ? "Menyimpan..." : "Simpan Progres & Sinkronkan"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingProject(null)}
+                    className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        : "bg-neutral-900 hover:bg-neutral-800 text-slate-300"
+                    }`}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    disabled={isSaving}
+                    onClick={handleSaveProgress}
+                    style={{ backgroundColor: primaryColor, color: "#000000" }}
+                    className="px-5 py-2 rounded-xl font-bold text-xs hover:brightness-110 active:scale-95 shadow-md shadow-[#16b09f]/30 cursor-pointer"
+                  >
+                    {isSaving ? "Menyimpan..." : "Simpan Progres & Sinkronkan"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
