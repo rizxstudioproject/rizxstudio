@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
@@ -27,6 +27,283 @@ interface StorageAnalyticsViewProps {
   showToast: (msg: string) => void;
   onNavigateToTrash?: () => void;
 }
+
+// ==============================================================
+// 3D HARMONIC PARTICLE WAVE ORB (WAVE MOTION)
+// Dynamic Particle Wave Motion with Entrance Expansion (Small -> Many)
+// ==============================================================
+interface StorageWaveOrbCanvasProps {
+  category: "all" | "works" | "video" | "frames" | "trash";
+  percent: number;
+  isLight: boolean;
+}
+
+const CATEGORY_PALETTES = {
+  all: {
+    primary: [6, 182, 212], // #06b6d4 (Cyan)
+    secondary: [22, 176, 159], // #16b09f (Teal)
+    crest: [255, 255, 255], // Pure white crest
+  },
+  works: {
+    primary: [16, 185, 129], // #10b981 (Emerald)
+    secondary: [13, 148, 136], // #0d9488 (Teal)
+    crest: [236, 253, 245],
+  },
+  video: {
+    primary: [99, 102, 241], // #6366f1 (Indigo)
+    secondary: [139, 92, 246], // #8b5cf6 (Violet)
+    crest: [245, 243, 255],
+  },
+  frames: {
+    primary: [245, 158, 11], // #f59e0b (Amber)
+    secondary: [217, 119, 6], // #d97706 (Gold)
+    crest: [255, 251, 235],
+  },
+  trash: {
+    primary: [244, 63, 94], // #f43f5e (Rose)
+    secondary: [225, 29, 72], // #e11d48 (Crimson)
+    crest: [255, 241, 242],
+  },
+};
+
+const StorageWaveOrbCanvas: React.FC<StorageWaveOrbCanvasProps> = ({
+  category,
+  percent,
+  isLight,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animFrameId = useRef<number | null>(null);
+
+  const colorsRef = useRef({
+    primary: [6, 182, 212],
+    secondary: [22, 176, 159],
+    crest: [255, 255, 255],
+  });
+
+  const categoryRef = useRef(category);
+  useEffect(() => {
+    categoryRef.current = category;
+  }, [category]);
+
+  const percentRef = useRef(percent);
+  useEffect(() => {
+    percentRef.current = percent;
+  }, [percent]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
+    const size = 240;
+    canvas.width = size * dpr;
+    canvas.height = size * dpr;
+    ctx.scale(dpr, dpr);
+
+    const RINGS = 18;
+    const POINTS_PER_RING = 32;
+    const cx = size / 2;
+    const cy = size / 2;
+    const targetBaseRadius = 76;
+    const fov = 170;
+
+    const grid: { phi: number; theta: number; baseY: number; baseRadiusAtY: number }[][] = [];
+    for (let r = 0; r < RINGS; r++) {
+      const ringPoints = [];
+      const phi = ((r + 0.5) / RINGS) * Math.PI;
+      const baseY = Math.cos(phi);
+      const baseRadiusAtY = Math.sin(phi);
+
+      for (let p = 0; p < POINTS_PER_RING; p++) {
+        const theta = (p / POINTS_PER_RING) * 2 * Math.PI;
+        ringPoints.push({ phi, theta, baseY, baseRadiusAtY });
+      }
+      grid.push(ringPoints);
+    }
+
+    const startTime = performance.now();
+
+    const render = (now: number) => {
+      const elapsed = (now - startTime) * 0.001;
+      const time = elapsed * 1.2;
+
+      // Entrance animation on refresh: expands wave from small to full (dari kecil ke banyak)
+      const entranceProgress = Math.min(1, elapsed / 1.1);
+      const easeEntrance = 1 - Math.pow(1 - entranceProgress, 3); // cubic ease-out
+      const baseRadius = targetBaseRadius * (0.15 + 0.85 * easeEntrance);
+      const entranceAlpha = 0.2 + 0.8 * easeEntrance;
+
+      // Color interpolation towards active category
+      const targetPalette = CATEGORY_PALETTES[categoryRef.current] || CATEGORY_PALETTES.all;
+      const cur = colorsRef.current;
+      for (let c = 0; c < 3; c++) {
+        cur.primary[c] += (targetPalette.primary[c] - cur.primary[c]) * 0.08;
+        cur.secondary[c] += (targetPalette.secondary[c] - cur.secondary[c]) * 0.08;
+        cur.crest[c] += (targetPalette.crest[c] - cur.crest[c]) * 0.08;
+      }
+
+      ctx.clearRect(0, 0, size, size);
+
+      const [pr, pg, pb] = cur.primary.map(Math.round);
+      const [sr, sg, sb] = cur.secondary.map(Math.round);
+      const [cr, cg, cb] = cur.crest.map(Math.round);
+
+      // Soft ambient background aura in active storage color
+      const bgGlow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 95);
+      bgGlow.addColorStop(0, `rgba(${pr}, ${pg}, ${pb}, ${(isLight ? 0.08 : 0.22) * entranceAlpha})`);
+      bgGlow.addColorStop(0.65, `rgba(${sr}, ${sg}, ${sb}, ${(isLight ? 0.03 : 0.08) * entranceAlpha})`);
+      bgGlow.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = bgGlow;
+      ctx.fillRect(0, 0, size, size);
+
+      // Rotation angles for organic fluid orb
+      const rotY = time * 0.45;
+      const rotX = Math.sin(time * 0.28) * 0.22;
+      const rotZ = Math.cos(time * 0.22) * 0.12;
+
+      const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
+      const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
+      const cosZ = Math.cos(rotZ), sinZ = Math.sin(rotZ);
+
+      // Dynamic wave amplitude modulated by storage percent
+      const waveAmp = (0.20 + Math.min(percentRef.current / 100, 1) * 0.08) * easeEntrance;
+
+      interface ProjectedPt {
+        sx: number;
+        sy: number;
+        z: number;
+        scale: number;
+        wave: number;
+      }
+      const projectedGrid: ProjectedPt[][] = [];
+
+      for (let r = 0; r < RINGS; r++) {
+        const ringProj: ProjectedPt[] = [];
+        for (let p = 0; p < POINTS_PER_RING; p++) {
+          const pt = grid[r][p];
+
+          // 3D Harmonic Spherical Wave Equation
+          const w1 = Math.sin(pt.theta * 3 + time * 1.8) * Math.cos(pt.phi * 2.5 + time * 1.2);
+          const w2 = Math.sin(pt.theta * 5 - time * 2.2 + pt.baseY * 3.5) * 0.42;
+          const w3 = Math.cos(pt.phi * 4 + time * 1.6) * 0.32;
+          const w4 = Math.sin(time * 0.9 + pt.baseY * 2.0) * 0.18;
+          const wave = w1 + w2 + w3 + w4;
+
+          const currentR = baseRadius * (1 + wave * waveAmp);
+
+          // 3D position
+          const px = pt.baseRadiusAtY * Math.cos(pt.theta) * currentR;
+          const py = pt.baseY * currentR;
+          const pz = pt.baseRadiusAtY * Math.sin(pt.theta) * currentR;
+
+          // Rotate Y
+          const x1 = px * cosY - pz * sinY;
+          const z1 = px * sinY + pz * cosY;
+
+          // Rotate X
+          const y2 = py * cosX - z1 * sinX;
+          const z2 = py * sinX + z1 * cosX;
+
+          // Rotate Z
+          const x3 = x1 * cosZ - y2 * sinZ;
+          const y3 = x1 * sinZ + y2 * cosZ;
+
+          // Perspective projection
+          const scale = fov / (fov + z2);
+          const sx = cx + x3 * scale;
+          const sy = cy + y3 * scale;
+
+          ringProj.push({ sx, sy, z: z2, scale, wave });
+        }
+        projectedGrid.push(ringProj);
+      }
+
+      // 1. Draw undulating contour ring filaments (wireframe wave ribbons)
+      for (let r = 0; r < RINGS; r++) {
+        ctx.beginPath();
+        for (let p = 0; p < POINTS_PER_RING; p++) {
+          const pt = projectedGrid[r][p];
+          if (p === 0) {
+            ctx.moveTo(pt.sx, pt.sy);
+          } else {
+            ctx.lineTo(pt.sx, pt.sy);
+          }
+        }
+        ctx.closePath();
+
+        let avgZ = 0;
+        for (let p = 0; p < POINTS_PER_RING; p++) {
+          avgZ += projectedGrid[r][p].z;
+        }
+        avgZ /= POINTS_PER_RING;
+
+        const ringDepth = Math.max(0, Math.min(1, (avgZ + baseRadius) / (baseRadius * 2)));
+        const ringAlpha = (0.07 + ringDepth * 0.22) * (isLight ? 0.65 : 1.0) * entranceAlpha;
+        ctx.strokeStyle = `rgba(${pr}, ${pg}, ${pb}, ${ringAlpha})`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+      }
+
+      // 2. Draw Particle Wave Dots (Sorted back to front for accurate depth)
+      const allDots: ProjectedPt[] = [];
+      for (let r = 0; r < RINGS; r++) {
+        for (let p = 0; p < POINTS_PER_RING; p++) {
+          allDots.push(projectedGrid[r][p]);
+        }
+      }
+      allDots.sort((a, b) => a.z - b.z);
+
+      for (let i = 0; i < allDots.length; i++) {
+        const dot = allDots[i];
+        const depthNorm = Math.max(0, Math.min(1, (dot.z + baseRadius) / (baseRadius * 2)));
+
+        const dotRadius = Math.max(0.6, (0.75 + depthNorm * 1.85) * dot.scale);
+        const dotAlpha = (0.18 + depthNorm * 0.77) * (isLight ? 0.85 : 1.0) * entranceAlpha;
+
+        const isCrest = dot.wave > 0.35 && dot.z > -10;
+        const crestFactor = isCrest ? Math.min(1, (dot.wave - 0.35) * 2.2) : 0;
+
+        const red = Math.round(pr + (cr - pr) * crestFactor);
+        const green = Math.round(pg + (cg - pg) * crestFactor);
+        const blue = Math.round(pb + (cb - pb) * crestFactor);
+
+        ctx.fillStyle = `rgba(${red}, ${green}, ${blue}, ${dotAlpha})`;
+
+        ctx.beginPath();
+        ctx.arc(dot.sx, dot.sy, dotRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (isCrest && depthNorm > 0.6) {
+          ctx.fillStyle = `rgba(${cr}, ${cg}, ${cb}, ${dotAlpha * 0.6})`;
+          ctx.beginPath();
+          ctx.arc(dot.sx, dot.sy, dotRadius * 1.8, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      animFrameId.current = requestAnimationFrame(render);
+    };
+
+    animFrameId.current = requestAnimationFrame(render);
+
+    return () => {
+      if (animFrameId.current) {
+        cancelAnimationFrame(animFrameId.current);
+      }
+    };
+  }, [isLight]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 pointer-events-none rounded-full"
+      style={{ width: 240, height: 240 }}
+    />
+  );
+};
 
 
 export default function StorageAnalyticsView({
@@ -312,73 +589,19 @@ export default function StorageAnalyticsView({
                 : "bg-gradient-to-b from-[#16b09f]/5 via-transparent to-black"
             }`} />
 
-            <div className="relative flex flex-col items-center my-3">
-              {/* SVG Radial Meter */}
-              <svg width="220" height="220" className="transform -rotate-90 pointer-events-none">
-                <defs>
-                  <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#16b09f" />
-                    <stop offset="50%" stopColor="#06B6D4" />
-                    <stop offset="100%" stopColor="#6366F1" />
-                  </linearGradient>
-                  <linearGradient id="worksGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#16b09f" />
-                    <stop offset="100%" stopColor="#0D9488" />
-                  </linearGradient>
-                  <linearGradient id="videoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#818CF8" />
-                    <stop offset="100%" stopColor="#6366F1" />
-                  </linearGradient>
-                  <linearGradient id="framesGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FCD34D" />
-                    <stop offset="100%" stopColor="#F59E0B" />
-                  </linearGradient>
-                  <linearGradient id="trashGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#FB7185" />
-                    <stop offset="100%" stopColor="#F43F5E" />
-                  </linearGradient>
-                  <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="4" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
+            <div className="relative flex flex-col items-center justify-center my-3 w-[240px] h-[240px]">
+              {/* 3D Dynamic Particle Wave Motion (Expands smoothly on refresh from small to many) */}
+              <StorageWaveOrbCanvas
+                category={activeCategory}
+                percent={currentPercent}
+                isLight={isLight}
+              />
 
-                {/* Track Circle */}
-                <circle
-                  cx="110"
-                  cy="110"
-                  r={radius}
-                  stroke={isLight ? "rgba(0, 0, 0, 0.08)" : "rgba(255, 255, 255, 0.08)"}
-                  strokeWidth="14"
-                  fill="transparent"
-                />
-
-                {/* Animated Fill Circle with Dynamic Category Colors */}
-                <motion.circle
-                  key={activeCategory}
-                  cx="110"
-                  cy="110"
-                  r={radius}
-                  stroke={`url(#${activeDetails.gradientId})`}
-                  strokeWidth="14"
-                  strokeLinecap="round"
-                  fill="transparent"
-                  filter="url(#glow)"
-                  initial={{ strokeDashoffset: circumference }}
-                  animate={{ strokeDashoffset: activeDetails.dashOffset }}
-                  transition={{ duration: 0.9, ease: "easeOut" }}
-                  style={{ strokeDasharray: circumference }}
-                />
-              </svg>
-
-              {/* LAYER 3: Center Counter & Interactive Label */}
+              {/* Center Counter & Interactive Label directly over wave motion */}
               <button
                 type="button"
                 onClick={() => setActiveCategory("all")}
-                className="absolute inset-0 flex flex-col items-center justify-center text-center p-3 rounded-full group cursor-pointer focus:outline-none transition-transform active:scale-95 z-10"
+                className="relative z-10 flex flex-col items-center justify-center text-center p-3 rounded-full group cursor-pointer focus:outline-none transition-transform active:scale-95"
                 title={activeCategory !== "all" ? tr("Click to reset to all data", "Klik untuk reset ke semua data", "Klik untuak reset ka sadonyo data") : ""}
               >
                 <span
