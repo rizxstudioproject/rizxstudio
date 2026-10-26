@@ -602,7 +602,12 @@ const ID_WORDS_SET = new Set([
   "sinkron", "sinkronisasi", "koneksi", "basis", "data", "pesan", "sosial", "media", "taun",
   "tahun", "pangalaman", "pengalaman", "kunci", "sesuaikan", "kelola", "rangkaian", "tuntong",
   "ambo", "kito", "bahaso", "tasimpan", "tapiliah", "tahapuih", "barasia", "tong", "sarok",
-  "thema", "profil", "materi", "tata", "letak", "prospek"
+  "thema", "profil", "materi", "tata", "letak", "prospek", "selamat", "datang", "ringkasan",
+  "layanan", "paket", "katalog", "memori", "berjalan", "antrean", "lacak", "pelacakan", "tahapan",
+  "pengerjaan", "catatan", "terkini", "aksi", "kode", "referensi", "rekening", "metode", "pembayaran",
+  "kartu", "terpakai", "alokasi", "distribusi", "optimal", "aman", "kosongkan", "sekarang", "cadangan",
+  "kesehatan", "paling", "populer", "bebas", "biaya", "instan", "publikasi", "atas", "nama",
+  "pemilik", "petunjuk", "singkat", "beralih", "gelap", "terang", "arsip", "pencari", "mesin"
 ]);
 
 const EN_WORDS_SET = new Set([
@@ -621,7 +626,13 @@ const EN_WORDS_SET = new Set([
   "only", "on", "photo", "photos", "preview", "top", "restore", "clean", "clear", "quota",
   "space", "file", "files", "logout", "login", "sync", "connection", "message", "social",
   "media", "years", "year", "experience", "key", "manage", "sequence", "frame", "frames",
-  "reel", "reels", "showcase", "banner", "hero", "lead", "leads", "profile", "layout"
+  "reel", "reels", "showcase", "banner", "hero", "lead", "leads", "profile", "layout",
+  "welcome", "morning", "overview", "studio", "services", "packages", "catalog", "memory",
+  "ongoing", "queue", "queued", "track", "tracking", "stage", "stages", "progress", "notes",
+  "latest", "actions", "action", "code", "reference", "account", "accounts", "payment", "method",
+  "methods", "used", "allocation", "breakdown", "optimal", "safe", "empty", "now", "backup",
+  "health", "most", "popular", "free", "instant", "published", "holder", "instructions",
+  "switch", "dark", "light", "archive", "search", "engine", "pipeline", "live", "cloud"
 ]);
 
 function scoreText(text: string) {
@@ -630,8 +641,16 @@ function scoreText(text: string) {
   let idScore = 0;
   let enScore = 0;
   for (const w of words) {
-    if (ID_WORDS_SET.has(w)) idScore += 2;
-    if (EN_WORDS_SET.has(w)) enScore += 2;
+    if (ID_WORDS_SET.has(w)) idScore += 3;
+    if (EN_WORDS_SET.has(w)) enScore += 3;
+
+    // Indonesian morphology markers
+    if (/^(ber|ter|per|peng|pen|pem|meny|meng|men|mem|di)[a-z]{3,}$/.test(w)) idScore += 2;
+    if (/[a-z]{3,}(kan|kanlah|nya|i|lah|kah)$/.test(w)) idScore += 2;
+    if (/^(se|ke)[a-z]{3,}(an)?$/.test(w)) idScore += 1;
+
+    // English morphology markers
+    if (/[a-z]{3,}(ing|ed|tion|tions|ment|ments|able|ible|less|ness|ize|ise|ly)$/.test(w)) enScore += 2;
   }
   return { idScore, enScore };
 }
@@ -644,54 +663,106 @@ export function resolveTrPair(a: string, b: string): { en: string; id: string } 
   const sa = scoreText(a);
   const sb = scoreText(b);
 
-  // If a has ID signal and b has EN signal
-  if (sa.idScore > sa.enScore && sb.enScore >= sb.idScore) {
-    return { id: a, en: b };
-  }
-  // If a has EN signal and b has ID signal
-  if (sa.enScore > sa.idScore && sb.idScore >= sb.enScore) {
-    return { id: b, en: a };
-  }
-  // One-sided signals
-  if (sb.enScore > sb.idScore && sa.enScore <= sa.idScore) {
-    return { id: a, en: b };
-  }
-  if (sa.enScore > sa.idScore && sb.enScore <= sb.idScore) {
-    return { id: b, en: a };
-  }
-  if (sa.idScore > sa.enScore && sb.idScore <= sb.enScore) {
-    return { id: a, en: b };
-  }
-  if (sb.idScore > sb.enScore && sa.idScore <= sa.enScore) {
-    return { id: b, en: a };
-  }
+  const aNetId = sa.idScore - sa.enScore;
+  const bNetId = sb.idScore - sb.enScore;
+
+  // Clear directional dominance
+  if (aNetId > 0 && bNetId < 0) return { id: a, en: b };
+  if (bNetId > 0 && aNetId < 0) return { id: b, en: a };
+
+  // Relative strength
+  if (aNetId > bNetId) return { id: a, en: b };
+  if (bNetId > aNetId) return { id: b, en: a };
+
+  // Absolute signal fallback
+  if (sa.enScore > sb.enScore) return { en: a, id: b };
+  if (sb.enScore > sa.enScore) return { en: b, id: a };
+  if (sa.idScore > sb.idScore) return { id: a, en: b };
+  if (sb.idScore > sa.idScore) return { id: b, en: a };
+
+  // Final fallback (convention: tr(en, id))
   return { en: a, id: b };
 }
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
+  // Default is explicitly English ("en")
   const [lang, setLangState] = useState<Lang>("en");
 
+  // Hydrate preference from localStorage (default to 'en' if not set)
   useEffect(() => {
-    const saved = localStorage.getItem("rizx-lang") as Lang | null;
-    if (saved === "en" || saved === "id" || saved === "min") setLangState(saved);
+    try {
+      const saved = localStorage.getItem("rizx-lang") as Lang | null;
+      if (saved === "en" || saved === "id" || saved === "min") {
+        setLangState(saved);
+      } else {
+        setLangState("en");
+        localStorage.setItem("rizx-lang", "en");
+      }
+    } catch (e) {
+      setLangState("en");
+    }
+  }, []);
+
+  // Listen for language sync across windows/tabs and components
+  useEffect(() => {
+    const handleCustomEvent = (e: Event) => {
+      const custom = e as CustomEvent<Lang>;
+      if (custom.detail && (custom.detail === "en" || custom.detail === "id" || custom.detail === "min")) {
+        setLangState(custom.detail);
+      }
+    };
+    window.addEventListener("rizx-lang-change", handleCustomEvent);
+
+    let bc: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+      try {
+        bc = new BroadcastChannel("rizx_lang_sync_channel");
+        bc.onmessage = (event) => {
+          if (event.data && event.data.type === "LANG_CHANGE" && event.data.lang) {
+            setLangState(event.data.lang);
+          }
+        };
+      } catch (e) {}
+    }
+
+    return () => {
+      window.removeEventListener("rizx-lang-change", handleCustomEvent);
+      if (bc) bc.close();
+    };
   }, []);
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    localStorage.setItem("rizx-lang", l);
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("rizx-lang", l);
+        window.dispatchEvent(new CustomEvent("rizx-lang-change", { detail: l }));
+        if (typeof BroadcastChannel !== "undefined") {
+          const bc = new BroadcastChannel("rizx_lang_sync_channel");
+          bc.postMessage({ type: "LANG_CHANGE", lang: l });
+          bc.close();
+        }
+      }
+    } catch (e) {}
   };
 
   const t = (key: string): string => {
     return (
       translations[lang]?.[key] ??
-      translations["id"]?.[key] ??
       translations["en"]?.[key] ??
+      translations["id"]?.[key] ??
       key
     );
   };
 
   const tr = (arg1: string, arg2?: string, arg3?: string): string => {
     if (!arg2) return arg1;
+
+    // If Minang is selected and a dedicated Minang text is provided, use it directly
+    if (lang === "min" && arg3) {
+      return arg3;
+    }
+
     const pair = resolveTrPair(arg1, arg2);
     if (lang === "en") return pair.en;
     if (lang === "id") return pair.id;

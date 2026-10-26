@@ -81,8 +81,8 @@ export default function AdminTopBar({
   const [isLangOpen, setIsLangOpen] = useState(false);
   const langContainerRef = useRef<HTMLDivElement>(null);
   const languagesList = [
-    { code: "id", label: "ID" },
     { code: "en", label: "EN" },
+    { code: "id", label: "ID" },
     { code: "min", label: "MIN" },
   ] as const;
   const activeLangIndex = Math.max(0, languagesList.findIndex((l) => l.code === lang));

@@ -367,7 +367,9 @@ export default function ClientOrdersManager() {
             <RiUserFollowLine className="w-4 h-4 text-neutral-300" />
           </div>
           <div className="text-2xl sm:text-3xl font-bold text-white font-mono">{totalCount}</div>
-          <div className="text-[10px] text-neutral-500 mt-1">Tersimpan di Supabase Cloud</div>
+          <div className="text-[10px] text-neutral-500 mt-1">
+            {tr("Saved in Supabase Cloud", "Tersimpan di Supabase Cloud", "Tasimpan di Supabase Cloud")}
+          </div>
         </div>
 
         {/* Queued / Menunggu Konfirmasi */}
@@ -388,7 +390,9 @@ export default function ClientOrdersManager() {
           <div className="text-2xl sm:text-3xl font-bold text-amber-400 font-mono">
             {queuedCount}
           </div>
-          <div className="text-[10px] text-amber-300/70 mt-1">Butuh konfirmasi pengerjaan</div>
+          <div className="text-[10px] text-amber-300/70 mt-1">
+            {tr("Needs work confirmation", "Butuh konfirmasi pengerjaan", "Paralu konfirmasi karajo")}
+          </div>
         </div>
 
         {/* In Progress */}
@@ -409,7 +413,9 @@ export default function ClientOrdersManager() {
           <div className="text-2xl sm:text-3xl font-bold text-teal-400 font-mono">
             {inProgressCount}
           </div>
-          <div className="text-[10px] text-teal-300/70 mt-1">Proses desain & produksi aktif</div>
+          <div className="text-[10px] text-teal-300/70 mt-1">
+            {tr("Active design & production process", "Proses desain & produksi aktif", "Proses desain & produksi aktif")}
+          </div>
         </div>
 
         {/* Review */}
@@ -430,7 +436,9 @@ export default function ClientOrdersManager() {
           <div className="text-2xl sm:text-3xl font-bold text-indigo-400 font-mono">
             {reviewCount}
           </div>
-          <div className="text-[10px] text-indigo-300/70 mt-1">Menunggu evaluasi & revisi</div>
+          <div className="text-[10px] text-indigo-300/70 mt-1">
+            {tr("Waiting for evaluation & revision", "Menunggu evaluasi & revisi", "Mananti evaluasi & revisi")}
+          </div>
         </div>
 
         {/* Completed */}
@@ -451,7 +459,9 @@ export default function ClientOrdersManager() {
           <div className="text-2xl sm:text-3xl font-bold text-emerald-400 font-mono">
             {completedCount}
           </div>
-          <div className="text-[10px] text-emerald-300/70 mt-1">Aset master diserahkan 100%</div>
+          <div className="text-[10px] text-emerald-300/70 mt-1">
+            {tr("100% master assets handed over", "Aset master diserahkan 100%", "Aset master disarahkan 100%")}
+          </div>
         </div>
       </div>
 
@@ -464,9 +474,9 @@ export default function ClientOrdersManager() {
             <input
               type="text"
               placeholder={tr(
+                "Search name, WA, email, ref code...",
                 "Cari nama, WA, email, ref code...",
-                "Cari nama, WA, email, ref code...",
-                "Cari namo, WA, email..."
+                "Cari namo, WA, email, ref code..."
               )}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -477,11 +487,11 @@ export default function ClientOrdersManager() {
           {/* Filter Pills */}
           <div className="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0 text-xs">
             {[
-              { id: "all", label: "Semua" },
-              { id: "queued", label: `Antrean (${queuedCount})` },
-              { id: "in_progress", label: `Produksi (${inProgressCount})` },
+              { id: "all", label: tr("All", "Semua", "Kasadonyo") },
+              { id: "queued", label: `${tr("Queue", "Antrean", "Antrean")} (${queuedCount})` },
+              { id: "in_progress", label: `${tr("Production", "Produksi", "Produksi")} (${inProgressCount})` },
               { id: "review", label: `Review (${reviewCount})` },
-              { id: "completed", label: `Selesai (${completedCount})` },
+              { id: "completed", label: `${tr("Completed", "Selesai", "Salasa")} (${completedCount})` },
             ].map((f) => (
               <button
                 key={f.id}
@@ -502,7 +512,7 @@ export default function ClientOrdersManager() {
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={loadOrders}
-            title="Refresh Data"
+            title={tr("Refresh Data", "Segarkan Data", "Pabaharui Data")}
             className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition cursor-pointer"
           >
             <RiRefreshLine className="w-4 h-4" />
@@ -513,7 +523,7 @@ export default function ClientOrdersManager() {
             className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-teal-500 hover:bg-teal-400 text-black transition flex items-center gap-1.5 shadow-lg shadow-teal-500/20 cursor-pointer"
           >
             <RiAddLine className="w-4 h-4" />
-            <span>{tr("Tambah Pesanan Manual", "Tambah Pesanan Manual", "Tambah Pesanan")}</span>
+            <span>{tr("Add Manual Order", "Tambah Pesanan Manual", "Tambah Pasanan")}</span>
           </button>
         </div>
       </div>
@@ -522,16 +532,16 @@ export default function ClientOrdersManager() {
       {loading ? (
         <div className="py-20 text-center text-neutral-400 text-xs flex flex-col items-center gap-3">
           <RiRefreshLine className="w-6 h-6 animate-spin text-teal-400" />
-          <span>Memuat data klien masuk dari database Supabase...</span>
+          <span>{tr("Loading incoming client data from Supabase database...", "Memuat data klien masuk dari database Supabase...", "Mamuat data klien masuak dari database Supabase...")}</span>
         </div>
       ) : filteredOrders.length === 0 ? (
         <div className="py-16 text-center rounded-2xl border border-white/10 bg-neutral-900/50 p-8">
           <RiUserFollowLine className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
-          <h4 className="text-white font-semibold text-sm mb-1">Tidak Ada Pesanan Ditemukan</h4>
+          <h4 className="text-white font-semibold text-sm mb-1">{tr("No Orders Found", "Tidak Ada Pesanan Ditemukan", "Indak Ado Pasanan Ditamuan")}</h4>
           <p className="text-xs text-neutral-400 max-w-md mx-auto">
             {searchQuery
-              ? `Tidak ada pesanan yang sesuai dengan kata kunci "${searchQuery}".`
-              : "Belum ada pesanan klien pada filter ini. Formulir pesanan di halaman /products akan otomatis muncul di sini."}
+              ? tr(`No orders match the keyword "${searchQuery}".`, `Tidak ada pesanan yang sesuai dengan kata kunci "${searchQuery}".`, `Indak ado pasanan nan sasuai jo kato kunci "${searchQuery}".`)
+              : tr("No client orders in this filter yet. Order forms from /products will automatically appear here.", "Belum ada pesanan klien pada filter ini. Formulir pesanan di halaman /products akan otomatis muncul di sini.", "Alun ado pasanan klien pado filter iko. Formulir pasanan di laman /products ka otomatis muncua di siko.")}
           </p>
         </div>
       ) : (

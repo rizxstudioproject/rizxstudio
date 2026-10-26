@@ -1131,11 +1131,13 @@ export default function MobileAdminApp({
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
-                      {tr("Produk", "Products", "Produk")}
+                      {tr("Products", "Produk", "Produk")}
                     </span>
-                    <div className="text-xs sm:text-sm font-bold text-white truncate">13 Layanan</div>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">
+                      {tr("13 Services", "13 Layanan", "13 Jaso")}
+                    </div>
                     <span className="text-[10px] text-teal-400 font-semibold block">
-                      Katalog & Paket
+                      {tr("Catalog & Packages", "Katalog & Paket", "Katalog & Paket")}
                     </span>
                   </div>
                 </div>
@@ -1154,9 +1156,11 @@ export default function MobileAdminApp({
                     <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
                       {tr("Tracking", "Tracking", "Lacak")}
                     </span>
-                    <div className="text-xs sm:text-sm font-bold text-white truncate">Status Live</div>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">
+                      {tr("Live Status", "Status Live", "Status Langsuang")}
+                    </div>
                     <span className="text-[10px] text-emerald-400 font-semibold block">
-                      Sync Cloud
+                      {tr("Cloud Sync", "Sinkronisasi Cloud", "Sinkron Cloud")}
                     </span>
                   </div>
                 </div>

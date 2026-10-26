@@ -327,7 +327,7 @@ export default function ProjectTrackerWorkspace({
           }`}
         >
           <RiCompass3Line className="w-4 h-4" />
-          <span>{tr("Pelacakan Proyek (Live)", "Pelacakan Proyek (Live)", "Pelacakan Proyek (Live)")}</span>
+          <span>{tr("Live Project Tracking", "Pelacakan Proyek (Live)", "Pelacakan Proyek (Live)")}</span>
           <span
             className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
               activeMainTab === "tracking"
@@ -385,7 +385,7 @@ export default function ProjectTrackerWorkspace({
                 : "bg-white/10 text-neutral-400"
             }`}
           >
-            Publikasi
+            {tr("Published", "Publikasi", "Publikasi")}
           </span>
         </button>
       </div>
@@ -404,7 +404,9 @@ export default function ProjectTrackerWorkspace({
               Live Progress Engine
             </span>
             <h1 className="text-2xl font-black tracking-tight flex items-baseline gap-2">
-              <span className={isLight ? "text-slate-900" : "text-white"}>Project Dashboard</span>
+              <span className={isLight ? "text-slate-900" : "text-white"}>
+                {tr("Project Dashboard", "Dashboard Proyek", "Dashboard Proyek")}
+              </span>
               <span className="text-base font-semibold text-neutral-400 font-mono">
                 ({projects.length})
               </span>
@@ -416,7 +418,7 @@ export default function ProjectTrackerWorkspace({
             style={{ backgroundColor: primaryColor, color: "#000000" }}
             className="px-3.5 py-2 rounded-xl font-bold text-xs shadow-md shadow-[#16b09f]/20 cursor-pointer active:scale-95 shrink-0"
           >
-            <span>Add Project</span>
+            <span>{tr("Add Project", "Tambah Proyek", "Tambah Proyek")}</span>
           </button>
         </div>
       </div>
@@ -428,7 +430,7 @@ export default function ProjectTrackerWorkspace({
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
               <h2 className="text-xs font-black uppercase tracking-wider font-mono text-neutral-300">
-                Proyek Berjalan ({activeProjects.length})
+                {tr("Ongoing Projects", "Proyek Berjalan", "Proyek Sadang Jalan")} ({activeProjects.length})
               </h2>
             </div>
           </div>
@@ -488,14 +490,33 @@ export default function ProjectTrackerWorkspace({
           <div className="flex items-center gap-3">
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2.5">
               <RiCompass3Line className="w-7 h-7 text-[#16b09f]" />
-              <span className={isLight ? "text-slate-900" : "text-white"}>Tracking & Pengerjaan Proyek (Live)</span>
+              <span className={isLight ? "text-slate-900" : "text-white"}>
+                {tr("Project Tracking & Execution (Live)", "Tracking & Pengerjaan Proyek (Live)", "Tracking & Karajo Proyek (Live)")}
+              </span>
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
               Live Cloud Active
             </span>
           </div>
           <p className={`mt-1 text-xs md:text-sm ${isLight ? "text-slate-600" : "text-slate-400"}`}>
-            Kelola tahapan pengerjaan proyek dari <strong>Belum Dikerjakan → Dalam Proses → Review → Finish / Selesai</strong>. Klien dapat mengecek kode referensi secara live di website.
+            {tr(
+              "Manage project stages from",
+              "Kelola tahapan pengerjaan proyek dari",
+              "Atua tahapan karajo proyek dari"
+            )}{" "}
+            <strong>
+              {tr(
+                "Not Started → In Progress → Review → Finished",
+                "Belum Dikerjakan → Dalam Proses → Review → Selesai",
+                "Alun Dikarajoan → Dalam Proses → Review → Salasa"
+              )}
+            </strong>
+            .{" "}
+            {tr(
+              "Clients can check their reference code live on the website.",
+              "Klien dapat mengecek kode referensi secara live di website.",
+              "Klien dapek ngecek kode referensi sacaro live di website."
+            )}
           </p>
         </div>
 
@@ -506,7 +527,7 @@ export default function ProjectTrackerWorkspace({
             style={{ backgroundColor: primaryColor, color: "#000000" }}
             className="px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center hover:brightness-110 active:scale-95 shadow-md shadow-[#16b09f]/30 cursor-pointer"
           >
-            <span>Buat Kode Proyek Baru</span>
+            <span>{tr("Create New Project Code", "Buat Kode Proyek Baru", "Buek Kode Proyek Baru")}</span>
           </button>
         </div>
       </div>
@@ -514,29 +535,43 @@ export default function ProjectTrackerWorkspace({
       {/* KPI Cards (Desktop View) */}
       <div className="hidden md:grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
-          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-slate-500" : "text-slate-400"}`}>Total Proyek</span>
+          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-slate-500" : "text-slate-400"}`}>
+            {tr("Total Projects", "Total Proyek", "Total Proyek")}
+          </span>
           <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-slate-900" : "text-white"}`}>{projects.length}</div>
-          <span className="text-[10px] text-slate-500 font-mono">Tersimpan di Cloud</span>
+          <span className="text-[10px] text-slate-500 font-mono">
+            {tr("Saved in Cloud", "Tersimpan di Cloud", "Tasimpan di Cloud")}
+          </span>
         </div>
 
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
-          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-amber-600" : "text-amber-400"}`}>Belum / Antrean</span>
+          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-amber-600" : "text-amber-400"}`}>
+            {tr("Queued / Waiting", "Belum / Antrean", "Alun / Antrean")}
+          </span>
           <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-amber-600" : "text-amber-300"}`}>
             {projects.filter((p) => p.currentStage === "queued").length}
           </div>
-          <span className="text-[10px] text-slate-500 font-mono">Menunggu Kickoff</span>
+          <span className="text-[10px] text-slate-500 font-mono">
+            {tr("Waiting Kickoff", "Menunggu Kickoff", "Mananti Kickoff")}
+          </span>
         </div>
 
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
-          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-teal-600" : "text-[#16b09f]"}`}>Sedang Proses / Review</span>
+          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-teal-600" : "text-[#16b09f]"}`}>
+            {tr("In Progress / Review", "Sedang Proses / Review", "Sadang Proses / Review")}
+          </span>
           <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-teal-600" : "text-[#16b09f]"}`}>
             {projects.filter((p) => p.currentStage === "in_progress" || p.currentStage === "review").length}
           </div>
-          <span className="text-[10px] text-slate-500 font-mono">Produksi Aktif</span>
+          <span className="text-[10px] text-slate-500 font-mono">
+            {tr("Active Production", "Produksi Aktif", "Produksi Aktif")}
+          </span>
         </div>
 
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
-          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-emerald-600" : "text-emerald-400"}`}>Finish / Selesai</span>
+          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-emerald-600" : "text-emerald-400"}`}>
+            {tr("Finished / Done", "Finish / Selesai", "Salasa / Tuntong")}
+          </span>
           <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-emerald-600" : "text-emerald-400"}`}>
             {projects.filter((p) => p.currentStage === "completed").length}
           </div>
@@ -548,11 +583,11 @@ export default function ProjectTrackerWorkspace({
       <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {[
-            { id: "ALL", label: "Semua" },
-            { id: "queued", label: "⏳ Belum (Antrean)" },
-            { id: "in_progress", label: "⚡ Sedang Proses" },
-            { id: "review", label: "🔍 Review & Revisi" },
-            { id: "completed", label: "✅ Finish / Selesai" },
+            { id: "ALL", label: tr("All", "Semua", "Kasadonyo") },
+            { id: "queued", label: `⏳ ${tr("Queued", "Belum (Antrean)", "Alun (Antrean)")}` },
+            { id: "in_progress", label: `⚡ ${tr("In Progress", "Sedang Proses", "Sadang Proses")}` },
+            { id: "review", label: `🔍 ${tr("Review & Revision", "Review & Revisi", "Review & Revisi")}` },
+            { id: "completed", label: `✅ ${tr("Finished", "Finish / Selesai", "Salasa / Tuntong")}` },
           ].map((st) => {
             const isActive = stageFilter === st.id;
             return (
@@ -578,7 +613,11 @@ export default function ProjectTrackerWorkspace({
           <RiSearchLine className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Cari kode (misal: RZX-PRJ-632153) atau nama..."
+            placeholder={tr(
+              "Search code (e.g. RZX-PRJ-632153) or name...",
+              "Cari kode (misal: RZX-PRJ-632153) atau nama...",
+              "Cari kode (misal: RZX-PRJ-632153) atau namo..."
+            )}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-[#16b09f] ${
@@ -596,13 +635,13 @@ export default function ProjectTrackerWorkspace({
           <table className="w-full text-left text-xs">
             <thead className={`border-b font-mono uppercase tracking-wider ${isLight ? "bg-slate-50/90 border-slate-200 text-slate-600" : "bg-white/[0.04] border-white/10 text-slate-400"}`}>
               <tr>
-                <th className="py-3 px-4">Kode Referensi</th>
-                <th className="py-3 px-4">Klien & Kontak</th>
-                <th className="py-3 px-4">Layanan & Paket</th>
-                <th className="py-3 px-4">Tahapan Pengerjaan</th>
-                <th className="py-3 px-4">Progres (%)</th>
-                <th className="py-3 px-4">Catatan Milestone Terkini</th>
-                <th className="py-3 px-4 text-center">Aksi</th>
+                <th className="py-3 px-4">{tr("Reference Code", "Kode Referensi", "Kode Referensi")}</th>
+                <th className="py-3 px-4">{tr("Client & Contact", "Klien & Kontak", "Klien & Kontak")}</th>
+                <th className="py-3 px-4">{tr("Service & Package", "Layanan & Paket", "Jaso & Paket")}</th>
+                <th className="py-3 px-4">{tr("Progress Stage", "Tahapan Pengerjaan", "Tahapan Karajo")}</th>
+                <th className="py-3 px-4">{tr("Progress (%)", "Progres (%)", "Progres (%)")}</th>
+                <th className="py-3 px-4">{tr("Latest Milestone Notes", "Catatan Milestone Terkini", "Catatan Milestone Kini")}</th>
+                <th className="py-3 px-4 text-center">{tr("Actions", "Aksi", "Aksi")}</th>
               </tr>
             </thead>
             <tbody className={`divide-y ${isLight ? "divide-slate-200" : "divide-white/5"}`}>
@@ -699,16 +738,16 @@ export default function ProjectTrackerWorkspace({
                         }}
                       >
                         <option value="queued" className={isLight ? "bg-white text-amber-700" : "bg-neutral-900 text-amber-400"}>
-                          ⏳ Belum (Antrean)
+                          ⏳ {tr("Queued", "Belum (Antrean)", "Alun (Antrean)")}
                         </option>
                         <option value="in_progress" className={isLight ? "bg-white text-teal-700" : "bg-neutral-900 text-[#16b09f]"}>
-                          ⚡ Sedang Proses
+                          ⚡ {tr("In Progress", "Sedang Proses", "Sadang Proses")}
                         </option>
                         <option value="review" className={isLight ? "bg-white text-indigo-700" : "bg-neutral-900 text-indigo-400"}>
-                          🔍 Tahap Review
+                          🔍 {tr("In Review", "Tahap Review", "Tahap Review")}
                         </option>
                         <option value="completed" className={isLight ? "bg-white text-emerald-700" : "bg-neutral-900 text-emerald-400"}>
-                          ✅ Finish / Selesai
+                          ✅ {tr("Finished / Done", "Finish / Selesai", "Salasa / Tuntong")}
                         </option>
                       </select>
                     </td>
@@ -811,7 +850,11 @@ export default function ProjectTrackerWorkspace({
               {filteredProjects.length === 0 && (
                 <tr>
                   <td colSpan={7} className={`py-10 text-center ${isLight ? "text-slate-500" : "text-slate-400"}`}>
-                    Tidak ada proyek yang sesuai dengan pencarian.
+                    {tr(
+                      "No projects match your search.",
+                      "Tidak ada proyek yang sesuai dengan pencarian.",
+                      "Indak ado proyek nan sasuai jo pancarian."
+                    )}
                   </td>
                 </tr>
               )}
@@ -824,10 +867,10 @@ export default function ProjectTrackerWorkspace({
       <div className="block md:hidden space-y-3">
         <div className="flex items-center justify-between px-1 pt-1">
           <span className="text-xs font-bold uppercase tracking-wider font-mono text-neutral-400">
-            Daftar Tugas Proyek ({filteredProjects.length})
+            {tr("Project Task List", "Daftar Tugas Proyek", "Daftar Tugas Proyek")} ({filteredProjects.length})
           </span>
           <span className="text-[10px] text-teal-400 font-mono font-semibold">
-            Klik kartu untuk rincian
+            {tr("Tap card for details", "Klik kartu untuk rincian", "Klik kartu untuak rincian")}
           </span>
         </div>
 
@@ -921,7 +964,9 @@ export default function ProjectTrackerWorkspace({
               {/* Progress Bar + Completion stats */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[11px] font-mono">
-                  <span className="text-neutral-400">Progres ({compCount}/4 Tahap)</span>
+                  <span className="text-neutral-400">
+                    {tr("Progress", "Progres", "Progres")} ({compCount}/4 {tr("Stages", "Tahap", "Tahap")})
+                  </span>
                   <span className="font-bold text-teal-400">{p.progressPercent}%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-neutral-800 overflow-hidden">
@@ -968,7 +1013,7 @@ export default function ProjectTrackerWorkspace({
                     className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 transition cursor-pointer active:scale-95"
                   >
                     <RiImageFill className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Lihat Bukti Resi Transfer 📄</span>
+                    <span>{tr("View Transfer Receipt 📄", "Lihat Bukti Resi Transfer 📄", "Caliak Bukti Resi Transfer 📄")}</span>
                   </button>
                 </div>
               )}
@@ -982,7 +1027,7 @@ export default function ProjectTrackerWorkspace({
                     onClick={() => setDrilldownProject(p)}
                     className="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#16b09f] hover:bg-teal-400 text-black transition flex items-center gap-1 shadow-md shadow-[#16b09f]/15 cursor-pointer active:scale-95"
                   >
-                    <span>Detail & Milestones</span>
+                    <span>{tr("Details & Milestones", "Detail & Milestone", "Rincian & Milestones")}</span>
                     <RiCompass3Line className="w-3.5 h-3.5" />
                   </button>
 
@@ -991,7 +1036,7 @@ export default function ProjectTrackerWorkspace({
                     type="button"
                     onClick={() => openEditModal(p)}
                     className="p-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition cursor-pointer active:scale-95"
-                    title="Edit Progres"
+                    title={tr("Edit Progress", "Edit Progres", "Edit Progres")}
                   >
                     <RiEditLine className="w-3.5 h-3.5" />
                   </button>
@@ -1001,7 +1046,7 @@ export default function ProjectTrackerWorkspace({
                     type="button"
                     onClick={() => setClientPreviewCode(p.refCode)}
                     className="p-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-teal-400 border border-white/10 transition cursor-pointer active:scale-95"
-                    title="Tampilan Klien"
+                    title={tr("Client Preview", "Tampilan Klien", "Tampilan Klien")}
                   >
                     <RiEyeLine className="w-3.5 h-3.5" />
                   </button>
@@ -1014,7 +1059,13 @@ export default function ProjectTrackerWorkspace({
         {filteredProjects.length === 0 && (
           <div className="py-12 text-center text-neutral-400 border border-white/10 rounded-2xl bg-white/[0.02]">
             <RiFileList3Line className="w-8 h-8 mx-auto text-neutral-500 mb-2 opacity-50" />
-            <p className="text-xs">Tidak ada proyek yang sesuai filter / pencarian.</p>
+            <p className="text-xs">
+              {tr(
+                "No projects match the filter/search.",
+                "Tidak ada proyek yang sesuai filter / pencarian.",
+                "Indak ado proyek nan sasuai filter / pancarian."
+              )}
+            </p>
           </div>
         )}
       </div>
@@ -1037,7 +1088,7 @@ export default function ProjectTrackerWorkspace({
                 className="flex items-center gap-2 text-xs font-bold text-neutral-400 hover:text-white transition cursor-pointer"
               >
                 <RiArrowLeftLine className="w-4 h-4 text-teal-400" />
-                <span>Kembali ke Dashboard</span>
+                <span>{tr("Back to Dashboard", "Kembali ke Dashboard", "Baliak ka Dashboard")}</span>
               </button>
               <button
                 type="button"
@@ -1070,7 +1121,7 @@ export default function ProjectTrackerWorkspace({
             {/* Task Details Card (Screen 3 Black Card style) */}
             <div className="p-4 rounded-2xl bg-black/50 border border-white/10 space-y-3">
               <div className="text-[11px] font-mono uppercase tracking-wider text-neutral-400 font-bold">
-                Rincian Proyek (Task Details)
+                {tr("Project Details (Task Details)", "Rincian Proyek (Task Details)", "Rincian Proyek (Task Details)")}
               </div>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
@@ -1086,9 +1137,11 @@ export default function ProjectTrackerWorkspace({
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white/[0.03] border border-white/5">
-                  <span className="text-[10px] text-neutral-400 block font-mono">TAHAP</span>
+                  <span className="text-[10px] text-neutral-400 block font-mono">
+                    {tr("STAGE", "TAHAP", "TAHAP")}
+                  </span>
                   <span className="text-xs font-bold text-amber-400 block mt-0.5">
-                    {getMilestoneCompletion(drilldownProject.currentStage, drilldownProject.progressPercent)}/4 Selesai
+                    {getMilestoneCompletion(drilldownProject.currentStage, drilldownProject.progressPercent)}/4 {tr("Done", "Selesai", "Salasa")}
                   </span>
                 </div>
               </div>
@@ -1107,7 +1160,7 @@ export default function ProjectTrackerWorkspace({
                     className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition"
                   >
                     <RiWhatsappLine className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>WhatsApp Klien</span>
+                    <span>{tr("Client WhatsApp", "WhatsApp Klien", "WhatsApp Klien")}</span>
                   </a>
                 )}
               </div>
@@ -1117,9 +1170,11 @@ export default function ProjectTrackerWorkspace({
             <div className="space-y-3 pt-1">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wider font-mono text-neutral-300">
-                  Subtasks & Tahapan Pengerjaan
+                  {tr("Subtasks & Progress Stages", "Subtasks & Tahapan Pengerjaan", "Subtasks & Tahapan Karajo")}
                 </h3>
-                <span className="text-[10px] text-teal-400 font-mono">Klik untuk set tahap</span>
+                <span className="text-[10px] text-teal-400 font-mono">
+                  {tr("Click to set stage", "Klik untuk set tahap", "Klik untuak set tahap")}
+                </span>
               </div>
 
               <div className="space-y-2">
@@ -1168,7 +1223,7 @@ export default function ProjectTrackerWorkspace({
                           </h4>
                           {isActive && (
                             <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold shrink-0">
-                              Aktif Sekarang
+                              {tr("Active Now", "Aktif Sekarang", "Aktif Kini")}
                             </span>
                           )}
                         </div>
@@ -1186,7 +1241,7 @@ export default function ProjectTrackerWorkspace({
             {drilldownProject.notes && (
               <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-1">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 font-bold block">
-                  Catatan Milestone Terkini (Dibaca Klien)
+                  {tr("Latest Milestone Notes (Client Facing)", "Catatan Milestone Terkini (Dibaca Klien)", "Catatan Milestone Kini (Dibaco Klien)")}
                 </span>
                 <p className="text-xs text-neutral-200 leading-relaxed">
                   {drilldownProject.notes}
@@ -1204,7 +1259,7 @@ export default function ProjectTrackerWorkspace({
                   <div className="flex items-center justify-between text-xs font-bold text-emerald-400">
                     <span className="flex items-center gap-1.5">
                       <RiImageFill className="w-4 h-4" />
-                      Bukti Resi Transfer Klien
+                      {tr("Client Transfer Receipt Proof", "Bukti Resi Transfer Klien", "Bukti Resi Transfer Klien")}
                     </span>
                     <button
                       type="button"
@@ -1224,7 +1279,7 @@ export default function ProjectTrackerWorkspace({
                       }
                       className="text-xs underline text-emerald-300 cursor-pointer"
                     >
-                      Perbesar Foto 🔍
+                      {tr("Enlarge Photo 🔍", "Perbesar Foto 🔍", "Pagadang Foto 🔍")}
                     </button>
                   </div>
                   <div
@@ -1247,7 +1302,7 @@ export default function ProjectTrackerWorkspace({
                     <img src={proofUrl} alt="Resi" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-xs font-bold text-white gap-1">
                       <RiEyeLine className="w-4 h-4" />
-                      <span>Klik untuk Lihat Foto Asli</span>
+                      <span>{tr("Click to View Original Photo", "Klik untuk Lihat Foto Asli", "Klik untuak Caliak Foto Asli")}</span>
                     </div>
                   </div>
                 </div>
@@ -1264,7 +1319,7 @@ export default function ProjectTrackerWorkspace({
                 className="flex-1 py-3 px-4 rounded-xl text-xs font-bold bg-[#16b09f] hover:bg-teal-400 text-black transition flex items-center justify-center gap-2 shadow-lg shadow-[#16b09f]/20 cursor-pointer active:scale-95"
               >
                 <RiEditLine className="w-4 h-4" />
-                <span>Update Laporan Progres</span>
+                <span>{tr("Update Progress Report", "Update Laporan Progres", "Update Laporan Progres")}</span>
               </button>
               <button
                 type="button"
@@ -1273,7 +1328,7 @@ export default function ProjectTrackerWorkspace({
                   setDrilldownProject(null);
                 }}
                 className="p-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 transition flex items-center justify-center cursor-pointer active:scale-95"
-                title="Hapus Proyek"
+                title={tr("Delete Project", "Hapus Proyek", "Hapuih Proyek")}
               >
                 <RiDeleteBinLine className="w-4 h-4" />
               </button>
@@ -1297,7 +1352,7 @@ export default function ProjectTrackerWorkspace({
             <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
               <div>
                 <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-wider block">
-                  Update Progres Proyek
+                  {tr("Update Project Progress", "Update Progres Proyek", "Update Progres Proyek")}
                 </span>
                 <h3 className={`text-base font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                   <span>{editingProject.refCode}</span>
@@ -1316,14 +1371,14 @@ export default function ProjectTrackerWorkspace({
             <div className="space-y-4 text-xs">
               <div>
                 <label className={`block font-mono uppercase tracking-wider mb-2 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                  1. Tahapan Pengerjaan Proyek:
+                  {tr("1. Project Progress Stage:", "1. Tahapan Pengerjaan Proyek:", "1. Tahapan Karajo Proyek:")}
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: "queued", label: "⏳ Belum (Antrean)", pct: 15 },
-                    { id: "in_progress", label: "⚡ Sedang Proses", pct: 50 },
-                    { id: "review", label: "🔍 Review & Revisi", pct: 80 },
-                    { id: "completed", label: "✅ Finish / Selesai", pct: 100 },
+                    { id: "queued", label: `⏳ ${tr("Queued", "Belum (Antrean)", "Alun (Antrean)")}`, pct: 15 },
+                    { id: "in_progress", label: `⚡ ${tr("In Progress", "Sedang Proses", "Sadang Proses")}`, pct: 50 },
+                    { id: "review", label: `🔍 ${tr("Review & Revision", "Review & Revisi", "Review & Revisi")}`, pct: 80 },
+                    { id: "completed", label: `✅ ${tr("Finished", "Finish / Selesai", "Salasa / Tuntong")}`, pct: 100 },
                   ].map((st) => (
                     <button
                       key={st.id}
@@ -1349,7 +1404,7 @@ export default function ProjectTrackerWorkspace({
               <div>
                 <div className="flex justify-between items-center mb-1.5 font-mono">
                   <label className={`uppercase tracking-wider ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                    2. Persentase Progres:
+                    {tr("2. Progress Percentage:", "2. Persentase Progres:", "2. Persentase Progres:")}
                   </label>
                   <span className="text-[#16b09f] font-bold text-sm">{editPercent}%</span>
                 </div>
@@ -1366,13 +1421,13 @@ export default function ProjectTrackerWorkspace({
 
               <div>
                 <label className={`block font-mono uppercase tracking-wider mb-1.5 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                  3. Catatan Milestone Terkini (Dibaca Klien Saat Tracking):
+                  {tr("3. Latest Milestone Notes (Client Facing):", "3. Catatan Milestone Terkini (Dibaca Klien Saat Tracking):", "3. Catatan Milestone Kini (Dibaco Klien Wakatu Tracking):")}
                 </label>
                 <textarea
                   rows={3}
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
-                  placeholder="Ceritakan tahap apa yang sedang dikerjakan saat ini..."
+                  placeholder={tr("Describe current stage being worked on...", "Ceritakan tahap apa yang sedang dikerjakan saat ini...", "Citoan tahap apo nan sadang dikarajoan kini...")}
                   className={`w-full px-3 py-2 rounded-xl text-xs outline-none focus:border-[#16b09f] resize-y border ${
                     isLight
                       ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
@@ -1383,13 +1438,13 @@ export default function ProjectTrackerWorkspace({
 
               <div>
                 <label className={`block font-mono uppercase tracking-wider mb-1.5 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                  4. Link Pratinjau Draft / Hasil Karya (Opsional):
+                  {tr("4. Preview Draft / Artwork Link (Optional):", "4. Link Pratinjau Draft / Hasil Karya (Opsional):", "4. Link Pratinjau Draft / Hasiil Karya (Opsional):")}
                 </label>
                 <input
                   type="text"
                   value={editPreviewUrl}
                   onChange={(e) => setEditPreviewUrl(e.target.value)}
-                  placeholder="Link Google Drive, Figma, atau Staging..."
+                  placeholder={tr("Google Drive, Figma, or Staging link...", "Link Google Drive, Figma, atau Staging...", "Link Google Drive, Figma, atau Staging...")}
                   className={`w-full px-3 py-2 rounded-xl text-xs font-mono outline-none focus:border-[#16b09f] border ${
                     isLight
                       ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
@@ -1406,10 +1461,10 @@ export default function ProjectTrackerWorkspace({
                     setEditingProject(null);
                   }}
                   className="px-3.5 py-2 rounded-xl text-xs font-semibold text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
-                  title="Hapus Proyek"
+                  title={tr("Delete Project", "Hapus Proyek", "Hapuih Proyek")}
                 >
                   <RiDeleteBinLine className="w-3.5 h-3.5" />
-                  <span>Hapus</span>
+                  <span>{tr("Delete", "Hapus", "Hapuih")}</span>
                 </button>
                 <div className="flex items-center gap-2">
                   <button
@@ -1421,7 +1476,7 @@ export default function ProjectTrackerWorkspace({
                         : "bg-neutral-900 hover:bg-neutral-800 text-slate-300"
                     }`}
                   >
-                    Batal
+                    {tr("Cancel", "Batal", "Batal")}
                   </button>
                   <button
                     type="button"
@@ -1430,7 +1485,9 @@ export default function ProjectTrackerWorkspace({
                     style={{ backgroundColor: primaryColor, color: "#000000" }}
                     className="px-5 py-2 rounded-xl font-bold text-xs hover:brightness-110 active:scale-95 shadow-md shadow-[#16b09f]/30 cursor-pointer"
                   >
-                    {isSaving ? "Menyimpan..." : "Simpan Progres & Sinkronkan"}
+                    {isSaving
+                      ? tr("Saving...", "Menyimpan...", "Manyimpan...")
+                      : tr("Save Progress & Sync", "Simpan Progres & Sinkronkan", "Simpan Progres & Sinkronkan")}
                   </button>
                 </div>
               </div>
@@ -1454,7 +1511,7 @@ export default function ProjectTrackerWorkspace({
             <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
               <h3 className={`text-base font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                 <RiAddLine className="w-5 h-5 text-[#16b09f]" />
-                <span>Buat Kode Proyek Baru</span>
+                <span>{tr("Create New Project Code", "Buat Kode Proyek Baru", "Buek Kode Proyek Baru")}</span>
               </h3>
               <button
                 type="button"
@@ -1468,12 +1525,12 @@ export default function ProjectTrackerWorkspace({
             <form onSubmit={handleCreateNewProject} className="space-y-3.5 text-xs">
               <div>
                 <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                  Nama Klien / Perusahaan *
+                  {tr("Client / Company Name *", "Nama Klien / Perusahaan *", "Namo Klien / Parusahaan *")}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Contoh: PT Kreatif Nusantara"
+                  placeholder={tr("Example: PT Kreatif Nusantara", "Contoh: PT Kreatif Nusantara", "Contoh: PT Kreatif Nusantara")}
                   value={newClientName}
                   onChange={(e) => setNewClientName(e.target.value)}
                   className={`w-full px-3 py-2 rounded-xl outline-none focus:border-[#16b09f] border ${
@@ -1486,7 +1543,7 @@ export default function ProjectTrackerWorkspace({
 
               <div>
                 <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                  Nomor WhatsApp Klien
+                  {tr("Client WhatsApp Number", "Nomor WhatsApp Klien", "Nomor WhatsApp Klien")}
                 </label>
                 <input
                   type="text"
@@ -1504,7 +1561,7 @@ export default function ProjectTrackerWorkspace({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                    Layanan Proyek
+                    {tr("Project Service", "Layanan Proyek", "Jaso Proyek")}
                   </label>
                   <input
                     type="text"
@@ -1520,7 +1577,7 @@ export default function ProjectTrackerWorkspace({
 
                 <div>
                   <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                    Paket
+                    {tr("Package", "Paket", "Paket")}
                   </label>
                   <input
                     type="text"
@@ -1538,7 +1595,7 @@ export default function ProjectTrackerWorkspace({
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                    Target Deadline
+                    {tr("Target Deadline", "Target Deadline", "Target Deadline")}
                   </label>
                   <input
                     type="text"
@@ -1554,11 +1611,11 @@ export default function ProjectTrackerWorkspace({
 
                 <div>
                   <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
-                    Kode Kustom (Opsional)
+                    {tr("Custom Code (Optional)", "Kode Kustom (Opsional)", "Kode Kustom (Opsional)")}
                   </label>
                   <input
                     type="text"
-                    placeholder="Kosongkan jika ingin auto"
+                    placeholder={tr("Leave blank for auto", "Kosongkan jika ingin auto", "Kosongkan kok nio auto")}
                     value={newCustomRef}
                     onChange={(e) => setNewCustomRef(e.target.value)}
                     className={`w-full px-3 py-2 rounded-xl font-mono uppercase outline-none focus:border-[#16b09f] border ${
@@ -1580,14 +1637,14 @@ export default function ProjectTrackerWorkspace({
                       : "bg-neutral-900 hover:bg-neutral-800 text-slate-300"
                   }`}
                 >
-                  Batal
+                  {tr("Cancel", "Batal", "Batal")}
                 </button>
                 <button
                   type="submit"
                   style={{ backgroundColor: primaryColor, color: "#000000" }}
                   className="px-5 py-2 rounded-xl font-bold text-xs hover:brightness-110 shadow-md shadow-[#16b09f]/30"
                 >
-                  Daftarkan Proyek
+                  {tr("Register Project", "Daftarkan Proyek", "Daftarkan Proyek")}
                 </button>
               </div>
             </form>

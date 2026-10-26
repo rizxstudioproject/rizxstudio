@@ -221,9 +221,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const isMin = lang === "min";
   const tx = (arg1: string, arg2?: string, minVal?: string) => {
     if (!arg2) return arg1;
+    if (lang === "min" && minVal) return minVal;
     const pair = resolveTrPair(arg1, arg2);
-    if (lang === "min") return minVal || toMinang(pair.id);
+    if (lang === "en") return pair.en;
     if (lang === "id") return pair.id;
+    if (lang === "min") return minVal || toMinang(pair.id);
     return pair.en;
   };
   const [adminUser, setAdminUser] = useState("admin");
