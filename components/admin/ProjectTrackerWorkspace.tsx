@@ -1302,11 +1302,10 @@ export default function ProjectTrackerWorkspace({
               <button
                 type="button"
                 onClick={() => setClientPreviewCode(drilldownProject.refCode)}
-                className="py-3 px-4 rounded-xl text-xs font-semibold bg-white/10 hover:bg-white/15 text-white border border-white/15 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                className="p-3 rounded-xl bg-white/10 hover:bg-white/15 text-teal-400 border border-white/15 transition flex items-center justify-center cursor-pointer active:scale-95"
                 title="Lihat Tampilan Klien"
               >
                 <RiEyeLine className="w-4 h-4 text-teal-400" />
-                <span>Cek Web</span>
               </button>
               <button
                 type="button"
