@@ -1,21 +1,46 @@
 "use client";
 
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { usePortfolioData, PortfolioRunnerItem } from "@/context/PortfolioDataContext";
 
 interface RunnerCardProps {
   item: PortfolioRunnerItem;
+  onCardClick?: (item: PortfolioRunnerItem) => void;
 }
 
-const RunnerCard = React.forwardRef<HTMLDivElement, RunnerCardProps>(({ item }, ref) => {
+const RunnerCard = React.forwardRef<HTMLDivElement, RunnerCardProps>(({ item, onCardClick }, ref) => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (item.link && item.link.trim() !== "") {
+      const target = item.link.trim();
+      if (target.startsWith("http://") || target.startsWith("https://")) {
+        window.open(target, "_blank", "noopener,noreferrer");
+      } else if (target.startsWith("#")) {
+        const el = document.querySelector(target);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+        } else {
+          window.location.hash = target;
+        }
+      } else {
+        window.location.href = target;
+      }
+      return;
+    }
+    if (onCardClick) {
+      onCardClick(item);
+    }
+  };
+
   return (
     <div
       ref={ref}
+      onClick={handleClick}
       style={{
         transformOrigin: "bottom center",
         willChange: "transform",
       }}
-      className="relative flex-shrink-0 w-[105px] sm:w-[125px] md:w-[145px] aspect-[4/5] rounded-xl overflow-hidden border border-white/10 bg-neutral-950 shadow-[0_8px_24px_rgba(0,0,0,0.6)] group transition-[transform,border-color,box-shadow] duration-200 ease-out mr-2.5 sm:mr-3.5 select-none"
+      className="relative flex-shrink-0 w-[105px] sm:w-[125px] md:w-[145px] aspect-[4/5] rounded-xl overflow-hidden border border-white/10 bg-neutral-950 shadow-[0_8px_24px_rgba(0,0,0,0.6)] group transition-[transform,border-color,box-shadow] duration-200 ease-out mr-2.5 sm:mr-3.5 select-none cursor-pointer hover:border-[#16b09f]/60 hover:shadow-[0_12px_28px_rgba(22,176,159,0.25)]"
     >
       <img
         src={item.image}
@@ -23,8 +48,15 @@ const RunnerCard = React.forwardRef<HTMLDivElement, RunnerCardProps>(({ item }, 
         loading="lazy"
         className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 pointer-events-none"
       />
-      {/* Dark gradient overlay — pure dark theme, blends seamlessly */}
+      {/* Dark gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/30 to-transparent pointer-events-none" />
+
+      {/* External Link Indicator if link present */}
+      {item.link && (
+        <div className="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-black/70 backdrop-blur-md border border-[#16b09f]/40 flex items-center justify-center text-[10px] text-[#16b09f] shadow-md group-hover:scale-110 transition-transform">
+          ↗
+        </div>
+      )}
 
       {/* Card Info at Bottom */}
       <div className="absolute bottom-2 left-2 right-2 flex flex-col gap-0.5 pointer-events-none">
@@ -52,14 +84,9 @@ interface MarqueeRowProps {
   waveLift?: number;
   waveScale?: number;
   waveRadius?: number;
+  onCardClick?: (item: PortfolioRunnerItem) => void;
 }
 
-/**
- * Builds a seamless, gap-free marquee row with interactive Proximity Ripple Wave.
- * When the mouse touches or hovers near a card:
- * - The card closest to the mouse elevates ("melayang", up to -22px) and scales up with a teal glow.
- * - Neighboring cards within the wave radius also elevate and tilt in a smooth bell curve wave.
- */
 function MarqueeRow({
   items,
   direction = "left",
@@ -69,6 +96,7 @@ function MarqueeRow({
   waveLift = 22,
   waveScale = 1.17,
   waveRadius = 240,
+  onCardClick,
 }: MarqueeRowProps) {
   const rowRef = useRef<HTMLDivElement>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -128,55 +156,47 @@ function MarqueeRow({
             card.style.zIndex = "";
             card.style.borderColor = "";
             card.style.boxShadow = "";
-            card.dataset.waved = "false";
+            delete card.dataset.waved;
           }
         }
-      } else {
-        const curMouseX = mouseX;
+        animId = requestAnimationFrame(updateWave);
+        return;
+      }
 
-        for (let i = 0; i < cards.length; i++) {
-          const card = cards[i];
-          if (!card) continue;
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        if (!card) continue;
 
-          const rect = card.getBoundingClientRect();
-          // Skip cards outside visible viewport window horizontally
-          if (rect.right < -100 || rect.left > window.innerWidth + 100) continue;
+        const rect = card.getBoundingClientRect();
+        const cardCenter = rect.left + rect.width / 2;
+        const dist = Math.abs(mouseX - cardCenter);
 
-          const cardCenterX = rect.left + rect.width / 2;
-          const dist = Math.abs(curMouseX - cardCenterX);
+        if (dist < W_RADIUS) {
+          const ratio = 1 - dist / W_RADIUS;
+          const curve = Math.cos(((1 - ratio) * Math.PI) / 2);
+          const lift = curve * maxLift;
+          const scale = 1.0 + curve * scaleBonus;
+          const tilt = ((cardCenter - mouseX) / W_RADIUS) * 3;
 
-          if (dist < W_RADIUS) {
-            const norm = dist / W_RADIUS;
-            // Cosine bell curve wave equation: 1.0 at epicenter, tapering smoothly to 0.0
-            const wave = Math.cos(norm * (Math.PI / 2));
-
-            const lift = -maxLift * wave;
-            const curScale = 1 + scaleBonus * wave;
-            const tilt = ((cardCenterX - curMouseX) / W_RADIUS) * 3.5 * wave;
-            const zIndex = Math.round(10 + wave * 25);
-            const borderAlpha = 0.12 + wave * 0.88;
-            const shadowAlpha = wave * 0.45;
-
-            card.style.transform = `translate3d(0, ${lift.toFixed(1)}px, 0) scale(${curScale.toFixed(3)}) rotate(${tilt.toFixed(1)}deg)`;
-            card.style.zIndex = String(zIndex);
-            card.style.borderColor = `rgba(20, 175, 158, ${borderAlpha.toFixed(2)})`;
-            card.style.boxShadow = `0 ${Math.round(8 + wave * 16)}px ${Math.round(20 + wave * 24)}px rgba(20, 175, 158, ${shadowAlpha.toFixed(2)})`;
-            card.dataset.waved = "true";
-          } else if (card.dataset.waved === "true") {
-            card.style.transform = "";
-            card.style.zIndex = "";
-            card.style.borderColor = "";
-            card.style.boxShadow = "";
-            card.dataset.waved = "false";
-          }
+          card.style.transform = `translateY(-${lift}px) scale(${scale}) rotate(${tilt}deg)`;
+          card.style.zIndex = "30";
+          card.style.borderColor = "rgba(22, 176, 159, 0.4)";
+          card.style.boxShadow = "0 14px 32px rgba(22, 176, 159, 0.28)";
+          card.dataset.waved = "true";
+        } else if (card.dataset.waved === "true") {
+          card.style.transform = "";
+          card.style.zIndex = "";
+          card.style.borderColor = "";
+          card.style.boxShadow = "";
+          delete card.dataset.waved;
         }
       }
 
       animId = requestAnimationFrame(updateWave);
     };
 
-    rowEl.addEventListener("mousemove", onMouseMove, { passive: true });
-    rowEl.addEventListener("mouseleave", onMouseLeave, { passive: true });
+    rowEl.addEventListener("mousemove", onMouseMove);
+    rowEl.addEventListener("mouseleave", onMouseLeave);
     rowEl.addEventListener("touchmove", onTouchMove, { passive: true });
     rowEl.addEventListener("touchend", onTouchEnd, { passive: true });
     rowEl.addEventListener("touchcancel", onTouchEnd, { passive: true });
@@ -217,6 +237,7 @@ function MarqueeRow({
                 cardRefs.current[idx] = el;
               }}
               item={item}
+              onCardClick={onCardClick}
             />
           ))}
         </div>
@@ -237,6 +258,7 @@ function MarqueeRow({
                 cardRefs.current[trackItems.length + idx] = el;
               }}
               item={item}
+              onCardClick={onCardClick}
             />
           ))}
         </div>
@@ -248,6 +270,7 @@ function MarqueeRow({
 export default function PortfolioRunner() {
   const { portfolioRunner } = usePortfolioData();
   const items = portfolioRunner?.items || [];
+  const [selectedCard, setSelectedCard] = useState<PortfolioRunnerItem | null>(null);
 
   const row1Items = items.filter((i) => i.row === 1);
   const row2Items = items.filter((i) => i.row === 2);
@@ -294,6 +317,7 @@ export default function PortfolioRunner() {
           waveLift={waveLift}
           waveScale={waveScale}
           waveRadius={waveRadius}
+          onCardClick={setSelectedCard}
         />
         {/* Row 2 */}
         <MarqueeRow
@@ -305,9 +329,75 @@ export default function PortfolioRunner() {
           waveLift={waveLift}
           waveScale={waveScale}
           waveRadius={waveRadius}
+          onCardClick={setSelectedCard}
         />
       </div>
+
+      {/* Lightbox Modal for Running Portfolio Card Artwork */}
+      {selectedCard && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in"
+          onClick={() => setSelectedCard(null)}
+        >
+          <div
+            className="relative max-w-lg w-full rounded-2xl bg-neutral-950 border border-white/15 p-4 sm:p-5 flex flex-col gap-4 shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setSelectedCard(null)}
+              className="absolute top-3 right-3 z-20 p-2 rounded-full bg-black/60 hover:bg-white/20 text-white/80 hover:text-white transition-all cursor-pointer"
+              aria-label="Tutup"
+            >
+              ✕
+            </button>
+
+            {/* Image Preview 4:5 */}
+            <div className="relative w-full aspect-[4/5] rounded-xl overflow-hidden bg-neutral-900 border border-white/10 flex items-center justify-center">
+              <img
+                src={selectedCard.image}
+                alt={selectedCard.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+
+            {/* Info & Action */}
+            <div className="flex items-center justify-between gap-3 pt-1">
+              <div>
+                {selectedCard.category && (
+                  <span className="text-[10px] font-mono text-[#16b09f] font-semibold uppercase tracking-wider block">
+                    {selectedCard.category}
+                  </span>
+                )}
+                <h3 className="text-sm sm:text-base font-bold text-white leading-snug">
+                  {selectedCard.title}
+                </h3>
+              </div>
+
+              {selectedCard.link ? (
+                <a
+                  href={selectedCard.link}
+                  target={selectedCard.link.startsWith("http") ? "_blank" : undefined}
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-md"
+                >
+                  <span>Buka Link</span>
+                  <span>↗</span>
+                </a>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCard(null)}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-mono transition-all shrink-0 cursor-pointer"
+                >
+                  Tutup
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
-

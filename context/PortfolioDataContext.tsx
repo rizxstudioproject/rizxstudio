@@ -279,6 +279,7 @@ export interface ClientLogoItem {
   name: string;
   file: string;
   row: 1 | 2;
+  link?: string;
 }
 
 export interface ClientLogosData {
@@ -346,6 +347,7 @@ export interface PortfolioRunnerItem {
   category: string;
   image: string;
   row: 1 | 2;
+  link?: string;
 }
 
 export interface PortfolioRunnerData {

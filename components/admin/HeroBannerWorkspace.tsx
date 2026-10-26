@@ -20,6 +20,10 @@ import {
   RiEyeLine,
   RiSpeedUpLine,
   RiCompass3Fill,
+  RiEditLine,
+  RiLink,
+  RiCloseLine,
+  RiExternalLinkLine,
 } from "react-icons/ri";
 import {
   usePortfolioData,
@@ -298,7 +302,10 @@ export default function HeroBannerWorkspace({
   const [newRunnerTitle, setNewRunnerTitle] = useState("");
   const [newRunnerCategory, setNewRunnerCategory] = useState("");
   const [newRunnerImage, setNewRunnerImage] = useState("");
+  const [newRunnerLink, setNewRunnerLink] = useState("");
   const [newRunnerRow, setNewRunnerRow] = useState<1 | 2>(1);
+  const [editingRunnerItem, setEditingRunnerItem] = useState<PortfolioRunnerItem | null>(null);
+  const [isUploadingEditImage, setIsUploadingEditImage] = useState(false);
   const [filterRunnerRow, setFilterRunnerRow] = useState<0 | 1 | 2>(0); // 0 = all
 
   const handleSaveRunnerSettings = async () => {
@@ -335,10 +342,12 @@ export default function HeroBannerWorkspace({
         category: newRunnerCategory.trim() || "Creative Work",
         image: finalImage,
         row: newRunnerRow,
+        link: newRunnerLink.trim() || undefined,
       });
       setNewRunnerTitle("");
       setNewRunnerCategory("");
       setNewRunnerImage("");
+      setNewRunnerLink("");
       notify(
         "success",
         tr("Karya Ditambahkan!", "Item Added!", "Karya Ditambah!"),
@@ -1350,6 +1359,23 @@ export default function HeroBannerWorkspace({
                   </div>
                 </div>
 
+                <div className="space-y-1">
+                  <label className="text-xs font-mono font-semibold text-neutral-300 flex items-center gap-1.5">
+                    <RiLink className="w-3.5 h-3.5 text-[#16b09f]" />
+                    <span>Link Tujuan Kartu (Opsional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={newRunnerLink}
+                    onChange={(e) => setNewRunnerLink(e.target.value)}
+                    placeholder="https://... atau #projects (Kosongkan jika hanya preview foto)"
+                    className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
+                  />
+                  <p className="text-[10px] text-neutral-400 font-mono">
+                    Jika diisi, pengunjung yang mengklik kartu di running portofolio akan langsung diarahkan ke link ini.
+                  </p>
+                </div>
+
                 <button
                   type="button"
                   disabled={isUploadingImage}
@@ -1448,6 +1474,16 @@ export default function HeroBannerWorkspace({
                       R{item.row}
                     </span>
 
+                    {/* Edit button */}
+                    <button
+                      type="button"
+                      onClick={() => setEditingRunnerItem({ ...item })}
+                      className="absolute top-2 right-9 p-1.5 rounded-lg bg-black/75 hover:bg-[#16b09f] text-neutral-300 hover:text-black border border-white/10 transition-colors cursor-pointer z-10"
+                      title="Edit karya ini"
+                    >
+                      <RiEditLine className="w-3 h-3" />
+                    </button>
+
                     {/* Delete button */}
                     <button
                       type="button"
@@ -1457,11 +1493,19 @@ export default function HeroBannerWorkspace({
                           notify("info", "Dihapus", `"${item.title}" dihapus.`);
                         }
                       }}
-                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/75 hover:bg-red-600 text-neutral-400 hover:text-white border border-white/10 transition-colors cursor-pointer"
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-black/75 hover:bg-red-600 text-neutral-400 hover:text-white border border-white/10 transition-colors cursor-pointer z-10"
                       title="Hapus karya"
                     >
                       <RiDeleteBinLine className="w-3 h-3" />
                     </button>
+
+                    {/* Link badge if set */}
+                    {item.link && (
+                      <span className="absolute bottom-2 left-2 px-1.5 py-0.5 rounded bg-black/75 backdrop-blur-md text-[8px] font-mono text-cyan-300 border border-white/10 flex items-center gap-1 max-w-[85px] truncate" title={item.link}>
+                        <RiLink className="w-2.5 h-2.5 shrink-0 text-[#16b09f]" />
+                        <span className="truncate">{item.link}</span>
+                      </span>
+                    )}
 
                     {/* Switch row button */}
                     <button
@@ -1509,6 +1553,260 @@ export default function HeroBannerWorkspace({
             </div>
           </div>
         </motion.div>
+      )}
+
+      {/* Modal Edit Karya Running Portofolio */}
+      {editingRunnerItem && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+          onClick={() => setEditingRunnerItem(null)}
+        >
+          <div
+            className="w-full max-w-lg rounded-2xl bg-neutral-950 border border-white/15 p-5 sm:p-7 space-y-4 shadow-2xl overflow-y-auto max-h-[92vh] no-scrollbar"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <RiEditLine className="w-5 h-5 text-[#16b09f]" />
+                <span>Edit Karya Running Portofolio</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setEditingRunnerItem(null)}
+                className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+              >
+                <RiCloseLine className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Inputs */}
+            <div className="space-y-3.5">
+              <div className="space-y-1">
+                <label className="text-xs font-mono font-semibold text-neutral-300">
+                  Judul Karya
+                </label>
+                <input
+                  type="text"
+                  value={editingRunnerItem.title}
+                  onChange={(e) =>
+                    setEditingRunnerItem({ ...editingRunnerItem, title: e.target.value })
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-mono font-semibold text-neutral-300">
+                  Kategori
+                </label>
+                <input
+                  type="text"
+                  value={editingRunnerItem.category}
+                  onChange={(e) =>
+                    setEditingRunnerItem({ ...editingRunnerItem, category: e.target.value })
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f]"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-mono font-semibold text-neutral-300">
+                  Posisi Baris
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingRunnerItem({ ...editingRunnerItem, row: 1 })}
+                    className={`py-2 px-3 rounded-xl border text-xs font-mono font-semibold transition-all cursor-pointer ${
+                      editingRunnerItem.row === 1
+                        ? "bg-[#16b09f] text-black font-bold border-[#16b09f]"
+                        : "bg-neutral-900 text-neutral-400 border-white/10"
+                    }`}
+                  >
+                    Baris 1 (Atas)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingRunnerItem({ ...editingRunnerItem, row: 2 })}
+                    className={`py-2 px-3 rounded-xl border text-xs font-mono font-semibold transition-all cursor-pointer ${
+                      editingRunnerItem.row === 2
+                        ? "bg-[#16b09f] text-black font-bold border-[#16b09f]"
+                        : "bg-neutral-900 text-neutral-400 border-white/10"
+                    }`}
+                  >
+                    Baris 2 (Bawah)
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-mono font-semibold text-neutral-300">
+                  Gambar Karya (Rasio 4:5)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={editingRunnerItem.image}
+                    onChange={(e) =>
+                      setEditingRunnerItem({ ...editingRunnerItem, image: e.target.value })
+                    }
+                    placeholder="/works/... atau URL online"
+                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
+                  />
+                  <label className="px-3 py-2 rounded-xl bg-neutral-800 border border-white/15 text-neutral-300 text-xs font-mono flex items-center gap-1.5 cursor-pointer hover:bg-neutral-700">
+                    <RiUpload2Line className="w-3.5 h-3.5 text-[#16b09f]" />
+                    <span>Upload</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          setIsUploadingEditImage(true);
+                          const fd = new FormData();
+                          fd.append("file", file);
+                          fd.append("folder", "works/runner");
+                          const res = await fetch("/api/admin/media-upload", {
+                            method: "POST",
+                            body: fd,
+                          });
+                          const data = await res.json();
+                          if (res.ok && data.url) {
+                            setEditingRunnerItem((prev) => prev ? { ...prev, image: data.url } : null);
+                            setIsUploadingEditImage(false);
+                            return;
+                          }
+                        } catch (_) {}
+                        finally {
+                          setIsUploadingEditImage(false);
+                        }
+
+                        // Fallback canvas compression
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const raw = ev.target?.result as string;
+                          if (!raw) return;
+                          const img = new Image();
+                          img.onload = () => {
+                            const maxW = 1000;
+                            const maxH = 1250;
+                            let { width, height } = img;
+                            if (width > maxW || height > maxH) {
+                              const ratio = Math.min(maxW / width, maxH / height);
+                              width = Math.round(width * ratio);
+                              height = Math.round(height * ratio);
+                            }
+                            const canvas = document.createElement("canvas");
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext("2d");
+                            if (ctx) {
+                              ctx.drawImage(img, 0, 0, width, height);
+                              const comp = canvas.toDataURL("image/webp", 0.82);
+                              setEditingRunnerItem((prev) => prev ? { ...prev, image: comp } : null);
+                            }
+                          };
+                          img.src = raw;
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-mono font-semibold text-neutral-300 flex items-center gap-1.5">
+                  <RiLink className="w-3.5 h-3.5 text-[#16b09f]" />
+                  <span>Link Tujuan Kartu (Opsional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={editingRunnerItem.link || ""}
+                  onChange={(e) =>
+                    setEditingRunnerItem({ ...editingRunnerItem, link: e.target.value })
+                  }
+                  placeholder="https://... atau #projects"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
+                />
+              </div>
+
+              {/* Live Preview 4:5 */}
+              <div className="flex items-center gap-4 p-3 rounded-xl bg-neutral-900/60 border border-white/10">
+                <div className="relative w-16 aspect-[4/5] rounded-lg overflow-hidden bg-neutral-950 border border-white/10 shrink-0">
+                  {editingRunnerItem.image ? (
+                    <img
+                      src={editingRunnerItem.image}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-[8px] text-neutral-600 font-mono">
+                      No Image
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col gap-0.5 truncate">
+                  <span className="text-[10px] font-mono text-[#16b09f] uppercase truncate">
+                    {editingRunnerItem.category || "Creative"}
+                  </span>
+                  <span className="text-xs font-bold text-white truncate">
+                    {editingRunnerItem.title || "Untitled"}
+                  </span>
+                  {editingRunnerItem.link && (
+                    <span className="text-[10px] text-cyan-300 font-mono truncate flex items-center gap-1">
+                      <RiLink className="w-2.5 h-2.5" />
+                      {editingRunnerItem.link}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => setEditingRunnerItem(null)}
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-neutral-300 text-xs font-mono transition-all cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={isUploadingEditImage}
+                onClick={async () => {
+                  if (!editingRunnerItem) return;
+                  const finalTitle = editingRunnerItem.title.trim() || editingRunnerItem.category.trim() || "Creative Work";
+                  const finalImg = editingRunnerItem.image.trim();
+                  if (!finalImg) {
+                    notify("error", "Gambar Kosong", "Mohon isi atau upload gambar karya.");
+                    return;
+                  }
+                  try {
+                    await editPortfolioRunnerItem(editingRunnerItem.id, {
+                      title: finalTitle,
+                      category: editingRunnerItem.category.trim() || "Creative Work",
+                      image: finalImg,
+                      row: editingRunnerItem.row,
+                      link: editingRunnerItem.link?.trim() || "",
+                    });
+                    notify("success", "Tersimpan!", `Karya "${finalTitle}" berhasil diperbarui & langsung aktif di web!`);
+                    setEditingRunnerItem(null);
+                  } catch (e) {
+                    notify("error", "Gagal", "Gagal memperbarui karya.");
+                  }
+                }}
+                className="px-5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black text-xs font-bold transition-all shadow-md shadow-[#16b09f]/20 cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                {isUploadingEditImage ? "Mengupload..." : "Simpan Perubahan"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
