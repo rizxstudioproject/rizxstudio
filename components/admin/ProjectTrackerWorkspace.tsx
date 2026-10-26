@@ -223,18 +223,18 @@ export default function ProjectTrackerWorkspace() {
       </AnimatePresence>
 
       {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-white/10">
+      <div className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b ${isLight ? "border-slate-200" : "border-white/10"}`}>
         <div>
           <div className="flex items-center gap-3">
             <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-2.5">
               <RiCompass3Line className="w-7 h-7 text-[#16b09f]" />
-              <span>Tracking & Pengerjaan Proyek (Live)</span>
+              <span className={isLight ? "text-slate-900" : "text-white"}>Tracking & Pengerjaan Proyek (Live)</span>
             </h1>
             <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
               Live Cloud Active
             </span>
           </div>
-          <p className="mt-1 text-xs md:text-sm text-slate-400">
+          <p className={`mt-1 text-xs md:text-sm ${isLight ? "text-slate-600" : "text-slate-400"}`}>
             Kelola tahapan pengerjaan proyek dari <strong>Belum Dikerjakan → Dalam Proses → Review → Finish / Selesai</strong>. Klien dapat mengecek kode referensi secara live di website.
           </p>
         </div>
@@ -254,30 +254,30 @@ export default function ProjectTrackerWorkspace() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 block">Total Proyek</span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-white mt-1">{projects.length}</div>
+          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-slate-500" : "text-slate-400"}`}>Total Proyek</span>
+          <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-slate-900" : "text-white"}`}>{projects.length}</div>
           <span className="text-[10px] text-slate-500 font-mono">Tersimpan di Cloud</span>
         </div>
 
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 block">Belum / Antrean</span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-amber-300 mt-1">
+          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-amber-600" : "text-amber-400"}`}>Belum / Antrean</span>
+          <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-amber-600" : "text-amber-300"}`}>
             {projects.filter((p) => p.currentStage === "queued").length}
           </div>
           <span className="text-[10px] text-slate-500 font-mono">Menunggu Kickoff</span>
         </div>
 
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-[#16b09f] block">Sedang Proses / Review</span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-[#16b09f] mt-1">
+          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-teal-600" : "text-[#16b09f]"}`}>Sedang Proses / Review</span>
+          <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-teal-600" : "text-[#16b09f]"}`}>
             {projects.filter((p) => p.currentStage === "in_progress" || p.currentStage === "review").length}
           </div>
           <span className="text-[10px] text-slate-500 font-mono">Produksi Aktif</span>
         </div>
 
         <div className={`p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
-          <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 block">Finish / Selesai</span>
-          <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 mt-1">
+          <span className={`text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-emerald-600" : "text-emerald-400"}`}>Finish / Selesai</span>
+          <div className={`text-2xl sm:text-3xl font-extrabold mt-1 ${isLight ? "text-emerald-600" : "text-emerald-400"}`}>
             {projects.filter((p) => p.currentStage === "completed").length}
           </div>
           <span className="text-[10px] text-slate-500 font-mono">100% Handover</span>
@@ -285,7 +285,7 @@ export default function ProjectTrackerWorkspace() {
       </div>
 
       {/* Filter Chips & Search Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border ${isLight ? "bg-white border-slate-200 shadow-sm" : "bg-white/[0.02] border-white/10"}`}>
         <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
           {[
             { id: "ALL", label: "Semua" },
@@ -303,6 +303,8 @@ export default function ProjectTrackerWorkspace() {
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
                     ? "bg-[#16b09f] text-black shadow-md font-bold"
+                    : isLight
+                    ? "bg-slate-100 text-slate-600 hover:bg-slate-200"
                     : "bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]"
                 }`}
               >
@@ -319,16 +321,20 @@ export default function ProjectTrackerWorkspace() {
             placeholder="Cari kode (misal: RZX-PRJ-632153) atau nama..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-3 py-2 rounded-xl text-xs bg-neutral-900 border border-white/15 text-white placeholder-slate-500 focus:outline-none focus:border-[#16b09f]"
+            className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs border focus:outline-none focus:border-[#16b09f] ${
+              isLight
+                ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400"
+                : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+            }`}
           />
         </div>
       </div>
 
       {/* Table of Tracked Projects */}
-      <div className="rounded-2xl border border-white/10 overflow-hidden bg-neutral-950/90 shadow-xl">
+      <div className={`rounded-2xl border overflow-hidden shadow-xl ${isLight ? "bg-white border-slate-200" : "bg-neutral-950/90 border-white/10"}`}>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-white/[0.04] border-b border-white/10 text-slate-400 font-mono uppercase tracking-wider">
+            <thead className={`border-b font-mono uppercase tracking-wider ${isLight ? "bg-slate-50/90 border-slate-200 text-slate-600" : "bg-white/[0.04] border-white/10 text-slate-400"}`}>
               <tr>
                 <th className="py-3 px-4">Kode Referensi</th>
                 <th className="py-3 px-4">Klien & Kontak</th>
@@ -339,15 +345,15 @@ export default function ProjectTrackerWorkspace() {
                 <th className="py-3 px-4 text-center">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className={`divide-y ${isLight ? "divide-slate-200" : "divide-white/5"}`}>
               {filteredProjects.map((p) => {
                 const meta = getStageMetadata(p.currentStage);
                 return (
-                  <tr key={p.refCode} className="hover:bg-white/[0.02] transition-colors">
+                  <tr key={p.refCode} className={`transition-colors ${isLight ? "hover:bg-slate-50/80" : "hover:bg-white/[0.02]"}`}>
                     {/* Ref Code */}
-                    <td className="py-3.5 px-4 font-mono font-bold text-white whitespace-nowrap">
+                    <td className="py-3.5 px-4 font-mono font-bold whitespace-nowrap">
                       <div className="flex items-center gap-1.5">
-                        <span className="px-2.5 py-1 rounded-md bg-white/[0.06] border border-white/10 text-[#16b09f]">
+                        <span className={`px-2.5 py-1 rounded-md border ${isLight ? "bg-teal-50 border-teal-200 text-teal-700 font-bold" : "bg-white/[0.06] border-white/10 text-[#16b09f]"}`}>
                           {p.refCode}
                         </span>
                         <button
@@ -358,7 +364,7 @@ export default function ProjectTrackerWorkspace() {
                               showToast(`Kode ${p.refCode} tersalin!`);
                             }
                           }}
-                          className="p-1 rounded hover:bg-white/10 text-slate-400 hover:text-white"
+                          className={`p-1 rounded transition-colors ${isLight ? "hover:bg-slate-200 text-slate-400 hover:text-slate-700" : "hover:bg-white/10 text-slate-400 hover:text-white"}`}
                           title="Salin Kode"
                         >
                           <RiFileCopyLine className="w-3.5 h-3.5" />
@@ -368,15 +374,15 @@ export default function ProjectTrackerWorkspace() {
 
                     {/* Client */}
                     <td className="py-3.5 px-4">
-                      <div className="font-semibold text-white">{p.clientName}</div>
+                      <div className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>{p.clientName}</div>
                       {p.clientPhone && (
                         <a
                           href={`https://wa.me/${p.clientPhone.replace(/[^0-9]/g, "")}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[11px] text-slate-400 hover:text-emerald-400 font-mono flex items-center gap-1 mt-0.5"
+                          className={`text-[11px] font-mono flex items-center gap-1 mt-0.5 ${isLight ? "text-slate-500 hover:text-emerald-600" : "text-slate-400 hover:text-emerald-400"}`}
                         >
-                          <RiWhatsappLine className="w-3 h-3 text-emerald-400" />
+                          <RiWhatsappLine className="w-3 h-3 text-emerald-500" />
                           <span>{p.clientPhone}</span>
                         </a>
                       )}
@@ -384,8 +390,8 @@ export default function ProjectTrackerWorkspace() {
 
                     {/* Service & Package */}
                     <td className="py-3.5 px-4">
-                      <div className="font-medium text-slate-200">{p.serviceTitle}</div>
-                      <div className="text-[11px] text-[#16b09f] font-mono">{p.packageName}</div>
+                      <div className={`font-medium ${isLight ? "text-slate-800" : "text-slate-200"}`}>{p.serviceTitle}</div>
+                      <div className={`text-[11px] font-mono ${isLight ? "text-teal-600 font-semibold" : "text-[#16b09f]"}`}>{p.packageName}</div>
                     </td>
 
                     {/* Quick Stage Dropdown */}
@@ -395,23 +401,23 @@ export default function ProjectTrackerWorkspace() {
                         onChange={(e) =>
                           handleQuickStageChange(p.refCode, e.target.value as ProjectProgressStage)
                         }
-                        className="px-2.5 py-1.5 rounded-xl text-xs font-semibold border outline-none cursor-pointer"
+                        className={`px-2.5 py-1.5 rounded-xl text-xs font-semibold border outline-none cursor-pointer ${isLight ? "shadow-sm" : ""}`}
                         style={{
                           backgroundColor: meta.badgeBg,
                           borderColor: meta.badgeBorder,
                           color: meta.color,
                         }}
                       >
-                        <option value="queued" className="bg-neutral-900 text-amber-400">
+                        <option value="queued" className={isLight ? "bg-white text-amber-700" : "bg-neutral-900 text-amber-400"}>
                           ⏳ Belum (Antrean)
                         </option>
-                        <option value="in_progress" className="bg-neutral-900 text-[#16b09f]">
+                        <option value="in_progress" className={isLight ? "bg-white text-teal-700" : "bg-neutral-900 text-[#16b09f]"}>
                           ⚡ Sedang Proses
                         </option>
-                        <option value="review" className="bg-neutral-900 text-indigo-400">
+                        <option value="review" className={isLight ? "bg-white text-indigo-700" : "bg-neutral-900 text-indigo-400"}>
                           🔍 Tahap Review
                         </option>
-                        <option value="completed" className="bg-neutral-900 text-emerald-400">
+                        <option value="completed" className={isLight ? "bg-white text-emerald-700" : "bg-neutral-900 text-emerald-400"}>
                           ✅ Finish / Selesai
                         </option>
                       </select>
@@ -420,7 +426,7 @@ export default function ProjectTrackerWorkspace() {
                     {/* Progress Bar */}
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <div className="w-20 h-2 rounded-full bg-white/10 overflow-hidden">
+                        <div className={`w-20 h-2 rounded-full overflow-hidden ${isLight ? "bg-slate-200" : "bg-white/10"}`}>
                           <div
                             className="h-full rounded-full transition-all duration-300"
                             style={{
@@ -429,14 +435,14 @@ export default function ProjectTrackerWorkspace() {
                             }}
                           />
                         </div>
-                        <span className="font-mono text-[11px] font-bold text-white">
+                        <span className={`font-mono text-[11px] font-bold ${isLight ? "text-slate-800" : "text-white"}`}>
                           {p.progressPercent}%
                         </span>
                       </div>
                     </td>
 
                     {/* Milestone Notes */}
-                    <td className="py-3.5 px-4 max-w-xs truncate text-slate-300 font-light text-[11px]" title={p.notes}>
+                    <td className={`py-3.5 px-4 max-w-xs truncate font-light text-[11px] ${isLight ? "text-slate-600" : "text-slate-300"}`} title={p.notes}>
                       {p.notes || "-"}
                     </td>
 
@@ -446,7 +452,11 @@ export default function ProjectTrackerWorkspace() {
                         <button
                           type="button"
                           onClick={() => setClientPreviewCode(p.refCode)}
-                          className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-white/15 text-slate-300 hover:text-white transition-colors cursor-pointer"
+                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            isLight
+                              ? "bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200"
+                              : "bg-white/[0.06] hover:bg-white/15 text-slate-300 hover:text-white"
+                          }`}
                           title="Pratinjau Tampilan Klien"
                         >
                           <RiEyeLine className="w-4 h-4 text-[#16b09f]" />
@@ -454,7 +464,11 @@ export default function ProjectTrackerWorkspace() {
                         <button
                           type="button"
                           onClick={() => openEditModal(p)}
-                          className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-[#16b09f] hover:text-black text-slate-300 transition-colors cursor-pointer"
+                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            isLight
+                              ? "bg-slate-100 hover:bg-[#16b09f] hover:text-black text-slate-600 border border-slate-200"
+                              : "bg-white/[0.06] hover:bg-[#16b09f] hover:text-black text-slate-300"
+                          }`}
                           title="Edit Progres Detail"
                         >
                           <RiEditLine className="w-4 h-4" />
@@ -462,7 +476,11 @@ export default function ProjectTrackerWorkspace() {
                         <button
                           type="button"
                           onClick={() => handleDelete(p.refCode)}
-                          className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-rose-500 hover:text-white text-slate-400 transition-colors cursor-pointer"
+                          className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                            isLight
+                              ? "bg-rose-50 hover:bg-rose-500 hover:text-white text-rose-600 border border-rose-200"
+                              : "bg-white/[0.06] hover:bg-rose-500 hover:text-white text-slate-400"
+                          }`}
                           title="Hapus Proyek"
                         >
                           <RiDeleteBinLine className="w-4 h-4" />
@@ -475,7 +493,7 @@ export default function ProjectTrackerWorkspace() {
 
               {filteredProjects.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="py-10 text-center text-slate-400">
+                  <td colSpan={7} className={`py-10 text-center ${isLight ? "text-slate-500" : "text-slate-400"}`}>
                     Tidak ada proyek yang sesuai dengan pencarian.
                   </td>
                 </tr>
@@ -492,23 +510,25 @@ export default function ProjectTrackerWorkspace() {
           onClick={() => setEditingProject(null)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl bg-neutral-950 border border-white/20 p-6 space-y-4 shadow-2xl text-white"
+            className={`w-full max-w-lg rounded-2xl border p-6 space-y-4 shadow-2xl ${
+              isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-950 border-white/20 text-white"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
               <div>
                 <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-wider block">
                   Update Progres Proyek
                 </span>
-                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <h3 className={`text-base font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                   <span>{editingProject.refCode}</span>
-                  <span className="text-xs text-slate-400 font-normal">({editingProject.serviceTitle})</span>
+                  <span className={`text-xs font-normal ${isLight ? "text-slate-500" : "text-slate-400"}`}>({editingProject.serviceTitle})</span>
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingProject(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+                className={`p-1 rounded-lg ${isLight ? "text-slate-400 hover:text-slate-700 hover:bg-slate-100" : "text-slate-400 hover:text-white hover:bg-white/10"}`}
               >
                 <RiCloseLine className="w-5 h-5" />
               </button>
@@ -516,7 +536,7 @@ export default function ProjectTrackerWorkspace() {
 
             <div className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-mono uppercase tracking-wider mb-2">
+                <label className={`block font-mono uppercase tracking-wider mb-2 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                   1. Tahapan Pengerjaan Proyek:
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -536,6 +556,8 @@ export default function ProjectTrackerWorkspace() {
                       className={`p-2.5 rounded-xl border text-left font-semibold transition-all cursor-pointer ${
                         editStage === st.id
                           ? "bg-[#16b09f]/20 border-[#16b09f] text-[#16b09f]"
+                          : isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                           : "bg-white/[0.03] border-white/10 text-slate-300 hover:bg-white/[0.06]"
                       }`}
                     >
@@ -547,7 +569,7 @@ export default function ProjectTrackerWorkspace() {
 
               <div>
                 <div className="flex justify-between items-center mb-1.5 font-mono">
-                  <label className="text-slate-300 uppercase tracking-wider">
+                  <label className={`uppercase tracking-wider ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                     2. Persentase Progres:
                   </label>
                   <span className="text-[#16b09f] font-bold text-sm">{editPercent}%</span>
@@ -564,7 +586,7 @@ export default function ProjectTrackerWorkspace() {
               </div>
 
               <div>
-                <label className="block text-slate-300 font-mono uppercase tracking-wider mb-1.5">
+                <label className={`block font-mono uppercase tracking-wider mb-1.5 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                   3. Catatan Milestone Terkini (Dibaca Klien Saat Tracking):
                 </label>
                 <textarea
@@ -572,12 +594,16 @@ export default function ProjectTrackerWorkspace() {
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
                   placeholder="Ceritakan tahap apa yang sedang dikerjakan saat ini..."
-                  className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs outline-none focus:border-[#16b09f] resize-y"
+                  className={`w-full px-3 py-2 rounded-xl text-xs outline-none focus:border-[#16b09f] resize-y border ${
+                    isLight
+                      ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-mono uppercase tracking-wider mb-1.5">
+                <label className={`block font-mono uppercase tracking-wider mb-1.5 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                   4. Link Pratinjau Draft / Hasil Karya (Opsional):
                 </label>
                 <input
@@ -585,7 +611,11 @@ export default function ProjectTrackerWorkspace() {
                   value={editPreviewUrl}
                   onChange={(e) => setEditPreviewUrl(e.target.value)}
                   placeholder="Link Google Drive, Figma, atau Staging..."
-                  className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono outline-none focus:border-[#16b09f]"
+                  className={`w-full px-3 py-2 rounded-xl text-xs font-mono outline-none focus:border-[#16b09f] border ${
+                    isLight
+                      ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+                  }`}
                 />
               </div>
 
@@ -593,7 +623,11 @@ export default function ProjectTrackerWorkspace() {
                 <button
                   type="button"
                   onClick={() => setEditingProject(null)}
-                  className="px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-slate-300 text-xs font-semibold cursor-pointer"
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer ${
+                    isLight
+                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                      : "bg-neutral-900 hover:bg-neutral-800 text-slate-300"
+                  }`}
                 >
                   Batal
                 </button>
@@ -619,18 +653,20 @@ export default function ProjectTrackerWorkspace() {
           onClick={() => setIsAddModalOpen(false)}
         >
           <div
-            className="w-full max-w-lg rounded-2xl bg-neutral-950 border border-white/20 p-6 space-y-4 shadow-2xl text-white"
+            className={`w-full max-w-lg rounded-2xl border p-6 space-y-4 shadow-2xl ${
+              isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-950 border-white/20 text-white"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
+              <h3 className={`text-base font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                 <RiAddLine className="w-5 h-5 text-[#16b09f]" />
                 <span>Buat Kode Proyek Baru</span>
               </h3>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10"
+                className={`p-1 rounded-lg ${isLight ? "text-slate-400 hover:text-slate-700 hover:bg-slate-100" : "text-slate-400 hover:text-white hover:bg-white/10"}`}
               >
                 <RiCloseLine className="w-5 h-5" />
               </button>
@@ -638,7 +674,7 @@ export default function ProjectTrackerWorkspace() {
 
             <form onSubmit={handleCreateNewProject} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-slate-300 font-mono uppercase mb-1">
+                <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                   Nama Klien / Perusahaan *
                 </label>
                 <input
@@ -647,12 +683,16 @@ export default function ProjectTrackerWorkspace() {
                   placeholder="Contoh: PT Kreatif Nusantara"
                   value={newClientName}
                   onChange={(e) => setNewClientName(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white outline-none focus:border-[#16b09f]"
+                  className={`w-full px-3 py-2 rounded-xl outline-none focus:border-[#16b09f] border ${
+                    isLight
+                      ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+                  }`}
                 />
               </div>
 
               <div>
-                <label className="block text-slate-300 font-mono uppercase mb-1">
+                <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                   Nomor WhatsApp Klien
                 </label>
                 <input
@@ -660,51 +700,67 @@ export default function ProjectTrackerWorkspace() {
                   placeholder="Contoh: 08123456789"
                   value={newClientPhone}
                   onChange={(e) => setNewClientPhone(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white outline-none focus:border-[#16b09f]"
+                  className={`w-full px-3 py-2 rounded-xl outline-none focus:border-[#16b09f] border ${
+                    isLight
+                      ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+                  }`}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-slate-300 font-mono uppercase mb-1">
+                  <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                     Layanan Proyek
                   </label>
                   <input
                     type="text"
                     value={newServiceTitle}
                     onChange={(e) => setNewServiceTitle(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white outline-none focus:border-[#16b09f]"
+                    className={`w-full px-3 py-2 rounded-xl outline-none focus:border-[#16b09f] border ${
+                      isLight
+                        ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-mono uppercase mb-1">
+                  <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                     Paket
                   </label>
                   <input
                     type="text"
                     value={newPackageName}
                     onChange={(e) => setNewPackageName(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white outline-none focus:border-[#16b09f]"
+                    className={`w-full px-3 py-2 rounded-xl outline-none focus:border-[#16b09f] border ${
+                      isLight
+                        ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+                    }`}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <label className="block text-slate-300 font-mono uppercase mb-1">
+                  <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                     Target Deadline
                   </label>
                   <input
                     type="text"
                     value={newDeadline}
                     onChange={(e) => setNewDeadline(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white outline-none focus:border-[#16b09f]"
+                    className={`w-full px-3 py-2 rounded-xl outline-none focus:border-[#16b09f] border ${
+                      isLight
+                        ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-slate-300 font-mono uppercase mb-1">
+                  <label className={`block font-mono uppercase mb-1 ${isLight ? "text-slate-700" : "text-slate-300"}`}>
                     Kode Kustom (Opsional)
                   </label>
                   <input
@@ -712,7 +768,11 @@ export default function ProjectTrackerWorkspace() {
                     placeholder="Kosongkan jika ingin auto"
                     value={newCustomRef}
                     onChange={(e) => setNewCustomRef(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white font-mono uppercase outline-none focus:border-[#16b09f]"
+                    className={`w-full px-3 py-2 rounded-xl font-mono uppercase outline-none focus:border-[#16b09f] border ${
+                      isLight
+                        ? "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-neutral-900 border-white/15 text-white placeholder-slate-500"
+                    }`}
                   />
                 </div>
               </div>
@@ -721,7 +781,11 @@ export default function ProjectTrackerWorkspace() {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-neutral-900 text-slate-300 text-xs font-semibold"
+                  className={`px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer ${
+                    isLight
+                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                      : "bg-neutral-900 hover:bg-neutral-800 text-slate-300"
+                  }`}
                 >
                   Batal
                 </button>
