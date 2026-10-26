@@ -1,6 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import {
   SocialContactsConfig,
   DEFAULT_SOCIAL_CONTACTS,
@@ -109,12 +110,13 @@ export interface MotionThemeContextType {
 }
 
 const STORAGE_KEY = "rizx_motion_theme_settings_v2";
+const SUPABASE_THEME_KEY = "site-theme-motion-config";
 
 const defaultSettings = {
   themeMode: "dark" as ThemeMode,
   primaryColor: "#16b09f",
   accentColor: "#06B6D4",
-  cursorEffect: "fluid" as CursorEffectType,
+  cursorEffect: "off" as CursorEffectType,
   comboMode: false,
   disableOnMobile: false,
   motionScroll: {
@@ -162,8 +164,12 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
   const [socialContacts, setSocialContactsState] = useState<SocialContactsConfig>(defaultSettings.socialContacts);
   const [isHydrated, setIsHydrated] = useState(false);
 
-  // Hydrate from localStorage & Supabase Cloud
+  const isInitialLoad = useRef(true);
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Hydrate from localStorage & Supabase Cloud + Realtime Auto-Sync
   useEffect(() => {
+    // 1. First hydrate from local device storage for instantaneous UI response
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
@@ -176,17 +182,105 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
         if (parsed.cursorEffect) setCursorEffectState(parsed.cursorEffect);
         if (typeof parsed.comboMode === "boolean") setComboModeState(parsed.comboMode);
         if (typeof parsed.disableOnMobile === "boolean") {
-          // If explicitly toggled under active version, keep preference; otherwise enable touch by default
           setDisableOnMobileState(parsed._v === 2 ? parsed.disableOnMobile : false);
         }
         if (parsed.motionScroll) setMotionScrollState(parsed.motionScroll);
         if (parsed.socialContacts) setSocialContactsState(parsed.socialContacts);
       }
     } catch (e) {
-      console.warn("Failed to load motion theme settings:", e);
+      console.warn("Failed to load local motion theme settings:", e);
     }
 
-    // Fetch latest cloud-persisted social contacts from Supabase Cloud
+    // 2. Fetch authoritative cloud-persisted theme & cursor settings from Supabase Cloud
+    if (isSupabaseConfigured && supabase) {
+      (async () => {
+        try {
+          const { data, error } = await supabase
+            .from("client_descriptions")
+            .select("description")
+            .eq("client_id", SUPABASE_THEME_KEY)
+            .single();
+
+          if (!error && data && data.description) {
+            const cloud = JSON.parse(data.description);
+            if (cloud.themeMode) setThemeModeState(cloud.themeMode);
+            if (cloud.primaryColor) setPrimaryColorState(cloud.primaryColor === "#14AF9E" ? "#16b09f" : cloud.primaryColor);
+            if (cloud.accentColor) setAccentColorState(cloud.accentColor);
+            if (cloud.cursorEffect) setCursorEffectState(cloud.cursorEffect);
+            if (typeof cloud.comboMode === "boolean") setComboModeState(cloud.comboMode);
+            if (typeof cloud.disableOnMobile === "boolean") setDisableOnMobileState(cloud.disableOnMobile);
+            if (cloud.motionScroll) setMotionScrollState(cloud.motionScroll);
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ _v: 2, ...cloud }));
+          }
+        } catch (err) {
+          console.warn("Notice loading cloud theme settings:", err);
+        }
+      })();
+    }
+
+    // 3. Set up Supabase Realtime WebSocket subscription (instant cross-device sync)
+    let themeChannel: any = null;
+    if (isSupabaseConfigured && supabase) {
+      try {
+        themeChannel = supabase
+          .channel(`realtime-theme-${Math.random().toString(36).substring(7)}`)
+          .on(
+            "postgres_changes",
+            {
+              event: "*",
+              schema: "public",
+              table: "client_descriptions",
+              filter: `client_id=eq.${SUPABASE_THEME_KEY}`,
+            },
+            (payload) => {
+              if (payload.new && (payload.new as any).description) {
+                try {
+                  const updated = JSON.parse((payload.new as any).description);
+                  if (updated.themeMode) setThemeModeState(updated.themeMode);
+                  if (updated.primaryColor) setPrimaryColorState(updated.primaryColor);
+                  if (updated.accentColor) setAccentColorState(updated.accentColor);
+                  if (updated.cursorEffect) setCursorEffectState(updated.cursorEffect);
+                  if (typeof updated.comboMode === "boolean") setComboModeState(updated.comboMode);
+                  if (typeof updated.disableOnMobile === "boolean") setDisableOnMobileState(updated.disableOnMobile);
+                  if (updated.motionScroll) setMotionScrollState(updated.motionScroll);
+
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify({ _v: 2, ...updated }));
+                } catch (err) {
+                  console.warn("Realtime theme sync parse error:", err);
+                }
+              }
+            }
+          )
+          .subscribe();
+      } catch (err) {
+        console.warn("Supabase Realtime theme subscription notice:", err);
+      }
+    }
+
+    // 4. Cross-tab BroadcastChannel for instant in-browser tab sync
+    let broadcastChannel: BroadcastChannel | null = null;
+    if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+      try {
+        broadcastChannel = new BroadcastChannel("rizx_theme_motion_channel");
+        broadcastChannel.onmessage = (event) => {
+          if (event.data && event.data.type === "THEME_SYNC" && event.data.payload) {
+            const p = event.data.payload;
+            if (p.themeMode) setThemeModeState(p.themeMode);
+            if (p.primaryColor) setPrimaryColorState(p.primaryColor);
+            if (p.accentColor) setAccentColorState(p.accentColor);
+            if (p.cursorEffect) setCursorEffectState(p.cursorEffect);
+            if (typeof p.comboMode === "boolean") setComboModeState(p.comboMode);
+            if (typeof p.disableOnMobile === "boolean") setDisableOnMobileState(p.disableOnMobile);
+            if (p.motionScroll) setMotionScrollState(p.motionScroll);
+          }
+        };
+      } catch (e) {
+        console.warn("BroadcastChannel theme notice:", e);
+      }
+    }
+
+    // 5. Fetch latest cloud-persisted social contacts
     getSocialContacts()
       .then((cloudContacts) => {
         setSocialContactsState(cloudContacts);
@@ -194,9 +288,20 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
       .catch((err) => console.warn("Notice loading cloud social contacts:", err));
 
     setIsHydrated(true);
+
+    // After 1 second, enable cloud push for user interactions
+    const initTimer = setTimeout(() => {
+      isInitialLoad.current = false;
+    }, 1200);
+
+    return () => {
+      clearTimeout(initTimer);
+      if (themeChannel) supabase?.removeChannel(themeChannel);
+      if (broadcastChannel) broadcastChannel.close();
+    };
   }, []);
 
-  // Sync to localStorage
+  // Sync to localStorage & Supabase Cloud
   const persistSettings = useCallback(() => {
     if (typeof window === "undefined") return;
     try {
@@ -211,7 +316,41 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
         motionScroll,
         socialContacts,
       };
+      // 1. LocalStorage
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
+      // 2. BroadcastChannel
+      if (typeof BroadcastChannel !== "undefined") {
+        try {
+          const bc = new BroadcastChannel("rizx_theme_motion_channel");
+          bc.postMessage({ type: "THEME_SYNC", payload });
+          bc.close();
+        } catch (e) {
+          // ignore
+        }
+      }
+
+      // 3. Push to Supabase Cloud (debounced 600ms) once initial hydration is complete
+      if (!isInitialLoad.current && isSupabaseConfigured && supabase) {
+        if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+        saveTimeoutRef.current = setTimeout(async () => {
+          if (!supabase) return;
+          try {
+            await supabase.from("client_descriptions").upsert(
+              {
+                client_id: SUPABASE_THEME_KEY,
+                client_name: "Theme & Motion Config",
+                category: "System Config",
+                description: JSON.stringify(payload),
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "client_id" }
+            );
+          } catch (err) {
+            console.warn("Error saving theme settings to Supabase:", err);
+          }
+        }, 600);
+      }
     } catch (e) {
       console.warn("Failed to save motion theme settings:", e);
     }
