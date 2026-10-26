@@ -4,6 +4,7 @@ import React, { useState, useMemo, useRef, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import WhatsAppPopup from "@/components/WhatsAppPopup";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
+import ProductPackageCompareModal from "@/components/ProductPackageCompareModal";
 import { registerTrackedProject } from "@/lib/projectTrackerService";
 import { broadcastNewIncomingOrder } from "@/lib/adminNotificationService";
 import {
@@ -138,6 +139,11 @@ export default function ProductsPage() {
   const [isProductPickerOpen, setIsProductPickerOpen] = useState<boolean>(false);
   const [isTrackerModalOpen, setIsTrackerModalOpen] = useState<boolean>(false);
   const [trackerInitialCode, setTrackerInitialCode] = useState<string>("");
+
+  // Package Comparison Modal state
+  const [compareProduct, setCompareProduct] = useState<any | null>(null);
+  const [isCompareModalOpen, setIsCompareModalOpen] = useState<boolean>(false);
+
   const formRef = useRef<HTMLDivElement>(null);
 
   // Prevent background scrolling when product picker is open
@@ -197,6 +203,25 @@ export default function ProductsPage() {
   const handleSelectPackageCTA = (product: ProductItem, pkg: ProductPackage) => {
     setFormProduct(product.id);
     setFormPackage(pkg.id);
+    if (formRef.current) {
+      const yOffset = -90;
+      const y = formRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+      window.scrollTo({ top: y, behavior: "smooth" });
+      setFormHighlighted(true);
+      setTimeout(() => setFormHighlighted(false), 2400);
+    }
+  };
+
+  // Open 3-Package comparison modal
+  const handleOpenCompareModal = (product: any) => {
+    setCompareProduct(product);
+    setIsCompareModalOpen(true);
+  };
+
+  const handleSelectPackageFromCompare = (productId: string, pkgId: string) => {
+    setIsCompareModalOpen(false);
+    setFormProduct(productId);
+    setFormPackage(pkgId);
     if (formRef.current) {
       const yOffset = -90;
       const y = formRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
@@ -687,7 +712,7 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                     </button>
                   ) : (
                     <button
-                      onClick={() => handleSelectPackageCTA(product, currentPkg)}
+                      onClick={() => handleOpenCompareModal(product)}
                       style={{
                         backgroundColor: `${primaryColor}20`,
                         borderColor: `${primaryColor}50`,
@@ -695,7 +720,7 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                       }}
                       className="w-full py-2.5 px-4 rounded-xl font-bold text-xs border hover:brightness-125 transition-all flex items-center justify-center gap-2 cursor-pointer group-hover:scale-[1.01]"
                     >
-                      <span>{tr("Select Package & Fill Brief", "Pilih Paket & Isi Brief Proyek", "Pilih Paket & Tulis Brief")}</span>
+                      <span>{tr("View Details", "Lihat Detailnya", "Caliak Detail Paket")}</span>
                       <RiArrowRightLine className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                     </button>
                   )}
@@ -1301,6 +1326,14 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
           </div>
         </div>
       )}
+
+      {/* 3-Package Comparison Modal (Perbandingan 3 Paket & Checklist) */}
+      <ProductPackageCompareModal
+        isOpen={isCompareModalOpen}
+        onClose={() => setIsCompareModalOpen(false)}
+        product={compareProduct}
+        onSelectPackage={handleSelectPackageFromCompare}
+      />
 
       {/* Project Tracker Modal */}
       <ProjectTrackerModal

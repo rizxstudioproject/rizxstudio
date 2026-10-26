@@ -31,6 +31,12 @@ export interface ProductPackage {
   deliverables: string[];
   deliverablesEn?: string[];
   deliverablesMin?: string[];
+  pros?: string[];
+  prosEn?: string[];
+  prosMin?: string[];
+  cons?: string[];
+  consEn?: string[];
+  consMin?: string[];
   isClosed?: boolean;
 }
 
@@ -2505,6 +2511,8 @@ export function getLocalizedProduct(
     revisions: string;
     description: string;
     deliverables: string[];
+    pros?: string[];
+    cons?: string[];
     isClosed?: boolean;
   }[];
 } {
@@ -2596,6 +2604,20 @@ export function getLocalizedProduct(
         : pkg.deliverables.map((d) => toMinang(d));
     }
 
+    let pros = pkg.pros;
+    if (isEn && pkg.prosEn && pkg.prosEn.length > 0) {
+      pros = pkg.prosEn;
+    } else if (isMin && pkg.prosMin && pkg.prosMin.length > 0) {
+      pros = pkg.prosMin;
+    }
+
+    let cons = pkg.cons;
+    if (isEn && pkg.consEn && pkg.consEn.length > 0) {
+      cons = pkg.consEn;
+    } else if (isMin && pkg.consMin && pkg.consMin.length > 0) {
+      cons = pkg.consMin;
+    }
+
     return {
       id: pkg.id,
       name: pkgName,
@@ -2606,6 +2628,8 @@ export function getLocalizedProduct(
       revisions: pkgRevisions,
       description: pkgDescription,
       deliverables,
+      pros,
+      cons,
       isClosed: pkg.isClosed,
     };
   });
