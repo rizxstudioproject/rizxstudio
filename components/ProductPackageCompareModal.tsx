@@ -14,6 +14,7 @@ import {
   RiInformationLine,
   RiCheckLine,
   RiLockLine,
+  RiShareForwardLine,
 } from "react-icons/ri";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
@@ -38,6 +39,53 @@ export default function ProductPackageCompareModal({
 
   // Mobile active tab: "all" | "starter" | "pro" | "enterprise"
   const [activeMobileTier, setActiveMobileTier] = useState<string>("all");
+  const [shareToast, setShareToast] = useState<string | null>(null);
+
+  const triggerToast = (msg: string) => {
+    setShareToast(msg);
+    setTimeout(() => {
+      setShareToast(null);
+    }, 3000);
+  };
+
+  const handleShare = async (specificPkg?: any) => {
+    if (!product) return;
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const shareUrl = `${origin}/products#${product.id}`;
+    const pkgText = specificPkg
+      ? `Paket: ${specificPkg.name} (${specificPkg.price})`
+      : `Layanan: ${product.title}`;
+    const shareData = {
+      title: `${product.title} - Rizx Studio`,
+      text: `${product.title} — ${pkgText}\n${product.tagline || ""}`.trim(),
+      url: shareUrl,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        triggerToast(tr("Berhasil dibagikan!", "Berhasil dibagikan!", "Lah dibagi-an!"));
+        return;
+      } catch (err: any) {
+        if (err.name === "AbortError") return;
+      }
+    }
+
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(`${shareData.text}\n\n${shareUrl}`);
+        triggerToast(
+          tr(
+            "Link paket disalin ke papan klip!",
+            "Tautan paket berhasil disalin ke papan klip!",
+            "Tautan paket lah disalin!"
+          )
+        );
+      }
+    } catch {
+      triggerToast(tr("Gagal menyalin tautan", "Gagal menyalin tautan", "Gagal manyalin"));
+    }
+  };
 
   // Keyboard escape listener
   useEffect(() => {
@@ -181,17 +229,32 @@ export default function ProductPackageCompareModal({
             </p>
           </div>
 
-          <button
-            onClick={onClose}
-            className={`p-2 rounded-full border transition-all cursor-pointer shrink-0 ${
-              isLight
-                ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700"
-                : "bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white"
-            }`}
-            title="Tutup (Esc)"
-          >
-            <RiCloseLine className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => handleShare()}
+              title={tr("Share package comparison", "Bagikan perbandingan paket ini", "Bagi-an bandiang paket ko")}
+              className={`p-2 rounded-full border transition-all cursor-pointer flex items-center justify-center ${
+                isLight
+                  ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700"
+                  : "bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white"
+              }`}
+            >
+              <RiShareForwardLine className="w-5 h-5 text-[#16b09f]" />
+            </button>
+
+            <button
+              onClick={onClose}
+              className={`p-2 rounded-full border transition-all cursor-pointer ${
+                isLight
+                  ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700"
+                  : "bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white"
+              }`}
+              title="Tutup (Esc)"
+            >
+              <RiCloseLine className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* ── MOBILE TIER FILTER TABS (Visible only on small screens) ── */}
@@ -375,34 +438,49 @@ export default function ProductPackageCompareModal({
 
                   {/* Card Bottom CTA */}
                   <div className={`p-5 sm:p-6 pt-0 border-t ${isLight ? "border-slate-100" : "border-white/[0.08]"}`}>
-                    <button
-                      type="button"
-                      onClick={() => onSelectPackage(product.id, pkg.id)}
-                      style={
-                        isPro
-                          ? {
-                              backgroundColor: primaryColor,
-                              color: "#000000",
-                              boxShadow: `0 0 20px ${primaryColor}40`,
-                            }
-                          : undefined
-                      }
-                      className={`w-full py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                        isPro
-                          ? "hover:brightness-110 active:scale-98"
-                          : isLight
-                          ? "bg-slate-900 text-white hover:bg-slate-800"
-                          : "bg-white/10 hover:bg-white/20 text-white border border-white/15"
-                      }`}
-                    >
-                      <span>
-                        {isPro
-                          ? tr(`Pilih Paket Pro 🚀`, `Pilih Paket Pro 🚀`, `Pilih Paket Pro 🚀`)
-                          : isStarter
-                          ? tr(`Pilih Starter →`, `Pilih Starter →`, `Pilih Starter →`)
-                          : tr(`Pilih Enterprise 💼`, `Pilih Enterprise 💼`, `Pilih Enterprise 💼`)}
-                      </span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onSelectPackage(product.id, pkg.id)}
+                        style={
+                          isPro
+                            ? {
+                                backgroundColor: primaryColor,
+                                color: "#000000",
+                                boxShadow: `0 0 20px ${primaryColor}40`,
+                              }
+                            : undefined
+                        }
+                        className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
+                          isPro
+                            ? "hover:brightness-110 active:scale-98"
+                            : isLight
+                            ? "bg-slate-900 text-white hover:bg-slate-800"
+                            : "bg-white/10 hover:bg-white/20 text-white border border-white/15"
+                        }`}
+                      >
+                        <span>
+                          {isPro
+                            ? tr(`Pilih Paket Pro 🚀`, `Pilih Paket Pro 🚀`, `Pilih Paket Pro 🚀`)
+                            : isStarter
+                            ? tr(`Pilih Starter →`, `Pilih Starter →`, `Pilih Starter →`)
+                            : tr(`Pilih Enterprise 💼`, `Pilih Enterprise 💼`, `Pilih Enterprise 💼`)}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => handleShare(pkg)}
+                        title={tr("Share this tier", `Bagikan paket ${pkg.name}`, `Bagi-an paket ${pkg.name}`)}
+                        className={`p-3 rounded-xl border transition-all cursor-pointer shrink-0 active:scale-95 flex items-center justify-center ${
+                          isLight
+                            ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700"
+                            : "bg-white/5 hover:bg-white/15 border-white/15 text-neutral-300 hover:text-white"
+                        }`}
+                      >
+                        <RiShareForwardLine className="w-4 h-4 text-[#16b09f]" />
+                      </button>
+                    </div>
                     <p className="text-[10px] text-center text-neutral-500 font-mono mt-2">
                       {tr("Lanjut ke formulir brief & estimasi", "Lanjut ke formulir brief & estimasi", "Lanjuik ka formulir brief")}
                     </p>
@@ -436,6 +514,14 @@ export default function ProductPackageCompareModal({
             </button>
           </div>
         </div>
+
+        {/* Floating Toast Notification */}
+        {shareToast && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-2xl bg-neutral-900/95 border border-[#16b09f] text-white shadow-2xl flex items-center gap-2.5 backdrop-blur-xl animate-in fade-in slide-in-from-bottom duration-300 text-xs font-medium">
+            <RiCheckboxCircleFill className="w-4 h-4 text-emerald-400 shrink-0" />
+            <span>{shareToast}</span>
+          </div>
+        )}
       </div>
     </div>
   );
