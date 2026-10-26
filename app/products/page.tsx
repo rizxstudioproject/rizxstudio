@@ -45,6 +45,7 @@ import {
   RiFileCopyLine,
   RiFileList3Line,
   RiLockLine,
+  RiArrowDownSLine,
 } from "react-icons/ri";
 
 export default function ProductsPage() {
@@ -133,9 +134,33 @@ export default function ProductsPage() {
 
   // Form highlight animation state
   const [formHighlighted, setFormHighlighted] = useState<boolean>(false);
+  const [isProductPickerOpen, setIsProductPickerOpen] = useState<boolean>(false);
   const [isTrackerModalOpen, setIsTrackerModalOpen] = useState<boolean>(false);
   const [trackerInitialCode, setTrackerInitialCode] = useState<string>("RZX-PRJ-632153");
   const formRef = useRef<HTMLDivElement>(null);
+
+  // Prevent background scrolling when product picker is open
+  useEffect(() => {
+    if (isProductPickerOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isProductPickerOpen]);
+
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isProductPickerOpen) {
+        setIsProductPickerOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isProductPickerOpen]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -247,6 +272,10 @@ export default function ProductsPage() {
       selectedProductObj.packages[0]
     );
   }, [selectedProductObj, formPackage]);
+
+  const selectedCategoryObj = useMemo(() => {
+    return dynamicCategories.find((cat) => cat.id === selectedProductObj?.category);
+  }, [dynamicCategories, selectedProductObj]);
 
   // Handle Form Submission -> Open Confirmation Modal
   const handleSubmitForm = (e: React.FormEvent) => {
@@ -776,43 +805,42 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    1. Layanan / Produk <span className="text-[#16b09f]">*</span>
+                    1. {tr("Layanan / Produk", "Layanan / Produk", "Layanan / Produk")} <span className="text-[#16b09f]">*</span>
                   </label>
-                  <select
-                    value={formProduct}
-                    onChange={(e) => setFormProduct(e.target.value)}
-                    className={`w-full px-4 py-3.5 rounded-xl text-sm border outline-none font-medium cursor-pointer transition-colors ${
+                  <button
+                    type="button"
+                    onClick={() => setIsProductPickerOpen(true)}
+                    className={`w-full px-4 py-3 sm:py-3.5 rounded-xl text-left border outline-none font-medium transition-all flex items-center justify-between gap-3 group cursor-pointer ${
                       isLight
-                        ? "bg-slate-50 border-slate-300 text-slate-900 focus:border-[#16b09f]"
-                        : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
+                        ? "bg-slate-50 border-slate-300 text-slate-900 hover:border-[#16b09f] focus:border-[#16b09f]"
+                        : "bg-neutral-900 border-white/15 text-white hover:border-white/30 focus:border-[#16b09f]"
                     }`}
                   >
-                    {dynamicCategories
-                      .filter((cat) => cat.id !== "all")
-                      .map((cat) => {
-                        const catProducts = localizedProducts.filter(
-                          (p) => p.category === cat.id
-                        );
-                        if (catProducts.length === 0) return null;
-                        return (
-                          <optgroup
-                            key={cat.id}
-                            label={cat.label}
-                            className="bg-neutral-950 text-[#16b09f] font-bold py-1"
-                          >
-                            {catProducts.map((p) => (
-                              <option
-                                key={p.id}
-                                value={p.id}
-                                className="bg-neutral-900 text-white py-2"
-                              >
-                                {p.title} {p.isClosed ? `[${tr("Closed", "Slot Penuh", "Slot Panuah")}]` : ""}
-                              </option>
-                            ))}
-                          </optgroup>
-                        );
-                      })}
-                  </select>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
+                        style={{ backgroundColor: primaryColor }}
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold truncate leading-tight">
+                          {selectedProductObj.title}
+                        </p>
+                        <p className="text-[11px] text-neutral-400 truncate mt-0.5 font-mono">
+                          {selectedCategoryObj?.label || selectedProductObj.categoryLabel || selectedProductObj.category}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {selectedProductObj.isClosed && (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                          {tr("Slot Penuh", "Slot Penuh", "Slot Panuah")}
+                        </span>
+                      )}
+                      <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 group-hover:text-white group-hover:border-white/20 transition-colors">
+                        <RiArrowDownSLine className="w-4 h-4" />
+                      </div>
+                    </div>
+                  </button>
                 </div>
 
                 <div>
@@ -1169,6 +1197,155 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                   Ubah Data
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CUSTOM PRODUCT SELECTION BOTTOM SHEET / MODAL ── */}
+      {isProductPickerOpen && (
+        <div
+          className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fadeIn"
+          onClick={() => setIsProductPickerOpen(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`relative w-full sm:max-w-xl max-h-[85vh] sm:max-h-[82vh] flex flex-col rounded-t-3xl sm:rounded-2xl border shadow-2xl overflow-hidden transition-all duration-300 animate-slideUp ${
+              isLight
+                ? "bg-white border-slate-200 text-slate-900"
+                : "bg-[#0d1117] border-white/15 text-white"
+            }`}
+          >
+            {/* Mobile Top Drag Indicator */}
+            <div className="w-12 h-1.5 bg-neutral-600/50 rounded-full mx-auto mt-3 mb-1 sm:hidden shrink-0" />
+
+            {/* Header */}
+            <div className="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between gap-4 shrink-0">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-2 h-2 rounded-full shadow-sm"
+                    style={{ backgroundColor: primaryColor }}
+                  />
+                  <h3 className="text-base sm:text-lg font-bold tracking-tight">
+                    {tr("Pilih Layanan / Produk", "Pilih Layanan / Produk", "Pilih Layanan / Produk")}
+                  </h3>
+                </div>
+                <p className="text-xs text-neutral-400 mt-1 font-light">
+                  {tr(
+                    "Tentukan layanan kreatif yang ingin Anda konsultasikan & pesan",
+                    "Tentukan layanan kreatif yang ingin Anda konsultasikan & pesan",
+                    "Pilih layanan kreatif untuak Sanak"
+                  )}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsProductPickerOpen(false)}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-colors cursor-pointer shrink-0"
+              >
+                <RiCloseLine className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Categories & Products Scroll Area */}
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 sm:p-6 space-y-6 pb-6">
+              {dynamicCategories
+                .filter((cat) => cat.id !== "all")
+                .map((cat) => {
+                  const catProducts = localizedProducts.filter(
+                    (p) => p.category === cat.id
+                  );
+                  if (catProducts.length === 0) return null;
+
+                  return (
+                    <div key={cat.id} className="space-y-2.5">
+                      {/* Category Header Badge */}
+                      <div className="flex items-center gap-2 px-1">
+                        <span
+                          className="text-[11px] font-mono font-bold tracking-wider uppercase px-2.5 py-0.5 rounded-md border"
+                          style={{
+                            color: primaryColor,
+                            backgroundColor: `${primaryColor}15`,
+                            borderColor: `${primaryColor}30`,
+                          }}
+                        >
+                          {cat.label}
+                        </span>
+                        <div className="h-[1px] flex-1 bg-white/10" />
+                      </div>
+
+                      {/* Product Options List */}
+                      <div className="space-y-2">
+                        {catProducts.map((p) => {
+                          const isSelected = formProduct === p.id;
+                          return (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => {
+                                setFormProduct(p.id);
+                                setIsProductPickerOpen(false);
+                              }}
+                              className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all duration-200 flex items-center justify-between gap-3 cursor-pointer group ${
+                                isSelected
+                                  ? isLight
+                                    ? "bg-emerald-50/80 border-[#16b09f] shadow-sm"
+                                    : "bg-[#16b09f]/10 border-[#16b09f] shadow-[0_0_20px_rgba(22,176,159,0.18)]"
+                                  : isLight
+                                  ? "bg-slate-50 border-slate-200 hover:bg-slate-100 hover:border-slate-300"
+                                  : "bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-white/20"
+                              }`}
+                            >
+                              <div className="min-w-0 pr-2">
+                                <div className="flex items-center gap-2 flex-wrap mb-1">
+                                  <span className="font-semibold text-sm sm:text-base leading-snug">
+                                    {p.title}
+                                  </span>
+                                  {p.isClosed && (
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                      {tr("Slot Penuh", "Slot Penuh", "Slot Panuah")}
+                                    </span>
+                                  )}
+                                </div>
+                                {p.tagline && (
+                                  <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2">
+                                    {p.tagline}
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Custom Radio Button */}
+                              <div
+                                className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 transition-all ${
+                                  isSelected
+                                    ? "border-[#16b09f] bg-[#16b09f]"
+                                    : "border-white/25 group-hover:border-white/40"
+                                }`}
+                              >
+                                {isSelected && (
+                                  <span className="w-2 h-2 rounded-full bg-black shadow-sm" />
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+
+            {/* Footer Info */}
+            <div className="p-3.5 sm:p-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-between text-xs text-neutral-400 shrink-0">
+              <span>{dynamicCategories.filter((c) => c.id !== "all").length} {tr("Kategori Layanan", "Kategori Layanan", "Kategori Layanan")}</span>
+              <button
+                type="button"
+                onClick={() => setIsProductPickerOpen(false)}
+                className="text-xs font-semibold px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors cursor-pointer"
+              >
+                {tr("Tutup", "Tutup", "Tutuik")}
+              </button>
             </div>
           </div>
         </div>
