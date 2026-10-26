@@ -3,7 +3,6 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import Contact from "@/components/Contact";
 import WhatsAppPopup from "@/components/WhatsAppPopup";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
 import { registerTrackedProject } from "@/lib/projectTrackerService";
@@ -1203,9 +1202,6 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
         onClose={() => setIsTrackerModalOpen(false)}
         initialCode={trackerInitialCode}
       />
-
-      {/* Global Contact Section */}
-      <Contact />
 
       {/* Floating WhatsApp Popup */}
       <WhatsAppPopup />

@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import Contact from "@/components/Contact";
 import WhatsAppPopup from "@/components/WhatsAppPopup";
 import VisualOrderTracker from "@/components/VisualOrderTracker";
 import {
@@ -273,9 +272,6 @@ export default function TrackingPage() {
           </div>
         ) : null}
       </main>
-
-      {/* Global Contact Section */}
-      <Contact />
 
       {/* Floating WhatsApp Popup */}
       <WhatsAppPopup />
