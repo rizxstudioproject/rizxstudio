@@ -2264,9 +2264,39 @@ export async function getAllProducts(): Promise<ProductItem[]> {
   // 3. Fallback to default products
   if (!products || products.length === 0) {
     products = [...DEFAULT_PRODUCTS];
-    if (typeof window !== "undefined") {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+  } else {
+    // Reconcile with DEFAULT_PRODUCTS to guarantee thumbnails, pros, cons, and all 13 products
+    const defaultMap = new Map(DEFAULT_PRODUCTS.map((dp) => [dp.id, dp]));
+    const merged: ProductItem[] = products.map((item) => {
+      const def = defaultMap.get(item.id);
+      if (!def) return item;
+      return {
+        ...def,
+        ...item,
+        thumbnailUrl: item.thumbnailUrl || def.thumbnailUrl,
+        packages: (item.packages && item.packages.length > 0 ? item.packages : def.packages).map((pkg, idx) => {
+          const defPkg = def.packages?.[idx] || def.packages?.find((p) => p.id === pkg.id);
+          return {
+            ...defPkg,
+            ...pkg,
+            thumbnailUrl: pkg.thumbnailUrl || defPkg?.thumbnailUrl,
+            pros: pkg.pros && pkg.pros.length > 0 ? pkg.pros : defPkg?.pros,
+            cons: pkg.cons && pkg.cons.length > 0 ? pkg.cons : defPkg?.cons,
+          };
+        }),
+      };
+    });
+
+    for (const def of DEFAULT_PRODUCTS) {
+      if (!merged.some((p) => p.id === def.id)) {
+        merged.push(def);
+      }
     }
+    products = merged;
+  }
+
+  if (typeof window !== "undefined") {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
   }
 
   return products;
