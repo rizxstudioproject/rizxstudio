@@ -35,6 +35,8 @@ import {
   RiSunFill,
   RiMoonClearFill,
   RiCloseLine,
+  RiBox3Fill,
+  RiCompass3Fill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -50,6 +52,8 @@ import RecycleBinWorkspace from "./RecycleBinWorkspace";
 import StorageAnalyticsView from "./StorageAnalyticsView";
 import SecuritySettingsWorkspace from "./SecuritySettingsWorkspace";
 import HeroBannerWorkspace from "./HeroBannerWorkspace";
+import ProductsWorkspace from "./ProductsWorkspace";
+import ProjectTrackerWorkspace from "./ProjectTrackerWorkspace";
 import { getRealLeads, CrmLead } from "@/lib/crmService";
 
 interface MobileAdminAppProps {
@@ -284,6 +288,10 @@ export default function MobileAdminApp({
       case "flagship":
       case "runner":
         return tr("Hero Banner & Media Reels", "Hero Banner & Media Reels", "Hero Banner & Media Reels");
+      case "products":
+        return tr("Katalog Produk & Layanan", "Products & Services", "Katalog Produk & Jaso");
+      case "tracking":
+        return tr("Tracking Proyek (Live)", "Project Tracking (Live)", "Tracking Proyek (Live)");
       case "hero-works":
         return tr("Top Works & About", "Top Works & About", "Top Works & About");
       case "about":
@@ -345,6 +353,22 @@ export default function MobileAdminApp({
       accentColor: "#3b82f6",
       gradient: "from-blue-500 to-indigo-500",
       glow: "rgba(59, 130, 246, 0.45)",
+    },
+    {
+      id: "products",
+      label: tr("Produk", "Products", "Produk"),
+      icon: RiBox3Fill,
+      accentColor: "#06b6d4",
+      gradient: "from-cyan-500 to-teal-500",
+      glow: "rgba(6, 182, 212, 0.45)",
+    },
+    {
+      id: "tracking",
+      label: tr("Tracking", "Tracking", "Tracking"),
+      icon: RiCompass3Fill,
+      accentColor: "#10b981",
+      gradient: "from-emerald-500 to-teal-500",
+      glow: "rgba(16, 185, 129, 0.45)",
     },
     {
       id: "trash",
@@ -979,6 +1003,51 @@ export default function MobileAdminApp({
                   </span>
                 </div>
               </div>
+
+              {/* Row 2: Products & Tracking Quick Launchers */}
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                {/* Pod 4: Produk & Layanan */}
+                <div
+                  onClick={() => navigateToWorkspace("products")}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center gap-3 ${
+                    isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#111622] border-white/10"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center shrink-0">
+                    <RiBox3Fill className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
+                      {tr("Produk", "Products", "Produk")}
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">13 Layanan</div>
+                    <span className="text-[10px] text-teal-400 font-semibold block">
+                      By-Project
+                    </span>
+                  </div>
+                </div>
+
+                {/* Pod 5: Tracking Proyek */}
+                <div
+                  onClick={() => navigateToWorkspace("tracking")}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center gap-3 ${
+                    isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#111622] border-white/10"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                    <RiCompass3Fill className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
+                      {tr("Tracking", "Tracking", "Lacak")}
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">Status Live</div>
+                    <span className="text-[10px] text-emerald-400 font-semibold block">
+                      Sync Cloud
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
 
@@ -1088,6 +1157,10 @@ export default function MobileAdminApp({
               <HeroBannerWorkspace initialTab="showcase" showToast={showToast || (() => {})} />
             )}
 
+            {activeTab === "products" && <ProductsWorkspace />}
+
+            {activeTab === "tracking" && <ProjectTrackerWorkspace />}
+
             {activeTab === "settings" && (
               <SecuritySettingsWorkspace
                 showToast={showToast || (() => {})}
@@ -1107,6 +1180,8 @@ export default function MobileAdminApp({
               activeTab !== "hero-banner" &&
               activeTab !== "runner" &&
               activeTab !== "flagship" &&
+              activeTab !== "products" &&
+              activeTab !== "tracking" &&
               activeTab !== "settings" &&
               renderWorkspaceContent(activeTab)}
           </div>
