@@ -17,6 +17,7 @@ import {
   RiSparklingLine,
   RiShieldCheckLine,
   RiEyeLine,
+  RiCloseLine,
 } from "react-icons/ri";
 import { ProjectTrackingItem, getStageMetadata } from "@/lib/projectTrackerService";
 import { useLang } from "@/context/LanguageContext";
@@ -27,12 +28,14 @@ interface VisualOrderTrackerProps {
   project: ProjectTrackingItem;
   onCopyCode?: () => void;
   copied?: boolean;
+  onClose?: () => void;
 }
 
 export default function VisualOrderTracker({
   project,
   onCopyCode,
   copied = false,
+  onClose,
 }: VisualOrderTrackerProps) {
   const { lang, tr } = useLang();
   const { primaryColor, themeMode, socialContacts } = useMotionTheme();
@@ -181,27 +184,40 @@ export default function VisualOrderTracker({
             </p>
           </div>
 
-          {/* Right: Expected Arrival Pill + Tracking ID Pill */}
-          <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
-            {/* Expected Arrival Pill */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-neutral-400 font-mono text-[10px] sm:text-[11px] uppercase tracking-wider">
-                {tr("Arrival", "Selesai", "Salasai")}:
-              </span>
-              <span className="px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold font-mono bg-blue-600 text-white shadow-sm shadow-blue-500/30">
-                {formattedTargetArrival}
-              </span>
+          {/* Right: Expected Arrival Pill + Tracking ID Pill + Close (X) Button */}
+          <div className="flex items-center gap-2">
+            <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-white/5">
+              {/* Expected Arrival Pill */}
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-neutral-400 font-mono text-[10px] sm:text-[11px] uppercase tracking-wider">
+                  {tr("Arrival", "Selesai", "Salasai")}:
+                </span>
+                <span className="px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold font-mono bg-blue-600 text-white shadow-sm shadow-blue-500/30">
+                  {formattedTargetArrival}
+                </span>
+              </div>
+
+              {/* Tracking ID Pill */}
+              <div className="flex items-center gap-1.5 text-xs">
+                <span className="text-neutral-400 font-mono text-[10px] sm:text-[11px] uppercase tracking-wider">
+                  {tr("Tracking ID", "ID", "ID")}:
+                </span>
+                <span className="px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold font-mono bg-rose-600 text-white shadow-sm shadow-rose-500/30">
+                  {project.refCode}
+                </span>
+              </div>
             </div>
 
-            {/* Tracking ID Pill */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-neutral-400 font-mono text-[10px] sm:text-[11px] uppercase tracking-wider">
-                {tr("Tracking ID", "ID", "ID")}:
-              </span>
-              <span className="px-2.5 py-0.5 sm:px-3.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-bold font-mono bg-rose-600 text-white shadow-sm shadow-rose-500/30">
-                {project.refCode}
-              </span>
-            </div>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                title={tr("Tutup Hasil", "Tutup Hasil", "Tutuik Hasil")}
+                className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-all cursor-pointer ml-1 shrink-0"
+              >
+                <RiCloseLine className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -188,21 +188,37 @@ export default function ProjectTrackerModal({
               placeholder="Contoh: RZX-PRJ-XXXXXX"
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-              className={`w-full pl-10 pr-24 py-2.5 rounded-xl text-xs sm:text-sm font-mono tracking-wider border outline-none transition-all ${
+              className={`w-full pl-10 pr-32 py-2.5 rounded-xl text-xs sm:text-sm font-mono tracking-wider border outline-none transition-all ${
                 isLight
                   ? "bg-slate-50 border-slate-300 text-slate-900 focus:border-[#16b09f]"
                   : "bg-neutral-900/90 border-white/15 text-white placeholder-neutral-500 focus:border-[#16b09f]"
               }`}
             />
-            <button
-              type="button"
-              onClick={handlePasteCode}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-[11px] font-mono rounded-lg bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white transition-all flex items-center gap-1 cursor-pointer border border-white/15 active:scale-95 shadow-sm"
-              title="Tempel Kode dari Clipboard"
-            >
-              <RiFileCopyLine className="w-3 h-3 text-[#16b09f]" />
-              <span className="font-semibold">Tempel</span>
-            </button>
+            <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+              {inputCode && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInputCode("");
+                    setProject(null);
+                    setSearched(false);
+                  }}
+                  className="w-6 h-6 rounded-md bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
+                  title="Hapus"
+                >
+                  <RiCloseLine className="w-3.5 h-3.5" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handlePasteCode}
+                className="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white transition-all flex items-center gap-1 cursor-pointer border border-white/15 active:scale-95 shadow-sm"
+                title="Tempel Kode dari Clipboard"
+              >
+                <RiFileCopyLine className="w-3 h-3 text-[#16b09f]" />
+                <span className="font-semibold">Tempel</span>
+              </button>
+            </div>
           </div>
           <button
             type="submit"
@@ -241,6 +257,11 @@ export default function ProjectTrackerModal({
               project={project}
               onCopyCode={handleCopyCode}
               copied={copied}
+              onClose={() => {
+                setProject(null);
+                setSearched(false);
+                setInputCode("");
+              }}
             />
           </div>
         ) : searched && !loading ? (
@@ -272,39 +293,6 @@ export default function ProjectTrackerModal({
                 <RiWhatsappLine className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Konfirmasi via WhatsApp</span>
               </a>
-            </div>
-          </div>
-        ) : !searched && !loading ? (
-          <div className="p-8 text-center rounded-2xl bg-white/[0.02] border border-white/10 space-y-3 animate-fadeIn">
-            <div
-              className="w-12 h-12 rounded-2xl flex items-center justify-center mx-auto text-lg border"
-              style={{
-                backgroundColor: `${primaryColor}15`,
-                borderColor: `${primaryColor}35`,
-                color: primaryColor,
-              }}
-            >
-              <RiShieldCheckLine className="w-6 h-6" />
-            </div>
-            <h3 className="text-sm font-bold text-white">
-              {tr("Pelacakan Proyek Terproteksi", "Pelacakan Proyek Terproteksi", "Pelacakan Proyek Tajago")}
-            </h3>
-            <p className="text-xs text-neutral-400 max-w-sm mx-auto leading-relaxed">
-              {tr(
-                "Silakan masukkan atau tempel Kode Referensi (contoh: RZX-PRJ-XXXXXX) yang Anda terima di WhatsApp saat pemesanan untuk melihat status pengerjaan.",
-                "Silakan masukkan atau tempel Kode Referensi (contoh: RZX-PRJ-XXXXXX) yang Anda terima di WhatsApp saat pemesanan untuk melihat status pengerjaan.",
-                "Masuak-an atau tempel Kode Referensi (RZX-PRJ-XXXXXX) nan ditarimo di WhatsApp untuak mancaliak status."
-              )}
-            </p>
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={handlePasteCode}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 border border-white/15 text-neutral-200 text-xs font-mono transition-all cursor-pointer"
-              >
-                <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
-                <span>{tr("Tempel Kode dari Clipboard", "Tempel Kode dari Clipboard", "Tempel Kode")}</span>
-              </button>
             </div>
           </div>
         ) : null}

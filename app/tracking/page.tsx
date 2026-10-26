@@ -18,6 +18,7 @@ import {
   RiArrowLeftLine,
   RiSparklingFill,
   RiShieldCheckLine,
+  RiCloseLine,
 } from "react-icons/ri";
 import {
   ProjectTrackingItem,
@@ -130,20 +131,29 @@ export default function TrackingPage() {
       <Navbar />
 
       <main className="relative z-20 pt-28 sm:pt-36 pb-20 px-4 sm:px-8 lg:px-16 max-w-5xl mx-auto">
-        {/* Breadcrumb / Back Link */}
-        <div className="mb-6 flex items-center justify-between">
+        {/* Breadcrumb / Back Link + Close (X) Button */}
+        <div className="mb-6 flex items-center justify-between gap-4">
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 text-xs font-mono text-neutral-400 hover:text-white transition-colors py-1 px-3 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25"
+            className="inline-flex items-center gap-2 text-xs font-mono text-neutral-400 hover:text-white transition-colors py-1.5 px-3.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25"
           >
             <RiArrowLeftLine className="w-3.5 h-3.5" />
             <span>{tr("Lihat Semua Layanan & Produk", "Lihat Semua Layanan & Produk", "Caliak Kasadonyo Produk")}</span>
           </Link>
 
-          <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Live Cloud Sync</span>
-          </span>
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="hidden sm:inline">Live Cloud Sync</span>
+            </span>
+            <Link
+              href="/"
+              title={tr("Tutup & Kembali ke Beranda", "Tutup & Kembali ke Beranda", "Tutuik & Baliak ka Muko")}
+              className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-all cursor-pointer shadow-sm"
+            >
+              <RiCloseLine className="w-4 h-4" />
+            </Link>
+          </div>
         </div>
 
         {/* Hero Header */}
@@ -199,21 +209,37 @@ export default function TrackingPage() {
                 placeholder="Masukkan Kode Referensi (Contoh: RZX-PRJ-...)"
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value.toUpperCase())}
-                className={`w-full pl-12 pr-28 py-3.5 rounded-xl text-sm sm:text-base font-mono tracking-wider border-none outline-none ${
+                className={`w-full pl-12 pr-36 py-3.5 rounded-xl text-sm sm:text-base font-mono tracking-wider border-none outline-none ${
                   isLight
                     ? "bg-white text-slate-900 placeholder-slate-400"
                     : "bg-transparent text-white placeholder-neutral-500"
                 }`}
               />
-              <button
-                type="button"
-                onClick={handlePasteCode}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 px-3 py-1.5 text-xs font-mono rounded-lg bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer border border-white/15 active:scale-95 shadow-sm"
-                title="Tempel Kode dari Clipboard"
-              >
-                <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
-                <span className="font-semibold">Tempel</span>
-              </button>
+              <div className="absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                {inputCode && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInputCode("");
+                      setProject(null);
+                      setSearched(false);
+                    }}
+                    className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
+                    title="Hapus / Reset"
+                  >
+                    <RiCloseLine className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handlePasteCode}
+                  className="px-3 py-1.5 text-xs font-mono rounded-lg bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer border border-white/15 active:scale-95 shadow-sm"
+                  title="Tempel Kode dari Clipboard"
+                >
+                  <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
+                  <span className="font-semibold">Tempel</span>
+                </button>
+              </div>
             </div>
             <button
               type="submit"
@@ -253,6 +279,11 @@ export default function TrackingPage() {
             project={project}
             onCopyCode={handleCopyCode}
             copied={copied}
+            onClose={() => {
+              setProject(null);
+              setSearched(false);
+              setInputCode("");
+            }}
           />
         ) : searched && !loading ? (
           /* Error / Not Found Card */
@@ -286,52 +317,6 @@ export default function TrackingPage() {
                 <RiWhatsappLine className="w-4 h-4 text-emerald-400" />
                 <span>Hubungi Admin via WhatsApp</span>
               </a>
-            </div>
-          </div>
-        ) : !searched && !loading ? (
-          /* Awaiting Code Input State (Privacy Protected) */
-          <div className="p-8 sm:p-12 text-center rounded-3xl bg-white/[0.02] border border-white/10 space-y-4 max-w-xl mx-auto animate-fadeIn">
-            <div
-              className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto text-2xl border"
-              style={{
-                backgroundColor: `${primaryColor}15`,
-                borderColor: `${primaryColor}35`,
-                color: primaryColor,
-              }}
-            >
-              <RiShieldCheckLine className="w-8 h-8" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                {tr(
-                  "Pelacakan Proyek Terproteksi",
-                  "Pelacakan Proyek Terproteksi",
-                  "Pelacakan Proyek Tajago"
-                )}
-              </h3>
-              <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-light max-w-md mx-auto">
-                {tr(
-                  "Data progres pengerjaan bersifat privat. Silakan masukkan atau tempel Kode Referensi (contoh: RZX-PRJ-XXXXXX) yang Anda terima di WhatsApp saat pemesanan untuk membuka timeline pengerjaan.",
-                  "Data progres pengerjaan bersifat privat. Silakan masukkan atau tempel Kode Referensi (contoh: RZX-PRJ-XXXXXX) yang Anda terima di WhatsApp saat pemesanan untuk membuka timeline pengerjaan.",
-                  "Data progres karajo basifaik privat. Masuak-an atau tempel Kode Referensi (RZX-PRJ-XXXXXX) nan ditarimo di WhatsApp untuak mancaliak status."
-                )}
-              </p>
-            </div>
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={handlePasteCode}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/10 border border-white/15 text-neutral-200 text-xs font-mono transition-all cursor-pointer"
-              >
-                <RiFileCopyLine className="w-4 h-4 text-[#16b09f]" />
-                <span>{tr("Tempel Kode dari Clipboard", "Tempel Kode dari Clipboard", "Tempel Kode")}</span>
-              </button>
-              <Link
-                href="/products#project-form"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-transparent hover:bg-white/5 border border-white/10 text-neutral-400 hover:text-white text-xs font-mono transition-all"
-              >
-                <span>{tr("Mulai Proyek Baru →", "Mulai Proyek Baru →", "Mulai Proyek Baru →")}</span>
-              </Link>
             </div>
           </div>
         ) : null}
