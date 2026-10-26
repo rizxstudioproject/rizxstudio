@@ -14,6 +14,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const isProductsPage = pathname === "/products";
+  const isTrackingPage = pathname === "/tracking";
   const [activeSection, setActiveSection] = useState<string>("");
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -240,6 +241,16 @@ export default function Navbar() {
             >
               {t("nav.products")}
             </Link>
+            <Link
+              href="/tracking"
+              className={`transition-colors duration-200 cursor-pointer ${
+                isTrackingPage
+                  ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                  : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              {t("nav.tracking")}
+            </Link>
             <a
               href={waUrl}
               target="_blank"
@@ -411,6 +422,17 @@ export default function Navbar() {
             }`}
           >
             {t("nav.products")}
+          </Link>
+          <Link
+            href="/tracking"
+            onClick={() => setMobileMenuOpen(false)}
+            className={`text-left py-1 text-sm font-medium transition-colors cursor-pointer ${
+              isTrackingPage
+                ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                : isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
+            }`}
+          >
+            {t("nav.tracking")}
           </Link>
 
           {/* Contact Direct WhatsApp Link in Mobile Drawer */}
