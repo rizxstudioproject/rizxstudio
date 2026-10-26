@@ -39,6 +39,7 @@ import {
   RiCompass3Fill,
   RiShieldUserFill,
   RiTeamFill,
+  RiLogoutBoxRFill,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -1356,7 +1357,7 @@ export default function MobileAdminApp({
                       setTimeout(() => setIsSaveFabExpanded(false), 800);
                     }}
                     disabled={savingAction}
-                    className="flex-1 py-2 px-3.5 rounded-xl text-xs font-bold text-white shadow-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                    className="flex-1 py-2 px-3 rounded-xl text-xs font-bold text-white shadow-lg flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer whitespace-nowrap"
                     style={{
                       backgroundColor: primaryColor,
                       boxShadow: `0 6px 18px ${primaryColor}55`,
@@ -1366,9 +1367,30 @@ export default function MobileAdminApp({
                     <span>
                       {savingAction
                         ? tr("Menyimpan...", "Saving...", "Manyimpan...")
-                        : tr("Simpan Perubahan", "Save Changes", "Simpan")}
+                        : tr("Simpan", "Save", "Simpan")}
                     </span>
-                    <RiArrowRightLine className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Logout Admin Session Button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (
+                        confirm(
+                          tr(
+                            "Yakin ingin keluar dari sesi admin?",
+                            "Are you sure you want to logout from admin session?",
+                            "Yakin nio kalua dari sesi admin?"
+                          )
+                        )
+                      ) {
+                        onLogout();
+                      }
+                    }}
+                    className="p-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 active:scale-95 text-rose-400 hover:text-rose-300 border border-rose-500/30 transition flex items-center justify-center shrink-0 cursor-pointer"
+                    title={tr("Keluar Sesi Admin (Logout)", "Logout Admin", "Kalua Sesi Admin")}
+                  >
+                    <RiLogoutBoxRFill className="w-4 h-4 text-rose-400" />
                   </button>
 
                   {/* Collapse / Close Button */}

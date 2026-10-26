@@ -533,37 +533,6 @@ export default function SecuritySettingsWorkspace({
                   <span>Supabase Database Aktif & Terhubung</span>
                 </span>
               </div>
-
-              {/* Logout Session Action Card (Sesuai Permintaan: Logout berada di dalam Icon Setting) */}
-              {onLogout && (
-                <div
-                  className={`p-4 rounded-2xl border space-y-2 mt-2 transition-all ${
-                    isLight
-                      ? "bg-rose-50/80 border-rose-200/90 shadow-xs"
-                      : "bg-rose-500/10 border-rose-500/25"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-rose-500 font-bold text-xs">
-                    <RiLogoutBoxRFill className="w-4 h-4" />
-                    <span>{tr("Keluar Sesi Admin", "Logout Admin Session", "Kalua Sesi Admin")}</span>
-                  </div>
-                  <p className={`text-[11px] leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
-                    {tr(
-                      "Akhiri sesi login aman dan kunci akses dashboard admin.",
-                      "End your secure admin session and lock dashboard access.",
-                      "Sudahi sesi login dan kunci akses dashboard admin."
-                    )}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={onLogout}
-                    className="w-full mt-2 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                  >
-                    <RiLogoutBoxRFill className="w-4 h-4" />
-                    <span>{tr("Keluar Sekarang (Logout)", "Logout Now", "Kalua Kini")}</span>
-                  </button>
-                </div>
-              )}
             </div>
           </div>
         </div>
