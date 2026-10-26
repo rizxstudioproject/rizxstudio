@@ -478,9 +478,9 @@ export default function MobileAdminApp({
       isLongPressTriggered.current = true;
       setIsSaveFabExpanded((prev) => !prev);
       if (typeof window !== "undefined" && navigator.vibrate) {
-        navigator.vibrate(50);
+        navigator.vibrate(40);
       }
-    }, 280);
+    }, 380);
   };
 
   const handleFabPointerCancel = () => {
@@ -1303,12 +1303,19 @@ export default function MobileAdminApp({
       )}
 
       {/* RADIAL SATELLITE ACTION MENU (Tahan / Tekan untuk memunculkan Save, View Page, Logout di sekitarnya) */}
-      {isSaveFabExpanded && (
-        <div
-          className="fixed inset-0 z-30 bg-black/35 backdrop-blur-[1.5px]"
-          onClick={() => setIsSaveFabExpanded(false)}
-        />
-      )}
+      <AnimatePresence>
+        {isSaveFabExpanded && (
+          <motion.div
+            key="fab-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
+            className="fixed inset-0 z-30 bg-black/40"
+            onClick={() => setIsSaveFabExpanded(false)}
+          />
+        )}
+      </AnimatePresence>
 
       <motion.div
         drag
@@ -1322,70 +1329,83 @@ export default function MobileAdminApp({
         style={{ touchAction: "none" }}
       >
         <div className="relative w-[52px] h-[52px]">
-          {/* ORBITING / SATELLITE ACTION BUTTONS */}
+          {/* ORBITING / SATELLITE ACTION BUTTONS (Clean circular icon-only buttons) */}
           <AnimatePresence>
             {isSaveFabExpanded && (
               <>
-                {/* 1. SATELLITE: SAVE WORKSPACE */}
+                {/* 1. SATELLITE: SAVE WORKSPACE (Teal) */}
                 <motion.button
                   key="sat-save"
                   type="button"
                   initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
                   animate={{ scale: 1, x: 0, y: -68, opacity: 1 }}
                   exit={{ scale: 0, x: 0, y: 0, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.02 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 280,
+                    damping: 22,
+                    mass: 0.5,
+                  }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={async (e) => {
                     e.stopPropagation();
                     await handleSaveWorkspace();
                     setTimeout(() => setIsSaveFabExpanded(false), 900);
                   }}
                   disabled={savingAction}
-                  className="absolute left-1 top-1 w-11 h-11 rounded-full shadow-[0_6px_20px_rgba(20,184,166,0.5)] border-2 border-white/30 flex items-center justify-center cursor-pointer transition-transform z-20 group"
-                  style={{ backgroundColor: primaryColor }}
-                  title="Simpan Perubahan (Save)"
+                  className="absolute left-1 top-1 w-11 h-11 rounded-full shadow-[0_6px_20px_rgba(20,184,166,0.45)] border-2 border-white/30 flex items-center justify-center cursor-pointer active:scale-95 z-20"
+                  style={{
+                    backgroundColor: primaryColor,
+                    willChange: "transform, opacity",
+                  }}
+                  title="Save Workspace"
                 >
                   <RiSave3Fill className="w-5 h-5 text-black drop-shadow" />
-                  <span className="absolute -left-16 text-[10px] font-bold text-white bg-black/90 px-2 py-0.5 rounded-md pointer-events-none whitespace-nowrap border border-white/15 shadow-md">
-                    {savingAction ? tr("Menyimpan...", "Saving...", "Manyimpan...") : savedSuccess ? tr("Tersimpan!", "Saved!", "Tasimpan!") : tr("Save", "Simpan", "Simpan")}
-                  </span>
                 </motion.button>
 
-                {/* 2. SATELLITE: VIEW PAGE */}
+                {/* 2. SATELLITE: VIEW PAGE (Sky Blue) */}
                 <motion.button
                   key="sat-view"
                   type="button"
                   initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
-                  animate={{ scale: 1, x: -52, y: -48, opacity: 1 }}
+                  animate={{ scale: 1, x: -50, y: -50, opacity: 1 }}
                   exit={{ scale: 0, x: 0, y: 0, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.05 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 280,
+                    damping: 22,
+                    mass: 0.5,
+                  }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     window.open(getViewPageUrl(), "_blank");
                     setIsSaveFabExpanded(false);
                   }}
-                  className="absolute left-1 top-1 w-11 h-11 rounded-full bg-sky-500 shadow-[0_6px_20px_rgba(14,165,233,0.5)] border-2 border-white/30 flex items-center justify-center cursor-pointer transition-transform text-white z-20 group"
-                  title="Lihat Halaman Web (View Page)"
+                  className="absolute left-1 top-1 w-11 h-11 rounded-full bg-sky-500 shadow-[0_6px_20px_rgba(14,165,233,0.45)] border-2 border-white/30 flex items-center justify-center cursor-pointer text-white active:scale-95 z-20"
+                  style={{ willChange: "transform, opacity" }}
+                  title="View Page"
                 >
                   <RiEyeLine className="w-5 h-5 drop-shadow" />
-                  <span className="absolute -top-7 -left-6 text-[10px] font-bold text-white bg-black/90 px-2 py-0.5 rounded-md pointer-events-none whitespace-nowrap border border-white/15 shadow-md">
-                    {tr("View Page", "Lihat Web", "Caliak Web")}
-                  </span>
                 </motion.button>
 
-                {/* 3. SATELLITE: LOGOUT */}
+                {/* 3. SATELLITE: LOGOUT (Coral Red) */}
                 <motion.button
                   key="sat-logout"
                   type="button"
                   initial={{ scale: 0, x: 0, y: 0, opacity: 0 }}
                   animate={{ scale: 1, x: -68, y: 0, opacity: 1 }}
                   exit={{ scale: 0, x: 0, y: 0, opacity: 0 }}
-                  transition={{ type: "spring", stiffness: 500, damping: 25, delay: 0.08 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 280,
+                    damping: 22,
+                    mass: 0.5,
+                  }}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
                   onClick={(e) => {
                     e.stopPropagation();
                     setIsSaveFabExpanded(false);
@@ -1401,13 +1421,11 @@ export default function MobileAdminApp({
                       onLogout();
                     }
                   }}
-                  className="absolute left-1 top-1 w-11 h-11 rounded-full bg-rose-500 shadow-[0_6px_20px_rgba(244,63,94,0.5)] border-2 border-white/30 flex items-center justify-center cursor-pointer transition-transform text-white z-20 group"
-                  title="Keluar Sesi Admin (Logout)"
+                  className="absolute left-1 top-1 w-11 h-11 rounded-full bg-rose-500 shadow-[0_6px_20px_rgba(244,63,94,0.45)] border-2 border-white/30 flex items-center justify-center cursor-pointer text-white active:scale-95 z-20"
+                  style={{ willChange: "transform, opacity" }}
+                  title="Logout"
                 >
                   <RiLogoutBoxRFill className="w-5 h-5 drop-shadow" />
-                  <span className="absolute -left-16 text-[10px] font-bold text-white bg-black/90 px-2 py-0.5 rounded-md pointer-events-none whitespace-nowrap border border-white/15 shadow-md">
-                    Logout
-                  </span>
                 </motion.button>
               </>
             )}
@@ -1431,9 +1449,10 @@ export default function MobileAdminApp({
             title={isSaveFabExpanded ? "Tutup Menu Aksi" : "Tahan / Tekan untuk Menu Aksi (Save, View Page, Logout)"}
           >
             <motion.div
-              animate={{ rotate: isSaveFabExpanded ? 90 : 0, scale: isSaveFabExpanded ? 1.08 : 1 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              className="flex items-center justify-center"
+              animate={{ rotate: isSaveFabExpanded ? 90 : 0, scale: isSaveFabExpanded ? 1.06 : 1 }}
+              transition={{ type: "spring", stiffness: 300, damping: 22, mass: 0.6 }}
+              className="flex items-center justify-center w-full h-full"
+              style={{ willChange: "transform" }}
             >
               {isSaveFabExpanded ? (
                 <RiCloseLine className="w-6 h-6 text-white drop-shadow" />
