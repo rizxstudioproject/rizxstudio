@@ -147,6 +147,17 @@ export default function MobileAdminApp({
   const { lang, setLang, tr } = useLang();
   const { themeMode, toggleThemeMode, primaryColor, accentColor, socialContacts } = useMotionTheme();
   const isLight = themeMode === "light";
+  const lastThemeTriggerRef = useRef<number>(0);
+
+  const handleInstantThemeToggle = (e?: React.SyntheticEvent) => {
+    const now = Date.now();
+    if (now - lastThemeTriggerRef.current < 400) return;
+    lastThemeTriggerRef.current = now;
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try { navigator.vibrate(12); } catch (_) {}
+    }
+    toggleThemeMode();
+  };
 
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const mobileLangRef = useRef<HTMLDivElement>(null);
@@ -658,7 +669,9 @@ export default function MobileAdminApp({
                 {/* 1. Theme Mode Toggle (Light/Dark Mode Circular Button - Moon in Light / Sun in Dark) */}
                 <button
                   type="button"
-                  onClick={toggleThemeMode}
+                  onMouseEnter={handleInstantThemeToggle}
+                  onTouchStart={handleInstantThemeToggle}
+                  onClick={handleInstantThemeToggle}
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-sm ${
                     isLight
                       ? "bg-white text-teal-600 border border-slate-200 hover:bg-slate-50"

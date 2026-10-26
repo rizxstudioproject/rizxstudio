@@ -70,6 +70,17 @@ export default function AdminTopBar({
   const { lang, setLang, tr } = useLang();
   const { themeMode, primaryColor, toggleThemeMode } = useMotionTheme();
   const isLight = themeMode === "light";
+  const lastThemeTriggerRef = useRef<number>(0);
+
+  const handleInstantThemeToggle = (e?: React.SyntheticEvent) => {
+    const now = Date.now();
+    if (now - lastThemeTriggerRef.current < 400) return;
+    lastThemeTriggerRef.current = now;
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try { navigator.vibrate(12); } catch (_) {}
+    }
+    toggleThemeMode();
+  };
   const isId = lang === "id";
   const isMin = lang === "min";
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -824,7 +835,9 @@ export default function AdminTopBar({
           {/* Theme Mode Toggle (Desktop Admin - Matches Circular Moon/Sun Button Style) */}
           <button
             type="button"
-            onClick={toggleThemeMode}
+            onMouseEnter={handleInstantThemeToggle}
+            onTouchStart={handleInstantThemeToggle}
+            onClick={handleInstantThemeToggle}
             className={`hidden md:flex w-9 h-9 rounded-full items-center justify-center transition-all active:scale-95 cursor-pointer select-none shrink-0 ${
               isLight
                 ? "bg-white text-teal-600 border border-slate-200 hover:bg-slate-50 shadow-xs"

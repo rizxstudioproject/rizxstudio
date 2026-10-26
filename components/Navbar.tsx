@@ -25,6 +25,17 @@ export default function Navbar() {
   const { lang, setLang, t } = useLang();
   const { themeMode, toggleThemeMode, socialContacts, primaryColor } = useMotionTheme();
   const isLight = themeMode === "light";
+  const lastThemeTriggerRef = useRef<number>(0);
+
+  const handleInstantThemeToggle = (e?: React.SyntheticEvent) => {
+    const now = Date.now();
+    if (now - lastThemeTriggerRef.current < 400) return;
+    lastThemeTriggerRef.current = now;
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      try { navigator.vibrate(12); } catch (_) {}
+    }
+    toggleThemeMode();
+  };
   const [isLangOpen, setIsLangOpen] = useState(false);
   const langContainerRef = useRef<HTMLDivElement>(null);
   const languages = [
@@ -272,7 +283,9 @@ export default function Navbar() {
             {/* Dark / Light Mode Toggle Button */}
             <button
               type="button"
-              onClick={toggleThemeMode}
+              onMouseEnter={handleInstantThemeToggle}
+              onTouchStart={handleInstantThemeToggle}
+              onClick={handleInstantThemeToggle}
               aria-label="Toggle Dark and Light Mode"
               title={themeMode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
               className="w-8 h-8 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer"
