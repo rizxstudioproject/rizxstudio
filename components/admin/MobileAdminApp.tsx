@@ -1071,7 +1071,7 @@ export default function MobileAdminApp({
                     </span>
                     <div className="text-xs sm:text-sm font-bold text-white truncate">13 Layanan</div>
                     <span className="text-[10px] text-teal-400 font-semibold block">
-                      By-Project
+                      Katalog & Paket
                     </span>
                   </div>
                 </div>

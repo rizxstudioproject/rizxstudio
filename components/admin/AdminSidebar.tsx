@@ -108,13 +108,11 @@ export default function AdminSidebar({
     {
       id: "products",
       label: tr("Products & Services", "Produk & Layanan", "Produk & Jaso"),
-      badge: "By-Project",
       icon: RiBox3Fill,
     },
     {
       id: "tracking",
-      label: tr("Project Tracking (Live)", "Tracking Proyek (Live)", "Tracking Proyek (Live)"),
-      badge: "Live",
+      label: tr("Project Tracking", "Tracking Proyek", "Tracking Proyek"),
       icon: RiCompass3Fill,
     },
     {
