@@ -18,6 +18,8 @@ import {
   RiRefreshLine,
   RiSparklingFill,
   RiEyeLine,
+  RiImageFill,
+  RiAttachmentLine,
 } from "react-icons/ri";
 import {
   getAllTrackedProjects,
@@ -28,9 +30,11 @@ import {
   ProjectProgressStage,
   getStageMetadata,
 } from "@/lib/projectTrackerService";
+import { getOrderReceipt } from "@/lib/paymentService";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
+import ReceiptProofModal, { ReceiptProofData } from "./ReceiptProofModal";
 
 export default function ProjectTrackerWorkspace() {
   const { primaryColor, themeMode, socialContacts } = useMotionTheme();
@@ -47,6 +51,7 @@ export default function ProjectTrackerWorkspace() {
   const [editingProject, setEditingProject] = useState<ProjectTrackingItem | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [clientPreviewCode, setClientPreviewCode] = useState<string | null>(null);
+  const [selectedReceiptProof, setSelectedReceiptProof] = useState<ReceiptProofData | null>(null);
 
   // Edit form state
   const [editStage, setEditStage] = useState<ProjectProgressStage>("in_progress");
@@ -348,6 +353,12 @@ export default function ProjectTrackerWorkspace() {
             <tbody className={`divide-y ${isLight ? "divide-slate-200" : "divide-white/5"}`}>
               {filteredProjects.map((p) => {
                 const meta = getStageMetadata(p.currentStage);
+                const receiptInfo = getOrderReceipt(p.refCode);
+                const proofUrl = p.paymentProofUrl || receiptInfo?.paymentProofUrl;
+                const receiptNum = p.receiptNumber || receiptInfo?.receiptNumber;
+                const paymentMethodName = p.paymentMethod || receiptInfo?.paymentMethod;
+                const paymentPlanName = p.paymentPlan || receiptInfo?.paymentPlan;
+
                 return (
                   <tr key={p.refCode} className={`transition-colors ${isLight ? "hover:bg-slate-50/80" : "hover:bg-white/[0.02]"}`}>
                     {/* Ref Code */}
@@ -385,6 +396,30 @@ export default function ProjectTrackerWorkspace() {
                           <RiWhatsappLine className="w-3 h-3 text-emerald-500" />
                           <span>{p.clientPhone}</span>
                         </a>
+                      )}
+                      {proofUrl && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedReceiptProof({
+                              imageUrl: proofUrl,
+                              clientName: p.clientName,
+                              refCode: p.refCode,
+                              receiptNumber: receiptNum,
+                              budget: p.budget,
+                              serviceTitle: p.serviceTitle,
+                              packageName: p.packageName,
+                              clientPhone: p.clientPhone,
+                              paymentMethod: paymentMethodName,
+                              paymentPlan: paymentPlanName,
+                            })
+                          }
+                          className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 px-2 py-0.5 rounded-md cursor-pointer transition"
+                          title="Lihat Bukti Resi Transfer"
+                        >
+                          <RiImageFill className="w-3 h-3 text-emerald-400" />
+                          <span>Resi Transfer 📄</span>
+                        </button>
                       )}
                     </td>
 
@@ -449,6 +484,33 @@ export default function ProjectTrackerWorkspace() {
                     {/* Actions */}
                     <td className="py-3.5 px-4 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-1.5">
+                        {proofUrl && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSelectedReceiptProof({
+                                imageUrl: proofUrl,
+                                clientName: p.clientName,
+                                refCode: p.refCode,
+                                receiptNumber: receiptNum,
+                                budget: p.budget,
+                                serviceTitle: p.serviceTitle,
+                                packageName: p.packageName,
+                                clientPhone: p.clientPhone,
+                                paymentMethod: paymentMethodName,
+                                paymentPlan: paymentPlanName,
+                              })
+                            }
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                              isLight
+                                ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300"
+                                : "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40"
+                            }`}
+                            title="Lihat Foto Bukti Resi Transfer Klien"
+                          >
+                            <RiImageFill className="w-4 h-4 text-emerald-500" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => setClientPreviewCode(p.refCode)}
@@ -810,6 +872,12 @@ export default function ProjectTrackerWorkspace() {
           initialCode={clientPreviewCode}
         />
       )}
+
+      {/* High-Res Receipt Proof Viewer */}
+      <ReceiptProofModal
+        data={selectedReceiptProof}
+        onClose={() => setSelectedReceiptProof(null)}
+      />
     </div>
   );
 }

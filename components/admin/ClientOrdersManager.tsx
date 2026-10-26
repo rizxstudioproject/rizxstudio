@@ -24,6 +24,10 @@ import {
   RiShieldCheckLine,
   RiFlashlightFill,
   RiFolderZipLine,
+  RiImageLine,
+  RiImageFill,
+  RiAttachmentLine,
+  RiUpload2Line,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -34,10 +38,13 @@ import {
   saveAllTrackedProjects,
   updateProjectProgress,
   confirmProjectKickoff,
+  updateProjectPaymentProof,
   deleteTrackedProject,
   getStageMetadata,
 } from "@/lib/projectTrackerService";
+import { getOrderReceipt } from "@/lib/paymentService";
 import VisualOrderTracker from "@/components/VisualOrderTracker";
+import ReceiptProofModal, { ReceiptProofData } from "./ReceiptProofModal";
 
 export default function ClientOrdersManager() {
   const { lang, tr } = useLang();
@@ -61,6 +68,14 @@ export default function ClientOrdersManager() {
 
   // Modal: Preview Client Tracking View
   const [previewingOrder, setPreviewingOrder] = useState<ProjectTrackingItem | null>(null);
+
+  // Modal: View Payment Receipt Proof
+  const [selectedReceiptProof, setSelectedReceiptProof] = useState<ReceiptProofData | null>(null);
+
+  // Modal: Attach Manual Proof
+  const [attachingOrder, setAttachingOrder] = useState<ProjectTrackingItem | null>(null);
+  const [manualProofUrl, setManualProofUrl] = useState<string>("");
+  const [isUploadingManualProof, setIsUploadingManualProof] = useState<boolean>(false);
 
   // Modal: Add Manual Client Order
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
@@ -137,6 +152,55 @@ export default function ClientOrdersManager() {
     } catch (err) {
       console.error("Failed to confirm kickoff:", err);
       showToast("Gagal mengonfirmasi pengerjaan.");
+    }
+  };
+
+  // Save manual receipt proof URL
+  const handleSaveManualProof = async (order: ProjectTrackingItem, url: string) => {
+    if (!url.trim()) return;
+    try {
+      const updated = await updateProjectPaymentProof(
+        order.refCode,
+        url.trim(),
+        order.receiptNumber,
+        order.paymentMethod,
+        order.paymentPlan
+      );
+      if (updated) {
+        setOrders((prev) => prev.map((o) => (o.refCode === updated.refCode ? updated : o)));
+        showToast(`Bukti resi transfer untuk ${order.refCode} berhasil disimpan & disinkronkan!`);
+      }
+      setAttachingOrder(null);
+      setManualProofUrl("");
+    } catch (e) {
+      showToast("Gagal menyimpan bukti transfer.");
+    }
+  };
+
+  // Upload manual receipt proof file
+  const handleUploadManualProofFile = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    order: ProjectTrackingItem
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingManualProof(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "receipts");
+      const res = await fetch("/api/admin/media-upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.success && data.url) {
+        setManualProofUrl(data.url);
+        await handleSaveManualProof(order, data.url);
+      } else {
+        alert("Gagal unggah: " + (data.error || ""));
+      }
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setIsUploadingManualProof(false);
     }
   };
 
@@ -484,6 +548,12 @@ export default function ClientOrdersManager() {
               `Halo kak ${order.clientName}! 👋 Kami dari Rizx Studio ingin menyampaikan kabar terkait proyek *${order.serviceTitle}* (Kode Referensi: *${order.refCode}*). Status saat ini: *${meta.label}*.`
             )}`;
 
+            const receiptInfo = getOrderReceipt(order.refCode);
+            const proofUrl = order.paymentProofUrl || receiptInfo?.paymentProofUrl;
+            const receiptNum = order.receiptNumber || receiptInfo?.receiptNumber;
+            const paymentMethodName = order.paymentMethod || receiptInfo?.paymentMethod;
+            const paymentPlanName = order.paymentPlan || receiptInfo?.paymentPlanLabel;
+
             return (
               <div
                 key={order.refCode}
@@ -555,10 +625,10 @@ export default function ClientOrdersManager() {
                   </div>
                 </div>
 
-                {/* Body Details: Contact & Brief */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5">
-                  {/* Client Contact Info */}
-                  <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2 text-xs">
+                {/* Body Details: Contact, Brief, and Payment Proof Box */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 mb-5">
+                  {/* Client Contact Info (4 cols) */}
+                  <div className="lg:col-span-4 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2 text-xs">
                     <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">
                       Kontak Klien
                     </div>
@@ -600,14 +670,14 @@ export default function ClientOrdersManager() {
                     )}
                   </div>
 
-                  {/* Client Project Brief */}
-                  <div className="lg:col-span-2 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-1.5 text-xs">
+                  {/* Client Project Brief (4 cols) */}
+                  <div className="lg:col-span-4 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-1.5 text-xs">
                     <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
                       <RiFileList3Line className="w-3.5 h-3.5" />
                       <span>Catatan / Brief Klien</span>
                     </div>
                     {order.brief ? (
-                      <p className="text-neutral-300 text-xs italic leading-relaxed line-clamp-3">
+                      <p className="text-neutral-300 text-xs italic leading-relaxed line-clamp-4">
                         &ldquo;{order.brief}&rdquo;
                       </p>
                     ) : (
@@ -615,6 +685,117 @@ export default function ClientOrdersManager() {
                         Tidak ada catatan brief tertulis. Klien memilih paket standar langsung.
                       </p>
                     )}
+                  </div>
+
+                  {/* Payment Proof / Resi Status Card (4 cols) */}
+                  <div className={`lg:col-span-4 p-3.5 rounded-xl border flex flex-col justify-between text-xs transition-all ${
+                    proofUrl ? "bg-emerald-500/[0.06] border-emerald-500/30 shadow-xs" : "bg-white/[0.03] border-white/[0.08]"
+                  }`}>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] font-mono uppercase tracking-wider flex items-center gap-1.5 font-bold text-teal-400">
+                          <RiShieldCheckLine className="w-3.5 h-3.5" />
+                          <span>Bukti Resi Transfer</span>
+                        </div>
+                        {proofUrl ? (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">
+                            Terlampir ✓
+                          </span>
+                        ) : (
+                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">
+                            Belum Ada Resi
+                          </span>
+                        )}
+                      </div>
+
+                      {receiptNum && (
+                        <div className="text-[11px] font-mono text-neutral-300 flex items-center justify-between">
+                          <span className="text-neutral-400">No. Inv:</span>
+                          <span className="font-bold text-teal-300">{receiptNum}</span>
+                        </div>
+                      )}
+
+                      {paymentMethodName && (
+                        <div className="text-[11px] font-mono text-neutral-300 flex items-center justify-between">
+                          <span className="text-neutral-400">Metode:</span>
+                          <span className="font-bold uppercase text-neutral-200">
+                            {paymentMethodName} {paymentPlanName ? `(${paymentPlanName.includes("DP") ? "DP 50%" : "Lunas"})` : ""}
+                          </span>
+                        </div>
+                      )}
+
+                      {proofUrl ? (
+                        <div
+                          onClick={() =>
+                            setSelectedReceiptProof({
+                              imageUrl: proofUrl,
+                              clientName: order.clientName,
+                              refCode: order.refCode,
+                              receiptNumber: receiptNum,
+                              budget: order.budget,
+                              serviceTitle: order.serviceTitle,
+                              packageName: order.packageName,
+                              clientPhone: order.clientPhone,
+                              paymentMethod: paymentMethodName,
+                              paymentPlan: paymentPlanName,
+                            })
+                          }
+                          className="group relative rounded-lg overflow-hidden border border-white/10 bg-black/60 h-16 flex items-center justify-center cursor-pointer hover:border-teal-400 transition"
+                        >
+                          <img
+                            src={proofUrl}
+                            alt="Bukti Transfer"
+                            className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black/50 group-hover:bg-black/30 flex items-center justify-center transition text-[11px] font-bold text-white gap-1.5 backdrop-blur-[1px]">
+                            <RiEyeLine className="w-3.5 h-3.5 text-teal-400" />
+                            <span>Klik Lihat Foto Resi</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-[11px] text-neutral-400 italic">
+                          Klien belum mengunggah bukti pembayaran via sistem web.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2 mt-2">
+                      {proofUrl ? (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedReceiptProof({
+                              imageUrl: proofUrl,
+                              clientName: order.clientName,
+                              refCode: order.refCode,
+                              receiptNumber: receiptNum,
+                              budget: order.budget,
+                              serviceTitle: order.serviceTitle,
+                              packageName: order.packageName,
+                              clientPhone: order.clientPhone,
+                              paymentMethod: paymentMethodName,
+                              paymentPlan: paymentPlanName,
+                            })
+                          }
+                          className="w-full py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <RiImageFill className="w-3.5 h-3.5" />
+                          <span>Perbesar Foto Resi 🔍</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAttachingOrder(order);
+                            setManualProofUrl("");
+                          }}
+                          className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
+                        >
+                          <RiAttachmentLine className="w-3.5 h-3.5 text-teal-400" />
+                          <span>+ Lampirkan Resi Manual</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -697,6 +878,43 @@ export default function ClientOrdersManager() {
                       <RiCompass3Line className="w-3.5 h-3.5 text-teal-400" />
                       <span>Cek Tampilan Klien</span>
                     </button>
+
+                    {/* View / Attach Receipt Proof in action row */}
+                    {proofUrl ? (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSelectedReceiptProof({
+                            imageUrl: proofUrl,
+                            clientName: order.clientName,
+                            refCode: order.refCode,
+                            receiptNumber: receiptNum,
+                            budget: order.budget,
+                            serviceTitle: order.serviceTitle,
+                            packageName: order.packageName,
+                            clientPhone: order.clientPhone,
+                            paymentMethod: paymentMethodName,
+                            paymentPlan: paymentPlanName,
+                          })
+                        }
+                        className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                      >
+                        <RiImageFill className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Lihat Bukti Resi 📄</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAttachingOrder(order);
+                          setManualProofUrl("");
+                        }}
+                        className="px-3 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-neutral-200 border border-white/10 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                      >
+                        <RiAttachmentLine className="w-3.5 h-3.5" />
+                        <span>Lampirkan Resi</span>
+                      </button>
+                    )}
 
                     {/* Chat WhatsApp direct */}
                     {order.clientPhone && (
@@ -1138,6 +1356,128 @@ export default function ClientOrdersManager() {
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* ── MODAL 4: HIGH-RES RECEIPT PROOF VIEWER ── */}
+      <ReceiptProofModal
+        data={selectedReceiptProof}
+        onClose={() => setSelectedReceiptProof(null)}
+        onConfirmKickoff={(code) => {
+          const o = orders.find((i) => i.refCode === code);
+          if (o) handleConfirmKickoff(o);
+        }}
+      />
+
+      {/* ── MODAL 5: MANUAL ATTACH RECEIPT PROOF ── */}
+      {attachingOrder && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="relative w-full max-w-lg rounded-2xl border border-white/20 bg-[#111317] text-white p-6 shadow-2xl">
+            <button
+              onClick={() => {
+                setAttachingOrder(null);
+                setManualProofUrl("");
+              }}
+              className="absolute top-5 right-5 p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"
+            >
+              <RiCloseLine className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-2 mb-1">
+              <span className="p-2 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20">
+                <RiAttachmentLine className="w-5 h-5" />
+              </span>
+              <div>
+                <h3 className="text-base font-bold text-white">Lampirkan Bukti Transfer Klien</h3>
+                <p className="text-xs text-neutral-400 font-mono">
+                  Order #{attachingOrder.refCode} • {attachingOrder.clientName}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-neutral-300 mt-3 mb-4 leading-relaxed">
+              Jika klien mengirimkan struk transfer melalui WhatsApp, Anda dapat mengunggah file foto resi atau memasukkan link gambar secara manual di sini.
+            </p>
+
+            <div className="space-y-4">
+              {/* File Upload Option */}
+              <div className="p-4 rounded-xl border border-dashed border-teal-500/40 bg-teal-500/5 text-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="manualProofFileInput"
+                  disabled={isUploadingManualProof}
+                  onChange={(e) => handleUploadManualProofFile(e, attachingOrder)}
+                  className="hidden"
+                />
+                <label
+                  htmlFor="manualProofFileInput"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs cursor-pointer shadow-md shadow-teal-500/20 transition active:scale-95"
+                >
+                  <RiUpload2Line className="w-4 h-4" />
+                  <span>
+                    {isUploadingManualProof ? "Sedang Mengunggah..." : "Pilih File Foto Bukti Resi"}
+                  </span>
+                </label>
+                <p className="text-[11px] text-neutral-400 mt-2">Format JPG, PNG, atau WEBP maks 5MB</p>
+              </div>
+
+              {/* Or Direct URL Input */}
+              <div className="relative flex items-center">
+                <div className="flex-grow border-t border-white/10" />
+                <span className="px-3 text-[10px] uppercase font-mono text-neutral-400">Atau Gunakan Link Gambar</span>
+                <div className="flex-grow border-t border-white/10" />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                  URL Gambar Bukti Resi
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://.../bukti-transfer.jpg"
+                  value={manualProofUrl}
+                  onChange={(e) => setManualProofUrl(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-neutral-500 text-xs outline-none focus:border-teal-400 font-mono"
+                />
+              </div>
+
+              {manualProofUrl && (
+                <div className="rounded-xl overflow-hidden border border-white/10 bg-black/40 max-h-48 flex items-center justify-center p-2">
+                  <img
+                    src={manualProofUrl}
+                    alt="Preview Bukti"
+                    className="max-h-40 object-contain rounded-lg"
+                    onError={(e) => {
+                      (e.target as HTMLElement).style.display = "none";
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  setAttachingOrder(null);
+                  setManualProofUrl("");
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                disabled={!manualProofUrl.trim() || isUploadingManualProof}
+                onClick={() => handleSaveManualProof(attachingOrder, manualProofUrl)}
+                className="px-5 py-2 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-400 disabled:opacity-40 disabled:cursor-not-allowed text-black transition flex items-center gap-1.5 shadow-md shadow-teal-500/20"
+              >
+                <RiCheckLine className="w-4 h-4" />
+                <span>Simpan Bukti Resi</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

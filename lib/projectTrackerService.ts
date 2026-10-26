@@ -28,6 +28,10 @@ export interface ProjectTrackingItem {
   confirmedAt?: string;
   completedAt?: string;
   updatedAt: string;
+  paymentProofUrl?: string;
+  receiptNumber?: string;
+  paymentMethod?: string;
+  paymentPlan?: string;
 }
 
 const STORAGE_KEY = "rizx_project_tracking_records";
@@ -418,6 +422,40 @@ export async function confirmProjectKickoff(
     notes: defaultNote,
     confirmedAt: current[idx].confirmedAt || now,
     updatedAt: now,
+  };
+
+  current[idx] = updatedItem;
+  await saveAllTrackedProjects(current);
+  return updatedItem;
+}
+
+/**
+ * Update project payment proof URL & receipt info
+ */
+export async function updateProjectPaymentProof(
+  refCode: string,
+  proofUrl: string,
+  receiptNumber?: string,
+  paymentMethod?: string,
+  paymentPlan?: string
+): Promise<ProjectTrackingItem | null> {
+  const current = await getAllTrackedProjects();
+  const cleanCode = refCode.trim().toUpperCase();
+  const idx = current.findIndex(
+    (i) =>
+      i.refCode.toUpperCase() === cleanCode ||
+      i.refCode.toUpperCase().replace(/[^A-Z0-9]/g, "") === cleanCode.replace(/[^A-Z0-9]/g, "")
+  );
+
+  if (idx < 0) return null;
+
+  const updatedItem: ProjectTrackingItem = {
+    ...current[idx],
+    paymentProofUrl: proofUrl,
+    ...(receiptNumber ? { receiptNumber } : {}),
+    ...(paymentMethod ? { paymentMethod } : {}),
+    ...(paymentPlan ? { paymentPlan } : {}),
+    updatedAt: new Date().toISOString(),
   };
 
   current[idx] = updatedItem;

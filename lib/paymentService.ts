@@ -1,10 +1,14 @@
 /**
  * Payment & Order Receipt Service — Rizx Studio
  * Handles payment methods, accounts, receipt slips, and payment proof linking.
+ * Connected to Supabase Cloud & LocalStorage
  */
 
+import { supabase, isSupabaseConfigured } from "./supabase";
+import { updateProjectPaymentProof } from "./projectTrackerService";
+
 export interface PaymentAccount {
-  id: "bca" | "mandiri" | "qris" | "dana";
+  id: string;
   name: string;
   category: "bank" | "qris" | "ewallet";
   accountNumber: string;
@@ -12,6 +16,7 @@ export interface PaymentAccount {
   instructions: string;
   badge?: string;
   qrImageUrl?: string;
+  isActive?: boolean;
 }
 
 export const PAYMENT_ACCOUNTS: PaymentAccount[] = [
@@ -23,6 +28,7 @@ export const PAYMENT_ACCOUNTS: PaymentAccount[] = [
     accountHolder: "Rizx Studio / Fomi R",
     instructions: "Transfer melalui m-BCA, KlikBCA, atau ATM BCA ke nomor rekening resmi di atas.",
     badge: "Paling Populer",
+    isActive: true,
   },
   {
     id: "mandiri",
@@ -32,6 +38,7 @@ export const PAYMENT_ACCOUNTS: PaymentAccount[] = [
     accountHolder: "Rizx Studio",
     instructions: "Transfer melalui Livin' by Mandiri, ATM, atau internet banking Mandiri.",
     badge: "Bebas Biaya",
+    isActive: true,
   },
   {
     id: "qris",
@@ -42,6 +49,7 @@ export const PAYMENT_ACCOUNTS: PaymentAccount[] = [
     instructions: "Scan kode QRIS menggunakan aplikasi mobile banking atau e-wallet apa saja.",
     badge: "Instant Scan",
     qrImageUrl: "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=00020101021126670016ID.CO.QRIS.WWW0118936009143817691460215ID10263817691460303UMI51440014ID.LINKAJA.WWW0215ID10263817691460303UMI5204581253033605802ID5911RIZX_STUDIO6007PADANG61052511162070703A016304E8A3",
+    isActive: true,
   },
   {
     id: "dana",
@@ -51,8 +59,99 @@ export const PAYMENT_ACCOUNTS: PaymentAccount[] = [
     accountHolder: "Rizx Studio / Fomi R",
     instructions: "Kirim saldo DANA ke nomor akun di atas tanpa biaya admin.",
     badge: "E-Wallet",
+    isActive: true,
   },
 ];
+
+const SUPABASE_PAYMENT_ACCOUNTS_KEY = "site-payment-accounts";
+const PAYMENT_ACCOUNTS_STORAGE_KEY = "rizx_payment_accounts_v1";
+
+/**
+ * Get all payment accounts from Supabase Cloud with LocalStorage fallback
+ */
+export async function getPaymentAccounts(): Promise<PaymentAccount[]> {
+  // 1. Try Supabase Cloud
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("client_descriptions")
+        .select("description")
+        .eq("client_id", SUPABASE_PAYMENT_ACCOUNTS_KEY)
+        .single();
+
+      if (!error && data && data.description) {
+        const parsed = JSON.parse(data.description);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem(PAYMENT_ACCOUNTS_STORAGE_KEY, JSON.stringify(parsed));
+          }
+          return parsed;
+        }
+      }
+    } catch (err) {
+      console.warn("Supabase payment accounts read notice:", err);
+    }
+  }
+
+  // 2. Try LocalStorage
+  if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem(PAYMENT_ACCOUNTS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed;
+        }
+      }
+    } catch {}
+  }
+
+  // 3. Fallback to default
+  return PAYMENT_ACCOUNTS;
+}
+
+/**
+ * Synchronous get for immediate render
+ */
+export function getPaymentAccountsSync(): PaymentAccount[] {
+  if (typeof window !== "undefined") {
+    try {
+      const saved = localStorage.getItem(PAYMENT_ACCOUNTS_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+  }
+  return PAYMENT_ACCOUNTS;
+}
+
+/**
+ * Persist payment accounts to Supabase Cloud & LocalStorage
+ */
+export async function savePaymentAccounts(accounts: PaymentAccount[]): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(PAYMENT_ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+      window.dispatchEvent(new CustomEvent("rizx_payment_accounts_updated", { detail: accounts }));
+    }
+
+    if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase.from("client_descriptions").upsert({
+        client_id: SUPABASE_PAYMENT_ACCOUNTS_KEY,
+        description: JSON.stringify(accounts),
+        tools: "payment_accounts",
+      });
+      if (error) {
+        console.warn("Supabase payment accounts save notice:", error);
+      }
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Gagal menyimpan akun pembayaran" };
+  }
+}
 
 export interface OrderReceiptItem {
   receiptNumber: string; // e.g. RZ-INV-2026-8492
@@ -69,7 +168,7 @@ export interface OrderReceiptItem {
   totalBudget: string;
   paymentPlan: "dp50" | "full";
   paymentPlanLabel: string;
-  paymentMethod: "bca" | "mandiri" | "qris" | "dana";
+  paymentMethod: string;
   accountDetails: PaymentAccount;
   amountToPay: string;
   status: "waiting_payment" | "verifying" | "in_progress" | "completed";
@@ -98,6 +197,16 @@ export function saveOrderReceipt(receipt: OrderReceiptItem): void {
     }
     localStorage.setItem(RECEIPTS_STORAGE_KEY, JSON.stringify(existing));
     window.dispatchEvent(new CustomEvent("rizx_receipt_updated", { detail: receipt }));
+
+    if (receipt.paymentProofUrl) {
+      updateProjectPaymentProof(
+        receipt.refCode,
+        receipt.paymentProofUrl,
+        receipt.receiptNumber,
+        receipt.paymentMethod,
+        receipt.paymentPlan
+      ).catch(() => {});
+    }
   } catch (err) {
     console.warn("Save receipt notice:", err);
   }
@@ -140,12 +249,13 @@ export function createReceiptFromOrder(data: {
   deliverables?: string[];
   budget: string;
   paymentPlan: "dp50" | "full";
-  paymentMethod: "bca" | "mandiri" | "qris" | "dana";
+  paymentMethod: string;
   paymentProofUrl?: string;
   notes?: string;
 }): OrderReceiptItem {
+  const accounts = getPaymentAccountsSync();
   const account =
-    PAYMENT_ACCOUNTS.find((a) => a.id === data.paymentMethod) || PAYMENT_ACCOUNTS[0];
+    accounts.find((a) => a.id === data.paymentMethod) || accounts[0];
 
   const receiptNumber = `RZ-INV-${data.refCode.replace(/[^a-zA-Z0-9]/g, "").slice(-6) || Math.floor(100000 + Math.random() * 900000)}`;
   const origin = typeof window !== "undefined" ? window.location.origin : "https://rizxstudio.com";

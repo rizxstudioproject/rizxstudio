@@ -11,6 +11,9 @@ import { registerTrackedProject } from "@/lib/projectTrackerService";
 import { broadcastNewIncomingOrder } from "@/lib/adminNotificationService";
 import {
   PAYMENT_ACCOUNTS,
+  getPaymentAccounts,
+  getPaymentAccountsSync,
+  PaymentAccount,
   createReceiptFromOrder,
   OrderReceiptItem,
 } from "@/lib/paymentService";
@@ -148,12 +151,30 @@ export default function ProductsPage() {
   const [clientBudget, setClientBudget] = useState<string>("5jt - 15jt IDR");
   const [projectBrief, setProjectBrief] = useState<string>("");
 
-  // Payment selection states
+  // Payment selection states & Dynamic Bank Accounts
   const [paymentPlan, setPaymentPlan] = useState<"dp50" | "full">("dp50");
-  const [paymentMethod, setPaymentMethod] = useState<"bca" | "mandiri" | "qris" | "dana">("bca");
+  const [paymentMethod, setPaymentMethod] = useState<string>("bca");
   const [activeReceipt, setActiveReceipt] = useState<OrderReceiptItem | null>(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState<boolean>(false);
   const [copiedFormAccount, setCopiedFormAccount] = useState<boolean>(false);
+
+  // Dynamic Payment accounts (synced live with Admin Dashboard & Supabase Cloud)
+  const [paymentAccountsList, setPaymentAccountsList] = useState<PaymentAccount[]>(() => getPaymentAccountsSync());
+
+  useEffect(() => {
+    getPaymentAccounts().then(setPaymentAccountsList);
+    const handleAccUpdate = (e: Event) => {
+      const custom = e as CustomEvent<PaymentAccount[]>;
+      if (custom.detail) setPaymentAccountsList(custom.detail);
+    };
+    window.addEventListener("rizx_payment_accounts_updated", handleAccUpdate);
+    return () => window.removeEventListener("rizx_payment_accounts_updated", handleAccUpdate);
+  }, []);
+
+  const activePaymentAccounts = useMemo(() => {
+    const active = paymentAccountsList.filter((a) => a.isActive !== false);
+    return active.length > 0 ? active : PAYMENT_ACCOUNTS;
+  }, [paymentAccountsList]);
 
   // Confirmation Modal states
   const [isConfirmOpen, setIsConfirmOpen] = useState<boolean>(false);
@@ -444,7 +465,7 @@ export default function ProductsPage() {
 
   // Construct Formatted WhatsApp Message
   const buildWhatsAppMessage = () => {
-    const activeAcc = PAYMENT_ACCOUNTS.find((a) => a.id === paymentMethod) || PAYMENT_ACCOUNTS[0];
+    const activeAcc = activePaymentAccounts.find((a) => a.id === paymentMethod) || activePaymentAccounts[0];
     const planText = paymentPlan === "dp50" ? "DP 50% (Uang Muka)" : "Pelunasan 100% (Full Payment)";
     const origin = typeof window !== "undefined" ? window.location.origin : "https://rizxstudio.com";
     const trackingLink = `${origin}/tracking?code=${orderRefId}`;
@@ -1267,7 +1288,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                     Pilih Rekening / Saluran Pembayaran:
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
-                    {PAYMENT_ACCOUNTS.map((acc) => {
+                    {activePaymentAccounts.map((acc) => {
                       const isSelected = paymentMethod === acc.id;
                       return (
                         <button
@@ -1284,7 +1305,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-[11px] font-bold text-white uppercase font-mono">
-                              {acc.id === "qris" ? "QRIS" : acc.id.toUpperCase()}
+                              {acc.category === "qris" ? "QRIS" : acc.name.split("(")[0].replace("Bank", "").trim() || acc.id.toUpperCase()}
                             </span>
                             {isSelected && (
                               <span className="w-2 h-2 rounded-full bg-[#16b09f] shadow-[0_0_8px_#16b09f]" />
@@ -1301,7 +1322,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                   {/* Active Account Detail Box with 1-click Copy */}
                   {(() => {
                     const activeAcc =
-                      PAYMENT_ACCOUNTS.find((a) => a.id === paymentMethod) || PAYMENT_ACCOUNTS[0];
+                      activePaymentAccounts.find((a) => a.id === paymentMethod) || activePaymentAccounts[0];
                     return (
                       <div className="p-3.5 rounded-xl bg-white/[0.03] border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <div className="space-y-1">
