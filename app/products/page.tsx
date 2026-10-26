@@ -426,7 +426,7 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
               }}
               className="px-8 py-3.5 rounded-full font-bold text-xs sm:text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
             >
-              <span>{tr("Start a Project / Consultation", "Mulai Konsultasi & Pesan Proyek", "Mulai Diskusi Proyek")}</span>
+              <span>{tr("Consult Now", "Konsultasi Sekarang", "Konsultasi Kini")}</span>
               <RiArrowRightLine className="w-4 h-4" />
             </button>
           </div>
