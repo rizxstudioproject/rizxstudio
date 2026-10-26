@@ -5,6 +5,8 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Contact from "@/components/Contact";
 import WhatsAppPopup from "@/components/WhatsAppPopup";
+import ProjectTrackerModal from "@/components/ProjectTrackerModal";
+import { registerTrackedProject } from "@/lib/projectTrackerService";
 import {
   PRODUCTS_DATA,
   PRODUCT_CATEGORIES,
@@ -74,7 +76,20 @@ export default function ProductsPage() {
 
   // Form highlight animation state
   const [formHighlighted, setFormHighlighted] = useState<boolean>(false);
+  const [isTrackerModalOpen, setIsTrackerModalOpen] = useState<boolean>(false);
+  const [trackerInitialCode, setTrackerInitialCode] = useState<string>("RZX-PRJ-632153");
   const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const trackParam = params.get("track") || params.get("ref");
+      if (trackParam) {
+        setTrackerInitialCode(trackParam);
+        setIsTrackerModalOpen(true);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (typeof document !== "undefined") {
@@ -193,6 +208,26 @@ export default function ProductsPage() {
     // Generate random reference code
     const randomCode = `RZX-PRJ-${Math.floor(100000 + Math.random() * 900000)}`;
     setOrderRefId(randomCode);
+
+    registerTrackedProject({
+      refCode: randomCode,
+      clientName: clientName.trim(),
+      clientPhone: clientPhone.trim(),
+      clientEmail: clientEmail.trim() || undefined,
+      serviceTitle: selectedProductObj.title,
+      categoryLabel: selectedProductObj.categoryLabel,
+      packageName: selectedPackageObj.name,
+      packageDuration: selectedPackageObj.duration,
+      budget: clientBudget,
+      startDate: new Date().toISOString(),
+      targetDeadline: clientTimeline,
+      currentStage: "queued",
+      progressPercent: 15,
+      notes: "Pesanan masuk dari formulir website. Menunggu konfirmasi & jadwal kickoff.",
+      deliverables: selectedPackageObj.deliverables,
+      updatedAt: new Date().toISOString(),
+    }).catch(e => console.warn("Tracker registration notice:", e));
+
     setIsConfirmOpen(true);
   };
 
@@ -352,6 +387,17 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
               <RiWhatsappLine className="w-4 h-4 text-emerald-400" />
               <span>{tr("Chat WhatsApp Direct", "Tanya Langsung via WhatsApp", "Hubungi di WhatsApp")}</span>
             </a>
+            <button
+              type="button"
+              onClick={() => {
+                setTrackerInitialCode("RZX-PRJ-632153");
+                setIsTrackerModalOpen(true);
+              }}
+              className="px-6 py-3 rounded-full bg-cyan-500/10 border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 font-semibold text-xs sm:text-sm hover:bg-cyan-500/20 transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/10"
+            >
+              <RiCompass3Line className="w-4 h-4 text-cyan-400" />
+              <span>{tr("Lacak Progres Proyek (Tracking)", "Lacak Progres Proyek (Tracking)", "Lacak Proyek (Tracking)")}</span>
+            </button>
           </div>
         </div>
 
@@ -999,6 +1045,17 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
             <div className="space-y-2.5">
               <button
                 type="button"
+                onClick={() => {
+                  setTrackerInitialCode(orderRefId);
+                  setIsTrackerModalOpen(true);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <RiCompass3Line className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Lihat Live Tracking Proyek ({orderRefId}) ↗</span>
+              </button>
+              <button
+                type="button"
                 disabled={isSubmitting}
                 onClick={handleFinalConfirmWhatsApp}
                 style={{
@@ -1035,6 +1092,13 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
           </div>
         </div>
       )}
+
+      {/* Project Tracker Modal */}
+      <ProjectTrackerModal
+        isOpen={isTrackerModalOpen}
+        onClose={() => setIsTrackerModalOpen(false)}
+        initialCode={trackerInitialCode}
+      />
 
       {/* Global Contact Section */}
       <Contact />

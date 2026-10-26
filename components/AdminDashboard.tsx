@@ -78,6 +78,7 @@ import ThemeColorWorkspace from "./admin/ThemeColorWorkspace";
 import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
 import CrmAnalyticsView from "./admin/CrmAnalyticsView";
 import SeoWorkspace from "./admin/SeoWorkspace";
+import ProjectTrackerWorkspace from "./admin/ProjectTrackerWorkspace";
 import MobileAdminApp from "./admin/MobileAdminApp";
 import MetaSEO from "./MetaSEO";
 import { saveSocialContacts } from "@/lib/socialService";
@@ -3133,6 +3134,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             </div>
           )}
 
+                    {/* Live Project Tracking & Progress Engine */}
+          {sidebarTab === "tracking" && (
+            <div className={`flex-1 overflow-y-auto ${
+              isLight ? "bg-slate-50 text-slate-800" : "bg-[#0b0f19] text-neutral-200"
+            }`}>
+              <ProjectTrackerWorkspace />
+            </div>
+          )}
+
           {/* 8.5. SEO & Search Engine Management */}
           {sidebarTab === "seo" && (
             <div className={`flex-1 overflow-y-auto ${
@@ -3151,7 +3161,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             sidebarTab !== "theme" &&
             sidebarTab !== "social" &&
             sidebarTab !== "crm" &&
-            sidebarTab !== "seo" && (
+            sidebarTab !== "seo" &&
+            sidebarTab !== "tracking" && (
             <div className={`flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 ${
               isLight ? "bg-slate-50 text-slate-800" : "bg-[#0d0f13] text-neutral-200"
             }`}>
