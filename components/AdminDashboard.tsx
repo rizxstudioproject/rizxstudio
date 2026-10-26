@@ -43,6 +43,7 @@ import {
 } from "react-icons/ri";
 import { useLang, toMinang, resolveTrPair } from "@/context/LanguageContext";
 import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
+import AdminUsersManager from "@/components/admin/AdminUsersManager";
 import {
   usePortfolioData,
   extractYouTubeId,
@@ -6317,6 +6318,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
                 </div>
               </div>
+
+              {/* Multi-User Admin Team Management (Tambah & Kelola Akun Admin Beda User) */}
+              <AdminUsersManager showToast={showToast} />
             </div>
           </motion.div>
         )}

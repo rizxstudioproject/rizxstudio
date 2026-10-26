@@ -21,6 +21,7 @@ import {
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { getAdminCredentials, saveAdminCredentials, AdminCredentials } from "@/lib/adminAuth";
+import AdminUsersManager from "./AdminUsersManager";
 
 interface SecuritySettingsWorkspaceProps {
   showToast?: (msg: string) => void;
@@ -506,6 +507,9 @@ export default function SecuritySettingsWorkspace({
               )}
             </div>
           </div>
+
+          {/* Multi-User Admin Team Management (Login Beda User) */}
+          <AdminUsersManager showToast={showToast} />
         </div>
       </div>
     </motion.div>

@@ -19,6 +19,8 @@ import {
   saveAdminCredentials,
   DEFAULT_ADMIN_CREDENTIALS,
   AdminCredentials,
+  authenticateAdminUser,
+  updateAdminUser,
 } from "@/lib/adminAuth";
 import MetaSEO from "./MetaSEO";
 
@@ -69,20 +71,15 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
 
     await new Promise((res) => setTimeout(res, 400));
 
-    const enteredUser = username.trim();
-    const validUser = (currentCreds.username || "admin").trim();
-    const validPass = currentCreds.password || "rizxstudio2026";
-
-    if (
-      enteredUser.toLowerCase() === validUser.toLowerCase() &&
-      password === validPass
-    ) {
+    const authResult = await authenticateAdminUser(username, password);
+    if (authResult.success && authResult.user) {
       try {
         sessionStorage.setItem("rizx_admin_session", "authenticated");
+        sessionStorage.setItem("rizx_active_admin_user", JSON.stringify(authResult.user));
       } catch (_) {}
       onSuccess();
     } else {
-      setError("Username atau password salah. Silakan periksa kembali.");
+      setError(authResult.error || "Username atau password salah. Silakan periksa kembali.");
       setIsLoading(false);
     }
   };
@@ -95,10 +92,19 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
     setIsSendingOtp(true);
 
     const targetEmail = recoveryEmail.trim().toLowerCase();
-    const authorizedEmail = (creds.email || "rizxstudioproject@gmail.com").trim().toLowerCase();
+    const allUsers = creds.adminUsers && creds.adminUsers.length > 0
+      ? creds.adminUsers
+      : [{ id: "admin-root", username: creds.username, email: creds.email, password: creds.password }];
 
-    if (targetEmail !== authorizedEmail && targetEmail !== "rizxstudioproject@gmail.com") {
-      setForgotError("Email verifikasi tidak cocok dengan email admin (rizxstudioproject@gmail.com).");
+    const matchedUser = allUsers.find(
+      (u) => (u.email || "").trim().toLowerCase() === targetEmail
+    );
+    const isRootMatch =
+      targetEmail === (creds.email || "rizxstudioproject@gmail.com").trim().toLowerCase() ||
+      targetEmail === "rizxstudioproject@gmail.com";
+
+    if (!matchedUser && !isRootMatch) {
+      setForgotError("Email verifikasi tidak terdaftar pada akun admin.");
       setIsSendingOtp(false);
       return;
     }
@@ -158,9 +164,21 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
 
     setIsSendingOtp(true);
     try {
-      await saveAdminCredentials({
-        password: newPassword.trim(),
-      });
+      const targetEmail = recoveryEmail.trim().toLowerCase();
+      const allUsers = creds.adminUsers && creds.adminUsers.length > 0
+        ? creds.adminUsers
+        : [{ id: "admin-root", username: creds.username, email: creds.email, password: creds.password }];
+
+      const matchedUser = allUsers.find(
+        (u) => (u.email || "").trim().toLowerCase() === targetEmail
+      );
+
+      if (matchedUser) {
+        await updateAdminUser(matchedUser.id, { password: newPassword.trim() });
+      } else {
+        await saveAdminCredentials({ password: newPassword.trim() });
+      }
+
       const updated = await getAdminCredentials();
       setCreds(updated);
 
