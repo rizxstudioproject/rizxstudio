@@ -1012,19 +1012,6 @@ export default function ProjectTrackerWorkspace({
                   >
                     <RiEyeLine className="w-3.5 h-3.5" />
                   </button>
-
-                  {/* WhatsApp */}
-                  {p.clientPhone && (
-                    <a
-                      href={`https://wa.me/${p.clientPhone.replace(/[^0-9]/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 rounded-xl text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition"
-                      title="Chat WhatsApp Klien"
-                    >
-                      <RiWhatsappLine className="w-3.5 h-3.5" />
-                    </a>
-                  )}
                 </div>
               </div>
             </div>
@@ -1298,14 +1285,6 @@ export default function ProjectTrackerWorkspace({
               >
                 <RiEditLine className="w-4 h-4" />
                 <span>Update Laporan Progres</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setClientPreviewCode(drilldownProject.refCode)}
-                className="p-3 rounded-xl bg-white/10 hover:bg-white/15 text-teal-400 border border-white/15 transition flex items-center justify-center cursor-pointer active:scale-95"
-                title="Lihat Tampilan Klien"
-              >
-                <RiEyeLine className="w-4 h-4 text-teal-400" />
               </button>
               <button
                 type="button"

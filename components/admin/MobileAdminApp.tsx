@@ -1128,44 +1128,6 @@ export default function MobileAdminApp({
                   </div>
                 </div>
               </div>
-
-              {/* Row 3: Admin Team & Multi-User Management Quick Card */}
-              <div
-                onClick={() => {
-                  setSettingsInitialSection("team");
-                  navigateToWorkspace("settings");
-                }}
-                className={`mt-3 p-3.5 rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center justify-between gap-3 ${
-                  isLight
-                    ? "bg-gradient-to-r from-teal-50/80 via-white to-slate-50 border-teal-200/90 shadow-xs hover:border-teal-300"
-                    : "bg-gradient-to-r from-[#0c1a1e] via-[#0f1422] to-[#121622] border-teal-500/30 hover:border-teal-500/50 shadow-md"
-                }`}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-400 flex items-center justify-center shrink-0">
-                    <RiShieldUserFill className="w-5 h-5 text-teal-400" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-semibold text-teal-400 uppercase tracking-wider font-mono">
-                        Multi-User Admin
-                      </span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-                    </div>
-                    <div className="text-xs sm:text-sm font-bold truncate">
-                      {tr("Kelola Akun Admin Tim", "Manage Admin Team Accounts", "Kelola Akun Admin Tim")}
-                    </div>
-                    <span className={`text-[10px] block truncate ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                      {tr("+ Tambah Admin Baru & Beda User", "+ Add New Admin & Multi-User", "+ Tambah Admin Baru & Beda User")}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-teal-500 text-black text-xs font-bold shrink-0 shadow-sm active:scale-95">
-                  <span>+ Admin</span>
-                  <RiArrowRightLine className="w-3.5 h-3.5" />
-                </div>
-              </div>
             </div>
 
 
