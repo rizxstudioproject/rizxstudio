@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import WhatsAppPopup from "@/components/WhatsAppPopup";
 import ProjectTrackerModal from "@/components/ProjectTrackerModal";
@@ -44,7 +43,6 @@ import {
   RiCheckboxCircleFill,
   RiSendPlaneFill,
   RiFileCopyLine,
-  RiArrowLeftLine,
   RiFileList3Line,
   RiLockLine,
 } from "react-icons/ri";
@@ -366,17 +364,6 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
       <Navbar />
 
       <main className="relative z-20 pt-28 sm:pt-36 pb-20 px-4 sm:px-8 lg:px-16 max-w-7xl mx-auto">
-        {/* Breadcrumb / Back Link */}
-        <div className="mb-8 flex items-center gap-2">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-xs font-mono text-neutral-400 hover:text-white transition-colors py-1 px-3 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25"
-          >
-            <RiArrowLeftLine className="w-3.5 h-3.5" />
-            <span>{tr("Back to Main Portfolio", "Kembali ke Beranda Portofolio", "Babaliak ka Muko")}</span>
-          </Link>
-        </div>
-
         {/* Hero Section */}
         <div className="relative mb-14 sm:mb-20 text-center max-w-4xl mx-auto">
           {/* Ambient Glow */}
@@ -423,7 +410,7 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
           </p>
 
           {/* Quick CTA to jump to order form */}
-          <div className="flex flex-wrap items-center justify-center gap-4">
+          <div className="flex items-center justify-center">
             <button
               onClick={() => {
                 if (formRef.current) {
@@ -437,30 +424,10 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                 color: "#000000",
                 boxShadow: `0 0 25px ${primaryColor}40`,
               }}
-              className="px-6 py-3 rounded-full font-bold text-xs sm:text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
+              className="px-8 py-3.5 rounded-full font-bold text-xs sm:text-sm hover:brightness-110 active:scale-95 transition-all cursor-pointer flex items-center gap-2"
             >
               <span>{tr("Start a Project / Consultation", "Mulai Konsultasi & Pesan Proyek", "Mulai Diskusi Proyek")}</span>
               <RiArrowRightLine className="w-4 h-4" />
-            </button>
-            <a
-              href={`https://wa.me/${socialContacts.whatsappNumber || "6282170214498"}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 text-white font-medium text-xs sm:text-sm hover:bg-white/[0.08] transition-all flex items-center gap-2"
-            >
-              <RiWhatsappLine className="w-4 h-4 text-emerald-400" />
-              <span>{tr("Chat WhatsApp Direct", "Tanya Langsung via WhatsApp", "Hubungi di WhatsApp")}</span>
-            </a>
-            <button
-              type="button"
-              onClick={() => {
-                setTrackerInitialCode("RZX-PRJ-632153");
-                setIsTrackerModalOpen(true);
-              }}
-              className="px-6 py-3 rounded-full bg-cyan-500/10 border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 font-semibold text-xs sm:text-sm hover:bg-cyan-500/20 transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/10"
-            >
-              <RiCompass3Line className="w-4 h-4 text-cyan-400" />
-              <span>{tr("Lacak Progres Proyek (Tracking)", "Lacak Progres Proyek (Tracking)", "Lacak Proyek (Tracking)")}</span>
             </button>
           </div>
         </div>
