@@ -10,6 +10,7 @@ import { broadcastNewIncomingOrder } from "@/lib/adminNotificationService";
 import {
   getAllProducts,
   subscribeToProductsRealtime,
+  getDeletedProductIds,
   DEFAULT_PRODUCTS,
   DEFAULT_CATEGORIES,
   getLocalizedProduct,
@@ -60,7 +61,12 @@ export default function ProductsPage() {
   const isLight = themeMode === "light";
 
   // Dynamic products catalog state connected to Supabase & LocalStorage
-  const [productsList, setProductsList] = useState<ProductItem[]>(DEFAULT_PRODUCTS);
+  const [productsList, setProductsList] = useState<ProductItem[]>(() => {
+    const deleted = getDeletedProductIds();
+    return deleted.length > 0
+      ? DEFAULT_PRODUCTS.filter((p) => !deleted.includes(p.id))
+      : DEFAULT_PRODUCTS;
+  });
 
   useEffect(() => {
     let isMounted = true;

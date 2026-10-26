@@ -472,7 +472,7 @@ export default function ProductsWorkspace() {
 
     // Realtime subscriptions across tabs and devices
     const unsubscribeProducts = subscribeToProductsRealtime((freshProducts) => {
-      if (Array.isArray(freshProducts) && freshProducts.length > 0) {
+      if (Array.isArray(freshProducts)) {
         setProducts(freshProducts);
       }
     });

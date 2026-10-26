@@ -2220,11 +2220,48 @@ export const DEFAULT_CATEGORIES: ProductCategory[] = [
   { id: "aerial", label: "Drone & Pemetaan", labelEn: "Drone & Aerial", labelMin: "Drone & Pemetaan" },
 ];
 
+export const DELETED_PRODUCTS_KEY = "rizx_deleted_product_ids";
+
+export function getDeletedProductIds(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(DELETED_PRODUCTS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function markProductAsDeleted(id: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getDeletedProductIds();
+    if (!current.includes(id)) {
+      const updated = [...current, id];
+      localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(updated));
+    }
+  } catch (e) {
+    console.warn("markProductAsDeleted notice:", e);
+  }
+}
+
+export function unmarkProductAsDeleted(id: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getDeletedProductIds();
+    const updated = current.filter((x) => x !== id);
+    localStorage.setItem(DELETED_PRODUCTS_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn("unmarkProductAsDeleted notice:", e);
+  }
+}
+
 /**
  * Get all products from Supabase Cloud + LocalStorage fallback
  */
 export async function getAllProducts(): Promise<ProductItem[]> {
   let products: ProductItem[] | null = null;
+  const deletedIds = getDeletedProductIds();
 
   // 1. Try Supabase Cloud
   if (isSupabaseConfigured && supabase) {
@@ -2261,13 +2298,13 @@ export async function getAllProducts(): Promise<ProductItem[]> {
     }
   }
 
-  // 3. Fallback to default products
+  // 3. Fallback to default products if nothing stored
   if (!products || products.length === 0) {
     products = [...DEFAULT_PRODUCTS];
   } else {
-    // Reconcile with DEFAULT_PRODUCTS to guarantee thumbnails, pros, cons, and all 13 products
+    // Enrich existing products with fallback details from DEFAULT_PRODUCTS
     const defaultMap = new Map(DEFAULT_PRODUCTS.map((dp) => [dp.id, dp]));
-    const merged: ProductItem[] = products.map((item) => {
+    products = products.map((item) => {
       const def = defaultMap.get(item.id);
       if (!def) return item;
       return {
@@ -2286,13 +2323,11 @@ export async function getAllProducts(): Promise<ProductItem[]> {
         }),
       };
     });
+  }
 
-    for (const def of DEFAULT_PRODUCTS) {
-      if (!merged.some((p) => p.id === def.id)) {
-        merged.push(def);
-      }
-    }
-    products = merged;
+  // Always filter out any explicitly deleted products
+  if (deletedIds.length > 0) {
+    products = products.filter((p) => !deletedIds.includes(p.id));
   }
 
   if (typeof window !== "undefined") {
@@ -2384,7 +2419,9 @@ export function subscribeToProductsRealtime(
       try {
         const parsed = JSON.parse(e.newValue);
         if (Array.isArray(parsed)) {
-          callback(parsed);
+          const deletedIds = getDeletedProductIds();
+          const filtered = parsed.filter((p: any) => !deletedIds.includes(p.id));
+          callback(filtered);
         }
       } catch (err) {
         // ignore
@@ -2413,11 +2450,13 @@ export function subscribeToProductsRealtime(
             if (payload.new && (payload.new as any).description) {
               try {
                 const parsed = JSON.parse((payload.new as any).description);
-                if (Array.isArray(parsed) && parsed.length > 0) {
+                if (Array.isArray(parsed)) {
+                  const deletedIds = getDeletedProductIds();
+                  const filtered = parsed.filter((p: any) => !deletedIds.includes(p.id));
                   if (typeof window !== "undefined") {
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
                   }
-                  callback(parsed);
+                  callback(filtered);
                 }
               } catch (err) {
                 console.warn("Realtime products parse notice:", err);
@@ -2450,6 +2489,7 @@ export function subscribeToProductsRealtime(
  * Add a new product to catalog
  */
 export async function addProduct(newProduct: ProductItem): Promise<boolean> {
+  unmarkProductAsDeleted(newProduct.id);
   const current = await getAllProducts();
   const exists = current.some((p) => p.id === newProduct.id);
   if (exists) {
@@ -2481,6 +2521,7 @@ export async function updateProduct(id: string, updates: Partial<ProductItem>): 
  * Delete a product
  */
 export async function deleteProduct(id: string): Promise<boolean> {
+  markProductAsDeleted(id);
   const current = await getAllProducts();
   const filtered = current.filter((p) => p.id !== id);
   return saveAllProducts(filtered);
@@ -2509,6 +2550,9 @@ export async function toggleProductClosed(
  * Reset products catalog to defaults
  */
 export async function resetProductsToDefault(): Promise<boolean> {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(DELETED_PRODUCTS_KEY);
+  }
   return saveAllProducts([...DEFAULT_PRODUCTS]);
 }
 
