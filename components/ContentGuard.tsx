@@ -1,31 +1,72 @@
 "use client";
 
 import { useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 /**
- * ContentGuard — Multi-layer anti-theft protection for portfolio content.
+ * ContentGuard — Multi-layer anti-theft protection for portfolio artwork and proprietary design.
  * Layers:
- * 1. Disable right-click context menu sitewide
- * 2. Block keyboard shortcuts: Ctrl+S, Ctrl+U, Ctrl+P, F12, Ctrl+Shift+I/J/C
- * 3. Blur images when window loses focus (defeats snipping tool / screen capture apps)
+ * 1. Disable right-click context menu and save image (ONLY on portfolio / non-exempt pages)
+ *    - On /tracking (and /admin), right-click is fully allowed for paste/copy
+ *    - Form inputs and textareas across all pages ALWAYS allow right-click for paste/copy
+ * 2. Block DevTools & save shortcuts (Ctrl+S, Ctrl+U, Ctrl+P, F12)
+ * 3. Blur images when window loses focus (defeats snipping tool / screen capture apps on portfolio)
  * 4. Block drag-and-drop of images
- * 5. Block 3-finger mobile screenshot gesture (instant blackout shield + heavy blur)
+ * 5. Block 3-finger mobile screenshot gesture on portfolio
  */
 export default function ContentGuard() {
+  const pathname = usePathname();
+  const isTrackingPage = pathname === "/tracking" || pathname?.startsWith("/tracking");
+  const isAdminPage = pathname?.startsWith("/admin");
+  const isExempt = isTrackingPage || isAdminPage;
+
   useEffect(() => {
-    // ── 1. Disable right-click context menu ──────────────────────────────────
+    // If on tracking page or admin, ensure no shield or blur is active and do not attach blocking listeners
+    if (isExempt) {
+      document.body.style.filter = "none";
+      const existingShield = document.getElementById("anti-screenshot-shield");
+      if (existingShield) existingShield.remove();
+      return;
+    }
+
+    // ── 1. Disable right-click context menu (Portfolio only, NEVER inside inputs/textareas) ──
     const blockContextMenu = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target) {
+        // Always allow right-click inside form inputs and textareas (e.g. for Paste / Copy / Cut)
+        if (
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable ||
+          target.closest("input, textarea, [contenteditable='true']")
+        ) {
+          return true;
+        }
+      }
+
       e.preventDefault();
       return false;
     };
 
     // ── 2. Block DevTools & save shortcuts ───────────────────────────────────
     const blockShortcuts = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      // Allow shortcuts inside inputs (like Ctrl+V for paste, Ctrl+C for copy, Ctrl+A for select all)
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable ||
+          target.closest("input, textarea, [contenteditable='true']"))
+      ) {
+        return;
+      }
+
       const key = e.key.toLowerCase();
       const ctrl = e.ctrlKey || e.metaKey;
       const shift = e.shiftKey;
 
-      // Ctrl+S (Save), Ctrl+U (View Source), Ctrl+P (Print), Ctrl+A (Select All)
+      // Ctrl+S (Save), Ctrl+U (View Source), Ctrl+P (Print)
       if (ctrl && (key === "s" || key === "u" || key === "p")) {
         e.preventDefault();
         return false;
@@ -67,7 +108,7 @@ export default function ContentGuard() {
     };
 
     // ── 3. Blur & Shield when window loses focus or page is hidden ──────────
-    // Defeats screen-recorder floating widgets, notification drawer pulls, snipping tools
+    // Defeats screen-recorder floating widgets, notification drawer pulls, snipping tools (Portfolio only)
     const blurOnHide = () => {
       const shield = createShield();
       shield.style.opacity = "1";
@@ -101,8 +142,7 @@ export default function ContentGuard() {
       }
     };
 
-    // ── 5. Block 3-Finger Mobile Screenshot Gesture ───────────────────────────
-    // Detects multi-touch swipe down/tap used by Android (Xiaomi, Oppo, Vivo, Samsung, etc.)
+    // ── 5. Block 3-Finger Mobile Screenshot Gesture (Portfolio only) ──────────
     const triggerBlackout = () => {
       if (multiTouchTimer) {
         clearTimeout(multiTouchTimer);
@@ -128,7 +168,6 @@ export default function ContentGuard() {
 
     const handleTouch = (e: TouchEvent) => {
       if (e.touches && e.touches.length >= 3) {
-        // Prevent default browser multi-touch actions and instantly blind the screen
         try {
           if (e.cancelable) e.preventDefault();
         } catch {
@@ -138,7 +177,7 @@ export default function ContentGuard() {
       }
     };
 
-    // ── Register all listeners ────────────────────────────────────────────────
+    // ── Register all listeners (Portfolio only) ──────────────────────────────
     document.addEventListener("contextmenu", blockContextMenu);
     document.addEventListener("keydown", blockShortcuts);
     window.addEventListener("blur", blurOnHide);
@@ -168,8 +207,9 @@ export default function ContentGuard() {
       if (multiTouchTimer) clearTimeout(multiTouchTimer);
       const shield = document.getElementById("anti-screenshot-shield");
       if (shield) shield.remove();
+      document.body.style.filter = "none";
     };
-  }, []);
+  }, [isExempt]);
 
   return null;
 }
