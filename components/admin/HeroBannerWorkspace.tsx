@@ -315,33 +315,101 @@ export default function HeroBannerWorkspace({
     }
   };
 
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+
   const handleAddRunnerItem = async () => {
-    if (!newRunnerTitle.trim() || !newRunnerImage.trim()) {
-      notify("error", tr("Data Belum Lengkap", "Incomplete", "Data Balun Langkok"), tr("Mohon isi judul karya dan gambar.", "Please fill title and image.", "Isi judul karya jo gambar."));
+    const finalTitle = newRunnerTitle.trim() || newRunnerCategory.trim() || "Creative Work";
+    const finalImage = newRunnerImage.trim();
+
+    if (!finalImage) {
+      notify(
+        "error",
+        tr("Gambar Belum Dipilih", "Image Required", "Gambar Balun Dipiliah"),
+        tr("Mohon pilih atau upload gambar karya terlebih dahulu.", "Please select or upload a work image.", "Pilih atau upload gambar karya talabiah dahulu.")
+      );
       return;
     }
     try {
       await addPortfolioRunnerItem({
-        title: newRunnerTitle.trim(),
-        category: newRunnerCategory.trim() || "Creative",
-        image: newRunnerImage.trim(),
+        title: finalTitle,
+        category: newRunnerCategory.trim() || "Creative Work",
+        image: finalImage,
         row: newRunnerRow,
       });
       setNewRunnerTitle("");
       setNewRunnerCategory("");
       setNewRunnerImage("");
-      notify("success", tr("Karya Ditambahkan!", "Item Added!", "Karya Ditambah!"), tr("Karya baru masuk ke strip Media Reels 4:5.", "New card added to running portfolio.", "Karya baru masuak ka strip Media Reels."));
+      notify(
+        "success",
+        tr("Karya Ditambahkan!", "Item Added!", "Karya Ditambah!"),
+        tr(`"${finalTitle}" berhasil masuk ke strip Running Portofolio Baris ${newRunnerRow} & langsung aktif di web!`, `"${finalTitle}" added to Running Portfolio Row ${newRunnerRow} & live on public web!`, `"${finalTitle}" barasil masuak ka Running Portofolio!`)
+      );
     } catch (e) {
       notify("error", tr("Gagal", "Failed", "Gagal"), tr("Gagal menambahkan karya.", "Failed to add item.", "Gagal manambah karya."));
     }
   };
 
-  const handleUploadSingleImage = (e: React.ChangeEvent<HTMLInputElement>, cb: (url: string) => void) => {
+  const handleUploadSingleImage = async (e: React.ChangeEvent<HTMLInputElement>, cb: (url: string) => void) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Auto-fill title if empty from filename
+    if (!newRunnerTitle) {
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+      setNewRunnerTitle(nameWithoutExt);
+    }
+
+    // 1. Try direct upload to Supabase Storage via /api/admin/media-upload for a permanent CDN link
+    try {
+      setIsUploadingImage(true);
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "works/runner");
+      const res = await fetch("/api/admin/media-upload", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        cb(data.url);
+        setIsUploadingImage(false);
+        notify("success", tr("Upload Berhasil", "Upload Success", "Upload Barasil"), tr("Gambar berhasil di-upload ke Supabase CDN.", "Image uploaded to CDN.", "Gambar di-upload."));
+        return;
+      }
+    } catch (err) {
+      console.warn("Storage upload fallback to compressed canvas:", err);
+    } finally {
+      setIsUploadingImage(false);
+    }
+
+    // 2. Fallback: Compress via Canvas to max 1000px, WebP quality 0.82 to avoid localStorage quota overflow
     const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") cb(reader.result);
+    reader.onload = (event) => {
+      const raw = event.target?.result as string;
+      if (!raw) return;
+      const img = new Image();
+      img.onload = () => {
+        const maxW = 1000;
+        const maxH = 1250;
+        let { width, height } = img;
+        if (width > maxW || height > maxH) {
+          const ratio = Math.min(maxW / width, maxH / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressed = canvas.toDataURL("image/webp", 0.82);
+          cb(compressed);
+        } else {
+          cb(raw);
+        }
+      };
+      img.src = raw;
     };
     reader.readAsDataURL(file);
   };
@@ -1284,11 +1352,12 @@ export default function HeroBannerWorkspace({
 
                 <button
                   type="button"
+                  disabled={isUploadingImage}
                   onClick={handleAddRunnerItem}
-                  className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#16b09f]/20 active:scale-95"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-[#16b09f]/20 active:scale-95 disabled:opacity-50"
                 >
                   <RiAddLine className="w-4 h-4" />
-                  <span>Tambahkan ke Running Portofolio</span>
+                  <span>{isUploadingImage ? "Mengupload Gambar..." : "Tambahkan ke Running Portofolio"}</span>
                 </button>
               </div>
 

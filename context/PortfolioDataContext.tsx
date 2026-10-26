@@ -710,6 +710,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           updatedAt: new Date().toISOString(),
         };
         localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("rizx:data-updated", { detail: payload }));
+        }
       } catch (err) {
         console.warn("Failed to persist portfolio overrides to localStorage:", err);
       }
@@ -884,279 +887,375 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     } catch (err) {
       console.warn("LocalStorage hydration warning:", err);
     }
+  }, []);
 
-    // 2. Fetch live data from Supabase Cloud if credentials are provided
-    if (isSupabaseConfigured && supabase) {
+    // 2. Reusable live cloud sync from Supabase Cloud
+    const fetchCloudData = useCallback(async () => {
+      if (!isSupabaseConfigured || !supabase) return;
       const client = supabase;
-      const fetchCloudData = async () => {
-        try {
-          // Fetch Flagship Showcase
-          const { data: heroData, error: heroError } = await client
-            .from("flagship_showcase")
-            .select("*")
-            .eq("id", "default")
-            .single();
+      try {
+        // Fetch Flagship Showcase
+        const { data: heroData, error: heroError } = await client
+          .from("flagship_showcase")
+          .select("*")
+          .eq("id", "default")
+          .single();
 
-          if (!heroError && heroData) {
-            setStage3((prev) => {
-              const cloudImg =
-                !heroData.image_url || heroData.image_url === "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg"
-                  ? ""
-                  : heroData.image_url;
-              const ytUrl = heroData.youtube_url ?? prev.heroCard.youtubeUrl;
-              const gdUrl = heroData.gdrive_url ?? prev.heroCard.gdriveUrl;
-              const gdId = heroData.gdrive_id ?? prev.heroCard.gdriveId;
-              const resolvedMediaType = heroData.media_type ?? prev.heroCard.mediaType ?? (
-                gdId || gdUrl ? "gdrive" :
-                ytUrl ? "youtube" : "image"
-              );
-              const updated = {
-                ...prev,
-                headline: heroData.headline || prev.headline,
-                classTag: heroData.class_tag || heroData.classTag || prev.classTag,
-                heroCard: {
-                  ...prev.heroCard,
-                  title: heroData.title || prev.heroCard.title,
-                  category: heroData.category || prev.heroCard.category,
-                  description: heroData.description || prev.heroCard.description,
-                  youtubeUrl: ytUrl,
-                  videoId: heroData.video_id ?? prev.heroCard.videoId,
-                  gdriveUrl: gdUrl,
-                  gdriveId: gdId,
-                  mediaType: resolvedMediaType,
-                  image: cloudImg || prev.heroCard.image,
-                  isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled ?? (resolvedMediaType !== "image"),
-                },
-              };
-              stage3Ref.current = updated;
-              return updated;
-            });
-          }
-
-          // Fetch Client Descriptions & custom works
-          const { data: clientRows, error: clientsError } = await client
-            .from("client_descriptions")
-            .select("*");
-
-          if (!clientsError && clientRows && Array.isArray(clientRows)) {
-            // Extract Stage 3 Showcase config from Supabase if present
-            const stage3Row = clientRows.find((r) => r.client_id === "site-stage3-showcase");
-            if (stage3Row && stage3Row.description) {
-              try {
-                const parsedStage3 = safeJsonParseMedia(stage3Row.description);
-                setStage3((prev) => {
-                  const rawParsedImg = parsedStage3.heroCard?.image;
-                  const cloudImg =
-                    !rawParsedImg || rawParsedImg === "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg"
-                      ? ""
-                      : rawParsedImg;
-                  const updated = {
-                    ...prev,
-                    ...parsedStage3,
-                    heroCard: {
-                      ...prev.heroCard,
-                      ...(parsedStage3.heroCard || {}),
-                      image: cloudImg,
-                    },
-                  };
-                  stage3Ref.current = updated;
-                  persistState(updated);
-                  return updated;
-                });
-              } catch (_) {}
-            }
-
-            // 0. Extract About Section config from Supabase if present
-            const aboutRow = clientRows.find((r) => r.client_id === "site-about-section");
-            let latestAbout = defaultAboutData;
-            if (aboutRow && aboutRow.description) {
-              try {
-                const parsedAbout = safeJsonParseMedia(aboutRow.description);
-                latestAbout = {
-                  ...defaultAboutData,
-                  ...parsedAbout,
-                };
-                setAbout(latestAbout);
-                aboutRef.current = latestAbout;
-              } catch (_) {}
-            }
-
-            // Extract Hero & Works Section config from Supabase
-            const heroWorksRow = clientRows.find((r) => r.client_id === "site-hero-works");
-            if (heroWorksRow && heroWorksRow.description) {
-              try {
-                const parsedHero = safeJsonParseMedia(heroWorksRow.description);
-                const loadedHero = {
-                  ...defaultHeroWorksData,
-                  ...parsedHero,
-                };
-                setHeroWorks(loadedHero);
-                heroWorksRef.current = loadedHero;
-              } catch (_) {}
-            }
-
-            // Extract Client Logos config from Supabase
-            const clientLogosRow = clientRows.find((r) => r.client_id === "site-client-logos");
-            if (clientLogosRow && clientLogosRow.description) {
-              try {
-                const parsedLogos = safeJsonParseMedia(clientLogosRow.description);
-                const loadedLogos = {
-                  ...defaultClientLogosData,
-                  ...parsedLogos,
-                };
-                setClientLogos(loadedLogos);
-                clientLogosRef.current = loadedLogos;
-              } catch (_) {}
-            }
-
-            // Extract Portfolio Intro config from Supabase
-            const portfolioIntroRow = clientRows.find((r) => r.client_id === "site-portfolio-intro");
-            if (portfolioIntroRow && portfolioIntroRow.description) {
-              try {
-                const parsedIntro = safeJsonParseMedia(portfolioIntroRow.description);
-                const loadedIntro = {
-                  ...defaultPortfolioIntroData,
-                  ...parsedIntro,
-                };
-                setPortfolioIntro(loadedIntro);
-                portfolioIntroRef.current = loadedIntro;
-              } catch (_) {}
-            }
-
-            // Extract Portfolio Runner config from Supabase
-            const portfolioRunnerRow = clientRows.find((r) => r.client_id === "site-portfolio-runner");
-            if (portfolioRunnerRow && portfolioRunnerRow.description) {
-              try {
-                const parsedRunner = safeJsonParseMedia(portfolioRunnerRow.description);
-                const loadedRunner = {
-                  ...defaultPortfolioRunnerData,
-                  ...parsedRunner,
-                };
-                setPortfolioRunner(loadedRunner);
-                portfolioRunnerRef.current = loadedRunner;
-              } catch (_) {}
-            }
-
-            // Extract Hero Banner config from Supabase
-            const heroBannerRow = clientRows.find((r) => r.client_id === "site-hero-banner");
-            if (heroBannerRow && heroBannerRow.description) {
-              try {
-                const parsedHeroBanner = safeJsonParseMedia(heroBannerRow.description);
-                const loadedBanner = {
-                  ...defaultHeroBannerData,
-                  ...parsedHeroBanner,
-                };
-                setHeroBanner(loadedBanner);
-                heroBannerRef.current = loadedBanner;
-              } catch (_) {}
-            }
-
-            // Extract Admin Credentials config from Supabase
-            const credsRow = clientRows.find((r) => r.client_id === "site-admin-credentials");
-            if (credsRow && credsRow.description) {
-              try {
-                const parsedCreds = JSON.parse(credsRow.description);
-                if (parsedCreds.username && parsedCreds.password && typeof window !== "undefined") {
-                  localStorage.setItem("rizx_admin_credentials", JSON.stringify(parsedCreds));
-                }
-              } catch (_) {}
-            }
-
-            // Exclude ALL system & internal config keys from regular client folders list
-            const regularClientRows = clientRows.filter(
-              (r) => !isSystemConfigId(r.client_id)
+        if (!heroError && heroData) {
+          setStage3((prev) => {
+            const cloudImg =
+              !heroData.image_url || heroData.image_url === "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg"
+                ? ""
+                : heroData.image_url;
+            const ytUrl = heroData.youtube_url ?? prev.heroCard.youtubeUrl;
+            const gdUrl = heroData.gdrive_url ?? prev.heroCard.gdriveUrl;
+            const gdId = heroData.gdrive_id ?? prev.heroCard.gdriveId;
+            const resolvedMediaType = heroData.media_type ?? prev.heroCard.mediaType ?? (
+              gdId || gdUrl ? "gdrive" :
+              ytUrl ? "youtube" : "image"
             );
-
-            const defaultClients = antigravityData.stage4.clients;
-            const defaultIds = new Set(defaultClients.map((d) => d.id));
-
-            // Helper to parse description JSON or plain text
-            const parseRowData = (row: any, fallbackClient?: any) => {
-              let text = "";
-              let tools: string[] = fallbackClient?.tools || [];
-              let works: any[] = fallbackClient?.works || [];
-              let isCustom = fallbackClient?.isCustom || false;
-              let logo = fallbackClient?.logo || "";
-
-              if (row && row.description) {
-                if (typeof row.description === "string" && row.description.startsWith("{")) {
-                  try {
-                    const parsed = safeJsonParseMedia(row.description);
-                    text = parsed.text !== undefined ? parsed.text : row.description;
-                    if (Array.isArray(parsed.tools) && parsed.tools.length > 0) tools = parsed.tools;
-                    if (Array.isArray(parsed.works) && parsed.works.length > 0) works = parsed.works;
-                    if (parsed.isCustom !== undefined) isCustom = parsed.isCustom;
-                    if (parsed.logo !== undefined) logo = parsed.logo;
-                  } catch (_) {
-                    text = row.description;
-                  }
-                } else {
-                  text = row.description;
-                }
-              }
-              if (Array.isArray(row.tools) && row.tools.length > 0) tools = row.tools;
-              if (Array.isArray(row.works) && row.works.length > 0) works = row.works;
-              if (row.logo) logo = row.logo;
-
-              return { text, tools, works, isCustom, logo };
+            const updated = {
+              ...prev,
+              headline: heroData.headline || prev.headline,
+              classTag: heroData.class_tag || heroData.classTag || prev.classTag,
+              heroCard: {
+                ...prev.heroCard,
+                title: heroData.title || prev.heroCard.title,
+                category: heroData.category || prev.heroCard.category,
+                description: heroData.description || prev.heroCard.description,
+                youtubeUrl: ytUrl,
+                videoId: heroData.video_id ?? prev.heroCard.videoId,
+                gdriveUrl: gdUrl,
+                gdriveId: gdId,
+                mediaType: resolvedMediaType,
+                image: cloudImg || prev.heroCard.image,
+                isVideoEnabled: heroData.is_video_enabled ?? prev.heroCard.isVideoEnabled ?? (resolvedMediaType !== "image"),
+              },
             };
+            stage3Ref.current = updated;
+            return updated;
+          });
+        }
 
-            // 1. Update existing default clients
-            const mergedDefaults = defaultClients.map((d) => {
-              const match = regularClientRows.find((r) => r.client_id === d.id);
-              if (!match) return d;
-              const parsed = parseRowData(match, d);
-              return {
-                ...d,
-                clientName: match.client_name || d.clientName,
-                category: match.category || d.category,
-                description: parsed.text,
-                tools: parsed.tools,
-                works: parsed.works,
-                itemsCount: parsed.works.length,
-                logo: parsed.logo || d.logo || "",
-              };
-            });
+        // Fetch Client Descriptions & custom works
+        const { data: clientRows, error: clientsError } = await client
+          .from("client_descriptions")
+          .select("*");
 
-            // 2. Extract cloud-only custom folders (rows not in defaultClients)
-            const cloudCustoms: ClientItem[] = regularClientRows
-              .filter((r) => !defaultIds.has(r.client_id))
-              .map((r) => {
-                const parsed = parseRowData(r);
-                return {
-                  id: r.client_id,
-                  clientName: r.client_name || r.client_id,
-                  category: r.category || `Portfolio — ${r.client_name || r.client_id}`,
-                  logo: parsed.logo || "",
-                  color: "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
-                  itemsCount: parsed.works.length,
-                  description: parsed.text,
-                  tools: parsed.tools,
-                  works: parsed.works,
-                  isCustom: true,
-                };
-              });
-
-            const finalClients: ClientItem[] = [
-              ...(mergedDefaults as ClientItem[]),
-              ...cloudCustoms,
-            ].filter((c) => !isSystemConfigId(c.id));
-            setClients(finalClients);
-            clientsRef.current = finalClients;
+        if (!clientsError && clientRows && Array.isArray(clientRows)) {
+          // Stage 3 showcase override
+          const stage3Row = clientRows.find((r) => r.client_id === "site-stage3-showcase");
+          if (stage3Row && stage3Row.description) {
             try {
-              persistState(undefined, finalClients);
+              const parsedStage3 = safeJsonParseMedia(stage3Row.description);
+              setStage3((prev) => {
+                const rawParsedImg = parsedStage3.heroCard?.image;
+                const cloudImg =
+                  !rawParsedImg || rawParsedImg === "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg"
+                    ? ""
+                    : rawParsedImg;
+                const updated = {
+                  ...prev,
+                  ...parsedStage3,
+                  heroCard: {
+                    ...prev.heroCard,
+                    ...(parsedStage3.heroCard || {}),
+                    image: cloudImg,
+                  },
+                };
+                stage3Ref.current = updated;
+                return updated;
+              });
             } catch (_) {}
           }
 
-          setIsCloudSyncActive(true);
-        } catch (err) {
-          console.warn("Supabase initial fetch notice:", err);
+          // About section
+          const aboutRow = clientRows.find((r) => r.client_id === "site-about-section");
+          let latestAbout = aboutRef.current;
+          if (aboutRow && aboutRow.description) {
+            try {
+              const parsedAbout = safeJsonParseMedia(aboutRow.description);
+              latestAbout = { ...defaultAboutData, ...parsedAbout };
+              setAbout(latestAbout);
+              aboutRef.current = latestAbout;
+            } catch (_) {}
+          }
+
+          // Hero & Works section
+          const heroWorksRow = clientRows.find((r) => r.client_id === "site-hero-works");
+          let latestHero = heroWorksRef.current;
+          if (heroWorksRow && heroWorksRow.description) {
+            try {
+              const parsedHero = safeJsonParseMedia(heroWorksRow.description);
+              latestHero = { ...defaultHeroWorksData, ...parsedHero };
+              setHeroWorks(latestHero);
+              heroWorksRef.current = latestHero;
+            } catch (_) {}
+          }
+
+          // Client Logos
+          const clientLogosRow = clientRows.find((r) => r.client_id === "site-client-logos");
+          let latestLogos = clientLogosRef.current;
+          if (clientLogosRow && clientLogosRow.description) {
+            try {
+              const parsedLogos = safeJsonParseMedia(clientLogosRow.description);
+              latestLogos = { ...defaultClientLogosData, ...parsedLogos };
+              setClientLogos(latestLogos);
+              clientLogosRef.current = latestLogos;
+            } catch (_) {}
+          }
+
+          // Portfolio Intro
+          const portfolioIntroRow = clientRows.find((r) => r.client_id === "site-portfolio-intro");
+          let latestIntro = portfolioIntroRef.current;
+          if (portfolioIntroRow && portfolioIntroRow.description) {
+            try {
+              const parsedIntro = safeJsonParseMedia(portfolioIntroRow.description);
+              latestIntro = { ...defaultPortfolioIntroData, ...parsedIntro };
+              setPortfolioIntro(latestIntro);
+              portfolioIntroRef.current = latestIntro;
+            } catch (_) {}
+          }
+
+          // Portfolio Runner
+          const portfolioRunnerRow = clientRows.find((r) => r.client_id === "site-portfolio-runner");
+          let latestRunner = portfolioRunnerRef.current;
+          if (portfolioRunnerRow && portfolioRunnerRow.description) {
+            try {
+              const parsedRunner = safeJsonParseMedia(portfolioRunnerRow.description);
+              latestRunner = { ...defaultPortfolioRunnerData, ...parsedRunner };
+              setPortfolioRunner(latestRunner);
+              portfolioRunnerRef.current = latestRunner;
+            } catch (_) {}
+          }
+
+          // Hero Banner
+          const heroBannerRow = clientRows.find((r) => r.client_id === "site-hero-banner");
+          let latestBanner = heroBannerRef.current;
+          if (heroBannerRow && heroBannerRow.description) {
+            try {
+              const parsedHeroBanner = safeJsonParseMedia(heroBannerRow.description);
+              latestBanner = { ...defaultHeroBannerData, ...parsedHeroBanner };
+              setHeroBanner(latestBanner);
+              heroBannerRef.current = latestBanner;
+            } catch (_) {}
+          }
+
+          // Admin Credentials
+          const credsRow = clientRows.find((r) => r.client_id === "site-admin-credentials");
+          if (credsRow && credsRow.description) {
+            try {
+              const parsedCreds = JSON.parse(credsRow.description);
+              if (parsedCreds.username && parsedCreds.password && typeof window !== "undefined") {
+                localStorage.setItem("rizx_admin_credentials", JSON.stringify(parsedCreds));
+              }
+            } catch (_) {}
+          }
+
+          // Regular Client folders & works
+          const regularClientRows = clientRows.filter(
+            (r) => !isSystemConfigId(r.client_id)
+          );
+          const defaultClients = antigravityData.stage4.clients;
+          const defaultIds = new Set(defaultClients.map((d) => d.id));
+
+          const parseRowData = (row: any, fallbackClient?: any) => {
+            let text = "";
+            let tools: string[] = fallbackClient?.tools || [];
+            let works: any[] = fallbackClient?.works || [];
+            let isCustom = fallbackClient?.isCustom || false;
+            let logo = fallbackClient?.logo || "";
+
+            if (row && row.description) {
+              if (typeof row.description === "string" && row.description.startsWith("{")) {
+                try {
+                  const parsed = safeJsonParseMedia(row.description);
+                  text = parsed.text !== undefined ? parsed.text : row.description;
+                  if (Array.isArray(parsed.tools) && parsed.tools.length > 0) tools = parsed.tools;
+                  if (Array.isArray(parsed.works) && parsed.works.length > 0) works = parsed.works;
+                  if (parsed.isCustom !== undefined) isCustom = parsed.isCustom;
+                  if (parsed.logo !== undefined) logo = parsed.logo;
+                } catch (_) {
+                  text = row.description;
+                }
+              } else {
+                text = row.description;
+              }
+            }
+            if (Array.isArray(row.tools) && row.tools.length > 0) tools = row.tools;
+            if (Array.isArray(row.works) && row.works.length > 0) works = row.works;
+            if (row.logo) logo = row.logo;
+
+            return { text, tools, works, isCustom, logo };
+          };
+
+          const mergedDefaults = defaultClients.map((d) => {
+            const match = regularClientRows.find((r) => r.client_id === d.id);
+            if (!match) return d;
+            const parsed = parseRowData(match, d);
+            return {
+              ...d,
+              clientName: match.client_name || d.clientName,
+              category: match.category || d.category,
+              description: parsed.text,
+              tools: parsed.tools,
+              works: parsed.works,
+              itemsCount: parsed.works.length,
+              logo: parsed.logo || d.logo || "",
+            };
+          });
+
+          const cloudCustoms: ClientItem[] = regularClientRows
+            .filter((r) => !defaultIds.has(r.client_id))
+            .map((r) => {
+              const parsed = parseRowData(r);
+              return {
+                id: r.client_id,
+                clientName: r.client_name || r.client_id,
+                category: r.category || `Portfolio — ${r.client_name || r.client_id}`,
+                logo: parsed.logo || "",
+                color: "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
+                itemsCount: parsed.works.length,
+                description: parsed.text,
+                tools: parsed.tools,
+                works: parsed.works,
+                isCustom: true,
+              };
+            });
+
+          const finalClients: ClientItem[] = [
+            ...(mergedDefaults as ClientItem[]),
+            ...cloudCustoms,
+          ].filter((c) => !isSystemConfigId(c.id));
+          setClients(finalClients);
+          clientsRef.current = finalClients;
+          try {
+            persistState(
+              stage3Ref.current,
+              finalClients,
+              latestAbout,
+              latestHero,
+              latestLogos,
+              latestIntro,
+              latestRunner,
+              latestBanner
+            );
+          } catch (_) {}
+        }
+
+        setIsCloudSyncActive(true);
+      } catch (err) {
+        console.warn("Supabase fetchCloudData notice:", err);
+      }
+    }, [persistState]);
+
+    // Multi-tab (storage event) & cross-device (Supabase Realtime) synchronization
+    useEffect(() => {
+      // 1. Cross-tab sync in the same browser via storage event
+      const handleStorageChange = (e: StorageEvent) => {
+        if (e.key === STORAGE_KEY && e.newValue) {
+          try {
+            const parsed = safeJsonParseMedia(e.newValue);
+            if (parsed.clients && Array.isArray(parsed.clients)) {
+              setClients(parsed.clients);
+              clientsRef.current = parsed.clients;
+            }
+            if (parsed.stage3) {
+              setStage3(parsed.stage3);
+              stage3Ref.current = parsed.stage3;
+            }
+            if (parsed.about) {
+              setAbout(parsed.about);
+              aboutRef.current = parsed.about;
+            }
+            if (parsed.heroWorks) {
+              setHeroWorks(parsed.heroWorks);
+              heroWorksRef.current = parsed.heroWorks;
+            }
+            if (parsed.clientLogos) {
+              setClientLogos(parsed.clientLogos);
+              clientLogosRef.current = parsed.clientLogos;
+            }
+            if (parsed.portfolioIntro) {
+              setPortfolioIntro(parsed.portfolioIntro);
+              portfolioIntroRef.current = parsed.portfolioIntro;
+            }
+            if (parsed.portfolioRunner) {
+              setPortfolioRunner(parsed.portfolioRunner);
+              portfolioRunnerRef.current = parsed.portfolioRunner;
+            }
+            if (parsed.heroBanner) {
+              setHeroBanner(parsed.heroBanner);
+              heroBannerRef.current = parsed.heroBanner;
+            }
+          } catch (_) {}
         }
       };
+      window.addEventListener("storage", handleStorageChange);
 
+      // 2. Custom event sync for same-window notifications
+      const handleCustomEvent = (e: Event) => {
+        const customEvent = e as CustomEvent;
+        if (customEvent.detail) {
+          const payload = customEvent.detail;
+          if (payload.clients && Array.isArray(payload.clients)) {
+            setClients(payload.clients);
+            clientsRef.current = payload.clients;
+          }
+        }
+      };
+      window.addEventListener("rizx:data-updated", handleCustomEvent);
+
+      // 3. Re-fetch freshest data on tab focus / visibility change
+      const handleVisibilityOrFocus = () => {
+        if (document.visibilityState === "visible") {
+          fetchCloudData();
+        }
+      };
+      window.addEventListener("focus", handleVisibilityOrFocus);
+      document.addEventListener("visibilitychange", handleVisibilityOrFocus);
+
+      // 4. Supabase Realtime across devices (phone <-> desktop)
+      let realtimeChannel: any = null;
+      if (isSupabaseConfigured && supabase) {
+        try {
+          realtimeChannel = supabase
+            .channel("rizx-portfolio-realtime")
+            .on(
+              "postgres_changes",
+              { event: "*", schema: "public", table: "client_descriptions" },
+              () => {
+                fetchCloudData();
+              }
+            )
+            .on(
+              "postgres_changes",
+              { event: "*", schema: "public", table: "flagship_showcase" },
+              () => {
+                fetchCloudData();
+              }
+            )
+            .subscribe();
+        } catch (err) {
+          console.warn("Supabase Realtime subscribe notice:", err);
+        }
+      }
+
+      // Initial fetch on mount
       fetchCloudData();
-    }
-  }, []);
+
+      return () => {
+        window.removeEventListener("storage", handleStorageChange);
+        window.removeEventListener("rizx:data-updated", handleCustomEvent);
+        window.removeEventListener("focus", handleVisibilityOrFocus);
+        document.removeEventListener("visibilitychange", handleVisibilityOrFocus);
+        if (realtimeChannel && supabase) {
+          try {
+            supabase.removeChannel(realtimeChannel);
+          } catch (_) {}
+        }
+      };
+    }, [fetchCloudData]);
 
   // Update Media Settings for Flagship Showcase (YouTube, Google Drive, or Custom Image)
   const updateStage3Video = useCallback(

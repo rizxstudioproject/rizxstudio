@@ -533,8 +533,8 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
 
   const isId = lang === "id";
 
-  // Priority 1: If in English, and work has explicit fields from Admin / data, return them directly
-  if (!isId && (work.challenge || work.solution || work.brief || work.role)) {
+  // Priority 1: If work has explicit fields from Admin / data, return them directly for all languages
+  if (work.challenge || work.solution || work.brief || work.role || (work.tools && work.tools.length > 0)) {
     return {
       brand: work.brand || work.clientName || "Brand",
       year: work.year || "2026",
@@ -570,7 +570,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
       solution: isId
         ? "Mengembangkan prompt berbasis referensi presisi dan menyempurnakan hasil akhir untuk menjaga akurasi bentuk mobil, konsistensi visual, dan estetika otomotif mewah."
         : "Developed precise, reference-driven prompts and refined the outputs to maintain vehicle accuracy, visual consistency, and a premium automotive aesthetic.",
-      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
+      tools: (work.tools && work.tools.length > 0) ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -593,7 +593,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
       solution: isId
         ? "Mendesain komposisi berlapis yang menempatkan karakter sebagai titik perhatian utama sambil memandu mata pemirsa menuju pesan promo secara alami."
         : "Designed layered compositions that placed the character as the primary focal point while naturally guiding the viewer's eye toward the promotional message.",
-      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
+      tools: (work.tools && work.tools.length > 0) ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -616,7 +616,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
       solution: isId
         ? "Merancang hierarki visual yang menonjolkan benefit utama di bagian atas, diikuti detail syarat yang ringkas dan CTA yang tegas."
         : "Crafted a visual hierarchy that surfaced the primary benefit upfront, followed by concise programme details and a strong call-to-action.",
-      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
+      tools: (work.tools && work.tools.length > 0) ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -639,7 +639,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
       solution: isId
         ? "Mendesain komposisi visual yang menempatkan identitas acara sebagai elemen dominan, didukung data dan informasi pembicara sebagai social proof yang memperkuat kepercayaan."
         : "Designed visual compositions placing the event identity as the dominant element, supported by speaker information and data-driven social proof to reinforce credibility.",
-      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
+      tools: (work.tools && work.tools.length > 0) ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -662,7 +662,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
       solution: isId
         ? "Mengembangkan sistem visual kredibel dengan hierarki headline yang bersih, warna aksen finansial, dan tata letak promosi yang terarah."
         : "Developed an authoritative visual system with clean headline hierarchies, financial accent colors, and focused promotional layouts.",
-      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
+      tools: (work.tools && work.tools.length > 0) ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -685,7 +685,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
       solution: isId
         ? "Menciptakan titik fokus berdaya kontras tinggi dengan lencana acara yang menonjol dan blok teks terstruktur yang mendorong pendaftaran."
         : "Created high-contrast focal points with bold event badges and structured copy blocks that encourage immediate registration.",
-      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
+      tools: (work.tools && work.tools.length > 0) ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
@@ -708,12 +708,12 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
       solution: isId
         ? "Memanfaatkan ruang bernapas yang seimbang, bayangan halus, dan sorotan data ringkas yang menekankan kesehatan harian yang mudah."
         : "Utilized balanced breathing room, soft ambient shadows, and crisp data callouts emphasizing effortless everyday wellness.",
-      tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
+      tools: (work.tools && work.tools.length > 0) ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
     };
   }
 
   return {
-    brand: work.brand || work.clientName || "HYASHOP",
+    brand: work.brand || work.clientName || "Brand",
     year: work.year || "2026",
     brief: isId
       ? "Mengembangkan rangkaian kampanye digital yang menampilkan produk estetika dan kecantikan HYASHOP melalui visual premium dan profesional."
@@ -730,7 +730,7 @@ export function getCaseStudy(work: ModalItem, lang: "en" | "id" | "min" = "en"):
     solution: isId
       ? "Menciptakan sistem kampanye terpadu melalui komposisi terkontrol, citra realistis, dan hierarki visual yang jelas."
       : "Created a cohesive campaign system through controlled compositions, realistic imagery, and clear visual hierarchy.",
-    tools: ["figma", "photoshop", "magnific", "gpt", "gemini"],
+    tools: (work.tools && work.tools.length > 0) ? work.tools : ["figma", "photoshop", "magnific", "gpt", "gemini"],
   };
 }
 
@@ -1574,7 +1574,9 @@ export default function Projects() {
                             ...w,
                             title: loc.title,
                             type: loc.type,
+                            clientId: activeClientData.id,
                             clientName: activeClientData.clientName,
+                            brand: activeClientData.clientName,
                             isClientWork: true,
                             tools: (w as any).tools || (activeClientData as any).tools,
                           };
@@ -1626,8 +1628,24 @@ export default function Projects() {
       {mounted && modalData && modalData.items.length > 0 &&
         createPortal(
           (() => {
-            const currentWork = modalData.items[modalData.currentIndex];
+            const rawWork = modalData.items[modalData.currentIndex];
             const hasMultiple = modalData.items.length > 1;
+            const matchedClient = contextClients.find((c) =>
+              c.id === (rawWork as any).clientId ||
+              c.clientName === rawWork.clientName ||
+              c.clientName === rawWork.brand ||
+              c.works?.some((w: any) => w.id === rawWork.id)
+            );
+            const matchedWork = matchedClient?.works?.find((w: any) => w.id === rawWork.id);
+            const currentWork = matchedWork
+              ? {
+                  ...rawWork,
+                  ...matchedWork,
+                  tools: (matchedWork as any).tools || rawWork.tools || matchedClient?.tools,
+                  clientName: matchedClient?.clientName || rawWork.clientName,
+                  brand: matchedClient?.clientName || rawWork.brand,
+                }
+              : rawWork;
 
             return (
               <div
@@ -1862,7 +1880,7 @@ export default function Projects() {
                             </span>
                             <div className="flex flex-wrap items-center gap-1.5">
                               {(() => {
-                                const clientMatch = contextClients.find(
+                                const clientMatch = matchedClient || contextClients.find(
                                   (c) => c.clientName === currentWork.clientName || c.clientName === currentWork.brand
                                 );
                                 const resolvedTools =
