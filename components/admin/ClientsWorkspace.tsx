@@ -1401,20 +1401,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               </div>
             </div>
 
-            {/* Bottom Save Bar for Logo Marquee */}
-            {onSaveClientLogos && (
-              <div className="pt-2 flex items-center justify-end">
-                <button
-                  type="button"
-                  onClick={onSaveClientLogos}
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-[#16b09f] hover:from-emerald-400 hover:to-[#119889] text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 transition-all cursor-pointer"
-                >
-                  <HiCheck className="w-4 h-4 stroke-[2.5]" />
-                  <span>{tr("Simpan Seluruh Perubahan Logo", "Save All Logo Changes", "Simpan Sadoalah Parubahan Logo")}</span>
-                </button>
-              </div>
-            )}
-          </div>
+                      </div>
         </main>
       ) : selectedClient ? (
         <main
