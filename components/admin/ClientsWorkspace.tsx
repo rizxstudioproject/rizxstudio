@@ -1217,7 +1217,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onClick={onAddClientLogo}
                   className="px-5 py-2.5 rounded-xl bg-[#16b09f] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md"
                 >
-                  + {tr(`Add to Row ${newLogoRow}`, `Tambahkan ke Baris ${newLogoRow}`, `Tambahkan ka Barih ${newLogoRow}`)}
+                  {tr(`Add to Row ${newLogoRow}`, `Tambahkan ke Baris ${newLogoRow}`, `Tambahkan ka Barih ${newLogoRow}`)}
                 </button>
               </div>
             )}
@@ -1893,7 +1893,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               {/* Add New Tool Form */}
               <div className="p-3.5 rounded-xl bg-neutral-950/80 border border-white/10 space-y-3">
                 <span className="text-xs font-bold text-white block">
-                  {tr("+ Add New Tool", "+ Tambah Tool Baru", "+ Tambah Tool Baru")}
+                  {tr("Add New Tool", "Tambah Tool Baru", "Tambah Tool Baru")}
                 </span>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <input

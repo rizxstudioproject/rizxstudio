@@ -333,7 +333,7 @@ export default function CrmAnalyticsView() {
             style={{ backgroundColor: primaryColor }}
           >
             <RiUserAddLine className="w-4 h-4" />
-            <span>+ Tambah Lead Baru</span>
+            <span>Tambah Lead Baru</span>
           </button>
         </div>
       </div>

@@ -288,7 +288,7 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
             className="px-4 py-2.5 rounded-xl text-xs font-bold bg-teal-500 hover:bg-teal-400 text-black shadow-lg shadow-teal-500/20 active:scale-95 transition flex items-center gap-1.5 cursor-pointer"
           >
             <RiAddLine className="w-4 h-4 text-black" />
-            <span>+ Tambah Rekening / QRIS</span>
+            <span>Tambah Rekening / QRIS</span>
           </button>
 
           <button

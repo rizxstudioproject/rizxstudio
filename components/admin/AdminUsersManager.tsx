@@ -349,7 +349,7 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs bg-teal-500 hover:bg-teal-400 text-black shadow-lg shadow-teal-500/20 active:scale-95 transition cursor-pointer w-full sm:w-auto shrink-0"
         >
           <RiUserAddLine className="w-4 h-4 text-black" />
-          <span>{tr("+ Tambah Admin Baru", "+ Add New Admin", "+ Tambah Admin Baru")}</span>
+          <span>{tr("Tambah Admin Baru", "Add New Admin", "Tambah Admin Baru")}</span>
         </button>
       </div>
 
@@ -622,7 +622,7 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
                   className="px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-lg active:scale-95 transition cursor-pointer flex items-center gap-1.5"
                 >
                   <RiUserAddLine className="w-4 h-4" />
-                  <span>{isSubmitting ? "Menyimpan ke Cloud..." : "+ Simpan Akun Admin"}</span>
+                  <span>{isSubmitting ? "Menyimpan ke Cloud..." : "Simpan Akun Admin"}</span>
                 </button>
               </div>
             </form>
