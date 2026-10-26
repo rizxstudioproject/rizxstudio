@@ -1002,7 +1002,7 @@ Mohon informasi ketersediaan jadwal dan langkah selanjutnya. Terima kasih!`;
                   className="w-full py-4 px-8 rounded-full font-bold text-sm sm:text-base hover:brightness-110 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-3"
                 >
                   <RiSendPlaneFill className="w-5 h-5" />
-                  <span>{tr("Tinjau Ringkasan & Konfirmasi Pesanan 🚀", "Tinjau Ringkasan & Konfirmasi Pesanan 🚀", "Tinjau & Konfirmasi Pesanan 🚀")}</span>
+                  <span>{tr("Confirm Order 🚀", "Konfirmasi Pesanan 🚀", "Konfirmasi Pesanan 🚀")}</span>
                 </button>
                 <p className="text-center text-[11px] text-neutral-500 font-mono mt-3">
                   🔒 Data Anda terlindungi. Langkah selanjutnya akan membuka ringkasan konfirmasi resmi.
