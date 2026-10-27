@@ -76,6 +76,8 @@ export interface HeroBannerData {
   sequenceCustomFrames?: string[]; // Array of frame URLs
   sequenceMouseTracking?: boolean; // Follow mouse cursor movement
   sequenceMouseIntensity?: number; // Number of frames influenced by cursor
+  sequenceFrontImage?: string; // Front portrait photo, defaults to "/front.webp"
+  sequenceMaskImage?: string; // Mask cyber suit photo, defaults to "/mask.webp"
 }
 
 export const defaultHeroBannerData: HeroBannerData = {
@@ -108,6 +110,8 @@ export const defaultHeroBannerData: HeroBannerData = {
   sequenceCustomFrames: [],
   sequenceMouseTracking: true,
   sequenceMouseIntensity: 26,
+  sequenceFrontImage: "/front.webp",
+  sequenceMaskImage: "/mask.webp",
 };
 
 export interface Stage3HeroCard {

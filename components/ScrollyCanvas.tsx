@@ -29,10 +29,13 @@ export default function ScrollyCanvas() {
   const scrollProgressRef = useRef<number>(0);
   const isInViewRef = useRef<boolean>(true);
 
-  // Preload front.webp & mask.webp for Motion Mouse Reveal effect after sequence finishes
+  // Preload Front & Mask images for Motion Mouse Reveal effect after sequence finishes
   const frontImgRef = useRef<HTMLImageElement | null>(null);
   const maskImgRef = useRef<HTMLImageElement | null>(null);
   const lastInteractionTimeRef = useRef<number>(Date.now());
+
+  const frontSrc = heroBanner?.sequenceFrontImage || "/front.webp";
+  const maskSrc = heroBanner?.sequenceMaskImage || "/mask.webp";
 
   // Smooth scroll & frame LERP state for buttery initial & continuous playback
   const smoothProgressRef = useRef<number>(0);
@@ -46,13 +49,13 @@ export default function ScrollyCanvas() {
 
   useEffect(() => {
     const front = new Image();
-    front.src = "/front.webp";
+    front.src = frontSrc;
     const mask = new Image();
-    mask.src = "/mask.webp";
+    mask.src = maskSrc;
 
     frontImgRef.current = front;
     maskImgRef.current = mask;
-  }, []);
+  }, [frontSrc, maskSrc]);
 
   // Check IndexedDB on mount for cached custom sequence
   useEffect(() => {
