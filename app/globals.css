@@ -1127,6 +1127,14 @@ img, canvas {
     visibility: hidden !important;
   }
 
+  /* When receipt modal is open, completely hide all background page contents */
+  body:has(.receipt-modal-backdrop) > *:not(:has(.receipt-modal-backdrop)),
+  body:has(.receipt-modal-backdrop) main,
+  body:has(.receipt-modal-backdrop) section,
+  body:has(.receipt-modal-backdrop) article {
+    display: none !important;
+  }
+
   /* Un-fix modal backdrops so printing prints receipt naturally */
   .receipt-modal-backdrop {
     position: static !important;

@@ -122,9 +122,354 @@ export default function OrderReceiptModal({
     }
   };
 
-  // Print Receipt
+  // Print Dedicated Official Single-Page Receipt
   const handlePrint = () => {
-    window.print();
+    if (!activeReceipt) return;
+    const r = activeReceipt;
+
+    const formattedDate = new Date(r.createdAt).toLocaleString("id-ID", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+
+    const isDone = r.status === "verifying" || r.status === "in_progress" || r.status === "completed";
+    const statusText = isDone ? "BUKTI TERLAMPIR — SEDANG DIVERIFIKASI" : "MENUNGGU PEMBAYARAN / TRANSFER";
+
+    const printHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Resi Pembayaran - ${r.receiptNumber}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 15mm;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #0f172a;
+      background: #ffffff;
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 10px 0;
+    }
+    .receipt-card {
+      max-width: 680px;
+      margin: 0 auto;
+      border: 1.5px solid #1e293b;
+      border-radius: 12px;
+      padding: 24px 28px;
+      background: #ffffff;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0f172a;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-badge {
+      display: inline-block;
+      background: #0d9488;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 2px 7px;
+      border-radius: 4px;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 3px;
+    }
+    .invoice-meta {
+      text-align: right;
+    }
+    .invoice-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #64748b;
+    }
+    .invoice-num {
+      font-size: 16px;
+      font-weight: 800;
+      font-family: monospace;
+      color: #0d9488;
+      margin: 2px 0;
+    }
+    .status-ribbon {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 16px;
+      font-size: 11px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-weight: 700;
+      font-size: 10.5px;
+      font-family: monospace;
+      text-transform: uppercase;
+      background: ${isDone ? "#dcfce7" : "#fef3c7"};
+      color: ${isDone ? "#166534" : "#92400e"};
+      border: 1px solid ${isDone ? "#86efac" : "#fde68a"};
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .box {
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      background: #f8fafc;
+    }
+    .box-title {
+      font-size: 9.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+    .box-main {
+      font-size: 13px;
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .table-order {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+    .table-order th {
+      background: #f1f5f9;
+      font-size: 10px;
+      text-transform: uppercase;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 8px 10px;
+      text-align: left;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+    }
+    .table-order td {
+      padding: 9px 10px;
+      border: 1px solid #cbd5e1;
+      font-size: 11.5px;
+      color: #1e293b;
+    }
+    .amount-box {
+      background: #f0fdfa;
+      border: 1.5px solid #0d9488;
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .amount-label {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: #0f766e;
+      text-transform: uppercase;
+    }
+    .amount-value {
+      font-size: 17px;
+      font-weight: 900;
+      color: #0f766e;
+      font-family: monospace;
+    }
+    .payment-box {
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      background: #ffffff;
+    }
+    .bank-name {
+      font-weight: 800;
+      font-size: 12.5px;
+      color: #0f172a;
+    }
+    .bank-account {
+      font-size: 14px;
+      font-family: monospace;
+      font-weight: 800;
+      color: #0d9488;
+      letter-spacing: 0.5px;
+      margin: 2px 0;
+    }
+    .footer {
+      border-top: 1px dashed #cbd5e1;
+      padding-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 9.5px;
+      color: #64748b;
+      font-family: monospace;
+    }
+    .seal {
+      display: inline-block;
+      border: 1.5px solid #0d9488;
+      color: #0d9488;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 800;
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="receipt-card">
+    <div class="header">
+      <div>
+        <div class="brand-title">
+          <span class="brand-badge">RZ</span> RIZX STUDIO
+        </div>
+        <div class="brand-sub">Creative Production & Digital Solutions • rizxstudio.com</div>
+      </div>
+      <div class="invoice-meta">
+        <div class="invoice-title">NOMOR RESI INVOICE</div>
+        <div class="invoice-num">${r.receiptNumber}</div>
+        <div style="font-size: 10px; color: #64748b; font-family: monospace;">Ref: ${r.refCode}</div>
+      </div>
+    </div>
+
+    <div class="status-ribbon">
+      <div>
+        <span style="color: #64748b;">Status: </span>
+        <span class="status-badge">${statusText}</span>
+      </div>
+      <div style="color: #64748b; font-family: monospace;">${formattedDate}</div>
+    </div>
+
+    <div class="grid-2">
+      <div class="box">
+        <div class="box-title">DATA PEMESAN / KLIEN</div>
+        <div class="box-main">${r.clientName}</div>
+        <div style="color: #475569; font-size: 11px; margin-top: 2px;">${r.clientPhone}</div>
+        ${r.clientEmail ? `<div style="color: #64748b; font-size: 10.5px;">${r.clientEmail}</div>` : ""}
+      </div>
+      <div class="box">
+        <div class="box-title">RINCIAN LAYANAN & ESTIMASI</div>
+        <div class="box-main" style="color: #0d9488;">${r.serviceTitle}</div>
+        <div style="color: #334155; font-size: 11px; margin-top: 2px;">Paket: <strong>${r.packageName}</strong></div>
+        ${r.packageDuration ? `<div style="color: #64748b; font-size: 10.5px;">Estimasi Durasi: ${r.packageDuration}</div>` : ""}
+      </div>
+    </div>
+
+    <table class="table-order">
+      <thead>
+        <tr>
+          <th>Deskripsi Pemesanan</th>
+          <th style="width: 25%; text-align: center;">Skema Pembayaran</th>
+          <th style="width: 25%; text-align: right;">Estimasi Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <strong>${r.serviceTitle}</strong><br>
+            <span style="color: #64748b; font-size: 10.5px;">Paket ${r.packageName} (${r.packageDuration || "-"})</span>
+          </td>
+          <td style="text-align: center; font-weight: 600;">${r.paymentPlanLabel}</td>
+          <td style="text-align: right; font-weight: 700; font-family: monospace;">${r.totalBudget}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="amount-box">
+      <div>
+        <div class="amount-label">NOMINAL YANG HARUS DIBAYAR</div>
+        <div style="font-size: 10px; color: #0f766e; margin-top: 1px;">Sesuai skema pembayaran yang dipilih</div>
+      </div>
+      <div class="amount-value">${r.amountToPay}</div>
+    </div>
+
+    <div class="payment-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <span class="box-title" style="margin-bottom: 0;">REKENING TUJUAN TRANSFER RESMI</span>
+        <span style="font-size: 9px; font-weight: 800; background: #e0f2fe; color: #0369a1; padding: 1px 6px; border-radius: 4px;">AKUN RESMI</span>
+      </div>
+      <div class="bank-name">${r.accountDetails.name}</div>
+      <div class="bank-account">${r.accountDetails.accountNumber}</div>
+      <div style="font-size: 11px; color: #475569;">Atas Nama: <strong>${r.accountDetails.accountHolder}</strong></div>
+      <div style="font-size: 10px; color: #64748b; font-style: italic; margin-top: 4px;">${r.accountDetails.instructions}</div>
+    </div>
+
+    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; margin-bottom: 16px; font-size: 10.5px; font-family: monospace; color: #475569;">
+      <strong>Link Tracking Proyek Online:</strong> <span style="color: #0d9488;">${r.trackingUrl}</span>
+    </div>
+
+    <div class="footer">
+      <div>
+        <div>Dokumen ini sah & diterbitkan secara otomatis oleh sistem Rizx Studio.</div>
+        <div style="color: #94a3b8; margin-top: 2px;">Waktu cetak: ${new Date().toLocaleString("id-ID")}</div>
+      </div>
+      <div class="seal">
+        ✓ OFFICIAL VERIFIED RECEIPT
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+
+    // Create invisible iframe to trigger print without printing website pages
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "none";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (doc) {
+      doc.open();
+      doc.write(printHtml);
+      doc.close();
+
+      setTimeout(() => {
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        setTimeout(() => {
+          if (document.body.contains(iframe)) {
+            document.body.removeChild(iframe);
+          }
+        }, 1500);
+      }, 300);
+    }
   };
 
   // WhatsApp Message
