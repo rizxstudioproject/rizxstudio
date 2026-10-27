@@ -64,7 +64,7 @@ export default function ClientLogos() {
   return (
     <section
       id="clients"
-      className="relative py-16 bg-[var(--background,#0a0a0a)] overflow-hidden border-b border-white/5 transition-colors duration-300"
+      className="relative py-16 bg-[var(--background,#0a0a0a)] overflow-hidden transition-colors duration-300"
     >
       {/* Left / Right fade masks */}
       <div className="client-fade-left absolute inset-y-0 left-0 w-24 sm:w-36 z-10 pointer-events-none bg-gradient-to-r from-[var(--background,#0a0a0a)] to-transparent" />
