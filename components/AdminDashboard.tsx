@@ -40,6 +40,8 @@ import {
   RiSave3Fill,
   RiArrowRightLine,
   RiHome5Fill,
+  RiYoutubeFill,
+  RiDriveFill,
 } from "react-icons/ri";
 import { useLang, toMinang, resolveTrPair } from "@/context/LanguageContext";
 import {
@@ -822,7 +824,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       );
       setHwOverlappingCards(heroWorks.overlappingCards || defaultHeroWorksData.overlappingCards);
     }
-    showToast("Perubahan dibatalkan â€” form dikembalikan ke data tersimpan.");
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
   };
 
   const handleAddDeckCard = () => {
@@ -850,7 +852,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         originalId: id,
         type: "hero-card",
         title: card.title,
-        subtitle: `Hero Deck Card â€¢ ${card.category}`,
+        subtitle: `Hero Deck Card • ${card.category}`,
         previewImage: card.image,
         payload: { card, cardType: "deck" },
       });
@@ -909,7 +911,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setClSubtitle(clientLogos.subtitle || defaultClientLogosData.subtitle);
       setClLogos(clientLogos.logos || defaultClientLogosData.logos);
     }
-    showToast("Perubahan dibatalkan â€” form dikembalikan ke data tersimpan.");
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
   };
 
   const handleAddClientLogo = () => {
@@ -979,7 +981,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setRunnerWaveScale(portfolioRunner.waveScale ?? 1.17);
       setRunnerWaveRadius(portfolioRunner.waveRadius ?? 240);
     }
-    showToast("Perubahan dibatalkan â€” form dikembalikan ke data tersimpan.");
+    showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
   };
 
   const handleAddRunnerItem = () => {
@@ -1012,7 +1014,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         originalId: id,
         type: "runner-item",
         title: item.title,
-        subtitle: `Baris ${item.row} â€¢ ${item.category}`,
+        subtitle: `Baris ${item.row} • ${item.category}`,
         previewImage: item.image,
         payload: { item },
       });
@@ -1278,7 +1280,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setSeqPreviewUrls([]);
     }
     showToast(
-      tx("Perubahan dibatalkan â€” form dikembalikan ke data tersimpan.", "Changes cancelled â€” restored to saved data.")
+      tx("Perubahan dibatalkan — form dikembalikan ke data tersimpan.", "Changes cancelled — restored to saved data.")
     );
   };
 
@@ -1350,7 +1352,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [videoClassTag, setVideoClassTag] = useState(stage3.classTag || "CREATIVE JOURNEY | 2012 TO PRESENT");
   const [videoDescription, setVideoDescription] = useState(
     stage3.heroCard.description ||
-      "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology â€” pushing the boundaries of creative digital experiences."
+      "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences."
   );
   const [videoEnabled, setVideoEnabled] = useState(stage3.heroCard.isVideoEnabled !== false);
 
@@ -1442,7 +1444,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const handleOpenEditFolder = (folder: ClientItem) => {
     setEditingFolder(folder);
     setEditFolderName(folder.clientName);
-    setEditFolderCategory(folder.category || `Portfolio â€” ${folder.clientName}`);
+    setEditFolderCategory(folder.category || `Portfolio — ${folder.clientName}`);
     setEditFolderLogo(folder.logo || "");
   };
 
@@ -1467,7 +1469,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [uploadType, setUploadType] = useState("Digital Campaign");
   const [uploadAspect, setUploadAspect] = useState<"4:5" | "1:1" | "16:9" | "9:16">("4:5");
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear().toString());
-  // Tool tags for upload â€” comma-separated input
+  // Tool tags for upload — comma-separated input
   const [uploadToolsInput, setUploadToolsInput] = useState("Figma, Photoshop, Magnific AI");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -1843,7 +1845,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
     addClientFolder({
       clientName: newFolderName.trim(),
-      category: newFolderCategory.trim() || `Portfolio â€” ${newFolderName.trim()}`,
+      category: newFolderCategory.trim() || `Portfolio — ${newFolderName.trim()}`,
       description: "",
     });
     showToast(`Folder "client - ${newFolderName.trim()}" berhasil dibuat!`);
@@ -2254,7 +2256,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           className="w-full px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-white/10 text-white text-xs font-semibold focus:outline-none focus:border-[#16b09f]"
                         />
                         <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (Â°):</span>
+                          <span className="text-[10px] font-mono text-neutral-400">Rotasi (°):</span>
                           <input
                             type="number"
                             value={card.rotate}
@@ -2305,7 +2307,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
                       <HiPhoto className="w-4 h-4 text-[#16b09f]" />
                       <span className="truncate">
-                        {newOverImage ? "âœ“ Gambar Dipilih" : "Pilih File Gambar"}
+                        {newOverImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
                       </span>
                       <input
                         type="file"
@@ -2406,7 +2408,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={hwStage1ScrollText}
                     onChange={(e) => setHwStage1ScrollText(e.target.value)}
-                    placeholder="Scroll down â†“"
+                    placeholder="Scroll down ↓"
                     className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
                   />
                 </div>
@@ -2523,7 +2525,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <label className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/10">
                       <HiPhoto className="w-4 h-4 text-[#16b09f]" />
                       <span className="truncate">
-                        {newDeckImage ? "âœ“ Gambar Dipilih" : "Pilih File Gambar"}
+                        {newDeckImage ? "✓ Gambar Dipilih" : "Pilih File Gambar"}
                       </span>
                       <input
                         type="file"
@@ -2590,7 +2592,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               }`}>
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                    BAGIAN 1 Â· HEADER & NARASI UTAMA
+                    BAGIAN 1 · HEADER & NARASI UTAMA
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Judul & Deskripsi Utama Profil
@@ -2658,7 +2660,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               }`}>
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                    BAGIAN 2 Â· FILOSOFI INTI
+                    BAGIAN 2 · FILOSOFI INTI
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Quote & Core Philosophy
@@ -2687,7 +2689,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       type="text"
                       value={aboutPhilosophyQuote}
                       onChange={(e) => setAboutPhilosophyQuote(e.target.value)}
-                      placeholder="A creative professional's greatest advantage isn't resisting change â€” it's adapting faster."
+                      placeholder="A creative professional's greatest advantage isn't resisting change — it's adapting faster."
                       className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm italic focus:outline-none focus:border-[#16b09f] transition-all"
                     />
                   </div>
@@ -2700,7 +2702,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               }`}>
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                    BAGIAN 3 Â· STATISTIK PENGALAMAN
+                    BAGIAN 3 · STATISTIK PENGALAMAN
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     3 Angka Prestasi & Pengalaman
@@ -2779,7 +2781,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               }`}>
                 <div className="pb-3 border-b border-white/10">
                   <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                    BAGIAN 4 Â· KARTU SAMPING (SIDEBAR CARDS)
+                    BAGIAN 4 · KARTU SAMPING (SIDEBAR CARDS)
                   </span>
                   <h3 className="text-base sm:text-lg font-bold text-white">
                     Kolaborasi Global & Disiplin Keahlian
@@ -2867,13 +2869,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     >
       <MetaSEO isAdmin={true} />
 
-      {/* â”€â”€ REALTIME INCOMING PROJECT ORDER NOTIFICATION ALERT BANNER â”€â”€ */}
+      {/* ── REALTIME INCOMING PROJECT ORDER NOTIFICATION ALERT BANNER ── */}
       {incomingProjectAlert && (
         <div className="fixed top-5 right-5 z-[99999] max-w-sm w-full bg-[#0d121f]/95 border-2 border-emerald-500/60 shadow-[0_15px_50px_rgba(16,185,129,0.35)] backdrop-blur-xl rounded-2xl p-4 text-white animate-in slide-in-from-top-4 duration-300">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 text-lg shrink-0 animate-bounce">
-                ðŸ””
+                🔔
               </div>
               <div>
                 <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400 font-bold block">
@@ -2890,13 +2892,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition cursor-pointer"
               title="Tutup Notifikasi"
             >
-              âœ•
+              ✕
             </button>
           </div>
 
           <div className="mt-2.5 pt-2.5 border-t border-white/10 space-y-1 text-xs">
             <p className="text-neutral-300 font-medium truncate">
-              ðŸ“¦ {incomingProjectAlert.serviceTitle} â€”{" "}
+              📦 {incomingProjectAlert.serviceTitle} —{" "}
               <span className="text-teal-400">{incomingProjectAlert.packageName}</span>
             </p>
             <div className="flex items-center justify-between text-[11px] text-neutral-400 font-mono">
@@ -3327,7 +3329,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSparkles className="w-4 h-4" />
-                <span>{tx("ðŸŒŸ Hero Banner (Scrolly)", "ðŸŒŸ Hero Banner (Scrolly)")}</span>
+                <span>{tx("Hero Banner (Scrolly)", "Hero Banner (Scrolly)")}</span>
               </button>
 
               <button
@@ -3342,7 +3344,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiVideoCamera className="w-4 h-4" />
-                <span>{tx("ðŸŽ¬ Media Showcase (Stage 3)", "ðŸŽ¬ Media Showcase (Stage 3)")}</span>
+                <span>{tx("Media Showcase (Stage 3)", "Media Showcase (Stage 3)")}</span>
               </button>
 
               <button
@@ -3357,7 +3359,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSquares2X2 className="w-4 h-4" />
-                <span>{tx("ðŸŽžï¸ Media Reels (Portofolio Berjalan 4:5)", "ðŸŽžï¸ Media Reels (Running Portfolio 4:5)")}</span>
+                <span>{tx("Media Reels (Portofolio Berjalan 4:5)", "Media Reels (Running Portfolio 4:5)")}</span>
               </button>
             </div>
             {/* Header Explainer */}
@@ -4630,7 +4632,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               >
                                 <span>{toolName}</span>
                                 <span className="text-[10px] opacity-75">
-                                  {isIncluded ? "âœ“" : "+"}
+                                  {isIncluded ? "✓" : "+"}
                                 </span>
                               </button>
                             );
@@ -4667,7 +4669,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-white/10">
                     <div>
                       <span className="text-[10px] font-mono text-[#16b09f] uppercase tracking-widest font-semibold block">
-                        {tx("ASET PORTOFOLIO", "PORTFOLIO ASSETS")} Â· FOLDER {selectedClient.clientName.toUpperCase()}
+                        {tx("ASET PORTOFOLIO", "PORTFOLIO ASSETS")} · FOLDER {selectedClient.clientName.toUpperCase()}
                       </span>
                       <h3 className="text-base sm:text-lg font-bold text-white flex items-center gap-2">
                         <span>{tx("Galeri Gambar Portofolio", "Portfolio Image Gallery")}</span>
@@ -4738,7 +4740,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               )}
                             </div>
 
-                            {/* Image Thumbnail Container â€” matches work.aspect (16:9, 1:1, 4:5, etc) */}
+                            {/* Image Thumbnail Container — matches work.aspect (16:9, 1:1, 4:5, etc) */}
                             <div className={`relative w-full ${getAspectClass(work.aspect)} bg-black overflow-hidden transition-all duration-300`}>
                               <img
                                 src={work.image}
@@ -4822,7 +4824,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSparkles className="w-4 h-4" />
-                <span>{tx("ðŸŒŸ Hero Banner (Scrolly)", "ðŸŒŸ Hero Banner (Scrolly)")}</span>
+                <span>{tx("Hero Banner (Scrolly)", "Hero Banner (Scrolly)")}</span>
               </button>
 
               <button
@@ -4837,7 +4839,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiVideoCamera className="w-4 h-4" />
-                <span>{tx("ðŸŽ¬ Media Showcase (Stage 3)", "ðŸŽ¬ Media Showcase (Stage 3)")}</span>
+                <span>{tx("Media Showcase (Stage 3)", "Media Showcase (Stage 3)")}</span>
               </button>
 
               <button
@@ -4852,7 +4854,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSquares2X2 className="w-4 h-4" />
-                <span>{tx("ðŸŽžï¸ Media Reels (Portofolio Berjalan 4:5)", "ðŸŽžï¸ Media Reels (Running Portfolio 4:5)")}</span>
+                <span>{tx("Media Reels (Portofolio Berjalan 4:5)", "Media Reels (Running Portfolio 4:5)")}</span>
               </button>
             </div>
             {/* Header Explainer */}
@@ -4962,8 +4964,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setRunnerDirRow1(e.target.value as "left" | "right")}
                     className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#16b09f] focus:outline-none cursor-pointer"
                   >
-                    <option value="left">{tx("Scroll ke Kiri â†", "Scroll Left â†")}</option>
-                    <option value="right">{tx("Scroll ke Kanan â†’", "Scroll Right â†’")}</option>
+                    <option value="left">{tx("Scroll ke Kiri ←", "Scroll Left ←")}</option>
+                    <option value="right">{tx("Scroll ke Kanan →", "Scroll Right →")}</option>
                   </select>
                 </div>
 
@@ -4976,8 +4978,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     onChange={(e) => setRunnerDirRow2(e.target.value as "left" | "right")}
                     className="w-full px-3 py-2 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:border-[#16b09f] focus:outline-none cursor-pointer"
                   >
-                    <option value="right">{tx("Scroll ke Kanan â†’", "Scroll Right â†’")}</option>
-                    <option value="left">{tx("Scroll ke Kiri â†", "Scroll Left â†")}</option>
+                    <option value="right">{tx("Scroll ke Kanan →", "Scroll Right →")}</option>
+                    <option value="left">{tx("Scroll ke Kiri ←", "Scroll Left ←")}</option>
                   </select>
                 </div>
 
@@ -5303,7 +5305,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 : "bg-purple-500/20 text-purple-300 border-purple-500/40 hover:bg-purple-500/30"
                             }`}
                           >
-                            Baris {item.row} {item.row === 1 ? "â†" : "â†’"}
+                            Baris {item.row} {item.row === 1 ? "←" : "→"}
                           </button>
 
                           {/* Quick Edit & Delete overlay buttons */}
@@ -5537,7 +5539,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSparkles className="w-4 h-4" />
-                <span>{tx("ðŸŒŸ Hero Banner (Scrolly)", "ðŸŒŸ Hero Banner (Scrolly)")}</span>
+                <span>{tx("Hero Banner (Scrolly)", "Hero Banner (Scrolly)")}</span>
               </button>
 
               <button
@@ -5552,7 +5554,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiVideoCamera className="w-4 h-4" />
-                <span>{tx("ðŸŽ¬ Media Showcase (Stage 3)", "ðŸŽ¬ Media Showcase (Stage 3)")}</span>
+                <span>{tx("Media Showcase (Stage 3)", "Media Showcase (Stage 3)")}</span>
               </button>
 
               <button
@@ -5567,7 +5569,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSquares2X2 className="w-4 h-4" />
-                <span>{tx("ðŸŽžï¸ Media Reels (Portofolio Berjalan 4:5)", "ðŸŽžï¸ Media Reels (Running Portfolio 4:5)")}</span>
+                <span>{tx("Media Reels (Portofolio Berjalan 4:5)", "Media Reels (Running Portfolio 4:5)")}</span>
               </button>
             </div>
             {/* Section Explainer Banner */}
@@ -5620,7 +5622,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <HiInformationCircle className="w-4 h-4" />
                 </span>
                 <p className="text-neutral-400 leading-relaxed text-[11px] sm:text-xs">
-                  <strong className="text-white">Lokasi di Web Publik:</strong> Section ini berada di dalam sekuens interaktif <em>Projects (Stage 3: ~60% scroll)</em>. Saat Anda klik tombol <strong>"Simpan & Buka Langsung di Web â†—"</strong> di bawah, sistem akan otomatis melakukan scroll halus langsung tepat ke depan video YouTube Anda.
+                  <strong className="text-white">Lokasi di Web Publik:</strong> Section ini berada di dalam sekuens interaktif <em>Projects (Stage 3: ~60% scroll)</em>. Saat Anda klik tombol <strong>"Simpan & Buka Langsung di Web ↗"</strong> di bawah, sistem akan otomatis melakukan scroll halus langsung tepat ke depan video YouTube Anda.
                 </p>
               </div>
             </div>
@@ -5699,7 +5701,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               : "text-neutral-400 hover:text-white"
                           }`}
                         >
-                          <span>ðŸ”´ YouTube</span>
+                          <RiYoutubeFill className="w-4 h-4 shrink-0" />
+                          <span>YouTube</span>
                         </button>
                         <button
                           type="button"
@@ -5713,7 +5716,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               : "text-neutral-400 hover:text-white"
                           }`}
                         >
-                          <span>ðŸ“ Google Drive</span>
+                          <RiDriveFill className="w-4 h-4 shrink-0" />
+                          <span>Google Drive</span>
                         </button>
                         <button
                           type="button"
@@ -5727,7 +5731,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               : "text-neutral-400 hover:text-white"
                           }`}
                         >
-                          <span>ðŸ–¼ï¸ Gambar Kustom</span>
+                          <HiPhoto className="w-4 h-4 shrink-0" />
+                          <span>Gambar Kustom</span>
                         </button>
                       </div>
                     </div>
@@ -5790,7 +5795,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 rel="noreferrer"
                                 className="text-cyan-400 underline hover:text-cyan-300 transition-colors"
                               >
-                                {tx("â†— Tes Buka Link", "â†— Test Link", "â†— Uji Bukak Tautan")}
+                                {tx("↗ Tes Buka Link", "↗ Test Link", "↗ Uji Bukak Tautan")}
                               </a>
                             </div>
                           )}
@@ -5807,7 +5812,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           </label>
                           {flagshipImageUrl && (
                             <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                              â— {tx("Gambar Aktif", "Image Active", "Gambar Aktif")}
+                              ● {tx("Gambar Aktif", "Image Active", "Gambar Aktif")}
                             </span>
                           )}
                         </div>
@@ -6066,7 +6071,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     <div className="absolute bottom-3 right-3 z-20 pointer-events-none">
                       <span className="px-2.5 py-1 rounded-full bg-white text-black font-semibold text-[10px] flex items-center gap-1 shadow-lg">
                         <span>View Full</span>
-                        <span>â†—</span>
+                        <span>↗</span>
                       </span>
                     </div>
                   </div>
@@ -6215,7 +6220,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         }}
                         className={`underline cursor-pointer font-semibold ${isLight ? "text-teal-700 hover:text-teal-800" : "text-cyan-400 hover:text-cyan-300"}`}
                       >
-                        {tx("Salin Link ðŸ“‹", "Copy URL ðŸ“‹")}
+                        {tx("Salin Link 📋", "Copy URL 📋")}
                       </button>
                     </div>
                   </div>
@@ -6295,7 +6300,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           }}
                           className={`text-[10px] underline font-mono cursor-pointer font-bold ${isLight ? "text-teal-700 hover:text-teal-800" : "text-cyan-400 hover:text-cyan-300"}`}
                         >
-                          {tx("Salin ðŸ“‹", "Copy ðŸ“‹")}
+                          {tx("Salin 📋", "Copy 📋")}
                         </button>
                       </div>
                       <span className={`font-bold block break-all font-mono text-xs sm:text-sm ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
@@ -6611,7 +6616,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     Edit Detail: {editingWork.title}
                   </h3>
                   <p className="text-xs text-neutral-400">
-                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> Â· {tx("Perubahan langsung aktif di popup Case Study web publik.", "Changes update live in public Case Study popup.")}
+                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> · {tx("Perubahan langsung aktif di popup Case Study web publik.", "Changes update live in public Case Study popup.")}
                   </p>
                 </div>
               </div>
@@ -6713,7 +6718,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs font-mono text-amber-400 font-medium mb-1.5 flex items-center gap-1.5">
-                      <span>âš ï¸</span>
+                      <span>⚠️</span>
                       <span>Tantangan (Challenge)</span>
                     </label>
                     <textarea
@@ -6727,7 +6732,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   <div>
                     <label className="block text-xs font-mono text-[#16b09f] font-medium mb-1.5 flex items-center gap-1.5">
-                      <span>âœ…</span>
+                      <span>✅</span>
                       <span>Solusi & Pendekatan (Solution)</span>
                     </label>
                     <textarea
@@ -6800,7 +6805,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               : "bg-white/5 text-neutral-400 hover:text-white border border-white/10"
                           }`}
                         >
-                          {isSelected ? `âœ“ ${tool.label}` : `+ ${tool.label}`}
+                          {isSelected ? `✓ ${tool.label}` : `+ ${tool.label}`}
                         </button>
                       );
                     })}
@@ -7123,7 +7128,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
               </div>
 
-              {/* Navigation Items List â€” All 13 REAL Portfolio Admin Sections */}
+              {/* Navigation Items List — All 13 REAL Portfolio Admin Sections */}
               <div className="space-y-1.5 pt-1">
                 <span className={`text-[10px] font-mono uppercase tracking-wider px-2 block mb-1 ${
                   isLight ? "text-slate-500 font-semibold" : "text-neutral-500"
@@ -7301,7 +7306,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#16b09f] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95 cursor-pointer no-underline"
                 >
                   <HiEye className="w-4 h-4" />
-                  <span>{tx("Lihat Web Publik â†—", "View Public Web â†—")}</span>
+                  <span>{tx("Lihat Web Publik ↗", "View Public Web ↗")}</span>
                 </a>
 
                 <button
@@ -7335,7 +7340,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             className="fixed bottom-6 right-6 z-[120] flex items-center gap-2.5 px-4 py-3 rounded-xl bg-neutral-900 border border-[#16b09f]/50 text-white shadow-2xl backdrop-blur-xl text-xs sm:text-sm font-medium"
           >
             <div className="w-5 h-5 rounded-full bg-[#16b09f] text-black flex items-center justify-center font-bold text-xs shrink-0">
-              âœ“
+              ✓
             </div>
             <span>{toastMessage}</span>
           </motion.div>

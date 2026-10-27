@@ -447,7 +447,7 @@ export default function AdminTopBar({
                               <div className={`text-[10px] truncate ${
                                 isLight ? "text-slate-500" : "text-neutral-400"
                               }`}>
-                                {client.category || "Client Folder"} â€¢{" "}
+                                {client.category || "Client Folder"} •{" "}
                                 {client.works?.length || 0} works
                               </div>
                             </div>

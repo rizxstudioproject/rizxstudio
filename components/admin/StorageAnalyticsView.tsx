@@ -742,7 +742,7 @@ export default function StorageAnalyticsView({
                       <span>{tr("Client Works & Images", "Foto & Karya Visual", "Foto & Karya Visual")}</span>
                       {activeCategory === "works" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#16b09f] text-black font-bold">
-                          â— {tr("Active", "Aktif", "Aktif")}
+                          ● {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
                     </p>
@@ -786,7 +786,7 @@ export default function StorageAnalyticsView({
                       <span>{tr("Flagship Video & Showcase", "Video & Stage 3 Media", "Video & Stage 3 Media")}</span>
                       {activeCategory === "video" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-indigo-500 text-white font-bold">
-                          â— {tr("Active", "Aktif", "Aktif")}
+                          ● {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
                     </p>
@@ -830,7 +830,7 @@ export default function StorageAnalyticsView({
                       <span>{tr("Scrollytelling Frames", "Cache Kanvas Scrolly", "Cache Kanvas Scrolly")}</span>
                       {activeCategory === "frames" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-400 text-black font-bold">
-                          â— {tr("Active", "Aktif", "Aktif")}
+                          ● {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
                     </p>
@@ -874,7 +874,7 @@ export default function StorageAnalyticsView({
                       <span>{tr("Recycle Bin (Trash)", "Tong Sampah (Pulihkan)", "Tong Sarok (Pulihan)")}</span>
                       {activeCategory === "trash" && (
                         <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500 text-white font-bold">
-                          â— {tr("Active", "Aktif", "Aktif")}
+                          ● {tr("Active", "Aktif", "Aktif")}
                         </span>
                       )}
                     </p>
@@ -973,7 +973,7 @@ export default function StorageAnalyticsView({
                   onClick={onNavigateToTrash}
                   className={`cursor-pointer font-semibold ${isLight ? "text-rose-600 hover:underline" : "text-rose-400 hover:underline"}`}
                 >
-                  {tr("View â†—", "Buka â†—", "Bukak â†—")}
+                  {tr("View ↗", "Buka ↗", "Bukak ↗")}
                 </button>
               )}
             </div>
