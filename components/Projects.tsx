@@ -1032,6 +1032,17 @@ export default function Projects() {
     window.scrollTo({ top: targetY, behavior: "smooth" });
   };
 
+  // Scroll directly to Client Folders (Stage 3 Vault)
+  const scrollToClientFolders = useCallback(() => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const stageTop = rect.top + scrollTop;
+    const totalHeight = rect.height - window.innerHeight;
+    const targetY = stageTop + Math.max(0, totalHeight * 0.88);
+    window.scrollTo({ top: targetY, behavior: "smooth" });
+  }, []);
+
   // Scroll directly to Flagship Showcase (Creative Journey)
   const scrollToFlagshipStage = useCallback(() => {
     const el = document.getElementById("flagship-showcase");
@@ -1040,30 +1051,49 @@ export default function Projects() {
     }
   }, []);
 
-  // Auto-scroll to Stage 3 if requested from Admin or URL hash
+  // Auto-scroll to Stage 3 or Client Folders if requested from Admin, Navbar, or URL hash
   useEffect(() => {
     const handleCheckDirectScroll = () => {
       if (typeof window === "undefined") return;
+      const hash = window.location.hash;
+
       const shouldScrollToFlagship =
         sessionStorage.getItem("rizx_scroll_to_flagship") === "true" ||
-        window.location.hash === "#flagship-showcase";
+        hash === "#flagship-showcase";
 
       if (shouldScrollToFlagship) {
         try {
           sessionStorage.removeItem("rizx_scroll_to_flagship");
         } catch (_) {}
 
-        // Small delay to allow DOM and pinned layout to settle
         setTimeout(() => {
           scrollToFlagshipStage();
         }, 180);
+        return;
+      }
+
+      const shouldScrollToClientFolders =
+        hash === "#client-folders" ||
+        hash === "#client-productions" ||
+        hash === "#work" ||
+        sessionStorage.getItem("rizx_scroll_to_client_folders") === "true";
+
+      if (shouldScrollToClientFolders) {
+        try {
+          sessionStorage.removeItem("rizx_scroll_to_client_folders");
+        } catch (_) {}
+
+        setTimeout(() => {
+          scrollToClientFolders();
+        }, 180);
+        return;
       }
     };
 
     handleCheckDirectScroll();
     window.addEventListener("hashchange", handleCheckDirectScroll);
     return () => window.removeEventListener("hashchange", handleCheckDirectScroll);
-  }, [scrollToFlagshipStage]);
+  }, [scrollToFlagshipStage, scrollToClientFolders]);
 
   const activeClientData = stage4.clients.find((c) => c.id === selectedClient) || stage4.clients[0];
 
@@ -1443,7 +1473,7 @@ export default function Projects() {
             (Active: 0.72 -> 1.00)
            ======================================================== */}
         <div
-          id="client-productions"
+          id="client-productions" data-client-folders="true"
           className="absolute inset-0 max-w-6xl mx-auto flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-6 sm:gap-10 px-4 sm:px-8 pt-16 sm:pt-20 lg:pt-14 pb-4 sm:pb-8 my-auto"
           style={{
             opacity: scrollProgress < 0.72 ? 0 : Math.min(1, (scrollProgress - 0.72) / 0.05),

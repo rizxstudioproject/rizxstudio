@@ -134,8 +134,22 @@ export default function Navbar() {
   const scrollTo = (id: string) => {
     setMobileMenuOpen(false);
     if (pathname !== "/") {
-      router.push(`/#${id}`);
+      router.push(`/#${id === "projects" ? "client-folders" : id}`);
       return;
+    }
+    // Direct smooth scroll to Client Folders stage when "Work" is clicked
+    if (id === "projects" || id === "client-folders" || id === "client-productions") {
+      const projectsEl = document.getElementById("projects");
+      if (projectsEl) {
+        const rect = projectsEl.getBoundingClientRect();
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        const stageTop = rect.top + scrollTop;
+        const totalHeight = rect.height - window.innerHeight;
+        // Progress 0.88 brings the Client Folders vault directly and fully into viewport center
+        const targetY = stageTop + Math.max(0, totalHeight * 0.88);
+        window.scrollTo({ top: targetY, behavior: "smooth" });
+        return;
+      }
     }
     const el = document.getElementById(id);
     if (el) {
