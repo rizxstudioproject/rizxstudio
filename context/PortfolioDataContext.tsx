@@ -78,6 +78,9 @@ export interface HeroBannerData {
   sequenceMouseIntensity?: number; // Number of frames influenced by cursor
   sequenceFrontImage?: string; // Front portrait photo, defaults to "/front.webp"
   sequenceMaskImage?: string; // Mask cyber suit photo, defaults to "/mask.webp"
+  sequenceRevealRadius?: number; // Spotlight radius in pixels (100 - 600, default 270)
+  sequenceRevealSpread?: number; // Inner solid core percentage (10 - 80, default 30)
+  sequenceRevealFade?: number; // Fade softness / feathering percentage (10 - 90, default 60)
 }
 
 export const defaultHeroBannerData: HeroBannerData = {
@@ -112,6 +115,9 @@ export const defaultHeroBannerData: HeroBannerData = {
   sequenceMouseIntensity: 26,
   sequenceFrontImage: "/front.webp",
   sequenceMaskImage: "/mask.webp",
+  sequenceRevealRadius: 270,
+  sequenceRevealSpread: 30,
+  sequenceRevealFade: 60,
 };
 
 export interface Stage3HeroCard {

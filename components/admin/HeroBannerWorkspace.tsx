@@ -103,6 +103,9 @@ export default function HeroBannerWorkspace({
 
   const [hbSeqFrontImage, setHbSeqFrontImage] = useState(heroBanner?.sequenceFrontImage || "/front.webp");
   const [hbSeqMaskImage, setHbSeqMaskImage] = useState(heroBanner?.sequenceMaskImage || "/mask.webp");
+  const [hbSeqRevealRadius, setHbSeqRevealRadius] = useState(heroBanner?.sequenceRevealRadius || 270);
+  const [hbSeqRevealSpread, setHbSeqRevealSpread] = useState(heroBanner?.sequenceRevealSpread ?? 30);
+  const [hbSeqRevealFade, setHbSeqRevealFade] = useState(heroBanner?.sequenceRevealFade ?? 60);
   const [isUploadingFront, setIsUploadingFront] = useState(false);
   const [isUploadingMask, setIsUploadingMask] = useState(false);
   const frontFileInputRef = useRef<HTMLInputElement>(null);
@@ -143,6 +146,9 @@ export default function HeroBannerWorkspace({
       setHbSeqMouseIntensity(heroBanner.sequenceMouseIntensity || 26);
       setHbSeqFrontImage(heroBanner.sequenceFrontImage || "/front.webp");
       setHbSeqMaskImage(heroBanner.sequenceMaskImage || "/mask.webp");
+      setHbSeqRevealRadius(heroBanner.sequenceRevealRadius || 270);
+      setHbSeqRevealSpread(heroBanner.sequenceRevealSpread ?? 30);
+      setHbSeqRevealFade(heroBanner.sequenceRevealFade ?? 60);
     }
   }, [heroBanner]);
 
@@ -317,11 +323,14 @@ export default function HeroBannerWorkspace({
     await updateHeroBannerData({
       sequenceFrontImage: hbSeqFrontImage.trim() || "/front.webp",
       sequenceMaskImage: hbSeqMaskImage.trim() || "/mask.webp",
+      sequenceRevealRadius: Number(hbSeqRevealRadius) || 270,
+      sequenceRevealSpread: Number(hbSeqRevealSpread) ?? 30,
+      sequenceRevealFade: Number(hbSeqRevealFade) ?? 60,
     });
     notify(
       "success",
       tr("Tersimpan!", "Saved!", "Tasimpan!"),
-      tr("File Foto Front & Mask berhasil disimpan.", "Front & Mask photo files saved successfully.", "Foto Front & Mask barasil disimpan.")
+      tr("File Foto Front, Mask & Parameter Spotlight berhasil disimpan.", "Front, Mask & Spotlight parameters saved successfully.", "Foto Front, Mask & Spotlight barasil disimpan.")
     );
   };
 
@@ -335,6 +344,9 @@ export default function HeroBannerWorkspace({
       setHbSeqStart(0);
       setHbSeqFrontImage("/front.webp");
       setHbSeqMaskImage("/mask.webp");
+      setHbSeqRevealRadius(270);
+      setHbSeqRevealSpread(30);
+      setHbSeqRevealFade(60);
       setSeqSelectedFiles([]);
       setSeqPreviewUrls([]);
       setSeqScrubIdx(0);
@@ -351,6 +363,9 @@ export default function HeroBannerWorkspace({
         sequenceCustomFrames: [],
         sequenceFrontImage: "/front.webp",
         sequenceMaskImage: "/mask.webp",
+        sequenceRevealRadius: 270,
+        sequenceRevealSpread: 30,
+        sequenceRevealFade: 60,
       });
       notify(
         "info",
@@ -1040,8 +1055,8 @@ export default function HeroBannerWorkspace({
                     <div
                       className="absolute inset-0 pointer-events-none"
                       style={{
-                        maskImage: `radial-gradient(circle 90px at ${mobileRevealPos.x * 100}% ${mobileRevealPos.y * 100}%, black 0%, black 50%, transparent 100%)`,
-                        WebkitMaskImage: `radial-gradient(circle 90px at ${mobileRevealPos.x * 100}% ${mobileRevealPos.y * 100}%, black 0%, black 50%, transparent 100%)`,
+                        maskImage: `radial-gradient(circle ${hbSeqRevealRadius}px at ${mobileRevealPos.x * 100}% ${mobileRevealPos.y * 100}%, black 0%, black ${hbSeqRevealSpread}%, rgba(0,0,0,${Math.max(0.05, 1 - hbSeqRevealFade / 100).toFixed(2)}) ${Math.min(95, hbSeqRevealSpread + (100 - hbSeqRevealSpread) * 0.55)}%, transparent 100%)`,
+                        WebkitMaskImage: `radial-gradient(circle ${hbSeqRevealRadius}px at ${mobileRevealPos.x * 100}% ${mobileRevealPos.y * 100}%, black 0%, black ${hbSeqRevealSpread}%, rgba(0,0,0,${Math.max(0.05, 1 - hbSeqRevealFade / 100).toFixed(2)}) ${Math.min(95, hbSeqRevealSpread + (100 - hbSeqRevealSpread) * 0.55)}%, transparent 100%)`,
                       }}
                     >
                       <img
@@ -1432,6 +1447,104 @@ export default function HeroBannerWorkspace({
                           Reset
                         </button>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 3: Spotlight Controls (Radius, Sebaran, Fade) */}
+                <div className={`p-3 rounded-xl border space-y-3 ${
+                  isLight ? "bg-white border-slate-200 shadow-2xs" : "bg-neutral-900/60 border-white/10"
+                }`}>
+                  <div className="flex items-center justify-between border-b pb-2 border-white/10">
+                    <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
+                      <RiSparklingFill className="w-3.5 h-3.5 text-[#16b09f]" />
+                      {tr("3. Parameter Sorotan Mouse (Radius, Sebaran, Fade)", "3. Mouse Spotlight Settings (Radius, Spread, Fade)", "3. Parameter Sorotan Mouse")}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHbSeqRevealRadius(270);
+                        setHbSeqRevealSpread(30);
+                        setHbSeqRevealFade(60);
+                        notify("info", "Reset", "Parameter spotlight di-reset ke default.");
+                      }}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer ${
+                        isLight ? "text-slate-500 hover:text-slate-800" : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      Reset
+                    </button>
+                  </div>
+
+                  {/* Control 1: Radius / Lebar Spotlight */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-mono">
+                      <span className={isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}>
+                        {tr("Radius / Lebar Spotlight:", "Spotlight Radius / Width:", "Radius / Lebar:")}
+                      </span>
+                      <span className="font-bold text-[#16b09f]">{hbSeqRevealRadius}px</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={100}
+                      max={600}
+                      step={5}
+                      value={hbSeqRevealRadius}
+                      onChange={(e) => setHbSeqRevealRadius(Number(e.target.value))}
+                      className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#16b09f] bg-neutral-800"
+                    />
+                    <div className="flex justify-between text-[9px] font-mono text-neutral-500">
+                      <span>100px (Kecil)</span>
+                      <span>Default: 270px</span>
+                      <span>600px (Lebar)</span>
+                    </div>
+                  </div>
+
+                  {/* Control 2: Besaran Sebaran Inti / Spread */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-mono">
+                      <span className={isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}>
+                        {tr("Besaran Sebaran Inti (Solid Core):", "Inner Spread (Solid Core):", "Besaran Sebaran:")}
+                      </span>
+                      <span className="font-bold text-cyan-400">{hbSeqRevealSpread}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={5}
+                      max={80}
+                      step={1}
+                      value={hbSeqRevealSpread}
+                      onChange={(e) => setHbSeqRevealSpread(Number(e.target.value))}
+                      className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-cyan-400 bg-neutral-800"
+                    />
+                    <div className="flex justify-between text-[9px] font-mono text-neutral-500">
+                      <span>5% (Titik)</span>
+                      <span>Default: 30%</span>
+                      <span>80% (Luas)</span>
+                    </div>
+                  </div>
+
+                  {/* Control 3: Besaran Fade / Kelembutan Gradasi */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[10px] sm:text-[11px] font-mono">
+                      <span className={isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}>
+                        {tr("Besaran Fade / Kelembutan Gradasi:", "Fade Softness / Feathering:", "Besaran Fade:")}
+                      </span>
+                      <span className="font-bold text-emerald-400">{hbSeqRevealFade}%</span>
+                    </div>
+                    <input
+                      type="range"
+                      min={10}
+                      max={95}
+                      step={1}
+                      value={hbSeqRevealFade}
+                      onChange={(e) => setHbSeqRevealFade(Number(e.target.value))}
+                      className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-emerald-400 bg-neutral-800"
+                    />
+                    <div className="flex justify-between text-[9px] font-mono text-neutral-500">
+                      <span>10% (Tegas)</span>
+                      <span>Default: 60%</span>
+                      <span>95% (Ultra Pudar)</span>
                     </div>
                   </div>
                 </div>

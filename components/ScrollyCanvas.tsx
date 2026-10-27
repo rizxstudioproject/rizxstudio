@@ -36,6 +36,9 @@ export default function ScrollyCanvas() {
 
   const frontSrc = heroBanner?.sequenceFrontImage || "/front.webp";
   const maskSrc = heroBanner?.sequenceMaskImage || "/mask.webp";
+  const configuredRadius = heroBanner?.sequenceRevealRadius || 270;
+  const configuredSpread = (heroBanner?.sequenceRevealSpread ?? 30) / 100;
+  const configuredFade = (heroBanner?.sequenceRevealFade ?? 60) / 100;
 
   // Smooth scroll & frame LERP state for buttery initial & continuous playback
   const smoothProgressRef = useRef<number>(0);
@@ -263,6 +266,11 @@ export default function ScrollyCanvas() {
           const cx = cursorNormX * width;
           const cy = cursorNormY * height;
 
+          const innerCore = Math.max(0.05, Math.min(0.85, configuredSpread));
+          const fadeFactor = Math.max(0.1, Math.min(0.95, configuredFade));
+          const midStop1 = Math.min(0.92, innerCore + (1 - innerCore) * 0.45 * (1 - fadeFactor * 0.25));
+          const midStop2 = Math.min(0.98, innerCore + (1 - innerCore) * 0.80);
+
           const grad = tempCtx.createRadialGradient(
             cx - parallaxX,
             cy - parallaxY,
@@ -272,9 +280,9 @@ export default function ScrollyCanvas() {
             revealRadius
           );
           grad.addColorStop(0, "rgba(0, 0, 0, 1)");
-          grad.addColorStop(0.3, "rgba(0, 0, 0, 0.95)");
-          grad.addColorStop(0.65, "rgba(0, 0, 0, 0.55)");
-          grad.addColorStop(0.85, "rgba(0, 0, 0, 0.18)");
+          grad.addColorStop(innerCore, "rgba(0, 0, 0, 1)");
+          grad.addColorStop(midStop1, `rgba(0, 0, 0, ${Math.max(0.2, 1 - fadeFactor * 0.75).toFixed(2)})`);
+          grad.addColorStop(midStop2, `rgba(0, 0, 0, ${Math.max(0.05, 0.35 - fadeFactor * 0.25).toFixed(2)})`);
           grad.addColorStop(1, "rgba(0, 0, 0, 0)");
 
           tempCtx.fillStyle = grad;
@@ -389,7 +397,7 @@ export default function ScrollyCanvas() {
 
       if (scrollProgressRef.current >= 0.78) {
         isHoveringCharacterRef.current = true;
-        const maxRadius = window.innerWidth < 640 ? 190 : 270;
+        const maxRadius = window.innerWidth < 640 ? Math.round(configuredRadius * 0.8) : configuredRadius;
         targetRadiusRef.current = maxRadius;
       }
     };
@@ -405,7 +413,7 @@ export default function ScrollyCanvas() {
 
         if (scrollProgressRef.current >= 0.78) {
           isHoveringCharacterRef.current = true;
-          const maxRadius = window.innerWidth < 640 ? 210 : 270;
+          const maxRadius = window.innerWidth < 640 ? Math.round(configuredRadius * 0.8) : configuredRadius;
           targetRadiusRef.current = maxRadius;
         }
       }
@@ -422,7 +430,7 @@ export default function ScrollyCanvas() {
 
         if (scrollProgressRef.current >= 0.78) {
           isHoveringCharacterRef.current = true;
-          const maxRadius = window.innerWidth < 640 ? 210 : 270;
+          const maxRadius = window.innerWidth < 640 ? Math.round(configuredRadius * 0.8) : configuredRadius;
           targetRadiusRef.current = maxRadius;
         }
       }

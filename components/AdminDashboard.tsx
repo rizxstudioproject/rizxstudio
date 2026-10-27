@@ -537,6 +537,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [hbSeqMaskImage, setHbSeqMaskImage] = useState<string>(
     heroBanner?.sequenceMaskImage || "/mask.webp"
   );
+  const [hbSeqRevealRadius, setHbSeqRevealRadius] = useState<number>(
+    heroBanner?.sequenceRevealRadius || 270
+  );
+  const [hbSeqRevealSpread, setHbSeqRevealSpread] = useState<number>(
+    heroBanner?.sequenceRevealSpread ?? 30
+  );
+  const [hbSeqRevealFade, setHbSeqRevealFade] = useState<number>(
+    heroBanner?.sequenceRevealFade ?? 60
+  );
   const [isUploadingFront, setIsUploadingFront] = useState<boolean>(false);
   const [isUploadingMask, setIsUploadingMask] = useState<boolean>(false);
   const frontFileInputRef = useRef<HTMLInputElement>(null);
@@ -589,6 +598,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSeqMouseIntensity(heroBanner.sequenceMouseIntensity ?? 26);
       setHbSeqFrontImage(heroBanner.sequenceFrontImage || "/front.webp");
       setHbSeqMaskImage(heroBanner.sequenceMaskImage || "/mask.webp");
+      setHbSeqRevealRadius(heroBanner.sequenceRevealRadius || 270);
+      setHbSeqRevealSpread(heroBanner.sequenceRevealSpread ?? 30);
+      setHbSeqRevealFade(heroBanner.sequenceRevealFade ?? 60);
     }
   }, [heroBanner]);
 
@@ -1189,6 +1201,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSeqMouseIntensity(26);
       setHbSeqFrontImage("/front.webp");
       setHbSeqMaskImage("/mask.webp");
+      setHbSeqRevealRadius(270);
+      setHbSeqRevealSpread(30);
+      setHbSeqRevealFade(60);
       setSeqSelectedFiles([]);
       setSeqPreviewUrls([]);
       setSeqScrubIdx(0);
@@ -1208,6 +1223,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         sequenceCustomFrames: [],
         sequenceFrontImage: "/front.webp",
         sequenceMaskImage: "/mask.webp",
+        sequenceRevealRadius: 270,
+        sequenceRevealSpread: 30,
+        sequenceRevealFade: 60,
       });
 
       showToast(
@@ -1309,9 +1327,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       ...heroBanner,
       sequenceFrontImage: hbSeqFrontImage.trim() || "/front.webp",
       sequenceMaskImage: hbSeqMaskImage.trim() || "/mask.webp",
+      sequenceRevealRadius: Number(hbSeqRevealRadius) || 270,
+      sequenceRevealSpread: Number(hbSeqRevealSpread) ?? 30,
+      sequenceRevealFade: Number(hbSeqRevealFade) ?? 60,
     });
     showToast(
-      tx("Pengaturan foto Front & Mask berhasil disimpan!", "Front & Mask photo settings saved successfully!")
+      tx("Pengaturan foto Front, Mask & Spotlight berhasil disimpan!", "Front, Mask & Spotlight photo settings saved successfully!")
     );
   };
 
@@ -1346,6 +1367,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       sequenceMouseIntensity: Number(hbSeqMouseIntensity) || 26,
       sequenceFrontImage: hbSeqFrontImage.trim() || "/front.webp",
       sequenceMaskImage: hbSeqMaskImage.trim() || "/mask.webp",
+      sequenceRevealRadius: Number(hbSeqRevealRadius) || 270,
+      sequenceRevealSpread: Number(hbSeqRevealSpread) ?? 30,
+      sequenceRevealFade: Number(hbSeqRevealFade) ?? 60,
     });
     showToast(
       tx("Berhasil: Pengaturan & Teks Hero Banner berhasil disimpan!", "Hero Banner text and sequence settings saved successfully!")
@@ -3710,34 +3734,55 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     {/* MODE 4: INTERACTIVE REVEAL TEST */}
                     {seqPreviewMode === "reveal" && (
                       <div
-                        className="relative w-full h-full overflow-hidden cursor-crosshair bg-neutral-950"
+                        className="relative w-full h-full overflow-hidden cursor-crosshair bg-neutral-950 touch-none"
                         onMouseMove={(e) => {
                           const rect = e.currentTarget.getBoundingClientRect();
                           setAdminRevealPos({
-                            x: (e.clientX - rect.left) / rect.width,
-                            y: (e.clientY - rect.top) / rect.height,
+                            x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+                            y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
                             isHovering: true,
                           });
                         }}
                         onMouseLeave={() => setAdminRevealPos((prev) => ({ ...prev, isHovering: false }))}
+                        onTouchStart={(e) => {
+                          const touch = e.touches[0];
+                          if (!touch) return;
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setAdminRevealPos({
+                            x: Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width)),
+                            y: Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height)),
+                            isHovering: true,
+                          });
+                        }}
+                        onTouchMove={(e) => {
+                          const touch = e.touches[0];
+                          if (!touch) return;
+                          const rect = e.currentTarget.getBoundingClientRect();
+                          setAdminRevealPos({
+                            x: Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width)),
+                            y: Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height)),
+                            isHovering: true,
+                          });
+                        }}
+                        onTouchEnd={() => setAdminRevealPos((prev) => ({ ...prev, isHovering: false }))}
                       >
                         <img
                           src={hbSeqFrontImage || "/front.webp"}
                           alt="Front Base"
-                          className="w-full h-full object-cover select-none"
+                          className="w-full h-full object-cover select-none pointer-events-none"
                         />
                         {adminRevealPos.isHovering && (
                           <div
                             className="absolute inset-0 pointer-events-none"
                             style={{
-                              maskImage: `radial-gradient(circle 100px at ${adminRevealPos.x * 100}% ${adminRevealPos.y * 100}%, black 0%, black 50%, transparent 100%)`,
-                              WebkitMaskImage: `radial-gradient(circle 100px at ${adminRevealPos.x * 100}% ${adminRevealPos.y * 100}%, black 0%, black 50%, transparent 100%)`,
+                              maskImage: `radial-gradient(circle ${hbSeqRevealRadius}px at ${adminRevealPos.x * 100}% ${adminRevealPos.y * 100}%, black 0%, black ${hbSeqRevealSpread}%, rgba(0,0,0,${Math.max(0.05, 1 - hbSeqRevealFade / 100).toFixed(2)}) ${Math.min(95, hbSeqRevealSpread + (100 - hbSeqRevealSpread) * 0.55)}%, transparent 100%)`,
+                              WebkitMaskImage: `radial-gradient(circle ${hbSeqRevealRadius}px at ${adminRevealPos.x * 100}% ${adminRevealPos.y * 100}%, black 0%, black ${hbSeqRevealSpread}%, rgba(0,0,0,${Math.max(0.05, 1 - hbSeqRevealFade / 100).toFixed(2)}) ${Math.min(95, hbSeqRevealSpread + (100 - hbSeqRevealSpread) * 0.55)}%, transparent 100%)`,
                             }}
                           >
                             <img
                               src={hbSeqMaskImage || "/mask.webp"}
                               alt="Mask Overlay"
-                              className="w-full h-full object-cover select-none"
+                              className="w-full h-full object-cover select-none pointer-events-none"
                             />
                           </div>
                         )}
@@ -4159,6 +4204,104 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 {tx("Reset /mask.webp", "Reset /mask.webp")}
                               </button>
                             </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Card 3: Spotlight Controls (Radius, Sebaran, Fade) */}
+                      <div className={`p-3.5 rounded-xl border space-y-3 ${
+                        isLight ? "bg-white border-slate-200 shadow-2xs" : "bg-neutral-900/60 border-white/10"
+                      }`}>
+                        <div className="flex items-center justify-between border-b pb-2 border-white/10">
+                          <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
+                            <HiSparkles className="w-3.5 h-3.5 text-[#16b09f]" />
+                            {tx("3. Setelan Sorotan Mouse (Radius, Sebaran, Fade)", "3. Mouse Spotlight Settings (Radius, Spread, Fade)")}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setHbSeqRevealRadius(270);
+                              setHbSeqRevealSpread(30);
+                              setHbSeqRevealFade(60);
+                              showToast(tx("Parameter spotlight di-reset ke default!", "Spotlight parameters reset to default!"));
+                            }}
+                            className={`px-2 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer ${
+                              isLight ? "text-slate-500 hover:text-slate-800" : "text-neutral-400 hover:text-white"
+                            }`}
+                          >
+                            Reset
+                          </button>
+                        </div>
+
+                        {/* Control 1: Radius / Lebar Spotlight */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-mono">
+                            <span className={isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}>
+                              {tx("Radius / Lebar Spotlight:", "Spotlight Radius / Width:")}
+                            </span>
+                            <span className="font-bold text-[#16b09f]">{hbSeqRevealRadius}px</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={100}
+                            max={600}
+                            step={5}
+                            value={hbSeqRevealRadius}
+                            onChange={(e) => setHbSeqRevealRadius(Number(e.target.value))}
+                            className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#16b09f] bg-neutral-800"
+                          />
+                          <div className="flex justify-between text-[9px] font-mono text-neutral-500">
+                            <span>100px (Kecil)</span>
+                            <span>Default: 270px</span>
+                            <span>600px (Sangat Lebar)</span>
+                          </div>
+                        </div>
+
+                        {/* Control 2: Besaran Sebaran Inti / Spread */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-mono">
+                            <span className={isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}>
+                              {tx("Besaran Sebaran Inti (Solid Core):", "Inner Spread (Solid Core):")}
+                            </span>
+                            <span className="font-bold text-cyan-400">{hbSeqRevealSpread}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={5}
+                            max={80}
+                            step={1}
+                            value={hbSeqRevealSpread}
+                            onChange={(e) => setHbSeqRevealSpread(Number(e.target.value))}
+                            className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-cyan-400 bg-neutral-800"
+                          />
+                          <div className="flex justify-between text-[9px] font-mono text-neutral-500">
+                            <span>5% (Fokus Titik)</span>
+                            <span>Default: 30%</span>
+                            <span>80% (Sebaran Luas)</span>
+                          </div>
+                        </div>
+
+                        {/* Control 3: Besaran Fade / Kelembutan Gradasi */}
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-mono">
+                            <span className={isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}>
+                              {tx("Besaran Fade / Kelembutan Gradasi:", "Fade Softness / Feathering:")}
+                            </span>
+                            <span className="font-bold text-emerald-400">{hbSeqRevealFade}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min={10}
+                            max={95}
+                            step={1}
+                            value={hbSeqRevealFade}
+                            onChange={(e) => setHbSeqRevealFade(Number(e.target.value))}
+                            className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-emerald-400 bg-neutral-800"
+                          />
+                          <div className="flex justify-between text-[9px] font-mono text-neutral-500">
+                            <span>10% (Tepi Tegas)</span>
+                            <span>Default: 60%</span>
+                            <span>95% (Ultra Pudar / Halus)</span>
                           </div>
                         </div>
                       </div>
