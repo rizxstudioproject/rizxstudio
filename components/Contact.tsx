@@ -89,11 +89,11 @@ export default function Contact() {
               />
               <span>{t("contact.badge")}</span>
             </div>
-            <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight mb-4 sm:mb-6 leading-tight">
+            <h2 className={`text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight mb-4 sm:mb-6 leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
               {t("contact.headline1")} <br className="hidden sm:inline" />
-              <span className="text-neutral-400 font-light italic">{t("contact.headline2")}</span> {t("contact.headline3")}
+              <span className={`font-light italic ${isLight ? "text-slate-500" : "text-neutral-400"}`}>{t("contact.headline2")}</span> {t("contact.headline3")}
             </h2>
-            <p className="text-neutral-400 text-sm sm:text-base font-light leading-relaxed">
+            <p className={`text-sm sm:text-base font-light leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               {t("contact.body")}
             </p>
           </div>
@@ -118,7 +118,11 @@ export default function Contact() {
               href={instagramUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center magnetic-hover"
+              className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full font-medium text-sm transition-all duration-300 text-center magnetic-hover border ${
+                isLight
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 shadow-xs"
+                  : "bg-white/[0.04] border-white/10 text-white hover:bg-white/[0.08]"
+              }`}
             >
               <FaInstagram className="w-4 h-4" />
               <span>INSTAGRAM</span>
@@ -127,7 +131,11 @@ export default function Contact() {
               href={linkedinUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full bg-white/[0.04] border border-white/10 text-white font-medium text-sm hover:bg-white/[0.08] transition-all duration-300 text-center magnetic-hover"
+              className={`inline-flex items-center justify-center gap-2 px-6 py-3.5 sm:py-4 rounded-full font-medium text-sm transition-all duration-300 text-center magnetic-hover border ${
+                isLight
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-300 shadow-xs"
+                  : "bg-white/[0.04] border-white/10 text-white hover:bg-white/[0.08]"
+              }`}
             >
               <FaLinkedinIn className="w-4 h-4" />
               <span>LINKEDIN</span>
@@ -149,11 +157,11 @@ export default function Contact() {
           </div>
 
           {/* Center: Nav links */}
-          <div className="flex items-center gap-7 text-neutral-400 text-xs">
-            <Link href="/#clients" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.clients")}</Link>
-            <Link href="/#projects" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.work")}</Link>
-            <Link href="/products" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.products")}</Link>
-            <Link href="/#about" className="hover:text-white transition-colors uppercase tracking-widest">{t("contact.footer.about")}</Link>
+          <div className={`flex items-center gap-7 text-xs ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+            <Link href="/#clients" className={`transition-colors uppercase tracking-widest ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.clients")}</Link>
+            <Link href="/#projects" className={`transition-colors uppercase tracking-widest ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.work")}</Link>
+            <Link href="/products" className={`transition-colors uppercase tracking-widest ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.products")}</Link>
+            <Link href="/#about" className={`transition-colors uppercase tracking-widest ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.about")}</Link>
           </div>
 
           {/* Right: Language Switcher */}
@@ -210,11 +218,11 @@ export default function Contact() {
 
         {/* ── MOBILE LAYOUT (below md) ── */}
         <div className="flex md:hidden flex-col items-center justify-center gap-5 text-center">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-neutral-300 text-xs">
-            <Link href="/#clients" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.clients")}</Link>
-            <Link href="/#projects" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.work")}</Link>
-            <Link href="/products" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.products")}</Link>
-            <Link href="/#about" className="hover:text-white transition-colors uppercase tracking-wider">{t("contact.footer.about")}</Link>
+          <div className={`flex flex-wrap items-center justify-center gap-4 text-xs ${isLight ? "text-slate-600" : "text-neutral-300"}`}>
+            <Link href="/#clients" className={`transition-colors uppercase tracking-wider ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.clients")}</Link>
+            <Link href="/#projects" className={`transition-colors uppercase tracking-wider ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.work")}</Link>
+            <Link href="/products" className={`transition-colors uppercase tracking-wider ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.products")}</Link>
+            <Link href="/#about" className={`transition-colors uppercase tracking-wider ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.about")}</Link>
 
             {/* Mobile Footer Language Selector — Open 3-segment pill with instant 1-touch switching */}
             <div

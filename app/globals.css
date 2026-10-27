@@ -679,6 +679,16 @@ html.light .runner-fade-right {
 }
 
 /* Contact Footer in Light Mode */
+html[data-theme='light'] #contact h2,
+html.light #contact h2 {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] #contact p,
+html.light #contact p {
+  color: #475569 !important;
+}
+
 html[data-theme='light'] #contact a.border-white\/10,
 html.light #contact a.border-white\/10 {
   background-color: #f1f5f9 !important;

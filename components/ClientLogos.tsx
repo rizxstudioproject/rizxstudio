@@ -33,9 +33,9 @@ function LogoItem({ logo, isLight }: { logo: ClientLogoItem; isLight: boolean })
       }`}
     >
       <div
-        className={`client-logo-wrapper relative flex items-center justify-center transition-all ${
+        className={`client-logo-wrapper relative flex items-center justify-center transition-all duration-300 ${
           isLight
-            ? "brightness-0 opacity-60 group-hover:opacity-100"
+            ? "opacity-90 group-hover:opacity-100 group-hover:scale-105"
             : "brightness-0 invert opacity-70 group-hover:opacity-100"
         }`}
       >
