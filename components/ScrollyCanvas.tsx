@@ -442,23 +442,20 @@ export default function ScrollyCanvas() {
       const dx = ms.targetX - ms.x;
       const dy = ms.targetY - ms.y;
 
-      // 1. Smoothly interpolate scroll progress for silky-smooth pacing
-      const targetP = scrollProgressRef.current;
-      smoothProgressRef.current += (targetP - smoothProgressRef.current) * 0.12;
-      const p = smoothProgressRef.current;
+      const p = scrollProgressRef.current;
       const isReveal = p >= 0.78;
 
-      // 2. Smooth organic easing towards cursor target
+      // Fast, snappy mouse tracking (zero lag, instant response)
       if (Math.abs(dx) > 0.0001 || Math.abs(dy) > 0.0001) {
-        ms.x += dx * 0.085;
-        ms.y += dy * 0.07;
+        ms.x += dx * 0.22;
+        ms.y += dy * 0.20;
       }
 
-      // 3. Smooth organic easing of soft spotlight radius
+      // Smooth organic easing of soft spotlight radius
       const targetR = isReveal && isHoveringCharacterRef.current ? targetRadiusRef.current : 0;
       const rDiff = targetR - revealRadiusRef.current;
       if (Math.abs(rDiff) > 0.4) {
-        revealRadiusRef.current += rDiff * 0.12;
+        revealRadiusRef.current += rDiff * 0.15;
       } else {
         revealRadiusRef.current = targetR;
       }
@@ -468,25 +465,24 @@ export default function ScrollyCanvas() {
         const seqP = Math.min(1, Math.max(0, p / 0.78));
         const baseScrollFrame = seqP * (totalFrames - 1);
 
-        // Gentle mouse turn blend: ramps up smoothly from 0 at the start so initial scroll is perfectly steady
-        const mouseBlend = Math.min(1, p / 0.12);
-        const mouseFrameOffset = mouseTracking ? (ms.x - 0.5) * mouseIntensity * 0.5 * mouseBlend : 0;
+        // Mouse effect active immediately from the start (frame 0) combined with scroll
+        const mouseFrameOffset = mouseTracking ? (ms.x - 0.5) * mouseIntensity : 0;
 
         const targetFrame = Math.min(
           totalFrames - 1,
           Math.max(0, baseScrollFrame + mouseFrameOffset)
         );
 
-        // Frame LERP: interpolates smoothly through every frame without skipping
-        smoothFrameRef.current += (targetFrame - smoothFrameRef.current) * 0.15;
+        // Snappy frame smoothing without sluggish delay
+        smoothFrameRef.current += (targetFrame - smoothFrameRef.current) * 0.30;
         const finalFrame = Math.min(
           totalFrames - 1,
           Math.max(0, Math.round(smoothFrameRef.current))
         );
 
-        // Subtle 3D camera pan / stereoscopic shift
-        const parallaxX = mouseTracking ? (ms.x - 0.5) * 14 : 0;
-        const parallaxY = mouseTracking ? (ms.y - 0.5) * 10 : 0;
+        // Immediate 3D camera pan / stereoscopic parallax active from the start
+        const parallaxX = mouseTracking ? (ms.x - 0.5) * 16 : 0;
+        const parallaxY = mouseTracking ? (ms.y - 0.5) * 12 : 0;
 
         renderFrame(
           finalFrame,
