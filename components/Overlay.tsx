@@ -301,7 +301,7 @@ export default function Overlay({ progress }: OverlayProps) {
         </p>
       </div>
 
-      {/* SECTION 4: Interactive Alter-Ego Reveal HUD Pill */}
+      {/* SECTION 4: Interactive Alter-Ego Brush Reveal HUD Pill */}
       <div
         ref={section4Ref}
         style={{
@@ -310,21 +310,41 @@ export default function Overlay({ progress }: OverlayProps) {
           willChange: "transform, opacity",
           visibility: "hidden",
         }}
-        className="absolute inset-x-0 bottom-14 sm:bottom-20 flex flex-col items-center justify-center text-center pointer-events-none px-4 transition-none"
+        className="absolute inset-x-0 bottom-12 sm:bottom-16 flex flex-col items-center justify-center text-center pointer-events-none px-4 transition-none z-30"
       >
-        <div className="inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-black/80 border border-teal-500/40 backdrop-blur-xl shadow-[0_0_35px_rgba(22,176,159,0.35)] text-xs font-mono text-white">
-          <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping shrink-0" />
-          <span className="font-bold tracking-wider uppercase text-teal-300">
-            {tr("Interactive Persona", "Persona Interaktif", "Persona Interaktif")}
+        <div className="inline-flex items-center gap-2.5 sm:gap-3.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-black/85 border border-teal-500/40 backdrop-blur-xl shadow-[0_0_35px_rgba(22,176,159,0.35)] text-xs font-mono text-white pointer-events-auto">
+          <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse shrink-0" />
+          <span className="font-bold tracking-wider uppercase text-teal-300 flex items-center gap-1.5 shrink-0">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9" />
+              <path d="M12.5 8.5a3.5 3.5 0 0 1 5-5l3 3a3.5 3.5 0 0 1-5 5L14 10" />
+            </svg>
+            {tr("Kuas Alter-Ego", "Kuas Alter-Ego", "Kuas Alter-Ego")}
           </span>
-          <span className="text-neutral-500 hidden sm:inline">•</span>
+          <span className="text-neutral-600 hidden sm:inline">•</span>
           <span className="text-neutral-300 text-[11px] sm:text-xs">
             {tr(
-              "Move cursor / touch screen to reveal alter-ego",
-              "Gerakkan kursor atau sentuh untuk melihat persona",
-              "Garik-an kursor atau sentuah untuak malihek persona"
+              "Brush over character to uncover cyber suit",
+              "Goreskan kursor / sentuh karakter untuk membuka armor cyber",
+              "Goreh-an kursor / sentuah karakter untuak mambuka armor cyber"
             )}
           </span>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("rizx_reset_brush"));
+              }
+            }}
+            className="ml-1 sm:ml-2 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-[10px] sm:text-[11px] font-mono text-teal-200 border border-white/15 hover:border-teal-400/50 transition-all cursor-pointer flex items-center gap-1 shrink-0"
+            title={tr("Reset brush strokes", "Bersihkan goresan kuas", "Barasiah-an gorehan kuas")}
+          >
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+              <path d="M3 3v5h5" />
+            </svg>
+            <span>{tr("Bersihkan", "Bersihkan", "Barasiah-an")}</span>
+          </button>
         </div>
       </div>
     </div>
