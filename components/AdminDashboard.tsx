@@ -6374,7 +6374,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative w-full max-w-lg bg-[#0e1015] border border-white/15 rounded-3xl p-6 sm:p-7 shadow-2xl max-h-[90vh] overflow-y-auto"
+              className={`relative w-full max-w-lg rounded-3xl p-6 sm:p-7 shadow-2xl max-h-[90vh] overflow-y-auto transition-all ${
+                isLight
+                  ? "bg-white border border-slate-200 text-slate-800"
+                  : "bg-[#0e1015] border border-white/15 text-white"
+              }`}
             >
               {/* Close Button */}
               <button
@@ -6384,19 +6388,25 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   setUploadPreview(null);
                   setUploadFile(null);
                 }}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                    : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
               >
                 <HiXMark className="w-5 h-5" />
               </button>
 
               <div className="mb-5">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold block mb-1">
+                <span className={`text-[10px] font-mono uppercase tracking-widest font-semibold block mb-1 ${
+                  isLight ? "text-teal-700 font-bold" : "text-cyan-400"
+                }`}>
                   FOLDER: client - {selectedClient?.clientName}
                 </span>
-                <h3 className="text-xl font-bold text-white">
+                <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
                   {tx("Upload Gambar Portofolio", "Upload Portfolio Image")}
                 </h3>
-                <p className="text-xs text-neutral-400 mt-1">
+                <p className={`text-xs mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   {tx("Gambar yang diupload akan langsung tersimpan dan muncul di galeri publik folder klien ini.", "Uploaded image will be saved and displayed live in this client folder's public gallery.")}
                 </p>
               </div>
@@ -6404,8 +6414,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <form onSubmit={handleUploadSubmit} className="space-y-4">
                 {/* File Dropzone / Selector */}
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {tx("File Gambar (JPG, PNG, WEBP)", "Image File (JPG, PNG, WEBP)")} <span className="text-cyan-400">*</span>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    {tx("File Gambar (JPG, PNG, WEBP)", "Image File (JPG, PNG, WEBP)")} <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
                   </label>
                   <input
                     ref={fileInputRef}
@@ -6416,26 +6426,34 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full border-2 border-dashed border-white/20 hover:border-[#16b09f] rounded-2xl p-5 text-center cursor-pointer transition-colors bg-neutral-950/50 flex flex-col items-center justify-center group"
+                    className={`w-full border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-colors flex flex-col items-center justify-center group ${
+                      isLight
+                        ? "border-slate-300 hover:border-teal-500 bg-slate-50"
+                        : "border-white/20 hover:border-[#16b09f] bg-neutral-950/50"
+                    }`}
                   >
                     {uploadPreview ? (
                       <div className="space-y-2">
                         <img
                           src={uploadPreview}
                           alt="Preview"
-                          className="max-h-48 w-auto mx-auto rounded-xl object-contain border border-white/15 shadow-md"
+                          className={`max-h-48 w-auto mx-auto rounded-xl object-contain border shadow-md ${
+                            isLight ? "border-slate-200" : "border-white/15"
+                          }`}
                         />
-                        <p className="text-xs text-cyan-400 font-mono">
+                        <p className={`text-xs font-mono ${isLight ? "text-teal-700 font-bold" : "text-cyan-400"}`}>
                           {tx("Klik untuk mengganti gambar", "Click to replace image")}
                         </p>
                       </div>
                     ) : (
                       <div className="py-4 space-y-2">
-                        <HiArrowUpTray className="w-10 h-10 text-neutral-500 group-hover:text-[#16b09f] mx-auto transition-colors" />
-                        <p className="text-xs sm:text-sm font-semibold text-neutral-300">
+                        <HiArrowUpTray className={`w-10 h-10 mx-auto transition-colors ${
+                          isLight ? "text-slate-400 group-hover:text-teal-600" : "text-neutral-500 group-hover:text-[#16b09f]"
+                        }`} />
+                        <p className={`text-xs sm:text-sm font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                           {tx("Klik untuk memilih file gambar", "Click to select image file")}
                         </p>
-                        <p className="text-[11px] text-neutral-500 font-mono">
+                        <p className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
                           {tx("Mendukung PNG, JPG, JPEG, WEBP", "Supports PNG, JPG, JPEG, WEBP")}
                         </p>
                       </div>
@@ -6445,8 +6463,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 {/* Title Input */}
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    Judul Portofolio / Karya <span className="text-cyan-400">*</span>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    Judul Portofolio / Karya <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
                   </label>
                   <input
                     type="text"
@@ -6454,14 +6472,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={uploadTitle}
                     onChange={(e) => setUploadTitle(e.target.value)}
                     placeholder="Contoh: Digital Campaign Concept Visual A"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                    }`}
                   />
                 </div>
 
                 {/* Deliverable Type & Year */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                       Kategori / Tipe Karya
                     </label>
                     <input
@@ -6469,12 +6491,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={uploadType}
                       onChange={(e) => setUploadType(e.target.value)}
                       placeholder="Contoh: Digital Campaign"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
+                      className={`w-full px-4 py-2.5 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                          : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                      }`}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                      Tahun Karya <span className="text-cyan-400">*</span>
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      Tahun Karya <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
                     </label>
                     <input
                       type="text"
@@ -6482,14 +6508,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={uploadYear}
                       onChange={(e) => setUploadYear(e.target.value)}
                       placeholder="2026"
-                      className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f] transition-all"
+                      className={`w-full px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-mono focus:outline-none transition-all ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                          : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                      }`}
                     />
                   </div>
                 </div>
 
                 {/* Aspect Ratio Selector */}
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                     Rasio Aspek Tampilan
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -6500,7 +6530,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onClick={() => setUploadAspect(ratio)}
                         className={`py-2 px-2.5 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer text-center ${
                           uploadAspect === ratio
-                            ? "bg-[#16b09f] text-black border-[#16b09f] shadow-sm"
+                            ? isLight
+                              ? "bg-teal-600 text-white border-teal-600 shadow-sm"
+                              : "bg-[#16b09f] text-black border-[#16b09f] shadow-sm"
+                            : isLight
+                            ? "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                             : "bg-neutral-950 text-neutral-400 border-white/10 hover:text-white"
                         }`}
                       >
@@ -6521,15 +6555,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 {/* Tool Tags */}
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    Tools Used <span className="text-neutral-500">(pisahkan dengan koma)</span>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    Tools Used <span className={isLight ? "text-slate-500" : "text-neutral-500"}>(pisahkan dengan koma)</span>
                   </label>
                   <input
                     type="text"
                     value={uploadToolsInput}
                     onChange={(e) => setUploadToolsInput(e.target.value)}
                     placeholder="Figma, Photoshop, Magnific AI, GPT, Gemini"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-mono focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white placeholder:text-neutral-600 focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                    }`}
                   />
                   {/* Tag preview */}
                   {uploadToolsInput.trim() && (
@@ -6540,7 +6578,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         return (
                           <span
                             key={i}
-                            className="px-2 py-0.5 rounded-full bg-[#16b09f]/15 border border-[#16b09f]/30 text-[#16b09f] text-[10px] font-mono font-semibold"
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
+                              isLight
+                                ? "bg-teal-50 border border-teal-200 text-teal-800"
+                                : "bg-[#16b09f]/15 border border-[#16b09f]/30 text-[#16b09f]"
+                            }`}
                           >
                             {tool}
                           </span>
@@ -6555,7 +6597,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <button
                     type="submit"
                     disabled={!uploadPreview}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isLight
+                        ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
+                        : "bg-[#16b09f] hover:bg-[#119889] text-black"
+                    }`}
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Upload & Tambahkan ke Web", "Upload & Add to Web")}</span>
@@ -6568,7 +6614,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       setUploadPreview(null);
                       setUploadFile(null);
                     }}
-                    className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
+                    className={`px-4 py-3 rounded-xl text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+                    }`}
                   >
                     {tx("Batal", "Cancel")}
                   </button>
@@ -6587,21 +6637,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative w-full max-w-2xl bg-[#0e1015] border border-cyan-500/30 rounded-3xl p-5 sm:p-7 shadow-2xl my-auto max-h-[92vh] flex flex-col"
+              className={`relative w-full max-w-2xl rounded-3xl p-5 sm:p-7 shadow-2xl my-auto max-h-[92vh] flex flex-col transition-all ${
+                isLight
+                  ? "bg-white border border-slate-200 text-slate-800"
+                  : "bg-[#0e1015] border border-cyan-500/30 text-white"
+              }`}
             >
               {/* Close Button (X) */}
               <button
                 type="button"
                 onClick={() => setEditingWork(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer z-10"
+                className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer z-10 ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                    : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
                 aria-label="Tutup form edit"
               >
                 <HiXMark className="w-5 h-5" />
               </button>
 
               {/* Modal Header */}
-              <div className="flex items-center gap-3.5 pb-4 border-b border-white/10 shrink-0">
-                <div className="w-12 h-14 rounded-xl overflow-hidden bg-neutral-900 border border-white/15 shrink-0">
+              <div className={`flex items-center gap-3.5 pb-4 border-b shrink-0 ${isLight ? "border-slate-100" : "border-white/10"}`}>
+                <div className={`w-12 h-14 rounded-xl overflow-hidden border shrink-0 ${isLight ? "bg-slate-100 border-slate-200 shadow-2xs" : "bg-neutral-900 border-white/15"}`}>
                   <img
                     src={editingWork.image}
                     alt={editingWork.title}
@@ -6609,14 +6667,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                 </div>
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold block">
+                  <span className={`text-[10px] font-mono uppercase tracking-widest font-semibold block ${isLight ? "text-teal-700 font-bold" : "text-cyan-400"}`}>
                     CASE STUDY & DETAIL EDITOR
                   </span>
-                  <h3 className="text-base sm:text-lg font-bold text-white">
+                  <h3 className={`text-base sm:text-lg font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
                     Edit Detail: {editingWork.title}
                   </h3>
-                  <p className="text-xs text-neutral-400">
-                    Folder: <span className="text-white font-mono">{selectedClient?.clientName}</span> · {tx("Perubahan langsung aktif di popup Case Study web publik.", "Changes update live in public Case Study popup.")}
+                  <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                    Folder: <span className={`font-mono ${isLight ? "text-teal-800 font-bold" : "text-white"}`}>{selectedClient?.clientName}</span> · {tx("Perubahan langsung aktif di popup Case Study web publik.", "Changes update live in public Case Study popup.")}
                   </p>
                 </div>
               </div>
@@ -6626,8 +6684,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* 1. Judul & Kategori */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                      Judul Karya <span className="text-cyan-400">*</span>
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      Judul Karya <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
                     </label>
                     <input
                       type="text"
@@ -6635,12 +6693,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={editWorkTitle}
                       onChange={(e) => setEditWorkTitle(e.target.value)}
                       placeholder="Contoh: Promo Visual 13"
-                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all font-sans"
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all font-sans ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                          : "bg-neutral-950 border-white/15 text-white focus:border-cyan-400"
+                      }`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                       Kategori / Format Karya
                     </label>
                     <input
@@ -6648,7 +6710,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={editWorkType}
                       onChange={(e) => setEditWorkType(e.target.value)}
                       placeholder="Contoh: Education Campaign Asset, 3D Key Visual"
-                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all font-sans"
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all font-sans ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                          : "bg-neutral-950 border-white/15 text-white focus:border-cyan-400"
+                      }`}
                     />
                   </div>
                 </div>
@@ -6656,7 +6722,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {/* 2. Tahun & Rasio Aspek */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                       Tahun Rilis
                     </label>
                     <input
@@ -6664,12 +6730,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={editWorkYear}
                       onChange={(e) => setEditWorkYear(e.target.value)}
                       placeholder="2026"
-                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-cyan-400 transition-all"
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-mono focus:outline-none transition-all ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                          : "bg-neutral-950 border-white/15 text-white focus:border-cyan-400"
+                      }`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                       Rasio Aspek Gambar
                     </label>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
@@ -6680,7 +6750,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           onClick={() => setEditWorkAspect(asp)}
                           className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer text-center ${
                             editWorkAspect === asp
-                              ? "bg-cyan-500/20 border border-cyan-400 text-cyan-300"
+                              ? isLight
+                                ? "bg-teal-50 border border-teal-500 text-teal-800 font-bold shadow-xs"
+                                : "bg-cyan-500/20 border border-cyan-400 text-cyan-300"
+                              : isLight
+                              ? "bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100"
                               : "bg-neutral-950 border border-white/10 text-neutral-400 hover:text-white"
                           }`}
                         >
@@ -6702,7 +6776,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 {/* 3. Brief / Overview */}
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                     Brief / Ringkasan Deskripsi Karya
                   </label>
                   <textarea
@@ -6710,14 +6784,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={editWorkBrief}
                     onChange={(e) => setEditWorkBrief(e.target.value)}
                     placeholder="Tuliskan gambaran umum kampanye atau tujuan visual ini..."
-                    className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all resize-none leading-relaxed"
+                    className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all resize-none leading-relaxed ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-cyan-400"
+                    }`}
                   />
                 </div>
 
                 {/* 4. Tantangan (Challenge) & Solusi (Solution) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-mono text-amber-400 font-medium mb-1.5 flex items-center gap-1.5">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 flex items-center gap-1.5 ${isLight ? "text-amber-800 font-semibold" : "text-amber-400"}`}>
                       <span>⚠️</span>
                       <span>Tantangan (Challenge)</span>
                     </label>
@@ -6726,12 +6804,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={editWorkChallenge}
                       onChange={(e) => setEditWorkChallenge(e.target.value)}
                       placeholder="Kesulitan atau tantangan teknis dalam proyek ini..."
-                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-amber-500/30 text-white text-xs sm:text-sm focus:outline-none focus:border-amber-400 transition-all resize-none leading-relaxed"
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all resize-none leading-relaxed ${
+                        isLight
+                          ? "bg-amber-50/50 border-amber-300 text-slate-900 focus:bg-white focus:border-amber-500"
+                          : "bg-neutral-950 border-amber-500/30 text-white focus:border-amber-400"
+                      }`}
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-mono text-[#16b09f] font-medium mb-1.5 flex items-center gap-1.5">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 flex items-center gap-1.5 ${isLight ? "text-teal-800 font-semibold" : "text-[#16b09f]"}`}>
                       <span>✅</span>
                       <span>Solusi & Pendekatan (Solution)</span>
                     </label>
@@ -6740,14 +6822,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       value={editWorkSolution}
                       onChange={(e) => setEditWorkSolution(e.target.value)}
                       placeholder="Solusi kreatif atau teknis yang diimplementasikan..."
-                      className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-[#16b09f]/30 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all resize-none leading-relaxed"
+                      className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all resize-none leading-relaxed ${
+                        isLight
+                          ? "bg-teal-50/50 border-teal-300 text-slate-900 focus:bg-white focus:border-teal-500"
+                          : "bg-neutral-950 border-[#16b09f]/30 text-white focus:border-[#16b09f]"
+                      }`}
                     />
                   </div>
                 </div>
 
                 {/* 5. Role / Peran Kreatif */}
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                     Role / Peran Kreatif
                   </label>
                   <input
@@ -6755,17 +6841,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={editWorkRole}
                     onChange={(e) => setEditWorkRole(e.target.value)}
                     placeholder="Contoh: Creative visual direction, event promo design, AI art generation"
-                    className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-cyan-400 transition-all"
+                    className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-cyan-400"
+                    }`}
                   />
                 </div>
 
                 {/* 6. Tools Used */}
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-xs font-mono text-neutral-300 font-medium">
+                    <label className={`text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                       Tools Digunakan (Pisahkan dengan koma)
                     </label>
-                    <span className="text-[10px] font-mono text-neutral-400">
+                    <span className={`text-[10px] font-mono ${isLight ? "text-slate-500 font-medium" : "text-neutral-400"}`}>
                       Klik tag di bawah untuk toggle
                     </span>
                   </div>
@@ -6775,7 +6865,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={editWorkToolsInput}
                     onChange={(e) => setEditWorkToolsInput(e.target.value)}
                     placeholder="figma, photoshop, magnific, gpt, gemini"
-                    className="w-full px-3.5 py-2 rounded-xl bg-neutral-950 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-cyan-400 transition-all mb-2"
+                    className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-mono focus:outline-none transition-all mb-2 ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-cyan-400"
+                    }`}
                   />
 
                   {/* Clickable Tool Tag Pills */}
@@ -6801,7 +6895,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           onClick={() => toggleEditToolChip(tool.name)}
                           className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer ${
                             isSelected
-                              ? "bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-sm"
+                              ? isLight
+                                ? "bg-teal-50 text-teal-800 border border-teal-400 font-bold shadow-xs"
+                                : "bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-sm"
+                              : isLight
+                              ? "bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200"
                               : "bg-white/5 text-neutral-400 hover:text-white border border-white/10"
                           }`}
                         >
@@ -6813,10 +6911,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-3 pt-3 border-t border-white/10 shrink-0">
+                <div className={`flex items-center gap-3 pt-3 border-t shrink-0 ${isLight ? "border-slate-100" : "border-white/10"}`}>
                   <button
                     type="submit"
-                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#16b09f] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/20 transition-all active:scale-95 cursor-pointer"
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer ${
+                      isLight
+                        ? "bg-gradient-to-r from-teal-500 to-[#14AF9E] hover:from-teal-600 hover:to-[#119586] text-white shadow-teal-500/20"
+                        : "bg-gradient-to-r from-[#16b09f] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black shadow-lg shadow-cyan-500/20"
+                    }`}
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Simpan Perubahan & Update Web", "Save Changes & Update Web")}</span>
@@ -6824,7 +6926,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <button
                     type="button"
                     onClick={() => setEditingWork(null)}
-                    className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
+                    className={`px-4 py-3 rounded-xl text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+                    }`}
                   >
                     {tx("Batal", "Cancel")}
                   </button>
@@ -6843,7 +6949,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative w-full max-w-md bg-[#0e1015] border border-white/15 rounded-3xl p-6 sm:p-7 shadow-2xl"
+              className={`relative w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl transition-all ${
+                isLight
+                  ? "bg-white border border-slate-200 text-slate-800"
+                  : "bg-[#0e1015] border border-white/15 text-white"
+              }`}
             >
               <button
                 type="button"
@@ -6852,25 +6962,31 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   setNewFolderName("");
                   setNewFolderCategory("");
                 }}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                    : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
               >
                 <HiXMark className="w-5 h-5" />
               </button>
 
               <div className="mb-5">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold block mb-1">
+                <span className={`text-[10px] font-mono uppercase tracking-widest font-semibold block mb-1 ${
+                  isLight ? "text-teal-700 font-bold" : "text-[#16b09f]"
+                }`}>
                   FOLDER MANAGEMENT
                 </span>
-                <h3 className="text-xl font-bold text-white">{tx("Buat Folder Klien Baru", "Create New Client Folder")}</h3>
-                <p className="text-xs text-neutral-400 mt-1">
+                <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>{tx("Buat Folder Klien Baru", "Create New Client Folder")}</h3>
+                <p className={`text-xs mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   {tx("Folder baru akan langsung tampil di panel My Work & galeri publik website.", "New folder will immediately appear in the My Work panel & public gallery.")}
                 </p>
               </div>
 
               <form onSubmit={handleAddFolder} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {tx("Nama Brand / Klien", "Brand / Client Name")} <span className="text-cyan-400">*</span>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    {tx("Nama Brand / Klien", "Brand / Client Name")} <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
                   </label>
                   <input
                     type="text"
@@ -6878,18 +6994,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={newFolderName}
                     onChange={(e) => setNewFolderName(e.target.value)}
                     placeholder={tx("Contoh: Nike, Samsung, Local Brand Co.", "Example: Nike, Samsung, Local Brand Co.")}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                    }`}
                     autoFocus
                   />
                   {newFolderName.trim() && (
-                    <p className="text-[11px] text-neutral-400 font-mono mt-1">
-                      Folder: <span className="text-cyan-400">client - {newFolderName.trim()}</span>
+                    <p className={`text-[11px] font-mono mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                      Folder: <span className={isLight ? "text-teal-700 font-bold" : "text-cyan-400"}>client - {newFolderName.trim()}</span>
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                     {tx("Kategori / Tipe Kolaborasi", "Category / Collaboration Type")}
                   </label>
                   <input
@@ -6897,13 +7017,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={newFolderCategory}
                     onChange={(e) => setNewFolderCategory(e.target.value)}
                     placeholder={tx("Contoh: Brand Visuals & Ads, Digital Campaign", "Example: Brand Visuals & Ads, Digital Campaign")}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f] transition-all"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                    }`}
                   />
                 </div>
 
                 {/* Tahun kolaborasi */}
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                     {tx("Tahun Kolaborasi", "Collaboration Year")}
                   </label>
                   <input
@@ -6913,7 +7037,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={newFolderYear}
                     onChange={(e) => setNewFolderYear(e.target.value)}
                     placeholder={new Date().getFullYear().toString()}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm font-mono focus:outline-none focus:border-[#16b09f] transition-all"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm font-mono focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                    }`}
                   />
                 </div>
 
@@ -6921,7 +7049,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <button
                     type="submit"
                     disabled={!newFolderName.trim()}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isLight
+                        ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
+                        : "bg-[#16b09f] hover:bg-[#119889] text-black"
+                    }`}
                   >
                     <HiFolderPlus className="w-4 h-4" />
                     <span>{tx("Buat Folder", "Create Folder")}</span>
@@ -6934,7 +7066,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       setNewFolderCategory("");
                       setNewFolderYear(new Date().getFullYear().toString());
                     }}
-                    className="px-4 py-3 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-sm font-medium transition-colors cursor-pointer"
+                    className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                        : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
+                    }`}
                   >
                     {tx("Batal", "Cancel")}
                   </button>
@@ -6953,33 +7089,45 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative w-full max-w-md bg-[#0e1015] border border-cyan-500/30 rounded-3xl p-6 sm:p-7 shadow-2xl"
+              className={`relative w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl transition-all ${
+                isLight
+                  ? "bg-white border border-slate-200 text-slate-800"
+                  : "bg-[#0e1015] border border-cyan-500/30 text-white"
+              }`}
             >
               <button
                 type="button"
                 onClick={() => setEditingFolder(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors cursor-pointer"
+                className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-600"
+                    : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
               >
                 <HiXMark className="w-5 h-5" />
               </button>
 
               <div className="mb-5">
-                <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold block mb-1">
+                <span className={`text-[10px] font-mono uppercase tracking-widest font-semibold block mb-1 ${
+                  isLight ? "text-teal-700 font-bold" : "text-cyan-400"
+                }`}>
                   FOLDER: client - {editingFolder.clientName}
                 </span>
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  <HiPencilSquare className="w-5 h-5 text-cyan-400" />
+                <h3 className={`text-xl font-bold flex items-center gap-2 ${
+                  isLight ? "text-slate-900" : "text-white"
+                }`}>
+                  <HiPencilSquare className={`w-5 h-5 ${isLight ? "text-teal-600" : "text-cyan-400"}`} />
                   <span>{tx("Edit Nama Brand", "Edit Brand Name")}</span>
                 </h3>
-                <p className="text-xs text-neutral-400 mt-1">
+                <p className={`text-xs mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   {tx("Ubah nama brand ini. Nama baru akan otomatis diperbarui di kartu admin, tag folder (client - [Nama]), dan web publik.", "Update this brand name. The new name will reflect across admin cards, folder tags (client - [Name]), and public web.")}
                 </p>
               </div>
 
               <form onSubmit={handleSaveEditFolder} className="space-y-4">
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                    {tx("Nama Brand", "Brand Name")} <span className="text-cyan-400">*</span>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    {tx("Nama Brand", "Brand Name")} <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
                   </label>
                   <input
                     type="text"
@@ -6987,16 +7135,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={editFolderName}
                     onChange={(e) => setEditFolderName(e.target.value)}
                     placeholder="Contoh: Nike, Apple, dsb"
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-cyan-400 transition-all font-semibold"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all font-semibold ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-cyan-400"
+                    }`}
                   />
-                  <span className="text-[11px] font-mono text-neutral-500 mt-1 block">
+                  <span className={`text-[11px] font-mono mt-1 block ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
                     {tx("Format di kartu akan menjadi: ", "Card format will be: ")}
-                    <code className="text-cyan-400">client - {editFolderName.trim() || editingFolder.clientName}</code>
+                    <code className={isLight ? "text-teal-700 font-bold" : "text-cyan-400"}>client - {editFolderName.trim() || editingFolder.clientName}</code>
                   </span>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                     {tx("Kategori / Sub-judul Portfolio", "Category / Subtitle")}
                   </label>
                   <input
@@ -7004,7 +7156,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     value={editFolderCategory}
                     onChange={(e) => setEditFolderCategory(e.target.value)}
                     placeholder={`Portfolio — ${editFolderName.trim() || editingFolder.clientName}`}
-                    className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-cyan-400 transition-all"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-cyan-400"
+                    }`}
                   />
                 </div>
 
@@ -7016,17 +7172,25 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       setEditingFolder(null);
                       handleDeleteFolder(target);
                     }}
-                    className="px-4 py-3 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer active:scale-95 shrink-0"
+                    className={
+                      isLight
+                        ? "px-4 py-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 border border-rose-300 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer active:scale-95 shrink-0 shadow-2xs"
+                        : "px-4 py-3 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 hover:text-rose-300 font-semibold text-xs flex items-center gap-2 transition-all cursor-pointer active:scale-95 shrink-0"
+                    }
                     title={tx(`Hapus brand ${editingFolder.clientName}`, `Delete brand ${editingFolder.clientName}`, `Hapuih brand ${editingFolder.clientName}`)}
                   >
-                    <HiTrash className="w-4 h-4 text-rose-400" />
-                    <span>{tx("Hapus Brand", "Delete Brand", "Hapuih Brand")}</span>
+                    <HiTrash className={`w-4 h-4 ${isLight ? "text-rose-600" : "text-rose-400"}`} />
+                    <span className={isLight ? "text-rose-700 font-bold" : ""}>{tx("Hapus Brand", "Delete Brand", "Hapuih Brand")}</span>
                   </button>
 
                   <button
                     type="submit"
                     disabled={!editFolderName.trim()}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-[#16b09f] hover:from-cyan-400 hover:to-[#119889] text-black font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isLight
+                        ? "bg-gradient-to-r from-teal-500 to-[#14AF9E] hover:from-teal-600 hover:to-[#119586] text-white shadow-teal-500/20"
+                        : "bg-gradient-to-r from-cyan-500 to-[#16b09f] hover:from-cyan-400 hover:to-[#119889] text-black"
+                    }`}
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Simpan Perubahan Nama", "Save Brand Name", "Simpan Parubahan Namo")}</span>
