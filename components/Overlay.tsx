@@ -13,7 +13,8 @@ export default function Overlay({ progress }: OverlayProps) {
   const section1Ref = useRef<HTMLDivElement>(null);
   const section2Ref = useRef<HTMLDivElement>(null);
   const section3Ref = useRef<HTMLDivElement>(null);
-  const { t, lang } = useLang();
+  const section4Ref = useRef<HTMLDivElement>(null);
+  const { t, tr, lang } = useLang();
   const { heroBanner } = usePortfolioData();
   const { themeMode } = useMotionTheme();
   const isLight = themeMode === "light";
@@ -60,20 +61,20 @@ export default function Overlay({ progress }: OverlayProps) {
 
   useEffect(() => {
     // ==========================================
-    // SECTION 1 (0% to 26% scroll):
+    // SECTION 1 (0% to 22% scroll):
     // "Fomy Rizky." + "<AI-Powered Creative Designer/>"
     // Dedicated section: User absorbs hero introduction as portrait starts moving
     // ==========================================
     if (section1Ref.current) {
-      if (progress <= 0.16) {
+      if (progress <= 0.14) {
         // Fully visible during initial interaction
-        const factor = Math.max(0, Math.min(1, progress / 0.16));
+        const factor = Math.max(0, Math.min(1, progress / 0.14));
         section1Ref.current.style.opacity = "1";
         section1Ref.current.style.transform = `translate3d(0, ${(-12 * factor).toFixed(2)}px, 0)`;
         section1Ref.current.style.visibility = "visible";
-      } else if (progress <= 0.26) {
+      } else if (progress <= 0.22) {
         // Smoothly fade out before Section 2 begins
-        const factor = (progress - 0.16) / (0.26 - 0.16);
+        const factor = (progress - 0.14) / (0.22 - 0.14);
         const opacity = (1 - factor).toFixed(4);
         section1Ref.current.style.opacity = opacity;
         section1Ref.current.style.transform = `translate3d(0, ${(-12 - 20 * factor).toFixed(2)}px, 0)`;
@@ -85,27 +86,27 @@ export default function Overlay({ progress }: OverlayProps) {
     }
 
     // ==========================================
-    // SECTION 2 (30% to 62% scroll):
+    // SECTION 2 (26% to 52% scroll):
     // Left-aligned "Results-driven creative."
     // Dedicated section: In -> Long Hold -> Out
     // ==========================================
     if (section2Ref.current) {
-      if (progress >= 0.30 && progress <= 0.62) {
+      if (progress >= 0.26 && progress <= 0.52) {
         let opacity = 0;
         let y = 0;
 
-        if (progress < 0.38) {
+        if (progress < 0.33) {
           // Gentle fade in floating up 24px
-          const factor = (progress - 0.30) / (0.38 - 0.30);
+          const factor = (progress - 0.26) / (0.33 - 0.26);
           opacity = factor;
           y = 24 * (1 - factor);
-        } else if (progress <= 0.54) {
+        } else if (progress <= 0.45) {
           // Stable hold: plenty of scroll room to read comfortably without cutoff
           opacity = 1;
           y = 0;
         } else {
           // Gentle fade out floating up 24px
-          const factor = (progress - 0.54) / (0.62 - 0.54);
+          const factor = (progress - 0.45) / (0.52 - 0.45);
           opacity = 1 - factor;
           y = -24 * factor;
         }
@@ -121,27 +122,27 @@ export default function Overlay({ progress }: OverlayProps) {
     }
 
     // ==========================================
-    // SECTION 3 (65% to 98% scroll):
+    // SECTION 3 (56% to 78% scroll):
     // Right-aligned "Creative meets AI."
     // Dedicated section: In -> Long Hold -> Out
     // ==========================================
     if (section3Ref.current) {
-      if (progress >= 0.65 && progress <= 0.98) {
+      if (progress >= 0.56 && progress <= 0.78) {
         let opacity = 0;
         let y = 0;
 
-        if (progress < 0.73) {
+        if (progress < 0.63) {
           // Gentle fade in floating up 24px
-          const factor = (progress - 0.65) / (0.73 - 0.65);
+          const factor = (progress - 0.56) / (0.63 - 0.56);
           opacity = factor;
           y = 24 * (1 - factor);
-        } else if (progress <= 0.90) {
+        } else if (progress <= 0.71) {
           // Stable hold: plenty of scroll room to read comfortably without cutoff
           opacity = 1;
           y = 0;
         } else {
           // Gentle fade out floating up 24px
-          const factor = (progress - 0.90) / (0.98 - 0.90);
+          const factor = (progress - 0.71) / (0.78 - 0.71);
           opacity = 1 - factor;
           y = -24 * factor;
         }
@@ -153,6 +154,38 @@ export default function Overlay({ progress }: OverlayProps) {
       } else {
         section3Ref.current.style.opacity = "0";
         section3Ref.current.style.visibility = "hidden";
+      }
+    }
+
+    // ==========================================
+    // SECTION 4 (80% to 100% scroll):
+    // Cursor Reveal Interactive HUD
+    // ==========================================
+    if (section4Ref.current) {
+      if (progress >= 0.80 && progress <= 1.0) {
+        let opacity = 0;
+        let y = 0;
+
+        if (progress < 0.85) {
+          const factor = (progress - 0.80) / (0.85 - 0.80);
+          opacity = factor;
+          y = 16 * (1 - factor);
+        } else if (progress <= 0.95) {
+          opacity = 1;
+          y = 0;
+        } else {
+          const factor = (progress - 0.95) / (1.0 - 0.95);
+          opacity = 1 - factor;
+          y = -12 * factor;
+        }
+
+        opacity = Math.max(0, Math.min(1, opacity));
+        section4Ref.current.style.opacity = opacity.toFixed(4);
+        section4Ref.current.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
+        section4Ref.current.style.visibility = opacity <= 0.001 ? "hidden" : "visible";
+      } else {
+        section4Ref.current.style.opacity = "0";
+        section4Ref.current.style.visibility = "hidden";
       }
     }
   }, [progress]);
@@ -266,6 +299,33 @@ export default function Overlay({ progress }: OverlayProps) {
         >
           {displaySec3Body}
         </p>
+      </div>
+
+      {/* SECTION 4: Interactive Alter-Ego Reveal HUD Pill */}
+      <div
+        ref={section4Ref}
+        style={{
+          opacity: 0,
+          transform: "translate3d(0, 16px, 0)",
+          willChange: "transform, opacity",
+          visibility: "hidden",
+        }}
+        className="absolute inset-x-0 bottom-14 sm:bottom-20 flex flex-col items-center justify-center text-center pointer-events-none px-4 transition-none"
+      >
+        <div className="inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-black/80 border border-teal-500/40 backdrop-blur-xl shadow-[0_0_35px_rgba(22,176,159,0.35)] text-xs font-mono text-white">
+          <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping shrink-0" />
+          <span className="font-bold tracking-wider uppercase text-teal-300">
+            {tr("Interactive Persona", "Persona Interaktif", "Persona Interaktif")}
+          </span>
+          <span className="text-neutral-500 hidden sm:inline">•</span>
+          <span className="text-neutral-300 text-[11px] sm:text-xs">
+            {tr(
+              "Move cursor / touch screen to reveal alter-ego",
+              "Gerakkan kursor atau sentuh untuk melihat persona",
+              "Garik-an kursor atau sentuah untuak malihek persona"
+            )}
+          </span>
+        </div>
       </div>
     </div>
   );

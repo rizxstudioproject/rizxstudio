@@ -506,7 +506,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     heroBanner?.sequenceMode || "default"
   );
   const [hbSeqTotal, setHbSeqTotal] = useState<number>(
-    heroBanner?.sequenceTotalFrames || 121
+    heroBanner?.sequenceTotalFrames || 108
   );
   const [hbSeqFolder, setHbSeqFolder] = useState<string>(
     heroBanner?.sequenceFolder || "/sequence"
@@ -561,7 +561,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSec3Body(heroBanner.sec3Body || defaultHeroBannerData.sec3Body);
       setHbSec3BodyColor(heroBanner.sec3BodyColor || defaultHeroBannerData.sec3BodyColor || "#d4d4d4");
       setHbSeqMode(heroBanner.sequenceMode || "default");
-      setHbSeqTotal(heroBanner.sequenceTotalFrames || 121);
+      setHbSeqTotal(heroBanner.sequenceTotalFrames || 108);
       setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
       setHbSeqPattern(heroBanner.sequencePattern || "frame_{padded}.webp");
       setHbSeqPadding(heroBanner.sequencePadding ?? 6);
@@ -581,7 +581,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       const pattern = hbSeqPattern || "frame_{padded}.webp";
       const padding = hbSeqPadding ?? 6;
       const start = hbSeqStart ?? 0;
-      const total = Math.max(1, Math.min(hbSeqTotal || 121, 200));
+      const total = Math.max(1, Math.min(hbSeqTotal || 108, 200));
       const list: string[] = [];
       for (let i = 0; i < total; i++) {
         const actual = start + i;
@@ -592,8 +592,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
     // Default sequence
     const list: string[] = [];
-    for (let i = 0; i < 121; i++) {
-      list.push(`https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence/frame_${String(i).padStart(6, "0")}.webp`);
+    for (let i = 0; i < 108; i++) {
+      list.push(`/sequence/frame_${String(i).padStart(6, "0")}.webp`);
     }
     return list;
   }, [
@@ -1155,11 +1155,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const handleResetSequenceDefault = async () => {
     if (
       confirm(
-        tx("Kembalikan sequence foto Hero ke default awal (121 Frame WebP)?", "Reset Hero photo sequence to default (121 WebP frames)?")
+        tx("Kembalikan sequence foto Hero ke default awal (108 Frame WebP)?", "Reset Hero photo sequence to default (108 WebP frames)?")
       )
     ) {
       setHbSeqMode("default");
-      setHbSeqTotal(121);
+      setHbSeqTotal(108);
       setHbSeqFolder("/sequence");
       setHbSeqPattern("frame_{padded}.webp");
       setHbSeqPadding(6);
@@ -1178,7 +1178,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       await updateHeroBannerData({
         ...heroBanner,
         sequenceMode: "default",
-        sequenceTotalFrames: 121,
+        sequenceTotalFrames: 108,
         sequenceFolder: "/sequence",
         sequencePattern: "frame_{padded}.webp",
         sequencePadding: 6,
@@ -3443,7 +3443,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }`}
                   >
                     {hbSeqMode === "default"
-                      ? tx("Mode: Bawaan (121 Frame)", "Mode: Default (121 Frames)")
+                      ? tx("Mode: Bawaan (108 Frame)", "Mode: Default (108 Frames)")
                       : hbSeqMode === "custom"
                       ? tx(`Mode: Upload Kustom (${activeScrubberFrames.length} Frame)`, `Mode: Custom Upload (${activeScrubberFrames.length} Frames)`)
                       : tx(`Mode: Folder (${activeScrubberFrames.length} Frame)`, `Mode: Folder (${activeScrubberFrames.length} Frames)`)}

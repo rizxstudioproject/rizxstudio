@@ -93,7 +93,7 @@ export default function HeroBannerWorkspace({
   const [hbScrollTextColor, setHbScrollTextColor] = useState(heroBanner?.scrollTextColor || defaultHeroBannerData.scrollTextColor || "#a3a3a3");
 
   const [hbSeqMode, setHbSeqMode] = useState<"default" | "folder" | "custom">(heroBanner?.sequenceMode || "default");
-  const [hbSeqTotal, setHbSeqTotal] = useState(heroBanner?.sequenceTotalFrames || 121);
+  const [hbSeqTotal, setHbSeqTotal] = useState(heroBanner?.sequenceTotalFrames || 108);
   const [hbSeqFolder, setHbSeqFolder] = useState(heroBanner?.sequenceFolder || "/sequence");
   const [hbSeqPattern, setHbSeqPattern] = useState(heroBanner?.sequencePattern || "frame_{padded}.webp");
   const [hbSeqPadding, setHbSeqPadding] = useState(heroBanner?.sequencePadding || 6);
@@ -118,7 +118,7 @@ export default function HeroBannerWorkspace({
       setHbScrollText(heroBanner.scrollText || defaultHeroBannerData.scrollText);
       setHbScrollTextColor(heroBanner.scrollTextColor || "#a3a3a3");
       setHbSeqMode(heroBanner.sequenceMode || "default");
-      setHbSeqTotal(heroBanner.sequenceTotalFrames || 121);
+      setHbSeqTotal(heroBanner.sequenceTotalFrames || 108);
       setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
       setHbSeqPattern(heroBanner.sequencePattern || "frame_{padded}.webp");
       setHbSeqPadding(heroBanner.sequencePadding || 6);
@@ -134,7 +134,7 @@ export default function HeroBannerWorkspace({
       return heroBanner.sequenceCustomFrames;
     }
     const frames: string[] = [];
-    const total = Math.min(hbSeqTotal || 121, 150);
+    const total = Math.min(hbSeqTotal || 108, 150);
     const folder = hbSeqFolder || "/sequence";
     const pattern = hbSeqPattern || "frame_{padded}.webp";
     const pad = hbSeqPadding || 6;

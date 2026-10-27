@@ -29,6 +29,21 @@ export default function ScrollyCanvas() {
   const scrollProgressRef = useRef<number>(0);
   const isInViewRef = useRef<boolean>(true);
 
+  // Preload front.webp & mask.webp for Cursor Reveal effect after sequence finishes
+  const frontImgRef = useRef<HTMLImageElement | null>(null);
+  const maskImgRef = useRef<HTMLImageElement | null>(null);
+  const lastInteractionTimeRef = useRef<number>(Date.now());
+
+  useEffect(() => {
+    const front = new Image();
+    front.src = "/front.webp";
+    const mask = new Image();
+    mask.src = "/mask.webp";
+
+    frontImgRef.current = front;
+    maskImgRef.current = mask;
+  }, []);
+
   // Check IndexedDB on mount for cached custom sequence
   useEffect(() => {
     let isMounted = true;
@@ -52,12 +67,12 @@ export default function ScrollyCanvas() {
 
   const totalFrames = useMemo(() => {
     if (sequenceMode === "custom") {
-      return customFrames.length > 0 ? customFrames.length : (heroBanner?.sequenceTotalFrames || 121);
+      return customFrames.length > 0 ? customFrames.length : (heroBanner?.sequenceTotalFrames || 108);
     }
     if (sequenceMode === "folder") {
-      return Math.max(1, heroBanner?.sequenceTotalFrames || 121);
+      return Math.max(1, heroBanner?.sequenceTotalFrames || 108);
     }
-    return 121;
+    return heroBanner?.sequenceTotalFrames || 108;
   }, [sequenceMode, customFrames.length, heroBanner?.sequenceTotalFrames]);
 
   const getFramePath = useCallback(
@@ -69,8 +84,8 @@ export default function ScrollyCanvas() {
 
       if (sequenceMode === "folder") {
         let folder = (heroBanner?.sequenceFolder || "").replace(/\/$/, "");
-        if (!folder || folder === "/sequence") {
-          folder = "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence";
+        if (!folder) {
+          folder = "/sequence";
         }
         const pattern = heroBanner?.sequencePattern || "frame_{padded}.webp";
         const padding = heroBanner?.sequencePadding ?? 6;
@@ -81,9 +96,9 @@ export default function ScrollyCanvas() {
         return `${folder}/${filename}`;
       }
 
-      // Default built-in 121-frame WebP sequence from Supabase Storage CDN
+      // Default local 108-frame WebP sequence from /sequence/
       const padded = String(index).padStart(6, "0");
-      return `https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence/frame_${padded}.webp`;
+      return `/sequence/frame_${padded}.webp`;
     },
     [
       sequenceMode,
@@ -96,38 +111,56 @@ export default function ScrollyCanvas() {
   );
 
   const renderFrame = useCallback(
-    (index: number, parallaxX: number = 0, parallaxY: number = 0) => {
+    (
+      index: number,
+      parallaxX: number = 0,
+      parallaxY: number = 0,
+      revealActive: boolean = false,
+      revealFactor: number = 0,
+      cursorNormX: number = 0.5,
+      cursorNormY: number = 0.5
+    ) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext("2d", { alpha: false });
       if (!ctx) return;
 
-      // Retrieve requested frame, or fallback to closest loaded frame to avoid flickering
-      let img = imagesRef.current[index];
-      if (!img || !img.complete || img.naturalWidth === 0) {
-        for (let offset = 1; offset < totalFrames; offset++) {
-          const prev = index - offset;
-          const next = index + offset;
-          if (
-            prev >= 0 &&
-            imagesRef.current[prev]?.complete &&
-            (imagesRef.current[prev]?.naturalWidth ?? 0) > 0
-          ) {
-            img = imagesRef.current[prev];
-            break;
-          }
-          if (
-            next < totalFrames &&
-            imagesRef.current[next]?.complete &&
-            (imagesRef.current[next]?.naturalWidth ?? 0) > 0
-          ) {
-            img = imagesRef.current[next];
-            break;
+      // Base image: use front.webp when reveal is active and ready, otherwise fallback to sequence frame
+      let baseImg: HTMLImageElement | null = null;
+      if (
+        revealActive &&
+        frontImgRef.current &&
+        frontImgRef.current.complete &&
+        frontImgRef.current.naturalWidth > 0
+      ) {
+        baseImg = frontImgRef.current;
+      } else {
+        baseImg = imagesRef.current[index] || null;
+        if (!baseImg || !baseImg.complete || baseImg.naturalWidth === 0) {
+          for (let offset = 1; offset < totalFrames; offset++) {
+            const prev = index - offset;
+            const next = index + offset;
+            if (
+              prev >= 0 &&
+              imagesRef.current[prev]?.complete &&
+              (imagesRef.current[prev]?.naturalWidth ?? 0) > 0
+            ) {
+              baseImg = imagesRef.current[prev];
+              break;
+            }
+            if (
+              next < totalFrames &&
+              imagesRef.current[next]?.complete &&
+              (imagesRef.current[next]?.naturalWidth ?? 0) > 0
+            ) {
+              baseImg = imagesRef.current[next];
+              break;
+            }
           }
         }
       }
 
-      if (!img || !img.complete || img.naturalWidth === 0) return;
+      if (!baseImg || !baseImg.complete || baseImg.naturalWidth === 0) return;
 
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
       const width = canvas.clientWidth;
@@ -145,8 +178,8 @@ export default function ScrollyCanvas() {
       ctx.scale(dpr, dpr);
 
       // High performance object-cover math with mobile head/face framing
-      const imgWidth = img.naturalWidth;
-      const imgHeight = img.naturalHeight;
+      const imgWidth = baseImg.naturalWidth;
+      const imgHeight = baseImg.naturalHeight;
       const imgRatio = imgWidth / imgHeight;
       const canvasRatio = width / height;
 
@@ -171,10 +204,84 @@ export default function ScrollyCanvas() {
       ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(0, 0, width, height);
 
-      // Draw image with subtle 3D stereoscopic parallax offset following the cursor
-      ctx.drawImage(img, offsetX - parallaxX, offsetY - parallaxY, drawWidth, drawHeight);
-      ctx.restore();
+      // Draw base image (front character)
+      ctx.drawImage(baseImg, offsetX - parallaxX, offsetY - parallaxY, drawWidth, drawHeight);
 
+      // ==========================================
+      // CURSOR REVEAL: Spotlight uncovering mask.webp
+      // ==========================================
+      if (
+        revealActive &&
+        revealFactor > 0 &&
+        maskImgRef.current &&
+        maskImgRef.current.complete &&
+        maskImgRef.current.naturalWidth > 0
+      ) {
+        const cx = cursorNormX * width;
+        const cy = cursorNormY * height;
+        const maxRadius = width < 640 ? 120 : 165;
+        const radius = maxRadius * revealFactor;
+
+        // Circular clipping region under cursor
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx - parallaxX, cy - parallaxY, radius, 0, Math.PI * 2);
+        ctx.clip();
+
+        // Draw mask.webp (cyber superhero) with identical dimensions and framing
+        ctx.drawImage(maskImgRef.current, offsetX - parallaxX, offsetY - parallaxY, drawWidth, drawHeight);
+        ctx.restore();
+
+        // Outer glowing cyber ring (Teal + Neon Red)
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx - parallaxX, cy - parallaxY, radius, 0, Math.PI * 2);
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = `rgba(22, 176, 159, ${0.95 * revealFactor})`;
+        ctx.shadowColor = `rgba(239, 68, 68, ${0.85 * revealFactor})`;
+        ctx.shadowBlur = 18;
+        ctx.stroke();
+
+        // Inner glowing red accent ring
+        ctx.beginPath();
+        ctx.arc(cx - parallaxX, cy - parallaxY, Math.max(0, radius - 3.5), 0, Math.PI * 2);
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = `rgba(239, 68, 68, ${0.65 * revealFactor})`;
+        ctx.stroke();
+
+        // Crosshair reticle ticks
+        const tickLen = 6;
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = `rgba(22, 176, 159, ${0.85 * revealFactor})`;
+
+        // Top tick
+        ctx.beginPath();
+        ctx.moveTo(cx - parallaxX, cy - parallaxY - radius - tickLen);
+        ctx.lineTo(cx - parallaxX, cy - parallaxY - radius + tickLen);
+        ctx.stroke();
+
+        // Bottom tick
+        ctx.beginPath();
+        ctx.moveTo(cx - parallaxX, cy - parallaxY + radius - tickLen);
+        ctx.lineTo(cx - parallaxX, cy - parallaxY + radius + tickLen);
+        ctx.stroke();
+
+        // Left tick
+        ctx.beginPath();
+        ctx.moveTo(cx - parallaxX - radius - tickLen, cy - parallaxY);
+        ctx.lineTo(cx - parallaxX - radius + tickLen, cy - parallaxY);
+        ctx.stroke();
+
+        // Right tick
+        ctx.beginPath();
+        ctx.moveTo(cx - parallaxX + radius - tickLen, cy - parallaxY);
+        ctx.lineTo(cx - parallaxX + radius + tickLen, cy - parallaxY);
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      ctx.restore();
       currentFrameIndexRef.current = index;
     },
     [totalFrames]
@@ -202,12 +309,12 @@ export default function ScrollyCanvas() {
           i === currentFrameIndexRef.current ||
           (currentFrameIndexRef.current === 0 && i === 0)
         ) {
-          renderFrame(currentFrameIndexRef.current);
+          renderFrame(currentFrameIndexRef.current, 0, 0, false, 0, 0.5, 0.5);
         }
 
         if (loadedCount === totalFrames) {
           setIsLoaded(true);
-          renderFrame(currentFrameIndexRef.current);
+          renderFrame(currentFrameIndexRef.current, 0, 0, false, 0, 0.5, 0.5);
         }
       };
 
@@ -227,7 +334,18 @@ export default function ScrollyCanvas() {
 
     // Handle viewport resize smoothly
     const handleResize = () => {
-      renderFrame(currentFrameIndexRef.current);
+      const p = scrollProgressRef.current;
+      const isReveal = p >= 0.80;
+      const revealFactor = isReveal ? Math.min(1, Math.max(0, (p - 0.80) / 0.05)) : 0;
+      renderFrame(
+        currentFrameIndexRef.current,
+        0,
+        0,
+        isReveal,
+        revealFactor,
+        mouseStateRef.current.x,
+        mouseStateRef.current.y
+      );
     };
 
     window.addEventListener("resize", handleResize, { passive: true });
@@ -243,6 +361,7 @@ export default function ScrollyCanvas() {
     if (!mouseTracking) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      lastInteractionTimeRef.current = Date.now();
       const nx = Math.max(0, Math.min(1, e.clientX / window.innerWidth));
       const ny = Math.max(0, Math.min(1, e.clientY / window.innerHeight));
       mouseStateRef.current.targetX = nx;
@@ -251,6 +370,7 @@ export default function ScrollyCanvas() {
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
+        lastInteractionTimeRef.current = Date.now();
         const touch = e.touches[0];
         const nx = Math.max(0, Math.min(1, touch.clientX / window.innerWidth));
         const ny = Math.max(0, Math.min(1, touch.clientY / window.innerHeight));
@@ -276,7 +396,7 @@ export default function ScrollyCanvas() {
     };
   }, [mouseTracking]);
 
-  // Smooth fluid LERP animation loop that binds mouse movement + scroll to frame turning
+  // Smooth fluid LERP animation loop that binds mouse movement + scroll to frame turning and cursor reveal
   useEffect(() => {
     let animId: number;
     let isRunning = true;
@@ -288,6 +408,16 @@ export default function ScrollyCanvas() {
       const dx = ms.targetX - ms.x;
       const dy = ms.targetY - ms.y;
 
+      const p = scrollProgressRef.current;
+      const isReveal = p >= 0.80;
+
+      // When reveal mode is active and user is idle for >2.2s, add gentle organic floating
+      if (isReveal && Date.now() - lastInteractionTimeRef.current > 2200) {
+        const t = Date.now() * 0.0016;
+        ms.targetX = 0.50 + Math.sin(t) * 0.08;
+        ms.targetY = 0.42 + Math.cos(t * 1.3) * 0.07;
+      }
+
       // Smooth organic easing towards cursor target
       if (Math.abs(dx) > 0.0001 || Math.abs(dy) > 0.0001) {
         ms.x += dx * 0.085;
@@ -295,11 +425,12 @@ export default function ScrollyCanvas() {
       }
 
       if (isInViewRef.current) {
-        const p = scrollProgressRef.current;
-        const baseScrollFrame = p * (totalFrames - 1);
+        // Sequence plays across 0.00 to 0.80
+        const seqP = Math.min(1, p / 0.80);
+        const baseScrollFrame = seqP * (totalFrames - 1);
 
         // When in first hero stage, head turns with boosted range following the cursor
-        const factor = p < 0.25 ? 1.4 : 0.9;
+        const factor = p < 0.25 ? 1.4 : 0.8;
         const mouseFrameOffset = mouseTracking ? (ms.x - 0.5) * mouseIntensity * factor : 0;
 
         const finalFrame = Math.min(
@@ -311,7 +442,18 @@ export default function ScrollyCanvas() {
         const parallaxX = mouseTracking ? (ms.x - 0.5) * 16 : 0;
         const parallaxY = mouseTracking ? (ms.y - 0.5) * 12 : 0;
 
-        renderFrame(finalFrame, parallaxX, parallaxY);
+        // Reveal factor: smoothly eases in between 0.80 and 0.85
+        const revealFactor = isReveal ? Math.min(1, Math.max(0, (p - 0.80) / 0.05)) : 0;
+
+        renderFrame(
+          finalFrame,
+          parallaxX,
+          parallaxY,
+          isReveal,
+          revealFactor,
+          ms.x,
+          ms.y
+        );
       }
 
       animId = requestAnimationFrame(tick);
