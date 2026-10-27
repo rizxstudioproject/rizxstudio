@@ -1008,9 +1008,7 @@ export default function HeroBannerWorkspace({
                     <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f]" />
                     <span>FOTO FRONT (POTRET UTAMA)</span>
                   </div>
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 px-2.5 py-1 rounded bg-black/85 backdrop-blur-md text-white text-[10px] font-mono truncate border border-white/10">
-                    {hbSeqFrontImage || "/front.webp"}
-                  </div>
+
                 </div>
               )}
 
@@ -1029,9 +1027,7 @@ export default function HeroBannerWorkspace({
                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                     <span>FOTO MASK (CYBER SUIT REVEAL)</span>
                   </div>
-                  <div className="absolute bottom-2.5 left-2.5 right-2.5 px-2.5 py-1 rounded bg-black/85 backdrop-blur-md text-white text-[10px] font-mono truncate border border-white/10">
-                    {hbSeqMaskImage || "/mask.webp"}
-                  </div>
+
                 </div>
               )}
 

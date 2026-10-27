@@ -3706,9 +3706,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f]" />
                           <span>FOTO FRONT (POTRET UTAMA)</span>
                         </div>
-                        <div className="absolute bottom-3 left-3 right-3 px-3 py-1.5 rounded-lg bg-black/80 backdrop-blur-md text-white text-[11px] font-mono truncate border border-white/10">
-                          {hbSeqFrontImage || "/front.webp"}
-                        </div>
+
                       </div>
                     )}
 
@@ -3727,9 +3725,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f]" />
                           <span>FOTO MASK (CYBER SUIT REVEAL)</span>
                         </div>
-                        <div className="absolute bottom-3 left-3 right-3 px-3 py-1.5 rounded-lg bg-black/80 backdrop-blur-md text-white text-[11px] font-mono truncate border border-white/10">
-                          {hbSeqMaskImage || "/mask.webp"}
-                        </div>
+
                       </div>
                     )}
 
