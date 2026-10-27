@@ -30,9 +30,6 @@ import {
   RiUserFollowLine,
   RiBankCardLine,
   RiTicket2Line,
-  RiDownload2Line,
-  RiDatabase2Line,
-  RiFileExcel2Line,
 } from "react-icons/ri";
 import {
   getAllTrackedProjects,
@@ -43,7 +40,6 @@ import {
   ProjectProgressStage,
   getStageMetadata,
 } from "@/lib/projectTrackerService";
-import { downloadCustomerCsv, syncCustomersToDatabase } from "@/lib/customerExportService";
 import { getOrderReceipt } from "@/lib/paymentService";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { useLang } from "@/context/LanguageContext";
@@ -146,51 +142,6 @@ export default function ProjectTrackerWorkspace({
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
-  };
-
-  const [isSyncingDb, setIsSyncingDb] = useState<boolean>(false);
-
-  const handleQuickDownloadCsv = () => {
-    if (projects.length === 0) {
-      showToast(
-        tr(
-          "No projects to export.",
-          "Belum ada data proyek untuk di-download.",
-          "Alun ado data proyek untuak di-download."
-        )
-      );
-      return;
-    }
-    downloadCustomerCsv(projects);
-    showToast(
-      tr(
-        `Downloaded ${projects.length} customer records (CSV / Excel)!`,
-        `Berhasil men-download ${projects.length} data customer (CSV / Excel)!`,
-        `Barasia mandownload ${projects.length} data customer (CSV / Excel)!`
-      )
-    );
-  };
-
-  const handleQuickSyncDb = async () => {
-    setIsSyncingDb(true);
-    try {
-      const res = await syncCustomersToDatabase(projects);
-      if (res.success) {
-        showToast(
-          tr(
-            `Successfully synced ${res.count} records to Database!`,
-            `Berhasil memasukkan & menyinkronkan ${res.count} data ke Database!`,
-            `Barasia mamasuakkan & manyinkronkan ${res.count} data ka Database!`
-          )
-        );
-      } else {
-        showToast("Sinkronisasi database: " + (res.error || ""));
-      }
-    } catch (e: any) {
-      showToast("Gagal menyinkronkan: " + (e?.message || ""));
-    } finally {
-      setIsSyncingDb(false);
-    }
   };
 
   const loadProjects = async () => {
@@ -464,23 +415,6 @@ export default function ProjectTrackerWorkspace({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
-              onClick={handleQuickSyncDb}
-              disabled={isSyncingDb}
-              title={tr("Sync to Database", "Masuk ke Database", "Masuak ka Database")}
-              className="p-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/15 text-emerald-300 active:scale-95 cursor-pointer disabled:opacity-50"
-            >
-              <RiDatabase2Line className={`w-4 h-4 ${isSyncingDb ? "animate-spin" : ""}`} />
-            </button>
-            <button
-              type="button"
-              onClick={handleQuickDownloadCsv}
-              title={tr("Download Customer Data", "Download Data Customer", "Download Data Customer")}
-              className="p-2.5 rounded-xl border border-sky-500/30 bg-sky-500/15 text-sky-300 active:scale-95 cursor-pointer"
-            >
-              <RiDownload2Line className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
               onClick={() => setIsAddModalOpen(true)}
               style={{ backgroundColor: primaryColor, color: "#000000" }}
               className="px-3 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-[#16b09f]/20 cursor-pointer active:scale-95"
@@ -589,41 +523,6 @@ export default function ProjectTrackerWorkspace({
         </div>
 
         <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Quick Sync to Database */}
-          <button
-            type="button"
-            onClick={handleQuickSyncDb}
-            disabled={isSyncingDb}
-            title={tr(
-              "Sync all customer project data to Database",
-              "Simpan & sinkronkan semua data proyek ke Database",
-              "Simpan & sinkronkan kasado data proyek ka Database"
-            )}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 transition flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
-          >
-            <RiDatabase2Line className={`w-4 h-4 text-emerald-400 ${isSyncingDb ? "animate-spin" : ""}`} />
-            <span>
-              {isSyncingDb
-                ? tr("Saving...", "Menyimpan...", "Manyimpan...")
-                : tr("Masuk ke Database", "Masuk ke Database", "Masuak ka Database")}
-            </span>
-          </button>
-
-          {/* Quick Download CSV / Excel */}
-          <button
-            type="button"
-            onClick={handleQuickDownloadCsv}
-            title={tr(
-              "Download customer list as Excel / CSV",
-              "Download daftar customer format Excel / CSV",
-              "Download daftar customer format Excel / CSV"
-            )}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/35 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
-          >
-            <RiDownload2Line className="w-4 h-4 text-sky-400" />
-            <span>{tr("Download Data Customer", "Download Data Customer", "Download Data Customer")}</span>
-          </button>
-
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
