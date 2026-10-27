@@ -76,7 +76,7 @@ export default function AdminTopBar({
     e.preventDefault();
     e.stopPropagation();
     const now = Date.now();
-    if (now - lastThemeTriggerRef.current < 250) return;
+    if (now - lastThemeTriggerRef.current < 150) return;
     lastThemeTriggerRef.current = now;
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       try { navigator.vibrate(12); } catch (_) {}

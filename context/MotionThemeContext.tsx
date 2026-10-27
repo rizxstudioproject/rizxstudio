@@ -171,7 +171,9 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
       ? `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
       : "server"
   );
-  const lastLocalChangeTimeRef = useRef<number>(Date.now());
+  const lastLocalChangeTimeRef = useRef<number>(0);
+  const hasUserInteractedRef = useRef<boolean>(false);
+  const currentThemeModeRef = useRef<ThemeMode>(defaultSettings.themeMode);
 
   // Direct synchronous DOM updater for instant feedback without layout thrashing
   const applyDomTheme = useCallback((mode: ThemeMode, primary?: string, accent?: string) => {
@@ -208,6 +210,11 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
   useEffect(() => {
     let localSavedTimestamp = 0;
 
+    // Ensure client session ID is unique and valid
+    if (typeof window !== "undefined" && (!sessionIdRef.current || sessionIdRef.current === "server")) {
+      sessionIdRef.current = `sess_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    }
+
     // 1. First hydrate from local device storage for instantaneous UI response
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -215,6 +222,7 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
         const parsed = JSON.parse(saved);
         if (parsed.updatedAt) localSavedTimestamp = Number(parsed.updatedAt);
         if (parsed.themeMode) {
+          currentThemeModeRef.current = parsed.themeMode;
           setThemeModeState(parsed.themeMode);
           applyDomTheme(parsed.themeMode, parsed.primaryColor, parsed.accentColor);
         }
@@ -245,12 +253,18 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
             .single();
 
           if (!error && data && data.description) {
+            // Guard: If user has already interacted locally, do NOT let initial cloud fetch overwrite!
+            if (hasUserInteractedRef.current || (Date.now() - lastLocalChangeTimeRef.current < 8000)) {
+              return;
+            }
+
             const cloud = JSON.parse(data.description);
             const cloudTimestamp = cloud.updatedAt ? Number(cloud.updatedAt) : 0;
 
             // Only overwrite local settings if cloud is strictly newer than what user saved locally
             if (!localSavedTimestamp || cloudTimestamp >= localSavedTimestamp) {
-              if (cloud.themeMode) {
+              if (cloud.themeMode && !hasUserInteractedRef.current) {
+                currentThemeModeRef.current = cloud.themeMode;
                 setThemeModeState(cloud.themeMode);
                 applyDomTheme(cloud.themeMode, cloud.primaryColor, cloud.accentColor);
               }
@@ -294,13 +308,20 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
                     return;
                   }
 
+                  const now = Date.now();
+                  // Prevent network packets from overriding recent local user actions (8s grace period)
+                  if (now - lastLocalChangeTimeRef.current < 8000) {
+                    return;
+                  }
+
                   // Prevent stale network packets from reverting newer local changes
                   const incomingTime = updated.updatedAt ? Number(updated.updatedAt) : 0;
-                  if (incomingTime && incomingTime < lastLocalChangeTimeRef.current) {
+                  if (incomingTime && incomingTime <= lastLocalChangeTimeRef.current) {
                     return;
                   }
 
                   if (updated.themeMode) {
+                    currentThemeModeRef.current = updated.themeMode;
                     setThemeModeState(updated.themeMode);
                     applyDomTheme(updated.themeMode, updated.primaryColor, updated.accentColor);
                   }
@@ -338,12 +359,18 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
               return;
             }
 
+            const now = Date.now();
+            if (now - lastLocalChangeTimeRef.current < 8000) {
+              return;
+            }
+
             const pTime = p.updatedAt ? Number(p.updatedAt) : 0;
-            if (pTime && pTime < lastLocalChangeTimeRef.current) {
+            if (pTime && pTime <= lastLocalChangeTimeRef.current) {
               return;
             }
 
             if (p.themeMode) {
+              currentThemeModeRef.current = p.themeMode;
               setThemeModeState(p.themeMode);
               applyDomTheme(p.themeMode, p.primaryColor, p.accentColor);
             }
@@ -414,7 +441,7 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
         }
       }
 
-      // 3. Push to Supabase Cloud (debounced 600ms) once initial hydration is complete
+      // 3. Push to Supabase Cloud (debounced 350ms) once initial hydration is complete
       if (!isInitialLoad.current && isSupabaseConfigured && supabase) {
         if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
         saveTimeoutRef.current = setTimeout(async () => {
@@ -433,7 +460,7 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
           } catch (err) {
             console.warn("Error saving theme settings to Supabase:", err);
           }
-        }, 600);
+        }, 350);
       }
     } catch (e) {
       console.warn("Failed to save motion theme settings:", e);
@@ -452,16 +479,60 @@ export function MotionThemeProvider({ children }: { children: React.ReactNode })
   }, [themeMode, primaryColor, accentColor, applyDomTheme]);
 
   const setThemeMode = (mode: ThemeMode) => {
-    lastLocalChangeTimeRef.current = Date.now();
+    const now = Date.now();
+    lastLocalChangeTimeRef.current = now;
+    hasUserInteractedRef.current = true;
+    isInitialLoad.current = false;
+    currentThemeModeRef.current = mode;
     setThemeModeState(mode);
     applyDomTheme(mode);
+
+    // Immediate synchronous localStorage update to guarantee instant persistence
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        const parsed = saved ? JSON.parse(saved) : {};
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            ...parsed,
+            _v: 2,
+            themeMode: mode,
+            sessionId: sessionIdRef.current,
+            updatedAt: now,
+          })
+        );
+      } catch (_) {}
+    }
   };
 
   const toggleThemeMode = () => {
-    lastLocalChangeTimeRef.current = Date.now();
-    const nextMode: ThemeMode = themeMode === "dark" ? "light" : "dark";
+    const nextMode: ThemeMode = currentThemeModeRef.current === "dark" ? "light" : "dark";
+    const now = Date.now();
+    lastLocalChangeTimeRef.current = now;
+    hasUserInteractedRef.current = true;
+    isInitialLoad.current = false;
+    currentThemeModeRef.current = nextMode;
     setThemeModeState(nextMode);
     applyDomTheme(nextMode);
+
+    // Immediate synchronous localStorage update to guarantee instant persistence
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        const parsed = saved ? JSON.parse(saved) : {};
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            ...parsed,
+            _v: 2,
+            themeMode: nextMode,
+            sessionId: sessionIdRef.current,
+            updatedAt: now,
+          })
+        );
+      } catch (_) {}
+    }
   };
 
   const setPrimaryColor = (color: string) => setPrimaryColorState(color);

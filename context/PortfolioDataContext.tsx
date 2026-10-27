@@ -1302,7 +1302,21 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             .on(
               "postgres_changes",
               { event: "*", schema: "public", table: "client_descriptions" },
-              () => {
+              (payload: any) => {
+                const clientId = payload?.new?.client_id || payload?.old?.client_id;
+                // Avoid refetching entire portfolio dataset if the change belongs to theme, seo, crm, etc.
+                if (
+                  clientId &&
+                  (clientId === "site-theme-motion-config" ||
+                    clientId === "site-seo-settings" ||
+                    clientId === "site-crm-leads" ||
+                    clientId === "site-social-profiles" ||
+                    clientId === "site-admin-credentials" ||
+                    clientId.startsWith("order_") ||
+                    clientId.startsWith("quote_"))
+                ) {
+                  return;
+                }
                 fetchCloudData();
               }
             )
