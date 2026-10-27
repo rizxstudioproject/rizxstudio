@@ -391,6 +391,23 @@ export default function ScrollyCanvas() {
       }
     };
 
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length > 0) {
+        lastInteractionTimeRef.current = Date.now();
+        const touch = e.touches[0];
+        const nx = Math.max(0, Math.min(1, touch.clientX / window.innerWidth));
+        const ny = Math.max(0, Math.min(1, touch.clientY / window.innerHeight));
+        mouseStateRef.current.targetX = nx;
+        mouseStateRef.current.targetY = ny;
+
+        if (scrollProgressRef.current >= 0.78) {
+          isHoveringCharacterRef.current = true;
+          const maxRadius = window.innerWidth < 640 ? 210 : 270;
+          targetRadiusRef.current = maxRadius;
+        }
+      }
+    };
+
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
         lastInteractionTimeRef.current = Date.now();
@@ -402,7 +419,7 @@ export default function ScrollyCanvas() {
 
         if (scrollProgressRef.current >= 0.78) {
           isHoveringCharacterRef.current = true;
-          const maxRadius = window.innerWidth < 640 ? 190 : 270;
+          const maxRadius = window.innerWidth < 640 ? 210 : 270;
           targetRadiusRef.current = maxRadius;
         }
       }
@@ -416,16 +433,14 @@ export default function ScrollyCanvas() {
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
-    window.addEventListener("touchend", handlePointerLeave, { passive: true });
-    window.addEventListener("touchcancel", handlePointerLeave, { passive: true });
     document.addEventListener("mouseleave", handlePointerLeave);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("touchend", handlePointerLeave);
-      window.removeEventListener("touchcancel", handlePointerLeave);
       document.removeEventListener("mouseleave", handlePointerLeave);
     };
   }, [mouseTracking]);
