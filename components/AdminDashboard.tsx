@@ -3228,6 +3228,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           {sidebarTab === "clients" && (
             <ClientsWorkspace
               clients={clients}
+              searchQuery={globalSearchQuery}
               selectedClientId={selectedClientId}
               workspaceView={clientsWorkspaceView}
               onWorkspaceViewChange={setClientsWorkspaceView}

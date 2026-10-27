@@ -33,6 +33,7 @@ import { useMotionTheme } from "@/context/MotionThemeContext";
 
 interface ClientsWorkspaceProps {
   clients: ClientItem[];
+  searchQuery?: string;
   selectedClientId: string;
   onSelectClient: (id: string) => void;
   onOpenAddFolder: () => void;
@@ -69,6 +70,7 @@ interface ClientsWorkspaceProps {
 
 export default function ClientsWorkspace({
   clients,
+  searchQuery = "",
   selectedClientId,
   onSelectClient,
   onOpenAddFolder,
@@ -617,15 +619,16 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
   // Filtered logos for the middle column & canvas
   const filteredLogos = useMemo(() => {
+    const term = (searchQuery || logoSearch).trim().toLowerCase();
     return clLogos.filter((l) => {
       if (logoRowTab === "row1" && l.row !== 1) return false;
       if (logoRowTab === "row2" && l.row !== 2) return false;
-      if (logoSearch.trim()) {
-        return l.name.toLowerCase().includes(logoSearch.trim().toLowerCase());
+      if (term) {
+        return l.name.toLowerCase().includes(term);
       }
       return true;
     });
-  }, [clLogos, logoRowTab, logoSearch]);
+  }, [clLogos, logoRowTab, logoSearch, searchQuery]);
 
   const row1Count = useMemo(() => clLogos.filter((l) => l.row === 1).length, [clLogos]);
   const row2Count = useMemo(() => clLogos.filter((l) => l.row === 2).length, [clLogos]);
@@ -817,17 +820,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 </button>
               </div>
 
-              {/* Search Logo */}
-              <div className="relative">
-                <HiMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
-                <input
-                  type="text"
-                  value={logoSearch}
-                  onChange={(e) => setLogoSearch(e.target.value)}
-                  placeholder={tr("Search partner logos...", "Cari logo klien...", "Cari logo mitra...")}
-                  className="w-full bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors"
-                />
-              </div>
+
             </div>
           )}
         </div>
