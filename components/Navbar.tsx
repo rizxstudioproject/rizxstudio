@@ -27,8 +27,9 @@ export default function Navbar() {
   const isLight = themeMode === "light";
   const lastThemeTriggerRef = useRef<number>(0);
 
-  const handleThemeToggle = (e?: React.SyntheticEvent) => {
-    e?.stopPropagation();
+  const handleThemeToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     const now = Date.now();
     if (now - lastThemeTriggerRef.current < 250) return;
     lastThemeTriggerRef.current = now;
@@ -283,22 +284,22 @@ export default function Navbar() {
 
           {/* Right: Theme Toggle + Language Switcher + Social Links (Desktop) & Hamburger Button (Mobile) */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Dark / Light Mode Toggle Button */}
+            {/* Dark / Light Mode Toggle Button (Strict 1-click desktop circle button) */}
             <button
               type="button"
               onClick={handleThemeToggle}
               aria-label="Toggle Dark and Light Mode"
-              title={themeMode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+              title={themeMode === "dark" ? "Klik 1x untuk ganti ke Mode Terang" : "Klik 1x untuk ganti ke Mode Gelap"}
+              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all active:scale-90 cursor-pointer select-none shrink-0 ${
                 isLight
-                  ? "border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 shadow-xs"
-                  : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 hover:text-white"
+                  ? "border-slate-300 bg-white hover:bg-slate-100 text-slate-800 shadow-xs"
+                  : "border-white/15 bg-white/[0.05] hover:bg-white/[0.12] text-neutral-300 hover:text-white"
               }`}
             >
               {themeMode === "dark" ? (
-                <RiSunFill className="w-4 h-4 text-amber-300" />
+                <RiSunFill className="w-4 h-4 text-amber-300 pointer-events-none" />
               ) : (
-                <RiMoonFill className="w-4 h-4 text-[#16b09f]" />
+                <RiMoonFill className="w-4 h-4 text-[#16b09f] pointer-events-none" />
               )}
             </button>
 

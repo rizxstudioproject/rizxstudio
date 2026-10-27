@@ -72,8 +72,9 @@ export default function AdminTopBar({
   const isLight = themeMode === "light";
   const lastThemeTriggerRef = useRef<number>(0);
 
-  const handleInstantThemeToggle = (e?: React.SyntheticEvent) => {
-    e?.stopPropagation();
+  const handleInstantThemeToggle = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
     const now = Date.now();
     if (now - lastThemeTriggerRef.current < 250) return;
     lastThemeTriggerRef.current = now;
@@ -833,25 +834,25 @@ export default function AdminTopBar({
             </div>
           </div>
 
-          {/* Theme Mode Toggle (Desktop Admin - Matches Circular Moon/Sun Button Style) */}
+          {/* Theme Mode Toggle (Desktop Admin - Strict 1-click circular button) */}
           <button
             type="button"
             onClick={handleInstantThemeToggle}
-            className={`hidden md:flex w-9 h-9 rounded-full items-center justify-center transition-all active:scale-95 cursor-pointer select-none shrink-0 ${
+            className={`hidden md:flex w-9 h-9 rounded-full items-center justify-center transition-all active:scale-90 cursor-pointer select-none shrink-0 ${
               isLight
-                ? "bg-white text-teal-600 border border-slate-200 hover:bg-slate-50 shadow-xs"
-                : "bg-white/10 text-amber-400 border border-white/10 hover:bg-white/15"
+                ? "bg-white text-teal-600 border border-slate-300 hover:bg-slate-100 shadow-xs"
+                : "bg-white/10 text-amber-400 border border-white/15 hover:bg-white/20"
             }`}
             title={
               isLight
-                ? tr("Beralih ke Mode Gelap", "Switch to Dark Mode", "Pindah ka Mode Galok")
-                : tr("Beralih ke Mode Terang", "Switch to Light Mode", "Pindah ka Mode Tarang")
+                ? tr("Klik 1x untuk Mode Gelap", "Click 1x for Dark Mode", "Klik 1x untuak Mode Galok")
+                : tr("Klik 1x untuk Mode Terang", "Click 1x for Light Mode", "Klik 1x untuak Mode Tarang")
             }
           >
             {isLight ? (
-              <RiMoonFill className="w-4 h-4 text-teal-600" />
+              <RiMoonFill className="w-4 h-4 text-teal-600 pointer-events-none" />
             ) : (
-              <RiSunFill className="w-4 h-4 text-amber-400" />
+              <RiSunFill className="w-4 h-4 text-amber-400 pointer-events-none" />
             )}
           </button>
         </div>
