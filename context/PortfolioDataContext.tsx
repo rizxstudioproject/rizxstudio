@@ -873,12 +873,24 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
 
         if (parsed.heroBanner) {
-          const loadedHeroBanner = {
+          const rawBanner = {
             ...defaultHeroBannerData,
             ...parsed.heroBanner,
           };
-          setHeroBanner(loadedHeroBanner);
-          heroBannerRef.current = loadedHeroBanner;
+          if (
+            rawBanner.sequenceTotalFrames === 121 ||
+            (rawBanner.sequenceMode === "default" && rawBanner.sequenceFolder?.includes("supabase.co")) ||
+            (!rawBanner.sequenceMode && rawBanner.sequenceFolder?.includes("supabase.co"))
+          ) {
+            rawBanner.sequenceMode = "default";
+            rawBanner.sequenceTotalFrames = 108;
+            rawBanner.sequenceFolder = "/sequence";
+            rawBanner.sequencePattern = "frame_{padded}.webp";
+            rawBanner.sequencePadding = 6;
+            rawBanner.sequenceStartIndex = 0;
+          }
+          setHeroBanner(rawBanner);
+          heroBannerRef.current = rawBanner;
         }
       }
 
@@ -1069,7 +1081,20 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           if (heroBannerRow && heroBannerRow.description) {
             try {
               const parsedHeroBanner = safeJsonParseMedia(heroBannerRow.description);
-              latestBanner = { ...defaultHeroBannerData, ...parsedHeroBanner };
+              const mergedBanner = { ...defaultHeroBannerData, ...parsedHeroBanner };
+              if (
+                mergedBanner.sequenceTotalFrames === 121 ||
+                (mergedBanner.sequenceMode === "default" && mergedBanner.sequenceFolder?.includes("supabase.co")) ||
+                (!mergedBanner.sequenceMode && mergedBanner.sequenceFolder?.includes("supabase.co"))
+              ) {
+                mergedBanner.sequenceMode = "default";
+                mergedBanner.sequenceTotalFrames = 108;
+                mergedBanner.sequenceFolder = "/sequence";
+                mergedBanner.sequencePattern = "frame_{padded}.webp";
+                mergedBanner.sequencePadding = 6;
+                mergedBanner.sequenceStartIndex = 0;
+              }
+              latestBanner = mergedBanner;
               setHeroBanner(latestBanner);
               heroBannerRef.current = latestBanner;
             } catch (_) {}

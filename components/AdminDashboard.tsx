@@ -1397,7 +1397,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSec3Body(heroBanner.sec3Body || defaultHeroBannerData.sec3Body);
       setHbSec3BodyColor(heroBanner.sec3BodyColor || defaultHeroBannerData.sec3BodyColor || "#d4d4d4");
       setHbSeqMode(heroBanner.sequenceMode || "default");
-      setHbSeqTotal(heroBanner.sequenceTotalFrames || 121);
+      setHbSeqTotal(heroBanner.sequenceTotalFrames || 108);
       setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
       setHbSeqPattern(heroBanner.sequencePattern || "frame_{padded}.webp");
       setHbSeqPadding(heroBanner.sequencePadding ?? 6);
@@ -1439,7 +1439,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setHbSec3Body(defaultHeroBannerData.sec3Body);
       setHbSec3BodyColor(defaultHeroBannerData.sec3BodyColor || "#d4d4d4");
       setHbSeqMode("default");
-      setHbSeqTotal(121);
+      setHbSeqTotal(108);
       setHbSeqFolder("/sequence");
       setHbSeqPattern("frame_{padded}.webp");
       setHbSeqPadding(6);
@@ -3905,13 +3905,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         <div className="flex items-center gap-2 flex-wrap">
                           <button
                             type="button"
-                            onClick={() => {
+                            onClick={async () => {
                               setHbSeqFolder("/sequence");
                               setHbSeqPattern("frame_{padded}.webp");
                               setHbSeqTotal(108);
                               setHbSeqPadding(6);
                               setHbSeqStart(0);
-                              showToast(tx("Preset Folder Lokal (/sequence - 108 Frame) dipilih!", "Local Folder Preset (/sequence - 108 Frames) selected!"));
+                              setHbSeqMode("default");
+                              await updateHeroBannerData({
+                                sequenceMode: "default",
+                                sequenceFolder: "/sequence",
+                                sequencePattern: "frame_{padded}.webp",
+                                sequenceTotalFrames: 108,
+                                sequencePadding: 6,
+                                sequenceStartIndex: 0,
+                                sequenceCustomFrames: [],
+                              });
+                              showToast(tx("Preset Folder Lokal (/sequence - 108 Frame) aktif & tersimpan!", "Local Folder Preset (/sequence - 108 Frames) active & saved!"));
                             }}
                             className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/40 transition-all cursor-pointer active:scale-95"
                           >
@@ -3919,13 +3929,23 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           </button>
                           <button
                             type="button"
-                            onClick={() => {
-                              setHbSeqFolder("https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence");
+                            onClick={async () => {
+                              const cdnFolder = "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence";
+                              setHbSeqFolder(cdnFolder);
                               setHbSeqPattern("frame_{padded}.webp");
                               setHbSeqTotal(108);
                               setHbSeqPadding(6);
                               setHbSeqStart(0);
-                              showToast(tx("Preset Supabase CDN Sequence dipilih!", "Supabase CDN Sequence preset selected!"));
+                              setHbSeqMode("folder");
+                              await updateHeroBannerData({
+                                sequenceMode: "folder",
+                                sequenceFolder: cdnFolder,
+                                sequencePattern: "frame_{padded}.webp",
+                                sequenceTotalFrames: 108,
+                                sequencePadding: 6,
+                                sequenceStartIndex: 0,
+                              });
+                              showToast(tx("Preset Supabase CDN Sequence aktif & tersimpan!", "Supabase CDN Sequence preset active & saved!"));
                             }}
                             className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium border transition-all cursor-pointer active:scale-95 ${
                               isLight ? "bg-white hover:bg-slate-100 text-slate-700 border-slate-300" : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"

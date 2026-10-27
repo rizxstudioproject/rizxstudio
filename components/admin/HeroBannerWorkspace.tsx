@@ -136,10 +136,14 @@ export default function HeroBannerWorkspace({
       setHbRoleColor(heroBanner.roleColor || "#16b09f");
       setHbScrollText(heroBanner.scrollText || defaultHeroBannerData.scrollText);
       setHbScrollTextColor(heroBanner.scrollTextColor || "#a3a3a3");
-      setHbSeqMode(heroBanner.sequenceMode || "default");
-      setHbSeqTotal(heroBanner.sequenceTotalFrames || 108);
-      setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
-      setHbSeqPattern(heroBanner.sequencePattern || "frame_{padded}.webp");
+      const isLegacy =
+        heroBanner.sequenceTotalFrames === 121 ||
+        (heroBanner.sequenceMode === "default" && heroBanner.sequenceFolder?.includes("supabase.co")) ||
+        (!heroBanner.sequenceMode && heroBanner.sequenceFolder?.includes("supabase.co"));
+      setHbSeqMode(isLegacy ? "default" : (heroBanner.sequenceMode || "default"));
+      setHbSeqTotal(isLegacy ? 108 : (heroBanner.sequenceTotalFrames || 108));
+      setHbSeqFolder(isLegacy ? "/sequence" : (heroBanner.sequenceFolder || "/sequence"));
+      setHbSeqPattern(isLegacy ? "frame_{padded}.webp" : (heroBanner.sequencePattern || "frame_{padded}.webp"));
       setHbSeqPadding(heroBanner.sequencePadding || 6);
       setHbSeqStart(heroBanner.sequenceStartIndex ?? 0);
       setHbSeqMouseTracking(heroBanner.sequenceMouseTracking !== false);
@@ -155,20 +159,39 @@ export default function HeroBannerWorkspace({
   // Compute active preview frames
   const activeScrubberFrames = React.useMemo(() => {
     if (seqPreviewUrls.length > 0) return seqPreviewUrls;
-    if (heroBanner?.sequenceCustomFrames && heroBanner.sequenceCustomFrames.length > 0) {
+    if (hbSeqMode === "custom" && heroBanner?.sequenceCustomFrames && heroBanner.sequenceCustomFrames.length > 0) {
       return heroBanner.sequenceCustomFrames;
     }
+    if (hbSeqMode === "folder") {
+      const folder = (hbSeqFolder || "/sequence").replace(/\/$/, "");
+      const pattern = hbSeqPattern || "frame_{padded}.webp";
+      const pad = hbSeqPadding ?? 6;
+      const start = hbSeqStart ?? 0;
+      const total = Math.max(1, Math.min(hbSeqTotal || 108, 200));
+      const list: string[] = [];
+      for (let i = 0; i < total; i++) {
+        const actual = start + i;
+        const padded = String(actual).padStart(pad, "0");
+        list.push(`${folder}/${pattern.replace("{padded}", padded).replace("{index}", String(actual))}`);
+      }
+      return list;
+    }
+    // Default sequence mode: always load the 108 local frames from /sequence
     const frames: string[] = [];
-    const total = Math.min(hbSeqTotal || 108, 150);
-    const folder = hbSeqFolder || "/sequence";
-    const pattern = hbSeqPattern || "frame_{padded}.webp";
-    const pad = hbSeqPadding || 6;
-    for (let i = 0; i < total; i++) {
-      const padded = String(i).padStart(pad, "0");
-      frames.push(`${folder}/${pattern.replace("{padded}", padded).replace("{index}", String(i))}`);
+    for (let i = 0; i < 108; i++) {
+      frames.push(`/sequence/frame_${String(i).padStart(6, "0")}.webp`);
     }
     return frames;
-  }, [seqPreviewUrls, heroBanner?.sequenceCustomFrames, hbSeqTotal, hbSeqFolder, hbSeqPattern, hbSeqPadding]);
+  }, [
+    seqPreviewUrls,
+    heroBanner?.sequenceCustomFrames,
+    hbSeqMode,
+    hbSeqTotal,
+    hbSeqFolder,
+    hbSeqPattern,
+    hbSeqPadding,
+    hbSeqStart,
+  ]);
 
   // Autoplay effect for Scrubber
   useEffect(() => {
@@ -1157,13 +1180,23 @@ export default function HeroBannerWorkspace({
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <button
                       type="button"
-                      onClick={() => {
+                      onClick={async () => {
                         setHbSeqFolder("/sequence");
                         setHbSeqPattern("frame_{padded}.webp");
                         setHbSeqTotal(108);
                         setHbSeqPadding(6);
                         setHbSeqStart(0);
-                        notify("info", "Preset Dipilih", "Folder Lokal (/sequence - 108 Frame) aktif.");
+                        setHbSeqMode("default");
+                        await updateHeroBannerData({
+                          sequenceMode: "default",
+                          sequenceFolder: "/sequence",
+                          sequencePattern: "frame_{padded}.webp",
+                          sequenceTotalFrames: 108,
+                          sequencePadding: 6,
+                          sequenceStartIndex: 0,
+                          sequenceCustomFrames: [],
+                        });
+                        notify("success", "Preset Aktif!", "Folder Lokal (/sequence - 108 Frame) berhasil diterapkan dan disimpan!");
                       }}
                       className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/40 transition-all cursor-pointer active:scale-95"
                     >
@@ -1171,13 +1204,23 @@ export default function HeroBannerWorkspace({
                     </button>
                     <button
                       type="button"
-                      onClick={() => {
-                        setHbSeqFolder("https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence");
+                      onClick={async () => {
+                        const cdnFolder = "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence";
+                        setHbSeqFolder(cdnFolder);
                         setHbSeqPattern("frame_{padded}.webp");
                         setHbSeqTotal(108);
                         setHbSeqPadding(6);
                         setHbSeqStart(0);
-                        notify("info", "Preset Dipilih", "Supabase CDN Sequence aktif.");
+                        setHbSeqMode("folder");
+                        await updateHeroBannerData({
+                          sequenceMode: "folder",
+                          sequenceFolder: cdnFolder,
+                          sequencePattern: "frame_{padded}.webp",
+                          sequenceTotalFrames: 108,
+                          sequencePadding: 6,
+                          sequenceStartIndex: 0,
+                        });
+                        notify("info", "Preset Dipilih", "Supabase CDN Sequence aktif & tersimpan.");
                       }}
                       className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium border transition-all cursor-pointer active:scale-95 ${
                         isLight ? "bg-white hover:bg-slate-100 text-slate-700 border-slate-300" : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
