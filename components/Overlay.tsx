@@ -13,7 +13,6 @@ export default function Overlay({ progress }: OverlayProps) {
   const section1Ref = useRef<HTMLDivElement>(null);
   const section2Ref = useRef<HTMLDivElement>(null);
   const section3Ref = useRef<HTMLDivElement>(null);
-  const section4Ref = useRef<HTMLDivElement>(null);
   const { t, tr, lang } = useLang();
   const { heroBanner } = usePortfolioData();
   const { themeMode } = useMotionTheme();
@@ -156,38 +155,6 @@ export default function Overlay({ progress }: OverlayProps) {
         section3Ref.current.style.visibility = "hidden";
       }
     }
-
-    // ==========================================
-    // SECTION 4 (80% to 100% scroll):
-    // Cursor Reveal Interactive HUD
-    // ==========================================
-    if (section4Ref.current) {
-      if (progress >= 0.80 && progress <= 1.0) {
-        let opacity = 0;
-        let y = 0;
-
-        if (progress < 0.85) {
-          const factor = (progress - 0.80) / (0.85 - 0.80);
-          opacity = factor;
-          y = 16 * (1 - factor);
-        } else if (progress <= 0.95) {
-          opacity = 1;
-          y = 0;
-        } else {
-          const factor = (progress - 0.95) / (1.0 - 0.95);
-          opacity = 1 - factor;
-          y = -12 * factor;
-        }
-
-        opacity = Math.max(0, Math.min(1, opacity));
-        section4Ref.current.style.opacity = opacity.toFixed(4);
-        section4Ref.current.style.transform = `translate3d(0, ${y.toFixed(2)}px, 0)`;
-        section4Ref.current.style.visibility = opacity <= 0.001 ? "hidden" : "visible";
-      } else {
-        section4Ref.current.style.opacity = "0";
-        section4Ref.current.style.visibility = "hidden";
-      }
-    }
   }, [progress]);
 
   return (
@@ -299,33 +266,6 @@ export default function Overlay({ progress }: OverlayProps) {
         >
           {displaySec3Body}
         </p>
-      </div>
-
-      {/* SECTION 4: Interactive Alter-Ego Motion Reveal HUD Pill */}
-      <div
-        ref={section4Ref}
-        style={{
-          opacity: 0,
-          transform: "translate3d(0, 16px, 0)",
-          willChange: "transform, opacity",
-          visibility: "hidden",
-        }}
-        className="absolute inset-x-0 bottom-12 sm:bottom-16 flex flex-col items-center justify-center text-center pointer-events-none px-4 transition-none z-30"
-      >
-        <div className="inline-flex items-center gap-2.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-full bg-black/85 border border-red-500/40 backdrop-blur-xl shadow-[0_0_35px_rgba(239,68,68,0.3)] text-xs font-mono text-white pointer-events-none">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse shrink-0" />
-          <span className="font-bold tracking-wider uppercase text-red-400 shrink-0">
-            {tr("Alter-Ego Persona", "Persona Alter-Ego", "Persona Alter-Ego")}
-          </span>
-          <span className="text-neutral-600 hidden sm:inline">•</span>
-          <span className="text-neutral-300 text-[11px] sm:text-xs">
-            {tr(
-              "Hover over portrait to reveal cyber alter-ego",
-              "Arahkan kursor ke karakter untuk membuka alter-ego",
-              "Arah-an kursor ka karakter untuak mambuka alter-ego"
-            )}
-          </span>
-        </div>
       </div>
     </div>
   );

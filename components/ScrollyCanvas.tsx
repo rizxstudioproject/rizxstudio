@@ -278,20 +278,6 @@ export default function ScrollyCanvas() {
         }
       }
 
-      // ==========================================
-      // AMBIENT CRIMSON FRAMING RING (Matches Reference Shivam Kumar)
-      // ==========================================
-      const circleRadius = Math.min(width, height) * 0.44;
-      ctx.save();
-      ctx.beginPath();
-      ctx.arc(width / 2, height / 2, circleRadius, 0, Math.PI * 2);
-      ctx.lineWidth = 1.25;
-      ctx.strokeStyle = "rgba(220, 38, 38, 0.45)"; // Sleek Crimson Red
-      ctx.shadowColor = "rgba(220, 38, 38, 0.35)";
-      ctx.shadowBlur = 12;
-      ctx.stroke();
-      ctx.restore();
-
       ctx.restore();
       currentFrameIndexRef.current = index;
     },
