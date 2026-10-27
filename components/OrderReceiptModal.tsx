@@ -18,6 +18,8 @@ import {
   RiExternalLinkLine,
   RiAlertLine,
   RiImageLine,
+  RiCameraLine,
+  RiImageAddLine,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -50,6 +52,7 @@ export default function OrderReceiptModal({
   const [activeReceipt, setActiveReceipt] = useState<OrderReceiptItem | null>(receipt);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     setActiveReceipt(receipt);
@@ -113,6 +116,9 @@ export default function OrderReceiptModal({
       alert("Gagal mengunggah bukti: " + (err.message || err));
     } finally {
       setIsUploadingProof(false);
+      try {
+        e.target.value = "";
+      } catch (_) {}
     }
   };
 
@@ -406,60 +412,118 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
             <div className="p-4 rounded-2xl border border-white/10 bg-black/50 space-y-3 no-print">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-mono font-semibold text-neutral-200 flex items-center gap-1.5">
-                  <RiImageLine className="w-4 h-4 text-teal-400" />
-                  <span>Upload Bukti Resi Transfer (Foto / Screenshot Struk)</span>
+                  <RiCameraLine className="w-4 h-4 text-teal-400" />
+                  <span>{tr("Upload / Photo Payment Proof", "Upload / Foto Bukti Resi Transfer", "Upload / Foto Bukti Resi Transfer")}</span>
                 </label>
                 {proofUrl && (
                   <span className="text-[10px] font-mono text-emerald-400 font-bold flex items-center gap-1">
                     <RiCheckLine className="w-3.5 h-3.5" />
-                    Terlampir
+                    {tr("Attached", "Terlampir", "Talampia")}
                   </span>
                 )}
               </div>
 
               {proofUrl ? (
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                  <img
-                    src={proofUrl}
-                    alt="Bukti Transfer"
-                    className="w-16 h-16 object-cover rounded-lg border border-white/10"
-                  />
-                  <div className="flex-1 min-w-0 text-xs font-mono">
-                    <div className="text-emerald-300 font-bold truncate">Bukti Pembayaran Terunggah</div>
-                    <a
-                      href={proofUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[10px] text-neutral-400 hover:text-white underline block truncate mt-0.5"
-                    >
-                      Lihat Gambar Penuh ↗
-                    </a>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img
+                      src={proofUrl}
+                      alt="Bukti Transfer"
+                      className="w-16 h-16 object-cover rounded-lg border border-white/10 shrink-0 shadow-md"
+                    />
+                    <div className="flex-1 min-w-0 text-xs font-mono">
+                      <div className="text-emerald-300 font-bold truncate">
+                        {tr("Payment Proof Attached", "Bukti Pembayaran Terunggah", "Bukti Pambayaran Taunggah")}
+                      </div>
+                      <a
+                        href={proofUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[10px] text-cyan-400 hover:text-cyan-300 underline block truncate mt-0.5"
+                      >
+                        {tr("View Full Image ↗", "Lihat Gambar Penuh ↗", "Caliak Gambar Penuah ↗")}
+                      </a>
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-xs text-white transition cursor-pointer"
-                  >
-                    Ganti
-                  </button>
+
+                  <div className="flex items-center gap-2 shrink-0 pt-1 sm:pt-0 border-t sm:border-t-0 border-white/10">
+                    <button
+                      type="button"
+                      disabled={isUploadingProof}
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-[11px] font-bold transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                      title={tr("Retake with phone camera", "Foto ulang dengan kamera HP", "Foto ulang jo kamera HP")}
+                    >
+                      <RiCameraLine className="w-3.5 h-3.5 text-teal-400" />
+                      <span>{tr("Foto Kamera", "Foto Kamera", "Foto Kamera")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isUploadingProof}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-[11px] text-white transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50"
+                      title={tr("Select from gallery / files", "Pilih file dari galeri", "Piliaah file dari galeri")}
+                    >
+                      <RiImageAddLine className="w-3.5 h-3.5 text-neutral-300" />
+                      <span>{tr("Ganti File", "Ganti File", "Ganti File")}</span>
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  <button
-                    type="button"
-                    disabled={isUploadingProof}
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95"
-                  >
-                    <RiUploadCloud2Line className="w-4 h-4" />
-                    <span>{isUploadingProof ? "Mengunggah Bukti..." : "Pilih Foto Bukti Transfer"}</span>
-                  </button>
-                  <span className="text-[10px] text-neutral-400 font-mono text-center sm:text-left">
-                    Format JPG, PNG, atau screenshot struk m-banking.
-                  </span>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {/* Camera Button (Opens phone camera directly) */}
+                    <button
+                      type="button"
+                      disabled={isUploadingProof}
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="w-full px-3.5 py-3 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/45 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                    >
+                      <RiCameraLine className="w-4 h-4 text-teal-400 shrink-0" />
+                      <span>
+                        {isUploadingProof
+                          ? tr("Uploading...", "Mengunggah...", "Mangupload...")
+                          : tr("Foto Kamera HP", "Foto Kamera HP", "Foto Kamera HP")}
+                      </span>
+                    </button>
+
+                    {/* File / Gallery Upload Button */}
+                    <button
+                      type="button"
+                      disabled={isUploadingProof}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full px-3.5 py-3 rounded-xl bg-white/10 hover:bg-white/15 text-white border border-white/15 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-95 disabled:opacity-50"
+                    >
+                      <RiUploadCloud2Line className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <span>
+                        {isUploadingProof
+                          ? tr("Uploading...", "Mengunggah...", "Mangupload...")
+                          : tr("Pilih dari Galeri / File", "Pilih dari Galeri / File", "Piliaah dari Galeri / File")}
+                      </span>
+                    </button>
+                  </div>
+
+                  <p className="text-[10px] text-neutral-400 font-mono text-center">
+                    {tr(
+                      "Take photo directly with phone camera or select screenshot from gallery (JPG, PNG).",
+                      "Bisa langsung foto struk fisik dengan kamera HP atau pilih screenshot struk dari galeri (JPG, PNG).",
+                      "Bisa lansuang foto struk jo kamera HP atau piliah screenshot struk dari galeri (JPG, PNG)."
+                    )}
+                  </p>
                 </div>
               )}
 
+              {/* Direct Camera Input (capture='environment' triggers phone rear camera) */}
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleUploadProof}
+                className="hidden"
+              />
+
+              {/* File / Gallery Input */}
               <input
                 ref={fileInputRef}
                 type="file"

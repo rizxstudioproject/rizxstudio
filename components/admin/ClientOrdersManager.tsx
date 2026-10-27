@@ -33,6 +33,7 @@ import {
   RiFileExcel2Line,
   RiDownloadCloud2Line,
   RiArrowDownSLine,
+  RiCameraLine,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -1661,8 +1662,17 @@ export default function ClientOrdersManager() {
             </p>
 
             <div className="space-y-4">
-              {/* File Upload Option */}
-              <div className="p-4 rounded-xl border border-dashed border-teal-500/40 bg-teal-500/5 text-center">
+              {/* File / Camera Upload Options */}
+              <div className="p-4 rounded-xl border border-dashed border-teal-500/40 bg-teal-500/5 text-center space-y-3">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  id="manualProofCameraInput"
+                  disabled={isUploadingManualProof}
+                  onChange={(e) => handleUploadManualProofFile(e, attachingOrder)}
+                  className="hidden"
+                />
                 <input
                   type="file"
                   accept="image/*"
@@ -1671,16 +1681,23 @@ export default function ClientOrdersManager() {
                   onChange={(e) => handleUploadManualProofFile(e, attachingOrder)}
                   className="hidden"
                 />
-                <label
-                  htmlFor="manualProofFileInput"
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs cursor-pointer shadow-md shadow-teal-500/20 transition active:scale-95"
-                >
-                  <RiUpload2Line className="w-4 h-4" />
-                  <span>
-                    {isUploadingManualProof ? "Sedang Mengunggah..." : "Pilih File Foto Bukti Resi"}
-                  </span>
-                </label>
-                <p className="text-[11px] text-neutral-400 mt-2">Format JPG, PNG, atau WEBP maks 5MB</p>
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <label
+                    htmlFor="manualProofCameraInput"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs cursor-pointer shadow-md shadow-teal-500/20 transition active:scale-95"
+                  >
+                    <RiCameraLine className="w-4 h-4" />
+                    <span>{isUploadingManualProof ? "Mengunggah..." : "Foto Kamera HP"}</span>
+                  </label>
+                  <label
+                    htmlFor="manualProofFileInput"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs cursor-pointer border border-white/15 transition active:scale-95"
+                  >
+                    <RiUpload2Line className="w-4 h-4 text-cyan-400" />
+                    <span>{isUploadingManualProof ? "Mengunggah..." : "Pilih File / Galeri"}</span>
+                  </label>
+                </div>
+                <p className="text-[11px] text-neutral-400">Ambil foto langsung struk pembayaran atau pilih file JPG, PNG, WEBP</p>
               </div>
 
               {/* Or Direct URL Input */}
