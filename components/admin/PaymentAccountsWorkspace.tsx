@@ -331,7 +331,9 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
             className={`px-4 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
               savedSuccess
                 ? "bg-emerald-500 text-black shadow-md shadow-emerald-500/20"
-                : "bg-white/10 hover:bg-white/20 text-white border border-white/15"
+                : isLight
+                ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-md shadow-teal-500/20"
+                : "bg-[#14AF9E] hover:bg-[#119586] text-black shadow-md shadow-teal-500/20"
             }`}
           >
             {savedSuccess ? (
@@ -346,7 +348,7 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
               </>
             ) : (
               <>
-                <RiSave3Fill className="w-4 h-4 text-teal-400" />
+                <RiSave3Fill className={`w-4 h-4 ${isLight ? "text-white" : "text-black"}`} />
                 <span>Publikasikan ke Web</span>
               </>
             )}
@@ -421,14 +423,22 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
                               {acc.name}
                             </h4>
                             {acc.badge && (
-                              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase bg-teal-500/15 border border-teal-500/30 text-teal-300">
+                              <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase border ${
+                                isLight
+                                  ? "bg-teal-100 text-teal-800 border-teal-300"
+                                  : "bg-teal-500/15 border-teal-500/30 text-teal-300"
+                              }`}>
                                 {acc.badge}
                               </span>
                             )}
                             <span
                               className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold ${
                                 isActive
-                                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                  ? isLight
+                                    ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
+                                    : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30"
+                                  : isLight
+                                  ? "bg-slate-100 text-slate-600 border border-slate-300"
                                   : "bg-neutral-700 text-neutral-400 border border-neutral-600"
                               }`}
                             >
@@ -490,7 +500,11 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
                           onClick={() => handleToggleActive(acc.id)}
                           className={`px-2.5 py-1.5 rounded-lg border text-xs font-mono transition cursor-pointer active:scale-95 ${
                             isActive
-                              ? "bg-neutral-800 text-neutral-300 border-white/10 hover:bg-neutral-700"
+                              ? isLight
+                                ? "bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200"
+                                : "bg-neutral-800 text-neutral-300 border-white/10 hover:bg-neutral-700"
+                              : isLight
+                              ? "bg-teal-50 text-teal-800 border-teal-300 hover:bg-teal-100"
                               : "bg-teal-500/20 text-teal-300 border-teal-500/30 hover:bg-teal-500/30"
                           }`}
                           title={isActive ? "Nonaktifkan rekening ini" : "Aktifkan rekening ini"}
@@ -542,12 +556,16 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
               isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-[#0b0e14] border-white/15 shadow-xl"
             }`}
           >
-            <div className="border-b border-white/10 pb-3">
-              <span className="text-[10px] font-mono uppercase tracking-widest text-teal-400 font-bold block mb-1">
+            <div className={`border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
+              <span className={`text-[10px] font-mono uppercase tracking-widest font-bold block mb-1 ${
+                isLight ? "text-teal-700" : "text-teal-400"
+              }`}>
                 PREVIEW FORMULIR ORDER WEB
               </span>
-              <h4 className="font-bold text-sm text-white">Metode Pembayaran Resmi Rizx Studio</h4>
-              <p className="text-[11px] text-neutral-400 mt-0.5">
+              <h4 className={`font-bold text-sm ${isLight ? "text-slate-900" : "text-white"}`}>
+                Metode Pembayaran Resmi Rizx Studio
+              </h4>
+              <p className={`text-[11px] mt-0.5 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 Ini adalah simulasi tampilan yang dilihat klien saat memilih rekening transfer.
               </p>
             </div>
@@ -563,17 +581,41 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
                     onClick={() => setPreviewSelectedId(acc.id)}
                     className={`p-2.5 rounded-xl border text-left transition cursor-pointer flex items-center justify-between ${
                       isSelected
-                        ? "bg-teal-500/15 border-teal-500 text-teal-300"
+                        ? isLight
+                          ? "bg-teal-50 border-teal-500 text-teal-950 font-bold shadow-xs"
+                          : "bg-teal-500/15 border-teal-500 text-teal-300"
+                        : isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                         : "bg-white/[0.03] border-white/10 text-neutral-300 hover:bg-white/5"
                     }`}
                   >
                     <div className="min-w-0">
-                      <span className="text-[9px] font-mono uppercase tracking-wider block text-neutral-400 truncate">
+                      <span className={`text-[9px] font-mono uppercase tracking-wider block truncate ${
+                        isSelected
+                          ? isLight
+                            ? "text-teal-700 font-bold"
+                            : "text-teal-400"
+                          : isLight
+                          ? "text-slate-500 font-semibold"
+                          : "text-neutral-400"
+                      }`}>
                         {acc.category}
                       </span>
-                      <span className="text-xs font-bold block truncate">{acc.name.split("(")[0]}</span>
+                      <span className={`text-xs font-bold block truncate ${
+                        isSelected
+                          ? isLight
+                            ? "text-slate-900"
+                            : "text-white"
+                          : isLight
+                          ? "text-slate-700"
+                          : "text-neutral-200"
+                      }`}>
+                        {acc.name.split("(")[0]}
+                      </span>
                     </div>
-                    {isSelected && <RiCheckLine className="w-4 h-4 text-teal-400 shrink-0" />}
+                    {isSelected && (
+                      <RiCheckLine className={`w-4 h-4 shrink-0 ${isLight ? "text-teal-600 font-bold" : "text-teal-400"}`} />
+                    )}
                   </button>
                 );
               })}
@@ -581,40 +623,60 @@ export default function PaymentAccountsWorkspace({ showToast }: PaymentAccountsW
 
             {/* Selected Account Detail Card */}
             {previewAccount && (
-              <div className="p-4 rounded-xl bg-black/50 border border-teal-500/30 space-y-2.5 animate-fadeIn">
+              <div className={`p-4 rounded-xl border space-y-2.5 animate-fadeIn ${
+                isLight ? "bg-slate-50 border-teal-500/30 shadow-xs" : "bg-black/50 border-teal-500/30"
+              }`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white">{previewAccount.name}</span>
+                  <span className={`text-xs font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {previewAccount.name}
+                  </span>
                   {previewAccount.badge && (
-                    <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-bold border border-teal-500/30">
+                    <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold border ${
+                      isLight
+                        ? "bg-teal-100 text-teal-800 border-teal-300"
+                        : "bg-teal-500/20 text-teal-300 border-teal-500/30"
+                    }`}>
                       {previewAccount.badge}
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center justify-between bg-white/[0.04] p-2.5 rounded-lg border border-white/5">
+                <div className={`flex items-center justify-between p-2.5 rounded-lg border ${
+                  isLight ? "bg-white border-slate-200 shadow-2xs" : "bg-white/[0.04] border-white/5"
+                }`}>
                   <div>
-                    <span className="text-[9px] font-mono text-neutral-400 block uppercase">
+                    <span className={`text-[9px] font-mono block uppercase ${
+                      isLight ? "text-slate-500 font-semibold" : "text-neutral-400"
+                    }`}>
                       Nomor Rekening Tujuan:
                     </span>
-                    <span className="font-mono text-sm font-bold text-teal-400 tracking-wider">
+                    <span className={`font-mono text-sm font-bold tracking-wider ${
+                      isLight ? "text-teal-700" : "text-teal-400"
+                    }`}>
                       {previewAccount.accountNumber}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleCopy(previewAccount.accountNumber)}
-                    className="px-2.5 py-1 rounded-md bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 text-[10px] font-mono font-bold cursor-pointer transition active:scale-95"
+                    className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-bold cursor-pointer transition active:scale-95 ${
+                      isLight
+                        ? "bg-teal-600 hover:bg-teal-700 text-white shadow-2xs"
+                        : "bg-teal-500/20 hover:bg-teal-500/30 text-teal-300"
+                    }`}
                   >
                     {copiedAccount === previewAccount.accountNumber ? "Disalin!" : "Salin"}
                   </button>
                 </div>
 
-                <div className="text-[11px] text-neutral-300">
-                  <span className="text-neutral-400">Atas Nama:</span>{" "}
-                  <span className="font-semibold text-white">{previewAccount.accountHolder}</span>
+                <div className={`text-[11px] ${isLight ? "text-slate-700 font-medium" : "text-neutral-300"}`}>
+                  <span className={`${isLight ? "text-slate-500" : "text-neutral-400"}`}>Atas Nama:</span>{" "}
+                  <span className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {previewAccount.accountHolder}
+                  </span>
                 </div>
 
-                <p className="text-[10px] text-neutral-400 italic">
+                <p className={`text-[10px] italic ${isLight ? "text-slate-600 font-medium" : "text-neutral-400"}`}>
                   {previewAccount.instructions}
                 </p>
 

@@ -482,15 +482,21 @@ export default function ClientOrdersManager() {
       {/* KPI Stats Pods */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {/* Total Incoming Clients */}
-        <div className="p-4 rounded-2xl bg-neutral-900/80 border border-white/10 hover:border-white/20 transition">
-          <div className="flex items-center justify-between text-neutral-400 mb-1">
+        <div className={`p-4 rounded-2xl border transition ${
+          isLight
+            ? "bg-white border-slate-200/90 shadow-2xs"
+            : "bg-neutral-900/80 border-white/10 hover:border-white/20"
+        }`}>
+          <div className={`flex items-center justify-between mb-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
             <span className="text-[11px] font-mono uppercase tracking-wider">
               {tr("Total Clients", "Total Klien Masuk", "Total Klien Masuak")}
             </span>
-            <RiUserFollowLine className="w-4 h-4 text-neutral-300" />
+            <RiUserFollowLine className={`w-4 h-4 ${isLight ? "text-slate-600" : "text-neutral-300"}`} />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-white font-mono">{totalCount}</div>
-          <div className="text-[10px] text-neutral-500 mt-1">
+          <div className={`text-2xl sm:text-3xl font-bold font-mono ${isLight ? "text-slate-900" : "text-white"}`}>
+            {totalCount}
+          </div>
+          <div className={`text-[10px] mt-1 ${isLight ? "text-slate-500 font-medium" : "text-neutral-500"}`}>
             {tr("Saved in Supabase Cloud", "Tersimpan di Supabase Cloud", "Tasimpan di Supabase Cloud")}
           </div>
         </div>
@@ -500,20 +506,24 @@ export default function ClientOrdersManager() {
           onClick={() => setStageFilter("queued")}
           className={`p-4 rounded-2xl border transition cursor-pointer ${
             stageFilter === "queued"
-              ? "bg-amber-500/15 border-amber-500/50"
+              ? isLight
+                ? "bg-amber-100/80 border-amber-400 shadow-xs"
+                : "bg-amber-500/15 border-amber-500/50"
+              : isLight
+              ? "bg-amber-50/70 border-amber-200 hover:border-amber-300 shadow-2xs"
               : "bg-neutral-900/80 border-amber-500/20 hover:border-amber-500/40"
           }`}
         >
-          <div className="flex items-center justify-between text-amber-400 mb-1">
+          <div className={`flex items-center justify-between mb-1 ${isLight ? "text-amber-800 font-bold" : "text-amber-400"}`}>
             <span className="text-[11px] font-mono uppercase tracking-wider">
               {tr("Pending Kickoff", "Menunggu Konfirmasi", "Manunggu Kickoff")}
             </span>
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-amber-400 font-mono">
+          <div className={`text-2xl sm:text-3xl font-bold font-mono ${isLight ? "text-amber-900" : "text-amber-400"}`}>
             {queuedCount}
           </div>
-          <div className="text-[10px] text-amber-300/70 mt-1">
+          <div className={`text-[10px] mt-1 ${isLight ? "text-amber-800/80 font-medium" : "text-amber-300/70"}`}>
             {tr("Needs work confirmation", "Butuh konfirmasi pengerjaan", "Paralu konfirmasi karajo")}
           </div>
         </div>
@@ -523,20 +533,24 @@ export default function ClientOrdersManager() {
           onClick={() => setStageFilter("in_progress")}
           className={`p-4 rounded-2xl border transition cursor-pointer ${
             stageFilter === "in_progress"
-              ? "bg-teal-500/15 border-teal-500/50"
+              ? isLight
+                ? "bg-teal-100/80 border-teal-400 shadow-xs"
+                : "bg-teal-500/15 border-teal-500/50"
+              : isLight
+              ? "bg-teal-50/70 border-teal-200 hover:border-teal-300 shadow-2xs"
               : "bg-neutral-900/80 border-teal-500/20 hover:border-teal-500/40"
           }`}
         >
-          <div className="flex items-center justify-between text-teal-400 mb-1">
+          <div className={`flex items-center justify-between mb-1 ${isLight ? "text-teal-800 font-bold" : "text-teal-400"}`}>
             <span className="text-[11px] font-mono uppercase tracking-wider">
               {tr("In Production", "Sedang Dikerjakan", "Sadang Dikarajoan")}
             </span>
-            <RiPlayCircleLine className="w-4 h-4 text-teal-400" />
+            <RiPlayCircleLine className={`w-4 h-4 ${isLight ? "text-teal-700" : "text-teal-400"}`} />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-teal-400 font-mono">
+          <div className={`text-2xl sm:text-3xl font-bold font-mono ${isLight ? "text-teal-900" : "text-teal-400"}`}>
             {inProgressCount}
           </div>
-          <div className="text-[10px] text-teal-300/70 mt-1">
+          <div className={`text-[10px] mt-1 ${isLight ? "text-teal-800/80 font-medium" : "text-teal-300/70"}`}>
             {tr("Active design & production process", "Proses desain & produksi aktif", "Proses desain & produksi aktif")}
           </div>
         </div>
@@ -546,20 +560,24 @@ export default function ClientOrdersManager() {
           onClick={() => setStageFilter("review")}
           className={`p-4 rounded-2xl border transition cursor-pointer ${
             stageFilter === "review"
-              ? "bg-indigo-500/15 border-indigo-500/50"
+              ? isLight
+                ? "bg-indigo-100/80 border-indigo-400 shadow-xs"
+                : "bg-indigo-500/15 border-indigo-500/50"
+              : isLight
+              ? "bg-indigo-50/70 border-indigo-200 hover:border-indigo-300 shadow-2xs"
               : "bg-neutral-900/80 border-indigo-500/20 hover:border-indigo-500/40"
           }`}
         >
-          <div className="flex items-center justify-between text-indigo-400 mb-1">
+          <div className={`flex items-center justify-between mb-1 ${isLight ? "text-indigo-800 font-bold" : "text-indigo-400"}`}>
             <span className="text-[11px] font-mono uppercase tracking-wider">
               {tr("Client Review", "Tahap Review", "Tahap Review")}
             </span>
-            <RiEyeLine className="w-4 h-4 text-indigo-400" />
+            <RiEyeLine className={`w-4 h-4 ${isLight ? "text-indigo-700" : "text-indigo-400"}`} />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-indigo-400 font-mono">
+          <div className={`text-2xl sm:text-3xl font-bold font-mono ${isLight ? "text-indigo-900" : "text-indigo-400"}`}>
             {reviewCount}
           </div>
-          <div className="text-[10px] text-indigo-300/70 mt-1">
+          <div className={`text-[10px] mt-1 ${isLight ? "text-indigo-800/80 font-medium" : "text-indigo-300/70"}`}>
             {tr("Waiting for evaluation & revision", "Menunggu evaluasi & revisi", "Mananti evaluasi & revisi")}
           </div>
         </div>
@@ -569,31 +587,37 @@ export default function ClientOrdersManager() {
           onClick={() => setStageFilter("completed")}
           className={`p-4 rounded-2xl border transition cursor-pointer ${
             stageFilter === "completed"
-              ? "bg-emerald-500/15 border-emerald-500/50"
+              ? isLight
+                ? "bg-emerald-100/80 border-emerald-400 shadow-xs"
+                : "bg-emerald-500/15 border-emerald-500/50"
+              : isLight
+              ? "bg-emerald-50/70 border-emerald-200 hover:border-emerald-300 shadow-2xs"
               : "bg-neutral-900/80 border-emerald-500/20 hover:border-emerald-500/40"
           }`}
         >
-          <div className="flex items-center justify-between text-emerald-400 mb-1">
+          <div className={`flex items-center justify-between mb-1 ${isLight ? "text-emerald-800 font-bold" : "text-emerald-400"}`}>
             <span className="text-[11px] font-mono uppercase tracking-wider">
               {tr("Completed", "Selesai / Finish", "Lah Selesai")}
             </span>
-            <RiShieldCheckLine className="w-4 h-4 text-emerald-400" />
+            <RiShieldCheckLine className={`w-4 h-4 ${isLight ? "text-emerald-700" : "text-emerald-400"}`} />
           </div>
-          <div className="text-2xl sm:text-3xl font-bold text-emerald-400 font-mono">
+          <div className={`text-2xl sm:text-3xl font-bold font-mono ${isLight ? "text-emerald-900" : "text-emerald-400"}`}>
             {completedCount}
           </div>
-          <div className="text-[10px] text-emerald-300/70 mt-1">
+          <div className={`text-[10px] mt-1 ${isLight ? "text-emerald-800/80 font-medium" : "text-emerald-300/70"}`}>
             {tr("100% master assets handed over", "Aset master diserahkan 100%", "Aset master disarahkan 100%")}
           </div>
         </div>
       </div>
 
       {/* Control Bar: Search, Stage Filter, Add Order */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-neutral-900/70 border border-white/10">
+      <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl border ${
+        isLight ? "bg-white border-slate-200/90 shadow-2xs" : "bg-neutral-900/70 border-white/10"
+      }`}>
         <div className="flex flex-wrap items-center gap-2 flex-1">
           {/* Search Input */}
           <div className="relative flex-1 min-w-[200px] max-w-sm">
-            <RiSearchLine className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 w-4 h-4" />
+            <RiSearchLine className={`absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 ${isLight ? "text-slate-400" : "text-neutral-400"}`} />
             <input
               type="text"
               placeholder={tr(
@@ -603,7 +627,11 @@ export default function ClientOrdersManager() {
               )}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 text-white placeholder-neutral-500 outline-none focus:border-teal-400 transition"
+              className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs outline-none focus:border-teal-400 transition ${
+                isLight
+                  ? "bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                  : "bg-white/5 border border-white/10 text-white placeholder-neutral-500"
+              }`}
             />
           </div>
 
@@ -622,6 +650,8 @@ export default function ClientOrdersManager() {
                 className={`px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition cursor-pointer ${
                   stageFilter === f.id
                     ? "bg-teal-500 text-black font-semibold shadow-sm"
+                    : isLight
+                    ? "bg-slate-100 text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                     : "bg-white/5 text-neutral-400 hover:text-white hover:bg-white/10"
                 }`}
               >
@@ -638,7 +668,11 @@ export default function ClientOrdersManager() {
             type="button"
             onClick={loadOrders}
             title={tr("Refresh Data", "Segarkan Data", "Pabaharui Data")}
-            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition cursor-pointer"
+            className={`p-2.5 rounded-xl border transition cursor-pointer ${
+              isLight
+                ? "bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-2xs"
+                : "bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border-white/10"
+            }`}
           >
             <RiRefreshLine className="w-4 h-4" />
           </button>
@@ -653,9 +687,13 @@ export default function ClientOrdersManager() {
               "Simpan dan sinkronkan semua data pesanan customer ke Database Supabase",
               "Simpan jo sinkronkan kasado data pasanan customer ka Database Supabase"
             )}
-            className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 transition flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+            className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50 ${
+              isLight
+                ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300"
+                : "bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35"
+            }`}
           >
-            <RiDatabase2Line className={`w-4 h-4 text-emerald-400 ${isSyncingDb ? "animate-spin" : ""}`} />
+            <RiDatabase2Line className={`w-4 h-4 ${isLight ? "text-emerald-700" : "text-emerald-400"} ${isSyncingDb ? "animate-spin" : ""}`} />
             <span>
               {isSyncingDb
                 ? tr("Saving...", "Menyimpan...", "Manyimpan...")
@@ -668,9 +706,13 @@ export default function ClientOrdersManager() {
             <button
               type="button"
               onClick={() => setIsExportMenuOpen((prev) => !prev)}
-              className="px-3 py-2 rounded-xl text-xs font-bold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/35 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm cursor-pointer ${
+                isLight
+                  ? "bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-300"
+                  : "bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/35"
+              }`}
             >
-              <RiDownload2Line className="w-4 h-4 text-sky-400" />
+              <RiDownload2Line className={`w-4 h-4 ${isLight ? "text-sky-700" : "text-sky-400"}`} />
               <span>{tr("Download Customer", "Download Data Customer", "Download Data Customer")}</span>
               <RiArrowDownSLine className="w-3.5 h-3.5 opacity-70" />
             </button>
@@ -681,24 +723,32 @@ export default function ClientOrdersManager() {
                   className="fixed inset-0 z-40"
                   onClick={() => setIsExportMenuOpen(false)}
                 />
-                <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-neutral-900 border border-white/20 p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs backdrop-blur-xl">
-                  <div className="px-3 py-1.5 text-[10px] uppercase font-mono tracking-wider text-neutral-400 font-bold border-b border-white/10 flex items-center justify-between">
+                <div className={`absolute right-0 mt-2 w-72 rounded-2xl border p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs backdrop-blur-xl ${
+                  isLight
+                    ? "bg-white border-slate-200 text-slate-800 shadow-xl"
+                    : "bg-neutral-900 border-white/20 text-white"
+                }`}>
+                  <div className={`px-3 py-1.5 text-[10px] uppercase font-mono tracking-wider font-bold border-b flex items-center justify-between ${
+                    isLight ? "text-slate-600 border-slate-100" : "text-neutral-400 border-white/10"
+                  }`}>
                     <span>{tr("Customer Database Export", "Ekspor & Database Customer", "Ekspor & Database Customer")}</span>
-                    <span className="text-teal-400">{orders.length} Data</span>
+                    <span className={`${isLight ? "text-teal-700 font-bold" : "text-teal-400"}`}>{orders.length} Data</span>
                   </div>
 
                   {/* 1. Download Excel / CSV */}
                   <button
                     type="button"
                     onClick={handleDownloadCsv}
-                    className="w-full px-3 py-2.5 rounded-xl text-left hover:bg-white/10 text-white flex items-center gap-3 transition cursor-pointer"
+                    className={`w-full px-3 py-2.5 rounded-xl text-left flex items-center gap-3 transition cursor-pointer ${
+                      isLight ? "hover:bg-slate-50 text-slate-800" : "hover:bg-white/10 text-white"
+                    }`}
                   >
-                    <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0">
+                    <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-500 shrink-0">
                       <RiFileExcel2Line className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-white">{tr("Download Excel / CSV", "Download Format Excel / CSV", "Download Format Excel / CSV")}</div>
-                      <div className="text-[10px] text-neutral-400 truncate">{tr("BOM UTF-8 ready for Excel & Sheets", "Rapi & kompatibel dengan Microsoft Excel", "Rapi & rancak untuak Excel")}</div>
+                      <div className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>{tr("Download Excel / CSV", "Download Format Excel / CSV", "Download Format Excel / CSV")}</div>
+                      <div className={`text-[10px] truncate ${isLight ? "text-slate-500" : "text-neutral-400"}`}>{tr("BOM UTF-8 ready for Excel & Sheets", "Rapi & kompatibel dengan Microsoft Excel", "Rapi & rancak untuak Excel")}</div>
                     </div>
                   </button>
 
@@ -706,32 +756,36 @@ export default function ClientOrdersManager() {
                   <button
                     type="button"
                     onClick={handleDownloadJson}
-                    className="w-full px-3 py-2.5 rounded-xl text-left hover:bg-white/10 text-white flex items-center gap-3 transition cursor-pointer"
+                    className={`w-full px-3 py-2.5 rounded-xl text-left flex items-center gap-3 transition cursor-pointer ${
+                      isLight ? "hover:bg-slate-50 text-slate-800" : "hover:bg-white/10 text-white"
+                    }`}
                   >
-                    <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400 shrink-0">
+                    <div className="p-2 rounded-lg bg-sky-500/20 text-sky-500 shrink-0">
                       <RiFileList3Line className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-white">{tr("Download JSON Backup", "Download Backup Mentah (JSON)", "Download Backup Mantah (JSON)")}</div>
-                      <div className="text-[10px] text-neutral-400 truncate">{tr("Full raw structural backup", "Format JSON lengkap seluruh field", "Format JSON langkok kasado field")}</div>
+                      <div className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>{tr("Download JSON Backup", "Download Backup Mentah (JSON)", "Download Backup Mantah (JSON)")}</div>
+                      <div className={`text-[10px] truncate ${isLight ? "text-slate-500" : "text-neutral-400"}`}>{tr("Full raw structural backup", "Format JSON lengkap seluruh field", "Format JSON langkok kasado field")}</div>
                     </div>
                   </button>
 
-                  <div className="my-1 border-t border-white/10" />
+                  <div className={`my-1 border-t ${isLight ? "border-slate-100" : "border-white/10"}`} />
 
                   {/* 3. Sinkron Semua ke Database */}
                   <button
                     type="button"
                     onClick={handleSyncDatabase}
                     disabled={isSyncingDb}
-                    className="w-full px-3 py-2.5 rounded-xl text-left hover:bg-white/10 text-emerald-300 flex items-center gap-3 transition cursor-pointer disabled:opacity-50"
+                    className={`w-full px-3 py-2.5 rounded-xl text-left flex items-center gap-3 transition cursor-pointer disabled:opacity-50 ${
+                      isLight ? "hover:bg-slate-50 text-emerald-800" : "hover:bg-white/10 text-emerald-300"
+                    }`}
                   >
-                    <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0">
+                    <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-500 shrink-0">
                       <RiDatabase2Line className={`w-4 h-4 ${isSyncingDb ? "animate-spin" : ""}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-emerald-300">{tr("Sync All to Cloud Database", "Simpan Semua Masuk Database", "Simpan Sadonyo Masuak Database")}</div>
-                      <div className="text-[10px] text-emerald-400/70 truncate">{tr("Save latest records to Supabase", "Pastikan seluruh data aman di Supabase", "Pastikan sadonyo aman di Supabase")}</div>
+                      <div className={`font-semibold ${isLight ? "text-emerald-900" : "text-emerald-300"}`}>{tr("Sync All to Cloud Database", "Simpan Semua Masuk Database", "Simpan Sadonyo Masuak Database")}</div>
+                      <div className={`text-[10px] truncate ${isLight ? "text-emerald-700" : "text-emerald-400/70"}`}>{tr("Save latest records to Supabase", "Pastikan seluruh data aman di Supabase", "Pastikan sadonyo aman di Supabase")}</div>
                     </div>
                   </button>
 
@@ -740,18 +794,20 @@ export default function ClientOrdersManager() {
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
                     disabled={isImporting}
-                    className="w-full px-3 py-2.5 rounded-xl text-left hover:bg-white/10 text-amber-300 flex items-center gap-3 transition cursor-pointer disabled:opacity-50"
+                    className={`w-full px-3 py-2.5 rounded-xl text-left flex items-center gap-3 transition cursor-pointer disabled:opacity-50 ${
+                      isLight ? "hover:bg-slate-50 text-amber-900" : "hover:bg-white/10 text-amber-300"
+                    }`}
                   >
-                    <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
+                    <div className="p-2 rounded-lg bg-amber-500/20 text-amber-500 shrink-0">
                       <RiUpload2Line className={`w-4 h-4 ${isImporting ? "animate-spin" : ""}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="font-semibold text-amber-300">
+                      <div className={`font-semibold ${isLight ? "text-amber-900" : "text-amber-300"}`}>
                         {isImporting
                           ? tr("Processing Import...", "Sedang Membaca File...", "Sadang Mambaco File...")
                           : tr("Import File to Database", "Impor File Masuk Database", "Impor File Masuak Database")}
                       </div>
-                      <div className="text-[10px] text-amber-400/70 truncate">{tr("Upload CSV / JSON customer list", "Upload data customer dari file", "Upload data customer dari file")}</div>
+                      <div className={`text-[10px] truncate ${isLight ? "text-amber-700" : "text-amber-400/70"}`}>{tr("Upload CSV / JSON customer list", "Upload data customer dari file", "Upload data customer dari file")}</div>
                     </div>
                   </button>
                 </div>
@@ -821,41 +877,51 @@ export default function ClientOrdersManager() {
                 key={order.refCode}
                 className={`relative rounded-2xl border p-5 sm:p-6 transition-all ${
                   isQueued
-                    ? "bg-gradient-to-br from-amber-500/[0.07] to-neutral-900/90 border-amber-500/30 shadow-lg shadow-amber-500/5"
+                    ? isLight
+                      ? "bg-amber-50/70 border-amber-300 shadow-sm"
+                      : "bg-gradient-to-br from-amber-500/[0.07] to-neutral-900/90 border-amber-500/30 shadow-lg shadow-amber-500/5"
+                    : isLight
+                    ? "bg-white border-slate-200/90 shadow-2xs hover:border-slate-300"
                     : "bg-neutral-900/80 border-white/10 hover:border-white/20"
                 }`}
               >
                 {/* Header Row: Client Info, Code, Stage */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-4 border-b border-white/10">
+                <div className={`flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 pb-4 border-b ${
+                  isLight ? "border-slate-100" : "border-white/10"
+                }`}>
                   <div className="space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-base sm:text-lg font-bold text-white">
+                      <h3 className={`text-base sm:text-lg font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
                         {order.clientName}
                       </h3>
                       {/* Ref Code Pill with Copy */}
                       <button
                         onClick={() => handleCopyCode(order.refCode)}
                         title="Salin Kode Referensi"
-                        className="inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-0.5 rounded-md bg-teal-500/15 border border-teal-500/30 text-teal-300 hover:bg-teal-500/25 transition cursor-pointer"
+                        className={`inline-flex items-center gap-1 text-[11px] font-mono px-2.5 py-0.5 rounded-md transition cursor-pointer ${
+                          isLight
+                            ? "bg-teal-50 border border-teal-300 text-teal-800 hover:bg-teal-100 shadow-2xs"
+                            : "bg-teal-500/15 border border-teal-500/30 text-teal-300 hover:bg-teal-500/25"
+                        }`}
                       >
                         <span>{order.refCode}</span>
-                        <RiFileCopyLine className="w-3 h-3 text-teal-400" />
+                        <RiFileCopyLine className={`w-3 h-3 ${isLight ? "text-teal-700" : "text-teal-400"}`} />
                         {copiedCode === order.refCode && (
-                          <span className="text-[10px] text-teal-200 font-sans font-bold">
+                          <span className={`text-[10px] font-sans font-bold ${isLight ? "text-teal-700" : "text-teal-200"}`}>
                             Tersalin!
                           </span>
                         )}
                       </button>
                     </div>
 
-                    <div className="text-xs text-neutral-400 flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <span className="text-neutral-300 font-medium">{order.serviceTitle}</span>
+                    <div className={`text-xs flex flex-wrap items-center gap-x-3 gap-y-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                      <span className={`font-medium ${isLight ? "text-slate-800" : "text-neutral-300"}`}>{order.serviceTitle}</span>
                       <span>•</span>
-                      <span className="text-teal-400">{order.packageName}</span>
+                      <span className={`${isLight ? "text-teal-700 font-semibold" : "text-teal-400"}`}>{order.packageName}</span>
                       {order.budget && (
                         <>
                           <span>•</span>
-                          <span className="text-neutral-300 font-mono">{order.budget}</span>
+                          <span className={`font-mono ${isLight ? "text-slate-700" : "text-neutral-300"}`}>{order.budget}</span>
                         </>
                       )}
                     </div>
@@ -878,7 +944,7 @@ export default function ClientOrdersManager() {
                       <span>{meta.label}</span>
                     </div>
 
-                    <div className="text-[11px] text-neutral-400 font-mono">
+                    <div className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                       {new Date(order.startDate).toLocaleDateString(
                         lang === "id" ? "id-ID" : "en-US",
                         { day: "numeric", month: "short", year: "numeric" }
@@ -890,18 +956,20 @@ export default function ClientOrdersManager() {
                 {/* Body Details: Contact, Brief, and Payment Proof Box */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-3.5 mb-5">
                   {/* Client Contact Info (4 cols) */}
-                  <div className="lg:col-span-4 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-2 text-xs">
-                    <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400">
+                  <div className={`lg:col-span-4 p-3.5 rounded-xl border space-y-2 text-xs ${
+                    isLight ? "bg-slate-50/80 border-slate-200" : "bg-white/[0.03] border-white/[0.08]"
+                  }`}>
+                    <div className={`text-[10px] font-mono uppercase tracking-wider ${isLight ? "text-slate-500 font-semibold" : "text-neutral-400"}`}>
                       Kontak Klien
                     </div>
                     {order.clientPhone ? (
                       <div className="flex items-center justify-between">
-                        <span className="text-neutral-400">WhatsApp:</span>
+                        <span className={isLight ? "text-slate-500" : "text-neutral-400"}>WhatsApp:</span>
                         <a
                           href={waChatUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-mono text-emerald-400 hover:underline flex items-center gap-1 font-semibold"
+                          className={`font-mono hover:underline flex items-center gap-1 font-semibold ${isLight ? "text-emerald-700" : "text-emerald-400"}`}
                         >
                           <RiWhatsappLine className="w-3.5 h-3.5" />
                           <span>{order.clientPhone}</span>
@@ -913,37 +981,39 @@ export default function ClientOrdersManager() {
 
                     {order.clientEmail && (
                       <div className="flex items-center justify-between">
-                        <span className="text-neutral-400">Email:</span>
+                        <span className={isLight ? "text-slate-500" : "text-neutral-400"}>Email:</span>
                         <a
                           href={`mailto:${order.clientEmail}`}
-                          className="text-neutral-200 hover:text-white flex items-center gap-1 truncate max-w-[180px]"
+                          className={`flex items-center gap-1 truncate max-w-[180px] ${isLight ? "text-slate-700 hover:text-slate-900" : "text-neutral-200 hover:text-white"}`}
                         >
-                          <RiMailLine className="w-3.5 h-3.5 text-neutral-400" />
+                          <RiMailLine className={`w-3.5 h-3.5 ${isLight ? "text-slate-400" : "text-neutral-400"}`} />
                           <span className="truncate">{order.clientEmail}</span>
                         </a>
                       </div>
                     )}
 
                     {order.targetDeadline && (
-                      <div className="flex items-center justify-between pt-1 border-t border-white/5">
-                        <span className="text-neutral-400">Target Waktu:</span>
-                        <span className="text-neutral-200 font-mono">{order.targetDeadline}</span>
+                      <div className={`flex items-center justify-between pt-1 border-t ${isLight ? "border-slate-200" : "border-white/5"}`}>
+                        <span className={isLight ? "text-slate-500" : "text-neutral-400"}>Target Waktu:</span>
+                        <span className={`font-mono ${isLight ? "text-slate-800" : "text-neutral-200"}`}>{order.targetDeadline}</span>
                       </div>
                     )}
                   </div>
 
                   {/* Client Project Brief (4 cols) */}
-                  <div className="lg:col-span-4 p-3.5 rounded-xl bg-white/[0.03] border border-white/[0.08] space-y-1.5 text-xs">
-                    <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 flex items-center gap-1.5">
+                  <div className={`lg:col-span-4 p-3.5 rounded-xl border space-y-1.5 text-xs ${
+                    isLight ? "bg-slate-50/80 border-slate-200" : "bg-white/[0.03] border-white/[0.08]"
+                  }`}>
+                    <div className={`text-[10px] font-mono uppercase tracking-wider flex items-center gap-1.5 ${isLight ? "text-slate-500 font-semibold" : "text-neutral-400"}`}>
                       <RiFileList3Line className="w-3.5 h-3.5" />
                       <span>Catatan / Brief Klien</span>
                     </div>
                     {order.brief ? (
-                      <p className="text-neutral-300 text-xs italic leading-relaxed line-clamp-4">
+                      <p className={`text-xs italic leading-relaxed line-clamp-4 ${isLight ? "text-slate-700 font-medium" : "text-neutral-300"}`}>
                         &ldquo;{order.brief}&rdquo;
                       </p>
                     ) : (
-                      <p className="text-neutral-500 text-xs italic">
+                      <p className={`text-xs italic ${isLight ? "text-slate-400" : "text-neutral-500"}`}>
                         Tidak ada catatan brief tertulis. Klien memilih paket standar langsung.
                       </p>
                     )}
@@ -951,36 +1021,52 @@ export default function ClientOrdersManager() {
 
                   {/* Payment Proof / Resi Status Card (4 cols) */}
                   <div className={`lg:col-span-4 p-3.5 rounded-xl border flex flex-col justify-between text-xs transition-all ${
-                    proofUrl ? "bg-emerald-500/[0.06] border-emerald-500/30 shadow-xs" : "bg-white/[0.03] border-white/[0.08]"
+                    proofUrl
+                      ? isLight
+                        ? "bg-emerald-50/60 border-emerald-300 shadow-2xs"
+                        : "bg-emerald-500/[0.06] border-emerald-500/30 shadow-xs"
+                      : isLight
+                      ? "bg-slate-50/80 border-slate-200"
+                      : "bg-white/[0.03] border-white/[0.08]"
                   }`}>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
-                        <div className="text-[10px] font-mono uppercase tracking-wider flex items-center gap-1.5 font-bold text-teal-400">
+                        <div className={`text-[10px] font-mono uppercase tracking-wider flex items-center gap-1.5 font-bold ${
+                          isLight ? "text-teal-800" : "text-teal-400"
+                        }`}>
                           <RiShieldCheckLine className="w-3.5 h-3.5" />
                           <span>Bukti Resi Transfer</span>
                         </div>
                         {proofUrl ? (
-                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/40">
+                          <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold border ${
+                            isLight
+                              ? "bg-emerald-100 text-emerald-800 border-emerald-300"
+                              : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                          }`}>
                             Terlampir ✓
                           </span>
                         ) : (
-                          <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 font-bold border border-amber-500/30">
+                          <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full font-bold border ${
+                            isLight
+                              ? "bg-amber-100 text-amber-800 border-amber-300"
+                              : "bg-amber-500/10 text-amber-400 border border-amber-500/30"
+                          }`}>
                             Belum Ada Resi
                           </span>
                         )}
                       </div>
 
                       {receiptNum && (
-                        <div className="text-[11px] font-mono text-neutral-300 flex items-center justify-between">
-                          <span className="text-neutral-400">No. Inv:</span>
-                          <span className="font-bold text-teal-300">{receiptNum}</span>
+                        <div className={`text-[11px] font-mono flex items-center justify-between ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                          <span className={isLight ? "text-slate-500" : "text-neutral-400"}>No. Inv:</span>
+                          <span className={`font-bold ${isLight ? "text-teal-800" : "text-teal-300"}`}>{receiptNum}</span>
                         </div>
                       )}
 
                       {paymentMethodName && (
-                        <div className="text-[11px] font-mono text-neutral-300 flex items-center justify-between">
-                          <span className="text-neutral-400">Metode:</span>
-                          <span className="font-bold uppercase text-neutral-200">
+                        <div className={`text-[11px] font-mono flex items-center justify-between ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                          <span className={isLight ? "text-slate-500" : "text-neutral-400"}>Metode:</span>
+                          <span className={`font-bold uppercase ${isLight ? "text-slate-800" : "text-neutral-200"}`}>
                             {paymentMethodName} {paymentPlanName ? `(${paymentPlanName.includes("DP") ? "DP 50%" : "Lunas"})` : ""}
                           </span>
                         </div>
@@ -1015,13 +1101,13 @@ export default function ClientOrdersManager() {
                           </div>
                         </div>
                       ) : (
-                        <p className="text-[11px] text-neutral-400 italic">
+                        <p className={`text-[11px] italic ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                           Klien belum mengunggah bukti pembayaran via sistem web.
                         </p>
                       )}
                     </div>
 
-                    <div className="pt-2 border-t border-white/5 flex items-center justify-between gap-2 mt-2">
+                    <div className={`pt-2 border-t flex items-center justify-between gap-2 mt-2 ${isLight ? "border-slate-200" : "border-white/5"}`}>
                       {proofUrl ? (
                         <button
                           type="button"
@@ -1039,7 +1125,11 @@ export default function ClientOrdersManager() {
                               paymentPlan: paymentPlanName,
                             })
                           }
-                          className="w-full py-1.5 px-3 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                          className={`w-full py-1.5 px-3 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                            isLight
+                              ? "bg-emerald-100 hover:bg-emerald-200 text-emerald-900 border border-emerald-300 shadow-2xs"
+                              : "bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40"
+                          }`}
                         >
                           <RiImageFill className="w-3.5 h-3.5" />
                           <span>Perbesar Foto Resi 🔍</span>
@@ -1051,9 +1141,13 @@ export default function ClientOrdersManager() {
                             setAttachingOrder(order);
                             setManualProofUrl("");
                           }}
-                          className="w-full py-1.5 px-3 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer"
+                          className={`w-full py-1.5 px-3 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                            isLight
+                              ? "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs"
+                              : "bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10"
+                          }`}
                         >
-                          <RiAttachmentLine className="w-3.5 h-3.5 text-teal-400" />
+                          <RiAttachmentLine className={`w-3.5 h-3.5 ${isLight ? "text-teal-600" : "text-teal-400"}`} />
                           <span>Lampirkan Resi Manual</span>
                         </button>
                       )}
@@ -1062,13 +1156,17 @@ export default function ClientOrdersManager() {
                 </div>
 
                 {/* Progress Status Bar & Latest Report */}
-                <div className="p-4 rounded-xl bg-black/40 border border-white/10 space-y-3 mb-4">
+                <div className={`p-4 rounded-xl border space-y-3 mb-4 ${
+                  isLight ? "bg-slate-50/80 border-slate-200" : "bg-black/40 border-white/10"
+                }`}>
                   <div className="flex items-center justify-between text-xs">
                     <div className="flex items-center gap-2">
-                      <span className="text-neutral-400 font-mono text-[11px] uppercase tracking-wider">
+                      <span className={`font-mono text-[11px] uppercase tracking-wider ${
+                        isLight ? "text-slate-600 font-semibold" : "text-neutral-400"
+                      }`}>
                         Progress Pengerjaan:
                       </span>
-                      <span className="font-bold font-mono text-teal-400">
+                      <span className={`font-bold font-mono ${isLight ? "text-teal-800" : "text-teal-400"}`}>
                         {order.progressPercent}%
                       </span>
                     </div>
@@ -1078,7 +1176,9 @@ export default function ClientOrdersManager() {
                         href={order.previewUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-cyan-300 hover:underline flex items-center gap-1 font-semibold"
+                        className={`text-xs hover:underline flex items-center gap-1 font-semibold ${
+                          isLight ? "text-teal-700" : "text-cyan-300"
+                        }`}
                       >
                         <RiExternalLinkLine className="w-3.5 h-3.5" />
                         <span>Link Draft / Preview ↗</span>
@@ -1087,7 +1187,7 @@ export default function ClientOrdersManager() {
                   </div>
 
                   {/* Progress Bar Line */}
-                  <div className="w-full h-2 rounded-full bg-neutral-800 overflow-hidden">
+                  <div className={`w-full h-2 rounded-full overflow-hidden ${isLight ? "bg-slate-200" : "bg-neutral-800"}`}>
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
@@ -1099,11 +1199,15 @@ export default function ClientOrdersManager() {
                   </div>
 
                   {/* Studio Report Notes */}
-                  <div className="text-xs text-neutral-300 bg-white/[0.02] p-2.5 rounded-lg border border-white/5">
-                    <span className="text-neutral-400 font-semibold font-mono text-[10px] block mb-0.5">
+                  <div className={`text-xs p-2.5 rounded-lg border ${
+                    isLight ? "bg-white border-slate-200 text-slate-700" : "text-neutral-300 bg-white/[0.02] border-white/5"
+                  }`}>
+                    <span className={`font-semibold font-mono text-[10px] block mb-0.5 ${
+                      isLight ? "text-slate-500" : "text-neutral-400"
+                    }`}>
                       LAPORAN TERAKHIR KE VIEW TRACKING:
                     </span>
-                    <span className="text-neutral-200">
+                    <span className={isLight ? "text-slate-800" : "text-neutral-200"}>
                       {order.notes || "Belum ada laporan catatan progres."}
                     </span>
                   </div>
@@ -1135,9 +1239,13 @@ export default function ClientOrdersManager() {
                     {/* Preview Client Visual Tracking Modal */}
                     <button
                       onClick={() => setPreviewingOrder(order)}
-                      className="px-3 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10 transition flex items-center gap-1.5 cursor-pointer"
+                      className={`px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer ${
+                        isLight
+                          ? "bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 shadow-2xs"
+                          : "bg-white/5 hover:bg-white/10 text-neutral-200 hover:text-white border border-white/10"
+                      }`}
                     >
-                      <RiCompass3Line className="w-3.5 h-3.5 text-teal-400" />
+                      <RiCompass3Line className={`w-3.5 h-3.5 ${isLight ? "text-teal-600" : "text-teal-400"}`} />
                       <span>Cek Tampilan Klien</span>
                     </button>
 
@@ -1159,9 +1267,13 @@ export default function ClientOrdersManager() {
                             paymentPlan: paymentPlanName,
                           })
                         }
-                        className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40 transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                        className={`px-3 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 ${
+                          isLight
+                            ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300"
+                            : "bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/40"
+                        }`}
                       >
-                        <RiImageFill className="w-3.5 h-3.5 text-emerald-400" />
+                        <RiImageFill className={`w-3.5 h-3.5 ${isLight ? "text-emerald-700" : "text-emerald-400"}`} />
                         <span>Lihat Bukti Resi 📄</span>
                       </button>
                     ) : (
@@ -1171,7 +1283,11 @@ export default function ClientOrdersManager() {
                           setAttachingOrder(order);
                           setManualProofUrl("");
                         }}
-                        className="px-3 py-2 rounded-xl text-xs font-medium bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-neutral-200 border border-white/10 transition flex items-center gap-1.5 cursor-pointer active:scale-95"
+                        className={`px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer active:scale-95 ${
+                          isLight
+                            ? "bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-2xs"
+                            : "bg-white/5 hover:bg-white/10 text-neutral-400 hover:text-neutral-200 border border-white/10"
+                        }`}
                       >
                         <RiAttachmentLine className="w-3.5 h-3.5" />
                         <span>Lampirkan Resi</span>
@@ -1184,9 +1300,13 @@ export default function ClientOrdersManager() {
                         href={waChatUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-2 rounded-xl text-xs font-medium bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 transition flex items-center gap-1.5"
+                        className={`px-3 py-2 rounded-xl text-xs font-medium transition flex items-center gap-1.5 ${
+                          isLight
+                            ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs"
+                            : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        }`}
                       >
-                        <RiWhatsappLine className="w-3.5 h-3.5" />
+                        <RiWhatsappLine className={`w-3.5 h-3.5 ${isLight ? "text-emerald-700" : "text-emerald-400"}`} />
                         <span>Chat WhatsApp</span>
                       </a>
                     )}
@@ -1210,32 +1330,40 @@ export default function ClientOrdersManager() {
       {/* ── MODAL 1: UPDATE LAPORAN PROGRES ── */}
       {reportingOrder && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-xl rounded-2xl border border-white/20 bg-[#111317] text-white p-6 sm:p-7 shadow-2xl max-h-[92vh] overflow-y-auto">
+          <div className={`relative w-full max-w-xl rounded-2xl border p-6 sm:p-7 shadow-2xl max-h-[92vh] overflow-y-auto ${
+            isLight ? "bg-white border-slate-200 text-slate-900" : "bg-[#111317] border-white/20 text-white"
+          }`}>
             {/* Close Button */}
             <button
               onClick={() => setReportingOrder(null)}
-              className="absolute top-5 right-5 p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"
+              className={`absolute top-5 right-5 p-2 rounded-full transition ${
+                isLight ? "hover:bg-slate-100 text-slate-400 hover:text-slate-700" : "hover:bg-white/10 text-neutral-400 hover:text-white"
+              }`}
             >
               <RiCloseLine className="w-5 h-5" />
             </button>
 
             {/* Header */}
             <div className="mb-5">
-              <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 mb-2">
+              <div className={`inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-md mb-2 ${
+                isLight ? "bg-teal-50 text-teal-800 border border-teal-300" : "bg-teal-500/15 text-teal-300 border border-teal-500/30"
+              }`}>
                 <RiEditLine className="w-3 h-3" />
                 <span>Input Laporan & Sinkronisasi Tracking</span>
               </div>
-              <h3 className="text-xl font-bold">Update Laporan Progres Proyek</h3>
-              <p className="text-xs text-neutral-400 mt-1">
-                Klien: <span className="text-white font-semibold">{reportingOrder.clientName}</span>{" "}
-                (Kode: <span className="font-mono text-teal-400">{reportingOrder.refCode}</span>)
+              <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Update Laporan Progres Proyek</h3>
+              <p className={`text-xs mt-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                Klien: <span className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>{reportingOrder.clientName}</span>{" "}
+                (Kode: <span className={`font-mono font-bold ${isLight ? "text-teal-700" : "text-teal-400"}`}>{reportingOrder.refCode}</span>)
               </p>
             </div>
 
             <div className="space-y-4 text-xs">
               {/* Select Stage */}
               <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1.5 ${
+                  isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                }`}>
                   1. Tahapan Pengerjaan Saat Ini
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -1265,14 +1393,17 @@ export default function ClientOrdersManager() {
                           isSelected
                             ? {
                                 borderColor: s.color,
-                                backgroundColor: `${s.color}22`,
-                                color: s.color,
+                                backgroundColor: isLight ? `${s.color}15` : `${s.color}22`,
+                                color: isLight ? "#0f172a" : s.color,
+                                fontWeight: "bold",
                               }
                             : undefined
                         }
                         className={`p-2.5 rounded-xl border text-center transition cursor-pointer font-medium ${
                           isSelected
                             ? "font-bold shadow-sm"
+                            : isLight
+                            ? "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                             : "bg-white/5 border-white/10 text-neutral-400 hover:text-white"
                         }`}
                       >
@@ -1286,10 +1417,12 @@ export default function ClientOrdersManager() {
               {/* Progress Percentage Slider */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-[11px] font-mono uppercase tracking-wider text-neutral-300">
+                  <label className={`text-[11px] font-mono uppercase tracking-wider ${
+                    isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                  }`}>
                     2. Persentase Selesai:
                   </label>
-                  <span className="font-mono text-sm font-bold text-teal-400">
+                  <span className={`font-mono text-sm font-bold ${isLight ? "text-teal-800" : "text-teal-400"}`}>
                     {reportPercent}%
                   </span>
                 </div>
@@ -1300,13 +1433,15 @@ export default function ClientOrdersManager() {
                   step={5}
                   value={reportPercent}
                   onChange={(e) => setReportPercent(Number(e.target.value))}
-                  className="w-full accent-teal-400 cursor-pointer h-2 bg-neutral-800 rounded-lg"
+                  className={`w-full accent-teal-500 cursor-pointer h-2 rounded-lg ${isLight ? "bg-slate-200" : "bg-neutral-800"}`}
                 />
               </div>
 
               {/* Quick Template Buttons */}
               <div>
-                <div className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 mb-1.5">
+                <div className={`text-[10px] font-mono uppercase tracking-wider mb-1.5 ${
+                  isLight ? "text-slate-500 font-semibold" : "text-neutral-400"
+                }`}>
                   Template Cepat Laporan:
                 </div>
                 <div className="flex flex-wrap gap-1.5">
@@ -1319,7 +1454,11 @@ export default function ClientOrdersManager() {
                         30
                       )
                     }
-                    className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10 text-[11px] transition"
+                    className={`px-2.5 py-1 rounded-lg border text-[11px] transition ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                        : "bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10"
+                    }`}
                   >
                     ⚡ Kickoff Dimulai (30%)
                   </button>
@@ -1332,7 +1471,11 @@ export default function ClientOrdersManager() {
                         60
                       )
                     }
-                    className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10 text-[11px] transition"
+                    className={`px-2.5 py-1 rounded-lg border text-[11px] transition ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                        : "bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10"
+                    }`}
                   >
                     🎨 Draft Desain Siap (60%)
                   </button>
@@ -1345,7 +1488,11 @@ export default function ClientOrdersManager() {
                         85
                       )
                     }
-                    className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-neutral-300 border border-white/10 text-[11px] transition"
+                    className={`px-2.5 py-1 rounded-lg border text-[11px] transition ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                        : "bg-white/5 hover:bg-white/10 text-neutral-300 border-white/10"
+                    }`}
                   >
                     🔍 Review Klien (85%)
                   </button>
@@ -1358,7 +1505,11 @@ export default function ClientOrdersManager() {
                         100
                       )
                     }
-                    className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] transition"
+                    className={`px-2.5 py-1 rounded-lg border text-[11px] transition ${
+                      isLight
+                        ? "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300 font-semibold"
+                        : "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                    }`}
                   >
                     ✅ Serah Terima Final (100%)
                   </button>
@@ -1367,7 +1518,9 @@ export default function ClientOrdersManager() {
 
               {/* Progress Report Notes */}
               <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1.5 ${
+                  isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                }`}>
                   3. Laporan Catatan Progres (Tampil di View Tracking Klien)
                 </label>
                 <textarea
@@ -1375,13 +1528,19 @@ export default function ClientOrdersManager() {
                   value={reportNotes}
                   onChange={(e) => setReportNotes(e.target.value)}
                   placeholder="Tuliskan catatan progres terkini untuk klien. Tulisan ini otomatis langsung muncul di halaman live tracking klien..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-neutral-500 outline-none focus:border-teal-400 text-xs leading-relaxed"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs leading-relaxed outline-none focus:border-teal-400 transition ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                  }`}
                 />
               </div>
 
               {/* Preview Link URL */}
               <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1.5 ${
+                  isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                }`}>
                   4. Link Draft / Preview Staging (Opsional)
                 </label>
                 <input
@@ -1389,17 +1548,23 @@ export default function ClientOrdersManager() {
                   placeholder="https://drive.google.com/... atau https://figma.com/..."
                   value={reportPreviewUrl}
                   onChange={(e) => setReportPreviewUrl(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-neutral-500 outline-none focus:border-teal-400 text-xs font-mono"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono outline-none focus:border-teal-400 transition ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                  }`}
                 />
               </div>
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-between gap-3 pt-5 mt-5 border-t border-white/10">
+            <div className={`flex items-center justify-between gap-3 pt-5 mt-5 border-t ${isLight ? "border-slate-100" : "border-white/10"}`}>
               <button
                 type="button"
                 onClick={() => setReportingOrder(null)}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition"
+                className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  isLight ? "text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200" : "text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10"
+                }`}
               >
                 Batal
               </button>
@@ -1423,30 +1588,36 @@ export default function ClientOrdersManager() {
       {/* ── MODAL 2: CEK TAMPILAN KLIEN (VISUAL ORDER TRACKER PREVIEW) ── */}
       {previewingOrder && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-4xl rounded-3xl border border-white/20 bg-[#0d0f14] text-white p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto">
+          <div className={`relative w-full max-w-4xl rounded-3xl border p-6 sm:p-8 shadow-2xl max-h-[92vh] overflow-y-auto ${
+            isLight ? "bg-white border-slate-200 text-slate-900" : "bg-[#0d0f14] border-white/20 text-white"
+          }`}>
             {/* Close Button */}
             <button
               onClick={() => setPreviewingOrder(null)}
-              className="absolute top-5 right-5 p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"
+              className={`absolute top-5 right-5 p-2 rounded-full transition ${
+                isLight ? "hover:bg-slate-100 text-slate-400 hover:text-slate-700" : "hover:bg-white/10 text-neutral-400 hover:text-white"
+              }`}
             >
               <RiCloseLine className="w-5 h-5" />
             </button>
 
             {/* Header */}
             <div className="mb-6">
-              <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 mb-2">
+              <div className={`inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-md mb-2 ${
+                isLight ? "bg-teal-50 text-teal-800 border border-teal-300" : "bg-teal-500/15 text-teal-300 border border-teal-500/30"
+              }`}>
                 <RiEyeLine className="w-3 h-3" />
                 <span>Live View Tampilan Klien</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold">Preview Live Visual Order Tracker</h3>
-              <p className="text-xs text-neutral-400 mt-1">
+              <h3 className={`text-xl sm:text-2xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Preview Live Visual Order Tracker</h3>
+              <p className={`text-xs mt-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 Beginilah tampilan visual order tracker yang dilihat oleh klien saat membuka kode referensi{" "}
-                <span className="font-mono text-teal-400">{previewingOrder.refCode}</span> di halaman /tracking.
+                <span className={`font-mono font-bold ${isLight ? "text-teal-700" : "text-teal-400"}`}>{previewingOrder.refCode}</span> di halaman /tracking.
               </p>
             </div>
 
             {/* Embedded Visual Order Tracker */}
-            <div className="p-4 sm:p-6 rounded-2xl bg-black/50 border border-white/10">
+            <div className={`p-4 sm:p-6 rounded-2xl border ${isLight ? "bg-slate-50/80 border-slate-200" : "bg-black/50 border-white/10"}`}>
               <VisualOrderTracker project={previewingOrder} />
             </div>
 
@@ -1454,7 +1625,9 @@ export default function ClientOrdersManager() {
               <button
                 type="button"
                 onClick={() => setPreviewingOrder(null)}
-                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                className={`px-5 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800" : "bg-white/10 hover:bg-white/20 text-white"
+                }`}
               >
                 Tutup Preview
               </button>
@@ -1468,33 +1641,41 @@ export default function ClientOrdersManager() {
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <form
             onSubmit={handleAddManualOrder}
-            className="relative w-full max-w-lg rounded-2xl border border-white/20 bg-[#111317] text-white p-6 sm:p-7 shadow-2xl max-h-[92vh] overflow-y-auto"
+            className={`relative w-full max-w-lg rounded-2xl border p-6 sm:p-7 shadow-2xl max-h-[92vh] overflow-y-auto ${
+              isLight ? "bg-white border-slate-200 text-slate-900" : "bg-[#111317] border-white/20 text-white"
+            }`}
           >
             {/* Close Button */}
             <button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              className="absolute top-5 right-5 p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"
+              className={`absolute top-5 right-5 p-2 rounded-full transition ${
+                isLight ? "hover:bg-slate-100 text-slate-400 hover:text-slate-700" : "hover:bg-white/10 text-neutral-400 hover:text-white"
+              }`}
             >
               <RiCloseLine className="w-5 h-5" />
             </button>
 
             {/* Header */}
             <div className="mb-5">
-              <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-teal-500/15 text-teal-300 border border-teal-500/30 mb-2">
+              <div className={`inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider px-2.5 py-0.5 rounded-md mb-2 ${
+                isLight ? "bg-teal-50 text-teal-800 border border-teal-300" : "bg-teal-500/15 text-teal-300 border border-teal-500/30"
+              }`}>
                 <RiAddLine className="w-3 h-3" />
                 <span>Input Pesanan Baru</span>
               </div>
-              <h3 className="text-xl font-bold">Tambah Klien & Pesanan Manual</h3>
-              <p className="text-xs text-neutral-400 mt-1">
+              <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Tambah Klien & Pesanan Manual</h3>
+              <p className={`text-xs mt-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                 Catat pesanan dari WhatsApp / direct meeting ke database sistem tracking studio.
               </p>
             </div>
 
             <div className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1">
-                  Nama Lengkap / Perusahaan Klien <span className="text-teal-400">*</span>
+                <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1 ${
+                  isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                }`}>
+                  Nama Lengkap / Perusahaan Klien <span className="text-teal-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -1502,13 +1683,19 @@ export default function ClientOrdersManager() {
                   placeholder="Contoh: Budi Santoso / PT Maju Gemilang"
                   value={newClientName}
                   onChange={(e) => setNewClientName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-teal-400"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border outline-none focus:border-teal-400 transition ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                  }`}
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1">
+                  <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1 ${
+                    isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                  }`}>
                     Nomor WhatsApp
                   </label>
                   <input
@@ -1516,12 +1703,18 @@ export default function ClientOrdersManager() {
                     placeholder="08123456789"
                     value={newClientPhone}
                     onChange={(e) => setNewClientPhone(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-teal-400"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border outline-none focus:border-teal-400 transition ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1">
+                  <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1 ${
+                    isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                  }`}>
                     Email Klien (Opsional)
                   </label>
                   <input
@@ -1529,65 +1722,95 @@ export default function ClientOrdersManager() {
                     placeholder="klien@gmail.com"
                     value={newClientEmail}
                     onChange={(e) => setNewClientEmail(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-teal-400"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border outline-none focus:border-teal-400 transition ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                    }`}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1">
+                  <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1 ${
+                    isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                  }`}>
                     Layanan / Produk
                   </label>
                   <input
                     type="text"
                     value={newServiceTitle}
                     onChange={(e) => setNewServiceTitle(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-teal-400"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border outline-none focus:border-teal-400 transition ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1">
+                  <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1 ${
+                    isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                  }`}>
                     Nama Paket
                   </label>
                   <input
                     type="text"
                     value={newPackageName}
                     onChange={(e) => setNewPackageName(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-teal-400"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border outline-none focus:border-teal-400 transition ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                    }`}
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1">
+                  <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1 ${
+                    isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                  }`}>
                     Estimasi Budget
                   </label>
                   <input
                     type="text"
                     value={newBudget}
                     onChange={(e) => setNewBudget(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-teal-400 font-mono"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border outline-none focus:border-teal-400 font-mono transition ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1">
+                  <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1 ${
+                    isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                  }`}>
                     Target Timeline
                   </label>
                   <input
                     type="text"
                     value={newDeadline}
                     onChange={(e) => setNewDeadline(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-teal-400"
+                    className={`w-full px-3.5 py-2.5 rounded-xl border outline-none focus:border-teal-400 transition ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                        : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                    }`}
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-300 mb-1">
+                <label className={`block text-[11px] font-mono uppercase tracking-wider mb-1 ${
+                  isLight ? "text-slate-700 font-semibold" : "text-neutral-300"
+                }`}>
                   Catatan Brief Proyek
                 </label>
                 <textarea
@@ -1595,16 +1818,22 @@ export default function ClientOrdersManager() {
                   value={newBrief}
                   onChange={(e) => setNewBrief(e.target.value)}
                   placeholder="Catatan kebutuhan klien, preferensi gaya visual, atau fitur..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white outline-none focus:border-teal-400"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border outline-none focus:border-teal-400 transition ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                  }`}
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between gap-3 pt-5 mt-5 border-t border-white/10">
+            <div className={`flex items-center justify-between gap-3 pt-5 mt-5 border-t ${isLight ? "border-slate-100" : "border-white/10"}`}>
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(false)}
-                className="px-4 py-2.5 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition"
+                className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition ${
+                  isLight ? "text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200" : "text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10"
+                }`}
               >
                 Batal
               </button>
@@ -1634,36 +1863,42 @@ export default function ClientOrdersManager() {
       {/* ── MODAL 5: MANUAL ATTACH RECEIPT PROOF ── */}
       {attachingOrder && (
         <div className="fixed inset-0 z-[130] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
-          <div className="relative w-full max-w-lg rounded-2xl border border-white/20 bg-[#111317] text-white p-6 shadow-2xl">
+          <div className={`relative w-full max-w-lg rounded-2xl border p-6 shadow-2xl ${
+            isLight ? "bg-white border-slate-200 text-slate-900" : "bg-[#111317] border-white/20 text-white"
+          }`}>
             <button
               onClick={() => {
                 setAttachingOrder(null);
                 setManualProofUrl("");
               }}
-              className="absolute top-5 right-5 p-2 rounded-full hover:bg-white/10 text-neutral-400 hover:text-white transition"
+              className={`absolute top-5 right-5 p-2 rounded-full transition ${
+                isLight ? "hover:bg-slate-100 text-slate-400 hover:text-slate-700" : "hover:bg-white/10 text-neutral-400 hover:text-white"
+              }`}
             >
               <RiCloseLine className="w-5 h-5" />
             </button>
 
             <div className="flex items-center gap-2 mb-1">
-              <span className="p-2 rounded-xl bg-teal-500/10 text-teal-400 border border-teal-500/20">
+              <span className={`p-2 rounded-xl border ${isLight ? "bg-teal-50 text-teal-800 border-teal-200" : "bg-teal-500/10 text-teal-400 border-teal-500/20"}`}>
                 <RiAttachmentLine className="w-5 h-5" />
               </span>
               <div>
-                <h3 className="text-base font-bold text-white">Lampirkan Bukti Transfer Klien</h3>
-                <p className="text-xs text-neutral-400 font-mono">
+                <h3 className={`text-base font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Lampirkan Bukti Transfer Klien</h3>
+                <p className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   Order #{attachingOrder.refCode} • {attachingOrder.clientName}
                 </p>
               </div>
             </div>
 
-            <p className="text-xs text-neutral-300 mt-3 mb-4 leading-relaxed">
+            <p className={`text-xs mt-3 mb-4 leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-300"}`}>
               Jika klien mengirimkan struk transfer melalui WhatsApp, Anda dapat mengunggah file foto resi atau memasukkan link gambar secara manual di sini.
             </p>
 
             <div className="space-y-4">
               {/* File / Camera Upload Options */}
-              <div className="p-4 rounded-xl border border-dashed border-teal-500/40 bg-teal-500/5 text-center space-y-3">
+              <div className={`p-4 rounded-xl border border-dashed text-center space-y-3 ${
+                isLight ? "border-teal-500/40 bg-teal-50/50" : "border-teal-500/40 bg-teal-500/5"
+              }`}>
                 <input
                   type="file"
                   accept="image/*"
@@ -1691,24 +1926,28 @@ export default function ClientOrdersManager() {
                   </label>
                   <label
                     htmlFor="manualProofFileInput"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-bold text-xs cursor-pointer border border-white/15 transition active:scale-95"
+                    className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs cursor-pointer border transition active:scale-95 ${
+                      isLight
+                        ? "bg-white hover:bg-slate-50 text-slate-800 border-slate-300 shadow-2xs"
+                        : "bg-white/10 hover:bg-white/15 text-white border-white/15"
+                    }`}
                   >
-                    <RiUpload2Line className="w-4 h-4 text-cyan-400" />
+                    <RiUpload2Line className={`w-4 h-4 ${isLight ? "text-teal-700" : "text-cyan-400"}`} />
                     <span>{isUploadingManualProof ? "Mengunggah..." : "Pilih File / Galeri"}</span>
                   </label>
                 </div>
-                <p className="text-[11px] text-neutral-400">Ambil foto langsung struk pembayaran atau pilih file JPG, PNG, WEBP</p>
+                <p className={`text-[11px] ${isLight ? "text-slate-500" : "text-neutral-400"}`}>Ambil foto langsung struk pembayaran atau pilih file JPG, PNG, WEBP</p>
               </div>
 
               {/* Or Direct URL Input */}
               <div className="relative flex items-center">
-                <div className="flex-grow border-t border-white/10" />
-                <span className="px-3 text-[10px] uppercase font-mono text-neutral-400">Atau Gunakan Link Gambar</span>
-                <div className="flex-grow border-t border-white/10" />
+                <div className={`flex-grow border-t ${isLight ? "border-slate-200" : "border-white/10"}`} />
+                <span className={`px-3 text-[10px] uppercase font-mono ${isLight ? "text-slate-400" : "text-neutral-400"}`}>Atau Gunakan Link Gambar</span>
+                <div className={`flex-grow border-t ${isLight ? "border-slate-200" : "border-white/10"}`} />
               </div>
 
               <div>
-                <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-1.5">
+                <label className={`block text-xs font-mono uppercase tracking-wider mb-1.5 ${isLight ? "text-slate-700 font-semibold" : "text-neutral-300"}`}>
                   URL Gambar Bukti Resi
                 </label>
                 <input
@@ -1716,12 +1955,18 @@ export default function ClientOrdersManager() {
                   placeholder="https://.../bukti-transfer.jpg"
                   value={manualProofUrl}
                   onChange={(e) => setManualProofUrl(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-neutral-500 text-xs outline-none focus:border-teal-400 font-mono"
+                  className={`w-full px-3.5 py-2.5 rounded-xl border text-xs font-mono outline-none focus:border-teal-400 transition ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white"
+                      : "bg-white/5 border-white/10 text-white placeholder-neutral-500"
+                  }`}
                 />
               </div>
 
               {manualProofUrl && (
-                <div className="rounded-xl overflow-hidden border border-white/10 bg-black/40 max-h-48 flex items-center justify-center p-2">
+                <div className={`rounded-xl overflow-hidden border max-h-48 flex items-center justify-center p-2 ${
+                  isLight ? "bg-slate-100 border-slate-200" : "border-white/10 bg-black/40"
+                }`}>
                   <img
                     src={manualProofUrl}
                     alt="Preview Bukti"
@@ -1734,14 +1979,16 @@ export default function ClientOrdersManager() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-white/10">
+            <div className={`flex items-center justify-end gap-3 mt-6 pt-4 border-t ${isLight ? "border-slate-100" : "border-white/10"}`}>
               <button
                 type="button"
                 onClick={() => {
                   setAttachingOrder(null);
                   setManualProofUrl("");
                 }}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10 transition"
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition ${
+                  isLight ? "text-slate-600 hover:text-slate-900 bg-slate-100 hover:bg-slate-200" : "text-neutral-400 hover:text-white bg-white/5 hover:bg-white/10"
+                }`}
               >
                 Tutup
               </button>
