@@ -3797,7 +3797,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
 
                   {/* Scrubber Range Slider Control (Only for Sequence mode) */}
-                  {seqPreviewMode === "sequence" ? (
+                  {seqPreviewMode === "sequence" && (
                     <div className={`flex flex-col gap-1.5 p-3 rounded-xl border ${
                       isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-900/60 border border-white/10"
                     }`}>
@@ -3823,23 +3823,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           isLight ? "bg-slate-200" : "bg-neutral-800"
                         }`}
                       />
-                    </div>
-                  ) : (
-                    <div className={`p-2.5 rounded-xl border text-[11px] font-mono flex items-center justify-between ${
-                      isLight ? "bg-slate-50 border-slate-200 text-slate-700" : "bg-neutral-900/60 border-white/10 text-neutral-300"
-                    }`}>
-                      <span>
-                        {seqPreviewMode === "reveal"
-                          ? tx("Tip: Gerakkan mouse di dalam kotak preview untuk menguji efek sorot spotlight.", "Tip: Move mouse inside preview box to test the spotlight reveal.")
-                          : tx("Klik tab 'Uji Reveal' untuk mengetes perpaduan foto Front & Mask secara langsung.", "Click 'Test Reveal' tab to test Front & Mask blending in real-time.")}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setSeqPreviewMode("sequence")}
-                        className="text-[#16b09f] font-bold hover:underline shrink-0 ml-2 cursor-pointer"
-                      >
-                        {tx("Kembali ke Sequence", "Back to Sequence")}
-                      </button>
                     </div>
                   )}
                 </div>
