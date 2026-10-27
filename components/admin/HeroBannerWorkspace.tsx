@@ -1390,15 +1390,6 @@ export default function HeroBannerWorkspace({
                     </div>
 
                     <div className="flex-1 space-y-1.5 min-w-0">
-                      <input
-                        type="text"
-                        value={hbSeqFrontImage}
-                        onChange={(e) => setHbSeqFrontImage(e.target.value)}
-                        placeholder="/front.webp"
-                        className={`w-full px-2 py-1 rounded-lg border font-mono text-[10px] sm:text-[11px] truncate focus:border-[#16b09f] focus:outline-none ${
-                          isLight ? "bg-slate-50 border-slate-200 text-slate-900" : "bg-neutral-800 border-white/15 text-white"
-                        }`}
-                      />
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <button
                           type="button"
@@ -1456,15 +1447,6 @@ export default function HeroBannerWorkspace({
                     </div>
 
                     <div className="flex-1 space-y-1.5 min-w-0">
-                      <input
-                        type="text"
-                        value={hbSeqMaskImage}
-                        onChange={(e) => setHbSeqMaskImage(e.target.value)}
-                        placeholder="/mask.webp"
-                        className={`w-full px-2 py-1 rounded-lg border font-mono text-[10px] sm:text-[11px] truncate focus:border-[#16b09f] focus:outline-none ${
-                          isLight ? "bg-slate-50 border-slate-200 text-slate-900" : "bg-neutral-800 border-white/15 text-white"
-                        }`}
-                      />
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <button
                           type="button"
