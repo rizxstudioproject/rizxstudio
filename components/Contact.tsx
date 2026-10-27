@@ -17,6 +17,9 @@ export default function Contact() {
   const [isLangOpen, setIsLangOpen] = useState(false);
   const langContainerRef = useRef<HTMLDivElement>(null);
 
+  const [isMobileLangOpen, setIsMobileLangOpen] = useState(false);
+  const mobileLangContainerRef = useRef<HTMLDivElement>(null);
+
   const languages = [
     { code: "en", label: "EN" },
     { code: "id", label: "ID" },
@@ -25,13 +28,21 @@ export default function Contact() {
   const activeLangIndex = Math.max(0, languages.findIndex((l) => l.code === lang));
 
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (langContainerRef.current && !langContainerRef.current.contains(e.target as Node)) {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (langContainerRef.current && !langContainerRef.current.contains(target)) {
         setIsLangOpen(false);
+      }
+      if (mobileLangContainerRef.current && !mobileLangContainerRef.current.contains(target)) {
+        setIsMobileLangOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
   }, []);
 
   const waUrl = formatWhatsAppUrl(socialContacts.whatsappNumber, socialContacts.whatsappMessage);
@@ -224,33 +235,52 @@ export default function Contact() {
             <Link href="/products" className={`transition-colors uppercase tracking-wider ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.products")}</Link>
             <Link href="/#about" className={`transition-colors uppercase tracking-wider ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>{t("contact.footer.about")}</Link>
 
-            {/* Mobile Footer Language Selector — Open 3-segment pill with instant 1-touch switching */}
+            {/* Mobile Footer Language Toggle — Interactive Sliding Pill (Matches Top Navbar) */}
             <div
-              className={`inline-flex items-center rounded-full p-0.5 border ${
-                isLight ? "bg-slate-100 border-slate-300 shadow-xs" : "bg-neutral-900/90 border-white/15 shadow-sm"
+              ref={mobileLangContainerRef}
+              className={`relative inline-flex items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-[11px] font-mono h-8 ${
+                isMobileLangOpen
+                  ? `w-[108px] ${isLight ? "bg-white/95 border-slate-300 shadow-md" : "bg-[#0c0e12]/95 border-white/20 shadow-lg"}`
+                  : `w-[36px] ${isLight ? "bg-white border-slate-200 hover:border-slate-300 shadow-xs" : "bg-white/[0.04] border-white/10 hover:border-white/20"}`
               }`}
             >
-              {languages.map((l) => {
-                const isSelected = lang === l.code;
-                return (
-                  <button
-                    key={l.code}
-                    type="button"
-                    onClick={() => setLang(l.code)}
-                    style={isSelected ? { backgroundColor: primaryColor } : undefined}
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold font-mono transition-all cursor-pointer ${
-                      isSelected
-                        ? "text-white font-bold shadow-xs"
-                        : isLight
-                        ? "text-slate-600 hover:text-slate-900"
-                        : "text-neutral-400 hover:text-white"
-                    }`}
-                    aria-label={`Switch to ${l.label}`}
-                  >
-                    {l.label}
-                  </button>
-                );
-              })}
+              <div
+                className="flex items-center w-[108px] h-full transition-transform duration-300 ease-out"
+                style={{
+                  transform: isMobileLangOpen ? "translateX(0px)" : `translateX(-${activeLangIndex * 36}px)`,
+                }}
+              >
+                {languages.map((l) => {
+                  const isSelected = lang === l.code;
+                  return (
+                    <button
+                      key={l.code}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isMobileLangOpen) {
+                          setIsMobileLangOpen(true);
+                        } else {
+                          setLang(l.code);
+                          setIsMobileLangOpen(false);
+                        }
+                      }}
+                      style={isSelected ? { backgroundColor: primaryColor } : undefined}
+                      className={`w-[36px] h-full shrink-0 flex items-center justify-center transition-colors cursor-pointer select-none rounded-full ${
+                        isSelected
+                          ? "text-white font-bold shadow-xs"
+                          : isLight
+                          ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                          : "text-neutral-400 hover:text-white hover:bg-white/10"
+                      }`}
+                      aria-label={`Switch to ${l.label}`}
+                      title={!isMobileLangOpen ? "Klik untuk ganti bahasa" : l.label}
+                    >
+                      {l.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
