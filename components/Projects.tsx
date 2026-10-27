@@ -1094,13 +1094,13 @@ export default function Projects() {
         >
           {/* Header */}
           <div className="relative z-30 flex flex-col items-center text-center mt-1 sm:mt-2 max-w-4xl px-2 mb-2 sm:mb-4">
-            <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#16b09f] mb-2 font-semibold">
+            <span className={`text-xs sm:text-xs font-mono uppercase tracking-[0.25em] mb-2 font-semibold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
               {stage1.badge}
             </span>
-            <h2 className="text-2xl sm:text-3xl md:text-5xl lg:text-5xl xl:text-6xl font-bold tracking-tight text-white leading-tight">
+            <h2 className={`text-2xl sm:text-3xl md:text-5xl lg:text-5xl xl:text-6xl font-bold tracking-tight leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
               {stage1.headline}
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-neutral-300 font-light mt-3 sm:mt-4 max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed text-balance">
+            <p className={`text-sm sm:text-base md:text-lg font-light mt-3 sm:mt-4 max-w-sm sm:max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto leading-relaxed text-balance ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
               {stage1.subheadline}
             </p>
           </div>
@@ -1216,7 +1216,7 @@ export default function Projects() {
             })}
           </div>
 
-          <div className="relative z-30 text-xs sm:text-xs text-neutral-400 font-mono flex items-center gap-1.5 mb-2">
+          <div className={`relative z-30 text-xs sm:text-xs font-mono flex items-center gap-1.5 mb-2 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
             <span>{stage1.scrollText || t("projects.stage1.scroll")}</span>
             <span className="animate-bounce">↓</span>
           </div>
@@ -1248,10 +1248,10 @@ export default function Projects() {
         >
           {/* Text Block */}
           <div className="max-w-lg text-center lg:text-left pt-10 lg:pt-0">
-            <span className="text-xs sm:text-xs font-mono uppercase tracking-[0.25em] text-[#00A389] mb-3 block font-semibold">
+            <span className={`text-xs sm:text-xs font-mono uppercase tracking-[0.25em] mb-3 block font-semibold ${isLight ? "text-teal-700" : "text-[#00A389]"}`}>
               {stage2.categoryTag}
             </span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 leading-tight">
+            <h2 className={`text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4 leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
               {(() => {
                 const words = stage2.headline.split(" ");
                 // If headline has "Motion" or multiple words, give "Motion" interactive breathing
@@ -1264,7 +1264,11 @@ export default function Projects() {
                     return (
                       <span
                         key={wIdx}
-                        className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-[#16b09f] transition-transform duration-300 ease-out font-black"
+                        className={`inline-block text-transparent bg-clip-text transition-transform duration-300 ease-out font-black ${
+                          isLight
+                            ? "bg-gradient-to-r from-teal-600 via-cyan-600 to-emerald-600"
+                            : "bg-gradient-to-r from-cyan-400 via-teal-300 to-[#16b09f]"
+                        }`}
                         style={{
                           transform: `scale(${scaleAmount})`,
                           display: "inline-block",
@@ -1282,7 +1286,7 @@ export default function Projects() {
                 });
               })()}
             </h2>
-            <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed mb-6 max-w-md mx-auto lg:mx-0">
+            <p className={`text-sm sm:text-base font-light leading-relaxed mb-6 max-w-md mx-auto lg:mx-0 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
               {stage2.description}
             </p>
 
@@ -1291,7 +1295,11 @@ export default function Projects() {
               {stage2.skillLabels.map((skill, sIdx) => (
                 <span
                   key={sIdx}
-                  className="stage2-skill-tag px-3.5 py-1.5 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200 hover:border-[#00A389]/40 hover:text-white transition-colors"
+                  className={`stage2-skill-tag px-3.5 py-1.5 rounded-full border text-xs font-mono transition-colors ${
+                    isLight
+                      ? "bg-slate-100 border-slate-300 text-slate-700 hover:border-[#00A389]/60 hover:text-slate-900"
+                      : "bg-white/[0.04] border-white/10 text-neutral-200 hover:border-[#00A389]/40 hover:text-white"
+                  }`}
                 >
                   {skill}
                 </span>
@@ -1302,7 +1310,11 @@ export default function Projects() {
             <div className="flex items-center justify-center lg:justify-start">
               <button
                 onClick={scrollToClientStage}
-                className="px-7 py-3 rounded-full bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition-all shadow-[0_0_25px_rgba(255,255,255,0.2)] active:scale-95 flex items-center gap-2 cursor-pointer"
+                className={`px-7 py-3 rounded-full font-semibold text-sm transition-all active:scale-95 flex items-center gap-2 cursor-pointer ${
+                  isLight
+                    ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md"
+                    : "bg-white text-black hover:bg-neutral-200 shadow-[0_0_25px_rgba(255,255,255,0.2)]"
+                }`}
               >
                 <span>{stage2.primaryButtonText}</span>
                 <HiArrowUpRight className="w-4 h-4 rotate-45" />
@@ -1444,21 +1456,28 @@ export default function Projects() {
           <div className="max-w-md text-center lg:text-left">
             <div className="inline-flex items-center gap-2 mb-2">
               <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-xs sm:text-xs text-cyan-400 font-mono tracking-widest uppercase font-semibold">
+              <span className={`text-xs sm:text-xs font-mono tracking-widest uppercase font-semibold ${isLight ? "text-teal-700" : "text-cyan-400"}`}>
                 {stage4Badge}
               </span>
             </div>
-            <h2 className="text-2xl sm:text-4xl font-bold tracking-tight text-white mb-2 sm:mb-3 leading-tight">
+            <h2 className={`text-2xl sm:text-4xl font-bold tracking-tight mb-2 sm:mb-3 leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
               {stage4Headline}
             </h2>
-            <p className="text-sm sm:text-base text-neutral-300 font-light leading-relaxed mb-4">
+            <p className={`text-sm sm:text-base font-light leading-relaxed mb-4 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
               {stage4Desc}
             </p>
             
             {/* Tool tags */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-1.5 sm:gap-2">
               {stage4Tools.map((tool, idx) => (
-                <span key={idx} className="px-3 py-1 rounded-full bg-white/[0.04] border border-white/10 text-xs font-mono text-neutral-200">
+                <span
+                  key={idx}
+                  className={`px-3 py-1 rounded-full text-xs font-mono border ${
+                    isLight
+                      ? "bg-slate-100 border-slate-300 text-slate-700 font-medium"
+                      : "bg-white/[0.04] border-white/10 text-neutral-200"
+                  }`}
+                >
                   {tool}
                 </span>
               ))}
@@ -1851,8 +1870,8 @@ export default function Projects() {
                           </div>
 
                           {/* Jalan Keluar / Solusi */}
-                          <div className={`p-3.5 rounded-xl border transition-all ${isLight ? "bg-teal-50/70 border-teal-200/80 shadow-xs" : "bg-neutral-900/60 border-white/5 hover:border-[#16b09f]/30 transition-all"}`}>
-                            <div className="flex items-center gap-1.5 text-[#16b09f] text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5">
+                          <div className={`casestudy-solution-box p-3.5 rounded-xl border transition-all ${isLight ? "bg-teal-50/70 border-teal-200/80 shadow-xs text-slate-800" : "bg-neutral-900/60 border-white/5 hover:border-[#16b09f]/30 transition-all text-neutral-300"}`}>
+                            <div className={`flex items-center gap-1.5 text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase mb-1.5 ${isLight ? "text-teal-800" : "text-[#16b09f]"}`}>
                               <HiCheckCircle className="w-3.5 h-3.5 shrink-0" />
                               <span>{t("casestudy.solution.label")}</span>
                             </div>
@@ -1922,11 +1941,11 @@ export default function Projects() {
                             : (rawDesc || clientBrandDescMap[clientKey]?.en);
                           if (!brandDesc) return null;
                           return (
-                            <div className={`mt-2 p-3.5 rounded-xl border ${isLight ? "bg-cyan-50/70 border-cyan-200/80 shadow-xs" : "bg-cyan-950/20 border-cyan-500/20"}`}>
+                            <div className={`casestudy-brand-box mt-2 p-3.5 rounded-xl border ${isLight ? "bg-cyan-50/70 border-cyan-200/80 shadow-xs text-slate-800" : "bg-cyan-950/20 border-cyan-500/20 text-neutral-300"}`}>
                               <span className={`text-[10px] font-mono uppercase tracking-wider font-semibold block mb-1 ${isLight ? "text-cyan-800" : "text-cyan-400"}`}>
                                 {tr("Brand Profile & Context", "Profil & Deskripsi Brand", "Profil & Deskripsi Brand")} — {currentWork.clientName}
                               </span>
-                              <p className={`text-xs font-light leading-relaxed ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                              <p className={`text-xs font-normal leading-relaxed ${isLight ? "text-slate-800" : "text-neutral-300"}`}>
                                 {brandDesc}
                               </p>
                             </div>

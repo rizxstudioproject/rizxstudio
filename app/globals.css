@@ -562,24 +562,38 @@ html[data-theme='light'] button[style*="background"],
 html[data-theme='light'] button[style*="background-color"],
 html[data-theme='light'] a[style*="background"],
 html[data-theme='light'] a[style*="background-color"],
-html[data-theme='light'] .btn-primary,
-html[data-theme='light'] [class*="bg-rose-"],
-html[data-theme='light'] [class*="bg-emerald-"],
-html[data-theme='light'] [class*="bg-teal-"],
-html[data-theme='light'] [class*="bg-cyan-"],
-html[data-theme='light'] [class*="bg-blue-"],
-html[data-theme='light'] [class*="bg-indigo-"],
+html[data-theme='light'] button.btn-primary,
+html[data-theme='light'] a.btn-primary,
+html[data-theme='light'] button[class*="bg-rose-"],
+html[data-theme='light'] button[class*="bg-emerald-"],
+html[data-theme='light'] button[class*="bg-teal-"],
+html[data-theme='light'] button[class*="bg-cyan-"],
+html[data-theme='light'] button[class*="bg-blue-"],
+html[data-theme='light'] button[class*="bg-indigo-"],
+html[data-theme='light'] a[class*="bg-rose-"],
+html[data-theme='light'] a[class*="bg-emerald-"],
+html[data-theme='light'] a[class*="bg-teal-"],
+html[data-theme='light'] a[class*="bg-cyan-"],
+html[data-theme='light'] a[class*="bg-blue-"],
+html[data-theme='light'] a[class*="bg-indigo-"],
 html.light button[style*="background"],
 html.light button[style*="background-color"],
 html.light a[style*="background"],
 html.light a[style*="background-color"],
-html.light .btn-primary,
-html.light [class*="bg-rose-"],
-html.light [class*="bg-emerald-"],
-html.light [class*="bg-teal-"],
-html.light [class*="bg-cyan-"],
-html.light [class*="bg-blue-"],
-html.light [class*="bg-indigo-"] {
+html.light button.btn-primary,
+html.light a.btn-primary,
+html.light button[class*="bg-rose-"],
+html.light button[class*="bg-emerald-"],
+html.light button[class*="bg-teal-"],
+html.light button[class*="bg-cyan-"],
+html.light button[class*="bg-blue-"],
+html.light button[class*="bg-indigo-"],
+html.light a[class*="bg-rose-"],
+html.light a[class*="bg-emerald-"],
+html.light a[class*="bg-teal-"],
+html.light a[class*="bg-cyan-"],
+html.light a[class*="bg-blue-"],
+html.light a[class*="bg-indigo-"] {
   color: #ffffff !important;
 }
 
@@ -587,25 +601,64 @@ html[data-theme='light'] button[style*="background"] *,
 html[data-theme='light'] button[style*="background-color"] *,
 html[data-theme='light'] a[style*="background"] *,
 html[data-theme='light'] a[style*="background-color"] *,
-html[data-theme='light'] .btn-primary *,
-html[data-theme='light'] [class*="bg-rose-"] *,
-html[data-theme='light'] [class*="bg-emerald-"] *,
-html[data-theme='light'] [class*="bg-teal-"] *,
-html[data-theme='light'] [class*="bg-cyan-"] *,
-html[data-theme='light'] [class*="bg-blue-"] *,
-html[data-theme='light'] [class*="bg-indigo-"] *,
+html[data-theme='light'] button.btn-primary *,
+html[data-theme='light'] a.btn-primary *,
+html[data-theme='light'] button[class*="bg-rose-"] *,
+html[data-theme='light'] button[class*="bg-emerald-"] *,
+html[data-theme='light'] button[class*="bg-teal-"] *,
+html[data-theme='light'] button[class*="bg-cyan-"] *,
+html[data-theme='light'] button[class*="bg-blue-"] *,
+html[data-theme='light'] button[class*="bg-indigo-"] *,
+html[data-theme='light'] a[class*="bg-rose-"] *,
+html[data-theme='light'] a[class*="bg-emerald-"] *,
+html[data-theme='light'] a[class*="bg-teal-"] *,
+html[data-theme='light'] a[class*="bg-cyan-"] *,
+html[data-theme='light'] a[class*="bg-blue-"] *,
+html[data-theme='light'] a[class*="bg-indigo-"] *,
 html.light button[style*="background"] *,
 html.light button[style*="background-color"] *,
 html.light a[style*="background"] *,
 html.light a[style*="background-color"] *,
-html.light .btn-primary *,
-html.light [class*="bg-rose-"] *,
-html.light [class*="bg-emerald-"] *,
-html.light [class*="bg-teal-"] *,
-html.light [class*="bg-cyan-"] *,
-html.light [class*="bg-blue-"] *,
-html.light [class*="bg-indigo-"] * {
+html.light button.btn-primary *,
+html.light a.btn-primary *,
+html.light button[class*="bg-rose-"] *,
+html.light button[class*="bg-emerald-"] *,
+html.light button[class*="bg-teal-"] *,
+html.light button[class*="bg-cyan-"] *,
+html.light button[class*="bg-blue-"] *,
+html.light button[class*="bg-indigo-"] *,
+html.light a[class*="bg-rose-"] *,
+html.light a[class*="bg-emerald-"] *,
+html.light a[class*="bg-teal-"] *,
+html.light a[class*="bg-cyan-"] *,
+html.light a[class*="bg-blue-"] *,
+html.light a[class*="bg-indigo-"] * {
   color: #ffffff !important;
+}
+
+/* Specific high-contrast safety overrides for Project Case Study Solution and Brand Profile boxes in Light Mode */
+html[data-theme='light'] .casestudy-solution-box,
+html.light .casestudy-solution-box,
+html[data-theme='light'] .casestudy-brand-box,
+html.light .casestudy-brand-box {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'] .casestudy-solution-box p,
+html.light .casestudy-solution-box p,
+html[data-theme='light'] .casestudy-brand-box p,
+html.light .casestudy-brand-box p {
+  color: #1e293b !important;
+}
+
+html[data-theme='light'] .casestudy-solution-box span,
+html.light .casestudy-solution-box span {
+  color: #0f766e !important;
+}
+
+html[data-theme='light'] .casestudy-brand-box span,
+html.light .casestudy-brand-box span {
+  color: #0e7490 !important;
 }
 
 /* Portfolio Runner Marquee Section in Light Mode */

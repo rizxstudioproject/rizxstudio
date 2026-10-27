@@ -65,10 +65,10 @@ export default function CreativeJourney() {
     <section id="creative-journey" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-6 sm:mb-8 text-center sm:text-left">
-        <span className="text-xs font-mono uppercase tracking-[0.25em] text-[#16b09f] block mb-2 font-semibold">
+        <span className={`text-xs font-mono uppercase tracking-[0.25em] block mb-2 font-semibold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
           {displayTag}
         </span>
-        <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+        <h2 className={`text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
           {displayHeadline}
         </h2>
       </div>
