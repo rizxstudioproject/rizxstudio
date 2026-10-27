@@ -34,6 +34,10 @@ export default function ScrollyCanvas() {
   const maskImgRef = useRef<HTMLImageElement | null>(null);
   const lastInteractionTimeRef = useRef<number>(Date.now());
 
+  // Smooth scroll & frame LERP state for buttery initial & continuous playback
+  const smoothProgressRef = useRef<number>(0);
+  const smoothFrameRef = useRef<number>(0);
+
   // Motion Mouse Reveal state (soft feathered spotlight following cursor)
   const revealRadiusRef = useRef<number>(0);
   const targetRadiusRef = useRef<number>(0);
@@ -438,16 +442,19 @@ export default function ScrollyCanvas() {
       const dx = ms.targetX - ms.x;
       const dy = ms.targetY - ms.y;
 
-      const p = scrollProgressRef.current;
+      // 1. Smoothly interpolate scroll progress for silky-smooth pacing
+      const targetP = scrollProgressRef.current;
+      smoothProgressRef.current += (targetP - smoothProgressRef.current) * 0.12;
+      const p = smoothProgressRef.current;
       const isReveal = p >= 0.78;
 
-      // Smooth organic easing towards cursor target
+      // 2. Smooth organic easing towards cursor target
       if (Math.abs(dx) > 0.0001 || Math.abs(dy) > 0.0001) {
         ms.x += dx * 0.085;
         ms.y += dy * 0.07;
       }
 
-      // Smooth organic easing of soft spotlight radius
+      // 3. Smooth organic easing of soft spotlight radius
       const targetR = isReveal && isHoveringCharacterRef.current ? targetRadiusRef.current : 0;
       const rDiff = targetR - revealRadiusRef.current;
       if (Math.abs(rDiff) > 0.4) {
@@ -458,21 +465,28 @@ export default function ScrollyCanvas() {
 
       if (isInViewRef.current) {
         // Sequence plays across 0.00 to 0.78
-        const seqP = Math.min(1, p / 0.78);
+        const seqP = Math.min(1, Math.max(0, p / 0.78));
         const baseScrollFrame = seqP * (totalFrames - 1);
 
-        // When in first hero stage, head turns with boosted range following the cursor
-        const factor = p < 0.25 ? 1.4 : 0.8;
-        const mouseFrameOffset = mouseTracking ? (ms.x - 0.5) * mouseIntensity * factor : 0;
+        // Gentle mouse turn blend: ramps up smoothly from 0 at the start so initial scroll is perfectly steady
+        const mouseBlend = Math.min(1, p / 0.12);
+        const mouseFrameOffset = mouseTracking ? (ms.x - 0.5) * mouseIntensity * 0.5 * mouseBlend : 0;
 
+        const targetFrame = Math.min(
+          totalFrames - 1,
+          Math.max(0, baseScrollFrame + mouseFrameOffset)
+        );
+
+        // Frame LERP: interpolates smoothly through every frame without skipping
+        smoothFrameRef.current += (targetFrame - smoothFrameRef.current) * 0.15;
         const finalFrame = Math.min(
           totalFrames - 1,
-          Math.max(0, Math.round(baseScrollFrame + mouseFrameOffset))
+          Math.max(0, Math.round(smoothFrameRef.current))
         );
 
         // Subtle 3D camera pan / stereoscopic shift
-        const parallaxX = mouseTracking ? (ms.x - 0.5) * 16 : 0;
-        const parallaxY = mouseTracking ? (ms.y - 0.5) * 12 : 0;
+        const parallaxX = mouseTracking ? (ms.x - 0.5) * 14 : 0;
+        const parallaxY = mouseTracking ? (ms.y - 0.5) * 10 : 0;
 
         renderFrame(
           finalFrame,
