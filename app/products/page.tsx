@@ -909,34 +909,18 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                       <span>{tr("Orders Closed — Inquire Next Slot", "Slot Penuh — Tanya Antrean Berikutnya", "Slot Panuah — Tanyo Antrean")}</span>
                     </button>
                   ) : (
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => handleOpenCompareModal(product)}
-                        style={{
-                          backgroundColor: isLight ? `${primaryColor}14` : `${primaryColor}20`,
-                          borderColor: isLight ? `${primaryColor}40` : `${primaryColor}50`,
-                          color: primaryColor,
-                        }}
-                        className="product-view-details-btn flex-1 py-2.5 px-4 rounded-xl font-bold text-xs border hover:brightness-110 transition-all flex items-center justify-center gap-2 cursor-pointer group-hover:scale-[1.01]"
-                      >
-                        <span style={{ color: primaryColor }}>{tr("View Details", "Lihat Detailnya", "Caliak Detail Paket")}</span>
-                        <RiArrowRightLine className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" style={{ color: primaryColor }} />
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => handleShareProduct(product, currentPkg)}
-                        title={tr("Share package", "Bagikan paket layanan ini", "Bagi-an paket ko")}
-                        className={`py-2.5 px-3.5 rounded-xl font-bold text-xs border transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shrink-0 ${
-                          isLight
-                            ? "bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700"
-                            : "bg-white/5 hover:bg-white/15 border-white/10 text-neutral-300 hover:text-white"
-                        }`}
-                      >
-                        <RiShareForwardLine className="w-3.5 h-3.5 text-[#16b09f]" />
-                        <span className="text-[11px] font-semibold">{tr("Share", "Bagikan", "Bagi")}</span>
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleOpenCompareModal(product)}
+                      style={{
+                        backgroundColor: isLight ? `${primaryColor}14` : `${primaryColor}20`,
+                        borderColor: isLight ? `${primaryColor}40` : `${primaryColor}50`,
+                        color: primaryColor,
+                      }}
+                      className="product-view-details-btn w-full py-2.5 px-4 rounded-xl font-bold text-xs border hover:brightness-110 transition-all flex items-center justify-center gap-2 cursor-pointer group-hover:scale-[1.01]"
+                    >
+                      <span style={{ color: primaryColor }}>{tr("View Details", "Lihat Detailnya", "Caliak Detail Paket")}</span>
+                      <RiArrowRightLine className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" style={{ color: primaryColor }} />
+                    </button>
                   )}
                 </div>
               </div>
