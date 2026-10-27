@@ -19,32 +19,19 @@ export default function Overlay({ progress }: OverlayProps) {
   const isLight = themeMode === "light";
   const isLocalized = lang === "id" || lang === "min";
 
-  const getLightSafeColor = (
-    color: string | undefined,
-    defaultDark: string,
-    defaultLight: string
-  ) => {
-    if (!color || color === defaultDark) {
-      return isLight ? defaultLight : defaultDark;
-    }
-    const lower = color.trim().toLowerCase();
-    if (isLight && (lower === "#ffffff" || lower === "#fff" || lower === "white" || lower === "#fafafa" || lower === "#f8fafc")) {
-      return defaultLight;
-    }
-    return color;
-  };
-
-  const nameColor = getLightSafeColor(heroBanner?.nameColor, "#ffffff", "#0f172a");
+  // The hero canvas always renders a dark 3D sequence in both themes.
+  // Overlay text must stay high-contrast, crisp white and glowing across all frames.
+  const nameColor = heroBanner?.nameColor || "#ffffff";
   const roleColor = heroBanner?.roleColor || "#16b09f";
-  const scrollTextColor = getLightSafeColor(heroBanner?.scrollTextColor, "#a3a3a3", "#64748b");
+  const scrollTextColor = heroBanner?.scrollTextColor || "#a3a3a3";
 
-  const sec2H1Color = getLightSafeColor(heroBanner?.sec2Headline1Color, "#ffffff", "#0f172a");
-  const sec2H2Color = getLightSafeColor(heroBanner?.sec2Headline2Color, "#a3a3a3", "#475569");
-  const sec2BodyColor = getLightSafeColor(heroBanner?.sec2BodyColor, "#d4d4d4", "#334155");
+  const sec2H1Color = heroBanner?.sec2Headline1Color || "#ffffff";
+  const sec2H2Color = heroBanner?.sec2Headline2Color || "#a3a3a3";
+  const sec2BodyColor = heroBanner?.sec2BodyColor || "#d4d4d4";
 
-  const sec3H1Color = getLightSafeColor(heroBanner?.sec3Headline1Color, "#ffffff", "#0f172a");
-  const sec3H2Color = getLightSafeColor(heroBanner?.sec3Headline2Color, "#a3a3a3", "#475569");
-  const sec3BodyColor = getLightSafeColor(heroBanner?.sec3BodyColor, "#d4d4d4", "#334155");
+  const sec3H1Color = heroBanner?.sec3Headline1Color || "#ffffff";
+  const sec3H2Color = heroBanner?.sec3Headline2Color || "#a3a3a3";
+  const sec3BodyColor = heroBanner?.sec3BodyColor || "#d4d4d4";
 
   const displayName = heroBanner?.name || "Fomy R";
   const displayRole = isLocalized ? t("hero.role") : (heroBanner?.role || t("hero.role"));
@@ -171,27 +158,25 @@ export default function Overlay({ progress }: OverlayProps) {
       >
         <h1
           style={{ "--hero-text-color": nameColor } as React.CSSProperties}
-          className="hero-custom-color text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight mb-2 leading-tight"
+          className="hero-custom-color keep-white text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight mb-2 leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]"
         >
           {displayName}<span className="text-neutral-500 font-normal">.</span>
         </h1>
         <p
           style={{ "--hero-text-color": roleColor } as React.CSSProperties}
-          className="hero-custom-color text-sm sm:text-base font-mono tracking-wider sm:tracking-widest mt-2 sm:mt-3"
+          className="hero-custom-color text-sm sm:text-base font-mono tracking-wider sm:tracking-widest mt-2 sm:mt-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
         >
           {displayRole}
         </p>
 
         {/* Minimalist mouse scroll indicator matching reference */}
         <div className="flex flex-col items-center gap-2 mt-6 sm:mt-12">
-          <div className={`w-5 h-8 sm:w-5 sm:h-9 rounded-full border-2 flex justify-center pt-1.5 transition-colors ${
-            isLight ? "border-slate-400" : "border-neutral-400/60"
-          }`}>
-            <span className={`w-1 h-2 rounded-full animate-bounce ${isLight ? "bg-slate-700" : "bg-neutral-300"}`} />
+          <div className="w-5 h-8 sm:w-5 sm:h-9 rounded-full border-2 border-neutral-400/60 flex justify-center pt-1.5 transition-colors">
+            <span className="w-1 h-2 rounded-full bg-neutral-300 animate-bounce" />
           </div>
           <span
             style={{ "--hero-text-color": scrollTextColor } as React.CSSProperties}
-            className="hero-custom-color text-xs font-mono uppercase tracking-[0.25em]"
+            className="hero-custom-color text-xs font-mono uppercase tracking-[0.25em] drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
           >
             {displayScroll}
           </span>
@@ -209,10 +194,10 @@ export default function Overlay({ progress }: OverlayProps) {
         }}
         className="absolute inset-x-0 px-6 sm:px-0 sm:left-12 md:left-16 lg:left-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-left flex flex-col justify-center transition-none"
       >
-        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-3 sm:mb-4 leading-[1.15]">
+        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-3 sm:mb-4 leading-[1.15] drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
           <span
             style={{ "--hero-text-color": sec2H1Color } as React.CSSProperties}
-            className="hero-custom-color"
+            className="hero-custom-color keep-white"
           >
             {displaySec2H1}
           </span>
@@ -227,7 +212,7 @@ export default function Overlay({ progress }: OverlayProps) {
         </h2>
         <p
           style={{ "--hero-text-color": sec2BodyColor } as React.CSSProperties}
-          className="hero-custom-color text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-xs sm:max-w-lg"
+          className="hero-custom-color text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-xs sm:max-w-lg drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
         >
           {displaySec2Body}
         </p>
@@ -244,10 +229,10 @@ export default function Overlay({ progress }: OverlayProps) {
         }}
         className="absolute inset-x-0 px-6 sm:px-0 sm:inset-x-auto sm:right-12 md:right-16 lg:right-24 top-[48%] sm:top-[50%] -translate-y-1/2 max-w-sm sm:max-w-xl md:max-w-2xl text-right flex flex-col items-end justify-center transition-none ml-auto"
       >
-        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-3 sm:mb-4 leading-[1.15]">
+        <h2 className="text-3xl xs:text-4xl sm:text-6xl md:text-7xl font-bold tracking-tight mb-3 sm:mb-4 leading-[1.15] drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]">
           <span
             style={{ "--hero-text-color": sec3H1Color } as React.CSSProperties}
-            className="hero-custom-color"
+            className="hero-custom-color keep-white"
           >
             {displaySec3H1}
           </span>
@@ -262,7 +247,7 @@ export default function Overlay({ progress }: OverlayProps) {
         </h2>
         <p
           style={{ "--hero-text-color": sec3BodyColor } as React.CSSProperties}
-          className="hero-custom-color text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-xs sm:max-w-lg text-right"
+          className="hero-custom-color text-base sm:text-lg md:text-xl font-light leading-relaxed max-w-xs sm:max-w-lg text-right drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
         >
           {displaySec3Body}
         </p>

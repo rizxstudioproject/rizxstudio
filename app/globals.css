@@ -401,6 +401,40 @@ html.light #hero-scrolly .hero-custom-color {
   color: var(--hero-text-color) !important;
 }
 
+/* Ensure all text within hero 3D scrolly sequence maintains high-contrast light colors in light mode */
+#hero-scrolly h1,
+#hero-scrolly h2,
+#hero-scrolly h3,
+#hero-scrolly .keep-white,
+html[data-theme='light'] #hero-scrolly h1,
+html[data-theme='light'] #hero-scrolly h2,
+html[data-theme='light'] #hero-scrolly h3,
+html[data-theme='light'] #hero-scrolly .keep-white,
+html.light #hero-scrolly h1,
+html.light #hero-scrolly h2,
+html.light #hero-scrolly h3,
+html.light #hero-scrolly .keep-white {
+  color: var(--hero-text-color, #ffffff) !important;
+}
+
+#hero-scrolly p,
+html[data-theme='light'] #hero-scrolly p,
+html.light #hero-scrolly p {
+  color: var(--hero-text-color, #d4d4d4) !important;
+}
+
+#hero-scrolly .text-neutral-400,
+html[data-theme='light'] #hero-scrolly .text-neutral-400,
+html.light #hero-scrolly .text-neutral-400 {
+  color: #a3a3a3 !important;
+}
+
+#hero-scrolly .text-neutral-500,
+html[data-theme='light'] #hero-scrolly .text-neutral-500,
+html.light #hero-scrolly .text-neutral-500 {
+  color: #737373 !important;
+}
+
 .hero-preview-mockup h1,
 .hero-preview-mockup p,
 .hero-preview-mockup span,
@@ -1290,18 +1324,15 @@ img, canvas {
    to eliminate abrupt/sharp cuts in light mode
    ======================================================== */
 html[data-theme='light'] #hero-scrolly,
-html.light #hero-scrolly {
-  background-color: #f8fafc !important;
-}
-
+html.light #hero-scrolly,
 html[data-theme='light'] #hero-scrolly > div,
 html.light #hero-scrolly > div {
-  background-color: #f8fafc !important;
+  background-color: #0a0a0a !important;
 }
 
 html[data-theme='light'] .hero-vignette,
 html.light .hero-vignette {
-  background: radial-gradient(circle at center, transparent 35%, rgba(248, 250, 252, 0.4) 100%) !important;
+  background: radial-gradient(circle at center, transparent 30%, rgba(10, 10, 10, 0.7) 100%) !important;
 }
 
 /* Seamless organic hero feather gradients */
