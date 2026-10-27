@@ -4408,7 +4408,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         }`}
                       >
                         <HiCheck className="w-4 h-4 text-[#16b09f]" />
-                        <span>{tx("Terapkan & Simpan Foto Front & Mask", "Apply & Save Front and Mask Photos")}</span>
+                        <span>{tx("Apply Brush", "Apply Brush")}</span>
                       </button>
                     </div>
                   )}

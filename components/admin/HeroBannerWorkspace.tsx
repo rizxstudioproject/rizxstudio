@@ -1672,7 +1672,7 @@ export default function HeroBannerWorkspace({
                   }`}
                 >
                   <RiCheckLine className="w-4 h-4 text-[#16b09f]" />
-                  <span>{tr("Terapkan & Simpan Foto Front & Mask", "Apply & Save Front-Mask", "Simpan Foto Front & Mask")}</span>
+                  <span>{tr("Apply Brush", "Apply Brush", "Apply Brush")}</span>
                 </button>
               </div>
             )}
