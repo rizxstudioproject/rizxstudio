@@ -5369,24 +5369,33 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             {/* Modal: Edit Existing Runner Item */}
             {editingRunnerItem && (
               <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                <div className="w-full max-w-lg rounded-2xl bg-neutral-950 border border-white/15 p-5 sm:p-7 space-y-5 shadow-2xl">
-                  <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                    <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <HiPencilSquare className="w-5 h-5 text-[#16b09f]" />
+                <div className={`w-full max-w-lg rounded-2xl p-5 sm:p-7 space-y-5 shadow-2xl transition-all ${
+                  isLight ? "bg-white border border-slate-200 text-slate-800" : "bg-neutral-950 border border-white/15 text-white"
+                }`}>
+                  <div className={`flex items-center justify-between border-b pb-3 ${
+                    isLight ? "border-slate-100" : "border-white/10"
+                  }`}>
+                    <h3 className={`text-base font-bold flex items-center gap-2 ${
+                      isLight ? "text-slate-900" : "text-white"
+                    }`}>
+                      <HiPencilSquare className={`w-5 h-5 ${isLight ? "text-teal-600" : "text-[#16b09f]"}`} />
                       <span>{tx("Edit Karya Running Portofolio", "Edit Running Portfolio Item")}</span>
                     </h3>
                     <button
                       type="button"
                       onClick={() => setEditingRunnerItem(null)}
-                      className="p-1 rounded-lg text-neutral-400 hover:text-white hover:bg-white/10"
+                      aria-label={tx("Tutup", "Close")}
+                      className={`p-1.5 rounded-full transition-colors cursor-pointer flex items-center justify-center ${
+                        isLight ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 shadow-xs" : "text-neutral-400 hover:text-white hover:bg-white/10"
+                      }`}
                     >
-                      <HiXMark className="w-5 h-5" />
+                      <HiXMark className={`w-5 h-5 ${isLight ? "text-slate-800" : "text-white"}`} />
                     </button>
                   </div>
 
                   <div className="space-y-4">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                      <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                         {tx("Judul Karya", "Item Title")}
                       </label>
                       <input
@@ -5395,12 +5404,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onChange={(e) =>
                           setEditingRunnerItem({ ...editingRunnerItem, title: e.target.value })
                         }
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                          isLight
+                            ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                            : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
+                        }`}
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                      <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                         {tx("Kategori / Subtitle", "Category / Subtitle")}
                       </label>
                       <input
@@ -5409,12 +5422,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onChange={(e) =>
                           setEditingRunnerItem({ ...editingRunnerItem, category: e.target.value })
                         }
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                          isLight
+                            ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                            : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
+                        }`}
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                      <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                         {tx("Posisi Baris", "Row Position")}
                       </label>
                       <select
@@ -5425,7 +5442,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             row: parseInt(e.target.value) as 1 | 2,
                           })
                         }
-                        className="w-full px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                          isLight
+                            ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                            : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
+                        }`}
                       >
                         <option value={1}>{tx("Baris 1 (Scroll ke Kiri)", "Row 1 (Scrolls Left)")}</option>
                         <option value={2}>{tx("Baris 2 (Scroll ke Kanan)", "Row 2 (Scrolls Right)")}</option>
@@ -5434,7 +5455,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     {/* Image URL / Upload */}
                     <div className="space-y-2">
-                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                      <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                         {tx("Gambar Karya (Rasio 4:5)", "Image (4:5 Ratio)")}
                       </label>
                       <div className="flex flex-col sm:flex-row gap-2">
@@ -5444,10 +5465,18 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           onChange={(e) =>
                             setEditingRunnerItem({ ...editingRunnerItem, image: e.target.value })
                           }
-                          className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                          className={`flex-1 px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                            isLight
+                              ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                              : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
+                          }`}
                         />
-                        <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
-                          <HiArrowUpTray className="w-4 h-4 text-[#16b09f]" />
+                        <label className={`px-4 py-2.5 rounded-xl border text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0 ${
+                          isLight
+                            ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800"
+                            : "bg-white/10 hover:bg-white/15 border-white/15 text-white"
+                        }`}>
+                          <HiArrowUpTray className={`w-4 h-4 ${isLight ? "text-teal-600" : "text-[#16b09f]"}`} />
                           <span>Upload File</span>
                           <input
                             type="file"
@@ -5466,8 +5495,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </div>
 
                     {/* Preview 4:5 in modal */}
-                    <div className="flex items-center gap-4 p-3 rounded-xl bg-neutral-900 border border-white/10">
-                      <div className="relative w-16 aspect-[4/5] rounded-lg overflow-hidden bg-neutral-800 shrink-0">
+                    <div className={`flex items-center gap-4 p-3 rounded-xl border ${
+                      isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-900 border-white/10"
+                    }`}>
+                      <div className={`relative w-16 aspect-[4/5] rounded-lg overflow-hidden shrink-0 border ${
+                        isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-800 border-transparent"
+                      }`}>
                         <img
                           src={editingRunnerItem.image}
                           alt="preview"
@@ -5475,31 +5508,39 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-white truncate">
+                        <p className={`text-xs font-bold truncate ${isLight ? "text-slate-900" : "text-white"}`}>
                           {editingRunnerItem.title}
                         </p>
-                        <p className="text-[11px] text-[#16b09f] font-mono truncate">
+                        <p className={`text-[11px] font-mono truncate font-semibold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
                           {editingRunnerItem.category}
                         </p>
-                        <p className="text-[10px] text-neutral-400 font-mono mt-1">
+                        <p className={`text-[10px] font-mono mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                           Baris {editingRunnerItem.row} ({editingRunnerItem.row === 1 ? "Scroll Kiri" : "Scroll Kanan"})
                         </p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
+                  <div className={`flex items-center justify-end gap-2.5 pt-3 border-t ${isLight ? "border-slate-100" : "border-white/10"}`}>
                     <button
                       type="button"
                       onClick={() => setEditingRunnerItem(null)}
-                      className="px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-medium"
+                      className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${
+                        isLight
+                          ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
+                          : "bg-neutral-800 hover:bg-neutral-700 text-white"
+                      }`}
                     >
                       Batal
                     </button>
                     <button
                       type="button"
                       onClick={handleUpdateEditingRunnerItem}
-                      className="px-5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs shadow-md shadow-[#16b09f]/30"
+                      className={`px-5 py-2 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 ${
+                        isLight
+                          ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
+                          : "bg-[#16b09f] hover:bg-[#119889] text-black shadow-[#16b09f]/30"
+                      }`}
                     >
                       Update Karya
                     </button>
@@ -6388,13 +6429,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   setUploadPreview(null);
                   setUploadFile(null);
                 }}
-                className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer ${
+                aria-label={tx("Tutup", "Close")}
+                className={`absolute top-4 right-4 p-2 rounded-full transition-all cursor-pointer z-10 flex items-center justify-center ${
                   isLight
-                    ? "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                    : "bg-white/10 hover:bg-white/20 text-white"
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 shadow-xs"
+                    : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
                 }`}
               >
-                <HiXMark className="w-5 h-5" />
+                <HiXMark className={`w-5 h-5 ${isLight ? "text-slate-800" : "text-white"}`} />
               </button>
 
               <div className="mb-5">
@@ -6647,14 +6689,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <button
                 type="button"
                 onClick={() => setEditingWork(null)}
-                className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer z-10 ${
+                aria-label={tx("Tutup form edit", "Close edit form")}
+                className={`absolute top-4 right-4 p-2 rounded-full transition-all cursor-pointer z-10 flex items-center justify-center ${
                   isLight
-                    ? "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                    : "bg-white/10 hover:bg-white/20 text-white"
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 shadow-xs"
+                    : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
                 }`}
-                aria-label="Tutup form edit"
               >
-                <HiXMark className="w-5 h-5" />
+                <HiXMark className={`w-5 h-5 ${isLight ? "text-slate-800" : "text-white"}`} />
               </button>
 
               {/* Modal Header */}
@@ -6962,13 +7004,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   setNewFolderName("");
                   setNewFolderCategory("");
                 }}
-                className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer ${
+                aria-label={tx("Tutup", "Close")}
+                className={`absolute top-4 right-4 p-2 rounded-full transition-all cursor-pointer z-10 flex items-center justify-center ${
                   isLight
-                    ? "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                    : "bg-white/10 hover:bg-white/20 text-white"
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 shadow-xs"
+                    : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
                 }`}
               >
-                <HiXMark className="w-5 h-5" />
+                <HiXMark className={`w-5 h-5 ${isLight ? "text-slate-800" : "text-white"}`} />
               </button>
 
               <div className="mb-5">
@@ -7098,13 +7141,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <button
                 type="button"
                 onClick={() => setEditingFolder(null)}
-                className={`absolute top-4 right-4 p-2 rounded-full transition-colors cursor-pointer ${
+                aria-label={tx("Tutup", "Close")}
+                className={`absolute top-4 right-4 p-2 rounded-full transition-all cursor-pointer z-10 flex items-center justify-center ${
                   isLight
-                    ? "bg-slate-100 hover:bg-slate-200 text-slate-600"
-                    : "bg-white/10 hover:bg-white/20 text-white"
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 shadow-xs"
+                    : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
                 }`}
               >
-                <HiXMark className="w-5 h-5" />
+                <HiXMark className={`w-5 h-5 ${isLight ? "text-slate-800" : "text-white"}`} />
               </button>
 
               <div className="mb-5">
