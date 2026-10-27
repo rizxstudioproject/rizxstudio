@@ -2599,14 +2599,7 @@ export default function HeroBannerWorkspace({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
-              <button
-                type="button"
-                onClick={() => setEditingRunnerItem(null)}
-                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-neutral-300 text-xs font-mono transition-all cursor-pointer"
-              >
-                Batal
-              </button>
+            <div className="flex items-center justify-end pt-2 border-t border-white/10">
               <button
                 type="button"
                 disabled={isUploadingEditImage}

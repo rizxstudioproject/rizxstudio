@@ -6188,22 +6188,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </div>
                   </div>
 
-                  <div className={`flex items-center justify-end gap-2.5 pt-3 border-t ${isLight ? "border-slate-100" : "border-white/10"}`}>
-                    <button
-                      type="button"
-                      onClick={() => setEditingRunnerItem(null)}
-                      className={`px-4 py-2 rounded-xl text-xs font-medium transition-colors ${
-                        isLight
-                          ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                          : "bg-neutral-800 hover:bg-neutral-700 text-white"
-                      }`}
-                    >
-                      Batal
-                    </button>
+                  <div className={`flex items-center justify-end pt-3 border-t ${isLight ? "border-slate-100" : "border-white/10"}`}>
                     <button
                       type="button"
                       onClick={handleUpdateEditingRunnerItem}
-                      className={`px-5 py-2 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 ${
+                      className={`w-full sm:w-auto px-6 py-2.5 rounded-xl font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 ${
                         isLight
                           ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
                           : "bg-[#16b09f] hover:bg-[#119889] text-black shadow-[#16b09f]/30"
@@ -7301,12 +7290,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   )}
                 </div>
 
-                {/* Submit / Cancel Buttons */}
-                <div className="flex items-center gap-3 pt-3">
+                {/* Submit Button */}
+                <div className="pt-3">
                   <button
                     type="submit"
                     disabled={!uploadPreview}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       isLight
                         ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
                         : "bg-[#16b09f] hover:bg-[#119889] text-black"
@@ -7314,22 +7303,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Upload & Tambahkan ke Web", "Upload & Add to Web")}</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsUploadModalOpen(false);
-                      setUploadPreview(null);
-                      setUploadFile(null);
-                    }}
-                    className={`px-4 py-3 rounded-xl text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
-                      isLight
-                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                        : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-                    }`}
-                  >
-                    {tx("Batal", "Cancel")}
                   </button>
                 </div>
               </form>
@@ -7620,10 +7593,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
 
                 {/* Action Buttons */}
-                <div className={`flex items-center gap-3 pt-3 border-t shrink-0 ${isLight ? "border-slate-100" : "border-white/10"}`}>
+                <div className={`pt-3 border-t shrink-0 ${isLight ? "border-slate-100" : "border-white/10"}`}>
                   <button
                     type="submit"
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer ${
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer ${
                       isLight
                         ? "bg-gradient-to-r from-teal-500 to-[#14AF9E] hover:from-teal-600 hover:to-[#119586] text-white shadow-teal-500/20"
                         : "bg-gradient-to-r from-[#16b09f] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black shadow-lg shadow-cyan-500/20"
@@ -7631,17 +7604,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Simpan Perubahan & Update Web", "Save Changes & Update Web")}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEditingWork(null)}
-                    className={`px-4 py-3 rounded-xl text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
-                      isLight
-                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                        : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-                    }`}
-                  >
-                    {tx("Batal", "Cancel")}
                   </button>
                 </div>
               </form>
@@ -7755,11 +7717,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                 </div>
 
-                <div className="flex items-center gap-3 pt-2">
+                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={!newFolderName.trim()}
-                    className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       isLight
                         ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
                         : "bg-[#16b09f] hover:bg-[#119889] text-black"
@@ -7767,22 +7729,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   >
                     <HiFolderPlus className="w-4 h-4" />
                     <span>{tx("Buat Folder", "Create Folder")}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsAddFolderOpen(false);
-                      setNewFolderName("");
-                      setNewFolderCategory("");
-                      setNewFolderYear(new Date().getFullYear().toString());
-                    }}
-                    className={`px-4 py-3 rounded-xl text-sm font-medium transition-colors cursor-pointer ${
-                      isLight
-                        ? "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                        : "bg-neutral-800 hover:bg-neutral-700 text-neutral-300"
-                    }`}
-                  >
-                    {tx("Batal", "Cancel")}
                   </button>
                 </div>
               </form>
