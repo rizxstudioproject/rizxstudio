@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   RiUserFollowLine,
   RiSearchLine,
@@ -28,9 +28,20 @@ import {
   RiImageFill,
   RiAttachmentLine,
   RiUpload2Line,
+  RiDownload2Line,
+  RiDatabase2Line,
+  RiFileExcel2Line,
+  RiDownloadCloud2Line,
+  RiArrowDownSLine,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import {
+  downloadCustomerCsv,
+  downloadCustomerJson,
+  syncCustomersToDatabase,
+  importCustomerFileToDatabase,
+} from "@/lib/customerExportService";
 import {
   ProjectTrackingItem,
   ProjectProgressStage,
@@ -88,6 +99,12 @@ export default function ClientOrdersManager() {
   const [newDeadline, setNewDeadline] = useState<string>("7 - 10 Hari Kerja");
   const [newBrief, setNewBrief] = useState<string>("");
 
+  // Export & Database Sync States
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState<boolean>(false);
+  const [isSyncingDb, setIsSyncingDb] = useState<boolean>(false);
+  const [isImporting, setIsImporting] = useState<boolean>(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Load orders
   const loadOrders = async () => {
     setLoading(true);
@@ -126,6 +143,111 @@ export default function ClientOrdersManager() {
       navigator.clipboard.writeText(code);
       setCopiedCode(code);
       setTimeout(() => setCopiedCode(""), 2000);
+    }
+  };
+
+  // 1. Download Customer Data as CSV / Excel
+  const handleDownloadCsv = () => {
+    if (orders.length === 0) {
+      showToast(
+        tr(
+          "No customer data available to export.",
+          "Belum ada data customer untuk di-download.",
+          "Alun ado data customer untuak di-download."
+        )
+      );
+      return;
+    }
+    downloadCustomerCsv(orders);
+    showToast(
+      tr(
+        `Downloaded ${orders.length} customer records (CSV / Excel)!`,
+        `Berhasil men-download ${orders.length} data customer (CSV / Excel)!`,
+        `Barasia mandownload ${orders.length} data customer (CSV / Excel)!`
+      )
+    );
+    setIsExportMenuOpen(false);
+  };
+
+  // 2. Download Customer Data as JSON Backup
+  const handleDownloadJson = () => {
+    if (orders.length === 0) {
+      showToast(
+        tr(
+          "No customer data available to export.",
+          "Belum ada data customer untuk di-download.",
+          "Alun ado data customer untuak di-download."
+        )
+      );
+      return;
+    }
+    downloadCustomerJson(orders);
+    showToast(
+      tr(
+        `Downloaded ${orders.length} customer records (JSON backup)!`,
+        `Berhasil men-download ${orders.length} data customer (Backup JSON)!`,
+        `Barasia mandownload ${orders.length} data customer (Backup JSON)!`
+      )
+    );
+    setIsExportMenuOpen(false);
+  };
+
+  // 3. Masuk ke Database (Sync All to Supabase Cloud)
+  const handleSyncDatabase = async () => {
+    setIsSyncingDb(true);
+    try {
+      const res = await syncCustomersToDatabase(orders);
+      if (res.success) {
+        showToast(
+          tr(
+            `Successfully synced ${res.count} customers to Database!`,
+            `Berhasil memasukkan & menyinkronkan ${res.count} data customer ke Database!`,
+            `Barasia mamasuakkan & manyinkronkan ${res.count} data customer ka Database!`
+          )
+        );
+      } else {
+        showToast(
+          tr(
+            "Database sync notice: " + (res.error || ""),
+            "Sinkronisasi database: " + (res.error || ""),
+            "Sinkronisasi database: " + (res.error || "")
+          )
+        );
+      }
+    } catch (err: any) {
+      console.error("Failed to sync customer data to DB:", err);
+      showToast("Gagal memasukkan data ke database: " + (err?.message || ""));
+    } finally {
+      setIsSyncingDb(false);
+      setIsExportMenuOpen(false);
+    }
+  };
+
+  // 4. Impor File CSV / JSON ke Database
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsImporting(true);
+    try {
+      const res = await importCustomerFileToDatabase(file);
+      if (res.success) {
+        showToast(
+          tr(
+            `Imported ${res.count} customer records into database!`,
+            `Berhasil mengimpor & memasukkan ${res.count} customer ke database!`,
+            `Barasia mangimpor & mamasuakkan ${res.count} customer ka database!`
+          )
+        );
+        await loadOrders();
+      } else {
+        showToast("Gagal impor file: " + (res.error || "Format tidak sesuai"));
+      }
+    } catch (err: any) {
+      console.error("Error importing customer file:", err);
+      showToast("Terjadi kesalahan saat memproses file: " + (err?.message || ""));
+    } finally {
+      setIsImporting(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
@@ -509,8 +631,10 @@ export default function ClientOrdersManager() {
         </div>
 
         {/* Right CTA Buttons */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Refresh Button */}
           <button
+            type="button"
             onClick={loadOrders}
             title={tr("Refresh Data", "Segarkan Data", "Pabaharui Data")}
             className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10 transition cursor-pointer"
@@ -518,7 +642,134 @@ export default function ClientOrdersManager() {
             <RiRefreshLine className="w-4 h-4" />
           </button>
 
+          {/* Direct Sync Button: Masuk ke Database */}
           <button
+            type="button"
+            onClick={handleSyncDatabase}
+            disabled={isSyncingDb}
+            title={tr(
+              "Save and sync all customer orders into Supabase Database",
+              "Simpan dan sinkronkan semua data pesanan customer ke Database Supabase",
+              "Simpan jo sinkronkan kasado data pasanan customer ka Database Supabase"
+            )}
+            className="px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/35 transition flex items-center gap-1.5 shadow-sm cursor-pointer disabled:opacity-50"
+          >
+            <RiDatabase2Line className={`w-4 h-4 text-emerald-400 ${isSyncingDb ? "animate-spin" : ""}`} />
+            <span>
+              {isSyncingDb
+                ? tr("Saving...", "Menyimpan...", "Manyimpan...")
+                : tr("Masuk ke Database", "Masuk ke Database", "Masuak ka Database")}
+            </span>
+          </button>
+
+          {/* Download & Export Menu Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsExportMenuOpen((prev) => !prev)}
+              className="px-3 py-2 rounded-xl text-xs font-bold bg-sky-500/15 hover:bg-sky-500/25 text-sky-300 border border-sky-500/35 transition flex items-center gap-1.5 shadow-sm cursor-pointer"
+            >
+              <RiDownload2Line className="w-4 h-4 text-sky-400" />
+              <span>{tr("Download Customer", "Download Data Customer", "Download Data Customer")}</span>
+              <RiArrowDownSLine className="w-3.5 h-3.5 opacity-70" />
+            </button>
+
+            {isExportMenuOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setIsExportMenuOpen(false)}
+                />
+                <div className="absolute right-0 mt-2 w-72 rounded-2xl bg-neutral-900 border border-white/20 p-2 shadow-2xl z-50 flex flex-col gap-1 text-xs backdrop-blur-xl">
+                  <div className="px-3 py-1.5 text-[10px] uppercase font-mono tracking-wider text-neutral-400 font-bold border-b border-white/10 flex items-center justify-between">
+                    <span>{tr("Customer Database Export", "Ekspor & Database Customer", "Ekspor & Database Customer")}</span>
+                    <span className="text-teal-400">{orders.length} Data</span>
+                  </div>
+
+                  {/* 1. Download Excel / CSV */}
+                  <button
+                    type="button"
+                    onClick={handleDownloadCsv}
+                    className="w-full px-3 py-2.5 rounded-xl text-left hover:bg-white/10 text-white flex items-center gap-3 transition cursor-pointer"
+                  >
+                    <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0">
+                      <RiFileExcel2Line className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-white">{tr("Download Excel / CSV", "Download Format Excel / CSV", "Download Format Excel / CSV")}</div>
+                      <div className="text-[10px] text-neutral-400 truncate">{tr("BOM UTF-8 ready for Excel & Sheets", "Rapi & kompatibel dengan Microsoft Excel", "Rapi & rancak untuak Excel")}</div>
+                    </div>
+                  </button>
+
+                  {/* 2. Download Backup JSON */}
+                  <button
+                    type="button"
+                    onClick={handleDownloadJson}
+                    className="w-full px-3 py-2.5 rounded-xl text-left hover:bg-white/10 text-white flex items-center gap-3 transition cursor-pointer"
+                  >
+                    <div className="p-2 rounded-lg bg-sky-500/20 text-sky-400 shrink-0">
+                      <RiFileList3Line className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-white">{tr("Download JSON Backup", "Download Backup Mentah (JSON)", "Download Backup Mantah (JSON)")}</div>
+                      <div className="text-[10px] text-neutral-400 truncate">{tr("Full raw structural backup", "Format JSON lengkap seluruh field", "Format JSON langkok kasado field")}</div>
+                    </div>
+                  </button>
+
+                  <div className="my-1 border-t border-white/10" />
+
+                  {/* 3. Sinkron Semua ke Database */}
+                  <button
+                    type="button"
+                    onClick={handleSyncDatabase}
+                    disabled={isSyncingDb}
+                    className="w-full px-3 py-2.5 rounded-xl text-left hover:bg-white/10 text-emerald-300 flex items-center gap-3 transition cursor-pointer disabled:opacity-50"
+                  >
+                    <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 shrink-0">
+                      <RiDatabase2Line className={`w-4 h-4 ${isSyncingDb ? "animate-spin" : ""}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-emerald-300">{tr("Sync All to Cloud Database", "Simpan Semua Masuk Database", "Simpan Sadonyo Masuak Database")}</div>
+                      <div className="text-[10px] text-emerald-400/70 truncate">{tr("Save latest records to Supabase", "Pastikan seluruh data aman di Supabase", "Pastikan sadonyo aman di Supabase")}</div>
+                    </div>
+                  </button>
+
+                  {/* 4. Impor File CSV / JSON ke Database */}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isImporting}
+                    className="w-full px-3 py-2.5 rounded-xl text-left hover:bg-white/10 text-amber-300 flex items-center gap-3 transition cursor-pointer disabled:opacity-50"
+                  >
+                    <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
+                      <RiUpload2Line className={`w-4 h-4 ${isImporting ? "animate-spin" : ""}`} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-amber-300">
+                        {isImporting
+                          ? tr("Processing Import...", "Sedang Membaca File...", "Sadang Mambaco File...")
+                          : tr("Import File to Database", "Impor File Masuk Database", "Impor File Masuak Database")}
+                      </div>
+                      <div className="text-[10px] text-amber-400/70 truncate">{tr("Upload CSV / JSON customer list", "Upload data customer dari file", "Upload data customer dari file")}</div>
+                    </div>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Hidden File Input for customer file import */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,.json"
+              onChange={handleImportFile}
+              className="hidden"
+            />
+          </div>
+
+          {/* Add Manual Order Button */}
+          <button
+            type="button"
             onClick={() => setIsAddModalOpen(true)}
             className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-teal-500 hover:bg-teal-400 text-black transition flex items-center gap-1.5 shadow-lg shadow-teal-500/20 cursor-pointer"
           >
