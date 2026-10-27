@@ -200,8 +200,12 @@ export default function ScrollyCanvas() {
       } else {
         drawWidth = height * imgRatio;
         offsetX = (width - drawWidth) / 2;
-        // On narrow mobile screens, bias slightly so the subject's face is centered and prominent
+        // On narrow mobile screens, scale slightly so shifting up never exposes an empty bottom edge
         if (width < 640) {
+          const extraScale = 1.05;
+          drawWidth *= extraScale;
+          drawHeight *= extraScale;
+          offsetX = (width - drawWidth) / 2;
           offsetY = -height * 0.02;
         }
       }
@@ -277,6 +281,19 @@ export default function ScrollyCanvas() {
           ctx.drawImage(tempCanvas, 0, 0, width, height);
         }
       }
+
+      // ==========================================
+      // SEAMLESS BOTTOM GRADIENT FADE (Eliminates bottom line completely)
+      // ==========================================
+      const bottomFadeHeight = Math.max(160, Math.floor(height * 0.28));
+      const bottomFade = ctx.createLinearGradient(0, height - bottomFadeHeight, 0, height);
+      bottomFade.addColorStop(0, "rgba(10, 10, 10, 0)");
+      bottomFade.addColorStop(0.35, "rgba(10, 10, 10, 0.35)");
+      bottomFade.addColorStop(0.7, "rgba(10, 10, 10, 0.85)");
+      bottomFade.addColorStop(1, "#0a0a0a");
+
+      ctx.fillStyle = bottomFade;
+      ctx.fillRect(0, height - bottomFadeHeight, width, bottomFadeHeight);
 
       ctx.restore();
       currentFrameIndexRef.current = index;
@@ -541,7 +558,7 @@ export default function ScrollyCanvas() {
         <div className="hero-vignette absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_30%,rgba(10,10,10,0.7)_100%)] z-[5]" />
 
         {/* Subtle gradient edges */}
-        <div className="hero-gradient-bottom absolute inset-x-0 bottom-0 h-44 sm:h-56 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none z-[10]" />
+        <div className="hero-gradient-bottom absolute inset-x-0 bottom-0 h-64 sm:h-80 md:h-96 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 via-35% to-transparent pointer-events-none z-[10]" />
         <div className="hero-gradient-top absolute inset-x-0 top-0 h-32 sm:h-44 bg-gradient-to-b from-[#0a0a0a]/80 to-transparent pointer-events-none z-[10]" />
 
         {/* Weightless Parallax Sweeps Overlay */}
