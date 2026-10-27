@@ -358,6 +358,8 @@ export default function ProductPackageCompareModal({
                           className={`text-[10px] px-2.5 py-0.5 rounded-full font-mono font-medium border ${
                             isPro
                               ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/40"
+                              : isLight
+                              ? "bg-slate-100 text-slate-600 border-slate-200"
                               : "bg-white/5 text-neutral-400 border-white/10"
                           }`}
                         >
@@ -366,11 +368,11 @@ export default function ProductPackageCompareModal({
                       )}
                     </div>
 
-                    <h3 className="text-lg sm:text-xl font-bold tracking-tight mb-2">
+                    <h3 className={`text-lg sm:text-xl font-bold tracking-tight mb-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                       {pkg.name}
                     </h3>
 
-                    <p className="text-xs text-neutral-400 min-h-[36px] line-clamp-2 leading-relaxed mb-4">
+                    <p className={`text-xs min-h-[36px] line-clamp-2 leading-relaxed mb-4 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                       {pkg.description}
                     </p>
 
@@ -382,24 +384,24 @@ export default function ProductPackageCompareModal({
                         borderColor: isPro ? `${primaryColor}40` : isLight ? "#e2e8f0" : "rgba(255,255,255,0.08)",
                       }}
                     >
-                      <span className="text-neutral-400 flex items-center gap-1.5">
+                      <span className={`${isLight ? "text-slate-600" : "text-neutral-400"} flex items-center gap-1.5`}>
                         <RiPriceTag3Line className="w-3.5 h-3.5 text-[#16b09f]" />
                         <span>{tr("Estimated Cost", "Estimasi Biaya", "Perkiraan Biayo")}:</span>
                       </span>
-                      <span className="font-bold text-sm text-white">
+                      <span className={`font-bold text-sm ${isLight ? "text-slate-900" : "text-white"}`}>
                         {pkg.priceNote}
                       </span>
                     </div>
 
                     {/* Specs Row: Duration & Revisions */}
                     <div className="grid grid-cols-2 gap-2 text-[11px] font-mono">
-                      <div className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center gap-1.5">
-                        <RiTimeLine className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                        <span className="truncate text-neutral-300">{pkg.duration}</span>
+                      <div className={`p-2 rounded-lg flex items-center gap-1.5 ${isLight ? "bg-slate-100 border border-slate-200 text-slate-700" : "bg-white/[0.03] border border-white/[0.06] text-neutral-300"}`}>
+                        <RiTimeLine className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span className="truncate">{pkg.duration}</span>
                       </div>
-                      <div className="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] flex items-center gap-1.5">
-                        <RiRefreshLine className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                        <span className="truncate text-neutral-300">{pkg.revisions}</span>
+                      <div className={`p-2 rounded-lg flex items-center gap-1.5 ${isLight ? "bg-slate-100 border border-slate-200 text-slate-700" : "bg-white/[0.03] border border-white/[0.06] text-neutral-300"}`}>
+                        <RiRefreshLine className="w-3.5 h-3.5 text-cyan-500 shrink-0" />
+                        <span className="truncate">{pkg.revisions}</span>
                       </div>
                     </div>
                   </div>
@@ -408,14 +410,14 @@ export default function ProductPackageCompareModal({
                   <div className="p-5 sm:p-6 flex-1 flex flex-col space-y-5">
                     {/* SECTION: CHECKLIST KEUNGGULAN (PROS) */}
                     <div>
-                      <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider font-bold text-emerald-400 mb-2.5">
-                        <RiCheckboxCircleFill className="w-4 h-4 text-emerald-400" />
+                      <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider font-bold text-emerald-500 mb-2.5">
+                        <RiCheckboxCircleFill className="w-4 h-4 text-emerald-500" />
                         <span>{tr("Features & Deliverables", "Keunggulan & Deliverables", "Kaunggulan & Hasil")}</span>
                       </div>
                       <ul className="space-y-2">
                         {pros.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs text-neutral-300 leading-snug">
-                            <span className="text-emerald-400 font-bold shrink-0 mt-0.5">✓</span>
+                          <li key={idx} className={`flex items-start gap-2 text-xs leading-snug ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                            <span className="text-emerald-500 font-bold shrink-0 mt-0.5">✓</span>
                             <span>{item}</span>
                           </li>
                         ))}
@@ -423,18 +425,18 @@ export default function ProductPackageCompareModal({
                     </div>
 
                     {/* Divider */}
-                    <div className="border-t border-white/[0.08]" />
+                    <div className={`border-t ${isLight ? "border-slate-100" : "border-white/[0.08]"}`} />
 
                     {/* SECTION: CHECKLIST KEKURANGAN / BATASAN (CONS) */}
                     <div className="flex-1">
-                      <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider font-bold text-amber-400 mb-2.5">
-                        <RiCloseCircleLine className="w-4 h-4 text-amber-400" />
+                      <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider font-bold text-amber-500 mb-2.5">
+                        <RiCloseCircleLine className="w-4 h-4 text-amber-500" />
                         <span>{tr("Limitations & Notes", "Batasan / Catatan Paket", "Batasan / Catatan Paket")}</span>
                       </div>
                       <ul className="space-y-2">
                         {cons.map((item, idx) => (
-                          <li key={idx} className="flex items-start gap-2 text-xs text-neutral-400 leading-snug">
-                            <span className="text-amber-400/80 font-bold shrink-0 mt-0.5">✕</span>
+                          <li key={idx} className={`flex items-start gap-2 text-xs leading-snug ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                            <span className="text-amber-500 font-bold shrink-0 mt-0.5">✕</span>
                             <span>{item}</span>
                           </li>
                         ))}

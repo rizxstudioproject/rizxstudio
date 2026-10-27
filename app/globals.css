@@ -80,25 +80,39 @@ html.light .text-white\/70 {
 /* Preserve crisp white text on interactive buttons, colored badges, and dark CTA pills in Light Mode */
 html[data-theme='light'] button.text-white,
 html[data-theme='light'] button .text-white,
+html[data-theme='light'] a.text-white,
+html[data-theme='light'] a .text-white,
 html[data-theme='light'] .btn-primary,
-html[data-theme='light'] [class*="bg-teal"] .text-white,
-html[data-theme='light'] [class*="bg-[#16b09f]"] .text-white,
-html[data-theme='light'] [class*="bg-rose"] .text-white,
-html[data-theme='light'] [class*="bg-emerald"] .text-white,
-html[data-theme='light'] [class*="bg-blue"] .text-white,
-html[data-theme='light'] [class*="bg-neutral-900"] .text-white,
-html[data-theme='light'] [class*="bg-black"] .text-white,
+html[data-theme='light'] button[class*="bg-teal"],
+html[data-theme='light'] button[class*="bg-teal"] *,
+html[data-theme='light'] a[class*="bg-teal"],
+html[data-theme='light'] a[class*="bg-teal"] *,
+html[data-theme='light'] button[class*="bg-rose"],
+html[data-theme='light'] button[class*="bg-rose"] *,
+html[data-theme='light'] button[class*="bg-emerald"],
+html[data-theme='light'] button[class*="bg-emerald"] *,
+html[data-theme='light'] button[class*="bg-blue"],
+html[data-theme='light'] button[class*="bg-blue"] *,
+html[data-theme='light'] button[class*="bg-black"],
+html[data-theme='light'] button[class*="bg-black"] *,
 html[data-theme='light'] .keep-white,
 html.light button.text-white,
 html.light button .text-white,
+html.light a.text-white,
+html.light a .text-white,
 html.light .btn-primary,
-html.light [class*="bg-teal"] .text-white,
-html.light [class*="bg-[#16b09f]"] .text-white,
-html.light [class*="bg-rose"] .text-white,
-html.light [class*="bg-emerald"] .text-white,
-html.light [class*="bg-blue"] .text-white,
-html.light [class*="bg-neutral-900"] .text-white,
-html.light [class*="bg-black"] .text-white,
+html.light button[class*="bg-teal"],
+html.light button[class*="bg-teal"] *,
+html.light a[class*="bg-teal"],
+html.light a[class*="bg-teal"] *,
+html.light button[class*="bg-rose"],
+html.light button[class*="bg-rose"] *,
+html.light button[class*="bg-emerald"],
+html.light button[class*="bg-emerald"] *,
+html.light button[class*="bg-blue"],
+html.light button[class*="bg-blue"] *,
+html.light button[class*="bg-black"],
+html.light button[class*="bg-black"] *,
 html.light .keep-white {
   color: #ffffff !important;
 }
@@ -592,10 +606,6 @@ html.light .mobile-admin-app .text-neutral-500 {
 }
 
 /* White text protection on colorful buttons, badges, floating FAB, and elevated dock icons */
-html[data-theme='light'] button[style*="background"],
-html[data-theme='light'] button[style*="background-color"],
-html[data-theme='light'] a[style*="background"],
-html[data-theme='light'] a[style*="background-color"],
 html[data-theme='light'] button.btn-primary,
 html[data-theme='light'] a.btn-primary,
 html[data-theme='light'] button[class*="bg-rose-"],
@@ -610,10 +620,6 @@ html[data-theme='light'] a[class*="bg-teal-"],
 html[data-theme='light'] a[class*="bg-cyan-"],
 html[data-theme='light'] a[class*="bg-blue-"],
 html[data-theme='light'] a[class*="bg-indigo-"],
-html.light button[style*="background"],
-html.light button[style*="background-color"],
-html.light a[style*="background"],
-html.light a[style*="background-color"],
 html.light button.btn-primary,
 html.light a.btn-primary,
 html.light button[class*="bg-rose-"],
@@ -631,10 +637,6 @@ html.light a[class*="bg-indigo-"] {
   color: #ffffff !important;
 }
 
-html[data-theme='light'] button[style*="background"] *,
-html[data-theme='light'] button[style*="background-color"] *,
-html[data-theme='light'] a[style*="background"] *,
-html[data-theme='light'] a[style*="background-color"] *,
 html[data-theme='light'] button.btn-primary *,
 html[data-theme='light'] a.btn-primary *,
 html[data-theme='light'] button[class*="bg-rose-"] *,
@@ -649,10 +651,6 @@ html[data-theme='light'] a[class*="bg-teal-"] *,
 html[data-theme='light'] a[class*="bg-cyan-"] *,
 html[data-theme='light'] a[class*="bg-blue-"] *,
 html[data-theme='light'] a[class*="bg-indigo-"] *,
-html.light button[style*="background"] *,
-html.light button[style*="background-color"] *,
-html.light a[style*="background"] *,
-html.light a[style*="background-color"] *,
 html.light button.btn-primary *,
 html.light a.btn-primary *,
 html.light button[class*="bg-rose-"] *,
@@ -668,6 +666,14 @@ html.light a[class*="bg-cyan-"] *,
 html.light a[class*="bg-blue-"] *,
 html.light a[class*="bg-indigo-"] * {
   color: #ffffff !important;
+}
+
+/* Product card View Details button preserves its primaryColor text in light mode */
+html[data-theme='light'] .product-view-details-btn,
+html.light .product-view-details-btn,
+html[data-theme='light'] .product-view-details-btn *,
+html.light .product-view-details-btn * {
+  color: var(--primary-color, #16b09f) !important;
 }
 
 /* Specific high-contrast safety overrides for Project Case Study Solution and Brand Profile boxes in Light Mode */

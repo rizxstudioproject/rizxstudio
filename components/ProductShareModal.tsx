@@ -208,10 +208,10 @@ ${directUrl}`;
               {/* Package Name & Badge */}
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">
+                  <span className={`text-[10px] font-mono uppercase tracking-wider ${isLight ? "text-slate-500" : "text-neutral-400"} block`}>
                     {tr("Nama Paket:", "Nama Paket:", "Namo Paket:")}
                   </span>
-                  <p className="font-bold text-sm sm:text-base text-white">
+                  <p className={`font-bold text-sm sm:text-base ${isLight ? "text-slate-900" : "text-white"}`}>
                     {pkg.name}
                   </p>
                 </div>
@@ -230,13 +230,13 @@ ${directUrl}`;
               </div>
 
               {/* Duration & Revisions */}
-              <div className="flex flex-wrap items-center gap-3 text-[11px] text-neutral-300 font-mono py-1.5 px-3 rounded-lg bg-black/30 border border-white/5">
-                <span className="flex items-center gap-1.5 text-neutral-300">
+              <div className={`flex flex-wrap items-center gap-3 text-[11px] font-mono py-1.5 px-3 rounded-lg ${isLight ? "bg-white border border-slate-200 text-slate-700 shadow-xs" : "bg-black/30 border border-white/5 text-neutral-300"}`}>
+                <span className={`flex items-center gap-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                   <RiTimeLine className="w-3.5 h-3.5 text-[#16b09f]" />
                   <span>{pkg.duration}</span>
                 </span>
-                <span className="text-white/20">•</span>
-                <span className="flex items-center gap-1.5 text-neutral-300">
+                <span className={isLight ? "text-slate-300" : "text-white/20"}>•</span>
+                <span className={`flex items-center gap-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                   <RiRefreshLine className="w-3.5 h-3.5 text-[#16b09f]" />
                   <span>{pkg.revisions}</span>
                 </span>
@@ -251,13 +251,13 @@ ${directUrl}`;
 
               {/* Deliverables Checklist */}
               {Array.isArray(pkg.deliverables) && pkg.deliverables.length > 0 && (
-                <div className="space-y-1.5 pt-1 border-t border-white/10">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-neutral-400 block">
+                <div className={`space-y-1.5 pt-1 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
+                  <span className={`text-[10px] font-mono uppercase tracking-wider ${isLight ? "text-slate-500" : "text-neutral-400"} block`}>
                     {tr("Yang Didapatkan (Deliverables):", "Yang Didapatkan (Deliverables):", "Deliverables nan Didapek:")}
                   </span>
                   <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
                     {pkg.deliverables.map((item: string, idx: number) => (
-                      <div key={idx} className="flex items-start gap-2 text-[11px] text-neutral-300">
+                      <div key={idx} className={`flex items-start gap-2 text-[11px] ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                         <RiCheckLine className="w-3.5 h-3.5 text-[#16b09f] shrink-0 mt-0.5" />
                         <span className="leading-snug">{item}</span>
                       </div>
@@ -269,19 +269,23 @@ ${directUrl}`;
           </div>
 
           {/* Direct Link Preview Box */}
-          <div className="p-3 rounded-xl bg-black/40 border border-white/10 flex items-center justify-between gap-2 text-[11px]">
-            <div className="truncate font-mono text-neutral-400 select-all">
+          <div className={`p-3 rounded-xl border flex items-center justify-between gap-2 text-[11px] ${isLight ? "bg-slate-100 border-slate-200" : "bg-black/40 border border-white/10"}`}>
+            <div className={`truncate font-mono select-all ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               {directUrl}
             </div>
             <button
               type="button"
               onClick={handleCopyLink}
-              className="shrink-0 px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/15 text-white font-medium flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+              className={`shrink-0 px-2.5 py-1 rounded-md font-medium flex items-center gap-1 cursor-pointer transition-all active:scale-95 ${
+                isLight
+                  ? "bg-white border border-slate-300 text-slate-800 shadow-xs hover:bg-slate-50"
+                  : "bg-white/10 hover:bg-white/15 text-white"
+              }`}
             >
               {copiedLink ? (
                 <>
-                  <RiCheckLine className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-300">Tersalin!</span>
+                  <RiCheckLine className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-emerald-600 font-semibold">Tersalin!</span>
                 </>
               ) : (
                 <>
