@@ -21,6 +21,7 @@ import {
   AdminCredentials,
   authenticateAdminUser,
   updateAdminUser,
+  setActiveAdminUser,
 } from "@/lib/adminAuth";
 import MetaSEO from "./MetaSEO";
 
@@ -75,7 +76,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
     if (authResult.success && authResult.user) {
       try {
         sessionStorage.setItem("rizx_admin_session", "authenticated");
-        sessionStorage.setItem("rizx_active_admin_user", JSON.stringify(authResult.user));
+        setActiveAdminUser(authResult.user);
       } catch (_) {}
       onSuccess();
     } else {

@@ -42,7 +42,12 @@ import {
   RiHome5Fill,
 } from "react-icons/ri";
 import { useLang, toMinang, resolveTrPair } from "@/context/LanguageContext";
-import { getAdminCredentials, saveAdminCredentials } from "@/lib/adminAuth";
+import {
+  getAdminCredentials,
+  saveAdminCredentials,
+  getActiveAdminUser,
+  AdminUserItem,
+} from "@/lib/adminAuth";
 import AdminUsersManager from "@/components/admin/AdminUsersManager";
 import {
   usePortfolioData,
@@ -229,6 +234,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     return pair.en;
   };
   const [adminUser, setAdminUser] = useState("admin");
+  const [activeAdminUser, setActiveAdminUser] = useState<AdminUserItem | null>(null);
   const [adminPass, setAdminPass] = useState("");
   const [adminConfirmPass, setAdminConfirmPass] = useState("");
   const [adminEmail, setAdminEmail] = useState("rizxstudioproject@gmail.com");
@@ -237,11 +243,49 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [isSavingAccount, setIsSavingAccount] = useState(false);
 
   useEffect(() => {
+    // 1. Initial check from active session
+    const current = getActiveAdminUser();
+    if (current) {
+      setActiveAdminUser(current);
+      if (current.username) setAdminUser(current.username);
+    }
+
     getAdminCredentials().then((c) => {
-      if (c.username) setAdminUser(c.username);
+      const fromSession = getActiveAdminUser();
+      if (fromSession) {
+        setActiveAdminUser(fromSession);
+        if (fromSession.username) setAdminUser(fromSession.username);
+      } else {
+        const matched = c.adminUsers?.find(
+          (u) => (u.username || "").toLowerCase() === (c.username || "admin").toLowerCase()
+        ) || c.adminUsers?.[0] || {
+          id: "admin-root",
+          username: c.username || "admin",
+          name: c.adminUsers?.[0]?.name || c.username || "Admin",
+          email: c.email || "rizxstudioproject@gmail.com",
+          role: "superadmin",
+          password: "",
+        };
+        setActiveAdminUser(matched);
+        if (matched.username) setAdminUser(matched.username);
+      }
       if (c.email) setAdminEmail(c.email);
       if (c.secretParam) setAdminSecretKey(c.secretParam);
     });
+
+    const handleActiveUserChange = (e: Event) => {
+      const custom = e as CustomEvent<AdminUserItem | null>;
+      if (custom.detail !== undefined) {
+        setActiveAdminUser(custom.detail);
+        if (custom.detail?.username) {
+          setAdminUser(custom.detail.username);
+        }
+      }
+    };
+    window.addEventListener("rizx_active_admin_user_changed", handleActiveUserChange);
+    return () => {
+      window.removeEventListener("rizx_active_admin_user_changed", handleActiveUserChange);
+    };
   }, []);
 
   const handleSaveAccount = async (e: React.FormEvent) => {
@@ -2886,7 +2930,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           }}
           storageUsed="18.4"
           storageTotal="100"
-          adminName={adminUser === "admin" ? "Rizx Studio" : adminUser}
+          adminName={activeAdminUser?.name?.trim() || activeAdminUser?.username || "Admin"}
           totalWorks={clients.reduce((acc, c) => acc + (c.works?.length || 0), 0)}
           totalClients={clients.length}
           trashCount={trashItems.length}
@@ -2916,7 +2960,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           onTopBarSave={handleTopBarSave}
           onTopBarReset={handleTopBarReset}
           isCloudSyncActive={isCloudSyncActive}
-          adminUser={adminUser === "admin" ? "FOMY R" : adminUser}
+          adminUser={activeAdminUser?.name?.trim() || activeAdminUser?.username || "Admin"}
           onOpenAddFolder={() => setIsAddFolderOpen(true)}
           onOpenEditFolder={handleOpenEditFolder}
           onDeleteFolder={handleDeleteFolder}

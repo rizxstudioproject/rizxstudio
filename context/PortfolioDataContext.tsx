@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { antigravityData } from "@/data/projectsData";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import { saveStage3ImageToDB, getStage3ImageFromDB, clearStage3ImageFromDB } from "@/lib/sequenceStorage";
-import { getAdminCredentials, mergeAdminUserLists } from "@/lib/adminAuth";
+import { getAdminCredentials, mergeAdminUserLists, clearActiveAdminUser } from "@/lib/adminAuth";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 
 const STORAGE_KEY = "rizx_portfolio_custom_data_v1";
@@ -2101,6 +2101,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const adminLogout = useCallback(() => {
     try {
       sessionStorage.removeItem(SESSION_KEY);
+      clearActiveAdminUser();
     } catch (_) {}
     setIsAdminAuthenticated(false);
     if (typeof window !== "undefined") {

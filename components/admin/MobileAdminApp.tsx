@@ -44,6 +44,7 @@ import {
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { ClientItem } from "@/context/PortfolioDataContext";
+import { getActiveAdminUser, AdminUserItem } from "@/lib/adminAuth";
 import { AdminSidebarTab } from "./AdminSidebar";
 import ClientsWorkspace from "./ClientsWorkspace";
 import CrmAnalyticsView from "./CrmAnalyticsView";
@@ -119,7 +120,7 @@ export default function MobileAdminApp({
   onTopBarSave,
   onTopBarReset,
   isCloudSyncActive = true,
-  adminUser = "FOMY R",
+  adminUser = "Admin",
   renderWorkspaceContent,
   onOpenAddFolder,
   onOpenEditFolder,
@@ -167,6 +168,25 @@ export default function MobileAdminApp({
     { code: "min" as const, label: "MIN" },
   ];
   const activeLangIndex = Math.max(0, languagesList.findIndex((l) => l.code === lang));
+
+  const [activeAdmin, setActiveAdmin] = useState<AdminUserItem | null>(null);
+
+  useEffect(() => {
+    setActiveAdmin(getActiveAdminUser());
+    const handleActiveUserChange = (e: Event) => {
+      const custom = e as CustomEvent<AdminUserItem | null>;
+      if (custom.detail !== undefined) {
+        setActiveAdmin(custom.detail);
+      }
+    };
+    window.addEventListener("rizx_active_admin_user_changed", handleActiveUserChange);
+    return () => {
+      window.removeEventListener("rizx_active_admin_user_changed", handleActiveUserChange);
+    };
+  }, []);
+
+  const loggedInDisplayName =
+    activeAdmin?.name?.trim() || activeAdmin?.username || adminUser || "Admin";
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
@@ -639,10 +659,12 @@ export default function MobileAdminApp({
                 <div>
                   <span className="text-xs text-neutral-400 font-medium block flex items-center gap-1">
                     {tr("Selamat Datang,", "Good Morning,", "Salamaik Datang,")}
-                    <span className="text-[10px] text-teal-400 font-mono font-semibold underline ml-1">Admin ⚙</span>
+                    <span className="text-[10px] text-teal-400 font-mono font-semibold underline ml-1 capitalize">
+                      {activeAdmin?.role || "Admin"} ⚙
+                    </span>
                   </span>
-                  <h1 className="text-lg font-extrabold tracking-tight group-hover:text-teal-400 transition-colors">
-                    {adminUser === "admin" ? "FOMY R" : adminUser}
+                  <h1 className="text-lg font-extrabold tracking-tight group-hover:text-teal-400 transition-colors uppercase">
+                    {loggedInDisplayName}
                   </h1>
                 </div>
               </div>

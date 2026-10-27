@@ -24,6 +24,8 @@ import {
   addAdminUser,
   updateAdminUser,
   deleteAdminUser,
+  getActiveAdminUser,
+  setActiveAdminUser,
   AdminUserItem,
   AdminCredentials,
 } from "@/lib/adminAuth";
@@ -200,6 +202,21 @@ export default function AdminUsersManager({ showToast }: AdminUsersManagerProps)
         setFormError(res.error || "Gagal memperbarui akun.");
         setIsSubmitting(false);
         return;
+      }
+
+      const active = getActiveAdminUser();
+      if (
+        active &&
+        (active.id === editingUser.id ||
+          active.username.toLowerCase() === editingUser.username.toLowerCase())
+      ) {
+        setActiveAdminUser({
+          ...active,
+          username: cleanUser,
+          name: name.trim() || cleanUser,
+          email: email.trim().toLowerCase(),
+          role,
+        });
       }
 
       await loadUsers();

@@ -27,7 +27,7 @@ export const DEFAULT_ADMIN_USERS: AdminUserItem[] = [
     password: "rizxstudio2026",
     email: "rizxstudioproject@gmail.com",
     role: "superadmin",
-    name: "Super Admin",
+    name: "FOMY R",
     createdAt: "2026-01-01T00:00:00.000Z",
   },
 ];
@@ -64,7 +64,7 @@ function ensureAdminUsers(parsed: any): AdminUserItem[] {
       password: rootPass,
       email: rootEmail,
       role: "superadmin",
-      name: "Super Admin",
+      name: "FOMY R",
       createdAt: new Date().toISOString(),
     });
   } else {
@@ -400,4 +400,44 @@ export async function authenticateAdminUser(
   }
 
   return { success: false, error: "Username atau password salah." };
+}
+
+const ACTIVE_USER_KEY = "rizx_active_admin_user";
+
+export function getActiveAdminUser(): AdminUserItem | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(ACTIVE_USER_KEY) || localStorage.getItem(ACTIVE_USER_KEY);
+    if (raw) {
+      return JSON.parse(raw);
+    }
+  } catch (_) {}
+  return null;
+}
+
+export function setActiveAdminUser(user: AdminUserItem | null): void {
+  if (typeof window === "undefined") return;
+  try {
+    if (user) {
+      const payload = JSON.stringify(user);
+      sessionStorage.setItem(ACTIVE_USER_KEY, payload);
+      localStorage.setItem(ACTIVE_USER_KEY, payload);
+      window.dispatchEvent(
+        new CustomEvent("rizx_active_admin_user_changed", { detail: user })
+      );
+    } else {
+      clearActiveAdminUser();
+    }
+  } catch (_) {}
+}
+
+export function clearActiveAdminUser(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(ACTIVE_USER_KEY);
+    localStorage.removeItem(ACTIVE_USER_KEY);
+    window.dispatchEvent(
+      new CustomEvent("rizx_active_admin_user_changed", { detail: null })
+    );
+  } catch (_) {}
 }
