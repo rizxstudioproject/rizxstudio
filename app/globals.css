@@ -1092,11 +1092,123 @@ img, canvas {
   user-select: none;
 }
 
-/* Anti-Print / Anti-Export: Blanks out view during print or save-as-PDF attempts */
+/* ========================================================
+   PRINT STYLES FOR OFFICIAL INVOICES & RECEIPTS
+   Ensures receipts and invoices print clearly on paper or PDF
+   without printing background UI elements or blank pages
+   ======================================================== */
+@page {
+  margin: 10mm;
+  size: auto;
+}
+
 @media print {
   html, body {
+    display: block !important;
+    visibility: visible !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide background website elements and navigation */
+  .no-print,
+  nav,
+  header,
+  footer,
+  aside,
+  #hero-scrolly,
+  [data-no-print="true"] {
     display: none !important;
     visibility: hidden !important;
+  }
+
+  /* Un-fix modal backdrops so printing prints receipt naturally */
+  .receipt-modal-backdrop {
+    position: static !important;
+    inset: auto !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  .receipt-modal-window {
+    position: static !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    overflow: visible !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+  }
+
+  .print-receipt-paper {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 12px !important;
+    box-shadow: none !important;
+    padding: 20px !important;
+    margin: 0 auto !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  .print-receipt-paper * {
+    color: #0f172a !important;
+    border-color: #e2e8f0 !important;
+  }
+
+  .print-receipt-paper h3,
+  .print-receipt-paper strong,
+  .print-receipt-paper b {
+    color: #020617 !important;
+  }
+
+  .print-receipt-paper .text-teal-400,
+  .print-receipt-paper .text-teal-300,
+  .print-receipt-paper .text-cyan-400,
+  .print-receipt-paper .text-\[\#16b09f\] {
+    color: #0f766e !important; /* legible print teal */
+  }
+
+  .print-receipt-paper .text-neutral-400,
+  .print-receipt-paper .text-neutral-500 {
+    color: #64748b !important;
+  }
+
+  .print-receipt-paper .bg-teal-500\/10,
+  .print-receipt-paper .bg-teal-500\/20 {
+    background-color: #f0fdfa !important;
+    border-color: #99f6e4 !important;
+  }
+
+  .print-receipt-paper .bg-black\/40,
+  .print-receipt-paper .bg-black\/50,
+  .print-receipt-paper .bg-black\/60,
+  .print-receipt-paper .bg-white\/\[0\.02\],
+  .print-receipt-paper .bg-white\/\[0\.03\],
+  .print-receipt-paper .bg-white\/5 {
+    background-color: #f8fafc !important;
+    border-color: #e2e8f0 !important;
+    color: #0f172a !important;
+  }
+
+  .print-receipt-paper img {
+    max-width: 100% !important;
+    page-break-inside: avoid !important;
   }
 }
 

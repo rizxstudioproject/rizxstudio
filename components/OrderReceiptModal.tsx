@@ -161,10 +161,10 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
   const isVerified = activeReceipt.status === "verifying" || activeReceipt.status === "in_progress";
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/85 backdrop-blur-md animate-fadeIn overflow-y-auto">
+    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-5 md:p-8 bg-black/85 backdrop-blur-md animate-fadeIn overflow-y-auto receipt-modal-backdrop">
       {/* Modal Dialog Window */}
       <div
-        className={`relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden transition-all duration-300 ${
+        className={`relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl border shadow-2xl overflow-hidden transition-all duration-300 receipt-modal-window ${
           isLight ? "bg-slate-50 border-slate-300 text-slate-900" : "bg-[#0c0e13] border-white/15 text-white"
         }`}
       >
@@ -188,8 +188,8 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
               title="Cetak Resi / Simpan PDF"
               className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition cursor-pointer text-xs flex items-center gap-1.5"
             >
-              <RiPrinterLine className="w-4 h-4" />
-              <span className="hidden sm:inline font-mono">Cetak</span>
+              <RiPrinterLine className="w-4 h-4 text-emerald-400" />
+              <span className="font-mono">{tr("Cetak Resi", "Cetak Resi", "Cetak Resi")}</span>
             </button>
 
             <button
@@ -207,7 +207,7 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
         <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6 print-container">
           {/* Printable Receipt Paper Container */}
           <div
-            className={`rounded-2xl border p-5 sm:p-7 space-y-5 transition-all ${
+            className={`rounded-2xl border p-5 sm:p-7 space-y-5 transition-all print-receipt-paper ${
               isLight
                 ? "bg-white border-slate-200/90 shadow-md"
                 : "bg-[#11141b] border-white/10 shadow-2xl"
@@ -545,7 +545,16 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
               <span>Kirim Resi & Konfirmasi ke WhatsApp Admin untuk Segera Diproses 💬</span>
             </button>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={handlePrint}
+                className="py-2.5 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+              >
+                <RiPrinterLine className="w-4 h-4 text-emerald-400" />
+                <span>{tr("Print / PDF", "Cetak / Simpan PDF", "Cetak / Simpan PDF")}</span>
+              </button>
+
               {onOpenTracker && (
                 <button
                   type="button"
@@ -553,7 +562,7 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
                   className="py-2.5 px-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-xs font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <RiCompass3Line className="w-4 h-4 text-cyan-400" />
-                  <span>Buka Live Tracker Proyek ({activeReceipt.refCode})</span>
+                  <span>{tr("Live Tracker", `Tracker (${activeReceipt.refCode})`, `Tracker (${activeReceipt.refCode})`)}</span>
                 </button>
               )}
 
@@ -562,7 +571,7 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
                 onClick={onClose}
                 className="py-2.5 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white text-xs font-medium transition cursor-pointer text-center"
               >
-                Selesai / Tutup
+                {tr("Close", "Selesai / Tutup", "Salasai / Tutuik")}
               </button>
             </div>
           </div>
