@@ -97,8 +97,24 @@ export default function HeroBannerWorkspace({
   const [hbSeqFolder, setHbSeqFolder] = useState(heroBanner?.sequenceFolder || "/sequence");
   const [hbSeqPattern, setHbSeqPattern] = useState(heroBanner?.sequencePattern || "frame_{padded}.webp");
   const [hbSeqPadding, setHbSeqPadding] = useState(heroBanner?.sequencePadding || 6);
+  const [hbSeqStart, setHbSeqStart] = useState(heroBanner?.sequenceStartIndex ?? 0);
   const [hbSeqMouseTracking, setHbSeqMouseTracking] = useState(heroBanner?.sequenceMouseTracking !== false);
   const [hbSeqMouseIntensity, setHbSeqMouseIntensity] = useState(heroBanner?.sequenceMouseIntensity || 26);
+
+  const [hbSeqFrontImage, setHbSeqFrontImage] = useState(heroBanner?.sequenceFrontImage || "/front.webp");
+  const [hbSeqMaskImage, setHbSeqMaskImage] = useState(heroBanner?.sequenceMaskImage || "/mask.webp");
+  const [isUploadingFront, setIsUploadingFront] = useState(false);
+  const [isUploadingMask, setIsUploadingMask] = useState(false);
+  const frontFileInputRef = useRef<HTMLInputElement>(null);
+  const maskFileInputRef = useRef<HTMLInputElement>(null);
+
+  const [seqActiveTab, setSeqActiveTab] = useState<"folder" | "frontmask" | "upload">("folder");
+  const [seqPreviewMode, setSeqPreviewMode] = useState<"sequence" | "front" | "mask" | "reveal">("sequence");
+  const [mobileRevealPos, setMobileRevealPos] = useState<{ x: number; y: number; isHovering: boolean }>({
+    x: 0.5,
+    y: 0.5,
+    isHovering: false,
+  });
 
   // Interactive sequence scrubber in Admin
   const [seqScrubIdx, setSeqScrubIdx] = useState(0);
@@ -122,8 +138,11 @@ export default function HeroBannerWorkspace({
       setHbSeqFolder(heroBanner.sequenceFolder || "/sequence");
       setHbSeqPattern(heroBanner.sequencePattern || "frame_{padded}.webp");
       setHbSeqPadding(heroBanner.sequencePadding || 6);
+      setHbSeqStart(heroBanner.sequenceStartIndex ?? 0);
       setHbSeqMouseTracking(heroBanner.sequenceMouseTracking !== false);
       setHbSeqMouseIntensity(heroBanner.sequenceMouseIntensity || 26);
+      setHbSeqFrontImage(heroBanner.sequenceFrontImage || "/front.webp");
+      setHbSeqMaskImage(heroBanner.sequenceMaskImage || "/mask.webp");
     }
   }, [heroBanner]);
 
@@ -214,6 +233,130 @@ export default function HeroBannerWorkspace({
       notify("error", tr("Upload Gagal", "Upload Failed", "Upload Gagal"), tr("Gagal mengupload file sequence.", "Failed to upload sequence frames.", "Gagal mengupload file sequence."));
     } finally {
       setSeqIsUploading(false);
+    }
+  };
+
+  const handleApplyFolderConfig = async () => {
+    setHbSeqMode("folder");
+    setSeqPreviewUrls([]);
+    await updateHeroBannerData({
+      sequenceMode: "folder",
+      sequenceFolder: hbSeqFolder.trim() || "/sequence",
+      sequencePattern: hbSeqPattern.trim() || "frame_{padded}.webp",
+      sequenceTotalFrames: Number(hbSeqTotal) || 108,
+      sequencePadding: Number(hbSeqPadding) ?? 6,
+      sequenceStartIndex: Number(hbSeqStart) ?? 0,
+      sequenceCustomFrames: [],
+    });
+    notify(
+      "success",
+      tr("Folder Diterapkan!", "Folder Applied!", "Folder Diterapkan!"),
+      tr("Pengaturan folder sequence foto berhasil diterapkan.", "Folder sequence settings applied successfully.", "Folder sequence barasil disimpan.")
+    );
+  };
+
+  const handleUploadFrontImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingFront(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "hero-sequence");
+      const res = await fetch("/api/admin/media-upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setHbSeqFrontImage(data.url);
+        await updateHeroBannerData({ sequenceFrontImage: data.url });
+        notify(
+          "success",
+          tr("Upload Berhasil", "Upload Success", "Upload Barasil"),
+          tr("Foto Front (Potret Utama) berhasil diupload & diganti!", "Front portrait photo successfully updated!", "Foto Front barasil diupload!")
+        );
+      } else {
+        throw new Error(data.error || "Upload gagal");
+      }
+    } catch (err: any) {
+      notify("error", tr("Upload Gagal", "Upload Failed", "Upload Gagal"), err.message || "Gagal upload foto front");
+    } finally {
+      setIsUploadingFront(false);
+      if (frontFileInputRef.current) frontFileInputRef.current.value = "";
+    }
+  };
+
+  const handleUploadMaskImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingMask(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "hero-sequence");
+      const res = await fetch("/api/admin/media-upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setHbSeqMaskImage(data.url);
+        await updateHeroBannerData({ sequenceMaskImage: data.url });
+        notify(
+          "success",
+          tr("Upload Berhasil", "Upload Success", "Upload Barasil"),
+          tr("Foto Mask (Cyber Suit / Spotlight Reveal) berhasil diupload & diganti!", "Mask reveal photo successfully updated!", "Foto Mask barasil diupload!")
+        );
+      } else {
+        throw new Error(data.error || "Upload gagal");
+      }
+    } catch (err: any) {
+      notify("error", tr("Upload Gagal", "Upload Failed", "Upload Gagal"), err.message || "Gagal upload foto mask");
+    } finally {
+      setIsUploadingMask(false);
+      if (maskFileInputRef.current) maskFileInputRef.current.value = "";
+    }
+  };
+
+  const handleApplyFrontMaskConfig = async () => {
+    await updateHeroBannerData({
+      sequenceFrontImage: hbSeqFrontImage.trim() || "/front.webp",
+      sequenceMaskImage: hbSeqMaskImage.trim() || "/mask.webp",
+    });
+    notify(
+      "success",
+      tr("Tersimpan!", "Saved!", "Tasimpan!"),
+      tr("File Foto Front & Mask berhasil disimpan.", "Front & Mask photo files saved successfully.", "Foto Front & Mask barasil disimpan.")
+    );
+  };
+
+  const handleResetSequenceDefault = async () => {
+    if (window.confirm(tr("Kembalikan sequence foto Hero ke default (108 Frame & file bawaan)?", "Reset Hero sequence to default (108 frames & default files)?", "Kembalikan sequence ka default?"))) {
+      setHbSeqMode("default");
+      setHbSeqTotal(108);
+      setHbSeqFolder("/sequence");
+      setHbSeqPattern("frame_{padded}.webp");
+      setHbSeqPadding(6);
+      setHbSeqStart(0);
+      setHbSeqFrontImage("/front.webp");
+      setHbSeqMaskImage("/mask.webp");
+      setSeqSelectedFiles([]);
+      setSeqPreviewUrls([]);
+      setSeqScrubIdx(0);
+      setSeqIsAutoPlaying(false);
+      await clearCustomFramesFromDB();
+      fetch("/api/admin/sequence-upload", { method: "DELETE" }).catch(() => {});
+      await updateHeroBannerData({
+        sequenceMode: "default",
+        sequenceTotalFrames: 108,
+        sequenceFolder: "/sequence",
+        sequencePattern: "frame_{padded}.webp",
+        sequencePadding: 6,
+        sequenceStartIndex: 0,
+        sequenceCustomFrames: [],
+        sequenceFrontImage: "/front.webp",
+        sequenceMaskImage: "/mask.webp",
+      });
+      notify(
+        "info",
+        tr("Reset Default", "Reset to Default", "Reset Default"),
+        tr("Sequence foto Hero & file Front/Mask dikembalikan ke bawaan.", "Hero photo sequence & Front/Mask reset to default.", "Sequence dikembalikan ka default.")
+      );
     }
   };
 
@@ -689,66 +832,235 @@ export default function HeroBannerWorkspace({
             </div>
           </div>
 
-          {/* Sequence Foto Hero Scroller & Uploader */}
+          {/* Sequence Foto Hero Scroller & Uploader (Mobile & Responsive) */}
           <div
-            className={`p-5 rounded-2xl border space-y-5 ${
+            className={`p-4 sm:p-5 rounded-2xl border space-y-4 ${
               isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
             }`}
           >
+            {/* Header & Reset Button */}
             <div className="flex items-center justify-between border-b pb-3 border-white/10 flex-wrap gap-2">
               <div>
                 <h3 className={`text-sm font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                   <RiCompass3Fill className="w-4 h-4 text-[#16b09f]" />
-                  <span>{tr("Sequence Foto Hero (121 Frame 3D)", "Hero Sequence (121 3D Frames)", "Sequence Foto Hero")}</span>
+                  <span>{tr("Sequence Foto Hero & Front-Mask", "Hero Sequence & Front-Mask", "Sequence Foto Hero & Front-Mask")}</span>
                 </h3>
                 <span className="text-[10px] font-mono text-neutral-400 block mt-0.5">
                   {hbSeqMode === "default"
-                    ? tr("Mode: Bawaan (121 Frame WebP)", "Mode: Default (121 WebP Frames)", "Mode: Default (121 Frame)")
-                    : tr(`Mode: Kustom (${activeScrubberFrames.length} Frame)`, `Mode: Custom (${activeScrubberFrames.length} Frames)`, `Mode: Kustom (${activeScrubberFrames.length} Frame)`)}
+                    ? tr("Mode: Bawaan (108 Frame WebP)", "Mode: Default (108 WebP Frames)", "Mode: Default (108 Frame)")
+                    : tr(`Mode: Folder / Kustom (${activeScrubberFrames.length} Frame)`, `Mode: Folder / Custom (${activeScrubberFrames.length} Frames)`, `Mode: Kustom (${activeScrubberFrames.length} Frame)`)}
                 </span>
               </div>
+
+              <button
+                type="button"
+                onClick={handleResetSequenceDefault}
+                className="px-2.5 py-1 rounded-lg text-[10px] font-mono transition-all border border-rose-500/30 text-rose-400 hover:bg-rose-500/10 cursor-pointer active:scale-95 flex items-center gap-1"
+              >
+                <RiRefreshLine className="w-3 h-3" />
+                <span>{tr("Reset Default", "Reset Default", "Reset")}</span>
+              </button>
             </div>
 
-            {/* Visual Frame Scrubber */}
-            <div className="space-y-3">
-              <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-xl overflow-hidden bg-black border border-white/15 flex items-center justify-center shadow-lg">
-                {activeScrubberFrames.length > 0 ? (
-                  <img
-                    src={activeScrubberFrames[Math.min(seqScrubIdx, Math.max(0, activeScrubberFrames.length - 1))]}
-                    alt="Sequence preview"
-                    className="w-full h-full object-cover select-none"
-                  />
-                ) : (
-                  <span className="text-xs font-mono text-neutral-500">No frames loaded</span>
-                )}
+            {/* Preview Mode Switcher */}
+            <div className={`flex items-center gap-1 p-1 rounded-xl border overflow-x-auto ${
+              isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-950 border border-white/10"
+            }`}>
+              <button
+                type="button"
+                onClick={() => setSeqPreviewMode("sequence")}
+                className={`flex-1 min-w-[95px] py-1.5 px-2 text-[11px] font-mono rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 shrink-0 ${
+                  seqPreviewMode === "sequence"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
+                    : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <RiImageFill className="w-3.5 h-3.5" />
+                <span>Sequence (108)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSeqPreviewMode("front")}
+                className={`flex-1 min-w-[70px] py-1.5 px-2 text-[11px] font-mono rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 shrink-0 ${
+                  seqPreviewMode === "front"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
+                    : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <span>Front</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSeqPreviewMode("mask")}
+                className={`flex-1 min-w-[75px] py-1.5 px-2 text-[11px] font-mono rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 shrink-0 ${
+                  seqPreviewMode === "mask"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
+                    : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <span>Mask (Suit)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSeqPreviewMode("reveal")}
+                className={`flex-1 min-w-[85px] py-1.5 px-2 text-[11px] font-mono rounded-lg transition-all cursor-pointer flex items-center justify-center gap-1 shrink-0 ${
+                  seqPreviewMode === "reveal"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
+                    : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <RiEyeLine className="w-3.5 h-3.5" />
+                <span>{tr("Uji Reveal", "Test Reveal", "Uji Reveal")}</span>
+              </button>
+            </div>
 
-                {/* Frame Badge */}
-                <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md border border-white/10 text-[9px] font-mono text-white flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse" />
-                  <span>FRAME {Math.min(seqScrubIdx + 1, activeScrubberFrames.length)} / {activeScrubberFrames.length}</span>
-                </div>
-
-                {/* Play/Pause Button */}
-                <button
-                  type="button"
-                  onClick={() => setSeqIsAutoPlaying(!seqIsAutoPlaying)}
-                  className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md bg-black/75 hover:bg-neutral-800 text-white text-[10px] font-mono font-semibold border border-white/20 backdrop-blur-md flex items-center gap-1 transition-all cursor-pointer"
-                >
-                  {seqIsAutoPlaying ? (
-                    <>
-                      <RiPauseFill className="w-3 h-3 text-[#16b09f]" />
-                      <span>PAUSE</span>
-                    </>
+            {/* Visual Screen Box (Supports Mouse & Mobile Touch Drag) */}
+            <div className="relative w-full aspect-[16/10] sm:aspect-[16/9] rounded-xl overflow-hidden bg-black border border-white/15 flex items-center justify-center shadow-lg select-none">
+              {/* MODE 1: SEQUENCE SCRUBBER */}
+              {seqPreviewMode === "sequence" && (
+                <>
+                  {activeScrubberFrames.length > 0 ? (
+                    <img
+                      src={activeScrubberFrames[Math.min(seqScrubIdx, Math.max(0, activeScrubberFrames.length - 1))]}
+                      alt="Sequence preview"
+                      className="w-full h-full object-cover select-none pointer-events-none"
+                    />
                   ) : (
-                    <>
-                      <RiPlayFill className="w-3 h-3 text-[#16b09f]" />
-                      <span>PLAY</span>
-                    </>
+                    <span className="text-xs font-mono text-neutral-500">No frames loaded</span>
                   )}
-                </button>
-              </div>
 
-              {/* Scrubber slider */}
+                  <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md border border-white/10 text-[9px] font-mono text-white flex items-center gap-1 pointer-events-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse" />
+                    <span>FRAME {Math.min(seqScrubIdx + 1, activeScrubberFrames.length)} / {activeScrubberFrames.length}</span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setSeqIsAutoPlaying(!seqIsAutoPlaying)}
+                    className="absolute top-2.5 right-2.5 px-2.5 py-1 rounded-md bg-black/75 hover:bg-neutral-800 text-white text-[10px] font-mono font-semibold border border-white/20 backdrop-blur-md flex items-center gap-1 transition-all cursor-pointer active:scale-95"
+                  >
+                    {seqIsAutoPlaying ? (
+                      <>
+                        <RiPauseFill className="w-3 h-3 text-[#16b09f]" />
+                        <span>PAUSE</span>
+                      </>
+                    ) : (
+                      <>
+                        <RiPlayFill className="w-3 h-3 text-[#16b09f]" />
+                        <span>PLAY</span>
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
+
+              {/* MODE 2: FRONT IMAGE */}
+              {seqPreviewMode === "front" && (
+                <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
+                  <img
+                    src={hbSeqFrontImage || "/front.webp"}
+                    alt="Front Portrait Preview"
+                    className="w-full h-full object-cover select-none"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "/front.webp";
+                    }}
+                  />
+                  <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md border border-white/10 text-[9px] font-mono text-white flex items-center gap-1 pointer-events-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f]" />
+                    <span>FOTO FRONT (POTRET UTAMA)</span>
+                  </div>
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 px-2.5 py-1 rounded bg-black/85 backdrop-blur-md text-white text-[10px] font-mono truncate border border-white/10">
+                    {hbSeqFrontImage || "/front.webp"}
+                  </div>
+                </div>
+              )}
+
+              {/* MODE 3: MASK IMAGE */}
+              {seqPreviewMode === "mask" && (
+                <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
+                  <img
+                    src={hbSeqMaskImage || "/mask.webp"}
+                    alt="Mask Cyber Suit Preview"
+                    className="w-full h-full object-cover select-none"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = "/mask.webp";
+                    }}
+                  />
+                  <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-black/80 backdrop-blur-md border border-white/10 text-[9px] font-mono text-white flex items-center gap-1 pointer-events-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                    <span>FOTO MASK (CYBER SUIT REVEAL)</span>
+                  </div>
+                  <div className="absolute bottom-2.5 left-2.5 right-2.5 px-2.5 py-1 rounded bg-black/85 backdrop-blur-md text-white text-[10px] font-mono truncate border border-white/10">
+                    {hbSeqMaskImage || "/mask.webp"}
+                  </div>
+                </div>
+              )}
+
+              {/* MODE 4: INTERACTIVE REVEAL TEST (TOUCH & MOUSE ENABLED) */}
+              {seqPreviewMode === "reveal" && (
+                <div
+                  className="relative w-full h-full overflow-hidden cursor-crosshair bg-neutral-950 touch-none"
+                  onMouseMove={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setMobileRevealPos({
+                      x: Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)),
+                      y: Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height)),
+                      isHovering: true,
+                    });
+                  }}
+                  onMouseLeave={() => setMobileRevealPos((prev) => ({ ...prev, isHovering: false }))}
+                  onTouchStart={(e) => {
+                    const touch = e.touches[0];
+                    if (!touch) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setMobileRevealPos({
+                      x: Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width)),
+                      y: Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height)),
+                      isHovering: true,
+                    });
+                  }}
+                  onTouchMove={(e) => {
+                    const touch = e.touches[0];
+                    if (!touch) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setMobileRevealPos({
+                      x: Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width)),
+                      y: Math.max(0, Math.min(1, (touch.clientY - rect.top) / rect.height)),
+                      isHovering: true,
+                    });
+                  }}
+                  onTouchEnd={() => setMobileRevealPos((prev) => ({ ...prev, isHovering: false }))}
+                >
+                  <img
+                    src={hbSeqFrontImage || "/front.webp"}
+                    alt="Front Base"
+                    className="w-full h-full object-cover select-none pointer-events-none"
+                  />
+                  {mobileRevealPos.isHovering && (
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        maskImage: `radial-gradient(circle 90px at ${mobileRevealPos.x * 100}% ${mobileRevealPos.y * 100}%, black 0%, black 50%, transparent 100%)`,
+                        WebkitMaskImage: `radial-gradient(circle 90px at ${mobileRevealPos.x * 100}% ${mobileRevealPos.y * 100}%, black 0%, black 50%, transparent 100%)`,
+                      }}
+                    >
+                      <img
+                        src={hbSeqMaskImage || "/mask.webp"}
+                        alt="Mask Overlay"
+                        className="w-full h-full object-cover select-none pointer-events-none"
+                      />
+                    </div>
+                  )}
+                  <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-md bg-black/85 backdrop-blur-md border border-white/10 text-[9px] font-mono text-white flex items-center gap-1.5 pointer-events-none">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse" />
+                    <span>{tr("SENTUH & GESER JARI UNTUK SPOTLIGHT REVEAL", "TOUCH & DRAG TO TEST SPOTLIGHT REVEAL", "SENTUH UNTUK REVEAL")}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Scrubber Range Slider Control (Only for Sequence mode) */}
+            {seqPreviewMode === "sequence" && (
               <div className="space-y-1">
                 <input
                   type="range"
@@ -759,17 +1071,400 @@ export default function HeroBannerWorkspace({
                     setSeqScrubIdx(Number(e.target.value));
                     setSeqIsAutoPlaying(false);
                   }}
-                  className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#16b09f] bg-neutral-800"
+                  className="w-full h-2 rounded-lg appearance-none cursor-pointer accent-[#16b09f] bg-neutral-800"
                 />
-                <div className="flex justify-between text-[10px] font-mono text-neutral-500">
+                <div className="flex justify-between text-[10px] font-mono text-neutral-400">
                   <span>0% Awal</span>
-                  <span className="text-[#16b09f]">Geser untuk scrub frame</span>
+                  <span className="text-[#16b09f]">Geser untuk memutar frame</span>
                   <span>100% Akhir</span>
                 </div>
               </div>
+            )}
 
-              {/* Batch Upload trigger */}
-              <div className="pt-2">
+            {/* Mobile Sub-Tabs: 1. Folder | 2. Front & Mask | 3. Batch Upload */}
+            <div className={`flex p-1 rounded-xl border ${
+              isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-950 border border-white/10"
+            }`}>
+              <button
+                type="button"
+                onClick={() => setSeqActiveTab("folder")}
+                className={`flex-1 py-1.5 text-[11px] sm:text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
+                  seqActiveTab === "folder"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
+                    : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                {tr("1. Folder", "1. Folder", "1. Folder")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSeqActiveTab("frontmask")}
+                className={`flex-1 py-1.5 text-[11px] sm:text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
+                  seqActiveTab === "frontmask"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
+                    : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                {tr("2. Front & Mask", "2. Front & Mask", "2. Front & Mask")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSeqActiveTab("upload")}
+                className={`flex-1 py-1.5 text-[11px] sm:text-xs font-mono font-medium rounded-lg transition-all cursor-pointer ${
+                  seqActiveTab === "upload"
+                    ? "bg-[#16b09f] text-black font-bold shadow-sm"
+                    : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                {tr("3. Batch Upload", "3. Batch Upload", "3. Batch Upload")}
+              </button>
+            </div>
+
+            {/* TAB 1: FOLDER & PATTERN CONFIGURATION */}
+            {seqActiveTab === "folder" && (
+              <div className={`p-3.5 sm:p-4 rounded-xl border space-y-3 ${
+                isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-950/70 border-white/10"
+              }`}>
+                <div>
+                  <span className={`text-xs font-semibold block ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {tr("Konfigurasi Path Folder / URL Sequence", "Sequence Folder Path / URL", "Path Folder Sequence")}
+                  </span>
+                  <p className={`text-[10px] sm:text-[11px] mt-0.5 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                    {tr("Arahkan ke folder static atau CDN hosting rangkaian frame foto.", "Point to static folder or CDN hosting image sequence frames.", "Arahkan ka folder static.")}
+                  </p>
+                </div>
+
+                {/* Quick Preset Buttons */}
+                <div className="space-y-1">
+                  <span className={`text-[9px] sm:text-[10px] font-mono uppercase tracking-wider block ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                    {tr("Preset Cepat:", "Quick Presets:", "Preset:")}
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHbSeqFolder("/sequence");
+                        setHbSeqPattern("frame_{padded}.webp");
+                        setHbSeqTotal(108);
+                        setHbSeqPadding(6);
+                        setHbSeqStart(0);
+                        notify("info", "Preset Dipilih", "Folder Lokal (/sequence - 108 Frame) aktif.");
+                      }}
+                      className="px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/40 transition-all cursor-pointer active:scale-95"
+                    >
+                      📁 Folder Lokal (/sequence)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHbSeqFolder("https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/sequence");
+                        setHbSeqPattern("frame_{padded}.webp");
+                        setHbSeqTotal(108);
+                        setHbSeqPadding(6);
+                        setHbSeqStart(0);
+                        notify("info", "Preset Dipilih", "Supabase CDN Sequence aktif.");
+                      }}
+                      className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-medium border transition-all cursor-pointer active:scale-95 ${
+                        isLight ? "bg-white hover:bg-slate-100 text-slate-700 border-slate-300" : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
+                      }`}
+                    >
+                      ☁️ Supabase CDN
+                    </button>
+                  </div>
+                </div>
+
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <label className={`text-[10px] sm:text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                      Folder / Base URL
+                    </label>
+                    <input
+                      type="text"
+                      value={hbSeqFolder}
+                      onChange={(e) => setHbSeqFolder(e.target.value)}
+                      placeholder="/sequence"
+                      className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                        isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                      }`}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className={`text-[10px] sm:text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                        File Pattern
+                      </label>
+                      <input
+                        type="text"
+                        value={hbSeqPattern}
+                        onChange={(e) => setHbSeqPattern(e.target.value)}
+                        placeholder="frame_{padded}.webp"
+                        className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                          isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                        }`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`text-[10px] sm:text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                        Total Frame
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={300}
+                        value={hbSeqTotal}
+                        onChange={(e) => setHbSeqTotal(Number(e.target.value))}
+                        className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                          isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className={`text-[10px] sm:text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                        Zero Padding
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={10}
+                        value={hbSeqPadding}
+                        onChange={(e) => setHbSeqPadding(Number(e.target.value))}
+                        placeholder="6"
+                        className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                          isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                        }`}
+                      />
+                    </div>
+
+                    <div>
+                      <label className={`text-[10px] sm:text-[11px] font-mono block mb-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                        Start Index
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={1}
+                        value={hbSeqStart}
+                        onChange={(e) => setHbSeqStart(Number(e.target.value))}
+                        placeholder="0"
+                        className={`w-full px-3 py-1.5 rounded-lg border font-mono text-xs focus:border-[#16b09f] focus:outline-none ${
+                          isLight ? "bg-white border-slate-200 text-slate-900" : "bg-neutral-900 border-white/15 text-white"
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleApplyFolderConfig}
+                  className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm border transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${
+                    isLight
+                      ? "bg-slate-800 hover:bg-slate-700 text-white border-slate-700 shadow-sm"
+                      : "bg-neutral-800 hover:bg-neutral-700 text-white border-white/15 shadow-sm"
+                  }`}
+                >
+                  <RiCheckLine className="w-4 h-4 text-[#16b09f]" />
+                  <span>{tr("Terapkan Folder & Muat Sequence", "Apply Folder & Load Sequence", "Terapkan Folder")}</span>
+                </button>
+              </div>
+            )}
+
+            {/* TAB 2: FILE FRONT & MASK (CAN BE REPLACED / UPLOADED DIRECTLY ON MOBILE) */}
+            {seqActiveTab === "frontmask" && (
+              <div className={`p-3.5 sm:p-4 rounded-xl border space-y-3 ${
+                isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-950/70 border-white/10"
+              }`}>
+                <div>
+                  <span className={`text-xs font-semibold block ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {tr("File Front & Mask (Motion Mouse Reveal)", "Front & Mask Files", "File Front & Mask")}
+                  </span>
+                  <p className={`text-[10px] sm:text-[11px] mt-0.5 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                    {tr("Ganti foto potret normal dan foto efek reveal cyber suit.", "Replace normal portrait and cyber suit reveal photos.", "Ganti foto potret jo cyber suit.")}
+                  </p>
+                </div>
+
+                {/* Hidden file inputs */}
+                <input
+                  ref={frontFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadFrontImage}
+                  className="hidden"
+                />
+                <input
+                  ref={maskFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadMaskImage}
+                  className="hidden"
+                />
+
+                {/* Card 1: Front Photo */}
+                <div className={`p-3 rounded-xl border space-y-2 ${
+                  isLight ? "bg-white border-slate-200 shadow-2xs" : "bg-neutral-900/60 border-white/10"
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
+                      <span className="w-2 h-2 rounded-full bg-[#16b09f]" />
+                      {tr("1. Foto Front (Potret Utama)", "1. Front Photo (Normal Portrait)", "1. Foto Front")}
+                    </span>
+                    <span className="text-[9px] font-mono text-[#16b09f] font-semibold">
+                      {hbSeqFrontImage.startsWith("/") ? "Lokal" : "CDN / Cloud"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-black shrink-0 border border-white/10 relative">
+                      <img
+                        src={hbSeqFrontImage || "/front.webp"}
+                        alt="Front thumbnail"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = "/front.webp";
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex-1 space-y-1.5 min-w-0">
+                      <input
+                        type="text"
+                        value={hbSeqFrontImage}
+                        onChange={(e) => setHbSeqFrontImage(e.target.value)}
+                        placeholder="/front.webp"
+                        className={`w-full px-2 py-1 rounded-lg border font-mono text-[10px] sm:text-[11px] truncate focus:border-[#16b09f] focus:outline-none ${
+                          isLight ? "bg-slate-50 border-slate-200 text-slate-900" : "bg-neutral-800 border-white/15 text-white"
+                        }`}
+                      />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => frontFileInputRef.current?.click()}
+                          disabled={isUploadingFront}
+                          className="px-2 py-1 rounded-lg bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 disabled:opacity-50"
+                        >
+                          {isUploadingFront ? (
+                            <span>Uploading...</span>
+                          ) : (
+                            <>
+                              <RiUpload2Line className="w-3 h-3" />
+                              <span>{tr("Ganti Foto Front", "Replace Front", "Ganti Foto Front")}</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHbSeqFrontImage("/front.webp")}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer ${
+                            isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card 2: Mask Photo */}
+                <div className={`p-3 rounded-xl border space-y-2 ${
+                  isLight ? "bg-white border-slate-200 shadow-2xs" : "bg-neutral-900/60 border-white/10"
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className={`text-xs font-bold flex items-center gap-1.5 ${isLight ? "text-slate-900" : "text-white"}`}>
+                      <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                      {tr("2. Foto Mask (Cyber Suit Reveal)", "2. Mask Photo (Cyber Suit)", "2. Foto Mask")}
+                    </span>
+                    <span className="text-[9px] font-mono text-cyan-400 font-semibold">
+                      {hbSeqMaskImage.startsWith("/") ? "Lokal" : "CDN / Cloud"}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-black shrink-0 border border-white/10 relative">
+                      <img
+                        src={hbSeqMaskImage || "/mask.webp"}
+                        alt="Mask thumbnail"
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.currentTarget as HTMLImageElement).src = "/mask.webp";
+                        }}
+                      />
+                    </div>
+
+                    <div className="flex-1 space-y-1.5 min-w-0">
+                      <input
+                        type="text"
+                        value={hbSeqMaskImage}
+                        onChange={(e) => setHbSeqMaskImage(e.target.value)}
+                        placeholder="/mask.webp"
+                        className={`w-full px-2 py-1 rounded-lg border font-mono text-[10px] sm:text-[11px] truncate focus:border-[#16b09f] focus:outline-none ${
+                          isLight ? "bg-slate-50 border-slate-200 text-slate-900" : "bg-neutral-800 border-white/15 text-white"
+                        }`}
+                      />
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <button
+                          type="button"
+                          onClick={() => maskFileInputRef.current?.click()}
+                          disabled={isUploadingMask}
+                          className="px-2 py-1 rounded-lg bg-cyan-400 hover:bg-cyan-500 text-black font-bold text-[10px] font-mono flex items-center gap-1 cursor-pointer active:scale-95 disabled:opacity-50"
+                        >
+                          {isUploadingMask ? (
+                            <span>Uploading...</span>
+                          ) : (
+                            <>
+                              <RiUpload2Line className="w-3 h-3" />
+                              <span>{tr("Ganti Foto Mask", "Replace Mask", "Ganti Foto Mask")}</span>
+                            </>
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setHbSeqMaskImage("/mask.webp")}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-all cursor-pointer ${
+                            isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleApplyFrontMaskConfig}
+                  className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm border transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-95 ${
+                    isLight
+                      ? "bg-slate-800 hover:bg-slate-700 text-white border-slate-700 shadow-sm"
+                      : "bg-neutral-800 hover:bg-neutral-700 text-white border-white/15 shadow-sm"
+                  }`}
+                >
+                  <RiCheckLine className="w-4 h-4 text-[#16b09f]" />
+                  <span>{tr("Terapkan & Simpan Foto Front & Mask", "Apply & Save Front-Mask", "Simpan Foto Front & Mask")}</span>
+                </button>
+              </div>
+            )}
+
+            {/* TAB 3: BATCH UPLOAD */}
+            {seqActiveTab === "upload" && (
+              <div className={`p-3.5 sm:p-4 rounded-xl border space-y-3 ${
+                isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-950/70 border-white/10"
+              }`}>
+                <div>
+                  <span className={`text-xs font-semibold block ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {tr("Upload Batch File Foto Sequence", "Batch Sequence Photo Upload", "Upload Batch Foto Sequence")}
+                  </span>
+                  <p className={`text-[10px] sm:text-[11px] mt-0.5 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                    {tr("Pilih banyak file foto sekaligus (frame_000, frame_001, dst).", "Select multiple frame files naturally sorted.", "Pilih banyak file foto sakaligus.")}
+                  </p>
+                </div>
+
                 <input
                   ref={seqFileInputRef}
                   type="file"
@@ -812,7 +1507,7 @@ export default function HeroBannerWorkspace({
                   )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
       )}
