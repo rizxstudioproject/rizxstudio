@@ -106,6 +106,7 @@ export default function HeroBannerWorkspace({
   const [hbSeqRevealRadius, setHbSeqRevealRadius] = useState(heroBanner?.sequenceRevealRadius || 270);
   const [hbSeqRevealSpread, setHbSeqRevealSpread] = useState(heroBanner?.sequenceRevealSpread ?? 30);
   const [hbSeqRevealFade, setHbSeqRevealFade] = useState(heroBanner?.sequenceRevealFade ?? 60);
+  const spotlightSliderTapRef = React.useRef<{ radius: number; spread: number; fade: number }>({ radius: 0, spread: 0, fade: 0 });
   const [isUploadingFront, setIsUploadingFront] = useState(false);
   const [isUploadingMask, setIsUploadingMask] = useState(false);
   const frontFileInputRef = useRef<HTMLInputElement>(null);
@@ -1534,11 +1535,34 @@ export default function HeroBannerWorkspace({
                       step={5}
                       value={hbSeqRevealRadius}
                       onChange={(e) => setHbSeqRevealRadius(Number(e.target.value))}
+                      onDoubleClick={() => {
+                        setHbSeqRevealRadius(270);
+                        notify("info", "Reset Radius", "Radius di-reset ke default 270px.");
+                      }}
+                      onTouchEnd={() => {
+                        const now = Date.now();
+                        if (now - spotlightSliderTapRef.current.radius < 350) {
+                          setHbSeqRevealRadius(270);
+                          notify("info", "Reset Radius", "Radius di-reset ke default 270px.");
+                        }
+                        spotlightSliderTapRef.current.radius = now;
+                      }}
+                      title={tr("Klik 2x pada garis untuk reset ke default (270px)", "Double-click slider to reset to default (270px)", "Klik 2x untuak reset")}
                       className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#16b09f] bg-neutral-800"
                     />
                     <div className="flex justify-between text-[9px] font-mono text-neutral-500">
                       <span>100px (Kecil)</span>
-                      <span>Default: 270px</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHbSeqRevealRadius(270);
+                          notify("info", "Reset Radius", "Radius di-reset ke default 270px.");
+                        }}
+                        className="hover:text-[#16b09f] transition-colors cursor-pointer underline decoration-dotted"
+                        title="Klik untuk reset ke default 270px"
+                      >
+                        Default: 270px
+                      </button>
                       <span>600px (Lebar)</span>
                     </div>
                   </div>
@@ -1558,11 +1582,34 @@ export default function HeroBannerWorkspace({
                       step={1}
                       value={hbSeqRevealSpread}
                       onChange={(e) => setHbSeqRevealSpread(Number(e.target.value))}
+                      onDoubleClick={() => {
+                        setHbSeqRevealSpread(30);
+                        notify("info", "Reset Sebaran", "Sebaran di-reset ke default 30%.");
+                      }}
+                      onTouchEnd={() => {
+                        const now = Date.now();
+                        if (now - spotlightSliderTapRef.current.spread < 350) {
+                          setHbSeqRevealSpread(30);
+                          notify("info", "Reset Sebaran", "Sebaran di-reset ke default 30%.");
+                        }
+                        spotlightSliderTapRef.current.spread = now;
+                      }}
+                      title={tr("Klik 2x pada garis untuk reset ke default (30%)", "Double-click slider to reset to default (30%)", "Klik 2x untuak reset")}
                       className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-cyan-400 bg-neutral-800"
                     />
                     <div className="flex justify-between text-[9px] font-mono text-neutral-500">
                       <span>5% (Titik)</span>
-                      <span>Default: 30%</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHbSeqRevealSpread(30);
+                          notify("info", "Reset Sebaran", "Sebaran di-reset ke default 30%.");
+                        }}
+                        className="hover:text-cyan-400 transition-colors cursor-pointer underline decoration-dotted"
+                        title="Klik untuk reset ke default 30%"
+                      >
+                        Default: 30%
+                      </button>
                       <span>80% (Luas)</span>
                     </div>
                   </div>
@@ -1582,11 +1629,34 @@ export default function HeroBannerWorkspace({
                       step={1}
                       value={hbSeqRevealFade}
                       onChange={(e) => setHbSeqRevealFade(Number(e.target.value))}
+                      onDoubleClick={() => {
+                        setHbSeqRevealFade(60);
+                        notify("info", "Reset Fade", "Fade di-reset ke default 60%.");
+                      }}
+                      onTouchEnd={() => {
+                        const now = Date.now();
+                        if (now - spotlightSliderTapRef.current.fade < 350) {
+                          setHbSeqRevealFade(60);
+                          notify("info", "Reset Fade", "Fade di-reset ke default 60%.");
+                        }
+                        spotlightSliderTapRef.current.fade = now;
+                      }}
+                      title={tr("Klik 2x pada garis untuk reset ke default (60%)", "Double-click slider to reset to default (60%)", "Klik 2x untuak reset")}
                       className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-emerald-400 bg-neutral-800"
                     />
                     <div className="flex justify-between text-[9px] font-mono text-neutral-500">
                       <span>10% (Tegas)</span>
-                      <span>Default: 60%</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHbSeqRevealFade(60);
+                          notify("info", "Reset Fade", "Fade di-reset ke default 60%.");
+                        }}
+                        className="hover:text-emerald-400 transition-colors cursor-pointer underline decoration-dotted"
+                        title="Klik untuk reset ke default 60%"
+                      >
+                        Default: 60%
+                      </button>
                       <span>95% (Ultra Pudar)</span>
                     </div>
                   </div>

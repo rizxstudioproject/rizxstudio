@@ -546,6 +546,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [hbSeqRevealFade, setHbSeqRevealFade] = useState<number>(
     heroBanner?.sequenceRevealFade ?? 60
   );
+  const spotlightSliderTapRef = useRef<{ radius: number; spread: number; fade: number }>({ radius: 0, spread: 0, fade: 0 });
   const [isUploadingFront, setIsUploadingFront] = useState<boolean>(false);
   const [isUploadingMask, setIsUploadingMask] = useState<boolean>(false);
   const frontFileInputRef = useRef<HTMLInputElement>(null);
@@ -4269,11 +4270,34 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             step={5}
                             value={hbSeqRevealRadius}
                             onChange={(e) => setHbSeqRevealRadius(Number(e.target.value))}
+                            onDoubleClick={() => {
+                              setHbSeqRevealRadius(270);
+                              showToast(tx("Radius di-reset ke default 270px!", "Radius reset to default 270px!"));
+                            }}
+                            onTouchEnd={() => {
+                              const now = Date.now();
+                              if (now - spotlightSliderTapRef.current.radius < 350) {
+                                setHbSeqRevealRadius(270);
+                                showToast(tx("Radius di-reset ke default 270px!", "Radius reset to default 270px!"));
+                              }
+                              spotlightSliderTapRef.current.radius = now;
+                            }}
+                            title={tx("Klik 2x pada garis untuk reset ke default (270px)", "Double-click slider to reset to default (270px)")}
                             className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#16b09f] bg-neutral-800"
                           />
                           <div className="flex justify-between text-[9px] font-mono text-neutral-500">
                             <span>100px (Kecil)</span>
-                            <span>Default: 270px</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setHbSeqRevealRadius(270);
+                                showToast(tx("Radius di-reset ke default 270px!", "Radius reset to default 270px!"));
+                              }}
+                              className="hover:text-[#16b09f] transition-colors cursor-pointer underline decoration-dotted"
+                              title={tx("Klik untuk reset ke default 270px", "Click to reset to default 270px")}
+                            >
+                              Default: 270px
+                            </button>
                             <span>600px (Sangat Lebar)</span>
                           </div>
                         </div>
@@ -4293,11 +4317,34 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             step={1}
                             value={hbSeqRevealSpread}
                             onChange={(e) => setHbSeqRevealSpread(Number(e.target.value))}
+                            onDoubleClick={() => {
+                              setHbSeqRevealSpread(30);
+                              showToast(tx("Sebaran di-reset ke default 30%!", "Spread reset to default 30%!"));
+                            }}
+                            onTouchEnd={() => {
+                              const now = Date.now();
+                              if (now - spotlightSliderTapRef.current.spread < 350) {
+                                setHbSeqRevealSpread(30);
+                                showToast(tx("Sebaran di-reset ke default 30%!", "Spread reset to default 30%!"));
+                              }
+                              spotlightSliderTapRef.current.spread = now;
+                            }}
+                            title={tx("Klik 2x pada garis untuk reset ke default (30%)", "Double-click slider to reset to default (30%)")}
                             className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-cyan-400 bg-neutral-800"
                           />
                           <div className="flex justify-between text-[9px] font-mono text-neutral-500">
                             <span>5% (Fokus Titik)</span>
-                            <span>Default: 30%</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setHbSeqRevealSpread(30);
+                                showToast(tx("Sebaran di-reset ke default 30%!", "Spread reset to default 30%!"));
+                              }}
+                              className="hover:text-cyan-400 transition-colors cursor-pointer underline decoration-dotted"
+                              title={tx("Klik untuk reset ke default 30%", "Click to reset to default 30%")}
+                            >
+                              Default: 30%
+                            </button>
                             <span>80% (Sebaran Luas)</span>
                           </div>
                         </div>
@@ -4317,11 +4364,34 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                             step={1}
                             value={hbSeqRevealFade}
                             onChange={(e) => setHbSeqRevealFade(Number(e.target.value))}
+                            onDoubleClick={() => {
+                              setHbSeqRevealFade(60);
+                              showToast(tx("Fade di-reset ke default 60%!", "Fade reset to default 60%!"));
+                            }}
+                            onTouchEnd={() => {
+                              const now = Date.now();
+                              if (now - spotlightSliderTapRef.current.fade < 350) {
+                                setHbSeqRevealFade(60);
+                                showToast(tx("Fade di-reset ke default 60%!", "Fade reset to default 60%!"));
+                              }
+                              spotlightSliderTapRef.current.fade = now;
+                            }}
+                            title={tx("Klik 2x pada garis untuk reset ke default (60%)", "Double-click slider to reset to default (60%)")}
                             className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-emerald-400 bg-neutral-800"
                           />
                           <div className="flex justify-between text-[9px] font-mono text-neutral-500">
                             <span>10% (Tepi Tegas)</span>
-                            <span>Default: 60%</span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setHbSeqRevealFade(60);
+                                showToast(tx("Fade di-reset ke default 60%!", "Fade reset to default 60%!"));
+                              }}
+                              className="hover:text-emerald-400 transition-colors cursor-pointer underline decoration-dotted"
+                              title={tx("Klik untuk reset ke default 60%", "Click to reset to default 60%")}
+                            >
+                              Default: 60%
+                            </button>
                             <span>95% (Ultra Pudar / Halus)</span>
                           </div>
                         </div>
