@@ -29,17 +29,16 @@ export default function ScrollyCanvas() {
   const scrollProgressRef = useRef<number>(0);
   const isInViewRef = useRef<boolean>(true);
 
-  // Preload front.webp & mask.webp for Cursor Reveal effect after sequence finishes
+  // Preload front.webp & mask.webp for Motion Mouse Reveal effect after sequence finishes
   const frontImgRef = useRef<HTMLImageElement | null>(null);
   const maskImgRef = useRef<HTMLImageElement | null>(null);
   const lastInteractionTimeRef = useRef<number>(Date.now());
 
-  // Brush Reveal offscreen canvases & stroke state
-  const brushCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Motion Mouse Reveal state (soft feathered spotlight following cursor)
+  const revealRadiusRef = useRef<number>(0);
+  const targetRadiusRef = useRef<number>(0);
+  const isHoveringCharacterRef = useRef<boolean>(false);
   const tempCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const lastBrushPosRef = useRef<{ x: number; y: number } | null>(null);
-  const hasBrushedRef = useRef<boolean>(false);
-  const isPointerInsideRef = useRef<boolean>(false);
 
   useEffect(() => {
     const front = new Image();
@@ -117,82 +116,13 @@ export default function ScrollyCanvas() {
     ]
   );
 
-  // Smooth brush painting onto offscreen brushCanvas
-  const paintStroke = useCallback((x: number, y: number) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    if (width <= 0 || height <= 0) return;
-
-    if (!brushCanvasRef.current) {
-      brushCanvasRef.current = document.createElement("canvas");
-      brushCanvasRef.current.width = width;
-      brushCanvasRef.current.height = height;
-    }
-    const bCanvas = brushCanvasRef.current;
-    const bCtx = bCanvas.getContext("2d");
-    if (!bCtx) return;
-
-    const radius = width < 640 ? 46 : 64;
-
-    bCtx.save();
-    bCtx.lineCap = "round";
-    bCtx.lineJoin = "round";
-    bCtx.lineWidth = radius * 2;
-    bCtx.strokeStyle = "rgba(255, 255, 255, 1)";
-    bCtx.fillStyle = "rgba(255, 255, 255, 1)";
-    bCtx.shadowColor = "rgba(255, 255, 255, 1)";
-    bCtx.shadowBlur = 16;
-
-    if (lastBrushPosRef.current) {
-      bCtx.beginPath();
-      bCtx.moveTo(lastBrushPosRef.current.x, lastBrushPosRef.current.y);
-      bCtx.lineTo(x, y);
-      bCtx.stroke();
-    }
-
-    bCtx.beginPath();
-    bCtx.arc(x, y, radius, 0, Math.PI * 2);
-    bCtx.fill();
-    bCtx.restore();
-
-    lastBrushPosRef.current = { x, y };
-    hasBrushedRef.current = true;
-  }, []);
-
-  // Listen for reset brush request from HUD / controls
-  useEffect(() => {
-    const handleResetBrush = () => {
-      if (brushCanvasRef.current) {
-        const bCtx = brushCanvasRef.current.getContext("2d");
-        if (bCtx) {
-          bCtx.clearRect(0, 0, brushCanvasRef.current.width, brushCanvasRef.current.height);
-        }
-      }
-      if (tempCanvasRef.current) {
-        const tCtx = tempCanvasRef.current.getContext("2d");
-        if (tCtx) {
-          tCtx.clearRect(0, 0, tempCanvasRef.current.width, tempCanvasRef.current.height);
-        }
-      }
-      hasBrushedRef.current = false;
-      lastBrushPosRef.current = null;
-    };
-
-    window.addEventListener("rizx_reset_brush", handleResetBrush);
-    return () => {
-      window.removeEventListener("rizx_reset_brush", handleResetBrush);
-    };
-  }, []);
-
   const renderFrame = useCallback(
     (
       index: number,
       parallaxX: number = 0,
       parallaxY: number = 0,
       revealActive: boolean = false,
-      revealFactor: number = 0,
+      revealRadius: number = 0,
       cursorNormX: number = 0.5,
       cursorNormY: number = 0.5
     ) => {
@@ -280,96 +210,87 @@ export default function ScrollyCanvas() {
       ctx.fillStyle = "#0a0a0a";
       ctx.fillRect(0, 0, width, height);
 
-      // Draw base image (front character)
+      // 1. Draw base image (front human portrait)
       ctx.drawImage(baseImg, offsetX - parallaxX, offsetY - parallaxY, drawWidth, drawHeight);
 
       // ==========================================
-      // BRUSH REVEAL: Offscreen canvas revealing mask.webp
+      // MOTION MOUSE REVEAL: Soft feathered radial spotlight uncovering mask.webp
       // ==========================================
-      // Ensure offscreen brush & temp canvases match display width & height
-      if (!brushCanvasRef.current) {
-        brushCanvasRef.current = document.createElement("canvas");
-        brushCanvasRef.current.width = width;
-        brushCanvasRef.current.height = height;
-      } else if (brushCanvasRef.current.width !== width || brushCanvasRef.current.height !== height) {
-        const oldC = brushCanvasRef.current;
-        const newC = document.createElement("canvas");
-        newC.width = width;
-        newC.height = height;
-        const nCtx = newC.getContext("2d");
-        if (nCtx && oldC.width > 0 && oldC.height > 0) {
-          nCtx.drawImage(oldC, 0, 0, width, height);
-        }
-        brushCanvasRef.current = newC;
-      }
-
-      if (!tempCanvasRef.current) {
-        tempCanvasRef.current = document.createElement("canvas");
-        tempCanvasRef.current.width = width;
-        tempCanvasRef.current.height = height;
-      } else if (tempCanvasRef.current.width !== width || tempCanvasRef.current.height !== height) {
-        tempCanvasRef.current.width = width;
-        tempCanvasRef.current.height = height;
-      }
-
-      // If user has brushed, composite the mask.webp layer only over the brushed regions
       if (
         revealActive &&
-        hasBrushedRef.current &&
+        revealRadius > 2 &&
         maskImgRef.current &&
         maskImgRef.current.complete &&
-        maskImgRef.current.naturalWidth > 0 &&
-        brushCanvasRef.current &&
-        tempCanvasRef.current
+        maskImgRef.current.naturalWidth > 0
       ) {
+        if (!tempCanvasRef.current) {
+          tempCanvasRef.current = document.createElement("canvas");
+          tempCanvasRef.current.width = width;
+          tempCanvasRef.current.height = height;
+        } else if (tempCanvasRef.current.width !== width || tempCanvasRef.current.height !== height) {
+          tempCanvasRef.current.width = width;
+          tempCanvasRef.current.height = height;
+        }
+
         const tempCanvas = tempCanvasRef.current;
         const tempCtx = tempCanvas.getContext("2d");
         if (tempCtx) {
           tempCtx.clearRect(0, 0, width, height);
-          tempCtx.drawImage(maskImgRef.current, offsetX - parallaxX, offsetY - parallaxY, drawWidth, drawHeight);
+
+          // Draw cyber suit (mask.webp) identically framed and aligned
+          tempCtx.drawImage(
+            maskImgRef.current,
+            offsetX - parallaxX,
+            offsetY - parallaxY,
+            drawWidth,
+            drawHeight
+          );
+
+          // Mask with soft feathered radial gradient centered at cursor
           tempCtx.globalCompositeOperation = "destination-in";
-          tempCtx.drawImage(brushCanvasRef.current, 0, 0, width, height);
+
+          const cx = cursorNormX * width;
+          const cy = cursorNormY * height;
+
+          const grad = tempCtx.createRadialGradient(
+            cx - parallaxX,
+            cy - parallaxY,
+            0,
+            cx - parallaxX,
+            cy - parallaxY,
+            revealRadius
+          );
+          grad.addColorStop(0, "rgba(0, 0, 0, 1)");
+          grad.addColorStop(0.3, "rgba(0, 0, 0, 0.95)");
+          grad.addColorStop(0.65, "rgba(0, 0, 0, 0.55)");
+          grad.addColorStop(0.85, "rgba(0, 0, 0, 0.18)");
+          grad.addColorStop(1, "rgba(0, 0, 0, 0)");
+
+          tempCtx.fillStyle = grad;
+          tempCtx.beginPath();
+          tempCtx.arc(cx - parallaxX, cy - parallaxY, revealRadius, 0, Math.PI * 2);
+          tempCtx.fill();
+
           tempCtx.globalCompositeOperation = "source-over";
 
+          // Draw the soft masked suit onto the main canvas
           ctx.drawImage(tempCanvas, 0, 0, width, height);
         }
       }
 
-      // In reveal mode, render a sleek brush tip indicator around cursor position
-      if (revealActive && isPointerInsideRef.current) {
-        const cx = cursorNormX * width;
-        const cy = cursorNormY * height;
-        const brushRadius = width < 640 ? 46 : 64;
-
-        ctx.save();
-        // Dashed glowing brush tip ring
-        ctx.beginPath();
-        ctx.arc(cx - parallaxX, cy - parallaxY, brushRadius, 0, Math.PI * 2);
-        ctx.setLineDash([4, 6]);
-        ctx.lineWidth = 1.75;
-        ctx.strokeStyle = "rgba(45, 212, 191, 0.85)"; // Teal-400
-        ctx.shadowColor = "rgba(45, 212, 191, 0.6)";
-        ctx.shadowBlur = 10;
-        ctx.stroke();
-
-        // Inner soft accent ring
-        ctx.setLineDash([]);
-        ctx.beginPath();
-        ctx.arc(cx - parallaxX, cy - parallaxY, brushRadius - 4, 0, Math.PI * 2);
-        ctx.lineWidth = 0.75;
-        ctx.strokeStyle = "rgba(239, 68, 68, 0.4)"; // Subtle neon red
-        ctx.stroke();
-
-        // Glowing center brush dot
-        ctx.beginPath();
-        ctx.arc(cx - parallaxX, cy - parallaxY, 2.5, 0, Math.PI * 2);
-        ctx.fillStyle = "#ffffff";
-        ctx.shadowColor = "rgba(45, 212, 191, 0.9)";
-        ctx.shadowBlur = 8;
-        ctx.fill();
-
-        ctx.restore();
-      }
+      // ==========================================
+      // AMBIENT CRIMSON FRAMING RING (Matches Reference Shivam Kumar)
+      // ==========================================
+      const circleRadius = Math.min(width, height) * 0.44;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(width / 2, height / 2, circleRadius, 0, Math.PI * 2);
+      ctx.lineWidth = 1.25;
+      ctx.strokeStyle = "rgba(220, 38, 38, 0.45)"; // Sleek Crimson Red
+      ctx.shadowColor = "rgba(220, 38, 38, 0.35)";
+      ctx.shadowBlur = 12;
+      ctx.stroke();
+      ctx.restore();
 
       ctx.restore();
       currentFrameIndexRef.current = index;
@@ -425,14 +346,13 @@ export default function ScrollyCanvas() {
     // Handle viewport resize smoothly
     const handleResize = () => {
       const p = scrollProgressRef.current;
-      const isReveal = p >= 0.80;
-      const revealFactor = isReveal ? Math.min(1, Math.max(0, (p - 0.80) / 0.05)) : 0;
+      const isReveal = p >= 0.78;
       renderFrame(
         currentFrameIndexRef.current,
         0,
         0,
         isReveal,
-        revealFactor,
+        revealRadiusRef.current,
         mouseStateRef.current.x,
         mouseStateRef.current.y
       );
@@ -446,12 +366,11 @@ export default function ScrollyCanvas() {
     };
   }, [totalFrames, getFramePath, renderFrame]);
 
-  // Track mouse and touch movements across screen
+  // Track mouse and touch movements across screen for motion mouse reveal
   useEffect(() => {
     if (!mouseTracking) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      isPointerInsideRef.current = true;
       lastInteractionTimeRef.current = Date.now();
       const nx = Math.max(0, Math.min(1, e.clientX / window.innerWidth));
       const ny = Math.max(0, Math.min(1, e.clientY / window.innerHeight));
@@ -459,19 +378,14 @@ export default function ScrollyCanvas() {
       mouseStateRef.current.targetY = ny;
 
       if (scrollProgressRef.current >= 0.78) {
-        const canvas = canvasRef.current;
-        if (canvas) {
-          const rect = canvas.getBoundingClientRect();
-          const cx = e.clientX - rect.left;
-          const cy = e.clientY - rect.top;
-          paintStroke(cx, cy);
-        }
+        isHoveringCharacterRef.current = true;
+        const maxRadius = window.innerWidth < 640 ? 190 : 270;
+        targetRadiusRef.current = maxRadius;
       }
     };
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length > 0) {
-        isPointerInsideRef.current = true;
         lastInteractionTimeRef.current = Date.now();
         const touch = e.touches[0];
         const nx = Math.max(0, Math.min(1, touch.clientX / window.innerWidth));
@@ -480,46 +394,36 @@ export default function ScrollyCanvas() {
         mouseStateRef.current.targetY = ny;
 
         if (scrollProgressRef.current >= 0.78) {
-          const canvas = canvasRef.current;
-          if (canvas) {
-            const rect = canvas.getBoundingClientRect();
-            const cx = touch.clientX - rect.left;
-            const cy = touch.clientY - rect.top;
-            paintStroke(cx, cy);
-          }
+          isHoveringCharacterRef.current = true;
+          const maxRadius = window.innerWidth < 640 ? 190 : 270;
+          targetRadiusRef.current = maxRadius;
         }
       }
     };
 
-    const handlePointerEnd = () => {
-      lastBrushPosRef.current = null;
-    };
-
-    const handleMouseLeave = () => {
-      isPointerInsideRef.current = false;
-      lastBrushPosRef.current = null;
+    const handlePointerLeave = () => {
+      isHoveringCharacterRef.current = false;
+      targetRadiusRef.current = 0;
       mouseStateRef.current.targetX = 0.5;
       mouseStateRef.current.targetY = 0.5;
     };
 
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: true });
-    window.addEventListener("mouseup", handlePointerEnd, { passive: true });
-    window.addEventListener("touchend", handlePointerEnd, { passive: true });
-    window.addEventListener("touchcancel", handlePointerEnd, { passive: true });
-    document.addEventListener("mouseleave", handleMouseLeave);
+    window.addEventListener("touchend", handlePointerLeave, { passive: true });
+    window.addEventListener("touchcancel", handlePointerLeave, { passive: true });
+    document.addEventListener("mouseleave", handlePointerLeave);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("mouseup", handlePointerEnd);
-      window.removeEventListener("touchend", handlePointerEnd);
-      window.removeEventListener("touchcancel", handlePointerEnd);
-      document.removeEventListener("mouseleave", handleMouseLeave);
+      window.removeEventListener("touchend", handlePointerLeave);
+      window.removeEventListener("touchcancel", handlePointerLeave);
+      document.removeEventListener("mouseleave", handlePointerLeave);
     };
-  }, [mouseTracking, paintStroke]);
+  }, [mouseTracking]);
 
-  // Smooth fluid LERP animation loop that binds mouse movement + scroll to frame turning and cursor reveal
+  // Smooth fluid LERP animation loop that binds mouse movement + scroll to frame turning and soft motion reveal
   useEffect(() => {
     let animId: number;
     let isRunning = true;
@@ -532,7 +436,7 @@ export default function ScrollyCanvas() {
       const dy = ms.targetY - ms.y;
 
       const p = scrollProgressRef.current;
-      const isReveal = p >= 0.80;
+      const isReveal = p >= 0.78;
 
       // Smooth organic easing towards cursor target
       if (Math.abs(dx) > 0.0001 || Math.abs(dy) > 0.0001) {
@@ -540,9 +444,18 @@ export default function ScrollyCanvas() {
         ms.y += dy * 0.07;
       }
 
+      // Smooth organic easing of soft spotlight radius
+      const targetR = isReveal && isHoveringCharacterRef.current ? targetRadiusRef.current : 0;
+      const rDiff = targetR - revealRadiusRef.current;
+      if (Math.abs(rDiff) > 0.4) {
+        revealRadiusRef.current += rDiff * 0.12;
+      } else {
+        revealRadiusRef.current = targetR;
+      }
+
       if (isInViewRef.current) {
-        // Sequence plays across 0.00 to 0.80
-        const seqP = Math.min(1, p / 0.80);
+        // Sequence plays across 0.00 to 0.78
+        const seqP = Math.min(1, p / 0.78);
         const baseScrollFrame = seqP * (totalFrames - 1);
 
         // When in first hero stage, head turns with boosted range following the cursor
@@ -558,15 +471,12 @@ export default function ScrollyCanvas() {
         const parallaxX = mouseTracking ? (ms.x - 0.5) * 16 : 0;
         const parallaxY = mouseTracking ? (ms.y - 0.5) * 12 : 0;
 
-        // Reveal factor: smoothly eases in between 0.80 and 0.85
-        const revealFactor = isReveal ? Math.min(1, Math.max(0, (p - 0.80) / 0.05)) : 0;
-
         renderFrame(
           finalFrame,
           parallaxX,
           parallaxY,
           isReveal,
-          revealFactor,
+          revealRadiusRef.current,
           ms.x,
           ms.y
         );
@@ -598,16 +508,11 @@ export default function ScrollyCanvas() {
     const currentScroll = -rect.top;
     const progress = Math.max(0, Math.min(1, currentScroll / maxScrollable));
 
-    // When scrolling back up away from reveal zone, reset brush canvas
-    if (progress < 0.72 && hasBrushedRef.current) {
-      if (brushCanvasRef.current) {
-        const bCtx = brushCanvasRef.current.getContext("2d");
-        if (bCtx) {
-          bCtx.clearRect(0, 0, brushCanvasRef.current.width, brushCanvasRef.current.height);
-        }
-      }
-      hasBrushedRef.current = false;
-      lastBrushPosRef.current = null;
+    // When scrolling back up away from reveal zone, reset reveal spotlight radius
+    if (progress < 0.75) {
+      isHoveringCharacterRef.current = false;
+      targetRadiusRef.current = 0;
+      revealRadiusRef.current = 0;
     }
 
     scrollProgressRef.current = progress;
