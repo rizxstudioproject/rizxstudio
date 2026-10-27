@@ -151,8 +151,9 @@ export default function MobileAdminApp({
   const lastThemeTriggerRef = useRef<number>(0);
 
   const handleInstantThemeToggle = (e?: React.SyntheticEvent) => {
+    e?.stopPropagation();
     const now = Date.now();
-    if (now - lastThemeTriggerRef.current < 400) return;
+    if (now - lastThemeTriggerRef.current < 250) return;
     lastThemeTriggerRef.current = now;
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       try { navigator.vibrate(12); } catch (_) {}
@@ -691,8 +692,6 @@ export default function MobileAdminApp({
                 {/* 1. Theme Mode Toggle (Light/Dark Mode Circular Button - Moon in Light / Sun in Dark) */}
                 <button
                   type="button"
-                  onMouseEnter={handleInstantThemeToggle}
-                  onTouchStart={handleInstantThemeToggle}
                   onClick={handleInstantThemeToggle}
                   className={`w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-95 cursor-pointer shadow-sm ${
                     isLight

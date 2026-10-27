@@ -27,9 +27,10 @@ export default function Navbar() {
   const isLight = themeMode === "light";
   const lastThemeTriggerRef = useRef<number>(0);
 
-  const handleInstantThemeToggle = (e?: React.SyntheticEvent) => {
+  const handleThemeToggle = (e?: React.SyntheticEvent) => {
+    e?.stopPropagation();
     const now = Date.now();
-    if (now - lastThemeTriggerRef.current < 400) return;
+    if (now - lastThemeTriggerRef.current < 250) return;
     lastThemeTriggerRef.current = now;
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       try { navigator.vibrate(12); } catch (_) {}
@@ -182,7 +183,9 @@ export default function Navbar() {
             : "-translate-y-full opacity-0 pointer-events-none"
         } ${
           scrolled || mobileMenuOpen
-            ? "bg-black/90 backdrop-blur-xl border-b border-white/10 py-3 px-4 sm:px-12"
+            ? isLight
+              ? "bg-white/95 backdrop-blur-xl border-b border-slate-200/80 shadow-xs py-3 px-4 sm:px-12"
+              : "bg-black/90 backdrop-blur-xl border-b border-white/10 py-3 px-4 sm:px-12"
             : "bg-transparent py-4 sm:py-5 px-4 sm:px-12"
         }`}
       >
@@ -283,12 +286,14 @@ export default function Navbar() {
             {/* Dark / Light Mode Toggle Button */}
             <button
               type="button"
-              onMouseEnter={handleInstantThemeToggle}
-              onTouchStart={handleInstantThemeToggle}
-              onClick={handleInstantThemeToggle}
+              onClick={handleThemeToggle}
               aria-label="Toggle Dark and Light Mode"
               title={themeMode === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              className="w-8 h-8 rounded-full border border-white/10 bg-white/[0.04] hover:bg-white/[0.08] flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer"
+              className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer ${
+                isLight
+                  ? "border-slate-200 bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 shadow-xs"
+                  : "border-white/10 bg-white/[0.04] hover:bg-white/[0.08] text-neutral-300 hover:text-white"
+              }`}
             >
               {themeMode === "dark" ? (
                 <RiSunFill className="w-4 h-4 text-amber-300" />
@@ -352,7 +357,11 @@ export default function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram Profile"
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white transition-all"
+                className={`w-7 h-7 flex items-center justify-center rounded-full border transition-all ${
+                  isLight
+                    ? "bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-slate-200 shadow-xs"
+                    : "bg-white/[0.04] border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white"
+                }`}
               >
                 <FaInstagram className="w-3.5 h-3.5" />
               </a>
@@ -361,7 +370,11 @@ export default function Navbar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn Profile"
-                className="w-7 h-7 flex items-center justify-center rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white transition-all"
+                className={`w-7 h-7 flex items-center justify-center rounded-full border transition-all ${
+                  isLight
+                    ? "bg-slate-100 border-slate-200 text-slate-700 hover:text-slate-950 hover:bg-slate-200 shadow-xs"
+                    : "bg-white/[0.04] border-white/10 hover:border-white/25 hover:bg-white/10 text-neutral-300 hover:text-white"
+                }`}
               >
                 <FaLinkedinIn className="w-3.5 h-3.5" />
               </a>

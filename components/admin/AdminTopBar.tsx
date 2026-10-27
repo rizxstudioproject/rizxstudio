@@ -73,8 +73,9 @@ export default function AdminTopBar({
   const lastThemeTriggerRef = useRef<number>(0);
 
   const handleInstantThemeToggle = (e?: React.SyntheticEvent) => {
+    e?.stopPropagation();
     const now = Date.now();
-    if (now - lastThemeTriggerRef.current < 400) return;
+    if (now - lastThemeTriggerRef.current < 250) return;
     lastThemeTriggerRef.current = now;
     if (typeof navigator !== "undefined" && navigator.vibrate) {
       try { navigator.vibrate(12); } catch (_) {}
@@ -835,8 +836,6 @@ export default function AdminTopBar({
           {/* Theme Mode Toggle (Desktop Admin - Matches Circular Moon/Sun Button Style) */}
           <button
             type="button"
-            onMouseEnter={handleInstantThemeToggle}
-            onTouchStart={handleInstantThemeToggle}
             onClick={handleInstantThemeToggle}
             className={`hidden md:flex w-9 h-9 rounded-full items-center justify-center transition-all active:scale-95 cursor-pointer select-none shrink-0 ${
               isLight
