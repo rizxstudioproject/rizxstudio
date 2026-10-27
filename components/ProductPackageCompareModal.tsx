@@ -70,7 +70,7 @@ export default function ProductPackageCompareModal({
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-        triggerToast(tr("Berhasil dibagikan!", "Berhasil dibagikan!", "Lah dibagi-an!"));
+        triggerToast(tr("Shared successfully!", "Berhasil dibagikan!", "Lah dibagi-an!"));
         return;
       } catch (err: any) {
         if (err.name === "AbortError") return;
@@ -89,7 +89,7 @@ export default function ProductPackageCompareModal({
         );
       }
     } catch {
-      triggerToast(tr("Gagal menyalin tautan", "Gagal menyalin tautan", "Gagal manyalin"));
+      triggerToast(tr("Failed to copy link", "Gagal menyalin tautan", "Gagal manyalin"));
     }
   };
 
@@ -222,7 +222,7 @@ export default function ProductPackageCompareModal({
                 {product.categoryLabel || "Layanan Kreatif"}
               </span>
               <span className="text-[11px] font-mono text-neutral-400">
-                • {tr("Perbandingan 3 Paket", "Perbandingan 3 Paket Lengkap", "Bandiang 3 Paket")}
+                • {tr("3-Package Comparison", "Perbandingan 3 Paket Lengkap", "Bandiang 3 Paket")}
               </span>
             </div>
 
@@ -277,7 +277,7 @@ export default function ProductPackageCompareModal({
                 : "text-neutral-400 hover:text-white"
             }`}
           >
-            {tr("Bandingkan Semua", "Bandingkan Semua", "Caliak Kasadonyo")}
+            {tr("Compare All", "Bandingkan Semua", "Caliak Kasadonyo")}
           </button>
           {packages.map((pkg: any) => (
             <button
@@ -343,7 +343,7 @@ export default function ProductPackageCompareModal({
                       }}
                     >
                       <RiSparklingFill className="w-3 h-3" />
-                      <span>{tr("REKOMENDASI UTAMA / BEST VALUE", "REKOMENDASI UTAMA / BEST VALUE", "PILIHAN UTAMO")}</span>
+                      <span>{tr("MAIN RECOMMENDATION / BEST VALUE", "REKOMENDASI UTAMA / BEST VALUE", "PILIHAN UTAMO")}</span>
                     </div>
                   )}
 
@@ -384,7 +384,7 @@ export default function ProductPackageCompareModal({
                     >
                       <span className="text-neutral-400 flex items-center gap-1.5">
                         <RiPriceTag3Line className="w-3.5 h-3.5 text-[#16b09f]" />
-                        <span>{tr("Estimasi Biaya", "Estimasi Biaya", "Perkiraan Biayo")}:</span>
+                        <span>{tr("Estimated Cost", "Estimasi Biaya", "Perkiraan Biayo")}:</span>
                       </span>
                       <span className="font-bold text-sm text-white">
                         {pkg.priceNote}
@@ -410,7 +410,7 @@ export default function ProductPackageCompareModal({
                     <div>
                       <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider font-bold text-emerald-400 mb-2.5">
                         <RiCheckboxCircleFill className="w-4 h-4 text-emerald-400" />
-                        <span>{tr("Keunggulan & Deliverables", "Keunggulan & Deliverables", "Kaunggulan & Hasil")}</span>
+                        <span>{tr("Features & Deliverables", "Keunggulan & Deliverables", "Kaunggulan & Hasil")}</span>
                       </div>
                       <ul className="space-y-2">
                         {pros.map((item, idx) => (
@@ -429,7 +429,7 @@ export default function ProductPackageCompareModal({
                     <div className="flex-1">
                       <div className="flex items-center gap-1.5 text-xs font-mono uppercase tracking-wider font-bold text-amber-400 mb-2.5">
                         <RiCloseCircleLine className="w-4 h-4 text-amber-400" />
-                        <span>{tr("Batasan / Catatan Paket", "Batasan / Catatan Paket", "Batasan / Catatan Paket")}</span>
+                        <span>{tr("Limitations & Notes", "Batasan / Catatan Paket", "Batasan / Catatan Paket")}</span>
                       </div>
                       <ul className="space-y-2">
                         {cons.map((item, idx) => (
@@ -467,10 +467,10 @@ export default function ProductPackageCompareModal({
                       >
                         <span>
                           {isPro
-                            ? tr(`Pilih Paket Pro 🚀`, `Pilih Paket Pro 🚀`, `Pilih Paket Pro 🚀`)
+                            ? tr("Select Pro Tier 🚀", "Pilih Paket Pro 🚀", "Pilih Paket Pro 🚀")
                             : isStarter
-                            ? tr(`Pilih Starter →`, `Pilih Starter →`, `Pilih Starter →`)
-                            : tr(`Pilih Enterprise 💼`, `Pilih Enterprise 💼`, `Pilih Enterprise 💼`)}
+                            ? tr("Select Starter →", "Pilih Starter →", "Pilih Starter →")
+                            : tr("Select Enterprise 💼", "Pilih Enterprise 💼", "Pilih Enterprise 💼")}
                         </span>
                       </button>
 
@@ -488,7 +488,7 @@ export default function ProductPackageCompareModal({
                       </button>
                     </div>
                     <p className="text-[10px] text-center text-neutral-500 font-mono mt-2">
-                      {tr("Lanjut ke formulir brief & estimasi", "Lanjut ke formulir brief & estimasi", "Lanjuik ka formulir brief")}
+                      {tr("Proceed to brief & estimation form", "Lanjut ke formulir brief & estimasi", "Lanjuik ka formulir brief")}
                     </p>
                   </div>
                 </div>
@@ -506,7 +506,7 @@ export default function ProductPackageCompareModal({
               <RiShieldCheckLine className="w-4 h-4 text-emerald-400 shrink-0" />
               <span>
                 {tr(
-                  "Seluruh proyek diproses dengan perjanjian kesepakatan tertulis, tracking transparan, & hak komersial penuh.",
+                  "All projects include written agreement terms, transparent tracking, & full commercial rights.",
                   "Seluruh proyek diproses dengan perjanjian kesepakatan tertulis, tracking transparan, & hak komersial penuh.",
                   "Sadoalah proyek diproses jo kasapakekan jaleh sarato hak komersial panuah."
                 )}
@@ -516,7 +516,7 @@ export default function ProductPackageCompareModal({
               onClick={onClose}
               className="text-neutral-400 hover:text-white underline text-left sm:text-right shrink-0 cursor-pointer"
             >
-              {tr("Kembali ke Daftar Produk", "Kembali ke Daftar Produk", "Babaliak")}
+              {tr("Back to Products", "Kembali ke Daftar Produk", "Babaliak")}
             </button>
           </div>
         </div>

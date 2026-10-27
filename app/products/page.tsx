@@ -962,15 +962,15 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                 }}
               >
                 <RiFileList3Line className="w-3.5 h-3.5" />
-                <span>{tr("FORMULIR KONSULTASI & PEMESANAN PROYEK", "FORMULIR KONSULTASI & PEMESANAN PROYEK", "FORMULIR KONSULTASI & PESAN")}</span>
+                <span>{tr("PROJECT CONSULTATION & ORDER FORM", "FORMULIR KONSULTASI & PEMESANAN PROYEK", "FORMULIR KONSULTASI & PESAN")}</span>
               </div>
 
               <h2 className="text-2xl sm:text-4xl font-bold text-white tracking-tight mb-3">
-                {tr("Mulai Proyek Anda Bersama Kami", "Mulai Proyek Anda Bersama Kami", "Mulai Proyek Sanak Basamo Ambo")}
+                {tr("Start Your Project With Us", "Mulai Proyek Anda Bersama Kami", "Mulai Proyek Sanak Basamo Ambo")}
               </h2>
               <p className="text-xs sm:text-sm text-neutral-400 font-light max-w-xl mx-auto">
                 {tr(
-                  "Pilih layanan, paket yang dibutuhkan, dan sampaikan ringkasan ide Anda. Kami akan mengonfirmasi ketersediaan jadwal serta langkah produksi selanjutnya.",
+                  "Select your desired service, package tier, and share your project summary. We will confirm schedule availability and next production steps.",
                   "Pilih layanan, paket yang dibutuhkan, dan sampaikan ringkasan ide Anda. Kami akan mengonfirmasi ketersediaan jadwal serta langkah produksi selanjutnya.",
                   "Pilih layanan, paket nan diparalukan, sarato tulih ringkasan ide sanak. Kito lanjuik-an langsuang di WhatsApp."
                 )}
@@ -983,7 +983,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    1. {tr("Layanan / Produk", "Layanan / Produk", "Layanan / Produk")} <span className="text-[#16b09f]">*</span>
+                    1. {tr("Service / Product", "Layanan / Produk", "Layanan / Produk")} <span className="text-[#16b09f]">*</span>
                   </label>
                   <button
                     type="button"
@@ -1011,7 +1011,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                     <div className="flex items-center gap-2 shrink-0">
                       {selectedProductObj.isClosed && (
                         <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                          {tr("Slot Penuh", "Slot Penuh", "Slot Panuah")}
+                          {tr("Orders Closed", "Slot Penuh", "Slot Panuah")}
                         </span>
                       )}
                       <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-neutral-300 group-hover:text-white group-hover:border-white/20 transition-colors">
@@ -1023,7 +1023,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
 
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    2. Pilihan Paket <span className="text-[#16b09f]">*</span>
+                    2. {tr("Package Selection", "Pilihan Paket", "Piliahan Paket")} <span className="text-[#16b09f]">*</span>
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     {(["starter", "pro", "enterprise"] as const).map((pkgKey) => {
@@ -1085,12 +1085,12 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    3. Nama Lengkap / Brand <span className="text-[#16b09f]">*</span>
+                    3. {tr("Full Name / Brand", "Nama Lengkap / Brand", "Namo Lengkap / Brand")} <span className="text-[#16b09f]">*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Contoh: Alexander Vance / Nexus Tech"
+                    placeholder={tr("e.g. Alexander Vance / Nexus Tech", "Contoh: Alexander Vance / Nexus Tech", "Contoh: Alexander Vance / Nexus Tech")}
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     className={`w-full px-4 py-3 rounded-xl text-xs sm:text-sm border outline-none ${
@@ -1103,12 +1103,12 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
 
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    4. Nomor WhatsApp <span className="text-[#16b09f]">*</span>
+                    4. {tr("WhatsApp Number", "Nomor WhatsApp", "Nomor WhatsApp")} <span className="text-[#16b09f]">*</span>
                   </label>
                   <input
                     type="tel"
                     required
-                    placeholder="Contoh: 08123456789 atau +62..."
+                    placeholder={tr("e.g. 08123456789 or +62...", "Contoh: 08123456789 atau +62...", "Contoh: 08123456789 atau +62...")}
                     value={clientPhone}
                     onChange={(e) => setClientPhone(e.target.value)}
                     className={`w-full px-4 py-3 rounded-xl text-xs sm:text-sm border outline-none ${
@@ -1124,7 +1124,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    5. Email (Opsional)
+                    5. {tr("Email (Optional)", "Email (Opsional)", "Email (Opsional)")}
                   </label>
                   <input
                     type="email"
@@ -1141,7 +1141,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
 
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    6. Target Timeline
+                    6. {tr("Target Timeline", "Target Timeline", "Target Timeline")}
                   </label>
                   <select
                     value={clientTimeline}
@@ -1153,23 +1153,23 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                     }`}
                   >
                     <option value="Urgen (< 1 Minggu)" className="bg-neutral-900 text-white">
-                      Urgen (&lt; 1 Minggu)
+                      {tr("Urgent (< 1 Week)", "Urgen (< 1 Minggu)", "Gageh (< 1 Minggu)")}
                     </option>
                     <option value="Standar (1-2 Minggu)" className="bg-neutral-900 text-white">
-                      Standar (1 - 2 Minggu)
+                      {tr("Standard (1 - 2 Weeks)", "Standar (1 - 2 Minggu)", "Standar (1 - 2 Minggu)")}
                     </option>
                     <option value="Menengah (3-4 Minggu)" className="bg-neutral-900 text-white">
-                      Menengah (3 - 4 Minggu)
+                      {tr("Medium (3 - 4 Weeks)", "Menengah (3 - 4 Minggu)", "Manangah (3 - 4 Minggu)")}
                     </option>
                     <option value="Fleksibel / Sesuai Kesepakatan" className="bg-neutral-900 text-white">
-                      Fleksibel / Sesuai Kesepakatan
+                      {tr("Flexible / Negotiable", "Fleksibel / Sesuai Kesepakatan", "Fleksibel / Sasuai Mupakaik")}
                     </option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    7. Estimasi Budget
+                    7. {tr("Estimated Budget", "Estimasi Budget", "Perkiraan Budget")}
                   </label>
                   <select
                     value={clientBudget}
@@ -1193,7 +1193,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                       &gt; Rp 30.000.000
                     </option>
                     <option value="Custom Project Scale" className="bg-neutral-900 text-white">
-                      Kustom Sesuai Skala Proyek
+                      {tr("Custom Scope & Scale", "Kustom Sesuai Skala Proyek", "Kustom Sasuai Skala Proyek")}
                     </option>
                   </select>
                 </div>
@@ -1202,11 +1202,11 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
               {/* 4. Project Brief */}
               <div>
                 <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                  8. Detail Kebutuhan / Brief Proyek (Opsional)
+                  8. {tr("Project Brief / Requirements (Optional)", "Detail Kebutuhan / Brief Proyek (Opsional)", "Detail Paralu / Brief Proyek (Opsional)")}
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="Ceritakan tentang tujuan proyek Anda, referensi visual, target pasar, atau fitur khusus yang diinginkan..."
+                  placeholder={tr("Tell us about your project goals, visual references, target audience, or specific requirements...", "Ceritakan tentang tujuan proyek Anda, referensi visual, target pasar, atau fitur khusus yang diinginkan...", "Caritoan tantang tujuan proyek sanak, referensi visual, target pasa, atau hal khusus nan diinginkan...")}
                   value={projectBrief}
                   onChange={(e) => setProjectBrief(e.target.value)}
                   className={`w-full px-4 py-3 rounded-xl text-xs sm:text-sm border outline-none resize-y ${
@@ -1222,11 +1222,11 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300">
-                      9. Skema & Metode Pembayaran Proyek
+                      9. {tr("Payment Scheme & Method", "Skema & Metode Pembayaran Proyek", "Skema & Caro Bayar Proyek")}
                     </label>
                     <span className="text-[11px] text-emerald-400 font-mono flex items-center gap-1">
                       <RiShieldCheckLine className="w-3.5 h-3.5" />
-                      Resi Otomatis & Terverifikasi
+                      {tr("Automatic & Verified Receipt", "Resi Otomatis & Terverifikasi", "Resi Otomatis & Terverifikasi")}
                     </span>
                   </div>
 
@@ -1246,14 +1246,14 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
                           <RiBankCardLine className="w-4 h-4 text-[#16b09f]" />
-                          DP 50% (Uang Muka)
+                          {tr("50% Down Payment (DP)", "DP 50% (Uang Muka)", "DP 50% (Uang Muko)")}
                         </span>
                         {paymentPlan === "dp50" && (
                           <RiCheckboxCircleFill className="w-4 h-4 text-[#16b09f]" />
                         )}
                       </div>
                       <p className="text-[11px] text-neutral-400 leading-relaxed">
-                        Mulai pengerjaan dengan DP 50%. Pelunasan 50% setelah proyek selesai disetujui.
+                        {tr("Start production with 50% DP. The remaining 50% is settled after project completion and approval.", "Mulai pengerjaan dengan DP 50%. Pelunasan 50% setelah proyek selesai disetujui.", "Mulai pangarajoan jo DP 50%. Pelunasan 50% sasudah proyek salasai disatujui.")}
                       </p>
                     </button>
 
@@ -1271,21 +1271,21 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                       <div className="flex items-center justify-between mb-1">
                         <span className="font-bold text-xs sm:text-sm text-white flex items-center gap-1.5">
                           <RiCheckboxCircleFill className="w-4 h-4 text-[#16b09f]" />
-                          Bayar Lunas 100%
+                          {tr("100% Full Payment", "Bayar Lunas 100%", "Baya Lunas 100%")}
                         </span>
                         {paymentPlan === "full" && (
                           <RiCheckboxCircleFill className="w-4 h-4 text-[#16b09f]" />
                         )}
                       </div>
                       <p className="text-[11px] text-neutral-400 leading-relaxed">
-                        Pembayaran penuh di awal. Antrean prioritas tinggi dan serah terima file tanpa jeda termin.
+                        {tr("Full upfront payment. Highest queue priority and instant final deliverables without milestone delays.", "Pembayaran penuh di awal. Antrean prioritas tinggi dan serah terima file tanpa jeda termin.", "Pambayaran penuah di awal. Antrean prioritas tinggi sarato serah tarimo berkas lansuang.")}
                       </p>
                     </button>
                   </div>
 
                   {/* Payment Accounts Options */}
                   <label className="block text-[11px] font-mono uppercase tracking-wider text-neutral-400 mb-2">
-                    Pilih Rekening / Saluran Pembayaran:
+                    {tr("Select Payment Account / Channel:", "Pilih Rekening / Saluran Pembayaran:", "Piliaah Rekening / Saluran Bayar:")}
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
                     {activePaymentAccounts.map((acc) => {
@@ -1312,7 +1312,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                             )}
                           </div>
                           <span className="text-[10px] text-neutral-400 truncate">
-                            {acc.category === "qris" ? "Semua Bank & E-Wallet" : acc.accountHolder}
+                            {acc.category === "qris" ? tr("All Banks & E-Wallets", "Semua Bank & E-Wallet", "Kasadonyo Bank & E-Wallet") : acc.accountHolder}
                           </span>
                         </button>
                       );
@@ -1330,7 +1330,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                             <span className="text-xs font-bold text-white">{activeAcc.name}</span>
                             {activeAcc.badge && (
                               <span className="text-[9px] px-2 py-0.5 rounded-full bg-[#16b09f]/20 text-[#16b09f] font-mono">
-                                {activeAcc.badge}
+                                {activeAcc.badge === "Paling Populer" ? tr("Most Popular", "Paling Populer", "Paliang Populer") : activeAcc.badge}
                               </span>
                             )}
                           </div>
@@ -1339,7 +1339,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                               {activeAcc.accountNumber}
                             </span>
                             <span className="text-[11px] text-neutral-400">
-                              a.n. <strong className="text-neutral-200">{activeAcc.accountHolder}</strong>
+                              {tr("on behalf of", "a.n.", "a.n.")} <strong className="text-neutral-200">{activeAcc.accountHolder}</strong>
                             </span>
                           </div>
                           <p className="text-[11px] text-neutral-400">
@@ -1359,7 +1359,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                           className="self-start sm:self-center shrink-0 px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 active:scale-95 text-white text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer border border-white/10"
                         >
                           <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
-                          <span>{copiedFormAccount ? "Tersalin!" : "Salin Rekening"}</span>
+                          <span>{copiedFormAccount ? tr("Copied!", "Tersalin!", "Ta-salin!") : tr("Copy Account", "Salin Rekening", "Salin Rekening")}</span>
                         </button>
                       </div>
                     );
@@ -1382,7 +1382,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                   <span>{tr("Confirm Order & View Receipt 🧾", "Konfirmasi Order & Terbitkan Resi 🧾", "Konfirmasi Order & Resi 🧾")}</span>
                 </button>
                 <p className="text-center text-[11px] text-neutral-500 font-mono mt-3">
-                  🔒 Data Anda terlindungi. Resi digital resmi & link pembayaran akan langsung diterbitkan untuk konfirmasi langsung.
+                  {tr("🔒 Your data is protected. Official digital receipt & payment confirmation will be generated immediately.", "🔒 Data Anda terlindungi. Resi digital resmi & link pembayaran akan langsung diterbitkan untuk konfirmasi langsung.", "🔒 Data Sanak tajago. Resi digital resmi & link bayar lansuang tabik untuak konfirmasi.")}
                 </p>
               </div>
             </form>
@@ -1416,38 +1416,38 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                 }}
               >
                 <RiCheckboxCircleFill className="w-3.5 h-3.5" />
-                <span>Konfirmasi Rincian Proyek</span>
+                <span>{tr("Confirm Project Details", "Konfirmasi Rincian Proyek", "Konfirmasi Rincian Proyek")}</span>
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold">Ringkasan Pesanan Proyek</h3>
+              <h3 className="text-xl sm:text-2xl font-bold">{tr("Project Order Summary", "Ringkasan Pesanan Proyek", "Ringkasan Pesanan Proyek")}</h3>
               <p className="text-xs text-neutral-400 mt-1">
-                Periksa kembali ringkasan pesanan sebelum diteruskan ke WhatsApp Rizx Studio.
+                {tr("Review order details before forwarding directly to Rizx Studio WhatsApp.", "Periksa kembali ringkasan pesanan sebelum diteruskan ke WhatsApp Rizx Studio.", "Pariso baliak ringkasan pasanan sabalun ditaruih-an ka WhatsApp Rizx Studio.")}
               </p>
             </div>
 
             {/* Reference Badge */}
             <div className="p-3 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-between mb-5 font-mono text-xs">
-              <span className="text-neutral-400">Nomor Referensi:</span>
+              <span className="text-neutral-400">{tr("Reference Code:", "Nomor Referensi:", "Nomor Referensi:")}</span>
               <span className="font-bold text-[#16b09f]">{orderRefId}</span>
             </div>
 
             {/* Summary Details */}
             <div className="space-y-3.5 text-xs mb-6">
               <div className="flex justify-between py-1.5 border-b border-white/[0.08]">
-                <span className="text-neutral-400 font-mono">Layanan:</span>
+                <span className="text-neutral-400 font-mono">{tr("Service:", "Layanan:", "Layanan:")}</span>
                 <span className="font-bold text-right text-white">{selectedProductObj.title}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-white/[0.08]">
-                <span className="text-neutral-400 font-mono">Paket:</span>
+                <span className="text-neutral-400 font-mono">{tr("Package:", "Paket:", "Paket:")}</span>
                 <span className="font-bold text-right text-[#16b09f]">
                   {selectedPackageObj.name} ({formPackage.toUpperCase()})
                 </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-white/[0.08]">
-                <span className="text-neutral-400 font-mono">Estimasi Durasi:</span>
+                <span className="text-neutral-400 font-mono">{tr("Estimated Duration:", "Estimasi Durasi:", "Kiro-kiro Durasi:")}</span>
                 <span className="text-right text-neutral-200">{selectedPackageObj.duration}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-white/[0.08]">
-                <span className="text-neutral-400 font-mono">Nama / Klien:</span>
+                <span className="text-neutral-400 font-mono">{tr("Client / Brand:", "Nama / Klien:", "Namo / Klien:")}</span>
                 <span className="font-semibold text-right text-white">{clientName}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-white/[0.08]">
@@ -1461,16 +1461,16 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                 </div>
               )}
               <div className="flex justify-between py-1.5 border-b border-white/[0.08]">
-                <span className="text-neutral-400 font-mono">Target Waktu:</span>
+                <span className="text-neutral-400 font-mono">{tr("Target Timeline:", "Target Waktu:", "Target Waktu:")}</span>
                 <span className="text-right text-neutral-300">{clientTimeline}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-white/[0.08]">
-                <span className="text-neutral-400 font-mono">Estimasi Budget:</span>
+                <span className="text-neutral-400 font-mono">{tr("Estimated Budget:", "Estimasi Budget:", "Estimasi Budget:")}</span>
                 <span className="text-right text-neutral-300">{clientBudget}</span>
               </div>
               {projectBrief && (
                 <div className="pt-2">
-                  <span className="text-neutral-400 font-mono block mb-1">Catatan Brief:</span>
+                  <span className="text-neutral-400 font-mono block mb-1">{tr("Brief Notes:", "Catatan Brief:", "Catatan Brief:")}</span>
                   <div className="p-3 rounded-lg bg-black/40 border border-white/10 text-neutral-300 text-[11px] leading-relaxed italic">
                     &ldquo;{projectBrief}&rdquo;
                   </div>
@@ -1489,7 +1489,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                 className="w-full py-2.5 px-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <RiFileList3Line className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Buka Resi & Panduan Bayar Digital 🧾</span>
+                <span>{tr("View Digital Receipt & Payment Guide 🧾", "Buka Resi & Panduan Bayar Digital 🧾", "Bukak Resi & Panduan Bayar 🧾")}</span>
               </button>
 
               <button
@@ -1501,7 +1501,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                 className="w-full py-2.5 px-3 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <RiCompass3Line className="w-3.5 h-3.5 text-cyan-400" />
-                <span>Lihat Live Tracking Proyek ({orderRefId}) ↗</span>
+                <span>{tr("View Live Project Tracking", "Lihat Live Tracking Proyek", "Caliak Live Tracking Proyek")} ({orderRefId}) ↗</span>
               </button>
               <button
                 type="button"
@@ -1515,7 +1515,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
               >
                 <RiWhatsappLine className="w-4 h-4" />
                 <span>
-                  {isSubmitting ? "Menyiapkan..." : "Konfirmasi & Kirim via WhatsApp"}
+                  {isSubmitting ? tr("Preparing...", "Menyiapkan...", "Sadang manyiap-an...") : tr("Confirm & Send via WhatsApp", "Konfirmasi & Kirim via WhatsApp", "Konfirmasi & Kirim via WhatsApp")}
                 </span>
               </button>
 
@@ -1526,7 +1526,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                   className="py-2.5 px-3 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/10 text-neutral-200 text-xs font-medium transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <RiFileCopyLine className="w-3.5 h-3.5" />
-                  <span>{copiedFeedback ? "Tersalin!" : "Salin Format"}</span>
+                  <span>{copiedFeedback ? tr("Copied!", "Tersalin!", "Ta-salin!") : tr("Copy Format", "Salin Format", "Salin Format")}</span>
                 </button>
 
                 <button
@@ -1534,7 +1534,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                   onClick={() => setIsConfirmOpen(false)}
                   className="py-2.5 px-3 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/10 text-neutral-300 text-xs font-medium transition-all cursor-pointer text-center"
                 >
-                  Ubah Data
+                  {tr("Edit Details", "Ubah Data", "Ubah Data")}
                 </button>
               </div>
             </div>
@@ -1568,12 +1568,12 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                     style={{ backgroundColor: primaryColor }}
                   />
                   <h3 className="text-base sm:text-lg font-bold tracking-tight">
-                    {tr("Pilih Layanan / Produk", "Pilih Layanan / Produk", "Pilih Layanan / Produk")}
+                    {tr("Select Service / Product", "Pilih Layanan / Produk", "Pilih Layanan / Produk")}
                   </h3>
                 </div>
                 <p className="text-xs text-neutral-400 mt-1 font-light">
                   {tr(
-                    "Tentukan layanan kreatif yang ingin Anda konsultasikan & pesan",
+                    "Choose the creative service you wish to consult & book",
                     "Tentukan layanan kreatif yang ingin Anda konsultasikan & pesan",
                     "Pilih layanan kreatif untuak Sanak"
                   )}
@@ -1678,13 +1678,13 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
 
             {/* Footer Info */}
             <div className="p-3.5 sm:p-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-between text-xs text-neutral-400 shrink-0">
-              <span>{dynamicCategories.filter((c) => c.id !== "all").length} {tr("Kategori Layanan", "Kategori Layanan", "Kategori Layanan")}</span>
+              <span>{dynamicCategories.filter((c) => c.id !== "all").length} {tr("Service Categories", "Kategori Layanan", "Kategori Layanan")}</span>
               <button
                 type="button"
                 onClick={() => setIsProductPickerOpen(false)}
                 className="text-xs font-semibold px-4 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white transition-colors cursor-pointer"
               >
-                {tr("Tutup", "Tutup", "Tutuik")}
+                {tr("Close", "Tutup", "Tutuik")}
               </button>
             </div>
           </div>

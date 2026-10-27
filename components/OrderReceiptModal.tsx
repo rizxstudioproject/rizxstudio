@@ -522,7 +522,7 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
-              {tr("Resi Pembayaran Resmi", "Official Payment Receipt", "Resi Pambayaran")}
+              {tr("Official Payment Receipt", "Resi Pembayaran Resmi", "Resi Pambayaran")}
             </span>
           </div>
 
@@ -530,11 +530,11 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
             <button
               type="button"
               onClick={handlePrint}
-              title="Cetak Resi / Simpan PDF"
+              title={tr("Print Receipt / Save as PDF", "Cetak Resi / Simpan PDF", "Cetak Resi / Simpan PDF")}
               className="p-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white transition cursor-pointer text-xs flex items-center gap-1.5"
             >
               <RiPrinterLine className="w-4 h-4 text-emerald-400" />
-              <span className="font-mono">{tr("Cetak Resi", "Cetak Resi", "Cetak Resi")}</span>
+              <span className="font-mono">{tr("Print Receipt", "Cetak Resi", "Cetak Resi")}</span>
             </button>
 
             <button
@@ -800,7 +800,7 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
                       title={tr("Retake with phone camera", "Foto ulang dengan kamera HP", "Foto ulang jo kamera HP")}
                     >
                       <RiCameraLine className="w-3.5 h-3.5 text-teal-400" />
-                      <span>{tr("Foto Kamera", "Foto Kamera", "Foto Kamera")}</span>
+                      <span>{tr("Camera Photo", "Foto Kamera", "Foto Kamera")}</span>
                     </button>
                     <button
                       type="button"
@@ -810,7 +810,7 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
                       title={tr("Select from gallery / files", "Pilih file dari galeri", "Piliaah file dari galeri")}
                     >
                       <RiImageAddLine className="w-3.5 h-3.5 text-neutral-300" />
-                      <span>{tr("Ganti File", "Ganti File", "Ganti File")}</span>
+                      <span>{tr("Change File", "Ganti File", "Ganti File")}</span>
                     </button>
                   </div>
                 </div>
@@ -828,7 +828,7 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
                       <span>
                         {isUploadingProof
                           ? tr("Uploading...", "Mengunggah...", "Mangupload...")
-                          : tr("Foto Kamera HP", "Foto Kamera HP", "Foto Kamera HP")}
+                          : tr("Take Photo with Camera", "Foto Kamera HP", "Foto Kamera HP")}
                       </span>
                     </button>
 
@@ -843,7 +843,7 @@ ${r.paymentProofUrl ? `📎 *BUKTI PEMBAYARAN:* ${r.paymentProofUrl}\n(Bukti tra
                       <span>
                         {isUploadingProof
                           ? tr("Uploading...", "Mengunggah...", "Mangupload...")
-                          : tr("Pilih dari Galeri / File", "Pilih dari Galeri / File", "Piliaah dari Galeri / File")}
+                          : tr("Select from Gallery / File", "Pilih dari Galeri / File", "Piliaah dari Galeri / File")}
                       </span>
                     </button>
                   </div>

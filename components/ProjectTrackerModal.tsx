@@ -161,11 +161,11 @@ export default function ProjectTrackerModal({
             <span>Live Project Tracking Engine</span>
           </div>
           <h2 className="text-xl sm:text-2xl font-bold tracking-tight">
-            {tr("Lacak Progres Proyek", "Lacak Progres Proyek", "Caliak Progres Proyek")}
+            {tr("Track Project Progress", "Lacak Progres Proyek", "Caliak Progres Proyek")}
           </h2>
           <p className="text-xs text-neutral-400 mt-1">
             {tr(
-              "Masukkan kode referensi pesanan Anda untuk melihat status pengerjaan secara transparan.",
+              "Enter your order reference code to track development stages with full transparency.",
               "Masukkan kode referensi pesanan Anda untuk melihat status pengerjaan secara transparan.",
               "Masuak-an kode referensi untuak mancaliak status karajo sacaro lansuang."
             )}
@@ -185,7 +185,7 @@ export default function ProjectTrackerModal({
             <input
               type="text"
               required
-              placeholder="Contoh: RZX-PRJ-XXXXXX"
+              placeholder={tr("e.g. RZX-PRJ-XXXXXX", "Contoh: RZX-PRJ-XXXXXX", "Contoh: RZX-PRJ-XXXXXX")}
               value={inputCode}
               onChange={(e) => setInputCode(e.target.value.toUpperCase())}
               className={`w-full pl-10 pr-32 py-2.5 rounded-xl text-xs sm:text-sm font-mono tracking-wider border outline-none transition-all ${
@@ -204,7 +204,7 @@ export default function ProjectTrackerModal({
                     setSearched(false);
                   }}
                   className="w-6 h-6 rounded-md bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
-                  title="Hapus"
+                  title={tr("Clear", "Hapus", "Hapuih")}
                 >
                   <RiCloseLine className="w-3.5 h-3.5" />
                 </button>
@@ -213,10 +213,10 @@ export default function ProjectTrackerModal({
                 type="button"
                 onClick={handlePasteCode}
                 className="px-2.5 py-1 text-[11px] font-mono rounded-lg bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white transition-all flex items-center gap-1 cursor-pointer border border-white/15 active:scale-95 shadow-sm"
-                title="Tempel Kode dari Clipboard"
+                title={tr("Paste Code from Clipboard", "Tempel Kode dari Clipboard", "Tempel Kode dari Clipboard")}
               >
                 <RiFileCopyLine className="w-3 h-3 text-[#16b09f]" />
-                <span className="font-semibold">Tempel</span>
+                <span className="font-semibold">{tr("Paste", "Tempel", "Tempel")}</span>
               </button>
             </div>
           </div>
@@ -234,7 +234,7 @@ export default function ProjectTrackerModal({
             ) : (
               <RiSearchLine className="w-4 h-4" />
             )}
-            <span>{loading ? "Mencari..." : "Lacak Status"}</span>
+            <span>{loading ? tr("Searching...", "Mencari...", "Sadang mancari...") : tr("Track Status", "Lacak Status", "Lacak Status")}</span>
           </button>
         </form>
 
@@ -243,7 +243,7 @@ export default function ProjectTrackerModal({
           <RiShieldCheckLine className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
           <span>
             {tr(
-              "Privasi Terlindungi: Akses data proyek hanya melalui Kode Referensi resmi.",
+              "Privacy Protected: Project access is restricted to official Reference Codes.",
               "Privasi Terlindungi: Akses data proyek hanya melalui Kode Referensi resmi.",
               "Privasi Tajago: Akses data proyek hanyo jo Kode Referensi resmi."
             )}
@@ -269,9 +269,21 @@ export default function ProjectTrackerModal({
             <div className="w-12 h-12 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto text-lg">
               🔍
             </div>
-            <h3 className="text-sm font-bold text-white">Kode Referensi Tidak Ditemukan</h3>
+            <h3 className="text-sm font-bold text-white">
+              {tr("Reference Code Not Found", "Kode Referensi Tidak Ditemukan", "Kode Referensi Indak Ditamuan")}
+            </h3>
             <p className="text-xs text-neutral-400 max-w-sm mx-auto leading-relaxed">
-              Tidak ada data proyek untuk kode &ldquo;{inputCode}&rdquo;. Pastikan kode referensi yang dimasukkan sudah benar atau hubungi kami langsung via WhatsApp.
+              {tr(
+                "No project data found for code ",
+                "Tidak ada data proyek untuk kode ",
+                "Indak ado data proyek untuak kode "
+              )}
+              &ldquo;{inputCode}&rdquo;.{" "}
+              {tr(
+                "Please make sure the entered reference code is correct or reach out to us directly via WhatsApp.",
+                "Pastikan kode referensi yang dimasukkan sudah benar atau hubungi kami langsung via WhatsApp.",
+                "Pastikan kode referensi nan dimasuak-an alah bana atau hubungi kami langsuang lewaik WhatsApp."
+              )}
             </p>
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2">
               <button
@@ -280,7 +292,7 @@ export default function ProjectTrackerModal({
                 className="px-4 py-2 rounded-xl bg-white/[0.06] hover:bg-white/10 border border-white/15 text-neutral-200 text-xs font-mono transition-all cursor-pointer flex items-center justify-center gap-1.5"
               >
                 <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
-                <span>Tempel Ulang Kode</span>
+                <span>{tr("Re-paste Code", "Tempel Ulang Kode", "Cubo Tempel Ulang")}</span>
               </button>
               <a
                 href={`https://wa.me/${socialContacts.whatsappNumber || "6282170214498"}?text=${encodeURIComponent(
@@ -291,7 +303,7 @@ export default function ProjectTrackerModal({
                 className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 text-xs font-mono"
               >
                 <RiWhatsappLine className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Konfirmasi via WhatsApp</span>
+                <span>{tr("Confirm via WhatsApp", "Konfirmasi via WhatsApp", "Konfirmasi via WhatsApp")}</span>
               </a>
             </div>
           </div>

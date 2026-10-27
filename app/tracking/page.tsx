@@ -138,7 +138,7 @@ export default function TrackingPage() {
             className="inline-flex items-center gap-2 text-xs font-mono text-neutral-400 hover:text-white transition-colors py-1.5 px-3.5 rounded-full bg-white/[0.04] border border-white/10 hover:border-white/25"
           >
             <RiArrowLeftLine className="w-3.5 h-3.5" />
-            <span>{tr("Lihat Semua Layanan & Produk", "Lihat Semua Layanan & Produk", "Caliak Kasadonyo Produk")}</span>
+            <span>{tr("View All Services & Products", "Lihat Semua Layanan & Produk", "Caliak Kasadonyo Produk")}</span>
           </Link>
 
           <div className="flex items-center gap-3">
@@ -148,7 +148,7 @@ export default function TrackingPage() {
             </span>
             <Link
               href="/"
-              title={tr("Tutup & Kembali ke Beranda", "Tutup & Kembali ke Beranda", "Tutuik & Baliak ka Muko")}
+              title={tr("Close & Back to Home", "Tutup & Kembali ke Beranda", "Tutuik & Baliak ka Muko")}
               className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 flex items-center justify-center text-neutral-400 hover:text-white transition-all cursor-pointer shadow-sm"
             >
               <RiCloseLine className="w-4 h-4" />
@@ -177,15 +177,15 @@ export default function TrackingPage() {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-bold text-white tracking-tight leading-tight mb-4">
-            {tr("Lacak Progres Proyek", "Lacak Progres Proyek", "Lacak Progres Proyek")}{" "}
+            {tr("Track Project Progress", "Lacak Progres Proyek", "Lacak Progres Proyek")}{" "}
             <span className="font-light italic" style={{ color: primaryColor }}>
-              {tr("Secara Transparan", "Secara Transparan", "Sacaro Tarang")}
+              {tr("With Full Transparency", "Secara Transparan", "Sacaro Tarang")}
             </span>
           </h1>
 
           <p className="text-xs sm:text-sm md:text-base text-neutral-400 max-w-xl mx-auto font-light leading-relaxed">
             {tr(
-              "Masukkan kode referensi pesanan Anda di bawah untuk memantau tahapan pengerjaan dari antrean hingga finish.",
+              "Enter your official project reference code below to track production stages from queue to completion.",
               "Masukkan kode referensi pesanan Anda di bawah untuk memantau tahapan pengerjaan dari antrean hingga finish.",
               "Masuak-an kode referensi pasanan sanak untuak mancaliak status karajo dari awal sampai salasai."
             )}
@@ -206,7 +206,7 @@ export default function TrackingPage() {
               <input
                 type="text"
                 required
-                placeholder="Masukkan Kode Referensi (Contoh: RZX-PRJ-...)"
+                placeholder={tr("Enter Reference Code (e.g. RZX-PRJ-...)", "Masukkan Kode Referensi (Contoh: RZX-PRJ-...)", "Masuak-an Kode Referensi (Contoh: RZX-PRJ-...)")}
                 value={inputCode}
                 onChange={(e) => setInputCode(e.target.value.toUpperCase())}
                 className={`w-full pl-12 pr-36 py-3.5 rounded-xl text-sm sm:text-base font-mono tracking-wider border-none outline-none ${
@@ -225,7 +225,7 @@ export default function TrackingPage() {
                       setSearched(false);
                     }}
                     className="w-7 h-7 rounded-lg bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white transition-all flex items-center justify-center cursor-pointer"
-                    title="Hapus / Reset"
+                    title={tr("Clear / Reset", "Hapus / Reset", "Hapuih / Reset")}
                   >
                     <RiCloseLine className="w-4 h-4" />
                   </button>
@@ -234,10 +234,10 @@ export default function TrackingPage() {
                   type="button"
                   onClick={handlePasteCode}
                   className="px-3 py-1.5 text-xs font-mono rounded-lg bg-white/10 hover:bg-white/20 text-neutral-200 hover:text-white transition-all flex items-center gap-1.5 cursor-pointer border border-white/15 active:scale-95 shadow-sm"
-                  title="Tempel Kode dari Clipboard"
+                  title={tr("Paste Code from Clipboard", "Tempel Kode dari Clipboard", "Tempel Kode dari Clipboard")}
                 >
                   <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
-                  <span className="font-semibold">Tempel</span>
+                  <span className="font-semibold">{tr("Paste", "Tempel", "Tempel")}</span>
                 </button>
               </div>
             </div>
@@ -256,7 +256,7 @@ export default function TrackingPage() {
               ) : (
                 <RiSearchLine className="w-4 h-4" />
               )}
-              <span>{loading ? "Mengecek..." : "Lacak Status Proyek 🚀"}</span>
+              <span>{loading ? tr("Checking...", "Mengecek...", "Sadang mangecek...") : tr("Track Project Status 🚀", "Lacak Status Proyek 🚀", "Lacak Status Proyek 🚀")}</span>
             </button>
           </form>
 
@@ -265,7 +265,7 @@ export default function TrackingPage() {
             <RiShieldCheckLine className="w-4 h-4 text-emerald-400 shrink-0" />
             <span>
               {tr(
-                "Privasi Terlindungi: Data proyek hanya dapat diakses melalui Kode Referensi resmi.",
+                "Privacy Protected: Project data is exclusively accessible via official Reference Code.",
                 "Privasi Terlindungi: Data proyek hanya dapat diakses melalui Kode Referensi resmi.",
                 "Privasi Tajago: Data proyek hanyo dapek diakses jo Kode Referensi resmi."
               )}
@@ -292,10 +292,20 @@ export default function TrackingPage() {
               🔍
             </div>
             <h3 className="text-base sm:text-lg font-bold text-white">
-              Kode Referensi Tidak Ditemukan
+              {tr("Reference Code Not Found", "Kode Referensi Tidak Ditemukan", "Kode Referensi Indak Ditamuan")}
             </h3>
             <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-light">
-              Tidak ada data proyek untuk kode &ldquo;<strong className="text-white font-mono">{inputCode}</strong>&rdquo;. Pastikan kode referensi yang Anda ketik atau tempel sudah sesuai dengan konfirmasi pemesanan dari Rizx Studio.
+              {tr(
+                "No project data found for reference code ",
+                "Tidak ada data proyek untuk kode ",
+                "Indak ado data proyek untuak kode "
+              )}
+              &ldquo;<strong className="text-white font-mono">{inputCode}</strong>&rdquo;.{" "}
+              {tr(
+                "Please make sure the reference code you typed or pasted matches your official booking confirmation from Rizx Studio.",
+                "Pastikan kode referensi yang Anda ketik atau tempel sudah sesuai dengan konfirmasi pemesanan dari Rizx Studio.",
+                "Pastikan kode referensi alah sasuai jo konfirmasi pasanan dari Rizx Studio."
+              )}
             </p>
             <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
               <button
@@ -304,7 +314,7 @@ export default function TrackingPage() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/10 border border-white/15 text-neutral-200 text-xs font-mono transition-all cursor-pointer"
               >
                 <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
-                <span>Coba Tempel Ulang Kode</span>
+                <span>{tr("Re-paste Code", "Coba Tempel Ulang Kode", "Cubo Tempel Ulang")}</span>
               </button>
               <a
                 href={`https://wa.me/${socialContacts.whatsappNumber || "6282170214498"}?text=${encodeURIComponent(
@@ -315,7 +325,7 @@ export default function TrackingPage() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-mono transition-all"
               >
                 <RiWhatsappLine className="w-4 h-4 text-emerald-400" />
-                <span>Hubungi Admin via WhatsApp</span>
+                <span>{tr("Contact Studio via WhatsApp", "Hubungi Admin via WhatsApp", "Hubungi Admin via WhatsApp")}</span>
               </a>
             </div>
           </div>

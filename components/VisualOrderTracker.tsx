@@ -323,15 +323,15 @@ export default function VisualOrderTracker({
                     <div className="shrink-0">
                       {isCompleted ? (
                         <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">
-                          {tr("Selesai", "Selesai", "Salasai")}
+                          {tr("Completed", "Selesai", "Salasai")}
                         </span>
                       ) : isCurrent ? (
                         <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-emerald-500 text-black font-extrabold shadow-sm animate-pulse">
-                          {tr("Aktif", "Aktif", "Aktif")}
+                          {tr("Active", "Aktif", "Aktif")}
                         </span>
                       ) : (
                         <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-neutral-500 border border-white/5">
-                          {tr("Menunggu", "Menunggu", "Mananti")}
+                          {tr("Pending", "Menunggu", "Mananti")}
                         </span>
                       )}
                     </div>
@@ -460,15 +460,15 @@ export default function VisualOrderTracker({
                   <div className="mt-2">
                     {isCompleted ? (
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-semibold">
-                        {tr("Selesai", "Selesai", "Salasai")}
+                        {tr("Completed", "Selesai", "Salasai")}
                       </span>
                     ) : isCurrent ? (
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500 text-black font-extrabold shadow-sm animate-pulse">
-                        {tr("Sedang Berjalan", "Sedang Berjalan", "Sadang Jalan")}
+                        {tr("In Progress", "Sedang Berjalan", "Sadang Jalan")}
                       </span>
                     ) : (
                       <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-neutral-500 border border-white/5">
-                        {tr("Menunggu", "Menunggu", "Mananti")}
+                        {tr("Pending", "Menunggu", "Mananti")}
                       </span>
                     )}
                   </div>
