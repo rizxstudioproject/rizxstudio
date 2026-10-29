@@ -424,6 +424,13 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
       </span>
     );
   }
+  if (n === "digitalasset" || n === "digitalassets" || n === "asset" || n === "assets") {
+    return (
+      <span className="w-3.5 h-3.5 rounded bg-gradient-to-br from-[#10b981] to-[#0ea5e9] text-black font-black text-[8px] flex items-center justify-center font-mono shrink-0 shadow-sm leading-none">
+        DA
+      </span>
+    );
+  }
   if (n === "blender" || n === "blender3d") {
     return <SiBlender className="w-3.5 h-3.5 text-[#EA7600] shrink-0" />;
   }
@@ -491,6 +498,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
     "Illustrator",
     "After Effects",
     "Blender",
+    "Digital Asset",
     "Cinema 4D",
     "InDesign",
   ];
@@ -507,7 +515,17 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
   const [designTools, setDesignTools] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem("rizx_custom_design_tools");
-      return saved ? JSON.parse(saved) : DEFAULT_DESIGN_TOOLS;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          if (!parsed.some((t: string) => t.toLowerCase() === "digital asset")) {
+            parsed.push("Digital Asset");
+            localStorage.setItem("rizx_custom_design_tools", JSON.stringify(parsed));
+          }
+          return parsed;
+        }
+      }
+      return DEFAULT_DESIGN_TOOLS;
     } catch {
       return DEFAULT_DESIGN_TOOLS;
     }
