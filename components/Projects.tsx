@@ -245,6 +245,32 @@ function ToolBadge({ tool, isLight }: { tool: string; isLight?: boolean }) {
     );
   }
 
+  if (
+    normalized === "digital asset" ||
+    normalized === "digitalasset" ||
+    normalized === "digital assets" ||
+    normalized === "asset" ||
+    normalized === "assets"
+  ) {
+    return (
+      <div
+        title="Digital Asset"
+        className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border shadow-sm select-none ${
+          isLight
+            ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+            : "bg-[#06241b] border-emerald-400/40 text-emerald-300"
+        }`}
+      >
+        <span className="w-4 h-4 rounded bg-gradient-to-br from-[#10b981] to-[#0ea5e9] text-black font-black text-[9px] flex items-center justify-center font-mono shadow-sm shrink-0 leading-none">
+          DA
+        </span>
+        <span className="tool-badge-label text-[10px] font-mono font-medium" style={{ color: textColor }}>
+          Digital Asset
+        </span>
+      </div>
+    );
+  }
+
   if (normalized === "cinema4d" || normalized === "c4d") {
     return (
       <div

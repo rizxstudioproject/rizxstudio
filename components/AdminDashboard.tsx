@@ -1700,19 +1700,84 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setEditWorkToolsInput(Array.isArray(initialTools) ? initialTools.join(", ") : initialTools);
   };
 
-  const toggleEditToolChip = (toolName: string) => {
+  // Dynamic tool catalog items (includes Digital Asset & all custom tools)
+  const getCatalogToolList = (): { name: string; label: string }[] => {
+    const result: { name: string; label: string }[] = [];
+    const added = new Set<string>();
+
+    const add = (label: string) => {
+      const norm = label.trim().toLowerCase();
+      if (!norm || added.has(norm)) return;
+      added.add(norm);
+      result.push({ name: norm, label: label.trim() });
+    };
+
+    // Design Tools (Digital Asset guaranteed first)
+    add("Digital Asset");
+    add("Figma");
+    add("Photoshop");
+    add("Illustrator");
+    add("After Effects");
+    add("Blender");
+
+    if (typeof window !== "undefined") {
+      try {
+        const savedDesign = localStorage.getItem("rizx_custom_design_tools");
+        if (savedDesign) {
+          const parsed = JSON.parse(savedDesign);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((t: string) => typeof t === "string" && add(t));
+          }
+        }
+        const savedAi = localStorage.getItem("rizx_custom_ai_tools");
+        if (savedAi) {
+          const parsed = JSON.parse(savedAi);
+          if (Array.isArray(parsed)) {
+            parsed.forEach((t: string) => typeof t === "string" && add(t));
+          }
+        }
+      } catch {}
+    }
+
+    // AI Tools
+    add("Magnific AI");
+    add("ChatGPT");
+    add("Gemini");
+    add("Midjourney");
+    add("Firefly");
+    add("Higgsfield");
+
+    return result;
+  };
+
+  const toggleEditToolChip = (toolLabel: string) => {
     const currentList = editWorkToolsInput
       .split(",")
       .map((t) => t.trim())
       .filter(Boolean);
-    const exists = currentList.some((t) => t.toLowerCase() === toolName.toLowerCase());
+    const exists = currentList.some((t) => t.toLowerCase() === toolLabel.toLowerCase());
     let nextList: string[];
     if (exists) {
-      nextList = currentList.filter((t) => t.toLowerCase() !== toolName.toLowerCase());
+      nextList = currentList.filter((t) => t.toLowerCase() !== toolLabel.toLowerCase());
     } else {
-      nextList = [...currentList, toolName];
+      nextList = [...currentList, toolLabel];
     }
     setEditWorkToolsInput(nextList.join(", "));
+  };
+
+  const toggleUploadToolChip = (toolLabel: string) => {
+    const currentList = uploadToolsInput
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+    const exists = currentList.some((t) => t.toLowerCase() === toolLabel.toLowerCase());
+    let nextList: string[];
+    if (exists) {
+      nextList = currentList.filter((t) => t.toLowerCase() !== toolLabel.toLowerCase());
+    } else {
+      nextList = [...currentList, toolLabel];
+    }
+    setUploadToolsInput(nextList.join(", "));
   };
 
   const handleSaveEditWork = (e: React.FormEvent) => {
@@ -7676,41 +7741,55 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                 {/* Tool Tags */}
                 <div>
-                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                    Tools Used <span className={isLight ? "text-slate-500" : "text-neutral-500"}>(pisahkan dengan koma)</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      Tools Used <span className={isLight ? "text-slate-500" : "text-neutral-500"}>(pisahkan dengan koma)</span>
+                    </label>
+                    <span className={`text-[10px] font-mono ${isLight ? "text-slate-500 font-medium" : "text-neutral-400"}`}>
+                      {tx("Klik tag di bawah untuk toggle", "Click tags below to toggle")}
+                    </span>
+                  </div>
                   <input
                     type="text"
                     value={uploadToolsInput}
                     onChange={(e) => setUploadToolsInput(e.target.value)}
-                    placeholder="Figma, Photoshop, Magnific AI, GPT, Gemini"
-                    className={`w-full px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-mono focus:outline-none transition-all ${
+                    placeholder="Digital Asset, Figma, Photoshop, Magnific AI, GPT, Gemini"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs sm:text-sm font-mono focus:outline-none transition-all mb-2 ${
                       isLight
                         ? "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
                         : "bg-neutral-950 border-white/15 text-white placeholder:text-neutral-600 focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
                     }`}
                   />
-                  {/* Tag preview */}
-                  {uploadToolsInput.trim() && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {uploadToolsInput.split(",").map((t, i) => {
-                        const tool = t.trim();
-                        if (!tool) return null;
-                        return (
-                          <span
-                            key={i}
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-mono font-semibold ${
-                              isLight
-                                ? "bg-teal-50 border border-teal-200 text-teal-800"
-                                : "bg-[#16b09f]/15 border border-[#16b09f]/30 text-[#16b09f]"
-                            }`}
-                          >
-                            {tool}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {/* Clickable Tool Tag Pills */}
+                  <div className="flex flex-wrap gap-1.5">
+                    {getCatalogToolList().map((tool) => {
+                      const currentSelected = uploadToolsInput
+                        .split(",")
+                        .map((t) => t.trim().toLowerCase())
+                        .filter(Boolean);
+                      const isSelected = currentSelected.some(
+                        (t) => t === tool.label.toLowerCase() || t === tool.name.toLowerCase()
+                      );
+                      return (
+                        <button
+                          key={tool.name}
+                          type="button"
+                          onClick={() => toggleUploadToolChip(tool.label)}
+                          className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer ${
+                            isSelected
+                              ? isLight
+                                ? "bg-teal-50 text-teal-800 border border-teal-400 font-bold shadow-xs"
+                                : "bg-cyan-500/20 text-cyan-300 border border-cyan-400/50 shadow-sm"
+                              : isLight
+                              ? "bg-slate-50 text-slate-600 hover:text-slate-900 border border-slate-200"
+                              : "bg-white/5 text-neutral-400 hover:text-white border border-white/10"
+                          }`}
+                        >
+                          {isSelected ? `✓ ${tool.label}` : `+ ${tool.label}`}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Submit Button */}
@@ -7999,7 +8078,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     type="text"
                     value={editWorkToolsInput}
                     onChange={(e) => setEditWorkToolsInput(e.target.value)}
-                    placeholder="figma, photoshop, magnific, gpt, gemini"
+                    placeholder="digital asset, figma, photoshop, magnific, gpt, gemini"
                     className={`w-full px-3.5 py-2 rounded-xl border text-xs sm:text-sm font-mono focus:outline-none transition-all mb-2 ${
                       isLight
                         ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
@@ -8009,25 +8088,19 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                   {/* Clickable Tool Tag Pills */}
                   <div className="flex flex-wrap gap-1.5">
-                    {[
-                      { name: "figma", label: "Figma" },
-                      { name: "photoshop", label: "Photoshop" },
-                      { name: "magnific", label: "Magnific AI" },
-                      { name: "gpt", label: "ChatGPT" },
-                      { name: "gemini", label: "Gemini" },
-                      { name: "blender", label: "Blender 3D" },
-                      { name: "illustrator", label: "Illustrator" },
-                      { name: "aftereffects", label: "After Effects" },
-                      { name: "midjourney", label: "Midjourney" },
-                    ].map((tool) => {
-                      const isSelected = editWorkToolsInput
-                        .toLowerCase()
-                        .includes(tool.name.toLowerCase());
+                    {getCatalogToolList().map((tool) => {
+                      const currentSelected = editWorkToolsInput
+                        .split(",")
+                        .map((t) => t.trim().toLowerCase())
+                        .filter(Boolean);
+                      const isSelected = currentSelected.some(
+                        (t) => t === tool.label.toLowerCase() || t === tool.name.toLowerCase()
+                      );
                       return (
                         <button
                           key={tool.name}
                           type="button"
-                          onClick={() => toggleEditToolChip(tool.name)}
+                          onClick={() => toggleEditToolChip(tool.label)}
                           className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-all cursor-pointer ${
                             isSelected
                               ? isLight
