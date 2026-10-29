@@ -1565,30 +1565,43 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [newFolderName, setNewFolderName] = useState("");
   const [newFolderCategory, setNewFolderCategory] = useState("");
   const [newFolderYear, setNewFolderYear] = useState(new Date().getFullYear().toString());
+  const [newFolderDescription, setNewFolderDescription] = useState("");
+  const [newFolderTools, setNewFolderTools] = useState("Figma, Photoshop, Magnific AI");
 
   // Edit Brand / Folder Name Modal State
   const [editingFolder, setEditingFolder] = useState<ClientItem | null>(null);
   const [editFolderName, setEditFolderName] = useState("");
   const [editFolderCategory, setEditFolderCategory] = useState("");
   const [editFolderLogo, setEditFolderLogo] = useState("");
+  const [editFolderDescription, setEditFolderDescription] = useState("");
+  const [editFolderTools, setEditFolderTools] = useState("");
 
   const handleOpenEditFolder = (folder: ClientItem) => {
     setEditingFolder(folder);
     setEditFolderName(folder.clientName);
     setEditFolderCategory(folder.category || `Portfolio — ${folder.clientName}`);
     setEditFolderLogo(folder.logo || "");
+    setEditFolderDescription(folder.description || "");
+    setEditFolderTools(folder.tools && folder.tools.length > 0 ? folder.tools.join(", ") : "Figma, Photoshop, Magnific AI");
   };
 
   const handleSaveEditFolder = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingFolder || !editFolderName.trim()) return;
 
+    const parsedTools = editFolderTools
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
     updateClientFolder(editingFolder.id, {
       clientName: editFolderName.trim(),
       category: editFolderCategory.trim(),
       logo: editFolderLogo,
+      description: editFolderDescription.trim(),
+      tools: parsedTools.length > 0 ? parsedTools : ["Figma", "Photoshop"],
     });
-    showToast(tx(`Nama brand berhasil diubah menjadi "${editFolderName.trim()}"!`, `Brand name updated to "${editFolderName.trim()}"!`));
+    showToast(tx(`Brand "${editFolderName.trim()}" berhasil diperbarui!`, `Brand "${editFolderName.trim()}" updated successfully!`));
     setEditingFolder(null);
   };
 
@@ -2086,14 +2099,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       showToast("Peringatan: Nama brand/klien tidak boleh kosong.");
       return;
     }
+    const toolsArray = newFolderTools
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
+
     addClientFolder({
       clientName: newFolderName.trim(),
       category: newFolderCategory.trim() || `Portfolio — ${newFolderName.trim()}`,
-      description: "",
+      description: newFolderDescription.trim(),
+      tools: toolsArray.length > 0 ? toolsArray : ["Figma", "Photoshop", "Magnific AI"],
     });
     showToast(`Folder "client - ${newFolderName.trim()}" berhasil dibuat!`);
     setNewFolderName("");
     setNewFolderCategory("");
+    setNewFolderDescription("");
+    setNewFolderTools("Figma, Photoshop, Magnific AI");
     setNewFolderYear(new Date().getFullYear().toString());
     setIsAddFolderOpen(false);
   };
@@ -3222,6 +3243,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 clientName: updates.clientName || c.clientName,
                 category: updates.category !== undefined ? updates.category : c.category,
                 logo: updates.logo !== undefined ? updates.logo : (c.logo || ""),
+                description: updates.description !== undefined ? updates.description : c.description,
+                tools: updates.tools !== undefined ? updates.tools : c.tools,
               });
             }
           }}
@@ -3363,6 +3386,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     clientName: updates.clientName || c.clientName,
                     category: updates.category !== undefined ? updates.category : c.category,
                     logo: updates.logo !== undefined ? updates.logo : (c.logo || ""),
+                    description: updates.description !== undefined ? updates.description : c.description,
+                    tools: updates.tools !== undefined ? updates.tools : c.tools,
                   });
                 }
               }}
@@ -7810,7 +7835,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className={`relative w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl transition-all ${
+              className={`relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-7 shadow-2xl transition-all ${
                 isLight
                   ? "bg-white border border-slate-200 text-slate-800"
                   : "bg-[#0e1015] border border-white/15 text-white"
@@ -7822,6 +7847,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   setIsAddFolderOpen(false);
                   setNewFolderName("");
                   setNewFolderCategory("");
+                  setNewFolderDescription("");
+                  setNewFolderTools("Figma, Photoshop, Magnific AI");
                 }}
                 aria-label={tx("Tutup", "Close")}
                 className={`absolute top-4 right-4 p-2 rounded-full transition-all cursor-pointer z-10 flex items-center justify-center ${
@@ -7887,6 +7914,60 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                 </div>
 
+                {/* Brand Profile & Context (Profil & Deskripsi Brand) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      {tx("Profil & Deskripsi Brand (Brand Profile & Context)", "Brand Profile & Context")}
+                    </label>
+                    <span className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                      {newFolderDescription.length} / 500
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    maxLength={500}
+                    value={newFolderDescription}
+                    onChange={(e) => setNewFolderDescription(e.target.value)}
+                    placeholder={tx(
+                      "Tuliskan profil brand, visi, cakupan kampanye, atau konteks kolaborasi...",
+                      "Write brand overview, vision, campaign scope, or creative collaboration context..."
+                    )}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                    }`}
+                  />
+                  <p className={`text-[11px] mt-1 leading-snug ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                    {tx(
+                      "💡 Teks ini langsung tampil di box 'BRAND PROFILE & CONTEXT' pada preview modal case study di website.",
+                      "💡 This text directly appears in the 'BRAND PROFILE & CONTEXT' box on the case study preview modal."
+                    )}
+                  </p>
+                </div>
+
+                {/* Software & AI Tools */}
+                <div>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    {tx("Software & AI Tools yang Digunakan", "Software & AI Tools Used")}
+                  </label>
+                  <input
+                    type="text"
+                    value={newFolderTools}
+                    onChange={(e) => setNewFolderTools(e.target.value)}
+                    placeholder="Figma, Photoshop, Magnific AI, Gemini, Digital Asset"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                    }`}
+                  />
+                  <p className={`text-[11px] mt-1 ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                    {tx("Pisahkan dengan koma (contoh: Figma, Photoshop, Magnific AI, Digital Asset)", "Separate with commas (e.g. Figma, Photoshop, Magnific AI, Digital Asset)")}
+                  </p>
+                </div>
+
                 {/* Tahun kolaborasi */}
                 <div>
                   <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
@@ -7935,7 +8016,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className={`relative w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl transition-all ${
+              className={`relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-7 shadow-2xl transition-all ${
                 isLight
                   ? "bg-white border border-slate-200 text-slate-800"
                   : "bg-[#0e1015] border border-cyan-500/30 text-white"
@@ -7964,10 +8045,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   isLight ? "text-slate-900" : "text-white"
                 }`}>
                   <HiPencilSquare className={`w-5 h-5 ${isLight ? "text-teal-600" : "text-cyan-400"}`} />
-                  <span>{tx("Edit Nama Brand", "Edit Brand Name")}</span>
+                  <span>{tx("Edit Brand & Profil", "Edit Brand & Profile")}</span>
                 </h3>
                 <p className={`text-xs mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                  {tx("Ubah nama brand ini. Nama baru akan otomatis diperbarui di kartu admin, tag folder (client - [Nama]), dan web publik.", "Update this brand name. The new name will reflect across admin cards, folder tags (client - [Name]), and public web.")}
+                  {tx("Ubah nama brand, profil kampanye, dan tools kolaborasi. Perubahan akan otomatis aktif di kartu admin dan web publik.", "Update brand name, campaign profile, and collaboration tools. Changes reflect across admin cards and public website.")}
                 </p>
               </div>
 
@@ -8011,6 +8092,57 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                 </div>
 
+                {/* Brand Profile & Context (Profil & Deskripsi Brand) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      {tx("Profil & Deskripsi Brand (Brand Profile & Context)", "Brand Profile & Context")}
+                    </label>
+                    <span className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                      {editFolderDescription.length} / 500
+                    </span>
+                  </div>
+                  <textarea
+                    rows={3}
+                    maxLength={500}
+                    value={editFolderDescription}
+                    onChange={(e) => setEditFolderDescription(e.target.value)}
+                    placeholder={tx(
+                      "Tuliskan profil brand, visi, cakupan kampanye, atau konteks kolaborasi...",
+                      "Write brand overview, vision, campaign scope, or creative collaboration context..."
+                    )}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                    }`}
+                  />
+                  <p className={`text-[11px] mt-1 leading-snug ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                    {tx(
+                      "💡 Teks ini langsung tampil di box 'BRAND PROFILE & CONTEXT' pada preview modal case study di website.",
+                      "💡 This text directly appears in the 'BRAND PROFILE & CONTEXT' box on the case study preview modal."
+                    )}
+                  </p>
+                </div>
+
+                {/* Software & AI Tools */}
+                <div>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    {tx("Software & AI Tools yang Digunakan", "Software & AI Tools Used")}
+                  </label>
+                  <input
+                    type="text"
+                    value={editFolderTools}
+                    onChange={(e) => setEditFolderTools(e.target.value)}
+                    placeholder="Figma, Photoshop, Magnific AI, Gemini, Digital Asset"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-xs focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                    }`}
+                  />
+                </div>
+
                 <div className="pt-2 flex items-center justify-between gap-3">
                   <button
                     type="button"
@@ -8040,7 +8172,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }`}
                   >
                     <HiCheck className="w-4 h-4" />
-                    <span>{tx("Simpan Perubahan Nama", "Save Brand Name", "Simpan Parubahan Namo")}</span>
+                    <span>{tx("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}</span>
                   </button>
                 </div>
               </form>

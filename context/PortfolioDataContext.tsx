@@ -460,8 +460,8 @@ interface PortfolioDataContextType {
   autoMigrateBase64Works: (clientObj: ClientItem) => Promise<void>;
   updateClientWork: (clientId: string, updatedWork: any) => void;
   deleteClientWork: (clientId: string, workId: string) => void;
-  addClientFolder: (folder: { clientName: string; category: string; description?: string }) => void;
-  updateClientFolder: (clientId: string, updates: { clientName?: string; category?: string; logo?: string }) => void;
+  addClientFolder: (folder: { clientName: string; category: string; description?: string; tools?: string[] }) => void;
+  updateClientFolder: (clientId: string, updates: { clientName?: string; category?: string; logo?: string; description?: string; tools?: string[] }) => void;
   deleteClientFolder: (clientId: string) => void;
   updateAboutData: (newData: Partial<AboutData>) => void;
   updateHeroWorksData: (newData: Partial<HeroWorksData>) => void;
@@ -1735,7 +1735,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
   // Add a new custom client folder (admin-created)
   const addClientFolder = useCallback(
-    async (folder: { clientName: string; category: string; description?: string }) => {
+    async (folder: { clientName: string; category: string; description?: string; tools?: string[] }) => {
       const newId = `client-custom-${Date.now()}`;
       const newClient: ClientItem = {
         id: newId,
@@ -1745,6 +1745,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         color: "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
         itemsCount: 0,
         description: folder.description || "",
+        tools: folder.tools || [],
         works: [],
         isCustom: true,
       };
@@ -1760,7 +1761,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
   // Edit / Rename an existing client folder or update logo
   const updateClientFolder = useCallback(
-    async (clientId: string, updates: { clientName?: string; category?: string; logo?: string }) => {
+    async (clientId: string, updates: { clientName?: string; category?: string; logo?: string; description?: string; tools?: string[] }) => {
       const updatedClients = clients.map((c) => {
         if (c.id === clientId) {
           const newName = updates.clientName !== undefined ? updates.clientName.trim() : c.clientName;
@@ -1769,11 +1770,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               ? updates.category.trim()
               : (updates.clientName ? `Portfolio — ${newName}` : c.category);
           const newLogo = updates.logo !== undefined ? updates.logo : (c.logo || "");
+          const newDesc = updates.description !== undefined ? updates.description : (c.description || "");
+          const newTools = updates.tools !== undefined ? updates.tools : (c.tools || []);
           return {
             ...c,
             clientName: newName,
             category: newCategory,
             logo: newLogo,
+            description: newDesc,
+            tools: newTools,
           };
         }
         return c;

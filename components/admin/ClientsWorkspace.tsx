@@ -1564,7 +1564,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-[11px] text-neutral-400 font-medium">
-                    {tr("Description", "Deskripsi", "Katarangan")}
+                    {tr("Brand Profile & Context", "Profil & Deskripsi Brand (Brand Profile & Context)", "Profil & Deskripsi Brand")}
                   </label>
                   <span className="text-[10px] font-mono text-neutral-500">
                     {descriptionInput.length} / 500
@@ -1579,7 +1579,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     if (typeof window !== "undefined" && window.innerWidth < 768) {
                       setMobileTextModal({
                         isOpen: true,
-                        title: tr("Description", "Deskripsi", "Katarangan"),
+                        title: tr("Brand Profile & Context", "Profil & Deskripsi Brand", "Profil & Deskripsi Brand"),
                         value: descriptionInput,
                         maxLength: 500,
                         isTextarea: true,

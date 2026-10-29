@@ -1958,17 +1958,19 @@ export default function Projects() {
 
                         {/* Brand Description — shown at bottom of case study if available */}
                         {(() => {
-                          const clientData = contextClients.find(
-                            (c) => c.clientName === currentWork.clientName
-                          );
-                          const rawDesc = (clientData as any)?.description || "";
                           const clientKey = (currentWork.clientName || "").toLowerCase().trim();
-                          const rawIdDesc = clientBrandDescMap[clientKey]?.id || rawDesc;
+                          const clientData = contextClients.find(
+                            (c) => (c.clientName || "").toLowerCase().trim() === clientKey
+                          );
+                          const rawDesc = ((clientData as any)?.description || "").trim();
+                          const defaultEn = `${currentWork.clientName || "Brand"} is a visionary partner brand collaborating on high-impact visual design, digital advertising assets, and creative campaign experiences.`;
+                          const defaultId = `${currentWork.clientName || "Brand"} adalah brand mitra kolaborasi dalam perancangan visual kreatif, aset periklanan digital, dan kampanye terpadu berstandar tinggi.`;
+                          const rawIdDesc = clientBrandDescMap[clientKey]?.id || rawDesc || defaultId;
                           const brandDesc = isMin
                             ? toMinang(rawIdDesc)
                             : isId
                             ? rawIdDesc
-                            : (rawDesc || clientBrandDescMap[clientKey]?.en);
+                            : (rawDesc || clientBrandDescMap[clientKey]?.en || defaultEn);
                           if (!brandDesc) return null;
                           return (
                             <div className={`casestudy-brand-box mt-2 p-3.5 rounded-xl border ${isLight ? "bg-cyan-50/70 border-cyan-200/80 shadow-xs text-slate-800" : "bg-cyan-950/20 border-cyan-500/20 text-neutral-300"}`}>
