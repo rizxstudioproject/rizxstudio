@@ -51,6 +51,7 @@ import {
   AdminUserItem,
 } from "@/lib/adminAuth";
 import AdminUsersManager from "@/components/admin/AdminUsersManager";
+import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import {
   usePortfolioData,
   extractYouTubeId,
@@ -1626,6 +1627,37 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [uploadProgressText, setUploadProgressText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Upload Source: Device File vs Google Drive Link
+  const [uploadSource, setUploadSource] = useState<"file" | "gdrive">("file");
+  const [uploadGDriveUrl, setUploadGDriveUrl] = useState("");
+  const [gdrivePreviews, setGdrivePreviews] = useState<{ id: string; fileId: string; url: string; directUrl: string }[]>([]);
+
+  const handleGDriveUrlChange = (val: string) => {
+    setUploadGDriveUrl(val);
+    if (!val.trim()) {
+      setGdrivePreviews([]);
+      return;
+    }
+    const lines = val
+      .split(/[\n,]+/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    const parsed: { id: string; fileId: string; url: string; directUrl: string }[] = [];
+    for (const line of lines) {
+      const fileId = extractGoogleDriveFileId(line) || extractGoogleDriveId(line);
+      if (fileId && !parsed.some((p) => p.id === fileId)) {
+        parsed.push({
+          id: fileId,
+          fileId: fileId,
+          url: line,
+          directUrl: `https://lh3.googleusercontent.com/d/${fileId}`,
+        });
+      }
+    }
+    setGdrivePreviews(parsed);
+  };
+
   // Edit Work & Case Study Modal State
   const [editingWork, setEditingWork] = useState<any | null>(null);
   const [editWorkTitle, setEditWorkTitle] = useState("");
@@ -1943,8 +1975,85 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedClient) return;
+
+    const toolsArray = uploadToolsInput
+      .split(",")
+      .map((t) => t.trim().toLowerCase())
+      .filter(Boolean);
+
+    // 1. Handling Google Drive Link Upload
+    if (uploadSource === "gdrive") {
+      if (gdrivePreviews.length === 0) {
+        showToast("Peringatan: Masukkan minimal 1 link Google Drive yang valid.");
+        return;
+      }
+
+      setIsUploadingWork(true);
+      setUploadProgressText(tx("Menghubungkan link Google Drive...", "Connecting Google Drive link...", "Mangarangian link Google Drive..."));
+
+      try {
+        const newWorks: any[] = [];
+        const total = gdrivePreviews.length;
+
+        for (let i = 0; i < total; i++) {
+          const item = gdrivePreviews[i];
+          const defaultTitle = total === 1 ? (uploadTitle.trim() || `Deliverable ${i + 1}`) : `${uploadTitle.trim() || "Deliverable"} ${i + 1}`;
+
+          const workItem = {
+            id: `${selectedClient.id}-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
+            title: defaultTitle,
+            type: uploadType.trim() || "Digital Campaign",
+            image: item.directUrl,
+            gdriveUrl: item.url,
+            gdriveId: item.id,
+            aspect: uploadAspect,
+            brand: selectedClient.clientName,
+            year: uploadYear.trim() || new Date().getFullYear().toString(),
+            brief: `Digital creative visual and commercial advertising asset produced for ${selectedClient.clientName}.`,
+            approach: "Modern aesthetic composition combining sharp creative direction with AI-assisted digital production.",
+            role: "Art direction, prompt engineering, visual creation, and digital asset layout.",
+            challenge: "Aligning campaign specifications with brand guidelines while maintaining premier artistic standards.",
+            solution: "Developed controlled prompts, tailored color palettes, and balanced typography for high-impact social reach.",
+            tools: toolsArray.length > 0 ? toolsArray : ["figma", "photoshop"],
+            isClientWork: true,
+          };
+          newWorks.push(workItem);
+        }
+
+        await addClientWork(selectedClient.id, newWorks);
+
+        showToast(
+          total === 1
+            ? `Karya "${newWorks[0].title}" dari Google Drive berhasil disimpan!`
+            : `${total} karya dari Google Drive berhasil disimpan!`
+        );
+
+        // Reset Form Modal
+        setUploadSource("file");
+        setUploadGDriveUrl("");
+        setGdrivePreviews([]);
+        setUploadFile(null);
+        setUploadFiles([]);
+        setUploadPreviews([]);
+        setUploadPreview(null);
+        setUploadTitle("");
+        setUploadToolsInput("Figma, Photoshop, Magnific AI");
+        setUploadYear(new Date().getFullYear().toString());
+        setIsUploadModalOpen(false);
+      } catch (err: any) {
+        console.error("Upload gdrive error:", err);
+        showToast("Terjadi kesalahan saat memproses link Google Drive: " + (err?.message || ""));
+      } finally {
+        setIsUploadingWork(false);
+        setUploadProgressText("");
+      }
+      return;
+    }
+
+    // 2. Handling Device File Upload
     const filesToUpload = uploadFiles.length > 0 ? uploadFiles : (uploadFile ? [uploadFile] : []);
-    if ((filesToUpload.length === 0 && !uploadPreview) || !selectedClient) {
+    if ((filesToUpload.length === 0 && !uploadPreview)) {
       showToast("Peringatan: Silakan pilih file gambar terlebih dahulu.");
       return;
     }
@@ -1953,10 +2062,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setUploadProgressText(tx("Mempersiapkan upload...", "Preparing upload...", "Mampasiapan upload..."));
 
     try {
-      const toolsArray = uploadToolsInput
-        .split(",")
-        .map((t) => t.trim().toLowerCase())
-        .filter(Boolean);
 
       // Helper to upload a single file directly to Supabase Storage via /api/admin/media-upload
       const uploadSingleFile = async (file: File, fallbackPreview?: string): Promise<string> => {
@@ -7262,6 +7367,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   setIsUploadModalOpen(false);
                   setUploadPreview(null);
                   setUploadFile(null);
+                  setUploadFiles([]);
+                  setUploadPreviews([]);
+                  setUploadGDriveUrl("");
+                  setGdrivePreviews([]);
+                  setUploadSource("file");
                 }}
                 aria-label={tx("Tutup", "Close")}
                 className={`absolute top-4 right-4 p-2 rounded-full transition-all cursor-pointer z-10 flex items-center justify-center ${
@@ -7283,91 +7393,194 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {tx("Upload Gambar Portofolio", "Upload Portfolio Image")}
                 </h3>
                 <p className={`text-xs mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                  {tx("Gambar yang diupload akan langsung tersimpan dan muncul di galeri publik folder klien ini.", "Uploaded image will be saved and displayed live in this client folder's public gallery.")}
+                  {tx("Gambar yang diupload atau dari Google Drive akan langsung tersimpan dan muncul di galeri publik folder klien ini.", "Uploaded or Google Drive image will be saved and displayed live in this client folder's public gallery.")}
                 </p>
               </div>
 
               <form onSubmit={handleUploadSubmit} className="space-y-4">
-                {/* File Dropzone / Selector */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                      {tx("File Gambar (JPG, PNG, WEBP)", "Image File (JPG, PNG, WEBP)")} <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
-                    </label>
-                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
-                      isLight ? "bg-slate-100 text-teal-800 border-slate-200" : "bg-white/5 text-cyan-400 border-white/10"
-                    }`}>
-                      {tx("Bisa pilih banyak file sekaligus", "Multi-file batch upload enabled")}
-                    </span>
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    multiple
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                  />
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`w-full border-2 border-dashed rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition-colors flex flex-col items-center justify-center group ${
-                      isLight
-                        ? "border-slate-300 hover:border-teal-500 bg-slate-50"
-                        : "border-white/20 hover:border-[#16b09f] bg-neutral-950/50"
+                {/* Source Selection Tabs */}
+                <div className={`grid grid-cols-2 gap-2 p-1 rounded-xl border mb-2 ${
+                  isLight ? "bg-slate-100/80 border-slate-200" : "bg-black/30 border-white/10"
+                }`}>
+                  <button
+                    type="button"
+                    onClick={() => setUploadSource("file")}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-mono font-medium transition-all ${
+                      uploadSource === "file"
+                        ? isLight
+                          ? "bg-white text-teal-800 font-bold shadow-xs border border-slate-200"
+                          : "bg-white/15 text-cyan-400 font-bold shadow-xs border border-white/20"
+                        : isLight
+                          ? "text-slate-600 hover:text-slate-900"
+                          : "text-neutral-400 hover:text-white"
                     }`}
                   >
-                    {uploadPreviews.length > 1 ? (
-                      <div className="space-y-3 w-full">
-                        <div className="flex items-center justify-between px-1">
-                          <span className={`text-xs font-bold font-mono ${isLight ? "text-teal-800" : "text-[#16b09f]"}`}>
-                            📦 {uploadPreviews.length} {tx("File Dipilih untuk Batch Upload", "Files Selected for Batch Upload")}
-                          </span>
-                          <span className="text-[11px] text-neutral-400 underline">
-                            {tx("Ganti File", "Change Files")}
+                    <HiPhoto className="w-4 h-4 shrink-0" />
+                    <span>{tx("File Komputer (Multi-upload)", "Device Files (Multi-upload)")}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setUploadSource("gdrive")}
+                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-mono font-medium transition-all ${
+                      uploadSource === "gdrive"
+                        ? isLight
+                          ? "bg-white text-emerald-800 font-bold shadow-xs border border-slate-200"
+                          : "bg-emerald-500/20 text-emerald-300 font-bold shadow-xs border border-emerald-500/30"
+                        : isLight
+                          ? "text-slate-600 hover:text-slate-900"
+                          : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    <RiDriveFill className="w-4 h-4 shrink-0 text-emerald-400" />
+                    <span>{tx("Link Google Drive", "Google Drive Links")}</span>
+                  </button>
+                </div>
+
+                {/* Upload Source: Google Drive */}
+                {uploadSource === "gdrive" ? (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                          {tx("Link Google Drive File / Gambar", "Google Drive File / Image Link(s)")} <span className="text-emerald-400 font-bold">*</span>
+                        </label>
+                        <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                          isLight ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-emerald-500/10 text-emerald-400 border-emerald-500/30"
+                        }`}>
+                          {tx("Bisa 1 link atau banyak link (1 per baris)", "Single or multiple links (1 per line)")}
+                        </span>
+                      </div>
+                      <textarea
+                        rows={3}
+                        value={uploadGDriveUrl}
+                        onChange={(e) => handleGDriveUrlChange(e.target.value)}
+                        placeholder="Contoh:&#10;https://drive.google.com/file/d/1a2b3c4d5e.../view?usp=sharing&#10;(Bisa paste beberapa link Google Drive sekaligus, 1 per baris)"
+                        className={`w-full px-4 py-2.5 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
+                          isLight
+                            ? "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                            : "bg-neutral-950 border-white/15 text-white placeholder:text-neutral-600 focus:border-emerald-400 focus:ring-1 focus:ring-emerald-400"
+                        }`}
+                      />
+                      <div className="mt-1.5 flex items-start gap-1.5 text-[11px] font-mono text-emerald-400/90 leading-tight">
+                        <RiDriveFill className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>{tx("Pastikan hak akses file di Google Drive disetel ke: \"Anyone with the link can view\" (Siapa saja yang memiliki link dapat melihat).", "Make sure Google Drive link access is set to: \"Anyone with the link can view\".")}</span>
+                      </div>
+                    </div>
+
+                    {/* Previews for GDrive */}
+                    {gdrivePreviews.length > 0 && (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className={`text-xs font-bold font-mono ${isLight ? "text-emerald-800" : "text-emerald-400"}`}>
+                            ✨ {gdrivePreviews.length} {tx("Gambar Google Drive Terdeteksi", "Google Drive Image(s) Detected")}
                           </span>
                         </div>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1">
-                          {uploadPreviews.map((p, idx) => (
-                            <div key={idx} className="relative rounded-lg overflow-hidden border border-white/10 group/thumb aspect-[4/5] bg-black/40">
-                              <img src={p.preview} alt={p.name} className="w-full h-full object-cover" />
-                              <div className="absolute inset-x-0 bottom-0 bg-black/80 px-1 py-0.5 text-[9px] text-white truncate text-center font-mono">
-                                {idx + 1}. {p.name}
+                        <div className={`grid ${gdrivePreviews.length > 1 ? "grid-cols-3 sm:grid-cols-4" : "grid-cols-1"} gap-2 max-h-48 overflow-y-auto p-1.5 rounded-xl border ${
+                          isLight ? "bg-slate-50 border-slate-200" : "bg-black/40 border-white/10"
+                        }`}>
+                          {gdrivePreviews.map((item, idx) => (
+                            <div key={idx} className={`relative rounded-lg overflow-hidden border border-white/10 bg-black/60 ${gdrivePreviews.length > 1 ? "aspect-[4/5]" : "max-h-48 flex items-center justify-center p-1"}`}>
+                              <img
+                                src={item.directUrl}
+                                alt={`GDrive preview ${idx + 1}`}
+                                className={`${gdrivePreviews.length > 1 ? "w-full h-full object-cover" : "max-h-44 w-auto mx-auto rounded-lg object-contain"}`}
+                                onError={(e) => {
+                                  // Fallback thumbnail if direct CDN fails
+                                  (e.target as HTMLImageElement).src = `https://drive.google.com/thumbnail?id=${item.fileId}&sz=w1600`;
+                                }}
+                              />
+                              <div className="absolute inset-x-0 bottom-0 bg-black/85 px-1 py-0.5 text-[9px] text-white truncate text-center font-mono">
+                                {idx + 1}. ID: {item.fileId.substring(0, 8)}...
                               </div>
                             </div>
                           ))}
                         </div>
-                        <p className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                          {tx("Semua gambar akan otomatis diupload ke Cloud Storage CDN & tersimpan permanen.", "All images will be auto-uploaded to Cloud Storage CDN and saved permanently.")}
-                        </p>
-                      </div>
-                    ) : uploadPreview ? (
-                      <div className="space-y-2">
-                        <img
-                          src={uploadPreview}
-                          alt="Preview"
-                          className={`max-h-48 w-auto mx-auto rounded-xl object-contain border shadow-md ${
-                            isLight ? "border-slate-200" : "border-white/15"
-                          }`}
-                        />
-                        <p className={`text-xs font-mono ${isLight ? "text-teal-700 font-bold" : "text-cyan-400"}`}>
-                          {tx("Klik untuk mengganti / tambah gambar", "Click to replace / add images")}
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="py-4 space-y-2">
-                        <HiArrowUpTray className={`w-10 h-10 mx-auto transition-colors ${
-                          isLight ? "text-slate-400 group-hover:text-teal-600" : "text-neutral-500 group-hover:text-[#16b09f]"
-                        }`} />
-                        <p className={`text-xs sm:text-sm font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                          {tx("Klik untuk memilih gambar (bisa pilih banyak sekaligus)", "Click to select images (supports multi-select)")}
-                        </p>
-                        <p className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
-                          {tx("Mendukung PNG, JPG, JPEG, WEBP tanpa batas jumlah file", "Supports PNG, JPG, JPEG, WEBP without file count limits")}
-                        </p>
                       </div>
                     )}
                   </div>
-                </div>
+                ) : (
+                  /* File Dropzone / Selector */
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                        {tx("File Gambar (JPG, PNG, WEBP)", "Image File (JPG, PNG, WEBP)")} <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
+                      </label>
+                      <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                        isLight ? "bg-slate-100 text-teal-800 border-slate-200" : "bg-white/5 text-cyan-400 border-white/10"
+                      }`}>
+                        {tx("Bisa pilih banyak file sekaligus", "Multi-file batch upload enabled")}
+                      </span>
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                    />
+                    <div
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`w-full border-2 border-dashed rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition-colors flex flex-col items-center justify-center group ${
+                        isLight
+                          ? "border-slate-300 hover:border-teal-500 bg-slate-50"
+                          : "border-white/20 hover:border-[#16b09f] bg-neutral-950/50"
+                      }`}
+                    >
+                      {uploadPreviews.length > 1 ? (
+                        <div className="space-y-3 w-full">
+                          <div className="flex items-center justify-between px-1">
+                            <span className={`text-xs font-bold font-mono ${isLight ? "text-teal-800" : "text-[#16b09f]"}`}>
+                              📦 {uploadPreviews.length} {tx("File Dipilih untuk Batch Upload", "Files Selected for Batch Upload")}
+                            </span>
+                            <span className="text-[11px] text-neutral-400 underline">
+                              {tx("Ganti File", "Change Files")}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1">
+                            {uploadPreviews.map((p, idx) => (
+                              <div key={idx} className="relative rounded-lg overflow-hidden border border-white/10 group/thumb aspect-[4/5] bg-black/40">
+                                <img src={p.preview} alt={p.name} className="w-full h-full object-cover" />
+                                <div className="absolute inset-x-0 bottom-0 bg-black/80 px-1 py-0.5 text-[9px] text-white truncate text-center font-mono">
+                                  {idx + 1}. {p.name}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <p className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                            {tx("Semua gambar akan otomatis diupload ke Cloud Storage CDN & tersimpan permanen.", "All images will be auto-uploaded to Cloud Storage CDN and saved permanently.")}
+                          </p>
+                        </div>
+                      ) : uploadPreview ? (
+                        <div className="space-y-2">
+                          <img
+                            src={uploadPreview}
+                            alt="Preview"
+                            className={`max-h-48 w-auto mx-auto rounded-xl object-contain border shadow-md ${
+                              isLight ? "border-slate-200" : "border-white/15"
+                            }`}
+                          />
+                          <p className={`text-xs font-mono ${isLight ? "text-teal-700 font-bold" : "text-cyan-400"}`}>
+                            {tx("Klik untuk mengganti / tambah gambar", "Click to replace / add images")}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="py-4 space-y-2">
+                          <HiArrowUpTray className={`w-10 h-10 mx-auto transition-colors ${
+                            isLight ? "text-slate-400 group-hover:text-teal-600" : "text-neutral-500 group-hover:text-[#16b09f]"
+                          }`} />
+                          <p className={`text-xs sm:text-sm font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                            {tx("Klik untuk memilih gambar (bisa pilih banyak sekaligus)", "Click to select images (supports multi-select)")}
+                          </p>
+                          <p className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                            {tx("Mendukung PNG, JPG, JPEG, WEBP tanpa batas jumlah file", "Supports PNG, JPG, JPEG, WEBP without file count limits")}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {/* Title Input */}
                 <div>
@@ -7504,17 +7717,34 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="pt-3">
                   <button
                     type="submit"
-                    disabled={!uploadPreview || isUploadingWork}
+                    disabled={
+                      (uploadSource === "file" && !uploadPreview) ||
+                      (uploadSource === "gdrive" && gdrivePreviews.length === 0) ||
+                      isUploadingWork
+                    }
                     className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isLight
-                        ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
-                        : "bg-[#16b09f] hover:bg-[#119889] text-black"
+                      uploadSource === "gdrive"
+                        ? isLight
+                          ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20"
+                          : "bg-emerald-500 hover:bg-emerald-400 text-black shadow-emerald-500/20"
+                        : isLight
+                          ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
+                          : "bg-[#16b09f] hover:bg-[#119889] text-black"
                     }`}
                   >
                     {isUploadingWork ? (
                       <>
                         <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin shrink-0" />
-                        <span className="truncate">{uploadProgressText || tx("Mengupload ke Cloud Storage...", "Uploading to Cloud Storage...")}</span>
+                        <span className="truncate">{uploadProgressText || tx("Menyimpan portofolio...", "Saving portfolio...")}</span>
+                      </>
+                    ) : uploadSource === "gdrive" ? (
+                      <>
+                        <RiDriveFill className="w-4 h-4 shrink-0" />
+                        <span>
+                          {gdrivePreviews.length > 1
+                            ? tx(`Simpan ${gdrivePreviews.length} Karya dari Google Drive`, `Save ${gdrivePreviews.length} Works from Google Drive`)
+                            : tx("Simpan Karya dari Google Drive", "Save Work from Google Drive")}
+                        </span>
                       </>
                     ) : (
                       <>
