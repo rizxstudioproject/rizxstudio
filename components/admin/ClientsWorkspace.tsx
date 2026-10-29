@@ -42,7 +42,7 @@ interface ClientsWorkspaceProps {
   onOpenUploadWork: () => void;
   onOpenEditWork: (work: any) => void;
   onDeleteWork: (clientId: string, workId: string, workTitle: string) => void;
-  onSaveClientDescription: (clientId: string, desc: string, tools: string[]) => void;
+  onSaveClientDescription: (clientId: string, desc: string, tools: string[], projectDesc?: string) => void;
   onUpdateClientFolder?: (clientId: string, updates: Partial<ClientItem>) => void;
   onReplaceCoverImage?: (clientId: string, file: File) => void;
   onViewWebsite?: () => void;
@@ -163,6 +163,7 @@ export default function ClientsWorkspace({
   // Form states for selected client detail
   const [categoryInput, setCategoryInput] = useState("");
   const [headlineInput, setHeadlineInput] = useState("PROFESSIONAL EXPERIENCE");
+  const [projectDescInput, setProjectDescInput] = useState("");
   const [descriptionInput, setDescriptionInput] = useState("");
   const [selectedTools, setSelectedTools] = useState<string[]>([]);
 
@@ -231,7 +232,8 @@ export default function ClientsWorkspace({
     if (selectedClient && selectedClient.id !== lastSyncedClientIdRef.current) {
       lastSyncedClientIdRef.current = selectedClient.id;
       setCategoryInput(selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`);
-      setDescriptionInput(selectedClient.description || "");
+      setProjectDescInput(selectedClient.projectDescription || "");
+      setDescriptionInput(selectedClient.brandProfile || selectedClient.description || "");
       setSelectedTools(
         selectedClient.tools && selectedClient.tools.length > 0
           ? selectedClient.tools
@@ -318,11 +320,20 @@ export default function ClientsWorkspace({
     if (e) e.preventDefault();
     if (!selectedClient) return;
 
-    onSaveClientDescription(selectedClient.id, descriptionInput, selectedTools);
-    if (onUpdateClientFolder && categoryInput.trim()) {
-      onUpdateClientFolder(selectedClient.id, { category: categoryInput.trim() });
+    onSaveClientDescription(selectedClient.id, descriptionInput, selectedTools, projectDescInput);
+    if (onUpdateClientFolder) {
+      onUpdateClientFolder(selectedClient.id, {
+        category: categoryInput.trim(),
+        description: descriptionInput.trim(),
+        brandProfile: descriptionInput.trim(),
+        projectDescription: projectDescInput.trim(),
+      });
     }
-    showToast(`Data portofolio ${selectedClient.clientName} berhasil disimpan!`);
+    showToast(tr(
+      `Informasi proyek & profil brand "${selectedClient.clientName}" berhasil disimpan!`,
+      `Project & brand profile for "${selectedClient.clientName}" saved successfully!`,
+      `Informasi proyek & profil brand "${selectedClient.clientName}" barasil disimpan!`
+    ));
   };
 
   // Filter & sort assets
@@ -1583,23 +1594,102 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 </div>
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-[11px] text-neutral-400 font-medium">
-                    {tr("Brand Profile & Context", "Profil & Deskripsi Brand (Brand Profile & Context)", "Profil & Deskripsi Brand")}
-                  </label>
-                  <span className="text-[10px] font-mono text-neutral-500">
+              {/* Panel 1: PROJECT DESCRIPTION */}
+              <div className="p-3.5 rounded-xl bg-[#161a22]/70 border border-cyan-500/25 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                    <label className="text-xs font-mono font-bold text-cyan-300 uppercase tracking-wide">
+                      PROJECT DESCRIPTION
+                    </label>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                      {tr("Overview Karya", "Project Overview", "Overview Karya")}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-cyan-400/80">
+                    {projectDescInput.length} / 1000
+                  </span>
+                </div>
+                <p className="text-[11px] text-neutral-400 leading-snug">
+                  {tr(
+                    "💡 Ditampilkan tepat di bawah judul karya pada preview modal (tujuan visual, ringkasan kampanye, atau konteks proyek).",
+                    "💡 Displayed right below work title on preview modal (visual goal, campaign summary, or project context).",
+                    "💡 Ditampilkan tapek di bawah judul karya pado preview modal."
+                  )}
+                </p>
+                <textarea
+                  rows={3}
+                  maxLength={1000}
+                  value={projectDescInput}
+                  onChange={(e) => setProjectDescInput(e.target.value)}
+                  onBlur={() => {
+                    if (selectedClient && onUpdateClientFolder && projectDescInput !== (selectedClient.projectDescription || "")) {
+                      onUpdateClientFolder(selectedClient.id, { projectDescription: projectDescInput.trim() });
+                    }
+                  }}
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData("text");
+                    if (text && projectDescInput.length + text.length > 1000) {
+                      showToast(tr("Peringatan: Teks melebihi 1000 karakter dan dipotong otomatis.", "Warning: Text exceeds 1000 characters and was trimmed.", "Paringatan: Teks talampau 1000 karakter."));
+                    }
+                  }}
+                  onClick={() => {
+                    if (typeof window !== "undefined" && window.innerWidth < 768) {
+                      setMobileTextModal({
+                        isOpen: true,
+                        title: "PROJECT DESCRIPTION",
+                        value: projectDescInput,
+                        maxLength: 1000,
+                        isTextarea: true,
+                        onSave: (val) => {
+                          setProjectDescInput(val);
+                          if (selectedClient && onUpdateClientFolder) {
+                            onUpdateClientFolder(selectedClient.id, { projectDescription: val.trim() });
+                          }
+                        },
+                      });
+                    }
+                  }}
+                  placeholder={tr(
+                    `Contoh: Kampanye visual terpadu untuk ${selectedClient.clientName}, memadukan desain layout, art direction, dan aset promosi digital...`,
+                    `Example: Integrated visual campaign for ${selectedClient.clientName}, blending layout design, art direction, and digital promotional assets...`,
+                    `Contoh: Kampanye visual tapadu untuak ${selectedClient.clientName}...`
+                  )}
+                  className="w-full bg-[#0e1015] border border-cyan-500/20 focus:border-cyan-400 rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none transition-colors leading-relaxed resize-none cursor-text"
+                />
+              </div>
+
+              {/* Panel 2: BRAND PROFILE & CONTEXT */}
+              <div className="p-3.5 rounded-xl bg-[#161a22]/70 border border-[#16b09f]/25 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-[#16b09f]" />
+                    <label className="text-xs font-mono font-bold text-[#16b09f] uppercase tracking-wide">
+                      BRAND PROFILE & CONTEXT
+                    </label>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16b09f]/15 text-[#16b09f] border border-[#16b09f]/30">
+                      {tr("Profil Klien", "Client Brand Context", "Profil Klien")}
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-[#16b09f]/80">
                     {descriptionInput.length} / 1000
                   </span>
                 </div>
+                <p className="text-[11px] text-neutral-400 leading-snug">
+                  {tr(
+                    "💡 Ditampilkan di box 'BRAND PROFILE & CONTEXT' di bagian paling bawah kartu case study (identitas & latar belakang brand klien).",
+                    "💡 Displayed in the 'BRAND PROFILE & CONTEXT' box at the bottom of the case study card (company identity & background).",
+                    "💡 Ditampilkan di box 'BRAND PROFILE & CONTEXT' di bagian paliang bawah."
+                  )}
+                </p>
                 <textarea
-                  rows={4}
+                  rows={3}
                   maxLength={1000}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
                   onBlur={() => {
                     if (selectedClient && descriptionInput !== (selectedClient.description || "")) {
-                      onSaveClientDescription(selectedClient.id, descriptionInput, selectedTools);
+                      onSaveClientDescription(selectedClient.id, descriptionInput, selectedTools, projectDescInput);
                     }
                   }}
                   onPaste={(e) => {
@@ -1612,25 +1702,25 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     if (typeof window !== "undefined" && window.innerWidth < 768) {
                       setMobileTextModal({
                         isOpen: true,
-                        title: tr("Brand Profile & Context", "Profil & Deskripsi Brand", "Profil & Deskripsi Brand"),
+                        title: "BRAND PROFILE & CONTEXT",
                         value: descriptionInput,
                         maxLength: 1000,
                         isTextarea: true,
                         onSave: (val) => {
                           setDescriptionInput(val);
                           if (selectedClient) {
-                            onSaveClientDescription(selectedClient.id, val, selectedTools);
+                            onSaveClientDescription(selectedClient.id, val, selectedTools, projectDescInput);
                           }
                         },
                       });
                     }
                   }}
                   placeholder={tr(
-                    `Write description or campaign profile for ${selectedClient.clientName}...`,
-                    `Tulis deskripsi atau profil kampanye untuk ${selectedClient.clientName}...`,
-                    `Tulih katarangan atau profil kampanye untuak ${selectedClient.clientName}...`
+                    `Contoh: ${selectedClient.clientName} adalah brand terkemuka di bidangnya dengan visi modern dan inovatif...`,
+                    `Example: ${selectedClient.clientName} is an industry-leading brand known for its forward-thinking visual identity...`,
+                    `Contoh: ${selectedClient.clientName} adolah brand takamuko...`
                   )}
-                  className="w-full bg-[#161a22] border border-white/5 rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors leading-relaxed resize-none cursor-text"
+                  className="w-full bg-[#0e1015] border border-[#16b09f]/20 focus:border-[#16b09f] rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none transition-colors leading-relaxed resize-none cursor-text"
                 />
               </div>
             </div>

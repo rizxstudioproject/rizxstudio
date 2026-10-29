@@ -1565,6 +1565,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [newFolderName, setNewFolderName] = useState("");
   const [newFolderCategory, setNewFolderCategory] = useState("");
   const [newFolderYear, setNewFolderYear] = useState(new Date().getFullYear().toString());
+  const [newFolderProjectDesc, setNewFolderProjectDesc] = useState("");
   const [newFolderDescription, setNewFolderDescription] = useState("");
   const [newFolderTools, setNewFolderTools] = useState("Figma, Photoshop, Magnific AI");
 
@@ -1573,6 +1574,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [editFolderName, setEditFolderName] = useState("");
   const [editFolderCategory, setEditFolderCategory] = useState("");
   const [editFolderLogo, setEditFolderLogo] = useState("");
+  const [editFolderProjectDesc, setEditFolderProjectDesc] = useState("");
   const [editFolderDescription, setEditFolderDescription] = useState("");
   const [editFolderTools, setEditFolderTools] = useState("");
 
@@ -1581,7 +1583,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setEditFolderName(folder.clientName);
     setEditFolderCategory(folder.category || `Portfolio — ${folder.clientName}`);
     setEditFolderLogo(folder.logo || "");
-    setEditFolderDescription(folder.description || "");
+    setEditFolderProjectDesc(folder.projectDescription || "");
+    setEditFolderDescription(folder.brandProfile || folder.description || "");
     setEditFolderTools(folder.tools && folder.tools.length > 0 ? folder.tools.join(", ") : "Figma, Photoshop, Magnific AI");
   };
 
@@ -1599,6 +1602,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       category: editFolderCategory.trim(),
       logo: editFolderLogo,
       description: editFolderDescription.trim(),
+      brandProfile: editFolderDescription.trim(),
+      projectDescription: editFolderProjectDesc.trim(),
       tools: parsedTools.length > 0 ? parsedTools : ["Figma", "Photoshop"],
     });
     showToast(tx(`Brand "${editFolderName.trim()}" berhasil diperbarui!`, `Brand "${editFolderName.trim()}" updated successfully!`));
@@ -2108,11 +2113,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       clientName: newFolderName.trim(),
       category: newFolderCategory.trim() || `Portfolio — ${newFolderName.trim()}`,
       description: newFolderDescription.trim(),
+      brandProfile: newFolderDescription.trim(),
+      projectDescription: newFolderProjectDesc.trim(),
       tools: toolsArray.length > 0 ? toolsArray : ["Figma", "Photoshop", "Magnific AI"],
     });
     showToast(`Folder "client - ${newFolderName.trim()}" berhasil dibuat!`);
     setNewFolderName("");
     setNewFolderCategory("");
+    setNewFolderProjectDesc("");
     setNewFolderDescription("");
     setNewFolderTools("Figma, Photoshop, Magnific AI");
     setNewFolderYear(new Date().getFullYear().toString());
@@ -3233,8 +3241,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           onOpenUploadWork={() => setIsUploadModalOpen(true)}
           onOpenEditWork={handleOpenEditWork}
           onDeleteWork={handleDeleteWork}
-          onSaveClientDescription={(id, desc, tools) => {
-            updateClientDescription(id, desc, tools);
+          onSaveClientDescription={(id: string, desc: string, tools: string[], projectDesc?: string) => {
+            updateClientDescription(id, desc, tools, projectDesc);
           }}
           onUpdateClientFolder={(id, updates) => {
             const c = clients.find((item) => item.id === id);
@@ -3376,8 +3384,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               onOpenUploadWork={() => setIsUploadModalOpen(true)}
               onOpenEditWork={handleOpenEditWork}
               onDeleteWork={handleDeleteWork}
-              onSaveClientDescription={(id, desc, tools) => {
-                updateClientDescription(id, desc, tools);
+              onSaveClientDescription={(id: string, desc: string, tools: string[], projectDesc?: string) => {
+                updateClientDescription(id, desc, tools, projectDesc);
               }}
               onUpdateClientFolder={(id, updates) => {
                 const c = clients.find((item) => item.id === id);
@@ -7914,37 +7922,70 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                 </div>
 
-                {/* Brand Profile & Context (Profil & Deskripsi Brand) */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                      {tx("Profil & Deskripsi Brand (Brand Profile & Context)", "Brand Profile & Context")}
+                {/* 1. PROJECT DESCRIPTION */}
+                <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className={`block text-xs font-mono font-bold text-cyan-300 uppercase tracking-wide`}>
+                      PROJECT DESCRIPTION
                     </label>
-                    <span className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
-                      {newFolderDescription.length} / 500
+                    <span className="text-[10px] font-mono text-cyan-400">
+                      {newFolderProjectDesc.length} / 1000
                     </span>
                   </div>
+                  <p className="text-[11px] text-neutral-400 leading-snug">
+                    {tx(
+                      "💡 Ditampilkan tepat di bawah judul karya pada preview modal.",
+                      "💡 Displayed right below work title on preview modal."
+                    )}
+                  </p>
                   <textarea
-                    rows={3}
-                    maxLength={500}
+                    rows={2}
+                    maxLength={1000}
+                    value={newFolderProjectDesc}
+                    onChange={(e) => setNewFolderProjectDesc(e.target.value)}
+                    placeholder={tx(
+                      "Tuliskan gambaran umum proyek, tujuan visual, atau ringkasan kampanye portofolio ini...",
+                      "Write project overview, visual goals, or campaign summary for this portfolio..."
+                    )}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-cyan-500"
+                        : "bg-neutral-950 border-cyan-500/30 text-white focus:border-cyan-400"
+                    }`}
+                  />
+                </div>
+
+                {/* 2. BRAND PROFILE & CONTEXT */}
+                <div className="p-3 rounded-xl bg-emerald-950/20 border border-[#16b09f]/25 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className={`block text-xs font-mono font-bold text-[#16b09f] uppercase tracking-wide`}>
+                      BRAND PROFILE & CONTEXT
+                    </label>
+                    <span className="text-[10px] font-mono text-[#16b09f]">
+                      {newFolderDescription.length} / 1000
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-400 leading-snug">
+                    {tx(
+                      "💡 Ditampilkan di box 'BRAND PROFILE & CONTEXT' di bagian bawah modal (profil identitas brand klien).",
+                      "💡 Displayed in the 'BRAND PROFILE & CONTEXT' box at the bottom of the modal (client brand identity)."
+                    )}
+                  </p>
+                  <textarea
+                    rows={2}
+                    maxLength={1000}
                     value={newFolderDescription}
                     onChange={(e) => setNewFolderDescription(e.target.value)}
                     placeholder={tx(
-                      "Tuliskan profil brand, visi, cakupan kampanye, atau konteks kolaborasi...",
-                      "Write brand overview, vision, campaign scope, or creative collaboration context..."
+                      "Tuliskan profil atau latar belakang brand klien, positioning bisnis, atau nilai kolaborasi...",
+                      "Write client brand profile, business positioning, or collaboration value..."
                     )}
-                    className={`w-full px-4 py-2.5 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
+                    className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
                       isLight
-                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
-                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-[#16b09f]/30 text-white focus:border-[#16b09f]"
                     }`}
                   />
-                  <p className={`text-[11px] mt-1 leading-snug ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                    {tx(
-                      "💡 Teks ini langsung tampil di box 'BRAND PROFILE & CONTEXT' pada preview modal case study di website.",
-                      "💡 This text directly appears in the 'BRAND PROFILE & CONTEXT' box on the case study preview modal."
-                    )}
-                  </p>
                 </div>
 
                 {/* Software & AI Tools */}
@@ -8092,37 +8133,70 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   />
                 </div>
 
-                {/* Brand Profile & Context (Profil & Deskripsi Brand) */}
-                <div>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                      {tx("Profil & Deskripsi Brand (Brand Profile & Context)", "Brand Profile & Context")}
+                {/* 1. PROJECT DESCRIPTION */}
+                <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className={`block text-xs font-mono font-bold text-cyan-300 uppercase tracking-wide`}>
+                      PROJECT DESCRIPTION
                     </label>
-                    <span className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
-                      {editFolderDescription.length} / 500
+                    <span className="text-[10px] font-mono text-cyan-400">
+                      {editFolderProjectDesc.length} / 1000
                     </span>
                   </div>
+                  <p className="text-[11px] text-neutral-400 leading-snug">
+                    {tx(
+                      "💡 Ditampilkan tepat di bawah judul karya pada preview modal.",
+                      "💡 Displayed right below work title on preview modal."
+                    )}
+                  </p>
                   <textarea
-                    rows={3}
-                    maxLength={500}
+                    rows={2}
+                    maxLength={1000}
+                    value={editFolderProjectDesc}
+                    onChange={(e) => setEditFolderProjectDesc(e.target.value)}
+                    placeholder={tx(
+                      "Tuliskan gambaran umum proyek, tujuan visual, atau ringkasan kampanye portofolio ini...",
+                      "Write project overview, visual goals, or campaign summary for this portfolio..."
+                    )}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-cyan-500"
+                        : "bg-neutral-950 border-cyan-500/30 text-white focus:border-cyan-400"
+                    }`}
+                  />
+                </div>
+
+                {/* 2. BRAND PROFILE & CONTEXT */}
+                <div className="p-3 rounded-xl bg-emerald-950/20 border border-[#16b09f]/25 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className={`block text-xs font-mono font-bold text-[#16b09f] uppercase tracking-wide`}>
+                      BRAND PROFILE & CONTEXT
+                    </label>
+                    <span className="text-[10px] font-mono text-[#16b09f]">
+                      {editFolderDescription.length} / 1000
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-neutral-400 leading-snug">
+                    {tx(
+                      "💡 Ditampilkan di box 'BRAND PROFILE & CONTEXT' di bagian bawah modal (profil identitas brand klien).",
+                      "💡 Displayed in the 'BRAND PROFILE & CONTEXT' box at the bottom of the modal (client brand identity)."
+                    )}
+                  </p>
+                  <textarea
+                    rows={2}
+                    maxLength={1000}
                     value={editFolderDescription}
                     onChange={(e) => setEditFolderDescription(e.target.value)}
                     placeholder={tx(
-                      "Tuliskan profil brand, visi, cakupan kampanye, atau konteks kolaborasi...",
-                      "Write brand overview, vision, campaign scope, or creative collaboration context..."
+                      "Tuliskan profil atau latar belakang brand klien, positioning bisnis, atau nilai kolaborasi...",
+                      "Write client brand profile, business positioning, or collaboration value..."
                     )}
-                    className={`w-full px-4 py-2.5 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
+                    className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
                       isLight
-                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
-                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-[#16b09f]/30 text-white focus:border-[#16b09f]"
                     }`}
                   />
-                  <p className={`text-[11px] mt-1 leading-snug ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                    {tx(
-                      "💡 Teks ini langsung tampil di box 'BRAND PROFILE & CONTEXT' pada preview modal case study di website.",
-                      "💡 This text directly appears in the 'BRAND PROFILE & CONTEXT' box on the case study preview modal."
-                    )}
-                  </p>
                 </div>
 
                 {/* Software & AI Tools */}

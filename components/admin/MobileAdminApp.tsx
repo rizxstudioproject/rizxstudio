@@ -88,7 +88,7 @@ interface MobileAdminAppProps {
   onOpenUploadWork?: () => void;
   onOpenEditWork?: (work: any) => void;
   onDeleteWork?: (clientId: string, workId: string, workTitle: string) => void;
-  onSaveClientDescription?: (clientId: string, desc: string, tools: string[]) => void;
+  onSaveClientDescription?: (clientId: string, desc: string, tools: string[], projectDesc?: string) => void;
   onUpdateClientFolder?: (clientId: string, updates: Partial<ClientItem>) => void;
   onReplaceCoverImage?: (clientId: string, file: File) => void;
   showToast?: (msg: string) => void;

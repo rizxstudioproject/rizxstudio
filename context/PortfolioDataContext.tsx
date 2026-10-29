@@ -141,7 +141,9 @@ export interface ClientItem {
   logo: string;
   color: string;
   itemsCount: number;
-  description?: string;
+  description?: string;        // Brand Profile & Context (compatible)
+  brandProfile?: string;       // Brand Profile & Context
+  projectDescription?: string; // Project Description (brief overview)
   tools?: string[];
   works: any[];
   isCustom?: boolean; // true if admin-created folder
@@ -455,13 +457,13 @@ interface PortfolioDataContextType {
     isVideoEnabled?: boolean;
   }) => void;
   removeStage3Video: () => void;
-  updateClientDescription: (clientId: string, description: string, tools?: string[]) => void;
+  updateClientDescription: (clientId: string, description: string, tools?: string[], projectDescription?: string) => void;
   addClientWork: (clientId: string, newWork: any) => void;
   autoMigrateBase64Works: (clientObj: ClientItem) => Promise<void>;
   updateClientWork: (clientId: string, updatedWork: any) => void;
   deleteClientWork: (clientId: string, workId: string) => void;
-  addClientFolder: (folder: { clientName: string; category: string; description?: string; tools?: string[] }) => void;
-  updateClientFolder: (clientId: string, updates: { clientName?: string; category?: string; logo?: string; description?: string; tools?: string[] }) => void;
+  addClientFolder: (folder: { clientName: string; category: string; description?: string; brandProfile?: string; projectDescription?: string; tools?: string[] }) => void;
+  updateClientFolder: (clientId: string, updates: Partial<ClientItem>) => void;
   deleteClientFolder: (clientId: string) => void;
   updateAboutData: (newData: Partial<AboutData>) => void;
   updateHeroWorksData: (newData: Partial<HeroWorksData>) => void;
@@ -1623,15 +1625,17 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [clients, persistState, syncClientToCloud]
   );
 
-  // Update Client / Brand Description & Tools Used
+  // Update Client / Brand Description & Tools Used & Project Description
   const updateClientDescription = useCallback(
-    async (clientId: string, description: string, tools?: string[]) => {
+    async (clientId: string, description: string, tools?: string[], projectDescription?: string) => {
       const currentList = clientsRef.current.length > 0 ? clientsRef.current : clients;
       const updatedClients = currentList.map((client) => {
         if (client.id === clientId) {
           return {
             ...client,
             description,
+            brandProfile: description,
+            ...(projectDescription !== undefined ? { projectDescription } : {}),
             ...(tools !== undefined ? { tools } : {}),
           };
         }
@@ -1735,7 +1739,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
   // Add a new custom client folder (admin-created)
   const addClientFolder = useCallback(
-    async (folder: { clientName: string; category: string; description?: string; tools?: string[] }) => {
+    async (folder: { clientName: string; category: string; description?: string; brandProfile?: string; projectDescription?: string; tools?: string[] }) => {
       const newId = `client-custom-${Date.now()}`;
       const newClient: ClientItem = {
         id: newId,
@@ -1744,7 +1748,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         logo: "",
         color: "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
         itemsCount: 0,
-        description: folder.description || "",
+        description: folder.description || folder.brandProfile || "",
+        brandProfile: folder.brandProfile || folder.description || "",
+        projectDescription: folder.projectDescription || "",
         tools: folder.tools || [],
         works: [],
         isCustom: true,
@@ -1759,9 +1765,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [stage3, clients, persistState, syncClientToCloud]
   );
 
-  // Edit / Rename an existing client folder or update logo
+  // Edit / Rename an existing client folder or update logo & profile
   const updateClientFolder = useCallback(
-    async (clientId: string, updates: { clientName?: string; category?: string; logo?: string; description?: string; tools?: string[] }) => {
+    async (clientId: string, updates: Partial<ClientItem>) => {
       const updatedClients = clients.map((c) => {
         if (c.id === clientId) {
           const newName = updates.clientName !== undefined ? updates.clientName.trim() : c.clientName;
@@ -1770,14 +1776,19 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               ? updates.category.trim()
               : (updates.clientName ? `Portfolio — ${newName}` : c.category);
           const newLogo = updates.logo !== undefined ? updates.logo : (c.logo || "");
-          const newDesc = updates.description !== undefined ? updates.description : (c.description || "");
+          const newDesc = updates.description !== undefined ? updates.description : (updates.brandProfile !== undefined ? updates.brandProfile : (c.description || ""));
+          const newBrandProfile = updates.brandProfile !== undefined ? updates.brandProfile : (updates.description !== undefined ? updates.description : (c.brandProfile || newDesc));
+          const newProjectDesc = updates.projectDescription !== undefined ? updates.projectDescription : (c.projectDescription || "");
           const newTools = updates.tools !== undefined ? updates.tools : (c.tools || []);
           return {
             ...c,
+            ...updates,
             clientName: newName,
             category: newCategory,
             logo: newLogo,
             description: newDesc,
+            brandProfile: newBrandProfile,
+            projectDescription: newProjectDesc,
             tools: newTools,
           };
         }

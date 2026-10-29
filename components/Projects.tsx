@@ -1847,11 +1847,17 @@ export default function Projects() {
                             <h3 className={`text-base sm:text-xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                               {currentWork.title}
                             </h3>
-                            {caseStudy.brief && (
-                              <p className={`text-xs font-sans mt-1 leading-relaxed max-w-2xl ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
-                                {caseStudy.brief}
-                              </p>
-                            )}
+                            {(() => {
+                              const clientKey = (currentWork.clientName || "").toLowerCase().trim();
+                              const clientObj = contextClients.find((c) => (c.clientName || "").toLowerCase().trim() === clientKey);
+                              const resolvedBrief = currentWork.brief || clientObj?.projectDescription || caseStudy.brief;
+                              if (!resolvedBrief) return null;
+                              return (
+                                <p className={`text-xs font-sans mt-1 leading-relaxed max-w-2xl ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                                  {resolvedBrief}
+                                </p>
+                              );
+                            })()}
                           </div>
 
                           {/* Counter & Mini Navigation */}
@@ -1962,7 +1968,7 @@ export default function Projects() {
                           const clientData = contextClients.find(
                             (c) => (c.clientName || "").toLowerCase().trim() === clientKey
                           );
-                          const rawDesc = ((clientData as any)?.description || "").trim();
+                          const rawDesc = (((clientData as any)?.brandProfile || (clientData as any)?.description) || "").trim();
                           const defaultEn = `${currentWork.clientName || "Brand"} is a visionary partner brand collaborating on high-impact visual design, digital advertising assets, and creative campaign experiences.`;
                           const defaultId = `${currentWork.clientName || "Brand"} adalah brand mitra kolaborasi dalam perancangan visual kreatif, aset periklanan digital, dan kampanye terpadu berstandar tinggi.`;
                           const rawIdDesc = clientBrandDescMap[clientKey]?.id || rawDesc || defaultId;
