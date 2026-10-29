@@ -223,9 +223,13 @@ export default function ClientsWorkspace({
     e.target.value = "";
   };
 
-  // Sync inputs when selected client changes
+  // Track last synced client ID so external data refreshes do NOT overwrite in-progress edits
+  const lastSyncedClientIdRef = useRef<string | null>(null);
+
+  // Sync inputs only when the selected client ID genuinely switches
   React.useEffect(() => {
-    if (selectedClient) {
+    if (selectedClient && selectedClient.id !== lastSyncedClientIdRef.current) {
+      lastSyncedClientIdRef.current = selectedClient.id;
       setCategoryInput(selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`);
       setDescriptionInput(selectedClient.description || "");
       setSelectedTools(
@@ -234,7 +238,7 @@ export default function ClientsWorkspace({
           : ["Figma", "Photoshop", "Magnific AI"]
       );
     }
-  }, [selectedClient]);
+  }, [selectedClient?.id]);
 
   // Filter clients for the middle column
   const filteredClients = useMemo(() => {
@@ -1505,10 +1509,23 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Portfolio Information Form */}
             <div className="lg:col-span-7 p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-4">
-              <div className="pb-2 border-b border-white/5">
-                <h3 className="text-sm font-semibold text-white">
-                  {tr("Portfolio Information", "Informasi Portofolio", "Informasi Portofolio")}
-                </h3>
+              <div className="pb-2 border-b border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-white">
+                    {tr("Portfolio Information", "Informasi Portofolio", "Informasi Portofolio")}
+                  </h3>
+                  <p className="text-[11px] text-neutral-400">
+                    {tr("Category, headline & brand profile context", "Kategori, headline & profil brand", "Kategori, headline & profil brand")}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleSaveInfo}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#16b09f]/20 cursor-pointer"
+                >
+                  <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>{tr("Save Info", "Simpan Info", "Simpan Info")}</span>
+                </button>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -1520,6 +1537,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     type="text"
                     value={categoryInput}
                     onChange={(e) => setCategoryInput(e.target.value)}
+                    onBlur={() => {
+                      if (selectedClient && onUpdateClientFolder && categoryInput.trim() !== (selectedClient.category || "")) {
+                        onUpdateClientFolder(selectedClient.id, { category: categoryInput.trim() });
+                      }
+                    }}
                     onClick={() => {
                       if (typeof window !== "undefined" && window.innerWidth < 768) {
                         setMobileTextModal({
@@ -1567,23 +1589,39 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     {tr("Brand Profile & Context", "Profil & Deskripsi Brand (Brand Profile & Context)", "Profil & Deskripsi Brand")}
                   </label>
                   <span className="text-[10px] font-mono text-neutral-500">
-                    {descriptionInput.length} / 500
+                    {descriptionInput.length} / 1000
                   </span>
                 </div>
                 <textarea
                   rows={4}
-                  maxLength={500}
+                  maxLength={1000}
                   value={descriptionInput}
                   onChange={(e) => setDescriptionInput(e.target.value)}
+                  onBlur={() => {
+                    if (selectedClient && descriptionInput !== (selectedClient.description || "")) {
+                      onSaveClientDescription(selectedClient.id, descriptionInput, selectedTools);
+                    }
+                  }}
+                  onPaste={(e) => {
+                    const text = e.clipboardData.getData("text");
+                    if (text && descriptionInput.length + text.length > 1000) {
+                      showToast(tr("Peringatan: Teks melebihi 1000 karakter dan dipotong otomatis.", "Warning: Text exceeds 1000 characters and was trimmed.", "Paringatan: Teks talampau 1000 karakter."));
+                    }
+                  }}
                   onClick={() => {
                     if (typeof window !== "undefined" && window.innerWidth < 768) {
                       setMobileTextModal({
                         isOpen: true,
                         title: tr("Brand Profile & Context", "Profil & Deskripsi Brand", "Profil & Deskripsi Brand"),
                         value: descriptionInput,
-                        maxLength: 500,
+                        maxLength: 1000,
                         isTextarea: true,
-                        onSave: (val) => setDescriptionInput(val),
+                        onSave: (val) => {
+                          setDescriptionInput(val);
+                          if (selectedClient) {
+                            onSaveClientDescription(selectedClient.id, val, selectedTools);
+                          }
+                        },
                       });
                     }
                   }}
