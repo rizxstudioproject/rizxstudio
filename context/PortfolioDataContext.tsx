@@ -457,6 +457,7 @@ interface PortfolioDataContextType {
   removeStage3Video: () => void;
   updateClientDescription: (clientId: string, description: string, tools?: string[]) => void;
   addClientWork: (clientId: string, newWork: any) => void;
+  autoMigrateBase64Works: (clientObj: ClientItem) => Promise<void>;
   updateClientWork: (clientId: string, updatedWork: any) => void;
   deleteClientWork: (clientId: string, workId: string) => void;
   addClientFolder: (folder: { clientName: string; category: string; description?: string }) => void;
@@ -726,8 +727,40 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         if (typeof window !== "undefined") {
           window.dispatchEvent(new CustomEvent("rizx:data-updated", { detail: payload }));
         }
-      } catch (err) {
+      } catch (err: any) {
         console.warn("Failed to persist portfolio overrides to localStorage:", err);
+        // QuotaExceededError recovery: if raw base64 data URLs exceed 5MB quota,
+        // sanitize only the heavy base64 strings so folder metadata, names, tools, and works are NEVER lost!
+        if (
+          typeof window !== "undefined" &&
+          (err?.name === "QuotaExceededError" || err?.code === 22 || err?.number === -2147024882)
+        ) {
+          try {
+            const targetClients = newClients || clientsRef.current;
+            const strippedClients = targetClients.map((c) => ({
+              ...c,
+              works: (c.works || []).map((w: any) => ({
+                ...w,
+                image: w.image?.startsWith("data:image/") ? "" : w.image,
+              })),
+            }));
+            const strippedPayload = {
+              stage3: newStage3 || stage3Ref.current,
+              about: newAbout || aboutRef.current,
+              heroWorks: newHeroWorks || heroWorksRef.current,
+              clientLogos: newClientLogos || clientLogosRef.current,
+              portfolioIntro: newPortfolioIntro || portfolioIntroRef.current,
+              portfolioRunner: newPortfolioRunner || portfolioRunnerRef.current,
+              heroBanner: newHeroBanner || heroBannerRef.current,
+              clients: strippedClients,
+              updatedAt: new Date().toISOString(),
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(strippedPayload));
+            console.log("Recovered from localStorage QuotaExceededError by stripping base64 images.");
+          } catch (retryErr) {
+            console.error("Critical localStorage quota failure:", retryErr);
+          }
+        }
       }
     },
     []
@@ -1519,22 +1552,82 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         isCustom: Boolean(clientItem.isCustom),
         logo: clientItem.logo || "",
       });
-      await supabase.from("client_descriptions").upsert({
+      const { error } = await supabase.from("client_descriptions").upsert({
         client_id: clientItem.id,
         client_name: clientItem.clientName,
         category: clientItem.category || `Portfolio — ${clientItem.clientName}`,
         description: descPayload,
         updated_at: new Date().toISOString(),
       });
+      if (error) {
+        console.error("Supabase client sync error:", error);
+      }
     } catch (err) {
       console.warn("Supabase client sync error:", err);
     }
   }, []);
 
+  // Background auto-migration of any legacy base64 images in client works to permanent Supabase Storage URLs
+  const autoMigrateBase64Works = useCallback(
+    async (clientObj: ClientItem) => {
+      if (!clientObj.works || clientObj.works.length === 0) return;
+      const hasBase64 = clientObj.works.some((w: any) => w.image?.startsWith("data:image/"));
+      if (!hasBase64) return;
+
+      let modified = false;
+      const migratedWorks = await Promise.all(
+        clientObj.works.map(async (work: any) => {
+          if (work.image?.startsWith("data:image/")) {
+            try {
+              const res = await fetch("/api/admin/media-upload", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  base64: work.image,
+                  folder: `works/${clientObj.id}`,
+                  filename: work.title || "work_img",
+                }),
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (data.url) {
+                  modified = true;
+                  return { ...work, image: data.url };
+                }
+              }
+            } catch (e) {
+              console.warn("Auto-migration of work image to storage failed:", e);
+            }
+          }
+          return work;
+        })
+      );
+
+      if (modified) {
+        const currentList = clientsRef.current.length > 0 ? clientsRef.current : clients;
+        const updatedClients = currentList.map((c) =>
+          c.id === clientObj.id
+            ? { ...c, works: migratedWorks, itemsCount: migratedWorks.length }
+            : c
+        );
+        setClients(updatedClients);
+        clientsRef.current = updatedClients;
+        persistState(stage3Ref.current, updatedClients);
+        const updated = updatedClients.find((c) => c.id === clientObj.id);
+        if (updated) {
+          syncClientToCloud(updated);
+        }
+        console.log(`Auto-migrated legacy base64 images in client "${clientObj.clientName}" to Cloud Storage CDN.`);
+      }
+    },
+    [clients, persistState, syncClientToCloud]
+  );
+
   // Update Client / Brand Description & Tools Used
   const updateClientDescription = useCallback(
     async (clientId: string, description: string, tools?: string[]) => {
-      const updatedClients = clients.map((client) => {
+      const currentList = clientsRef.current.length > 0 ? clientsRef.current : clients;
+      const updatedClients = currentList.map((client) => {
         if (client.id === clientId) {
           return {
             ...client,
@@ -1545,6 +1638,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         return client;
       });
       setClients(updatedClients);
+      clientsRef.current = updatedClients;
       persistState(stage3, updatedClients);
 
       const clientObj = updatedClients.find((c) => c.id === clientId);
@@ -1555,12 +1649,14 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [stage3, clients, persistState, syncClientToCloud]
   );
 
-  // Add a new portfolio work item to a client folder
+  // Add a new portfolio work item (or array of items) to a client folder
   const addClientWork = useCallback(
-    async (clientId: string, newWork: any) => {
-      const updatedClients = clients.map((client) => {
+    async (clientId: string, newWorkOrWorks: any | any[]) => {
+      const worksToAdd = Array.isArray(newWorkOrWorks) ? newWorkOrWorks : [newWorkOrWorks];
+      const currentList = clientsRef.current.length > 0 ? clientsRef.current : clients;
+      const updatedClients = currentList.map((client) => {
         if (client.id === clientId) {
-          const updatedWorks = [newWork, ...(client.works || [])];
+          const updatedWorks = [...worksToAdd, ...(client.works || [])];
           return {
             ...client,
             works: updatedWorks,
@@ -1571,14 +1667,17 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       });
 
       setClients(updatedClients);
+      clientsRef.current = updatedClients;
       persistState(stage3, updatedClients);
 
       const clientObj = updatedClients.find((c) => c.id === clientId);
       if (clientObj) {
-        syncClientToCloud(clientObj);
+        await syncClientToCloud(clientObj);
+        // Also ensure any leftover base64 items in this client folder get migrated
+        autoMigrateBase64Works(clientObj).catch(() => {});
       }
     },
-    [stage3, clients, persistState, syncClientToCloud]
+    [stage3, clients, persistState, syncClientToCloud, autoMigrateBase64Works]
   );
 
   // Update an existing portfolio work item (case study details: brief, challenge, solution, role, tools, title, etc.)
@@ -2194,6 +2293,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         removeStage3Video,
         updateClientDescription,
         addClientWork,
+        autoMigrateBase64Works,
         updateClientWork,
         deleteClientWork,
         addClientFolder,

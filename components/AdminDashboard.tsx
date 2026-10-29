@@ -132,6 +132,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     trashItems,
     moveToTrash,
     restoreFromTrash,
+    autoMigrateBase64Works,
   } = usePortfolioData();
 
   // Studio OS Sidebar Tab: 'dashboard' | 'clients' | 'portfolio' | 'ai-prompt' | 'brand' | 'resources' | 'settings'
@@ -1594,13 +1595,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   // Upload Form Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<File[]>([]);
   const [uploadPreview, setUploadPreview] = useState<string | null>(null);
+  const [uploadPreviews, setUploadPreviews] = useState<{ file: File; name: string; preview: string }[]>([]);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadType, setUploadType] = useState("Digital Campaign");
   const [uploadAspect, setUploadAspect] = useState<"4:5" | "1:1" | "16:9" | "9:16">("4:5");
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear().toString());
   // Tool tags for upload — comma-separated input
   const [uploadToolsInput, setUploadToolsInput] = useState("Figma, Photoshop, Magnific AI");
+  const [isUploadingWork, setIsUploadingWork] = useState(false);
+  const [uploadProgressText, setUploadProgressText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Edit Work & Case Study Modal State
@@ -1706,8 +1711,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       } else {
         setClientToolsInput("Figma, Photoshop, Magnific AI, ChatGPT, Gemini");
       }
+      if (autoMigrateBase64Works) {
+        autoMigrateBase64Works(selectedClient).catch(() => {});
+      }
     }
-  }, [selectedClientId, clients, selectedClient]);
+  }, [selectedClientId, clients, selectedClient, autoMigrateBase64Works]);
 
   // Sync Flagship Media state whenever stage3 updates (e.g. from Supabase Cloud or localStorage)
   useEffect(() => {
@@ -1875,63 +1883,168 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  // Handlers for Uploading Portfolio Image
+  // Handlers for Uploading Portfolio Image (Single or Multiple Batch to Cloud Storage)
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files ? Array.from(e.target.files) : [];
+    if (files.length === 0) return;
 
-    setUploadFile(file);
-    const defaultName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-    if (!uploadTitle) {
-      setUploadTitle(defaultName);
+    setUploadFiles(files);
+    setUploadFile(files[0]);
+
+    if (files.length === 1) {
+      const defaultName = files[0].name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+      if (!uploadTitle) {
+        setUploadTitle(defaultName);
+      }
+    } else {
+      if (!uploadTitle) {
+        setUploadTitle(tx(`${files.length} Karya Baru`, `${files.length} New Deliverables`));
+      }
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      setUploadPreview(event.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    const previews: { file: File; name: string; preview: string }[] = [];
+    let loadedCount = 0;
+    files.forEach((f) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const previewUrl = event.target?.result as string;
+        previews.push({
+          file: f,
+          name: f.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " "),
+          preview: previewUrl,
+        });
+        loadedCount++;
+        if (loadedCount === files.length) {
+          setUploadPreviews([...previews]);
+          setUploadPreview(previews[0].preview);
+        }
+      };
+      reader.readAsDataURL(f);
+    });
   };
 
-  const handleUploadSubmit = (e: React.FormEvent) => {
+  const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadPreview || !selectedClient) {
+    const filesToUpload = uploadFiles.length > 0 ? uploadFiles : (uploadFile ? [uploadFile] : []);
+    if ((filesToUpload.length === 0 && !uploadPreview) || !selectedClient) {
       showToast("Peringatan: Silakan pilih file gambar terlebih dahulu.");
       return;
     }
 
-    const toolsArray = uploadToolsInput
-      .split(",")
-      .map((t) => t.trim().toLowerCase())
-      .filter(Boolean);
+    setIsUploadingWork(true);
+    setUploadProgressText(tx("Mempersiapkan upload...", "Preparing upload...", "Mampasiapan upload..."));
 
-    const newWork = {
-      id: `${selectedClient.id}-${Date.now()}`,
-      title: uploadTitle.trim() || "Creative Visual Deliverable",
-      type: uploadType.trim() || "Digital Campaign",
-      image: uploadPreview,
-      aspect: uploadAspect,
-      brand: selectedClient.clientName,
-      year: uploadYear.trim() || new Date().getFullYear().toString(),
-      brief: `Digital creative visual and commercial advertising asset produced for ${selectedClient.clientName}.`,
-      approach: "Modern aesthetic composition combining sharp creative direction with AI-assisted digital production.",
-      role: "Art direction, prompt engineering, visual creation, and digital asset layout.",
-      challenge: "Aligning campaign specifications with brand guidelines while maintaining premier artistic standards.",
-      solution: "Developed controlled prompts, tailored color palettes, and balanced typography for high-impact social reach.",
-      tools: toolsArray.length > 0 ? toolsArray : ["figma", "photoshop"],
-      isClientWork: true,
-    };
+    try {
+      const toolsArray = uploadToolsInput
+        .split(",")
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
 
-    addClientWork(selectedClient.id, newWork);
-    showToast(`Karya "${newWork.title}" berhasil diupload ke folder ${selectedClient.clientName}!`);
+      // Helper to upload a single file directly to Supabase Storage via /api/admin/media-upload
+      const uploadSingleFile = async (file: File, fallbackPreview?: string): Promise<string> => {
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("folder", `works/${selectedClient.id}`);
+          const res = await fetch("/api/admin/media-upload", {
+            method: "POST",
+            body: formData,
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.url) return data.url;
+          }
+        } catch (err) {
+          console.warn("Direct storage upload failed, trying base64 fallback:", err);
+        }
 
-    // Reset Form Modal
-    setUploadFile(null);
-    setUploadPreview(null);
-    setUploadTitle("");
-    setUploadToolsInput("Figma, Photoshop, Magnific AI");
-    setUploadYear(new Date().getFullYear().toString());
-    setIsUploadModalOpen(false);
+        if (fallbackPreview && fallbackPreview.startsWith("data:")) {
+          try {
+            const res = await fetch("/api/admin/media-upload", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                base64: fallbackPreview,
+                folder: `works/${selectedClient.id}`,
+                filename: file.name,
+              }),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.url) return data.url;
+            }
+          } catch (_) {}
+        }
+
+        return fallbackPreview || "";
+      };
+
+      const newWorks: any[] = [];
+      const total = filesToUpload.length;
+
+      for (let i = 0; i < total; i++) {
+        const file = filesToUpload[i];
+        setUploadProgressText(
+          tx(
+            `Mengupload ${i + 1} dari ${total} file ke Cloud Storage...`,
+            `Uploading ${i + 1} of ${total} files to Cloud Storage...`,
+            `Mangupload ${i + 1} dari ${total} file ka Cloud Storage...`
+          )
+        );
+
+        const matchingPreview =
+          uploadPreviews.find((p) => p.file === file)?.preview ||
+          (i === 0 ? (uploadPreview || undefined) : undefined);
+
+        const uploadedImageUrl = await uploadSingleFile(file, matchingPreview || undefined);
+
+        const defaultTitle = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+        const title = total === 1 ? (uploadTitle.trim() || defaultTitle) : defaultTitle;
+
+        const workItem = {
+          id: `${selectedClient.id}-${Date.now()}-${i}-${Math.random().toString(36).substring(2, 7)}`,
+          title: title || "Creative Visual Deliverable",
+          type: uploadType.trim() || "Digital Campaign",
+          image: uploadedImageUrl || matchingPreview || "",
+          aspect: uploadAspect,
+          brand: selectedClient.clientName,
+          year: uploadYear.trim() || new Date().getFullYear().toString(),
+          brief: `Digital creative visual and commercial advertising asset produced for ${selectedClient.clientName}.`,
+          approach: "Modern aesthetic composition combining sharp creative direction with AI-assisted digital production.",
+          role: "Art direction, prompt engineering, visual creation, and digital asset layout.",
+          challenge: "Aligning campaign specifications with brand guidelines while maintaining premier artistic standards.",
+          solution: "Developed controlled prompts, tailored color palettes, and balanced typography for high-impact social reach.",
+          tools: toolsArray.length > 0 ? toolsArray : ["figma", "photoshop"],
+          isClientWork: true,
+        };
+
+        newWorks.push(workItem);
+      }
+
+      await addClientWork(selectedClient.id, newWorks);
+
+      showToast(
+        total === 1
+          ? `Karya "${newWorks[0].title}" berhasil diupload dan tersimpan permanen ke Cloud Storage!`
+          : `${total} karya berhasil diupload dan tersimpan permanen ke Cloud Storage!`
+      );
+
+      // Reset Form Modal
+      setUploadFile(null);
+      setUploadFiles([]);
+      setUploadPreviews([]);
+      setUploadPreview(null);
+      setUploadTitle("");
+      setUploadToolsInput("Figma, Photoshop, Magnific AI");
+      setUploadYear(new Date().getFullYear().toString());
+      setIsUploadModalOpen(false);
+    } catch (err: any) {
+      console.error("Upload work error:", err);
+      showToast("Terjadi kesalahan saat mengupload gambar: " + (err?.message || ""));
+    } finally {
+      setIsUploadingWork(false);
+      setUploadProgressText("");
+    }
   };
 
   // Handlers for Deleting Portfolio Work Item
@@ -7144,25 +7257,57 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               <form onSubmit={handleUploadSubmit} className="space-y-4">
                 {/* File Dropzone / Selector */}
                 <div>
-                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                    {tx("File Gambar (JPG, PNG, WEBP)", "Image File (JPG, PNG, WEBP)")} <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
-                  </label>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      {tx("File Gambar (JPG, PNG, WEBP)", "Image File (JPG, PNG, WEBP)")} <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
+                    </label>
+                    <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                      isLight ? "bg-slate-100 text-teal-800 border-slate-200" : "bg-white/5 text-cyan-400 border-white/10"
+                    }`}>
+                      {tx("Bisa pilih banyak file sekaligus", "Multi-file batch upload enabled")}
+                    </span>
+                  </div>
                   <input
                     ref={fileInputRef}
                     type="file"
+                    multiple
                     accept="image/*"
                     onChange={handleFileSelect}
                     className="hidden"
                   />
                   <div
                     onClick={() => fileInputRef.current?.click()}
-                    className={`w-full border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-colors flex flex-col items-center justify-center group ${
+                    className={`w-full border-2 border-dashed rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition-colors flex flex-col items-center justify-center group ${
                       isLight
                         ? "border-slate-300 hover:border-teal-500 bg-slate-50"
                         : "border-white/20 hover:border-[#16b09f] bg-neutral-950/50"
                     }`}
                   >
-                    {uploadPreview ? (
+                    {uploadPreviews.length > 1 ? (
+                      <div className="space-y-3 w-full">
+                        <div className="flex items-center justify-between px-1">
+                          <span className={`text-xs font-bold font-mono ${isLight ? "text-teal-800" : "text-[#16b09f]"}`}>
+                            📦 {uploadPreviews.length} {tx("File Dipilih untuk Batch Upload", "Files Selected for Batch Upload")}
+                          </span>
+                          <span className="text-[11px] text-neutral-400 underline">
+                            {tx("Ganti File", "Change Files")}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1">
+                          {uploadPreviews.map((p, idx) => (
+                            <div key={idx} className="relative rounded-lg overflow-hidden border border-white/10 group/thumb aspect-[4/5] bg-black/40">
+                              <img src={p.preview} alt={p.name} className="w-full h-full object-cover" />
+                              <div className="absolute inset-x-0 bottom-0 bg-black/80 px-1 py-0.5 text-[9px] text-white truncate text-center font-mono">
+                                {idx + 1}. {p.name}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <p className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                          {tx("Semua gambar akan otomatis diupload ke Cloud Storage CDN & tersimpan permanen.", "All images will be auto-uploaded to Cloud Storage CDN and saved permanently.")}
+                        </p>
+                      </div>
+                    ) : uploadPreview ? (
                       <div className="space-y-2">
                         <img
                           src={uploadPreview}
@@ -7172,7 +7317,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           }`}
                         />
                         <p className={`text-xs font-mono ${isLight ? "text-teal-700 font-bold" : "text-cyan-400"}`}>
-                          {tx("Klik untuk mengganti gambar", "Click to replace image")}
+                          {tx("Klik untuk mengganti / tambah gambar", "Click to replace / add images")}
                         </p>
                       </div>
                     ) : (
@@ -7181,10 +7326,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           isLight ? "text-slate-400 group-hover:text-teal-600" : "text-neutral-500 group-hover:text-[#16b09f]"
                         }`} />
                         <p className={`text-xs sm:text-sm font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                          {tx("Klik untuk memilih file gambar", "Click to select image file")}
+                          {tx("Klik untuk memilih gambar (bisa pilih banyak sekaligus)", "Click to select images (supports multi-select)")}
                         </p>
                         <p className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
-                          {tx("Mendukung PNG, JPG, JPEG, WEBP", "Supports PNG, JPG, JPEG, WEBP")}
+                          {tx("Mendukung PNG, JPG, JPEG, WEBP tanpa batas jumlah file", "Supports PNG, JPG, JPEG, WEBP without file count limits")}
                         </p>
                       </div>
                     )}
@@ -7326,15 +7471,28 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 <div className="pt-3">
                   <button
                     type="submit"
-                    disabled={!uploadPreview}
+                    disabled={!uploadPreview || isUploadingWork}
                     className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       isLight
                         ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
                         : "bg-[#16b09f] hover:bg-[#119889] text-black"
                     }`}
                   >
-                    <HiCheck className="w-4 h-4" />
-                    <span>{tx("Upload & Tambahkan ke Web", "Upload & Add to Web")}</span>
+                    {isUploadingWork ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin shrink-0" />
+                        <span className="truncate">{uploadProgressText || tx("Mengupload ke Cloud Storage...", "Uploading to Cloud Storage...")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <HiCheck className="w-4 h-4 shrink-0" />
+                        <span>
+                          {uploadFiles.length > 1
+                            ? tx(`Upload ${uploadFiles.length} Gambar ke Cloud Storage`, `Upload ${uploadFiles.length} Images to Cloud Storage`)
+                            : tx("Upload & Simpan Permanen ke Cloud", "Upload & Save to Cloud")}
+                        </span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
