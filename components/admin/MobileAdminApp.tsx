@@ -85,7 +85,7 @@ interface MobileAdminAppProps {
   onOpenAddFolder?: () => void;
   onOpenEditFolder?: (client: ClientItem) => void;
   onDeleteFolder?: (client: ClientItem) => void;
-  onOpenUploadWork?: () => void;
+  onOpenUploadWork?: (tools?: string[]) => void;
   onOpenEditWork?: (work: any) => void;
   onDeleteWork?: (clientId: string, workId: string, workTitle: string) => void;
   onSaveClientDescription?: (clientId: string, desc: string, tools: string[], projectDesc?: string) => void;

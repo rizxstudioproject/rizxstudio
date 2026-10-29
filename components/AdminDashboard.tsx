@@ -1780,6 +1780,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setUploadToolsInput(nextList.join(", "));
   };
 
+  const handleOpenUploadWork = (toolsFromWorkspace?: string[]) => {
+    if (toolsFromWorkspace && toolsFromWorkspace.length > 0) {
+      setUploadToolsInput(toolsFromWorkspace.join(", "));
+    } else if (selectedClient?.tools && selectedClient.tools.length > 0) {
+      setUploadToolsInput(selectedClient.tools.join(", "));
+    }
+    setIsUploadModalOpen(true);
+  };
+
   const handleSaveEditWork = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingWork || !selectedClient) return;
@@ -1823,8 +1832,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setClientDescInput(selectedClient.description || "");
       if (selectedClient.tools && selectedClient.tools.length > 0) {
         setClientToolsInput(selectedClient.tools.join(", "));
+        setUploadToolsInput(selectedClient.tools.join(", "));
       } else {
         setClientToolsInput("Figma, Photoshop, Magnific AI, ChatGPT, Gemini");
+        setUploadToolsInput("Digital Asset, Photoshop, Magnific AI");
       }
       if (autoMigrateBase64Works) {
         autoMigrateBase64Works(selectedClient).catch(() => {});
@@ -2103,7 +2114,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         setUploadPreviews([]);
         setUploadPreview(null);
         setUploadTitle("");
-        setUploadToolsInput("Figma, Photoshop, Magnific AI");
+        setUploadToolsInput(selectedClient?.tools && selectedClient.tools.length > 0 ? selectedClient.tools.join(", ") : "Digital Asset, Photoshop, Magnific AI");
         setUploadYear(new Date().getFullYear().toString());
         setIsUploadModalOpen(false);
       } catch (err: any) {
@@ -2223,7 +2234,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setUploadPreviews([]);
       setUploadPreview(null);
       setUploadTitle("");
-      setUploadToolsInput("Figma, Photoshop, Magnific AI");
+      setUploadToolsInput(selectedClient?.tools && selectedClient.tools.length > 0 ? selectedClient.tools.join(", ") : "Digital Asset, Photoshop, Magnific AI");
       setUploadYear(new Date().getFullYear().toString());
       setIsUploadModalOpen(false);
     } catch (err: any) {
@@ -3408,11 +3419,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           onOpenAddFolder={() => setIsAddFolderOpen(true)}
           onOpenEditFolder={handleOpenEditFolder}
           onDeleteFolder={handleDeleteFolder}
-          onOpenUploadWork={() => setIsUploadModalOpen(true)}
+          onOpenUploadWork={handleOpenUploadWork}
           onOpenEditWork={handleOpenEditWork}
           onDeleteWork={handleDeleteWork}
           onSaveClientDescription={(id: string, desc: string, tools: string[], projectDesc?: string) => {
             updateClientDescription(id, desc, tools, projectDesc);
+            if (tools && tools.length > 0) {
+              setUploadToolsInput(tools.join(", "));
+            }
           }}
           onUpdateClientFolder={(id, updates) => {
             const c = clients.find((item) => item.id === id);
@@ -3424,6 +3438,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 description: updates.description !== undefined ? updates.description : c.description,
                 tools: updates.tools !== undefined ? updates.tools : c.tools,
               });
+              if (updates.tools && updates.tools.length > 0) {
+                setUploadToolsInput(updates.tools.join(", "));
+              }
             }
           }}
           onReplaceCoverImage={handleReplaceCoverImage}
@@ -3551,11 +3568,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               onOpenAddFolder={() => setIsAddFolderOpen(true)}
               onOpenEditFolder={handleOpenEditFolder}
               onDeleteFolder={handleDeleteFolder}
-              onOpenUploadWork={() => setIsUploadModalOpen(true)}
+              onOpenUploadWork={handleOpenUploadWork}
               onOpenEditWork={handleOpenEditWork}
               onDeleteWork={handleDeleteWork}
               onSaveClientDescription={(id: string, desc: string, tools: string[], projectDesc?: string) => {
                 updateClientDescription(id, desc, tools, projectDesc);
+                if (tools && tools.length > 0) {
+                  setUploadToolsInput(tools.join(", "));
+                }
               }}
               onUpdateClientFolder={(id, updates) => {
                 const c = clients.find((item) => item.id === id);
@@ -3567,6 +3587,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     description: updates.description !== undefined ? updates.description : c.description,
                     tools: updates.tools !== undefined ? updates.tools : c.tools,
                   });
+                  if (updates.tools && updates.tools.length > 0) {
+                    setUploadToolsInput(updates.tools.join(", "));
+                  }
                 }
               }}
               onReplaceCoverImage={handleReplaceCoverImage}
@@ -3661,7 +3684,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     setSelectedClientId(id);
                     setSidebarTab("clients");
                   }}
-                  onOpenUploadWork={() => setIsUploadModalOpen(true)}
+                  onOpenUploadWork={() => handleOpenUploadWork()}
                   onDeleteWork={handleDeleteWork}
                   showToast={showToast}
                 />
@@ -5699,7 +5722,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
                     <button
                       type="button"
-                      onClick={() => setIsUploadModalOpen(true)}
+                      onClick={() => handleOpenUploadWork()}
                       className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#16b09f] to-cyan-500 hover:from-[#119889] hover:to-cyan-400 text-black font-bold text-xs sm:text-sm shadow-lg shadow-cyan-500/25 transition-all active:scale-95 cursor-pointer shrink-0"
                     >
                       <HiArrowUpTray className="w-4 h-4" />

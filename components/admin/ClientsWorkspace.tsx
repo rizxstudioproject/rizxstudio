@@ -39,7 +39,7 @@ interface ClientsWorkspaceProps {
   onOpenAddFolder: () => void;
   onOpenEditFolder: (client: ClientItem) => void;
   onDeleteFolder: (client: ClientItem) => void;
-  onOpenUploadWork: () => void;
+  onOpenUploadWork: (tools?: string[]) => void;
   onOpenEditWork: (work: any) => void;
   onDeleteWork: (clientId: string, workId: string, workTitle: string) => void;
   onSaveClientDescription: (clientId: string, desc: string, tools: string[], projectDesc?: string) => void;
@@ -310,7 +310,12 @@ export default function ClientsWorkspace({
     setSelectedTools(nextTools);
 
     if (selectedClient) {
-      onSaveClientDescription(selectedClient.id, descriptionInput, nextTools);
+      onSaveClientDescription(selectedClient.id, descriptionInput, nextTools, projectDescInput);
+      if (onUpdateClientFolder) {
+        onUpdateClientFolder(selectedClient.id, {
+          tools: nextTools,
+        });
+      }
       showToast(`Updated tools: ${toolName}`);
     }
   };
@@ -327,6 +332,7 @@ export default function ClientsWorkspace({
         description: descriptionInput.trim(),
         brandProfile: descriptionInput.trim(),
         projectDescription: projectDescInput.trim(),
+        tools: selectedTools,
       });
     }
     showToast(tr(
@@ -646,7 +652,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
       onReplaceCoverImage(selectedClient.id, file);
     } else {
       // Fallback: trigger upload modal
-      onOpenUploadWork();
+      onOpenUploadWork(selectedTools);
     }
   };
 
@@ -1964,7 +1970,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               {/* Dashed "+ Add images" Card */}
               <button
                 type="button"
-                onClick={onOpenUploadWork}
+                onClick={() => onOpenUploadWork(selectedTools)}
                 className="aspect-[16/10] sm:aspect-auto sm:min-h-[140px] rounded-xl border border-dashed border-white/15 hover:border-[#16b09f] bg-white/[0.01] hover:bg-[#16b09f]/5 flex flex-col items-center justify-center gap-2 text-neutral-400 hover:text-white transition-all cursor-pointer group"
               >
                 <div className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-[#16b09f] group-hover:text-black flex items-center justify-center transition-colors">
