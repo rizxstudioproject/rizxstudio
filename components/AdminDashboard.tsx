@@ -8312,7 +8312,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }`}
                   >
                     <HiCheck className="w-4 h-4" />
-                    <span>{tx("Simpan Perubahan & Update Web", "Save Changes & Update Web")}</span>
+                    <span>{tx("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}</span>
                   </button>
                 </div>
               </form>

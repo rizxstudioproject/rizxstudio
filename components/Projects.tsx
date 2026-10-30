@@ -1857,33 +1857,21 @@ export default function Projects() {
                           ? "h-[60vh] sm:h-[70vh] aspect-square max-w-[90vw]"
                           : "w-full max-w-4xl aspect-video max-h-[75vh]"
                       }`}>
+                        {/* Poster artwork underneath so the screen is NEVER blank black while video loads */}
+                        {currentWork.image && (
+                          <img
+                            src={currentWork.image}
+                            alt={currentWork.title}
+                            className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-80"
+                          />
+                        )}
                         <iframe
                           src={`https://drive.google.com/file/d/${resolvedGDriveId}/preview`}
                           title={currentWork.title}
-                          className="w-full h-full border-0"
-                          allow="autoplay; encrypted-media; fullscreen"
+                          className="w-full h-full border-0 relative z-10"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen
                         />
-                        {/* Switch back to image/poster button & open Drive link */}
-                        <div className="absolute top-3 left-3 z-30 flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setIsPlayingGDriveVideo(false)}
-                            className="px-2.5 py-1 rounded-lg bg-black/85 hover:bg-black text-white/90 hover:text-white text-[11px] font-mono border border-white/20 backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer shadow-lg active:scale-95"
-                            title="Lihat poster gambar"
-                          >
-                            <span>📷 {tr("Mode Poster", "Poster Mode", "Mode Poster")}</span>
-                          </button>
-                          <a
-                            href={`https://drive.google.com/file/d/${resolvedGDriveId}/view`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2.5 py-1 rounded-lg bg-black/85 hover:bg-black text-emerald-400 hover:text-emerald-300 text-[11px] font-mono border border-emerald-500/30 backdrop-blur-md flex items-center gap-1 transition-all shadow-lg active:scale-95"
-                            title="Buka langsung di Google Drive"
-                          >
-                            <span>↗ {tr("Buka Drive", "Open Drive", "Buka Drive")}</span>
-                          </a>
-                        </div>
                       </div>
                     ) : (
                       <div className="relative select-none flex items-center justify-center max-w-full">
@@ -1901,21 +1889,6 @@ export default function Projects() {
                           onContextMenu={(e) => e.preventDefault()}
                           draggable={false}
                         />
-                        {/* Play Video Button Overlay if Google Drive link exists */}
-                        {resolvedGDriveId && (
-                          <button
-                            type="button"
-                            onClick={() => setIsPlayingGDriveVideo(true)}
-                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/30 hover:bg-black/50 transition-all group cursor-pointer rounded-xl sm:rounded-2xl"
-                          >
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500/90 group-hover:bg-emerald-400 group-hover:scale-110 text-black flex items-center justify-center shadow-2xl shadow-emerald-500/50 transition-all duration-300">
-                              <HiPlay className="w-7 h-7 ml-0.5" />
-                            </div>
-                            <span className="mt-2.5 px-3 py-1 rounded-full bg-black/85 border border-white/20 text-white text-xs font-mono font-semibold backdrop-blur-md shadow-lg group-hover:border-emerald-400 transition-colors">
-                              ▶ {tr("Putar Video Google Drive", "Play Google Drive Video", "Putar Video Google Drive")}
-                            </span>
-                          </button>
-                        )}
                       </div>
                     )}
 
