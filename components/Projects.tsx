@@ -1848,30 +1848,40 @@ export default function Projects() {
                         />
                       </div>
                     ) : isShowingGDriveVideo && resolvedGDriveId ? (
-                      <div className={`relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center ${
-                        currentWork.aspect === "9:16"
-                          ? "h-[68vh] sm:h-[74vh] md:h-[78vh] aspect-[9/16] max-w-[92vw]"
-                          : currentWork.aspect === "4:5"
-                          ? "h-[68vh] sm:h-[74vh] md:h-[78vh] aspect-[4/5] max-w-[92vw]"
-                          : currentWork.aspect === "1:1"
-                          ? "h-[60vh] sm:h-[70vh] aspect-square max-w-[90vw]"
-                          : "w-full max-w-4xl aspect-video max-h-[75vh]"
-                      }`}>
+                      <div
+                        style={{ isolation: "isolate" }}
+                        className={`relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center ${
+                          currentWork.aspect === "9:16"
+                            ? "h-[68vh] sm:h-[74vh] md:h-[78vh] aspect-[9/16] max-w-[92vw]"
+                            : currentWork.aspect === "4:5"
+                            ? "h-[68vh] sm:h-[74vh] md:h-[78vh] aspect-[4/5] max-w-[92vw]"
+                            : currentWork.aspect === "1:1"
+                            ? "h-[60vh] sm:h-[70vh] aspect-square max-w-[90vw]"
+                            : "w-full max-w-4xl aspect-video max-h-[75vh]"
+                        }`}
+                      >
                         {/* Poster artwork underneath so the screen is NEVER blank black while video loads */}
                         {currentWork.image && (
                           <img
                             src={currentWork.image}
                             alt={currentWork.title}
-                            className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-80"
+                            className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-40 blur-xs scale-105"
                           />
                         )}
-                        <iframe
-                          src={`https://drive.google.com/file/d/${resolvedGDriveId}/preview`}
-                          title={currentWork.title}
-                          className="w-full h-full border-0 relative z-10"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                          allowFullScreen
-                        />
+                        {/* Iframe wrapper: top header cropped out by -56px to eliminate the Google Drive [↗] popout button */}
+                        <div className="absolute inset-0 w-full h-full overflow-hidden">
+                          <iframe
+                            src={`https://drive.google.com/file/d/${resolvedGDriveId}/preview`}
+                            title={currentWork.title}
+                            className="w-full border-0 absolute left-0 right-0 z-10"
+                            style={{
+                              top: "-56px",
+                              height: "calc(100% + 56px)",
+                            }}
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          />
+                        </div>
                       </div>
                     ) : (
                       <div className="relative select-none flex items-center justify-center max-w-full">
