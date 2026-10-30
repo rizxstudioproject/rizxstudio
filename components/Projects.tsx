@@ -1868,20 +1868,22 @@ export default function Projects() {
                             className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-40 blur-xs scale-105"
                           />
                         )}
-                        {/* Iframe wrapper: top header cropped out by -56px to eliminate the Google Drive [↗] popout button */}
-                        <div className="absolute inset-0 w-full h-full overflow-hidden">
-                          <iframe
-                            src={`https://drive.google.com/file/d/${resolvedGDriveId}/preview`}
-                            title={currentWork.title}
-                            className="w-full border-0 absolute left-0 right-0 z-10"
-                            style={{
-                              top: "-56px",
-                              height: "calc(100% + 56px)",
-                            }}
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowFullScreen
-                          />
-                        </div>
+                        {/* Video iframe: full view (no cropping) so logo and top graphics are fully visible */}
+                        <iframe
+                          src={`https://drive.google.com/file/d/${resolvedGDriveId}/preview`}
+                          title={currentWork.title}
+                          className="w-full h-full border-0 relative z-10"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                        />
+                        {/* Top-right click guard: blocks external pop-out trigger while keeping full video visible */}
+                        <div
+                          className="absolute top-0 right-0 w-16 h-14 z-20 pointer-events-auto cursor-default bg-transparent"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                          }}
+                        />
                       </div>
                     ) : (
                       <div className="relative select-none flex items-center justify-center max-w-full">
