@@ -16,7 +16,7 @@ import { SiBlender, SiFigma, SiCinema4D, SiGooglegemini } from "react-icons/si";
 import { useLang, toMinang } from "@/context/LanguageContext";
 import { usePortfolioData, extractYouTubeId } from "@/context/PortfolioDataContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
-import { extractGoogleDriveFileId } from "@/lib/mediaService";
+import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import { DISCIPLINE_TRANSLATIONS } from "./About";
 
 interface WorkItem {
@@ -870,6 +870,85 @@ export const getAspectClass = (aspect?: string) => {
   if (norm === "21:9" || norm === "21/9") return "aspect-[21/9]";
   // Default to 4:5
   return "aspect-[4/5]";
+};
+
+export const getModalMediaStyle = (aspect?: string): React.CSSProperties => {
+  const norm = (aspect || "").trim().toLowerCase();
+
+  // 9:16 (Stories, Reels, Shorts)
+  if (norm === "9:16" || norm === "9/16" || norm === "story" || norm === "reel") {
+    return {
+      aspectRatio: "9 / 16",
+      maxHeight: "78vh",
+      maxWidth: "min(92vw, calc(78vh * 9 / 16))",
+      width: "calc(78vh * 9 / 16)",
+      height: "auto",
+    };
+  }
+
+  // 1:1 (Square, Feed Post)
+  if (norm === "1:1" || norm === "1/1" || norm === "square") {
+    return {
+      aspectRatio: "1 / 1",
+      maxHeight: "72vh",
+      maxWidth: "min(90vw, 72vh)",
+      width: "min(90vw, 72vh)",
+      height: "auto",
+    };
+  }
+
+  // 16:9 (Landscape, Cinema)
+  if (norm === "16:9" || norm === "16/9" || norm === "landscape") {
+    return {
+      aspectRatio: "16 / 9",
+      maxHeight: "72vh",
+      maxWidth: "min(92vw, 56rem)",
+      width: "min(92vw, calc(72vh * 16 / 9))",
+      height: "auto",
+    };
+  }
+
+  // 4:3
+  if (norm === "4:3" || norm === "4/3") {
+    return {
+      aspectRatio: "4 / 3",
+      maxHeight: "74vh",
+      maxWidth: "min(92vw, calc(74vh * 4 / 3))",
+      width: "calc(74vh * 4 / 3)",
+      height: "auto",
+    };
+  }
+
+  // 3:4
+  if (norm === "3:4" || norm === "3/4") {
+    return {
+      aspectRatio: "3 / 4",
+      maxHeight: "76vh",
+      maxWidth: "min(92vw, calc(76vh * 3 / 4))",
+      width: "calc(76vh * 3 / 4)",
+      height: "auto",
+    };
+  }
+
+  // 21:9
+  if (norm === "21:9" || norm === "21/9" || norm === "ultrawide") {
+    return {
+      aspectRatio: "21 / 9",
+      maxHeight: "65vh",
+      maxWidth: "min(94vw, 64rem)",
+      width: "min(94vw, calc(65vh * 21 / 9))",
+      height: "auto",
+    };
+  }
+
+  // Default: 4:5 (Portrait Feed)
+  return {
+    aspectRatio: "4 / 5",
+    maxHeight: "76vh",
+    maxWidth: "min(92vw, calc(76vh * 4 / 5))",
+    width: "calc(76vh * 4 / 5)",
+    height: "auto",
+  };
 };
 
 export default function Projects() {
@@ -1758,14 +1837,12 @@ export default function Projects() {
               (currentWork as any).isVideo === true ||
               (currentWork as any).mediaType === "video" ||
               (currentWork as any).mediaType === "gdrive_video" ||
-              Boolean((currentWork as any).gdriveUrl) ||
-              Boolean((currentWork as any).gdriveId) ||
+              Boolean((currentWork as any).videoId) ||
+              ((currentWork as any).gdriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test((currentWork as any).gdriveUrl)) ||
+              (currentWork.image && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test(currentWork.image)) ||
               (currentWork.type && /video|motion|reel|animation/i.test(currentWork.type)) ||
-              (currentWork.title && /video|motion|reel|animation/i.test(currentWork.title)) ||
-              ((currentWork as any).gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test((currentWork as any).gdriveUrl)) ||
-              (currentWork.image && /\.(mp4|mov|webm|mkv)/i.test(currentWork.image)) ||
-              ((currentWork as any).tools && (currentWork as any).tools.some((t: string) => /after\s*effects|premiere|video/i.test(t)))
-            ) && (currentWork as any).isVideo !== false;
+              (currentWork.title && /video|motion|reel|animation/i.test(currentWork.title))
+            ) && (currentWork as any).isVideo !== false && (currentWork as any).mediaType !== "image";
 
             const isShowingGDriveVideo = Boolean(
               resolvedGDriveId && (
@@ -1838,7 +1915,13 @@ export default function Projects() {
 
                     {/* Main Large Visual Artwork or Interactive YouTube / Google Drive Video Player */}
                     {currentWork.id === "hero-showcase" || currentWork.videoId ? (
-                      <div className="relative w-full max-w-4xl aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
+                      <div
+                        style={{
+                          ...getModalMediaStyle(currentWork.aspect || "16:9"),
+                          isolation: "isolate",
+                        }}
+                        className="relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center select-none"
+                      >
                         <iframe
                           src={`https://www.youtube.com/embed/${currentWork.videoId || stage3?.heroCard?.videoId || "dQw4w9WgXcQ"}?autoplay=1&rel=0&modestbranding=1`}
                           title={currentWork.title}
@@ -1849,23 +1932,18 @@ export default function Projects() {
                       </div>
                     ) : isShowingGDriveVideo && resolvedGDriveId ? (
                       <div
-                        style={{ isolation: "isolate" }}
-                        className={`relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center ${
-                          currentWork.aspect === "9:16"
-                            ? "h-[68vh] sm:h-[74vh] md:h-[78vh] aspect-[9/16] max-w-[92vw]"
-                            : currentWork.aspect === "4:5"
-                            ? "h-[68vh] sm:h-[74vh] md:h-[78vh] aspect-[4/5] max-w-[92vw]"
-                            : currentWork.aspect === "1:1"
-                            ? "h-[60vh] sm:h-[70vh] aspect-square max-w-[90vw]"
-                            : "w-full max-w-4xl aspect-video max-h-[75vh]"
-                        }`}
+                        style={{
+                          ...getModalMediaStyle(currentWork.aspect),
+                          isolation: "isolate",
+                        }}
+                        className="relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center select-none"
                       >
                         {/* Poster artwork underneath so the screen is NEVER blank black while video loads */}
                         {currentWork.image && (
                           <img
-                            src={currentWork.image}
+                            src={normalizeMediaUrl(currentWork.image)}
                             alt={currentWork.title}
-                            className="absolute inset-0 w-full h-full object-contain pointer-events-none opacity-40 blur-xs scale-105"
+                            className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-40 blur-xs scale-105"
                           />
                         )}
                         {/* Video iframe: full view (no cropping) so logo and top graphics are fully visible */}
@@ -1886,9 +1964,9 @@ export default function Projects() {
                         >
                           {currentWork.image ? (
                             <img
-                              src={currentWork.image}
+                              src={normalizeMediaUrl(currentWork.image)}
                               alt=""
-                              className="w-full h-full object-contain pointer-events-none"
+                              className="w-full h-full object-cover pointer-events-none"
                             />
                           ) : (
                             <div className="w-full h-full bg-black/80 backdrop-blur-md" />
@@ -1904,12 +1982,18 @@ export default function Projects() {
                         />
                       </div>
                     ) : (
-                      <div className="relative select-none flex items-center justify-center max-w-full">
+                      <div
+                        style={{
+                          ...getModalMediaStyle(currentWork.aspect),
+                          isolation: "isolate",
+                        }}
+                        className="relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center select-none"
+                      >
                         <img
                           key={currentWork.id}
-                          src={currentWork.image}
+                          src={normalizeMediaUrl(currentWork.image)}
                           alt={currentWork.title}
-                          className="max-h-[66vh] sm:max-h-[72vh] md:max-h-[74vh] w-auto max-w-full object-contain rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
+                          className="w-full h-full object-cover rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
                           draggable={false}
                           onContextMenu={(e) => e.preventDefault()}
                         />

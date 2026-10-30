@@ -1703,12 +1703,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setEditWorkIsVideo(Boolean(
       work.isVideo === true ||
       work.mediaType === "video" ||
-      Boolean(initialGDriveUrl) ||
-      Boolean(work.gdriveId) ||
+      work.mediaType === "gdrive_video" ||
       (work.type && /video|motion|reel|animation/i.test(work.type)) ||
       (work.title && /video|motion|reel|animation/i.test(work.title)) ||
-      (work.gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test(work.gdriveUrl))
-    ));
+      (initialGDriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test(initialGDriveUrl))
+    ) && (work as any).mediaType !== "image" && (work as any).isVideo !== false);
 
     const initialTools =
       work.tools && work.tools.length > 0
@@ -1835,8 +1834,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       tools: parsedTools,
       gdriveUrl: finalGDriveUrl || editingWork.gdriveUrl || "",
       gdriveId: parsedFileId || editingWork.gdriveId || "",
-      isVideo: editWorkIsVideo || hasGDrive,
-      mediaType: (editWorkIsVideo || hasGDrive) ? "video" : "image",
+      isVideo: editWorkIsVideo,
+      mediaType: editWorkIsVideo ? "video" : "image",
     };
 
     updateClientWork(selectedClient.id, updatedWork);
