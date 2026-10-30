@@ -1630,6 +1630,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   // Upload Source: Device File vs Google Drive Link
   const [uploadSource, setUploadSource] = useState<"file" | "gdrive">("file");
   const [uploadGDriveUrl, setUploadGDriveUrl] = useState("");
+  const [uploadIsVideo, setUploadIsVideo] = useState(false);
   const [gdrivePreviews, setGdrivePreviews] = useState<{ id: string; fileId: string; url: string; directUrl: string }[]>([]);
 
   const handleGDriveUrlChange = (val: string) => {
@@ -1638,6 +1639,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       setGdrivePreviews([]);
       return;
     }
+
+    if (/\.(mp4|mov|webm|mkv)/i.test(val) || /video|motion|reel|animation/i.test(val)) {
+      setUploadIsVideo(true);
+    }
+
     const lines = val
       .split(/[\n,]+/)
       .map((l) => l.trim())
@@ -1669,6 +1675,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [editWorkSolution, setEditWorkSolution] = useState("");
   const [editWorkRole, setEditWorkRole] = useState("");
   const [editWorkToolsInput, setEditWorkToolsInput] = useState("");
+  const [editWorkIsVideo, setEditWorkIsVideo] = useState(false);
+  const [editWorkGDriveUrl, setEditWorkGDriveUrl] = useState("");
 
   // Helper to open edit modal pre-filled with existing or default case study
   const handleOpenEditWork = (work: any) => {
@@ -1680,6 +1688,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       "en"
     );
 
+    const initialGDriveUrl = work.gdriveUrl || (work.gdriveId ? `https://drive.google.com/file/d/${work.gdriveId}/view` : "") || "";
+
     setEditingWork(work);
     setEditWorkTitle(work.title || defaultStudy.brand || "");
     setEditWorkType(work.type || "Digital Campaign");
@@ -1689,6 +1699,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setEditWorkChallenge(work.challenge || defaultStudy.challenge || "");
     setEditWorkSolution(work.solution || defaultStudy.solution || "");
     setEditWorkRole(work.role || defaultStudy.role || "");
+    setEditWorkGDriveUrl(initialGDriveUrl);
+    setEditWorkIsVideo(Boolean(
+      work.isVideo === true ||
+      work.mediaType === "video" ||
+      Boolean(initialGDriveUrl) ||
+      Boolean(work.gdriveId) ||
+      (work.type && /video|motion|reel|animation/i.test(work.type)) ||
+      (work.title && /video|motion|reel|animation/i.test(work.title)) ||
+      (work.gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test(work.gdriveUrl))
+    ));
 
     const initialTools =
       work.tools && work.tools.length > 0
@@ -1798,6 +1818,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
 
+    const parsedFileId = extractGoogleDriveFileId(editWorkGDriveUrl.trim()) || extractGoogleDriveId(editWorkGDriveUrl.trim());
+    const finalGDriveUrl = editWorkGDriveUrl.trim();
+    const hasGDrive = Boolean(finalGDriveUrl || parsedFileId);
+
     const updatedWork = {
       ...editingWork,
       title: editWorkTitle.trim(),
@@ -1809,6 +1833,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       solution: editWorkSolution.trim(),
       role: editWorkRole.trim(),
       tools: parsedTools,
+      gdriveUrl: finalGDriveUrl || editingWork.gdriveUrl || "",
+      gdriveId: parsedFileId || editingWork.gdriveId || "",
+      isVideo: editWorkIsVideo || hasGDrive,
+      mediaType: (editWorkIsVideo || hasGDrive) ? "video" : "image",
     };
 
     updateClientWork(selectedClient.id, updatedWork);
@@ -2093,6 +2121,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             solution: "Developed controlled prompts, tailored color palettes, and balanced typography for high-impact social reach.",
             tools: toolsArray.length > 0 ? toolsArray : ["figma", "photoshop"],
             isClientWork: true,
+            isVideo: uploadIsVideo,
+            mediaType: uploadIsVideo ? "video" : "image",
           };
           newWorks.push(workItem);
         }
@@ -2107,6 +2137,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
         // Reset Form Modal
         setUploadSource("file");
+        setUploadIsVideo(false);
         setUploadGDriveUrl("");
         setGdrivePreviews([]);
         setUploadFile(null);
@@ -2215,6 +2246,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           solution: "Developed controlled prompts, tailored color palettes, and balanced typography for high-impact social reach.",
           tools: toolsArray.length > 0 ? toolsArray : ["figma", "photoshop"],
           isClientWork: true,
+          isVideo: uploadIsVideo,
+          mediaType: uploadIsVideo ? "video" : "image",
         };
 
         newWorks.push(workItem);
@@ -2229,6 +2262,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       );
 
       // Reset Form Modal
+      setUploadIsVideo(false);
       setUploadFile(null);
       setUploadFiles([]);
       setUploadPreviews([]);
@@ -7670,6 +7704,49 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
                 )}
 
+                {/* Media Format Toggle: Still Image vs Auto-play Video */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      {tx("Format Konten Karya", "Deliverable Format")}
+                    </label>
+                    <span className={`text-[10px] font-mono ${uploadIsVideo ? "text-emerald-400 font-bold" : "text-neutral-400"}`}>
+                      {uploadIsVideo ? tx("🎬 Video akan auto-play", "🎬 Video will auto-play") : tx("📷 Gambar statis", "📷 Static image")}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setUploadIsVideo(false)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        !uploadIsVideo
+                          ? isLight
+                            ? "bg-teal-50 border-teal-500 text-teal-900 font-bold shadow-xs"
+                            : "bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold shadow-sm"
+                          : isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900"
+                          : "bg-white/5 border-white/10 text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <span>📷 {tx("Gambar Still", "Still Image")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setUploadIsVideo(true)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        uploadIsVideo
+                          ? "bg-emerald-500/25 border-emerald-400 text-emerald-300 font-bold shadow-sm shadow-emerald-500/20"
+                          : isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900"
+                          : "bg-white/5 border-white/10 text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <HiPlay className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{tx("Video (Auto-play)", "Video (Auto-play)")}</span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Title Input */}
                 <div>
                   <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
@@ -7918,6 +7995,89 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
               {/* Modal Body: Scrollable Form */}
               <form onSubmit={handleSaveEditWork} className="space-y-4 pt-4 overflow-y-auto pr-1">
+                {/* Format Media (Gambar Still vs Video Google Drive) */}
+                <div className={`p-3 rounded-2xl border ${isLight ? "bg-slate-50 border-slate-200" : "bg-white/[0.02] border-white/10"}`}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      {tx("Format Konten Karya", "Deliverable Format")}
+                    </label>
+                    <span className={`text-[10px] font-mono ${editWorkIsVideo ? "text-emerald-400 font-bold" : "text-neutral-400"}`}>
+                      {editWorkIsVideo ? tx("🎬 Video akan auto-play", "🎬 Video will auto-play") : tx("📷 Gambar statis", "📷 Static artwork")}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditWorkIsVideo(false)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        !editWorkIsVideo
+                          ? isLight
+                            ? "bg-teal-50 border-teal-500 text-teal-900 font-bold shadow-xs"
+                            : "bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold shadow-sm"
+                          : isLight
+                          ? "bg-white border-slate-200 text-slate-600 hover:text-slate-900"
+                          : "bg-neutral-900 border-white/10 text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <span>📷 {tx("Gambar Still", "Still Image")}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEditWorkIsVideo(true)}
+                      className={`py-2 px-3 rounded-xl border text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                        editWorkIsVideo
+                          ? "bg-emerald-500/25 border-emerald-400 text-emerald-300 font-bold shadow-sm shadow-emerald-500/20"
+                          : isLight
+                          ? "bg-white border-slate-200 text-slate-600 hover:text-slate-900"
+                          : "bg-neutral-900 border-white/10 text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <HiPlay className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>{tx("Video Google Drive (Auto-play)", "Google Drive Video (Auto-play)")}</span>
+                    </button>
+                  </div>
+
+                  {/* Input Link Google Drive */}
+                  <div className={`mt-3 pt-3 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className={`block text-[11px] font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                        {tx("Link Google Drive (Video / Gambar)", "Google Drive Link (Video / Image)")}
+                      </label>
+                      {extractGoogleDriveFileId(editWorkGDriveUrl) && (
+                        <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                          ✓ ID: {extractGoogleDriveFileId(editWorkGDriveUrl)?.substring(0, 8)}...
+                        </span>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="url"
+                        value={editWorkGDriveUrl}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setEditWorkGDriveUrl(val);
+                          if (val.trim()) {
+                            setEditWorkIsVideo(true);
+                          }
+                        }}
+                        placeholder="https://drive.google.com/file/d/1a2b3c4d5e.../view?usp=sharing"
+                        className={`w-full px-3.5 py-2 pl-9 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
+                          isLight
+                            ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-teal-500"
+                            : "bg-neutral-950 border-white/15 text-white placeholder:text-neutral-600 focus:border-emerald-400"
+                        }`}
+                      />
+                      <RiDriveFill className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                    </div>
+                    <p className={`text-[10px] font-mono mt-1 ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                      {tx(
+                        "Paste link Google Drive file video (.mp4/.mov). Video akan langsung dimuat dan auto-play saat pengunjung membuka detail karya.",
+                        "Paste Google Drive video file link (.mp4/.mov). The video will load and auto-play when visitors open deliverable."
+                      )}
+                    </p>
+                  </div>
+                </div>
+
                 {/* 1. Judul & Kategori */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>

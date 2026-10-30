@@ -16,6 +16,7 @@ import { SiBlender, SiFigma, SiCinema4D, SiGooglegemini } from "react-icons/si";
 import { useLang, toMinang } from "@/context/LanguageContext";
 import { usePortfolioData, extractYouTubeId } from "@/context/PortfolioDataContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import { extractGoogleDriveFileId } from "@/lib/mediaService";
 import { DISCIPLINE_TRANSLATIONS } from "./About";
 
 interface WorkItem {
@@ -33,12 +34,20 @@ interface WorkItem {
   solution?: string;
   tools?: string[];
   isClientWork?: boolean;
+  gdriveId?: string;
+  gdriveUrl?: string;
+  isVideo?: boolean;
+  mediaType?: string;
 }
 
 interface ModalItem extends WorkItem {
   clientName: string;
   videoId?: string;
   youtubeUrl?: string;
+  gdriveId?: string;
+  gdriveUrl?: string;
+  isVideo?: boolean;
+  mediaType?: string;
 }
 
 /**
@@ -981,6 +990,13 @@ export default function Projects() {
     currentIndex: number;
   } | null>(null);
 
+  // Google Drive Video Playback in modal (null = auto-detect/auto-play based on work metadata)
+  const [isPlayingGDriveVideo, setIsPlayingGDriveVideo] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    setIsPlayingGDriveVideo(null);
+  }, [modalData?.currentIndex, modalData?.items]);
+
   const touchStartXRef = useRef<number | null>(null);
 
   const handlePrevWork = useCallback((e?: React.MouseEvent) => {
@@ -1669,8 +1685,19 @@ export default function Projects() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
                     
                     {/* Aspect Badge */}
-                    <div className="stage4-work-badge absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono text-neutral-200 border border-white/10">
-                      {work.aspect}
+                    <div className="stage4-work-badge absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono text-neutral-200 border border-white/10 flex items-center gap-1.5">
+                      <span>{work.aspect}</span>
+                      {Boolean(
+                        (work as any).isVideo ||
+                        (work as any).mediaType === "video" ||
+                        (work.type && /video|motion|reel|animation/i.test(work.type)) ||
+                        (work.title && /video|motion|reel|animation/i.test(work.title)) ||
+                        ((work as any).gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test((work as any).gdriveUrl))
+                      ) && (
+                        <span className="px-1 py-0.5 rounded bg-emerald-500 text-black text-[8px] font-bold tracking-wider uppercase leading-none">
+                          VIDEO
+                        </span>
+                      )}
                     </div>
 
                     {/* Expand icon on hover */}
@@ -1721,6 +1748,30 @@ export default function Projects() {
                   brand: matchedClient?.clientName || rawWork.brand,
                 }
               : rawWork;
+
+            const resolvedGDriveId =
+              (currentWork as any).gdriveId ||
+              extractGoogleDriveFileId((currentWork as any).gdriveUrl || "") ||
+              extractGoogleDriveFileId(currentWork.image || "");
+
+            const isCurrentWorkVideo = Boolean(
+              (currentWork as any).isVideo === true ||
+              (currentWork as any).mediaType === "video" ||
+              (currentWork as any).mediaType === "gdrive_video" ||
+              Boolean((currentWork as any).gdriveUrl) ||
+              Boolean((currentWork as any).gdriveId) ||
+              (currentWork.type && /video|motion|reel|animation/i.test(currentWork.type)) ||
+              (currentWork.title && /video|motion|reel|animation/i.test(currentWork.title)) ||
+              ((currentWork as any).gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test((currentWork as any).gdriveUrl)) ||
+              (currentWork.image && /\.(mp4|mov|webm|mkv)/i.test(currentWork.image)) ||
+              ((currentWork as any).tools && (currentWork as any).tools.some((t: string) => /after\s*effects|premiere|video/i.test(t)))
+            ) && (currentWork as any).isVideo !== false;
+
+            const isShowingGDriveVideo = Boolean(
+              resolvedGDriveId && (
+                isPlayingGDriveVideo !== null ? isPlayingGDriveVideo : isCurrentWorkVideo
+              )
+            );
 
             return (
               <div
@@ -1785,7 +1836,7 @@ export default function Projects() {
                       </button>
                     )}
 
-                    {/* Main Large Visual Artwork or Interactive YouTube Player */}
+                    {/* Main Large Visual Artwork or Interactive YouTube / Google Drive Video Player */}
                     {currentWork.id === "hero-showcase" || currentWork.videoId ? (
                       <div className="relative w-full max-w-4xl aspect-video rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
                         <iframe
@@ -1795,6 +1846,44 @@ export default function Projects() {
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen
                         />
+                      </div>
+                    ) : isShowingGDriveVideo && resolvedGDriveId ? (
+                      <div className={`relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center ${
+                        currentWork.aspect === "9:16"
+                          ? "h-[68vh] sm:h-[74vh] md:h-[78vh] aspect-[9/16] max-w-[92vw]"
+                          : currentWork.aspect === "4:5"
+                          ? "h-[68vh] sm:h-[74vh] md:h-[78vh] aspect-[4/5] max-w-[92vw]"
+                          : currentWork.aspect === "1:1"
+                          ? "h-[60vh] sm:h-[70vh] aspect-square max-w-[90vw]"
+                          : "w-full max-w-4xl aspect-video max-h-[75vh]"
+                      }`}>
+                        <iframe
+                          src={`https://drive.google.com/file/d/${resolvedGDriveId}/preview`}
+                          title={currentWork.title}
+                          className="w-full h-full border-0"
+                          allow="autoplay; encrypted-media; fullscreen"
+                          allowFullScreen
+                        />
+                        {/* Switch back to image/poster button & open Drive link */}
+                        <div className="absolute top-3 left-3 z-30 flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setIsPlayingGDriveVideo(false)}
+                            className="px-2.5 py-1 rounded-lg bg-black/85 hover:bg-black text-white/90 hover:text-white text-[11px] font-mono border border-white/20 backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer shadow-lg active:scale-95"
+                            title="Lihat poster gambar"
+                          >
+                            <span>📷 {tr("Mode Poster", "Poster Mode", "Mode Poster")}</span>
+                          </button>
+                          <a
+                            href={`https://drive.google.com/file/d/${resolvedGDriveId}/view`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1 rounded-lg bg-black/85 hover:bg-black text-emerald-400 hover:text-emerald-300 text-[11px] font-mono border border-emerald-500/30 backdrop-blur-md flex items-center gap-1 transition-all shadow-lg active:scale-95"
+                            title="Buka langsung di Google Drive"
+                          >
+                            <span>↗ {tr("Buka Drive", "Open Drive", "Buka Drive")}</span>
+                          </a>
+                        </div>
                       </div>
                     ) : (
                       <div className="relative select-none flex items-center justify-center max-w-full">
@@ -1812,6 +1901,21 @@ export default function Projects() {
                           onContextMenu={(e) => e.preventDefault()}
                           draggable={false}
                         />
+                        {/* Play Video Button Overlay if Google Drive link exists */}
+                        {resolvedGDriveId && (
+                          <button
+                            type="button"
+                            onClick={() => setIsPlayingGDriveVideo(true)}
+                            className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/30 hover:bg-black/50 transition-all group cursor-pointer rounded-xl sm:rounded-2xl"
+                          >
+                            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-emerald-500/90 group-hover:bg-emerald-400 group-hover:scale-110 text-black flex items-center justify-center shadow-2xl shadow-emerald-500/50 transition-all duration-300">
+                              <HiPlay className="w-7 h-7 ml-0.5" />
+                            </div>
+                            <span className="mt-2.5 px-3 py-1 rounded-full bg-black/85 border border-white/20 text-white text-xs font-mono font-semibold backdrop-blur-md shadow-lg group-hover:border-emerald-400 transition-colors">
+                              ▶ {tr("Putar Video Google Drive", "Play Google Drive Video", "Putar Video Google Drive")}
+                            </span>
+                          </button>
+                        )}
                       </div>
                     )}
 

@@ -1959,8 +1959,21 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       <h4 className="text-xs font-semibold text-white truncate">
                         {work.title}
                       </h4>
-                      <p className="text-[10px] text-neutral-400 mt-0.5 truncate">
-                        {work.year || "2026"} · {work.aspect || "4:5"}
+                      <p className="text-[10px] text-neutral-400 mt-0.5 truncate flex items-center gap-1.5">
+                        <span>{work.year || "2026"} · {work.aspect || "4:5"}</span>
+                        {Boolean(
+                          work.isVideo ||
+                          work.mediaType === "video" ||
+                          work.gdriveUrl ||
+                          work.gdriveId ||
+                          (work.type && /video|motion|reel|animation/i.test(work.type)) ||
+                          (work.title && /video|motion|reel|animation/i.test(work.title)) ||
+                          (work.gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test(work.gdriveUrl))
+                        ) && (
+                          <span className="px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-mono font-bold leading-none">
+                            🎬 VIDEO
+                          </span>
+                        )}
                       </p>
                     </div>
                   </div>
