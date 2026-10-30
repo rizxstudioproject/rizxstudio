@@ -1876,9 +1876,27 @@ export default function Projects() {
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen
                         />
+                        {/* Top-right corner patch: seamlessly covers Google Drive [↗] pop-out icon with original artwork */}
+                        <div
+                          className="absolute inset-0 pointer-events-none z-20 overflow-hidden rounded-xl sm:rounded-2xl select-none"
+                          style={{
+                            clipPath: "polygon(calc(100% - 72px) 0, 100% 0, 100% 64px, calc(100% - 72px) 64px)",
+                            WebkitClipPath: "polygon(calc(100% - 72px) 0, 100% 0, 100% 64px, calc(100% - 72px) 64px)",
+                          }}
+                        >
+                          {currentWork.image ? (
+                            <img
+                              src={currentWork.image}
+                              alt=""
+                              className="w-full h-full object-contain pointer-events-none"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-black/80 backdrop-blur-md" />
+                          )}
+                        </div>
                         {/* Top-right click guard: blocks external pop-out trigger while keeping full video visible */}
                         <div
-                          className="absolute top-0 right-0 w-16 h-14 z-20 pointer-events-auto cursor-default bg-transparent"
+                          className="absolute top-0 right-0 w-20 h-16 z-30 pointer-events-auto cursor-default bg-transparent"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
