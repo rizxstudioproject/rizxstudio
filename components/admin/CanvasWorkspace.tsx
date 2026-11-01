@@ -1028,8 +1028,24 @@ export default function CanvasWorkspace({
     };
   }, [pan, zoom]);
 
-  // Canvas Mouse Down (Panning or Selecting background)
+  // Canvas Mouse Down (Panning, Text placement, or Marquee Selecting background)
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // If clicking on canvas in Text tool mode: place new text at click coordinate (or in frame under cursor)
+    if (activeTool === "text" && e.button === 0) {
+      const canvasX = Math.round((e.clientX - pan.x) / zoom);
+      const canvasY = Math.round((e.clientY - pan.y) / zoom);
+      const hitFrame = items.find(
+        (f) =>
+          (f.mediaType === "frame" || f.type === "section" || (f.aspect && f.aspect !== "original")) &&
+          canvasX >= (f.x || 0) &&
+          canvasX <= (f.x || 0) + (f.width || 480) &&
+          canvasY >= (f.y || 0) &&
+          canvasY <= (f.y || 0) + (f.height || 600)
+      );
+      handleAddText(canvasX, canvasY, hitFrame?.id);
+      return;
+    }
+
     // If clicking on canvas background directly or with hand tool / spacebar
     if (e.target === e.currentTarget || isSpacePressed || activeTool === "hand" || e.button === 1) {
       if (isSpacePressed || activeTool === "hand" || e.button === 1) {
@@ -1165,6 +1181,31 @@ export default function CanvasWorkspace({
         setMarqueeBox(null);
         marqueeStartRef.current = null;
       }
+
+      // Check if dropped text was dragged into a Frame (Automatic Figma Frame Nesting)
+      if (draggingItemId) {
+        const dragged = items.find((i) => i.id === draggingItemId);
+        if (dragged && (dragged.type === "text" || dragged.mediaType === "text")) {
+          const dx = dragged.x || 0;
+          const dy = dragged.y || 0;
+          const targetFrame = items.find(
+            (f) =>
+              (f.mediaType === "frame" || f.type === "section" || (f.aspect && f.aspect !== "original")) &&
+              f.id !== dragged.id &&
+              dx >= (f.x || 0) &&
+              dx <= (f.x || 0) + (f.width || 480) &&
+              dy >= (f.y || 0) &&
+              dy <= (f.y || 0) + (f.height || 600)
+          );
+          if (targetFrame && dragged.frameId !== targetFrame.id) {
+            setItems((prev) =>
+              prev.map((it) => (it.id === dragged.id ? { ...it, frameId: targetFrame.id } : it))
+            );
+            setHasChanges(true);
+          }
+        }
+      }
+
       dragItemInitialPositionsRef.current = null;
       setIsPanning(false);
       setDraggingItemId(null);
@@ -1204,6 +1245,15 @@ export default function CanvasWorkspace({
 
   // Start dragging an individual canvas item with mouse
   const handleItemMouseDown = (e: React.MouseEvent, item: CanvasItem) => {
+    // If Text tool is active and clicked on a frame or section: insert text directly inside that frame!
+    if (activeTool === "text" && item.type !== "text" && item.mediaType !== "text") {
+      e.stopPropagation();
+      const itemCanvasX = Math.round((e.clientX - pan.x) / zoom);
+      const itemCanvasY = Math.round((e.clientY - pan.y) / zoom);
+      handleAddText(itemCanvasX, itemCanvasY, item.id);
+      return;
+    }
+
     const target = e.target as HTMLElement;
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("button")) {
       return;
@@ -1243,10 +1293,27 @@ export default function CanvasWorkspace({
       y: itemCanvasY - (item.y || 0),
     });
 
+    const isFrame = item.mediaType === "frame" || item.type === "section" || (item.aspect && item.aspect !== "original");
+    const itemW = item.width || (item.aspect === "16:9" ? 720 : 480);
+    const itemH = item.height || (item.aspect === "16:9" ? 405 : 600);
+    const itemX = item.x || 0;
+    const itemY = item.y || 0;
+
     const initMap = new Map<string, { x: number; y: number }>();
     items.forEach((it) => {
       if (selectedIds.has(it.id) || it.id === item.id) {
         initMap.set(it.id, { x: it.x || 0, y: it.y || 0 });
+      } else if (isFrame) {
+        // Child text or elements nested inside this frame move together with the frame
+        const itX = it.x || 0;
+        const itY = it.y || 0;
+        const isChild = it.frameId === item.id || (
+          itX >= itemX && itX <= itemX + itemW &&
+          itY >= itemY && itY <= itemY + itemH
+        );
+        if (isChild) {
+          initMap.set(it.id, { x: itX, y: itY });
+        }
       }
     });
     dragItemInitialPositionsRef.current = initMap;
@@ -1546,20 +1613,48 @@ export default function CanvasWorkspace({
     setSelectedId(newFolder.id);
   };
 
-  const handleAddText = () => {
-    const center = getViewportCenter(320, 160);
+  const handleAddText = (targetX?: number, targetY?: number, targetFrameId?: string) => {
+    let posX = targetX;
+    let posY = targetY;
+    let frameId = targetFrameId;
+
+    if (posX === undefined || posY === undefined) {
+      // If a frame is currently selected, place the text inside that frame
+      if (selectedItem && (selectedItem.mediaType === "frame" || selectedItem.type === "section" || (selectedItem.aspect && selectedItem.aspect !== "original"))) {
+        frameId = selectedItem.id;
+        posX = (selectedItem.x || 0) + 40;
+        posY = (selectedItem.y || 0) + 60;
+      } else {
+        const center = getViewportCenter(400, 160);
+        posX = center.x;
+        posY = center.y;
+      }
+    }
+
     const newText: CanvasItem = {
       id: `text-${Date.now()}`,
-      title: "Add Title / Sticky Note",
+      title: "Text",
       type: "text",
       mediaType: "text",
-      content: "Tuliskan keterangan karya atau catatan arahan visual...",
-      x: center.x,
-      y: center.y,
-      color: "#f59e0b",
+      content: "", // Starts empty with blinking cursor |
+      x: posX,
+      y: posY,
+      width: 400,
+      height: 160,
+      fontFamily: "Noto Serif",
+      fontWeight: "Bold",
+      fontSize: 129,
+      lineHeight: "100%",
+      letterSpacing: "-3%",
+      textAlign: "left",
+      color: "#FFFFFF",
+      frameId: frameId,
     };
+
     updateItemsWithTracking([...items, newText]);
     setSelectedId(newText.id);
+    setSelectedIds(new Set([newText.id]));
+    setActiveTool("text");
   };
 
   // Process Dropped or Uploaded File
@@ -2818,12 +2913,12 @@ export default function CanvasWorkspace({
             </div>
           </div>
 
-          {/* 4. TYPOGRAPHY SECTION (Matches Screenshot 3) */}
-          {(isTextSelected || selectedItem?.content || selectedItem?.type === "text") && (
+          {/* 4. TYPOGRAPHY SECTION (Matches Screenshot media_1793529077648_43ff02b0.png) */}
+          {(isTextSelected || activeTool === "text" || selectedItem?.type === "text" || selectedItem?.content !== undefined) && (
             <div className="p-3 space-y-2.5">
               <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
                 <span>Typography</span>
-                <span className="text-xs text-neutral-400 cursor-pointer hover:text-white">❖</span>
+                <span className="text-sm text-neutral-400 cursor-pointer hover:text-white" title="Typography styles">⠿</span>
               </div>
 
               {/* Font Family Dropdown */}
@@ -2958,6 +3053,53 @@ export default function CanvasWorkspace({
                   <button type="button" className="p-1 text-neutral-400 hover:text-white">
                     <HiAdjustmentsHorizontal className="w-4 h-4" />
                   </button>
+                </div>
+              </div>
+
+              {/* Frame Container Selector (Figma Nested Frame) */}
+              <div className="pt-2 border-t border-white/10 space-y-1">
+                <div className="flex items-center justify-between text-[10px] text-neutral-400">
+                  <span>Frame Container</span>
+                  {selectedItem?.frameId && (
+                    <button
+                      type="button"
+                      onClick={() => updateSelectedItem({ frameId: undefined })}
+                      className="text-[10px] text-red-400 hover:text-red-300 cursor-pointer"
+                    >
+                      Detach
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <select
+                    value={selectedItem?.frameId || ""}
+                    onChange={(e) => {
+                      const fId = e.target.value || undefined;
+                      if (fId) {
+                        const targetFrame = items.find((f) => f.id === fId);
+                        if (targetFrame) {
+                          updateSelectedItem({
+                            frameId: fId,
+                            x: (targetFrame.x || 0) + 40,
+                            y: (targetFrame.y || 0) + 60,
+                          });
+                          return;
+                        }
+                      }
+                      updateSelectedItem({ frameId: undefined });
+                    }}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] text-white border border-transparent focus:border-[#0c8ce9] text-xs appearance-none cursor-pointer"
+                  >
+                    <option value="">(None - Canvas Root)</option>
+                    {items
+                      .filter((f) => (f.mediaType === "frame" || f.type === "section" || (f.aspect && f.aspect !== "original")) && f.id !== selectedItem?.id)
+                      .map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.title || `Frame ${f.id.slice(0, 8)}`}
+                        </option>
+                      ))}
+                  </select>
+                  <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2.5 top-2.5 pointer-events-none" />
                 </div>
               </div>
             </div>
@@ -3906,57 +4048,91 @@ export default function CanvasWorkspace({
               );
             }
 
-            // 3. TEXT / STICKY NOTE (Direct Typography on Canvas)
+            // 3. FIGMA TYPOGRAPHY TEXT (Matches Screenshots media_1793529043296_e1253314.png & media_1793529058616_42d79f3a.png)
             if (item.type === "text" || item.mediaType === "text") {
+              const textFontFamily = item.fontFamily || "Noto Serif";
+              const textFontWeight = item.fontWeight || "Bold";
+              const textFontSize = item.fontSize || 129;
+              const textLineHeight = item.lineHeight || "100%";
+              const textLetterSpacing = item.letterSpacing || "-3%";
+              const textColor = item.color || "#FFFFFF";
+              const textAlignment = (item.textAlign as any) || "left";
+              const rawText = item.content !== undefined ? item.content : item.title || "";
+
               return (
                 <div
                   key={item.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedId(item.id);
+                    setSelectedIds(new Set([item.id]));
+                  }}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
-                    width: `${item.width || 320}px`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
-                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
-                    fontFamily: item.fontFamily || undefined,
-                    fontSize: item.fontSize ? `${item.fontSize}px` : undefined,
-                    fontWeight: item.fontWeight || undefined,
-                    textAlign: item.textAlign || undefined,
-                    color: item.color || undefined,
+                    minWidth: "60px",
+                    maxWidth: item.width ? `${item.width}px` : "max-content",
                   }}
-                  className={`absolute rounded-2xl bg-[#15171e]/95 border p-4 transition-all shadow-xl flex flex-col gap-2 cursor-grab active:cursor-grabbing ${
+                  className={`absolute group cursor-text select-text transition-shadow z-30 ${
                     isSelected
-                      ? "border-amber-400 shadow-[0_15px_40px_rgba(245,158,11,0.25)] ring-2 ring-amber-400/40"
-                      : "border-white/15 hover:border-white/30"
+                      ? "ring-1 ring-[#0c8ce9] z-40"
+                      : "hover:ring-1 hover:ring-[#0c8ce9]/50"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <input
-                      type="text"
-                      value={item.title}
-                      onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
-                      className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-amber-400 text-sm font-bold text-amber-300 focus:outline-none w-full"
-                    />
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteItem(item.id);
-                      }}
-                      className="text-neutral-500 hover:text-red-400 p-1"
-                    >
-                      <HiTrash className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+                  {/* Figma Bounding Box & Corner Handles when Selected (Matches Screenshot media_1793529058616_42d79f3a.png) */}
+                  {isSelected && (
+                    <>
+                      <div className="absolute -top-1 -left-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
+                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
+                      <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
+                      <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
+                    </>
+                  )}
 
-                  <textarea
-                    value={item.content || ""}
-                    onChange={(e) => handleUpdateItemContent(item.id, e.target.value)}
-                    rows={3}
-                    placeholder="Tuliskan catatan arahan visual..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400 resize-none font-sans"
-                  />
+                  {/* Inline Live Editable Text Area */}
+                  <div className="relative inline-block w-full">
+                    <textarea
+                      value={rawText}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setItems((prev) =>
+                          prev.map((it) => (it.id === item.id ? { ...it, content: val, title: val || "Text" } : it))
+                        );
+                        setHasChanges(true);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          (e.target as HTMLElement).blur();
+                        }
+                      }}
+                      placeholder=""
+                      rows={rawText.split("\n").length || 1}
+                      autoFocus={isSelected && rawText === ""}
+                      style={{
+                        fontFamily: textFontFamily,
+                        fontWeight: textFontWeight,
+                        fontSize: `${textFontSize}px`,
+                        lineHeight: textLineHeight,
+                        letterSpacing: textLetterSpacing,
+                        color: textColor,
+                        textAlign: textAlignment,
+                        caretColor: "#0c8ce9",
+                        textShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                      }}
+                      className="bg-transparent border-none outline-none resize-none p-1 m-0 w-full overflow-hidden whitespace-pre-wrap leading-tight block"
+                    />
+
+                    {/* Blinking Cursor Indicator when Empty (Matches Screenshot media_1793529043296_e1253314.png) */}
+                    {rawText === "" && (
+                      <span
+                        className="absolute left-1.5 top-2 w-[3px] bg-white animate-pulse pointer-events-none"
+                        style={{ height: `${textFontSize * 0.85}px` }}
+                      />
+                    )}
+                  </div>
                 </div>
               );
             }

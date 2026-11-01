@@ -90,6 +90,7 @@ export interface CanvasItem {
   isMask?: boolean;
   isAutoLayout?: boolean;
   isThumbnail?: boolean;
+  frameId?: string;
 }
 
 export interface HeroBannerData {
