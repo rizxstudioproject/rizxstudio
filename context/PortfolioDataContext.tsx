@@ -98,6 +98,7 @@ export interface CanvasItem {
   isAutoLayout?: boolean;
   isThumbnail?: boolean;
   frameId?: string;
+  textAutoResize?: "auto_width" | "auto_height" | "fixed";
 }
 
 export interface HeroBannerData {

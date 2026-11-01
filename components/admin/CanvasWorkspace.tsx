@@ -1595,6 +1595,9 @@ export default function CanvasWorkspace({
                   width: newW,
                   height: newH,
                   aspect: `${newW}:${newH}`,
+                  ...(it.type === "text" || it.mediaType === "text"
+                    ? { textAutoResize: handle === "e" || handle === "w" ? "auto_height" : "fixed" }
+                    : {}),
                 }
               : it
           )
@@ -2298,8 +2301,7 @@ export default function CanvasWorkspace({
       content: "", // Starts empty with blinking cursor |
       x: posX,
       y: posY,
-      width: 320,
-      height: 60,
+      textAutoResize: "auto_width",
       fontFamily: "Noto Serif",
       fontWeight: "Bold",
       fontSize: 48,
@@ -3462,25 +3464,104 @@ export default function CanvasWorkspace({
               <span>Layout</span>
             </div>
 
+            {/* Resizing Segmented Controls for Text (Matches Screenshots media_1793534610601_7930294d.png & media_1793534696719_3f2570c9.png) */}
+            {(isTextSelected || selectedItem?.type === "text" || selectedItem?.mediaType === "text") && (
+              <div className="space-y-1.5 pb-1 border-b border-white/5">
+                <span className="text-[10px] text-neutral-400">Resizing</span>
+                <div className="flex items-center p-0.5 rounded-lg bg-[#2c2c2c] text-neutral-300 w-full">
+                  {/* Auto width: |→ */}
+                  <button
+                    type="button"
+                    onClick={() => updateSelectedItem({ textAutoResize: "auto_width" })}
+                    title="Auto width"
+                    className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer group relative ${
+                      (selectedItem?.textAutoResize || "auto_width") === "auto_width"
+                        ? "bg-white/20 text-white font-medium shadow-xs"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+                      <line x1="2.5" y1="2" x2="2.5" y2="14" strokeWidth="1.75" />
+                      <path d="M5.5 8h8M10.5 5l3 3-3 3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+
+                  {/* Auto height: |=| */}
+                  <button
+                    type="button"
+                    onClick={() => updateSelectedItem({ textAutoResize: "auto_height", width: selectedItem?.width || 320 })}
+                    title="Auto height"
+                    className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer group relative ${
+                      selectedItem?.textAutoResize === "auto_height"
+                        ? "bg-white/20 text-white font-medium shadow-xs"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+                      <line x1="2.5" y1="2" x2="2.5" y2="14" strokeWidth="1.75" />
+                      <line x1="13.5" y1="2" x2="13.5" y2="14" strokeWidth="1.75" />
+                      <line x1="5.5" y1="5.5" x2="10.5" y2="5.5" strokeWidth="1.25" strokeLinecap="round" />
+                      <line x1="5.5" y1="8" x2="10.5" y2="8" strokeWidth="1.25" strokeLinecap="round" />
+                      <line x1="5.5" y1="10.5" x2="8.5" y2="10.5" strokeWidth="1.25" strokeLinecap="round" />
+                    </svg>
+                  </button>
+
+                  {/* Fixed size: [≡] */}
+                  <button
+                    type="button"
+                    onClick={() => updateSelectedItem({ textAutoResize: "fixed", width: selectedItem?.width || 320, height: selectedItem?.height || 60 })}
+                    title="Fixed size"
+                    className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer group relative ${
+                      selectedItem?.textAutoResize === "fixed"
+                        ? "bg-white/20 text-white font-medium shadow-xs"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+                      <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" strokeWidth="1.5" />
+                      <line x1="5.5" y1="5.5" x2="10.5" y2="5.5" strokeWidth="1.25" strokeLinecap="round" />
+                      <line x1="5.5" y1="8" x2="10.5" y2="8" strokeWidth="1.25" strokeLinecap="round" />
+                      <line x1="5.5" y1="10.5" x2="8.5" y2="10.5" strokeWidth="1.25" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Dimensions (W, H) */}
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
                 <span className="font-mono text-neutral-400 select-none">W</span>
-                <input
-                  type="number"
-                  value={selectedItem ? itemWidth : 1080}
-                  onChange={(e) => updateSelectedItem({ width: Number(e.target.value) || 100 })}
-                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
-                />
+                {(isTextSelected || selectedItem?.type === "text") && (selectedItem?.textAutoResize || "auto_width") === "auto_width" ? (
+                  <span className="w-full text-neutral-400 font-mono text-xs select-none">Auto</span>
+                ) : (
+                  <input
+                    type="number"
+                    value={selectedItem ? itemWidth : 1080}
+                    onChange={(e) => {
+                      const val = Number(e.target.value) || 100;
+                      if ((isTextSelected || selectedItem?.type === "text") && (selectedItem?.textAutoResize || "auto_width") === "auto_width") {
+                        updateSelectedItem({ width: val, textAutoResize: "auto_height" });
+                      } else {
+                        updateSelectedItem({ width: val });
+                      }
+                    }}
+                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  />
+                )}
               </div>
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
                 <span className="font-mono text-neutral-400 select-none">H</span>
-                <input
-                  type="number"
-                  value={selectedItem ? itemHeight : 1350}
-                  onChange={(e) => updateSelectedItem({ height: Number(e.target.value) || 100 })}
-                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
-                />
+                {(isTextSelected || selectedItem?.type === "text") && (selectedItem?.textAutoResize || "auto_width") !== "fixed" ? (
+                  <span className="w-full text-neutral-400 font-mono text-xs select-none">Auto</span>
+                ) : (
+                  <input
+                    type="number"
+                    value={selectedItem ? itemHeight : 1350}
+                    onChange={(e) => updateSelectedItem({ height: Number(e.target.value) || 100 })}
+                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  />
+                )}
               </div>
             </div>
 
@@ -3641,6 +3722,63 @@ export default function CanvasWorkspace({
                       className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Text Resizing Controls (Matches Screenshot media_1793534610601_7930294d.png & media_1793534696719_3f2570c9.png) */}
+              <div className="space-y-1">
+                <span className="text-[10px] text-neutral-400">Resizing</span>
+                <div className="flex items-center p-0.5 rounded-lg bg-[#2c2c2c] text-neutral-300 w-full">
+                  <button
+                    type="button"
+                    onClick={() => updateSelectedItem({ textAutoResize: "auto_width" })}
+                    title="Auto width"
+                    className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer ${
+                      (selectedItem?.textAutoResize || "auto_width") === "auto_width"
+                        ? "bg-white/20 text-white font-medium shadow-xs"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+                      <line x1="2.5" y1="2" x2="2.5" y2="14" strokeWidth="1.75" />
+                      <path d="M5.5 8h8M10.5 5l3 3-3 3" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateSelectedItem({ textAutoResize: "auto_height", width: selectedItem?.width || 320 })}
+                    title="Auto height"
+                    className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer ${
+                      selectedItem?.textAutoResize === "auto_height"
+                        ? "bg-white/20 text-white font-medium shadow-xs"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+                      <line x1="2.5" y1="2" x2="2.5" y2="14" strokeWidth="1.75" />
+                      <line x1="13.5" y1="2" x2="13.5" y2="14" strokeWidth="1.75" />
+                      <line x1="5.5" y1="5.5" x2="10.5" y2="5.5" strokeWidth="1.25" strokeLinecap="round" />
+                      <line x1="5.5" y1="8" x2="10.5" y2="8" strokeWidth="1.25" strokeLinecap="round" />
+                      <line x1="5.5" y1="10.5" x2="8.5" y2="10.5" strokeWidth="1.25" strokeLinecap="round" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => updateSelectedItem({ textAutoResize: "fixed", width: selectedItem?.width || 320, height: selectedItem?.height || 60 })}
+                    title="Fixed size"
+                    className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer ${
+                      selectedItem?.textAutoResize === "fixed"
+                        ? "bg-white/20 text-white font-medium shadow-xs"
+                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+                      <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" strokeWidth="1.5" />
+                      <line x1="5.5" y1="5.5" x2="10.5" y2="5.5" strokeWidth="1.25" strokeLinecap="round" />
+                      <line x1="5.5" y1="8" x2="10.5" y2="8" strokeWidth="1.25" strokeLinecap="round" />
+                      <line x1="5.5" y1="10.5" x2="8.5" y2="10.5" strokeWidth="1.25" strokeLinecap="round" />
+                    </svg>
+                  </button>
                 </div>
               </div>
 
@@ -4981,6 +5119,10 @@ export default function CanvasWorkspace({
               const textColor = item.color || "#FFFFFF";
               const textAlignment = (item.textAlign as any) || "left";
               const rawText = item.content !== undefined ? item.content : item.title || "";
+              const resizeMode = item.textAutoResize || "auto_width";
+              const isAutoWidth = resizeMode === "auto_width";
+              const isAutoHeight = resizeMode === "auto_height";
+              const isFixed = resizeMode === "fixed";
 
               return (
                 <div
@@ -4996,8 +5138,8 @@ export default function CanvasWorkspace({
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
-                    minWidth: "60px",
-                    maxWidth: item.width ? `${item.width}px` : "max-content",
+                    width: isAutoWidth ? "max-content" : item.width ? `${item.width}px` : "320px",
+                    height: isFixed && item.height ? `${item.height}px` : "auto",
                     filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
                   }}
                   className={`absolute group cursor-text select-text transition-shadow z-30 ${
@@ -5013,6 +5155,19 @@ export default function CanvasWorkspace({
                       <div className="absolute -top-1 -right-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
                       <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
                       <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
+                      {/* Interactive Drag Handles for Resizing Width and Height */}
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                        className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-5 cursor-ew-resize z-50 pointer-events-auto flex items-center justify-center opacity-0 group-hover:opacity-100"
+                        title="Tarik lebar text box (Auto height)"
+                      >
+                        <div className="w-1.5 h-3 bg-white border border-[#0c8ce9] rounded-xs" />
+                      </div>
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
+                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 cursor-nwse-resize z-50 pointer-events-auto"
+                        title="Tarik ukuran text box (Fixed size)"
+                      />
                       {/* Quick Delete Button for text */}
                       <button
                         type="button"
@@ -5029,8 +5184,36 @@ export default function CanvasWorkspace({
                     </>
                   )}
 
-                  {/* Inline Live Editable Text Area */}
-                  <div className="relative inline-block w-full">
+                  {/* Inline Live Editable Text Area with Dynamic Mirror Sizer */}
+                  <div
+                    className="relative block"
+                    style={{
+                      width: isAutoWidth ? "max-content" : "100%",
+                      height: isFixed && item.height ? `${item.height}px` : "auto",
+                    }}
+                  >
+                    {/* Invisible Mirror Element that measures exact text dimensions */}
+                    <span
+                      aria-hidden="true"
+                      className="invisible pointer-events-none select-none block"
+                      style={{
+                        fontFamily: textFontFamily,
+                        fontWeight: textFontWeight,
+                        fontSize: `${textFontSize}px`,
+                        lineHeight: textLineHeight,
+                        letterSpacing: textLetterSpacing,
+                        textAlign: textAlignment,
+                        padding: "2px 4px",
+                        whiteSpace: isAutoWidth ? "pre" : "pre-wrap",
+                        wordBreak: isAutoWidth ? "normal" : "break-word",
+                        minHeight: `${textFontSize * 1.15}px`,
+                        minWidth: isSelected ? "24px" : "0px",
+                      }}
+                    >
+                      {rawText ? (rawText.endsWith("\n") ? rawText + " " : rawText) : " "}
+                    </span>
+
+                    {/* Actual Live Textarea that receives keyboard input */}
                     <textarea
                       value={rawText}
                       onChange={(e) => {
@@ -5060,7 +5243,6 @@ export default function CanvasWorkspace({
                         }
                       }}
                       placeholder={isSelected ? "Tulis teks..." : ""}
-                      rows={rawText.split("\n").length || 1}
                       autoFocus={isSelected && rawText === ""}
                       style={{
                         fontFamily: textFontFamily,
@@ -5072,14 +5254,18 @@ export default function CanvasWorkspace({
                         textAlign: textAlignment,
                         caretColor: "#0c8ce9",
                         textShadow: "0 2px 8px rgba(0,0,0,0.4)",
+                        whiteSpace: isAutoWidth ? "pre" : "pre-wrap",
+                        wordBreak: isAutoWidth ? "normal" : "break-word",
+                        overflow: isFixed ? "hidden" : "visible",
+                        padding: "2px 4px",
                       }}
-                      className="bg-transparent border-none outline-none resize-none p-1 m-0 w-full overflow-hidden whitespace-pre-wrap leading-tight block"
+                      className="absolute inset-0 w-full h-full bg-transparent border-none outline-none resize-none m-0 leading-tight block"
                     />
 
-                    {/* Blinking Cursor Indicator when Empty (Matches Screenshot media_1793529043296_e1253314.png) */}
+                    {/* Blinking Cursor Indicator when Empty */}
                     {rawText === "" && (
                       <span
-                        className="absolute left-1.5 top-2 w-[3px] bg-white animate-pulse pointer-events-none"
+                        className="absolute left-1.5 top-1.5 w-[3px] bg-white animate-pulse pointer-events-none"
                         style={{ height: `${textFontSize * 0.85}px` }}
                       />
                     )}
