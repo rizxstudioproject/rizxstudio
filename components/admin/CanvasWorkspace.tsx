@@ -5605,36 +5605,65 @@ export default function CanvasWorkspace({
                       : "hover:ring-1 hover:ring-white/40 shadow-xl"
                   }`}
                 >
-                  {/* Figma Top Frame Title (Matches Screenshot Image 2 Frame 2147258851) */}
-                  <div className="absolute -top-6 left-0 flex items-center gap-1.5 pointer-events-auto">
-                    <span className="text-[12px] font-sans font-medium text-neutral-400 hover:text-white select-none truncate max-w-[280px]">
-                      {item.title}
-                    </span>
+                  {/* Figma Top Frame Title (Matches Screenshot Image 1 & 2 Frame 2147263084 / bran coffee) */}
+                  <div className="absolute -top-7 left-0 flex items-center gap-1.5 pointer-events-auto">
+                    {isSelected ? (
+                      <div className="flex items-center px-1.5 py-0.5 rounded-[2px] bg-[#1e1e1e]/90 border border-[#0c8ce9] shadow-xs">
+                        <input
+                          type="text"
+                          value={item.title}
+                          onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={(e) => e.stopPropagation()}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === "Escape") {
+                              (e.target as HTMLElement).blur();
+                            }
+                          }}
+                          style={{
+                            width: `${Math.max(64, (item.title || "Frame").length * 8 + 14)}px`,
+                          }}
+                          className="bg-transparent text-[12px] font-sans font-medium text-white outline-none border-none p-0 m-0 leading-none select-text cursor-text"
+                          placeholder="Nama Frame..."
+                        />
+                      </div>
+                    ) : (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedId(item.id);
+                          setSelectedIds(new Set([item.id]));
+                        }}
+                        className="text-[12px] font-sans font-medium text-neutral-400 hover:text-white select-none truncate max-w-[280px] cursor-pointer"
+                      >
+                        {item.title}
+                      </span>
+                    )}
                     {isLocked && <HiLockClosed className="w-3 h-3 text-amber-400" />}
                   </div>
 
-                  {/* Corner & Edge Resize Handles when Selected (Matches Screenshot Image 2) */}
-                  {isSelected && (
+                  {/* Corner & Edge Resize Handles & Dimension Badge when Selected or Resizing */}
+                  {(isSelected || resizingItemId === item.id) && (
                     <>
-                      {/* 4 Corner Resize Handles */}
+                      {/* 4 Corner Resize Handles (Matches Screenshot Image 1 & 2) */}
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, item, "nw")}
-                        className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                        className="absolute -top-1.5 -left-1.5 w-2.5 h-2.5 bg-white border border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
                       />
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, item, "ne")}
-                        className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                        className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-white border border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
                       />
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, item, "sw")}
-                        className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                        className="absolute -bottom-1.5 -left-1.5 w-2.5 h-2.5 bg-white border border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
                       />
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
-                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                        className="absolute -bottom-1.5 -right-1.5 w-2.5 h-2.5 bg-white border border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
                       />
 
-                      {/* 4 Edge Resize Handles (Matches Screenshot Image 2 Cursor ⟷) */}
+                      {/* 4 Edge Resize Handles (Matches Screenshot Image 1 & 2) */}
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
                         className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
@@ -5652,8 +5681,8 @@ export default function CanvasWorkspace({
                         className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
                       />
 
-                      {/* Figma Dimension Badge Centered at Bottom (Matches Screenshot Image 2: 1571 × 1427) */}
-                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40">
+                      {/* Figma Dimension Badge Centered at Bottom (Matches Screenshot Image 1 & 3: 2457 × 1813) */}
+                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
                         {Math.round(frameWidth)} × {Math.round(frameHeight)}
                       </div>
                     </>
