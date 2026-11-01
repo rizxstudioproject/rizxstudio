@@ -1339,21 +1339,36 @@ export default function CanvasWorkspace({
     );
   }, []);
 
-  // Helper to find parent frame ID of an item
-  const getParentFrameId = useCallback((it: CanvasItem) => {
-    if (it.frameId) return it.frameId;
-    const itX = it.x || 0;
-    const itY = it.y || 0;
-    const parent = items.find((f) => {
-      if (f.id === it.id || !isFrameItem(f)) return false;
-      const fW = f.width || (f.aspect === "16:9" ? 720 : 480);
-      const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
-      const fX = f.x || 0;
-      const fY = f.y || 0;
-      return itX >= fX && itX <= fX + fW && itY >= fY && itY <= fY + fH;
-    });
-    return parent?.id;
-  }, [items, isFrameItem]);
+  // Helper to find parent frame / section ID of an item
+  const getParentFrameId = useCallback(
+    (it: CanvasItem) => {
+      if (it.frameId) return it.frameId;
+      const itX = it.x || 0;
+      const itY = it.y || 0;
+      const isSec = it.type === "section" || it.mediaType === "section";
+
+      const candidates = items.filter((f) => {
+        if (f.id === it.id || !isFrameItem(f)) return false;
+        // A Section cannot be nested inside a Frame
+        if (isSec && f.type !== "section" && f.mediaType !== "section") return false;
+        const fW = f.width || (f.aspect === "16:9" ? 720 : 1200);
+        const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
+        const fX = f.x || 0;
+        const fY = f.y || 0;
+        return itX >= fX && itX <= fX + fW && itY >= fY && itY <= fY + fH;
+      });
+
+      if (candidates.length === 0) return undefined;
+      // Innermost container (smallest bounding area) wins
+      candidates.sort((a, b) => {
+        const areaA = (a.width || 800) * (a.height || 600);
+        const areaB = (b.width || 800) * (b.height || 600);
+        return areaA - areaB;
+      });
+      return candidates[0].id;
+    },
+    [items, isFrameItem]
+  );
 
   // Helper to compute CSS clip-path inset when an item is nested inside a frame with clipContent enabled
   const getItemClipPath = useCallback(
@@ -2347,8 +2362,9 @@ export default function CanvasWorkspace({
           shapeY = start.canvasY;
         }
         const secCount = items.filter((i) => i.type === "section" || i.mediaType === "section").length + 1;
+        const newSecId = `section-${Date.now()}`;
         const newSec: CanvasItem = {
-          id: `section-${Date.now()}`,
+          id: newSecId,
           title: `Section ${secCount}`,
           type: "section",
           mediaType: "section",
@@ -2356,9 +2372,21 @@ export default function CanvasWorkspace({
           y: Math.round(shapeY),
           width: Math.round(shapeW),
           height: Math.round(shapeH),
-          color: "#3b82f6",
+          color: "rgba(52, 54, 60, 0.88)",
         };
-        updateItemsWithTracking([...items, newSec]);
+
+        // Automatically nest any frames/items that are inside this newly drawn Section
+        const updatedItems = items.map((it) => {
+          if (it.id === newSecId || it.type === "section" || it.mediaType === "section") return it;
+          const itX = it.x || 0;
+          const itY = it.y || 0;
+          if (itX >= shapeX && itX <= shapeX + shapeW && itY >= shapeY && itY <= shapeY + shapeH) {
+            return { ...it, frameId: newSecId };
+          }
+          return it;
+        });
+
+        updateItemsWithTracking([...updatedItems, newSec]);
         setSelectedId(newSec.id);
         setSelectedIds(new Set([newSec.id]));
       }
@@ -4716,7 +4744,7 @@ export default function CanvasWorkspace({
             </div>
 
             {/* Clip content Checkbox (Only for Frames) */}
-            {selectedItem && isFrameItem(selectedItem) && (
+            {selectedItem && (selectedItem.type === "frame" || selectedItem.mediaType === "frame") && !selectedItem.image && (
               <label className="flex items-center gap-2 cursor-pointer pt-1 text-neutral-300 text-[11px]">
                 <input
                   type="checkbox"
@@ -5458,31 +5486,14 @@ export default function CanvasWorkspace({
     });
   }, [items, getParentFrameId]);
 
-  // Render Frame Layer with Hierarchical Dropdown (Matches Screenshots media_1793529279637_a6c81d01.png & media_1793529302513_bd071dc3.png)
+  // Render Frame & Section Layer with Hierarchical Dropdown (Matches Screenshots media_1793557090846_72f61002.png & media_1793557169840_7ea76298.png)
   const renderFrameLayer = (frame: CanvasItem, depth: number = 0): React.ReactNode => {
-    const frameW = frame.width || (frame.aspect === "16:9" ? 720 : 480);
-    const frameH = frame.height || (frame.aspect === "16:9" ? 405 : 600);
-    const frameX = frame.x || 0;
-    const frameY = frame.y || 0;
+    const isSection = frame.type === "section" || frame.mediaType === "section";
 
-    // Direct children belonging to this frame
-    const children = items.filter((it) => {
-      if (it.id === frame.id) return false;
-      if (it.frameId === frame.id) return true;
-      if (!it.frameId) {
-        const itX = it.x || 0;
-        const itY = it.y || 0;
-        return (
-          itX >= frameX &&
-          itX <= frameX + frameW &&
-          itY >= frameY &&
-          itY <= frameY + frameH
-        );
-      }
-      return false;
-    });
+    // Direct children belonging to this frame or section
+    const children = items.filter((it) => it.id !== frame.id && getParentFrameId(it) === frame.id);
 
-    const isExpanded = expandedFrames[frame.id] ?? false; // Dropdown expand/collapse state
+    const isExpanded = expandedFrames[frame.id] ?? true; // Sections & frames default to expanded
     const isSel = selectedId === frame.id || selectedIds.has(frame.id);
     const isLocked = lockedItemIds.has(frame.id);
     const isHidden = hiddenItemIds.has(frame.id);
@@ -5490,7 +5501,7 @@ export default function CanvasWorkspace({
 
     return (
       <div key={`frame-layer-${frame.id}`} className="space-y-0.5">
-        {/* Frame Item Row (Matches Screenshot media_1793529279637_a6c81d01.png & media_1793529302513_bd071dc3.png) */}
+        {/* Frame / Section Item Row */}
         <div
           onClick={(e) => handleSelectLayer(frame, e)}
           onContextMenu={(e) => handleItemContextMenu(e, frame)}
@@ -5507,7 +5518,7 @@ export default function CanvasWorkspace({
           } ${isHidden ? "opacity-40" : ""}`}
         >
           <div className="flex items-center gap-1.5 truncate flex-1 min-w-0 pr-1">
-            {/* Expand / Collapse Chevron (Only shown when frame actually has nested children) */}
+            {/* Expand / Collapse Chevron (Only shown when frame/section actually has nested children) */}
             {children.length > 0 ? (
               <button
                 type="button"
@@ -5516,7 +5527,7 @@ export default function CanvasWorkspace({
                   toggleFrameExpanded(frame.id);
                 }}
                 className="p-0.5 text-neutral-400 hover:text-white rounded cursor-pointer shrink-0"
-                title={isExpanded ? "Collapse Frame" : "Expand Frame"}
+                title={isExpanded ? "Collapse" : "Expand"}
               >
                 <HiChevronRight
                   className={`w-3.5 h-3.5 transition-transform duration-150 ${
@@ -5528,10 +5539,16 @@ export default function CanvasWorkspace({
               <span className="w-4.5 h-4.5 shrink-0" />
             )}
 
-            {/* Frame Hashtag Icon (#) */}
-            <HiHashtag className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
+            {/* Icon: Figma Section Icon vs Frame Hashtag (#) */}
+            {isSection ? (
+              <svg className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} viewBox="0 0 16 16" fill="currentColor">
+                <path fillRule="evenodd" clipRule="evenodd" d="M3 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H3zm0 1.5h10a.5.5 0 0 1 .5.5v2H2.5V4a.5.5 0 0 1 .5-.5zM2.5 7.5V12a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V7.5H2.5z" />
+              </svg>
+            ) : (
+              <HiHashtag className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
+            )}
 
-            {/* Frame Title */}
+            {/* Frame / Section Title */}
             <span className="truncate text-xs font-sans tracking-tight font-medium">
               {frame.title}
             </span>
@@ -5547,7 +5564,7 @@ export default function CanvasWorkspace({
                   ? "opacity-100 text-amber-400"
                   : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
               }`}
-              title={isLocked ? "Buka Kunci" : "Kunci Frame"}
+              title={isLocked ? "Buka Kunci" : isSection ? "Kunci Section" : "Kunci Frame"}
             >
               {isLocked ? <HiLockClosed className="w-3.5 h-3.5" /> : <HiLockOpen className="w-3.5 h-3.5" />}
             </button>
@@ -5904,11 +5921,100 @@ export default function CanvasWorkspace({
             const x = item.x || 0;
             const y = item.y || 0;
 
-            // 1. SECTION & GROUP FRAME (Figma Style Boundary)
-            if ((item.type === "section" || item.mediaType === "section" || item.type === "group") && item.type !== "shape" && item.mediaType !== "shape" && item.mediaType !== "rectangle" && item.mediaType !== "ellipse") {
+            // 1. FIGMA SECTION (Matches User Screenshots media_1793557114016_fbbf493d.png & media_1793557157420_2ca188d0.png)
+            if ((item.type === "section" || item.mediaType === "section") && item.type !== "shape" && item.mediaType !== "shape") {
               const secWidth = item.width || 1200;
               const secHeight = item.height || 600;
-              const isGrp = item.type === "group";
+              const secBg = item.color || "rgba(50, 52, 58, 0.88)";
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={(e) => handleItemClick(e, item, e.currentTarget)}
+                  onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    if (hasItemMovedDuringDragRef.current) return;
+                    fitItemToScreen(item, e.currentTarget);
+                  }}
+                  onContextMenu={(e) => handleItemContextMenu(e, item)}
+                  style={{
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                    width: `${item.width || secWidth}px`,
+                    height: `${item.height || secHeight}px`,
+                    backgroundColor: secBg,
+                    opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "16px",
+                    boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.4)",
+                    filter: getEffectFilter(item),
+                    zIndex: isSelected ? 3 : 1,
+                    touchAction: "none",
+                  }}
+                  className={`absolute rounded-2xl select-none cursor-grab active:cursor-grabbing transition-colors ${
+                    draggingItemId === item.id ? "!transition-none will-change-transform z-30" : ""
+                  } ${
+                    isSelected
+                      ? "border-2 border-[#0c8ce9] shadow-[0_20px_60px_rgba(12,140,233,0.3)]"
+                      : "border border-white/10 hover:border-white/25 shadow-lg"
+                  }`}
+                >
+                  {/* Figma Top-Left Section Floating Pill Badge (Matches User Screenshot 2 & 3 [Section 6] [</>]) */}
+                  <div className="absolute -top-8 left-0 flex items-center gap-1.5 pointer-events-auto select-none">
+                    <div
+                      className={`flex items-center px-2.5 py-1 rounded-lg shadow-md transition-colors ${
+                        isSelected
+                          ? "bg-[#2c2c2c] border border-[#0c8ce9] text-white"
+                          : "bg-[#2c2c2c]/95 border border-white/10 text-neutral-200 hover:text-white"
+                      }`}
+                    >
+                      <input
+                        type="text"
+                        value={item.title}
+                        onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-transparent text-xs font-sans font-medium text-white focus:outline-none w-auto max-w-[200px]"
+                      />
+                    </div>
+
+                    {/* Figma Dev Mode Badge Button [</>] */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowDevMode((prev) => !prev);
+                      }}
+                      title="Ready for Dev (Figma Dev Mode)"
+                      className="px-2 py-1 rounded-lg bg-[#2c2c2c]/95 border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 text-xs font-mono font-bold shadow-md flex items-center justify-center cursor-pointer transition-colors"
+                    >
+                      &lt;/&gt;
+                    </button>
+                  </div>
+
+                  {/* Corner Handles when selected */}
+                  {isSelected && (
+                    <>
+                      <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+                      <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+                      <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+                      <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+
+                      {/* Dimension Badge at Bottom (Matches User Screenshot 2 & 3) */}
+                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-xs font-mono font-medium shadow-lg whitespace-nowrap">
+                        {Math.round(secWidth)} × {Math.round(secHeight)}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            }
+
+            // 1.1 GROUP FRAME (Figma Style Group Boundary)
+            if (item.type === "group") {
+              const secWidth = item.width || 1200;
+              const secHeight = item.height || 600;
 
               return (
                 <div
@@ -5928,13 +6034,13 @@ export default function CanvasWorkspace({
                     width: `${item.width || secWidth}px`,
                     height: `${item.height || secHeight}px`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
-                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : isGrp ? "12px" : undefined,
-                    borderColor: item.color && item.color !== "transparent" ? item.color : isGrp ? "#0c8ce9" : undefined,
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "12px",
+                    borderColor: item.color && item.color !== "transparent" ? item.color : "#0c8ce9",
                     boxShadow: getEffectBoxShadow(item),
                     filter: getEffectFilter(item),
                     touchAction: "none",
                   }}
-                  className={`absolute rounded-3xl border-2 ${isGrp ? "border-solid border-[#0c8ce9]/60" : "border-dashed"} p-4 flex flex-col justify-between ${
+                  className={`absolute rounded-xl border-2 border-solid border-[#0c8ce9]/60 p-4 flex flex-col justify-between ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-30" : "transition-colors duration-150"
                   } ${
                     isSelected
@@ -5942,33 +6048,30 @@ export default function CanvasWorkspace({
                       : "border-white/15 bg-white/[0.015] hover:border-white/30"
                   }`}
                 >
-                  {/* Section / Group Top Header Pill */}
                   <div className="flex items-center justify-between pointer-events-auto">
                     <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${isGrp ? "bg-[#0c8ce9]" : "bg-teal-400"}`} />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#0c8ce9]" />
                       <input
                         type="text"
                         value={item.title}
                         onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
                         className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-[#0c8ce9] text-sm font-bold text-white font-mono focus:outline-none px-1 py-0.5 rounded"
                       />
-                      <span className="text-[10px] font-mono text-neutral-500 uppercase">{isGrp ? "GROUP" : "SECTION"}</span>
+                      <span className="text-[10px] font-mono text-neutral-500 uppercase">GROUP</span>
                     </div>
 
                     <div className="flex items-center gap-1">
-                      {isGrp && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleUngroup(item);
-                          }}
-                          className="px-2 py-0.5 rounded bg-white/10 hover:bg-[#0c8ce9] text-white text-[11px] font-sans transition-colors cursor-pointer"
-                          title="Ungroup (Ctrl+Shift+G / Ctrl+⌫)"
-                        >
-                          Ungroup
-                        </button>
-                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUngroup(item);
+                        }}
+                        className="px-2 py-0.5 rounded bg-white/10 hover:bg-[#0c8ce9] text-white text-[11px] font-sans transition-colors cursor-pointer"
+                        title="Ungroup (Ctrl+Shift+G / Ctrl+⌫)"
+                      >
+                        Ungroup
+                      </button>
                       <button
                         type="button"
                         onClick={(e) => {
