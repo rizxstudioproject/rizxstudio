@@ -345,6 +345,37 @@ export default function CanvasWorkspace({
     canvasY: number;
   } | null>(null);
 
+  // Interactive Element Resizing Engine (Corner & Edge Dragging - Matches Screenshot Image 2)
+  const [resizingItemId, setResizingItemId] = useState<string | null>(null);
+  const [resizeHandle, setResizeHandle] = useState<string | null>(null);
+  const resizeStartRef = useRef<{
+    mouseX: number;
+    mouseY: number;
+    startX: number;
+    startY: number;
+    startW: number;
+    startH: number;
+    handle: string;
+  } | null>(null);
+
+  const handleResizeMouseDown = useCallback((e: React.MouseEvent, item: CanvasItem, handle: string) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setSelectedId(item.id);
+    setSelectedIds(new Set([item.id]));
+    setResizingItemId(item.id);
+    setResizeHandle(handle);
+    resizeStartRef.current = {
+      mouseX: e.clientX,
+      mouseY: e.clientY,
+      startX: item.x || 0,
+      startY: item.y || 0,
+      startW: item.width || 440,
+      startH: item.height || 550,
+      handle,
+    };
+  }, []);
+
   const dragItemInitialPositionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
 
   // Context Menu State (Figma Right Click Popup Menu)
@@ -1567,7 +1598,7 @@ export default function CanvasWorkspace({
 
   // High-performance 0ms-latency window mouse tracking for pan, drag, and marquee selection
   useEffect(() => {
-    if (!isPanning && !draggingItemId && !isMarqueeSelecting && !isDrawingShape) return;
+    if (!isPanning && !draggingItemId && !isMarqueeSelecting && !isDrawingShape && !resizingItemId) return;
 
     const onWindowMove = (e: MouseEvent) => {
       if (isPanning) {
@@ -1583,6 +1614,54 @@ export default function CanvasWorkspace({
             }
           });
         }
+      } else if (resizingItemId && resizeStartRef.current) {
+        // Freeform Element Resizing (Corner & Edge Handles - Matches Screenshot Image 2)
+        const { mouseX, mouseY, startX, startY, startW, startH, handle } = resizeStartRef.current;
+        const curZoom = zoomRef.current || zoom;
+        const deltaX = (e.clientX - mouseX) / curZoom;
+        const deltaY = (e.clientY - mouseY) / curZoom;
+
+        let newX = startX;
+        let newY = startY;
+        let newW = startW;
+        let newH = startH;
+
+        if (handle.includes("e")) {
+          newW = Math.max(50, Math.round(startW + deltaX));
+        }
+        if (handle.includes("s")) {
+          newH = Math.max(50, Math.round(startH + deltaY));
+        }
+        if (handle.includes("w")) {
+          const rawW = startW - deltaX;
+          if (rawW >= 50) {
+            newW = Math.round(rawW);
+            newX = Math.round(startX + deltaX);
+          }
+        }
+        if (handle.includes("n")) {
+          const rawH = startH - deltaY;
+          if (rawH >= 50) {
+            newH = Math.round(rawH);
+            newY = Math.round(startY + deltaY);
+          }
+        }
+
+        setItems((prev) =>
+          prev.map((it) =>
+            it.id === resizingItemId
+              ? {
+                  ...it,
+                  x: newX,
+                  y: newY,
+                  width: newW,
+                  height: newH,
+                  aspect: `${newW}:${newH}`,
+                }
+              : it
+          )
+        );
+        setHasChanges(true);
       } else if (isDrawingShape && drawingShapeStartRef.current) {
         const rect = canvasContainerRef.current?.getBoundingClientRect();
         const curScreenX = rect ? e.clientX - rect.left : e.clientX;
@@ -1690,6 +1769,11 @@ export default function CanvasWorkspace({
         cancelAnimationFrame(dragRafRef.current);
         dragRafRef.current = null;
       }
+      if (resizingItemId) {
+        setResizingItemId(null);
+        setResizeHandle(null);
+        resizeStartRef.current = null;
+      }
       if (isMarqueeSelecting) {
         setIsMarqueeSelecting(false);
         setMarqueeBox(null);
@@ -1718,10 +1802,10 @@ export default function CanvasWorkspace({
             shapeX = start.canvasX;
             shapeY = start.canvasY;
           }
-          const frameCount = items.filter((i) => i.mediaType === "frame" && i.type !== "group").length + 1;
+          const frameTitle = `Frame ${Math.floor(Date.now() / 1000)}`;
           const newFrame: CanvasItem = {
             id: `frame-${Date.now()}`,
-            title: `Frame ${frameCount}`,
+            title: frameTitle,
             type: "media",
             mediaType: "frame",
             aspect: `${shapeW}:${shapeH}`,
@@ -1729,7 +1813,7 @@ export default function CanvasWorkspace({
             y: shapeY,
             width: shapeW,
             height: shapeH,
-            color: "#0c8ce9",
+            color: "#FFFFFF",
           };
           updateItemsWithTracking([...items, newFrame]);
           setSelectedId(newFrame.id);
@@ -1806,7 +1890,7 @@ export default function CanvasWorkspace({
         dragRafRef.current = null;
       }
     };
-  }, [isPanning, draggingItemId, isMarqueeSelecting, isDrawingShape, drawingShapeBox, panStart, pan, zoom, dragItemOffset, items, hiddenItemIds, getCanvasCoords, updateItemsWithTracking]);
+  }, [isPanning, draggingItemId, isMarqueeSelecting, isDrawingShape, drawingShapeBox, resizingItemId, panStart, pan, zoom, dragItemOffset, items, hiddenItemIds, getCanvasCoords, updateItemsWithTracking]);
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     // Window listener handles mousemove with passive 0ms latency; kept for fallback
@@ -1816,6 +1900,11 @@ export default function CanvasWorkspace({
     if (dragRafRef.current) {
       cancelAnimationFrame(dragRafRef.current);
       dragRafRef.current = null;
+    }
+    if (resizingItemId) {
+      setResizingItemId(null);
+      setResizeHandle(null);
+      resizeStartRef.current = null;
     }
     if (isMarqueeSelecting) {
       setIsMarqueeSelecting(false);
@@ -5125,6 +5214,94 @@ export default function CanvasWorkspace({
               );
             }
 
+            // 3.5 FIGMA ARTBOARD FRAME (Pure Canvas Artboard - Matches Screenshot Image 2)
+            if ((item.mediaType === "frame" || item.type === "frame") && !item.image) {
+              const frameWidth = item.width || 440;
+              const frameHeight = item.height || 550;
+              const frameBg = item.color || "#FFFFFF";
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={(e) => handleItemClick(e, item, e.currentTarget)}
+                  onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onContextMenu={(e) => handleItemContextMenu(e, item)}
+                  style={{
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                    width: `${frameWidth}px`,
+                    height: `${frameHeight}px`,
+                    backgroundColor: frameBg,
+                    opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
+                    boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.35)",
+                    filter: getEffectFilter(item),
+                  }}
+                  className={`absolute rounded-xl flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
+                    draggingItemId === item.id ? "!transition-none will-change-transform z-30" : ""
+                  } ${
+                    isSelected
+                      ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)] z-40"
+                      : "hover:ring-1 hover:ring-white/40 shadow-xl"
+                  }`}
+                >
+                  {/* Figma Top Frame Title (Matches Screenshot Image 2 Frame 2147258851) */}
+                  <div className="absolute -top-6 left-0 flex items-center gap-1.5 pointer-events-auto">
+                    <span className="text-[12px] font-sans font-medium text-neutral-400 hover:text-white select-none truncate max-w-[280px]">
+                      {item.title}
+                    </span>
+                    {isLocked && <HiLockClosed className="w-3 h-3 text-amber-400" />}
+                  </div>
+
+                  {/* Corner & Edge Resize Handles when Selected (Matches Screenshot Image 2) */}
+                  {isSelected && (
+                    <>
+                      {/* 4 Corner Resize Handles */}
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "nw")}
+                        className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "ne")}
+                        className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "sw")}
+                        className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
+                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                      />
+
+                      {/* 4 Edge Resize Handles (Matches Screenshot Image 2 Cursor ⟷) */}
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
+                        className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
+                        className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
+                        className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                        className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                      />
+
+                      {/* Figma Dimension Badge Centered at Bottom (Matches Screenshot Image 2: 1571 × 1427) */}
+                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40">
+                        {Math.round(frameWidth)} × {Math.round(frameHeight)}
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            }
+
             // 4. MEDIA ARTBOARD (Gambar & Video) - 100% Original Resolution & Aspect Ratio
             let cardWidth = 440;
             let cardAspect = "4 / 5";
@@ -5190,12 +5367,45 @@ export default function CanvasWorkspace({
                 {/* Figma Selection Frame Handles & Dimension Badge */}
                 {isSelected && (
                   <>
-                    <div className="absolute -top-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-30 pointer-events-none" />
-                    <div className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-30 pointer-events-none" />
-                    <div className="absolute -bottom-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-30 pointer-events-none" />
-                    <div className="absolute -bottom-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-30 pointer-events-none" />
-                    <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-30">
-                      {currentWidth} × {currentHeight}
+                    {/* 4 Corner Resize Handles */}
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, item, "nw")}
+                      className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                    />
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, item, "ne")}
+                      className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                    />
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, item, "sw")}
+                      className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                    />
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
+                      className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                    />
+
+                    {/* 4 Edge Resize Handles */}
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
+                      className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                    />
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
+                      className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                    />
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
+                      className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                    />
+                    <div
+                      onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                      className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                    />
+
+                    {/* Dimension Badge centered at bottom */}
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40">
+                      {Math.round(currentWidth)} × {Math.round(currentHeight)}
                     </div>
                   </>
                 )}
@@ -5328,10 +5538,10 @@ export default function CanvasWorkspace({
           />
         )}
 
-        {/* Interactive Frame & Section Drawing Preview Box (Matches Figma Reference Screenshot Image 2) */}
+        {/* Interactive Frame & Section Drawing Preview Box (Matches Screenshot Image 1) */}
         {drawingShapeBox && (
           <div
-            className="absolute pointer-events-none border-2 border-[#0c8ce9] bg-[#0c8ce9]/10 z-50 rounded-lg shadow-lg"
+            className="absolute pointer-events-none border-2 border-[#0c8ce9] bg-white/[0.04] z-50 shadow-xl"
             style={{
               left: `${Math.min(drawingShapeBox.startX, drawingShapeBox.currentX)}px`,
               top: `${Math.min(drawingShapeBox.startY, drawingShapeBox.currentY)}px`,
@@ -5339,8 +5549,19 @@ export default function CanvasWorkspace({
               height: `${Math.max(2, Math.abs(drawingShapeBox.currentY - drawingShapeBox.startY))}px`,
             }}
           >
-            {/* Figma Dimension Badge right at cursor corner */}
-            <div className="absolute -bottom-7 right-0 px-2 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none">
+            {/* Top Frame Label (Matches Screenshot Image 1 Frame 2147258851) */}
+            <div className="absolute -top-6 left-0 text-[12px] font-sans font-medium text-neutral-400 select-none whitespace-nowrap">
+              {drawingShapeBox.type === "section" ? "New Section" : `Frame ${Math.floor(Date.now() / 1000)}`}
+            </div>
+
+            {/* 4 Corner Handles (Matches Screenshot Image 1) */}
+            <div className="absolute -top-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+            <div className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+            <div className="absolute -bottom-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+            <div className="absolute -bottom-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+
+            {/* Figma Dimension Badge Centered at Bottom (Matches Screenshot Image 1: 1571 × 1427) */}
+            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none">
               {Math.round(Math.abs(drawingShapeBox.currentX - drawingShapeBox.startX) / (zoomRef.current || zoom))} ×{" "}
               {Math.round(Math.abs(drawingShapeBox.currentY - drawingShapeBox.startY) / (zoomRef.current || zoom))}
             </div>
