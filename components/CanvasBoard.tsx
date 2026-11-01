@@ -63,6 +63,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
   // Double-tap tracking for mobile devices
   const lastTapRef = useRef<{ time: number; id: string }>({ time: 0, id: "" });
+  const lastFitTimeRef = useRef<number>(0);
 
   // Direct Drag & Drop state on Canvas Board
   const [isCanvasDragOver, setIsCanvasDragOver] = useState(false);
@@ -213,6 +214,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       setPan({ x: targetPanX, y: targetPanY });
       setFittedSheetId(sheetId);
       setSelectedSheetId(sheetId);
+      lastFitTimeRef.current = Date.now();
     },
     [containerRef]
   );
@@ -227,34 +229,41 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
   const handleSheetTouchEnd = useCallback(
     (e: React.TouchEvent<HTMLElement>, targetEl: HTMLElement, sheetId: string) => {
+      e.stopPropagation();
       const touch = e.changedTouches[0];
       if (!touch) return;
       const now = Date.now();
 
       // If an image is currently staying fitted:
       // A single tap (1x) immediately zooms out to view the entire portfolio!
+      // Guarded by cooldown so the double-tap itself never causes an immediate close!
       if (fittedSheetId) {
+        if (now - lastFitTimeRef.current < 450) {
+          // Synthetic touch event from the double-tap gesture itself - DO NOT CLOSE!
+          return;
+        }
         e.preventDefault();
-        e.stopPropagation();
         setFittedSheetId(null);
         zoomToFit();
         lastTouchTapRef.current = { time: 0, id: "", x: 0, y: 0 };
         return;
       }
 
+      // Requirement: Only an image/frame that is ALREADY selected can be double-tapped to fit screen!
+      const isAlreadySelected = selectedSheetId === sheetId;
       const timeSinceLast = now - lastTouchTapRef.current.time;
       const dist = Math.hypot(
         touch.clientX - lastTouchTapRef.current.x,
         touch.clientY - lastTouchTapRef.current.y
       );
 
-      if (timeSinceLast < 450 && dist < 35 && lastTouchTapRef.current.id === sheetId) {
-        // Confirmed double-tap (2x): Zoom in, fit to screen & STAY until next single tap
+      if (isAlreadySelected && timeSinceLast < 450 && dist < 35 && lastTouchTapRef.current.id === sheetId) {
+        // Confirmed double-tap (2x) on SELECTED item: Zoom in, fit to screen & STAY until next single tap
         e.preventDefault();
-        e.stopPropagation();
         fitSheetToScreen(targetEl, sheetId);
         lastTouchTapRef.current = { time: 0, id: "", x: 0, y: 0 };
       } else {
+        // First tap / selecting an unselected image or frame
         lastTouchTapRef.current = {
           time: now,
           id: sheetId,
@@ -264,24 +273,31 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         setSelectedSheetId(sheetId);
       }
     },
-    [fittedSheetId, fitSheetToScreen, zoomToFit]
+    [fittedSheetId, selectedSheetId, fitSheetToScreen, zoomToFit]
   );
 
   // Handle double-tap detection for pointer / mouse clicks
   const handleSheetTap = useCallback(
     (targetEl: HTMLElement, sheetId: string) => {
+      const now = Date.now();
       // If currently fitted: a single click zooms back out to full portfolio view
       if (fittedSheetId) {
+        if (now - lastFitTimeRef.current < 450) {
+          // Synthetic click from the double-tap gesture itself - DO NOT CLOSE!
+          return;
+        }
         setFittedSheetId(null);
         zoomToFit();
         lastTapRef.current = { time: 0, id: "" };
         return;
       }
 
-      const now = Date.now();
+      // Requirement: Only double-click if ALREADY selected!
+      const isAlreadySelected = selectedSheetId === sheetId;
       const timeSinceLast = now - lastTapRef.current.time;
-      if (timeSinceLast < 380 && lastTapRef.current.id === sheetId) {
-        // Double-click confirmed: fit and stay
+
+      if (isAlreadySelected && timeSinceLast < 380 && lastTapRef.current.id === sheetId) {
+        // Double-click confirmed on SELECTED item: fit and stay
         fitSheetToScreen(targetEl, sheetId);
         lastTapRef.current = { time: 0, id: "" };
       } else {
@@ -289,7 +305,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         setSelectedSheetId(sheetId);
       }
     },
-    [fittedSheetId, fitSheetToScreen, zoomToFit]
+    [fittedSheetId, selectedSheetId, fitSheetToScreen, zoomToFit]
   );
 
   // Handle Fullscreen Request on Open
@@ -435,11 +451,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       } catch (_) {}
     }
 
-    // Check if this was a clean single tap (not a drag)
+    // Check if this was a clean single tap (not a drag) on the canvas background
     const dist = Math.hypot(e.clientX - pointerDownPosRef.current.x, e.clientY - pointerDownPosRef.current.y);
     const time = Date.now() - pointerDownPosRef.current.time;
     if (dist < 8 && time < 350) {
-      if (fittedSheetId) {
+      if (fittedSheetId && Date.now() - lastFitTimeRef.current >= 450) {
         setFittedSheetId(null);
         zoomToFit();
       }
@@ -1170,12 +1186,15 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   key={item.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedSheetId(item.id);
                     handleSheetTap(e.currentTarget, item.id);
                   }}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
-                    fitSheetToScreen(e.currentTarget, item.id);
+                    if (selectedSheetId === item.id) {
+                      fitSheetToScreen(e.currentTarget, item.id);
+                    } else {
+                      setSelectedSheetId(item.id);
+                    }
                   }}
                   onTouchEnd={(e) => {
                     handleSheetTouchEnd(e, e.currentTarget, item.id);
@@ -1245,7 +1264,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       onDoubleClick={(e) => {
                         e.stopPropagation();
                         const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
-                        fitSheetToScreen(card, item.id);
+                        if (selectedSheetId === item.id) {
+                          fitSheetToScreen(card, item.id);
+                        } else {
+                          setSelectedSheetId(item.id);
+                        }
                       }}
                       onTouchEnd={(e) => {
                         const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
@@ -1301,12 +1324,15 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   key={sheet.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedSheetId(sheet.id);
                     handleSheetTap(e.currentTarget, sheet.id);
                   }}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
-                    fitSheetToScreen(e.currentTarget, sheet.id);
+                    if (selectedSheetId === sheet.id) {
+                      fitSheetToScreen(e.currentTarget, sheet.id);
+                    } else {
+                      setSelectedSheetId(sheet.id);
+                    }
                   }}
                   onTouchEnd={(e) => {
                     handleSheetTouchEnd(e, e.currentTarget, sheet.id);
@@ -1390,7 +1416,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       onDoubleClick={(e) => {
                         e.stopPropagation();
                         const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
-                        fitSheetToScreen(card, sheet.id);
+                        if (selectedSheetId === sheet.id) {
+                          fitSheetToScreen(card, sheet.id);
+                        } else {
+                          setSelectedSheetId(sheet.id);
+                        }
                       }}
                       onTouchEnd={(e) => {
                         const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);

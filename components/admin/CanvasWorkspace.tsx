@@ -2446,6 +2446,7 @@ export default function CanvasWorkspace({
   };
 
   const [fittedItemId, setFittedItemId] = useState<string | null>(null);
+  const lastWorkspaceFitTimeRef = useRef<number>(0);
   const lastTouchTapRef = useRef<{ time: number; id: string; x: number; y: number }>({
     time: 0,
     id: "",
@@ -2555,6 +2556,7 @@ export default function CanvasWorkspace({
       setPan({ x: targetPanX, y: targetPanY });
       setFittedItemId(item.id);
       setSelectedId(item.id);
+      lastWorkspaceFitTimeRef.current = Date.now();
     },
     [fittedItemId]
   );
@@ -2586,12 +2588,18 @@ export default function CanvasWorkspace({
         e.stopPropagation();
 
         if (fittedItemId) {
+          if (now - lastWorkspaceFitTimeRef.current < 450) return;
           // "Tap Close": return to normal overview canvas
           setFittedItemId(null);
           zoomToFitAll();
         } else {
-          // "Tap Full": fit image to full screen
-          fitItemToScreen(item, targetEl);
+          // "Tap Full": fit image to full screen if already selected
+          if (selectedId === item.id) {
+            fitItemToScreen(item, targetEl);
+          } else {
+            setSelectedId(item.id);
+            setSelectedIds(new Set([item.id]));
+          }
         }
         return;
       }
@@ -2599,6 +2607,10 @@ export default function CanvasWorkspace({
       // SELECT TOOL MODE:
       // If an item is currently staying fitted, single tap (1x) immediately zooms out to view all!
       if (fittedItemId) {
+        if (now - lastWorkspaceFitTimeRef.current < 450) {
+          // Synthetic touch event from the double-tap itself - DO NOT CLOSE
+          return;
+        }
         e.preventDefault();
         e.stopPropagation();
         setFittedItemId(null);
@@ -2607,14 +2619,17 @@ export default function CanvasWorkspace({
         return;
       }
 
+      // Requirement: "yang bisa di tap 2x hanya image atau frame yang di select bukan random image atau frame"
+      const isAlreadySelected = selectedId === item.id || selectedIds.has(item.id);
+
       const timeSinceLast = now - lastTouchTapRef.current.time;
       const dist = Math.hypot(
         touch.clientX - lastTouchTapRef.current.x,
         touch.clientY - lastTouchTapRef.current.y
       );
 
-      if (timeSinceLast < 450 && dist < 35 && lastTouchTapRef.current.id === item.id) {
-        // Confirmed double-tap on touch screen: Fit to screen & STAY
+      if (isAlreadySelected && timeSinceLast < 450 && dist < 35 && lastTouchTapRef.current.id === item.id) {
+        // Confirmed double-tap on touch screen on SELECTED item: Fit to screen & STAY
         e.preventDefault();
         e.stopPropagation();
         fitItemToScreen(item, targetEl);
@@ -2626,9 +2641,11 @@ export default function CanvasWorkspace({
           x: touch.clientX,
           y: touch.clientY,
         };
+        setSelectedId(item.id);
+        setSelectedIds(new Set([item.id]));
       }
     },
-    [activeTool, fittedItemId, fitItemToScreen, zoomToFitAll]
+    [activeTool, fittedItemId, selectedId, selectedIds, fitItemToScreen, zoomToFitAll]
   );
 
   // Click handler for Hand tool mode (tap full / tap close on click)
@@ -2636,10 +2653,16 @@ export default function CanvasWorkspace({
     if (activeTool === "hand") {
       e.stopPropagation();
       if (fittedItemId) {
+        if (Date.now() - lastWorkspaceFitTimeRef.current < 450) return;
         setFittedItemId(null);
         zoomToFitAll();
       } else {
-        fitItemToScreen(item, targetEl);
+        if (selectedId === item.id) {
+          fitItemToScreen(item, targetEl);
+        } else {
+          setSelectedId(item.id);
+          setSelectedIds(new Set([item.id]));
+        }
       }
     }
   };
@@ -5414,7 +5437,12 @@ export default function CanvasWorkspace({
                 onContextMenu={(e) => handleItemContextMenu(e, item)}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
-                  fitItemToScreen(item, e.currentTarget);
+                  if (selectedId === item.id || selectedIds.has(item.id)) {
+                    fitItemToScreen(item, e.currentTarget);
+                  } else {
+                    setSelectedId(item.id);
+                    setSelectedIds(new Set([item.id]));
+                  }
                 }}
                 onTouchEnd={(e) => {
                   handleItemTouchEnd(e, item, e.currentTarget);
@@ -5534,7 +5562,12 @@ export default function CanvasWorkspace({
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     const card = e.currentTarget.parentElement as HTMLElement;
-                    fitItemToScreen(item, card);
+                    if (selectedId === item.id || selectedIds.has(item.id)) {
+                      fitItemToScreen(item, card);
+                    } else {
+                      setSelectedId(item.id);
+                      setSelectedIds(new Set([item.id]));
+                    }
                   }}
                   onTouchEnd={(e) => {
                     const card = e.currentTarget.parentElement as HTMLElement;
