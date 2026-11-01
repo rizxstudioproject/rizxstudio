@@ -38,6 +38,7 @@ import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/Portfo
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import AspectRatioPicker, { RatioWireframeIcon, AspectPreset } from "./AspectRatioPicker";
 
 interface CanvasWorkspaceProps {
   onOpenCanvasPreview?: () => void;
@@ -77,6 +78,7 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
   const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
   const [leftPanelTab, setLeftPanelTab] = useState<"clients" | "layers">("clients");
   const [activeClientFilter, setActiveClientFilter] = useState<string | null>(null);
+  const [showFramePresetsPicker, setShowFramePresetsPicker] = useState(false);
 
   // Close submenus on clicking outside toolbar or pill menu
   useEffect(() => {
@@ -436,6 +438,42 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
     };
     updateItemsWithTracking([...items, newFrame]);
     setSelectedId(newFrame.id);
+  };
+
+  const handleSelectFramePreset = (ratio: string, preset?: AspectPreset) => {
+    let w = 480;
+    let h = 600;
+    if (preset?.width && preset?.height) {
+      const maxDim = 640;
+      if (preset.width >= preset.height) {
+        w = maxDim;
+        h = Math.round((maxDim * preset.height) / preset.width);
+      } else {
+        h = maxDim;
+        w = Math.round((maxDim * preset.width) / preset.height);
+      }
+    } else {
+      if (ratio === "16:9") { w = 720; h = 405; }
+      else if (ratio === "9:16") { w = 360; h = 640; }
+      else if (ratio === "1:1") { w = 480; h = 480; }
+      else if (ratio === "21:9") { w = 750; h = 320; }
+    }
+
+    const newFrame: CanvasItem = {
+      id: `frame-${Date.now()}`,
+      title: preset ? `${preset.name} (${ratio})` : `Frame ${ratio}`,
+      type: "media",
+      mediaType: "frame",
+      aspect: ratio,
+      x: Math.round((-pan.x + 140) / zoom),
+      y: Math.round((-pan.y + 140) / zoom),
+      width: w,
+      height: h,
+      color: "#0c8ce9",
+    };
+    updateItemsWithTracking([...items, newFrame]);
+    setSelectedId(newFrame.id);
+    setShowFramePresetsPicker(false);
   };
 
   const handleAddSlice = () => {
@@ -1968,6 +2006,23 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
                 </div>
                 <span className="text-[11px] font-mono opacity-60">S</span>
               </button>
+
+              <div className="w-full h-[1px] bg-white/10 my-1" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFramePresetsPicker(true);
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <RatioWireframeIcon ratio="16:9" className="text-cyan-400" />
+                  <span>Preset Rasio & Ukuran...</span>
+                </div>
+                <span className="text-[10px] text-teal-400 font-mono">All</span>
+              </button>
             </div>
           )}
         </div>
@@ -2626,31 +2681,14 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
 
             {/* Aspect Ratio */}
             <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1">
+              <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
                 Aspect Ratio Frame
               </label>
-              <div className="grid grid-cols-5 gap-1.5">
-                {[
-                  { id: "original", label: "Original" },
-                  { id: "4:5", label: "4:5" },
-                  { id: "16:9", label: "16:9" },
-                  { id: "1:1", label: "1:1" },
-                  { id: "9:16", label: "9:16" },
-                ].map((r) => (
-                  <button
-                    key={r.id}
-                    type="button"
-                    onClick={() => setModalAspect(r.id)}
-                    className={`py-1.5 px-1.5 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer ${
-                      modalAspect === r.id
-                        ? "border-teal-400 bg-teal-500/20 text-teal-300"
-                        : "border-white/10 bg-white/5 text-neutral-400 hover:text-white"
-                    }`}
-                  >
-                    {r.label}
-                  </button>
-                ))}
-              </div>
+              <AspectRatioPicker
+                value={modalAspect}
+                onChange={(ratio) => setModalAspect(ratio)}
+                maxHeight="160px"
+              />
             </div>
 
             {/* Actions */}
@@ -2671,6 +2709,39 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
                 + Tambah ke Canvas
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal: Frame Presets & Aspect Ratios (Screenshot Reference) ───────── */}
+      {showFramePresetsPicker && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-[#14161d] border border-white/15 p-5 shadow-2xl flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded bg-[#0c8ce9] text-white font-mono text-xs font-bold">
+                  #
+                </span>
+                <h3 className="font-bold text-sm text-white font-mono">Preset Rasio & Format Ukuran</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFramePresetsPicker(false)}
+                className="text-neutral-400 hover:text-white p-1 cursor-pointer font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-400">
+              Pilih format ukuran rasio frame (Ratios, Social, Video, Print, Wallpaper) untuk ditambahkan langsung ke canvas.
+            </p>
+
+            <AspectRatioPicker
+              value="16:9"
+              onChange={handleSelectFramePreset}
+              maxHeight="380px"
+            />
           </div>
         </div>
       )}

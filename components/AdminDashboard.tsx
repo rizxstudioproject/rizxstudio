@@ -83,6 +83,7 @@ import ResourceLibrary from "./admin/ResourceLibrary";
 import RecycleBinWorkspace from "./admin/RecycleBinWorkspace";
 import StorageAnalyticsView from "./admin/StorageAnalyticsView";
 import CanvasWorkspace from "./admin/CanvasWorkspace";
+import AspectRatioPicker, { RatioWireframeIcon, AspectPreset } from "./admin/AspectRatioPicker";
 
 import ThemeColorWorkspace from "./admin/ThemeColorWorkspace";
 import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
@@ -1620,7 +1621,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [uploadPreviews, setUploadPreviews] = useState<{ file: File; name: string; preview: string }[]>([]);
   const [uploadTitle, setUploadTitle] = useState("");
   const [uploadType, setUploadType] = useState("Digital Campaign");
-  const [uploadAspect, setUploadAspect] = useState<"4:5" | "1:1" | "16:9" | "9:16">("4:5");
+  const [uploadAspect, setUploadAspect] = useState<string>("4:5");
+  const [showFullAspectPickerUpload, setShowFullAspectPickerUpload] = useState(false);
   const [uploadYear, setUploadYear] = useState(new Date().getFullYear().toString());
   // Tool tags for upload — comma-separated input
   const [uploadToolsInput, setUploadToolsInput] = useState("Figma, Photoshop, Magnific AI");
@@ -1671,7 +1673,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [editWorkTitle, setEditWorkTitle] = useState("");
   const [editWorkType, setEditWorkType] = useState("");
   const [editWorkYear, setEditWorkYear] = useState("");
-  const [editWorkAspect, setEditWorkAspect] = useState<"4:5" | "1:1" | "16:9" | "9:16">("4:5");
+  const [editWorkAspect, setEditWorkAspect] = useState<string>("4:5");
+  const [showFullAspectPickerEdit, setShowFullAspectPickerEdit] = useState(false);
   const [editWorkBrief, setEditWorkBrief] = useState("");
   const [editWorkChallenge, setEditWorkChallenge] = useState("");
   const [editWorkSolution, setEditWorkSolution] = useState("");
@@ -7967,40 +7970,64 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
                 </div>
 
-                {/* Aspect Ratio Selector */}
+                {/* Aspect Ratio Selector (Matches user's reference screenshots) */}
                 <div>
-                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                    Rasio Aspek Tampilan
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {(["4:5", "1:1", "16:9", "9:16"] as const).map((ratio) => (
-                      <button
-                        key={ratio}
-                        type="button"
-                        onClick={() => setUploadAspect(ratio)}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-mono font-bold border transition-all cursor-pointer text-center ${
-                          uploadAspect === ratio
-                            ? isLight
-                              ? "bg-teal-600 text-white border-teal-600 shadow-sm"
-                              : "bg-[#16b09f] text-black border-[#16b09f] shadow-sm"
-                            : isLight
-                            ? "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                            : "bg-neutral-950 text-neutral-400 border-white/10 hover:text-white"
-                        }`}
-                      >
-                        {ratio}
-                        <span className="block text-[10px] font-normal opacity-85">
-                          {ratio === "4:5"
-                            ? "Portrait"
-                            : ratio === "1:1"
-                            ? "Square"
-                            : ratio === "16:9"
-                            ? "Landscape"
-                            : "IG Story"}
-                        </span>
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between mb-2">
+                    <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      Rasio Aspek & Format Ukuran
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowFullAspectPickerUpload((prev) => !prev)}
+                      className="text-[11px] font-mono text-[#0c8ce9] hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                    >
+                      <span>{showFullAspectPickerUpload ? "Tutup Preset" : "Semua Preset (Social, Video, Print)"}</span>
+                      <span className="text-[10px]">{showFullAspectPickerUpload ? "▲" : "▼"}</span>
+                    </button>
                   </div>
+
+                  {showFullAspectPickerUpload ? (
+                    <AspectRatioPicker
+                      value={uploadAspect}
+                      onChange={(ratio) => setUploadAspect(ratio)}
+                      isLight={isLight}
+                      maxHeight="280px"
+                      className="mb-2"
+                    />
+                  ) : (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[
+                        { ratio: "4:5", name: "4:5", desc: "Social post" },
+                        { ratio: "16:9", name: "16:9", desc: "Widescreen" },
+                        { ratio: "9:16", name: "9:16", desc: "Social story" },
+                        { ratio: "1:1", name: "1:1", desc: "Square" },
+                      ].map((item) => (
+                        <button
+                          key={item.ratio}
+                          type="button"
+                          onClick={() => setUploadAspect(item.ratio)}
+                          className={`py-2 px-2.5 rounded-xl text-xs font-mono border transition-all cursor-pointer flex items-center gap-2.5 text-left ${
+                            uploadAspect === item.ratio
+                              ? isLight
+                                ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                                : "bg-white/15 text-white border-white/20 shadow-sm"
+                              : isLight
+                              ? "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                              : "bg-neutral-950 text-neutral-400 border-white/10 hover:text-white"
+                          }`}
+                        >
+                          <RatioWireframeIcon
+                            ratio={item.ratio}
+                            className={uploadAspect === item.ratio ? "text-teal-400" : "text-neutral-500"}
+                          />
+                          <div className="min-w-0">
+                            <span className="font-bold block text-xs">{item.name}</span>
+                            <span className="block text-[10px] opacity-75 truncate">{item.desc}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Tool Tags */}
@@ -8340,39 +8367,64 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     />
                   </div>
 
+                  {/* Aspect Ratio Selector (Matches user's reference screenshots) */}
                   <div>
-                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                      Rasio Aspek Gambar
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
-                      {(["4:5", "1:1", "16:9", "9:16"] as const).map((asp) => (
-                        <button
-                          key={asp}
-                          type="button"
-                          onClick={() => setEditWorkAspect(asp)}
-                          className={`py-2 px-1.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer text-center ${
-                            editWorkAspect === asp
-                              ? isLight
-                                ? "bg-teal-50 border border-teal-500 text-teal-800 font-bold shadow-xs"
-                                : "bg-cyan-500/20 border border-cyan-400 text-cyan-300"
-                              : isLight
-                              ? "bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100"
-                              : "bg-neutral-950 border border-white/10 text-neutral-400 hover:text-white"
-                          }`}
-                        >
-                          <span>{asp}</span>
-                          <span className="block text-[9px] font-normal opacity-75">
-                            {asp === "4:5"
-                              ? "Portrait"
-                              : asp === "1:1"
-                              ? "Square"
-                              : asp === "16:9"
-                              ? "Landscape"
-                              : "IG Story"}
-                          </span>
-                        </button>
-                      ))}
+                    <div className="flex items-center justify-between mb-2">
+                      <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                        Rasio Aspek Gambar
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setShowFullAspectPickerEdit((prev) => !prev)}
+                        className="text-[11px] font-mono text-[#0c8ce9] hover:underline flex items-center gap-1 cursor-pointer font-bold"
+                      >
+                        <span>{showFullAspectPickerEdit ? "Tutup Preset" : "Semua Preset (Social, Video, Print)"}</span>
+                        <span className="text-[10px]">{showFullAspectPickerEdit ? "▲" : "▼"}</span>
+                      </button>
                     </div>
+
+                    {showFullAspectPickerEdit ? (
+                      <AspectRatioPicker
+                        value={editWorkAspect}
+                        onChange={(ratio) => setEditWorkAspect(ratio)}
+                        isLight={isLight}
+                        maxHeight="280px"
+                        className="mb-2"
+                      />
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[
+                          { ratio: "4:5", name: "4:5", desc: "Social post" },
+                          { ratio: "16:9", name: "16:9", desc: "Widescreen" },
+                          { ratio: "9:16", name: "9:16", desc: "Social story" },
+                          { ratio: "1:1", name: "1:1", desc: "Square" },
+                        ].map((item) => (
+                          <button
+                            key={item.ratio}
+                            type="button"
+                            onClick={() => setEditWorkAspect(item.ratio)}
+                            className={`py-2 px-2.5 rounded-xl text-xs font-mono border transition-all cursor-pointer flex items-center gap-2.5 text-left ${
+                              editWorkAspect === item.ratio
+                                ? isLight
+                                  ? "bg-slate-900 text-white border-slate-900 shadow-sm"
+                                  : "bg-white/15 text-white border-white/20 shadow-sm"
+                                : isLight
+                                ? "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                                : "bg-neutral-950 text-neutral-400 border-white/10 hover:text-white"
+                            }`}
+                          >
+                            <RatioWireframeIcon
+                              ratio={item.ratio}
+                              className={editWorkAspect === item.ratio ? "text-teal-400" : "text-neutral-500"}
+                            />
+                            <div className="min-w-0">
+                              <span className="font-bold block text-xs">{item.name}</span>
+                              <span className="block text-[10px] opacity-75 truncate">{item.desc}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 
