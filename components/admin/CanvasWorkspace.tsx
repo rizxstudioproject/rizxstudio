@@ -1965,6 +1965,8 @@ export default function CanvasWorkspace({
       touchStateRef.current.initialZoom = zoomRef.current;
       touchStateRef.current.isTouchPanning = false;
       touchStateRef.current.touchDraggingItemId = null;
+      // Mark as pinch so handleItemTouchEnd won't dismiss fitted state
+      touchGestureRef.current.wasPinch = true;
       return;
     }
 
@@ -1974,6 +1976,11 @@ export default function CanvasWorkspace({
       touchStateRef.current.startTouch = { x: t.clientX, y: t.clientY };
       touchStateRef.current.startPan = { ...panRef.current };
       touchStateRef.current.initialPinchDistance = null;
+      // Track absolute start position for pan-distance check in fitted state
+      touchGestureRef.current.startX = t.clientX;
+      touchGestureRef.current.startY = t.clientY;
+      // Only reset wasPinch when no prior pinch in flight
+      touchGestureRef.current.wasPinch = false;
 
       // If active tool is hand, or touching canvas background directly
       if (activeTool === "hand" || e.target === e.currentTarget) {
@@ -2069,6 +2076,10 @@ export default function CanvasWorkspace({
         touchStateRef.current.startTouch = { x: t.clientX, y: t.clientY };
         touchStateRef.current.startPan = { ...panRef.current };
         setIsPanning(true);
+        // Track absolute start for fitted-state gesture detection
+        touchGestureRef.current.startX = t.clientX;
+        touchGestureRef.current.startY = t.clientY;
+        touchGestureRef.current.wasPinch = false;
       }
       return;
     }
@@ -2087,6 +2098,10 @@ export default function CanvasWorkspace({
         y: itemCanvasY - (item.y || 0),
       };
       setDraggingItemId(item.id);
+      // Track absolute start for fitted-state gesture detection
+      touchGestureRef.current.startX = t.clientX;
+      touchGestureRef.current.startY = t.clientY;
+      touchGestureRef.current.wasPinch = false;
     }
   };
 
@@ -2458,6 +2473,12 @@ export default function CanvasWorkspace({
     x: 0,
     y: 0,
   });
+  // Gesture tracking: detect pinch/pan vs single tap while in fitted state
+  const touchGestureRef = useRef<{ startX: number; startY: number; wasPinch: boolean }>({
+    startX: 0,
+    startY: 0,
+    wasPinch: false,
+  });
 
   // Zoom to Fit All Elements
   const zoomToFitAll = () => {
@@ -2616,6 +2637,21 @@ export default function CanvasWorkspace({
           // Synthetic touch event from the double-tap itself - DO NOT CLOSE
           return;
         }
+
+        // Allow pinch zoom & pan inside fitted state — only dismiss on a clean tap!
+        const wasPinch = touchGestureRef.current.wasPinch;
+        const movedDist = Math.hypot(
+          touch.clientX - touchGestureRef.current.startX,
+          touch.clientY - touchGestureRef.current.startY
+        );
+        // Reset wasPinch flag after read
+        touchGestureRef.current.wasPinch = false;
+
+        if (wasPinch || movedDist > 12) {
+          // Was a gesture (pinch zoom or pan) — keep fitted state, do NOT dismiss!
+          return;
+        }
+
         e.preventDefault();
         e.stopPropagation();
         setFittedItemId(null);

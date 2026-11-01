@@ -65,6 +65,13 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   const lastTapRef = useRef<{ time: number; id: string }>({ time: 0, id: "" });
   const lastFitTimeRef = useRef<number>(0);
 
+  // Gesture tracking: detect pinch vs single-tap while in fitted state
+  const touchGestureRef = useRef<{ startX: number; startY: number; wasPinch: boolean }>({
+    startX: 0,
+    startY: 0,
+    wasPinch: false,
+  });
+
   // Direct Drag & Drop state on Canvas Board
   const [isCanvasDragOver, setIsCanvasDragOver] = useState(false);
   const [droppedMedia, setDroppedMedia] = useState<{
@@ -242,6 +249,21 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           // Synthetic touch event from the double-tap gesture itself - DO NOT CLOSE!
           return;
         }
+
+        // Allow pinch zoom & pan inside fitted state — only dismiss on a clean tap!
+        const wasPinch = touchGestureRef.current.wasPinch;
+        const movedDist = Math.hypot(
+          touch.clientX - touchGestureRef.current.startX,
+          touch.clientY - touchGestureRef.current.startY
+        );
+        // Reset wasPinch flag after read
+        touchGestureRef.current.wasPinch = false;
+
+        if (wasPinch || movedDist > 12) {
+          // Was a gesture (pinch zoom or pan) — keep fitted state, do NOT dismiss!
+          return;
+        }
+
         e.preventDefault();
         setFittedSheetId(null);
         zoomToFit();
@@ -545,11 +567,20 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         touchStateRef.current.initialDistance = dist;
         touchStateRef.current.initialZoom = zoomRef.current;
         touchStateRef.current.initialPan = { ...panRef.current };
+        // Mark as pinch so handleSheetTouchEnd won't dismiss fitted state
+        touchGestureRef.current.wasPinch = true;
       } else if (e.touches.length === 1) {
         touchStateRef.current.startTouch = {
           x: e.touches[0].clientX - panRef.current.x,
           y: e.touches[0].clientY - panRef.current.y,
         };
+        // Track absolute start position for pan-distance check in fitted state
+        touchGestureRef.current.startX = e.touches[0].clientX;
+        touchGestureRef.current.startY = e.touches[0].clientY;
+        // Only reset wasPinch if no prior pinch in flight (2→1 finger lift case)
+        if (!touchStateRef.current.initialDistance) {
+          touchGestureRef.current.wasPinch = false;
+        }
       }
     };
 
