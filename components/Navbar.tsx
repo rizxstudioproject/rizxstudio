@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
-import { HiBars3, HiXMark, HiArrowUp, HiFolder, HiPaintBrush } from "react-icons/hi2";
+import { HiBars3, HiXMark, HiArrowUp, HiFolder, HiPaintBrush, HiChevronDown } from "react-icons/hi2";
 import { RiSunFill, RiMoonFill } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -43,6 +43,7 @@ export default function Navbar() {
   };
   const [isLangOpen, setIsLangOpen] = useState(false);
   const [isWorkMenuOpen, setIsWorkMenuOpen] = useState(false);
+  const [isMobileWorkOpen, setIsMobileWorkOpen] = useState(false);
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const langContainerRef = useRef<HTMLDivElement>(null);
   const workMenuRef = useRef<HTMLDivElement>(null);
@@ -363,7 +364,7 @@ export default function Navbar() {
                           : "hover:bg-white/10 text-neutral-200 hover:text-white"
                       }`}
                     >
-                      <HiPaintBrush className="w-4 h-4 text-teal-400 shrink-0" />
+                      <HiPaintBrush className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900" : "text-white"}`} />
                       <span>Rizx Canvas</span>
                     </button>
 
@@ -380,7 +381,7 @@ export default function Navbar() {
                           : "hover:bg-white/10 text-neutral-200 hover:text-white"
                       }`}
                     >
-                      <HiFolder className="w-4 h-4 text-amber-400 shrink-0" />
+                      <HiFolder className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900" : "text-white"}`} />
                       <span>Folder Client</span>
                     </button>
                   </div>
@@ -570,12 +571,10 @@ export default function Navbar() {
           >
             {t("nav.about")}
           </button>
-          <div className="flex flex-col gap-1.5 py-1">
+          <div className="flex flex-col gap-1 py-1">
             <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                scrollTo("projects");
-              }}
+              type="button"
+              onClick={() => setIsMobileWorkOpen((prev) => !prev)}
               className={`text-left py-1.5 text-sm font-medium transition-colors cursor-pointer flex items-center justify-between ${
                 activeSection === "projects" && !isProductsPage
                   ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
@@ -583,43 +582,57 @@ export default function Navbar() {
               }`}
             >
               <span>{t("nav.work")}</span>
-              <span className="text-[10px] font-mono text-neutral-400">Vault</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-mono text-neutral-400">Vault</span>
+                <HiChevronDown
+                  className={`w-3.5 h-3.5 transition-transform duration-200 text-neutral-400 ${
+                    isMobileWorkOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </div>
             </button>
 
-            {/* Canvas Submenu for Mobile Drawer */}
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                setIsCanvasOpen(true);
-                if (typeof document !== "undefined" && document.fullscreenEnabled && !document.fullscreenElement) {
-                  try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
-                }
-              }}
-              className={`text-left py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2.5 ${
-                isLight
-                  ? "hover:bg-slate-100 text-slate-800"
-                  : "hover:bg-white/10 text-neutral-200 hover:text-white"
-              }`}
-            >
-              <HiPaintBrush className="w-4 h-4 text-teal-400 shrink-0" />
-              <span>Rizx Canvas</span>
-            </button>
+            {/* Canvas & Folder Submenu for Mobile Drawer (Collapsible Dropdown) */}
+            {isMobileWorkOpen && (
+              <div className="flex flex-col gap-1 pl-2 py-0.5 animate-in fade-in slide-in-from-top-1 duration-150 border-l border-white/10 ml-1">
+                {/* Canvas Submenu for Mobile Drawer */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsCanvasOpen(true);
+                    if (typeof document !== "undefined" && document.fullscreenEnabled && !document.fullscreenElement) {
+                      try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
+                    }
+                  }}
+                  className={`text-left py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2.5 group ${
+                    isLight
+                      ? "hover:bg-slate-100 text-slate-800"
+                      : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                  }`}
+                >
+                  <HiPaintBrush className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900" : "text-white"}`} />
+                  <span>Rizx Canvas</span>
+                </button>
 
-            {/* Folder Client Button for Mobile Drawer */}
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                scrollTo("client-folders");
-              }}
-              className={`text-left py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2.5 ${
-                isLight
-                  ? "hover:bg-slate-100 text-slate-800"
-                  : "hover:bg-white/10 text-neutral-200 hover:text-white"
-              }`}
-            >
-              <HiFolder className="w-4 h-4 text-amber-400 shrink-0" />
-              <span>Folder Client</span>
-            </button>
+                {/* Folder Client Button for Mobile Drawer */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    scrollTo("client-folders");
+                  }}
+                  className={`text-left py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2.5 group ${
+                    isLight
+                      ? "hover:bg-slate-100 text-slate-800"
+                      : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                  }`}
+                >
+                  <HiFolder className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900" : "text-white"}`} />
+                  <span>Folder Client</span>
+                </button>
+              </div>
+            )}
           </div>
           <Link
             href="/products"
