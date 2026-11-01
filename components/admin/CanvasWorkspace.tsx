@@ -228,6 +228,18 @@ export default function CanvasWorkspace({
   const [isSpacePressed, setIsSpacePressed] = useState(false);
 
   // Studio UI Layout State (Figma-style Collapsible Panels & Pill)
+  const [windowWidth, setWindowWidth] = useState<number>(() => {
+    return typeof window !== "undefined" ? window.innerWidth : 1200;
+  });
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const isScreenMobile = isMobile || windowWidth < 768;
+
   const [isUiExpanded, setIsUiExpanded] = useState<boolean>(!isMobile);
   const [isPillMenuOpen, setIsPillMenuOpen] = useState<boolean>(false);
   const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
@@ -1230,7 +1242,7 @@ export default function CanvasWorkspace({
         setActiveTool("frame");
         setIsRightSidebarOpen(true);
         setIsUiExpanded(true);
-        if (isMobile) setIsMobileInspectorOpen(true);
+        if (isScreenMobile) setIsMobileInspectorOpen(true);
       }
       if (e.key === "s" || e.key === "S") {
         if (e.shiftKey) {
@@ -4886,14 +4898,16 @@ export default function CanvasWorkspace({
               : "cursor-default"
           }`}
         >
-          {/* Floating Studio Pill Menu (matches Figma reference) */}
-          <div className="absolute top-4 left-4 z-40">
-            {renderPillMenu()}
-          </div>
+          {/* Floating Studio Pill Menu (matches Figma reference - hidden on mobile/when top header is hidden) */}
+          {!hideTopHeader && !isScreenMobile && (
+            <div className="absolute top-4 left-4 z-40 hidden md:block">
+              {renderPillMenu()}
+            </div>
+          )}
 
           {/* Quick Floating Actions (Save changes, Fullscreen, Inspector toggle) */}
-          <div className="absolute top-4 right-4 z-40 flex items-center gap-2 font-mono">
-            {hasChanges && (
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 font-mono">
+            {!isScreenMobile && hasChanges && (
               <button
                 type="button"
                 onClick={handleSaveChanges}
@@ -4907,7 +4921,7 @@ export default function CanvasWorkspace({
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="p-2 rounded-xl bg-[#1e1e1e]/90 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 text-xs shadow-lg cursor-pointer"
+              className="p-1.5 sm:p-2 rounded-xl bg-[#1e1e1e]/90 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 text-xs shadow-lg cursor-pointer hidden sm:flex items-center justify-center"
               title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
             >
               {isFullscreen ? <HiArrowsPointingIn className="w-4 h-4" /> : <HiArrowsPointingOut className="w-4 h-4" />}
@@ -4915,13 +4929,13 @@ export default function CanvasWorkspace({
             <button
               type="button"
               onClick={() => {
-                if (typeof window !== "undefined" && window.innerWidth < 640) {
+                if (isScreenMobile) {
                   setIsMobileInspectorOpen((prev) => !prev);
                 } else {
                   setIsRightSidebarOpen((prev) => !prev);
                 }
               }}
-              className={`p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors ${
+              className={`p-1.5 sm:p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors ${
                 isRightSidebarOpen || isMobileInspectorOpen
                   ? "bg-[#0c8ce9] border-[#0c8ce9] text-white"
                   : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
@@ -5639,7 +5653,7 @@ export default function CanvasWorkspace({
       {/* ── Figma Floating Studio Toolbar Dock (Images 1, 2, 3, 4, 5) ─────────── */}
       <nav
         aria-label="Figma Studio Toolbar"
-        className="figma-toolbar-dock fixed bottom-[max(12px,env(safe-area-inset-bottom,12px))] sm:bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 sm:gap-1 px-1.5 py-1 sm:px-2.5 sm:py-1.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[95vw] sm:max-w-max overflow-x-auto sm:overflow-visible no-scrollbar touch-manipulation h-11 sm:h-12"
+        className="figma-toolbar-dock fixed bottom-[max(12px,env(safe-area-inset-bottom,12px))] sm:bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 sm:gap-1 px-1.5 py-1 sm:px-2.5 sm:py-1.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[calc(100vw-16px)] md:max-w-max overflow-x-auto sm:overflow-visible no-scrollbar touch-manipulation h-11 sm:h-12"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -5660,7 +5674,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(null);
             }}
             title={activeTool === "hand" ? "Hand Tool (H) - Panning Canvas" : "Move (V)"}
-            className={`h-8 w-8 sm:h-9 sm:w-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "select" || activeTool === "hand" || activeTool === "scale"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -5681,9 +5695,13 @@ export default function CanvasWorkspace({
               setActiveSubmenu(activeSubmenu === "move" ? null : "move");
             }}
             title="Move Tools Menu"
-            className="h-8 sm:h-9 px-1.5 ml-1 rounded-xl bg-[#2c2c2c] hover:bg-[#383838] text-white flex items-center justify-center transition-colors cursor-pointer"
+            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
+              activeTool === "select" || activeTool === "hand" || activeTool === "scale"
+                ? "bg-[#0c8ce9] text-white"
+                : "text-neutral-400 hover:text-white hover:bg-white/10"
+            }`}
           >
-            <HiChevronDown className="w-3 h-3 text-white" />
+            <HiChevronDown className="w-3 h-3" />
           </button>
 
           {/* Move Submenu Dropdown (Matches Screenshot media_1793530528546_57ff5efa.png) */}
@@ -5787,7 +5805,7 @@ export default function CanvasWorkspace({
               setActiveTool(nextTool);
               setIsRightSidebarOpen(true);
               setIsUiExpanded(true);
-              if (isMobile) setIsMobileInspectorOpen(true);
+              if (isScreenMobile) setIsMobileInspectorOpen(true);
               setActiveSubmenu(null);
             }}
             title="Frame (F)"
@@ -5824,7 +5842,7 @@ export default function CanvasWorkspace({
                   setActiveTool("frame");
                   setIsRightSidebarOpen(true);
                   setIsUiExpanded(true);
-                  if (isMobile) setIsMobileInspectorOpen(true);
+                  if (isScreenMobile) setIsMobileInspectorOpen(true);
                   setActiveSubmenu(null);
                 }}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
@@ -5987,7 +6005,7 @@ export default function CanvasWorkspace({
         </div>
 
         {/* 4. PEN / DRAW TOOL (With Submenu: Pen P, Pencil Shift+P) */}
-        <div className="relative flex items-center shrink-0">
+        <div className="relative hidden md:flex items-center shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -6164,7 +6182,7 @@ export default function CanvasWorkspace({
         </div>
 
         {/* 6. RESOURCES / CODE BRACKETS {} */}
-        <div className="relative shrink-0">
+        <div className="relative hidden md:block shrink-0">
           <button
             type="button"
             onClick={() => setActiveSubmenu(activeSubmenu === "resources" ? null : "resources")}
@@ -6222,9 +6240,23 @@ export default function CanvasWorkspace({
           type="button"
           onClick={zoomToFitAll}
           title="Fit All Elements"
-          className="h-8 px-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 sm:hidden"
+          className="h-8 w-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 md:hidden"
         >
           <HiArrowsPointingOut className="w-4 h-4 text-teal-400" />
+        </button>
+
+        {/* Mobile Quick Inspector Drawer Toggle */}
+        <button
+          type="button"
+          onClick={() => setIsMobileInspectorOpen((prev) => !prev)}
+          title="Inspector / Properties"
+          className={`h-8 w-8 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 md:hidden ${
+            isMobileInspectorOpen
+              ? "bg-[#0c8ce9] text-white shadow-sm"
+              : "text-neutral-300 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <HiAdjustmentsHorizontal className="w-4 h-4" />
         </button>
 
         {/* 7. COMMENT BUBBLE (💬) */}
@@ -6232,7 +6264,7 @@ export default function CanvasWorkspace({
           type="button"
           onClick={handleAddComment}
           title="Add Comment / Annotation (C)"
-          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 hidden sm:flex"
+          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 hidden md:flex"
         >
           <HiChatBubbleBottomCenterText className="w-4 h-4" />
         </button>
@@ -6245,13 +6277,13 @@ export default function CanvasWorkspace({
             setActiveSubmenu(null);
           }}
           title="Widgets & Presets (❖+)"
-          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 hidden sm:flex"
+          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 hidden md:flex"
         >
           <HiSparkles className="w-4 h-4 text-amber-400" />
         </button>
 
         {/* Toolbar Vertical Separator */}
-        <div className="w-[1px] h-5 bg-white/15 mx-0.5 sm:mx-1 shrink-0 hidden sm:block" />
+        <div className="w-[1px] h-5 bg-white/15 mx-0.5 sm:mx-1 shrink-0 hidden md:block" />
 
         {/* 9. PENCIL / SCRIBBLER */}
         <button
@@ -6260,7 +6292,7 @@ export default function CanvasWorkspace({
             setActiveTool(activeTool === "pencil" ? "select" : "pencil");
           }}
           title="Pencil / Draw"
-          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 hidden sm:flex ${
+          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 hidden md:flex ${
             activeTool === "pencil"
               ? "bg-[#0c8ce9] text-white shadow-sm"
               : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -6274,7 +6306,7 @@ export default function CanvasWorkspace({
           type="button"
           onClick={() => setShowMeasureTool(!showMeasureTool)}
           title="Measure / Dimension Inspect (Ruler)"
-          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 hidden sm:flex ${
+          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 hidden md:flex ${
             showMeasureTool
               ? "bg-[#0c8ce9] text-white shadow-sm"
               : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -6294,7 +6326,7 @@ export default function CanvasWorkspace({
             }
           }}
           title="Present / Live Canvas View (▷)"
-          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-teal-400 hover:bg-white/10 shrink-0 hidden sm:flex"
+          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-teal-400 hover:bg-white/10 shrink-0 hidden md:flex"
         >
           <HiPlay className="w-4 h-4" />
         </button>
@@ -6304,7 +6336,7 @@ export default function CanvasWorkspace({
           type="button"
           onClick={() => setShowDevMode(true)}
           title="Dev Mode / Inspect Code (</>)"
-          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-xs shrink-0 hidden sm:flex ${
+          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-xs shrink-0 hidden md:flex ${
             showDevMode
               ? "bg-[#0c8ce9] text-white shadow-sm"
               : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -7033,7 +7065,7 @@ export default function CanvasWorkspace({
 
       {/* Mobile Design Inspector Drawer */}
       {isMobileInspectorOpen && (
-        <div className="fixed inset-0 z-50 sm:hidden flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-50 md:hidden flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
           <div className="w-80 max-w-[85vw] h-full shadow-2xl relative animate-in slide-in-from-right duration-200">
             <button
               type="button"
