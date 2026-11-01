@@ -1071,7 +1071,9 @@ export default function CanvasWorkspace({
       it.type !== "shape" &&
       it.mediaType !== "shape" &&
       it.mediaType !== "rectangle" &&
-      it.mediaType !== "ellipse"
+      it.mediaType !== "ellipse" &&
+      it.type !== "text" &&
+      it.mediaType !== "text"
     );
   }, []);
 
@@ -2595,7 +2597,7 @@ export default function CanvasWorkspace({
 
     if (posX === undefined || posY === undefined) {
       // If a frame is currently selected, place the text inside that frame
-      if (selectedItem && (selectedItem.mediaType === "frame" || selectedItem.type === "section" || (selectedItem.aspect && selectedItem.aspect !== "original"))) {
+      if (selectedItem && isFrameItem(selectedItem)) {
         frameId = selectedItem.id;
         posX = (selectedItem.x || 0) + 40;
         posY = (selectedItem.y || 0) + 60;
@@ -3721,13 +3723,15 @@ export default function CanvasWorkspace({
           <div className="flex items-center gap-1 font-semibold text-white">
             <span>
               {selectedItem
-                ? selectedItem.type === "section"
+                ? selectedItem.type === "text" || selectedItem.mediaType === "text"
+                  ? "Text"
+                  : selectedItem.type === "shape" || selectedItem.mediaType === "shape" || selectedItem.mediaType === "rectangle" || selectedItem.mediaType === "ellipse"
+                  ? "Rectangle"
+                  : selectedItem.type === "section" || selectedItem.mediaType === "section"
                   ? "Section"
                   : selectedItem.type === "folder"
                   ? "Folder Client"
-                  : selectedItem.type === "text"
-                  ? "Text"
-                  : selectedItem.mediaType === "frame"
+                  : selectedItem.mediaType === "frame" || selectedItem.type === "frame"
                   ? "Frame"
                   : "Media"
                 : "Canvas Page"}
@@ -4043,16 +4047,18 @@ export default function CanvasWorkspace({
               </div>
             </div>
 
-            {/* Clip content Checkbox */}
-            <label className="flex items-center gap-2 cursor-pointer pt-1 text-neutral-300 text-[11px]">
-              <input
-                type="checkbox"
-                checked={selectedItem?.clipContent !== false}
-                onChange={(e) => updateSelectedItem({ clipContent: e.target.checked })}
-                className="rounded bg-[#2c2c2c] border-white/20 text-[#0c8ce9] focus:ring-0"
-              />
-              <span>Clip content</span>
-            </label>
+            {/* Clip content Checkbox (Only for Frames) */}
+            {selectedItem && isFrameItem(selectedItem) && (
+              <label className="flex items-center gap-2 cursor-pointer pt-1 text-neutral-300 text-[11px]">
+                <input
+                  type="checkbox"
+                  checked={selectedItem?.clipContent !== false}
+                  onChange={(e) => updateSelectedItem({ clipContent: e.target.checked })}
+                  className="rounded bg-[#2c2c2c] border-white/20 text-[#0c8ce9] focus:ring-0"
+                />
+                <span>Clip content</span>
+              </label>
+            )}
           </div>
 
           {/* 3. APPEARANCE SECTION (Image 1) */}
@@ -5721,6 +5727,11 @@ export default function CanvasWorkspace({
               const isAutoHeight = resizeMode === "auto_height";
               const isFixed = resizeMode === "fixed";
 
+              const textLines = (rawText || " ").split("\n");
+              const longestLineLen = Math.max(...textLines.map((l) => l.length), 1);
+              const estimatedW = Math.round(isAutoWidth ? Math.max(28, longestLineLen * textFontSize * 0.58 + 10) : (item.width || 320));
+              const estimatedH = Math.round(isFixed && item.height ? item.height : Math.max(textFontSize * 1.15, textLines.length * textFontSize * 1.2 + 8));
+
               return (
                 <div
                   key={item.id}
@@ -5763,13 +5774,13 @@ export default function CanvasWorkspace({
                       : "hover:ring-1 hover:ring-[#0c8ce9]/50"
                   }`}
                 >
-                  {/* Figma Bounding Box & Corner Handles when Selected (Matches Screenshot media_1793529058616_42d79f3a.png) */}
+                  {/* Figma Bounding Box & Corner Handles when Selected (Matches Screenshots 2 & 5) */}
                   {isSelected && (
                     <>
-                      <div className="absolute -top-1 -left-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
-                      <div className="absolute -top-1 -right-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
-                      <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
-                      <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
+                      <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] pointer-events-none z-50 shadow-xs" />
+                      <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] pointer-events-none z-50 shadow-xs" />
+                      <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] pointer-events-none z-50 shadow-xs" />
+                      <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] pointer-events-none z-50 shadow-xs" />
                       {/* Interactive Drag Handles for Resizing Width and Height */}
                       <div
                         onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
@@ -5783,19 +5794,11 @@ export default function CanvasWorkspace({
                         className="absolute -bottom-1.5 -right-1.5 w-3 h-3 cursor-nwse-resize z-50 pointer-events-auto"
                         title="Tarik ukuran text box (Fixed size)"
                       />
-                      {/* Quick Delete Button for text */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteItem(item.id);
-                        }}
-                        className="absolute -top-7 right-0 px-2 py-0.5 rounded bg-[#1e1e1e] border border-white/20 text-neutral-300 hover:text-red-400 hover:border-red-500/50 cursor-pointer shadow-md text-[10px] flex items-center gap-1 z-50 pointer-events-auto transition-colors"
-                        title="Hapus text layer"
-                      >
-                        <HiTrash className="w-3 h-3 text-red-400" />
-                        <span>Hapus</span>
-                      </button>
+
+                      {/* Figma Dimension Badge Centered at Bottom (Matches Screenshots 2 & 5: 211 × 58 / 146 × 116) */}
+                      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
+                        {estimatedW} × {estimatedH}
+                      </div>
                     </>
                   )}
 
