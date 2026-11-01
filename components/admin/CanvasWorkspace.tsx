@@ -679,6 +679,17 @@ export default function CanvasWorkspace({
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Converts screen client coordinates (e.clientX, e.clientY) accurately into canvas space
+  const getCanvasCoords = useCallback((clientX: number, clientY: number) => {
+    const rect = canvasContainerRef.current?.getBoundingClientRect();
+    const offsetX = rect ? clientX - rect.left : clientX;
+    const offsetY = rect ? clientY - rect.top : clientY;
+    return {
+      x: Math.round((offsetX - pan.x) / zoom),
+      y: Math.round((offsetY - pan.y) / zoom),
+    };
+  }, [pan, zoom]);
+
   // Initialize items from context or layout initial client works
   useEffect(() => {
     if (canvasItems && canvasItems.length > 0) {
@@ -784,8 +795,7 @@ export default function CanvasWorkspace({
     const menuHeight = 540;
     const x = Math.min(e.clientX, window.innerWidth - menuWidth - 12);
     const y = Math.min(e.clientY, Math.max(12, window.innerHeight - menuHeight - 12));
-    const canvasX = (e.clientX - pan.x) / zoom;
-    const canvasY = (e.clientY - pan.y) / zoom;
+    const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
 
     setContextMenu({
       isOpen: true,
@@ -796,7 +806,7 @@ export default function CanvasWorkspace({
       item,
     });
     setContextSubmenu(null);
-  }, [pan, zoom]);
+  }, [getCanvasCoords]);
 
   const handleCanvasContextMenu = useCallback((e: React.MouseEvent) => {
     // If clicked on input or textarea, let default context menu appear
@@ -807,8 +817,7 @@ export default function CanvasWorkspace({
     const menuHeight = 540;
     const x = Math.min(e.clientX, window.innerWidth - menuWidth - 12);
     const y = Math.min(e.clientY, Math.max(12, window.innerHeight - menuHeight - 12));
-    const canvasX = (e.clientX - pan.x) / zoom;
-    const canvasY = (e.clientY - pan.y) / zoom;
+    const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
 
     const currentItem = selectedId ? items.find((i) => i.id === selectedId) || null : null;
     setContextMenu({
@@ -820,7 +829,7 @@ export default function CanvasWorkspace({
       item: currentItem,
     });
     setContextSubmenu(null);
-  }, [pan, zoom, selectedId, items]);
+  }, [getCanvasCoords, selectedId, items]);
 
   const handleCopy = useCallback((itemToCopy?: CanvasItem) => {
     const target = itemToCopy || items.find((i) => i.id === selectedId);
@@ -1419,8 +1428,7 @@ export default function CanvasWorkspace({
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // If clicking on canvas in Text tool mode: place new text at click coordinate (or in frame under cursor)
     if (activeTool === "text" && e.button === 0) {
-      const canvasX = Math.round((e.clientX - pan.x) / zoom);
-      const canvasY = Math.round((e.clientY - pan.y) / zoom);
+      const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
       const hitFrame = items.find(
         (f) =>
           (f.mediaType === "frame" || f.type === "section" || (f.aspect && f.aspect !== "original")) &&
@@ -1435,8 +1443,7 @@ export default function CanvasWorkspace({
 
     // If clicking on canvas in Frame tool mode: place default frame at click coordinate
     if (activeTool === "frame" && e.button === 0) {
-      const canvasX = Math.round((e.clientX - pan.x) / zoom);
-      const canvasY = Math.round((e.clientY - pan.y) / zoom);
+      const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
       const newFrame: CanvasItem = {
         id: `frame-${Date.now()}`,
         title: "Instagram post",
@@ -1458,6 +1465,23 @@ export default function CanvasWorkspace({
 
     // If clicking on canvas background directly or with hand tool / spacebar
     if (e.target === e.currentTarget || isSpacePressed || activeTool === "hand" || e.button === 1) {
+      // Purge any orphan empty text layers when clicking away on canvas
+      setItems((prev) => {
+        const hasEmpty = prev.some(
+          (it) => (it.type === "text" || it.mediaType === "text") && (!it.content || it.content.trim() === "")
+        );
+        if (hasEmpty) {
+          return prev.filter((it) => {
+            if (it.type === "text" || it.mediaType === "text") {
+              const c = it.content !== undefined ? it.content : it.title;
+              return c && c.trim() !== "";
+            }
+            return true;
+          });
+        }
+        return prev;
+      });
+
       if (isSpacePressed || activeTool === "hand" || e.button === 1) {
         setIsPanning(true);
         setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -1465,8 +1489,7 @@ export default function CanvasWorkspace({
         setSelectedIds(new Set());
       } else if (activeTool === "select" && e.button === 0) {
         // Desktop Move / Select tool: Hold and drag to select (Figma Marquee Selection)
-        const canvasX = (e.clientX - pan.x) / zoom;
-        const canvasY = (e.clientY - pan.y) / zoom;
+        const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
         marqueeStartRef.current = { x: canvasX, y: canvasY };
         setIsMarqueeSelecting(true);
         setMarqueeBox({
@@ -1502,8 +1525,7 @@ export default function CanvasWorkspace({
           });
         }
       } else if (isMarqueeSelecting && marqueeStartRef.current) {
-        const curCanvasX = (e.clientX - pan.x) / zoom;
-        const curCanvasY = (e.clientY - pan.y) / zoom;
+        const { x: curCanvasX, y: curCanvasY } = getCanvasCoords(e.clientX, e.clientY);
         const sX = marqueeStartRef.current.x;
         const sY = marqueeStartRef.current.y;
 
@@ -1658,8 +1680,7 @@ export default function CanvasWorkspace({
     // If Text tool is active and clicked on a frame or section: insert text directly inside that frame!
     if (activeTool === "text" && item.type !== "text" && item.mediaType !== "text") {
       e.stopPropagation();
-      const itemCanvasX = Math.round((e.clientX - pan.x) / zoom);
-      const itemCanvasY = Math.round((e.clientY - pan.y) / zoom);
+      const { x: itemCanvasX, y: itemCanvasY } = getCanvasCoords(e.clientX, e.clientY);
       handleAddText(itemCanvasX, itemCanvasY, item.id);
       return;
     }
@@ -2070,25 +2091,34 @@ export default function CanvasWorkspace({
         posX = (selectedItem.x || 0) + 40;
         posY = (selectedItem.y || 0) + 60;
       } else {
-        const center = getViewportCenter(400, 160);
+        const center = getViewportCenter(320, 60);
         posX = center.x;
         posY = center.y;
       }
     }
 
+    // Filter out any previous unedited empty text items so ghosts don't pile up
+    const cleanItems = items.filter((it) => {
+      if (it.type === "text" || it.mediaType === "text") {
+        const c = it.content !== undefined ? it.content : it.title;
+        return c && c.trim() !== "";
+      }
+      return true;
+    });
+
     const newText: CanvasItem = {
       id: `text-${Date.now()}`,
-      title: "Text",
+      title: "",
       type: "text",
       mediaType: "text",
       content: "", // Starts empty with blinking cursor |
       x: posX,
       y: posY,
-      width: 400,
-      height: 160,
+      width: 320,
+      height: 60,
       fontFamily: "Noto Serif",
       fontWeight: "Bold",
-      fontSize: 129,
+      fontSize: 48,
       lineHeight: "100%",
       letterSpacing: "-3%",
       textAlign: "left",
@@ -2096,7 +2126,7 @@ export default function CanvasWorkspace({
       frameId: frameId,
     };
 
-    updateItemsWithTracking([...items, newText]);
+    updateItemsWithTracking([...cleanItems, newText]);
     setSelectedId(newText.id);
     setSelectedIds(new Set([newText.id]));
     setActiveTool("text");
@@ -4653,6 +4683,19 @@ export default function CanvasWorkspace({
                       <div className="absolute -top-1 -right-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
                       <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
                       <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-white border border-[#0c8ce9] pointer-events-none" />
+                      {/* Quick Delete Button for text */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteItem(item.id);
+                        }}
+                        className="absolute -top-7 right-0 px-2 py-0.5 rounded bg-[#1e1e1e] border border-white/20 text-neutral-300 hover:text-red-400 hover:border-red-500/50 cursor-pointer shadow-md text-[10px] flex items-center gap-1 z-50 pointer-events-auto transition-colors"
+                        title="Hapus text layer"
+                      >
+                        <HiTrash className="w-3 h-3 text-red-400" />
+                        <span>Hapus</span>
+                      </button>
                     </>
                   )}
 
@@ -4667,12 +4710,26 @@ export default function CanvasWorkspace({
                         );
                         setHasChanges(true);
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Escape") {
-                          (e.target as HTMLElement).blur();
+                      onBlur={(e) => {
+                        const val = e.target.value.trim();
+                        if (!val) {
+                          handleDeleteItem(item.id);
                         }
                       }}
-                      placeholder=""
+                      onKeyDown={(e) => {
+                        if (e.key === "Escape") {
+                          e.preventDefault();
+                          if (!rawText.trim()) {
+                            handleDeleteItem(item.id);
+                          } else {
+                            (e.target as HTMLElement).blur();
+                          }
+                        } else if ((e.key === "Backspace" || e.key === "Delete") && rawText === "") {
+                          e.preventDefault();
+                          handleDeleteItem(item.id);
+                        }
+                      }}
+                      placeholder={isSelected ? "Tulis teks..." : ""}
                       rows={rawText.split("\n").length || 1}
                       autoFocus={isSelected && rawText === ""}
                       style={{
