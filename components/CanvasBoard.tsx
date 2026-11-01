@@ -1243,6 +1243,31 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                 );
               }
 
+              // 3.5 FIGMA ARTBOARD FRAME
+              if ((item.type === "frame" || item.mediaType === "frame") && !item.image) {
+                const frameWidth = item.width || 440;
+                const frameHeight = item.height || 550;
+                const frameBg = item.color || (isLight ? "#FFFFFF" : "#18181b");
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      transform: `translate3d(${x}px, ${y}px, 0)`,
+                      width: `${frameWidth}px`,
+                      height: `${frameHeight}px`,
+                      backgroundColor: frameBg,
+                      borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "16px",
+                      zIndex: 5,
+                    }}
+                    className={`absolute shadow-xl border ${isLight ? "border-slate-300" : "border-white/10"}`}
+                  >
+                    <div className="absolute -top-7 left-0 text-[12px] font-sans font-medium text-neutral-400 select-none truncate">
+                      {item.title}
+                    </div>
+                  </div>
+                );
+              }
+
               // 4. MEDIA SHEET
               const imgSrc = normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : ""));
               let sheetWidthClass = "w-[440px] sm:w-[540px]";

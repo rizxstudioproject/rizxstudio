@@ -1943,12 +1943,10 @@ export default function CanvasWorkspace({
           const next = prev.map((it) => {
             if (!draggedIds.includes(it.id)) return it;
 
-            const isFrameItself =
-              it.mediaType === "frame" ||
-              it.type === "section" ||
-              it.type === "frame" ||
-              (it.aspect && it.aspect !== "original");
+            const isFrameItself = isFrameItem(it);
+            if (isFrameItself) return it;
 
+            const { x: mouseDropX, y: mouseDropY } = getCanvasCoords(e.clientX, e.clientY);
             const dx = it.x || 0;
             const dy = it.y || 0;
             const itW = it.width || (it.aspect === "16:9" ? 560 : 440);
@@ -1956,14 +1954,10 @@ export default function CanvasWorkspace({
             const centerX = dx + itW / 2;
             const centerY = dy + itH / 2;
 
-            // Find frames containing either center point or top-left of this item
+            // Find frames containing mouse drop point, center point, or top-left of this item
             const candidateFrames = prev.filter((f) => {
               if (f.id === it.id) return false;
-              const isTargetFrame =
-                f.mediaType === "frame" ||
-                f.type === "section" ||
-                f.type === "frame" ||
-                (f.aspect && f.aspect !== "original");
+              const isTargetFrame = isFrameItem(f);
               if (!isTargetFrame) return false;
 
               const fX = f.x || 0;
@@ -1971,9 +1965,10 @@ export default function CanvasWorkspace({
               const fW = f.width || (f.aspect === "16:9" ? 720 : 480);
               const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
 
+              const dropInside = mouseDropX >= fX && mouseDropX <= fX + fW && mouseDropY >= fY && mouseDropY <= fY + fH;
               const centerInside = centerX >= fX && centerX <= fX + fW && centerY >= fY && centerY <= fY + fH;
               const topLeftInside = dx >= fX && dx <= fX + fW && dy >= fY && dy <= fY + fH;
-              return centerInside || topLeftInside;
+              return dropInside || centerInside || topLeftInside;
             });
 
             let targetFrame: CanvasItem | undefined = undefined;
@@ -1986,9 +1981,38 @@ export default function CanvasWorkspace({
               });
             }
 
-            if (targetFrame && it.frameId !== targetFrame.id) {
+            if (targetFrame) {
+              const fX = targetFrame.x || 0;
+              const fY = targetFrame.y || 0;
+              const fW = targetFrame.width || (targetFrame.aspect === "16:9" ? 720 : 480);
+              const fH = targetFrame.height || (targetFrame.aspect === "16:9" ? 405 : 600);
+
               hasChangesNested = true;
-              return { ...it, frameId: targetFrame.id };
+
+              let fitW = it.width || (it.aspect === "16:9" ? 560 : 440);
+              let fitH = it.height || 550;
+
+              // Scale down nicely if item is wider than the target frame
+              if (fitW > fW - 32) {
+                fitW = Math.max(160, Math.round(fW - 32));
+                if (it.aspect === "16:9") fitH = Math.round(fitW * (9 / 16));
+                else if (it.aspect === "1:1") fitH = fitW;
+                else if (it.aspect === "9:16") fitH = Math.round(fitW * (16 / 9));
+                else fitH = Math.round(fitW * (5 / 4));
+              }
+
+              // Fit coordinates neatly inside frame bounds
+              const newX = Math.max(fX + 16, Math.min(dx, fX + fW - fitW - 16));
+              const newY = Math.max(fY + 16, Math.min(dy, fY + fH - fitH - 16));
+
+              return {
+                ...it,
+                frameId: targetFrame.id,
+                x: newX,
+                y: newY,
+                width: fitW,
+                height: fitH,
+              };
             } else if (!targetFrame && it.frameId) {
               // Dragged outside frame
               hasChangesNested = true;
@@ -2145,7 +2169,7 @@ export default function CanvasWorkspace({
       y: itemCanvasY - (item.y || 0),
     });
 
-    const isFrame = item.mediaType === "frame" || item.type === "section" || (item.aspect && item.aspect !== "original");
+    const isFrame = isFrameItem(item);
     const itemW = item.width || (item.aspect === "16:9" ? 720 : 480);
     const itemH = item.height || (item.aspect === "16:9" ? 405 : 600);
     const itemX = item.x || 0;
@@ -5554,7 +5578,7 @@ export default function CanvasWorkspace({
                     height: isFixed && item.height ? `${item.height}px` : "auto",
                     filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
                     zIndex: isSelected ? 40 : isChildOfFrame ? 15 : 10,
-                    clipPath: !isSelected && textClipPath ? textClipPath : undefined,
+                    clipPath: textClipPath ? textClipPath : undefined,
                   }}
                   className={`absolute group cursor-text select-text transition-shadow z-30 ${
                     isSelected
@@ -5865,7 +5889,7 @@ export default function CanvasWorkspace({
                   boxShadow: getEffectBoxShadow(item),
                   filter: getEffectFilter(item),
                   zIndex: isSelected ? 40 : isChildOfFrame ? 15 : 10,
-                  clipPath: !isSelected && clipPathStyle ? clipPathStyle : undefined,
+                  clipPath: clipPathStyle ? clipPathStyle : undefined,
                 }}
                 className={`group absolute rounded-2xl flex flex-col select-none cursor-grab active:cursor-grabbing ${
                   draggingItemId === item.id
@@ -5923,13 +5947,8 @@ export default function CanvasWorkspace({
                   </>
                 )}
 
-                {/* Clippable Card Content Wrapper (Clips image/label inside frame, preserving selection outline) */}
-                <div
-                  className="flex flex-col w-full h-full"
-                  style={{
-                    clipPath: isSelected && clipPathStyle ? clipPathStyle : undefined,
-                  }}
-                >
+                {/* Card Content Wrapper */}
+                <div className="flex flex-col w-full h-full">
                 {/* Header Label (Editable Title & Actions) */}
                 <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
                   <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
