@@ -8,6 +8,7 @@ import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
 import { RiSunFill, RiMoonFill } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import { usePortfolioData } from "@/context/PortfolioDataContext";
 import { normalizeSocialUrl, formatWhatsAppUrl } from "@/lib/socialService";
 import CanvasBoard from "@/components/CanvasBoard";
 
@@ -25,6 +26,7 @@ export default function Navbar() {
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { lang, setLang, t } = useLang();
   const { themeMode, toggleThemeMode, socialContacts, primaryColor } = useMotionTheme();
+  const { clients } = usePortfolioData();
   const isLight = themeMode === "light";
   const lastThemeTriggerRef = useRef<number>(0);
 
@@ -166,6 +168,21 @@ export default function Navbar() {
     }
   };
 
+  const handleSelectClient = (clientId: string) => {
+    setIsWorkMenuOpen(false);
+    setMobileMenuOpen(false);
+    if (pathname !== "/") {
+      router.push(`/?client=${clientId}#projects`);
+    } else {
+      window.dispatchEvent(
+        new CustomEvent("select-client-folder", {
+          detail: { clientId, scrollToProjects: true },
+        })
+      );
+      scrollTo("projects");
+    }
+  };
+
   const shouldShow = isVisible || isHovered || mobileMenuOpen;
 
   return (
@@ -257,7 +274,7 @@ export default function Navbar() {
             >
               {t("nav.about")}
             </button>
-            {/* Work dropdown menu with Canvas submenu */}
+            {/* Work dropdown menu with Canvas & Client Folders submenus */}
             <div
               ref={workMenuRef}
               className="relative"
@@ -289,32 +306,13 @@ export default function Navbar() {
               {/* Submenu Dropdown */}
               {isWorkMenuOpen && (
                 <div
-                  className={`absolute top-full left-0 mt-2.5 w-60 rounded-2xl p-1.5 shadow-2xl border backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                  className={`absolute top-full left-0 mt-2.5 w-72 rounded-2xl p-2 shadow-2xl border backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
                     isLight
                       ? "bg-white/95 border-slate-200/90 text-slate-800"
                       : "bg-[#0f1115]/95 border-white/10 text-white"
                   }`}
                 >
-                  <button
-                    onClick={() => {
-                      setIsWorkMenuOpen(false);
-                      scrollTo("projects");
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer ${
-                      isLight
-                        ? "hover:bg-slate-100 text-slate-800"
-                        : "hover:bg-white/5 text-neutral-200 hover:text-white"
-                    }`}
-                  >
-                    <span className="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center text-sm shrink-0">
-                      📁
-                    </span>
-                    <div>
-                      <div className="font-semibold">Client Vault</div>
-                      <div className="text-[10px] text-neutral-400 font-normal">All client deliverables</div>
-                    </div>
-                  </button>
-
+                  {/* Canvas Item */}
                   <button
                     onClick={() => {
                       setIsWorkMenuOpen(false);
@@ -323,25 +321,97 @@ export default function Navbar() {
                         try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
                       }
                     }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer mt-0.5 group ${
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer group ${
                       isLight
-                        ? "hover:bg-teal-50 text-slate-800"
-                        : "hover:bg-teal-500/10 text-neutral-200 hover:text-white"
+                        ? "hover:bg-teal-50 border border-transparent hover:border-teal-200 text-slate-800"
+                        : "hover:bg-teal-500/10 border border-transparent hover:border-teal-500/20 text-neutral-200 hover:text-white"
                     }`}
                   >
-                    <span className="w-7 h-7 rounded-lg bg-gradient-to-tr from-teal-500 to-emerald-400 text-black flex items-center justify-center text-xs font-black shrink-0 shadow-sm">
+                    <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-black flex items-center justify-center text-sm font-black shrink-0 shadow-sm group-hover:scale-105 transition-transform">
                       🎨
                     </span>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="font-semibold flex items-center justify-between">
-                        <span>Canvas</span>
-                        <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 font-mono font-bold tracking-wider">
+                        <span className="truncate">Canvas</span>
+                        <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 font-mono font-bold tracking-wider shrink-0">
                           PureRef
                         </span>
                       </div>
-                      <div className="text-[10px] text-neutral-400 font-normal">Infinite zoom & pan board</div>
+                      <div className="text-[10px] text-neutral-400 font-normal truncate">
+                        Figma & PureRef infinite board
+                      </div>
                     </div>
                   </button>
+
+                  {/* Section Divider: Folder Client */}
+                  <div className="my-2 px-3 pt-2 border-t border-white/5 flex items-center justify-between">
+                    <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-neutral-400">
+                      📁 Folder Client
+                    </span>
+                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-neutral-400">
+                      {(clients || []).length} Folders
+                    </span>
+                  </div>
+
+                  {/* Client Folders List */}
+                  <div className="max-h-56 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
+                    {/* All Folders Option */}
+                    <button
+                      onClick={() => {
+                        setIsWorkMenuOpen(false);
+                        scrollTo("projects");
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer ${
+                        isLight
+                          ? "hover:bg-slate-100 text-slate-700"
+                          : "hover:bg-white/5 text-neutral-300 hover:text-white"
+                      }`}
+                    >
+                      <span className="w-5 h-5 rounded-md bg-teal-500/10 text-teal-400 flex items-center justify-center text-xs shrink-0">
+                        📁
+                      </span>
+                      <span className="flex-1 truncate">Semua Folder Client</span>
+                    </button>
+
+                    {/* Specific Client Folders */}
+                    {(clients || []).map((client) => {
+                      const count = client.works?.length || client.itemsCount || 0;
+                      return (
+                        <button
+                          key={client.id}
+                          onClick={() => handleSelectClient(client.id)}
+                          className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer group ${
+                            isLight
+                              ? "hover:bg-slate-100 text-slate-700"
+                              : "hover:bg-white/5 text-neutral-300 hover:text-white"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            {client.logo ? (
+                              <img
+                                src={client.logo}
+                                alt={client.clientName}
+                                className="w-5 h-5 rounded-md object-contain bg-white/5 p-0.5 shrink-0"
+                              />
+                            ) : (
+                              <span
+                                className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-white shrink-0"
+                                style={{ backgroundColor: client.color || "#00A389" }}
+                              >
+                                {client.clientName?.charAt(0) || "C"}
+                              </span>
+                            )}
+                            <span className="truncate group-hover:text-teal-400 transition-colors">
+                              {client.clientName}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-mono text-neutral-400 shrink-0">
+                            {count}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>
@@ -569,6 +639,50 @@ export default function Navbar() {
                 New
               </span>
             </button>
+
+            {/* Folder Client Submenu for Mobile Drawer */}
+            <div className={`p-2 rounded-xl border mt-1 ${isLight ? "bg-slate-50 border-slate-200" : "bg-white/[0.02] border-white/10"}`}>
+              <div className="flex items-center justify-between px-2 py-1 mb-1 text-[11px] font-mono text-neutral-400 font-semibold uppercase">
+                <span className="flex items-center gap-1.5">
+                  <span>📁</span>
+                  <span>Folder Client</span>
+                </span>
+                <span className="text-[10px]">{(clients || []).length} Folders</span>
+              </div>
+              <div className="space-y-1 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                {(clients || []).map((client) => {
+                  const count = client.works?.length || client.itemsCount || 0;
+                  return (
+                    <button
+                      key={client.id}
+                      onClick={() => handleSelectClient(client.id)}
+                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer ${
+                        isLight ? "hover:bg-slate-200 text-slate-800" : "hover:bg-white/10 text-neutral-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        {client.logo ? (
+                          <img
+                            src={client.logo}
+                            alt={client.clientName}
+                            className="w-4 h-4 rounded object-contain bg-white/5 p-0.5 shrink-0"
+                          />
+                        ) : (
+                          <span
+                            className="w-4 h-4 rounded flex items-center justify-center text-[9px] font-bold text-white shrink-0"
+                            style={{ backgroundColor: client.color || "#00A389" }}
+                          >
+                            {client.clientName?.charAt(0) || "C"}
+                          </span>
+                        )}
+                        <span className="truncate">{client.clientName}</span>
+                      </div>
+                      <span className="text-[10px] font-mono text-neutral-400 shrink-0">{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
           <Link
             href="/products"

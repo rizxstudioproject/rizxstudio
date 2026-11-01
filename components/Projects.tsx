@@ -1063,6 +1063,29 @@ export default function Projects() {
     };
   }, []);
 
+  // Listen for client folder selection from Navbar dropdown or external links
+  useEffect(() => {
+    const handleSelectClient = (e: any) => {
+      const clientId = e?.detail?.clientId;
+      if (clientId && stage4.clients.some((c) => c.id === clientId)) {
+        setSelectedClient(clientId);
+      }
+    };
+    window.addEventListener("select-client-folder", handleSelectClient as EventListener);
+
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const clientParam = params.get("client") || params.get("folder");
+      if (clientParam && stage4.clients.some((c) => c.id === clientParam)) {
+        setSelectedClient(clientParam);
+      }
+    }
+
+    return () => {
+      window.removeEventListener("select-client-folder", handleSelectClient as EventListener);
+    };
+  }, [stage4.clients]);
+
   // Modal Lightbox state with multiple items & active index
   const [modalData, setModalData] = useState<{
     items: ModalItem[];
