@@ -36,7 +36,7 @@ interface CanvasBoardProps {
 }
 
 export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
-  const { clients, stage3, heroWorks } = usePortfolioData();
+  const { clients, stage3, heroWorks, canvasItems, addCanvasItem } = usePortfolioData();
   const { t, tr } = useLang();
 
   // Viewport & Transform Engine State
@@ -50,11 +50,35 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [isWindowBlurred, setIsWindowBlurred] = useState(false);
 
+  // Direct Drag & Drop state on Canvas Board
+  const [isCanvasDragOver, setIsCanvasDragOver] = useState(false);
+  const [droppedMedia, setDroppedMedia] = useState<{
+    fileUrl: string;
+    isVideo: boolean;
+    title: string;
+    aspect: string;
+  } | null>(null);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const boardContentRef = useRef<HTMLDivElement>(null);
 
   // Gather all works across client vaults into Canvas reference sheets
   const sheets: CanvasSheetItem[] = useMemo(() => {
+    if (canvasItems && canvasItems.length > 0) {
+      return canvasItems.map((item) => ({
+        id: item.id,
+        title: item.title,
+        type: item.type || item.clientName || "Canvas Asset",
+        image: normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : "")),
+        aspect: item.aspect || "4:5",
+        clientName: item.clientName || "Selected Work",
+        clientId: item.clientId || "canvas",
+        year: item.year || "2026",
+        isVideo: Boolean(item.isVideo || item.videoId || item.mediaType === "youtube" || item.mediaType === "gdrive"),
+        tools: item.tools || ["figma", "pure-ref"],
+      }));
+    }
+
     const list: CanvasSheetItem[] = [];
 
     // 1. Gather all client deliverables
@@ -355,6 +379,39 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsCanvasDragOver(true);
+      }}
+      onDragLeave={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsCanvasDragOver(false);
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsCanvasDragOver(false);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          const file = e.dataTransfer.files[0];
+          const isVideo = file.type.startsWith("video/");
+          const isImg = file.type.startsWith("image/");
+          if (isImg || isVideo) {
+            const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              setDroppedMedia({
+                fileUrl: ev.target?.result as string,
+                isVideo,
+                title: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+                aspect: "4:5",
+              });
+            };
+            reader.readAsDataURL(file);
+          }
+        }
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -407,6 +464,122 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
               "Canvas view is protected. Return to this window to resume exploring."
             )}
           </p>
+        </div>
+      )}
+
+      {/* ── Drag & Drop Overlay on Canvas ────────────────────────────────────────── */}
+      {isCanvasDragOver && (
+        <div className="absolute inset-0 z-[120] bg-teal-950/80 backdrop-blur-md border-4 border-dashed border-teal-400 flex flex-col items-center justify-center pointer-events-none animate-in fade-in duration-150">
+          <div className="w-20 h-20 rounded-3xl bg-teal-500/20 text-teal-300 border border-teal-400/40 flex items-center justify-center mb-4 scale-110 animate-bounce">
+            <span className="text-3xl">📥</span>
+          </div>
+          <h3 className="text-xl font-bold text-white font-mono tracking-tight">
+            Lepaskan File ke Canvas
+          </h3>
+          <p className="text-sm text-teal-300 font-mono mt-1">
+            Mendukung file Gambar (PNG, JPG, WEBP, GIF) dan Video (MP4, WEBM)
+          </p>
+        </div>
+      )}
+
+      {/* ── Dialog Konfirmasi Dropped Media ke Canvas (Atur Judul, Cancel & Save) ── */}
+      {droppedMedia && (
+        <div className="absolute inset-0 z-[130] bg-black/85 backdrop-blur-2xl flex items-center justify-center p-4 pointer-events-auto animate-in fade-in zoom-in-95 duration-150">
+          <div className="w-full max-w-md rounded-2xl bg-[#0f1115] border border-teal-500/30 p-6 shadow-2xl flex flex-col gap-4">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold">
+                  🎨
+                </span>
+                <h4 className="text-sm font-bold text-white">Tambahkan Karya ke Canvas</h4>
+              </div>
+              <button
+                onClick={() => setDroppedMedia(null)}
+                className="text-neutral-400 hover:text-white transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Media Preview */}
+            <div className="w-full h-44 rounded-xl bg-black overflow-hidden border border-white/10 flex items-center justify-center">
+              {droppedMedia.isVideo ? (
+                <video src={droppedMedia.fileUrl} controls className="max-h-44 w-auto rounded" />
+              ) : (
+                <img src={droppedMedia.fileUrl} alt="Drop Preview" className="max-h-44 w-auto object-contain" />
+              )}
+            </div>
+
+            {/* Judul Text */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                Judul Text Karya <span className="text-teal-400">*</span>
+              </label>
+              <input
+                type="text"
+                value={droppedMedia.title}
+                onChange={(e) => setDroppedMedia({ ...droppedMedia, title: e.target.value })}
+                placeholder="Masukkan judul karya..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400"
+              />
+            </div>
+
+            {/* Aspect Ratio */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                Aspect Ratio Frame
+              </label>
+              <div className="grid grid-cols-4 gap-1.5">
+                {["4:5", "16:9", "1:1", "9:16"].map((r) => (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setDroppedMedia({ ...droppedMedia, aspect: r })}
+                    className={`py-1.5 px-2 rounded-lg border text-xs font-mono font-bold transition-all cursor-pointer ${
+                      droppedMedia.aspect === r
+                        ? "border-teal-400 bg-teal-500/20 text-white"
+                        : "border-white/10 bg-white/5 text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Cancel & Save Action Buttons */}
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setDroppedMedia(null)}
+                className="flex-1 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Batal (Cancel)
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  if (!droppedMedia.title.trim()) return;
+                  await addCanvasItem({
+                    id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+                    title: droppedMedia.title.trim(),
+                    type: "Canvas Drop Upload",
+                    clientName: "Selected Works",
+                    aspect: droppedMedia.aspect,
+                    image: droppedMedia.fileUrl,
+                    isVideo: droppedMedia.isVideo,
+                    mediaType: droppedMedia.isVideo ? "upload" : "image",
+                    year: new Date().getFullYear().toString(),
+                    tools: ["figma", "pure-ref"],
+                  });
+                  setDroppedMedia(null);
+                }}
+                className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black text-xs font-bold transition-colors shadow-lg shadow-teal-500/20 cursor-pointer"
+              >
+                Simpan ke Canvas (Save)
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

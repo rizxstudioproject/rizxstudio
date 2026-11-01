@@ -25,6 +25,7 @@ import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export type AdminSidebarTab =
   | "clients"
+  | "canvas"
   | "resources"
   | "hero-banner"
   | "hero-works"
@@ -79,6 +80,12 @@ export default function AdminSidebar({
       label: tr("Portfolio & Clients", "Portofolio & Klien", "Portofolio & Klien"),
       badge: totalClients > 0 ? totalClients : undefined,
       icon: RiFolderFill,
+    },
+    {
+      id: "canvas",
+      label: tr("Canvas Board", "Canvas Board (PureRef)", "Canvas Board (PureRef)"),
+      icon: RiGridFill,
+      badge: "NEW",
     },
     {
       id: "hero-banner",

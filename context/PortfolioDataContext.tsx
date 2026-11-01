@@ -47,6 +47,26 @@ export function safeJsonParseMedia<T = any>(jsonString: string): T {
 }
 
 
+export interface CanvasItem {
+  id: string;
+  title: string;
+  type?: string;
+  image: string;
+  aspect?: string; // "4:5" | "16:9" | "1:1" | "9:16"
+  clientName?: string;
+  clientId?: string;
+  year?: string;
+  isVideo?: boolean;
+  mediaType?: "image" | "youtube" | "gdrive" | "upload";
+  youtubeUrl?: string;
+  videoId?: string;
+  gdriveUrl?: string;
+  gdriveId?: string;
+  tools?: string[];
+  order?: number;
+  createdAt?: string;
+}
+
 export interface HeroBannerData {
   name: string;
   nameColor?: string;
@@ -474,6 +494,10 @@ interface PortfolioDataContextType {
   addPortfolioRunnerItem: (item: Omit<PortfolioRunnerItem, "id">) => void;
   editPortfolioRunnerItem: (id: string, updated: Partial<PortfolioRunnerItem>) => void;
   deletePortfolioRunnerItem: (id: string) => void;
+  canvasItems: CanvasItem[];
+  updateCanvasItems: (newItems: CanvasItem[]) => Promise<void>;
+  addCanvasItem: (item: CanvasItem) => Promise<void>;
+  deleteCanvasItem: (id: string) => Promise<void>;
   resetPortfolioRunner: () => void;
   resetPortfolioData: () => void;
   isAdminMode: boolean;
@@ -543,6 +567,7 @@ export const isSystemConfigId = (id: string): boolean => {
     id === "site-client-logos" ||
     id === "site-portfolio-intro" ||
     id === "site-portfolio-runner" ||
+    id === "site-canvas-sheets" ||
     id === "site-hero-banner" ||
     id === "site-stage3-showcase"
   );
@@ -604,6 +629,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [portfolioIntro, setPortfolioIntro] = useState<PortfolioIntroData>(defaultPortfolioIntroData);
   const [portfolioRunner, setPortfolioRunner] = useState<PortfolioRunnerData>(defaultPortfolioRunnerData);
   const [heroBanner, setHeroBanner] = useState<HeroBannerData>(defaultHeroBannerData);
+  const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
   const [trashItems, setTrashItems] = useState<TrashItem[]>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -629,6 +655,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const portfolioIntroRef = useRef(portfolioIntro);
   const portfolioRunnerRef = useRef(portfolioRunner);
   const heroBannerRef = useRef(heroBanner);
+  const canvasItemsRef = useRef(canvasItems);
   const trashItemsRef = useRef(trashItems);
 
   useEffect(() => { stage3Ref.current = stage3; }, [stage3]);
@@ -639,6 +666,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   useEffect(() => { portfolioIntroRef.current = portfolioIntro; }, [portfolioIntro]);
   useEffect(() => { portfolioRunnerRef.current = portfolioRunner; }, [portfolioRunner]);
   useEffect(() => { heroBannerRef.current = heroBanner; }, [heroBanner]);
+  useEffect(() => { canvasItemsRef.current = canvasItems; }, [canvasItems]);
   useEffect(() => { trashItemsRef.current = trashItems; }, [trashItems]);
 
   // Auto-detect environment:
@@ -691,7 +719,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       newClientLogos?: ClientLogosData,
       newPortfolioIntro?: PortfolioIntroData,
       newPortfolioRunner?: PortfolioRunnerData,
-      newHeroBanner?: HeroBannerData
+      newHeroBanner?: HeroBannerData,
+      newCanvasItems?: CanvasItem[]
     ) => {
       try {
         const targetStage3 = newStage3 || stage3Ref.current;
@@ -702,6 +731,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         const targetPortfolioIntro = newPortfolioIntro || portfolioIntroRef.current;
         const targetPortfolioRunner = newPortfolioRunner || portfolioRunnerRef.current;
         const targetHeroBanner = newHeroBanner || heroBannerRef.current;
+        const targetCanvasItems = newCanvasItems || canvasItemsRef.current;
 
         const payload = {
           stage3: targetStage3,
@@ -711,6 +741,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           portfolioIntro: targetPortfolioIntro,
           portfolioRunner: targetPortfolioRunner,
           heroBanner: targetHeroBanner,
+          canvasItems: targetCanvasItems,
           clients: targetClients.map((c) => ({
             id: c.id,
             clientName: c.clientName,
@@ -927,6 +958,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           setHeroBanner(rawBanner);
           heroBannerRef.current = rawBanner;
         }
+
+        if (parsed.canvasItems && Array.isArray(parsed.canvasItems)) {
+          const loadedCanvas = parsed.canvasItems.map((item: any) => ({
+            ...item,
+            image: normalizeMediaUrl(item.image),
+          }));
+          setCanvasItems(loadedCanvas);
+          canvasItemsRef.current = loadedCanvas;
+        }
       }
 
       // Check IndexedDB backup for Stage 3 custom image ONLY IF not already loaded/configured from localStorage
@@ -1132,6 +1172,22 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               latestBanner = mergedBanner;
               setHeroBanner(latestBanner);
               heroBannerRef.current = latestBanner;
+            } catch (_) {}
+          }
+
+          // Canvas Sheets
+          const canvasRow = clientRows.find((r) => r.client_id === "site-canvas-sheets");
+          if (canvasRow && canvasRow.description) {
+            try {
+              const parsedCanvas = safeJsonParseMedia(canvasRow.description);
+              if (Array.isArray(parsedCanvas)) {
+                const loadedCanvas = parsedCanvas.map((item: any) => ({
+                  ...item,
+                  image: normalizeMediaUrl(item.image),
+                }));
+                setCanvasItems(loadedCanvas);
+                canvasItemsRef.current = loadedCanvas;
+              }
             } catch (_) {}
           }
 
@@ -2055,6 +2111,58 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [heroBanner, stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, persistState]
   );
 
+  // Update Canvas Sheets Data
+  const updateCanvasItems = useCallback(
+    async (newItems: CanvasItem[]) => {
+      const normalized = newItems.map((item) => ({
+        ...item,
+        image: normalizeMediaUrl(item.image),
+      }));
+      setCanvasItems(normalized);
+      canvasItemsRef.current = normalized;
+      persistState(stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, heroBanner, normalized);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          await supabase.from("client_descriptions").upsert({
+            client_id: "site-canvas-sheets",
+            client_name: "Canvas Board Sheets",
+            category: "Canvas Config",
+            description: JSON.stringify(normalized),
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "client_id" });
+        } catch (err) {
+          console.warn("Supabase canvas sheets update notice:", err);
+        }
+      }
+    },
+    [stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, heroBanner, persistState]
+  );
+
+  // Add Item to Canvas
+  const addCanvasItem = useCallback(
+    async (item: CanvasItem) => {
+      const newItem: CanvasItem = {
+        ...item,
+        id: item.id || `canvas-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        image: normalizeMediaUrl(item.image),
+        createdAt: new Date().toISOString(),
+      };
+      const updated = [newItem, ...canvasItemsRef.current];
+      await updateCanvasItems(updated);
+    },
+    [updateCanvasItems]
+  );
+
+  // Delete Item from Canvas
+  const deleteCanvasItem = useCallback(
+    async (id: string) => {
+      const updated = canvasItemsRef.current.filter((item) => item.id !== id);
+      await updateCanvasItems(updated);
+    },
+    [updateCanvasItems]
+  );
+
   // Reset all overrides back to default projectsData
   const resetPortfolioData = useCallback(async () => {
     try {
@@ -2299,6 +2407,10 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         portfolioIntro,
         portfolioRunner,
         heroBanner,
+        canvasItems,
+        updateCanvasItems,
+        addCanvasItem,
+        deleteCanvasItem,
         allData,
         trashItems,
         moveToTrash,

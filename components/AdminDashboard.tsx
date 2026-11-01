@@ -82,6 +82,7 @@ import ClientsWorkspace from "./admin/ClientsWorkspace";
 import ResourceLibrary from "./admin/ResourceLibrary";
 import RecycleBinWorkspace from "./admin/RecycleBinWorkspace";
 import StorageAnalyticsView from "./admin/StorageAnalyticsView";
+import CanvasWorkspace from "./admin/CanvasWorkspace";
 
 import ThemeColorWorkspace from "./admin/ThemeColorWorkspace";
 import SocialContactsWorkspace from "./admin/SocialContactsWorkspace";
@@ -2606,6 +2607,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         return tx("Pameran Media Reels", "Media Reels Showcase", "Pameran Media Reels");
       case "clients":
         return tx("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien");
+      case "canvas":
+        return tx("Canvas Board (PureRef)", "Canvas Board (PureRef)", "Canvas Board (PureRef)");
       case "crm":
         return tx("CRM & Prospek Leads", "CRM & Leads", "CRM & Prospek Leads");
       case "seo":
@@ -3568,6 +3571,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           newLogoFile={newLogoFile}
           setNewLogoFile={setNewLogoFile}
           renderWorkspaceContent={(tab) => {
+            if (tab === "canvas") {
+              return <CanvasWorkspace />;
+            }
             if (tab === "hero-works" || tab === "about") {
               return (
                 <div className="p-4 sm:p-6 space-y-6">
@@ -3727,6 +3733,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               onCancelClientLogos={handleCancelClientLogos}
               onGenericImageFile={handleGenericImageFile}
             />
+          )}
+
+          {/* Canvas Board Manager Workspace */}
+          {sidebarTab === "canvas" && (
+            <CanvasWorkspace />
           )}
 
           {/* 3. Recycle Bin / Tong Sampah & System Restore */}
