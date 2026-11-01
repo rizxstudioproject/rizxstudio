@@ -172,6 +172,9 @@ export default function CanvasWorkspace({
   const copiedItemRef = useRef<CanvasItem | null>(null);
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
   const [dragItemOffset, setDragItemOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const dragRafRef = useRef<number | null>(null);
+  const pendingPanRef = useRef<{ x: number; y: number } | null>(null);
+  const pendingItemDragRef = useRef<{ id: string; x: number; y: number } | null>(null);
 
   // Canvas items state
   const [items, setItems] = useState<CanvasItem[]>([]);
@@ -800,28 +803,82 @@ export default function CanvasWorkspace({
     }
   };
 
+  // High-performance 0ms-latency window mouse tracking for pan and drag
+  useEffect(() => {
+    if (!isPanning && !draggingItemId) return;
+
+    const onWindowMove = (e: MouseEvent) => {
+      if (isPanning) {
+        pendingPanRef.current = {
+          x: e.clientX - panStart.x,
+          y: e.clientY - panStart.y,
+        };
+        if (!dragRafRef.current) {
+          dragRafRef.current = requestAnimationFrame(() => {
+            dragRafRef.current = null;
+            if (pendingPanRef.current) {
+              setPan(pendingPanRef.current);
+            }
+          });
+        }
+      } else if (draggingItemId) {
+        const curX = Math.round((e.clientX - pan.x) / zoom - dragItemOffset.x);
+        const curY = Math.round((e.clientY - pan.y) / zoom - dragItemOffset.y);
+        pendingItemDragRef.current = { id: draggingItemId, x: curX, y: curY };
+
+        if (!dragRafRef.current) {
+          dragRafRef.current = requestAnimationFrame(() => {
+            dragRafRef.current = null;
+            if (pendingItemDragRef.current) {
+              const info = pendingItemDragRef.current;
+              setItems((prev) =>
+                prev.map((it) => (it.id === info.id ? { ...it, x: info.x, y: info.y } : it))
+              );
+              setHasChanges(true);
+            }
+          });
+        }
+      }
+    };
+
+    const onWindowUp = () => {
+      if (dragRafRef.current) {
+        cancelAnimationFrame(dragRafRef.current);
+        dragRafRef.current = null;
+      }
+      if (pendingItemDragRef.current) {
+        const info = pendingItemDragRef.current;
+        setItems((prev) =>
+          prev.map((it) => (it.id === info.id ? { ...it, x: info.x, y: info.y } : it))
+        );
+        pendingItemDragRef.current = null;
+      }
+      setIsPanning(false);
+      setDraggingItemId(null);
+    };
+
+    window.addEventListener("mousemove", onWindowMove, { passive: true });
+    window.addEventListener("mouseup", onWindowUp);
+
+    return () => {
+      window.removeEventListener("mousemove", onWindowMove);
+      window.removeEventListener("mouseup", onWindowUp);
+      if (dragRafRef.current) {
+        cancelAnimationFrame(dragRafRef.current);
+        dragRafRef.current = null;
+      }
+    };
+  }, [isPanning, draggingItemId, panStart, pan.x, pan.y, zoom, dragItemOffset.x, dragItemOffset.y]);
+
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isPanning) {
-      setPan({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y,
-      });
-      return;
-    }
-
-    if (draggingItemId) {
-      // Calculate canvas coordinates based on zoom and pan
-      const currentX = (e.clientX - pan.x) / zoom - dragItemOffset.x;
-      const currentY = (e.clientY - pan.y) / zoom - dragItemOffset.y;
-
-      setItems((prev) =>
-        prev.map((it) => (it.id === draggingItemId ? { ...it, x: Math.round(currentX), y: Math.round(currentY) } : it))
-      );
-      setHasChanges(true);
-    }
+    // Window listener handles mousemove with passive 0ms latency; kept for fallback
   };
 
   const handleCanvasMouseUp = () => {
+    if (dragRafRef.current) {
+      cancelAnimationFrame(dragRafRef.current);
+      dragRafRef.current = null;
+    }
     setIsPanning(false);
     setDraggingItemId(null);
   };
@@ -2940,8 +2997,8 @@ export default function CanvasWorkspace({
 
         {/* ── Transform Content Engine (Scales and Pans Elements) ──────────────── */}
         <div
-          className={`absolute top-0 left-0 origin-top-left transition-transform duration-75 ${
-            isPanning ? "will-change-transform" : ""
+          className={`absolute top-0 left-0 origin-top-left ${
+            isPanning || draggingItemId ? "!transition-none will-change-transform" : "transition-transform duration-75"
           }`}
           style={{
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
@@ -2974,7 +3031,9 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                     borderColor: item.color || undefined,
                   }}
-                  className={`absolute rounded-3xl border-2 border-dashed transition-all duration-150 p-4 flex flex-col justify-between ${
+                  className={`absolute rounded-3xl border-2 border-dashed p-4 flex flex-col justify-between ${
+                    draggingItemId === item.id ? "!transition-none will-change-transform z-30" : "transition-colors duration-150"
+                  } ${
                     isSelected
                       ? "border-teal-400 bg-teal-500/[0.04] shadow-[0_0_30px_rgba(20,184,166,0.15)] ring-2 ring-teal-400/50"
                       : "border-white/15 bg-white/[0.015] hover:border-white/30"
@@ -3027,7 +3086,9 @@ export default function CanvasWorkspace({
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                   }}
-                  className={`absolute rounded-2xl bg-[#111318]/95 border backdrop-blur-xl p-3.5 transition-all shadow-xl flex flex-col gap-2.5 cursor-grab active:cursor-grabbing ${
+                  className={`absolute rounded-2xl bg-[#111318]/95 border backdrop-blur-xl p-3.5 shadow-xl flex flex-col gap-2.5 cursor-grab active:cursor-grabbing ${
+                    draggingItemId === item.id ? "!transition-none will-change-transform z-40 cursor-grabbing scale-102" : "transition-colors duration-150"
+                  } ${
                     isSelected
                       ? "border-teal-400 shadow-[0_15px_40px_rgba(20,184,166,0.3)] ring-2 ring-teal-400/40"
                       : "border-white/15 hover:border-white/30 hover:bg-[#14171f]"
@@ -3170,7 +3231,11 @@ export default function CanvasWorkspace({
                   opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                   borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                 }}
-                className={`group absolute rounded-2xl flex flex-col transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${
+                className={`group absolute rounded-2xl flex flex-col select-none cursor-grab active:cursor-grabbing ${
+                  draggingItemId === item.id
+                    ? "!transition-none will-change-transform z-50 cursor-grabbing shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]"
+                    : "transition-colors duration-150"
+                } ${
                   isSelected
                     ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
                     : "hover:ring-1 hover:ring-white/40 shadow-2xl"
