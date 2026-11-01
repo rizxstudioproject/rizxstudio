@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import {
   HiPlus,
   HiTrash,
@@ -71,12 +71,22 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
   const [showDevMode, setShowDevMode] = useState(false);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
 
-  // Close submenus on clicking outside toolbar
+  // Studio UI Layout State (Figma-style Collapsible Panels & Pill)
+  const [isUiExpanded, setIsUiExpanded] = useState<boolean>(true);
+  const [isPillMenuOpen, setIsPillMenuOpen] = useState<boolean>(false);
+  const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
+  const [leftPanelTab, setLeftPanelTab] = useState<"clients" | "layers">("clients");
+  const [activeClientFilter, setActiveClientFilter] = useState<string | null>(null);
+
+  // Close submenus on clicking outside toolbar or pill menu
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest?.(".figma-toolbar-dock")) {
         setActiveSubmenu(null);
+      }
+      if (!target.closest?.(".figma-pill-menu")) {
+        setIsPillMenuOpen(false);
       }
     };
     window.addEventListener("mousedown", handleGlobalClick);
@@ -214,6 +224,15 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
+      // Toggle UI Panels (Ctrl+Shift+\ or Ctrl+\)
+      if ((e.ctrlKey || e.metaKey) && (e.key === "\\" || e.code === "Backslash")) {
+        e.preventDefault();
+        setIsUiExpanded((prev) => !prev);
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "s" || e.key === "S")) {
+        e.preventDefault();
+        handleSaveChanges();
+      }
       if (e.code === "Space" && !isSpacePressed) {
         setIsSpacePressed(true);
       }
@@ -747,6 +766,268 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
     }
   };
 
+  // Calculate Client Works counts
+  const clientCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    items.forEach((item) => {
+      if (item.clientName) {
+        counts[item.clientName] = (counts[item.clientName] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [items]);
+
+  const handleFocusClientFolder = (clientName: string) => {
+    const clientItems = items.filter((it) => it.clientName === clientName);
+    if (clientItems.length > 0) {
+      const minX = Math.min(...clientItems.map((it) => it.x || 0));
+      const minY = Math.min(...clientItems.map((it) => it.y || 0));
+      setPan({
+        x: -minX * zoom + 160,
+        y: -minY * zoom + 160,
+      });
+      setSelectedId(clientItems[0].id);
+    }
+  };
+
+  const handleSelectLayer = (item: CanvasItem) => {
+    setSelectedId(item.id);
+    if (item.x !== undefined && item.y !== undefined) {
+      setPan({
+        x: -(item.x) * zoom + 240,
+        y: -(item.y) * zoom + 200,
+      });
+    }
+  };
+
+  // Render Studio Top Pill Menu [Logo] [Portfolio] [Free] [◫]
+  const renderPillMenu = () => (
+    <div className="relative figma-pill-menu inline-flex items-center">
+      <div
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border backdrop-blur-2xl transition-all shadow-xl ${
+          isLight
+            ? "bg-white/95 border-slate-300 text-slate-800 shadow-slate-300/40"
+            : "bg-[#222222]/95 border-white/10 text-white shadow-[0_12px_32px_rgba(0,0,0,0.7)]"
+        }`}
+      >
+        {/* Studio Monogram Logo */}
+        <button
+          type="button"
+          onClick={() => setIsPillMenuOpen((prev) => !prev)}
+          title="Rizx Studio Canvas Menu"
+          className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+        </button>
+
+        {/* Title: Portfolio (with subtle dropdown caret) */}
+        <button
+          type="button"
+          onClick={() => setIsPillMenuOpen((prev) => !prev)}
+          className="flex items-center gap-1 font-bold text-xs sm:text-sm text-white hover:text-cyan-300 transition-colors cursor-pointer"
+        >
+          <span>Portfolio</span>
+          <HiChevronDown className="w-3 h-3 text-neutral-400" />
+        </button>
+
+        {/* Plan Badge: Free */}
+        <span className="px-2 py-0.5 rounded-full bg-[#182635] text-[#38bdf8] font-mono text-[10px] font-bold border border-[#38bdf8]/25 tracking-wide">
+          Free
+        </span>
+
+        {/* Sidebar / UI Toggle Icon [◫] */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setIsUiExpanded((prev) => !prev);
+              setShowExpandTooltip(false);
+            }}
+            onMouseEnter={() => setShowExpandTooltip(true)}
+            onMouseLeave={() => setShowExpandTooltip(false)}
+            title={isUiExpanded ? "Collapse UI (Ctrl+Shift+\\)" : "Expand UI (Ctrl+Shift+\\)"}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center ${
+              isUiExpanded
+                ? "text-neutral-300 hover:text-white hover:bg-white/10"
+                : "text-[#38bdf8] bg-white/10 hover:bg-white/20"
+            }`}
+          >
+            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="2" y="2.5" width="12" height="11" rx="2" />
+              <line x1="6" y1="2.5" x2="6" y2="13.5" />
+            </svg>
+          </button>
+
+          {/* Popover / Tooltip: Expand UI / Collapse UI Ctrl+Shift+\ */}
+          {showExpandTooltip && (
+            <div className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#1e1e1e] border border-white/15 text-white text-[11px] font-mono shadow-2xl flex items-center gap-3 whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-100 pointer-events-none">
+              <span className="font-semibold text-neutral-200">
+                {isUiExpanded ? "Collapse UI" : "Expand UI"}
+              </span>
+              <span className="text-neutral-400 text-[10px]">Ctrl+Shift+\</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Dropdown Menu on clicking Logo or Portfolio */}
+      {isPillMenuOpen && (
+        <div className="absolute top-full mt-2 left-0 w-64 rounded-2xl bg-[#181a20]/95 backdrop-blur-2xl border border-white/15 p-2 shadow-2xl z-50 text-xs font-mono text-neutral-300 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-100">
+          <div className="px-2 py-1.5 text-[11px] text-neutral-400 border-b border-white/10 flex items-center justify-between">
+            <span className="font-bold text-white">Rizx Canvas Studio</span>
+            <span className="text-[10px] text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded">v2.4</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsUiExpanded((prev) => !prev);
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="2" y="2.5" width="12" height="11" rx="2" />
+                <line x1="6" y1="2.5" x2="6" y2="13.5" />
+              </svg>
+              {isUiExpanded ? "Collapse UI" : "Expand UI"}
+            </span>
+            <span className="text-[10px] text-neutral-500">Ctrl+Shift+\</span>
+          </button>
+
+          <div className="w-full h-[1px] bg-white/10 my-1" />
+
+          <button
+            type="button"
+            onClick={() => {
+              handleAddFrame("4:5");
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiHashtag className="w-3.5 h-3.5 text-cyan-400" />
+              New Frame
+            </span>
+            <span className="text-[10px] text-neutral-500">F</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handleAddSection();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiSquare2Stack className="w-3.5 h-3.5 text-emerald-400" />
+              New Section
+            </span>
+            <span className="text-[10px] text-neutral-500">Shift+S</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handleAddText();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiLanguage className="w-3.5 h-3.5 text-amber-400" />
+              New Text Box
+            </span>
+            <span className="text-[10px] text-neutral-500">T</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              fileInputRef.current?.click();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiPhoto className="w-3.5 h-3.5 text-teal-400" />
+              Upload Image/Media
+            </span>
+            <span className="text-[10px] text-neutral-500">Drop</span>
+          </button>
+
+          <div className="w-full h-[1px] bg-white/10 my-1" />
+
+          <button
+            type="button"
+            onClick={() => {
+              zoomToFitAll();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiArrowsPointingOut className="w-3.5 h-3.5 text-purple-400" />
+              Fit All Elements
+            </span>
+            <span className="text-[10px] text-neutral-500">F</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowMeasureTool((prev) => !prev);
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <span>📐</span>
+              Toggle Dimensions
+            </span>
+            <span className="text-[10px] text-neutral-500">{showMeasureTool ? "ON" : "OFF"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowDevMode(true);
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiCodeBracket className="w-3.5 h-3.5 text-cyan-400" />
+              Dev Mode (JSON)
+            </span>
+            <span className="text-[10px] text-neutral-500">{"</>"}</span>
+          </button>
+
+          <div className="w-full h-[1px] bg-white/10 my-1" />
+
+          <button
+            type="button"
+            onClick={() => {
+              handleSaveChanges();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500 text-teal-300 hover:text-black font-bold transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiCheckCircle className="w-3.5 h-3.5" />
+              Save Changes
+            </span>
+            <span className="text-[10px]">Ctrl+S</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   useEffect(() => {
     const handleFsChange = () => {
       if (!document.fullscreenElement) {
@@ -778,28 +1059,20 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
       }`}
     >
       {/* ── Top Bar: Figma Style Toolbar & Global Actions ─────────────────────── */}
-      <header className={`h-14 shrink-0 px-4 flex items-center justify-between z-30 shadow-md border-b transition-colors ${
-        isLight ? "bg-white/95 border-slate-200 text-slate-900 shadow-slate-200/50" : "bg-[#0f1115] border-white/10 text-white"
-      }`}>
-        {/* Left: Branding & Status */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold shadow-xs">
-              🎨
-            </span>
-            <span className={`font-bold text-xs sm:text-sm tracking-tight font-mono ${
-              isLight ? "text-slate-900" : "text-white"
+      {isUiExpanded && (
+        <header className={`h-14 shrink-0 px-4 flex items-center justify-between z-30 shadow-md border-b transition-colors ${
+          isLight ? "bg-white/95 border-slate-200 text-slate-900 shadow-slate-200/50" : "bg-[#0f1115] border-white/10 text-white"
+        }`}>
+          {/* Left: Studio Pill Menu & Status */}
+          <div className="flex items-center gap-3">
+            {renderPillMenu()}
+
+            <span className={`hidden sm:inline-block px-2.5 py-0.5 rounded-full border text-[10px] font-mono ${
+              isLight ? "bg-slate-100 border-slate-200 text-slate-600" : "bg-white/5 border-white/10 text-neutral-400"
             }`}>
-              RIZX CANVAS EDITOR
+              {items.length} Elements
             </span>
           </div>
-
-          <span className={`hidden sm:inline-block px-2 py-0.5 rounded-full border text-[10px] font-mono ${
-            isLight ? "bg-slate-100 border-slate-200 text-slate-600" : "bg-white/5 border-white/10 text-neutral-400"
-          }`}>
-            {items.length} Elements
-          </span>
-        </div>
 
         {/* Center: Tools (Select, Hand, + Section, + Folder, + Text, + Media) */}
         <div className={`flex items-center gap-1 p-1 rounded-xl border shadow-inner ${
@@ -974,6 +1247,7 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
           </button>
         </div>
       </header>
+      )}
 
       {/* Success Notification Bar */}
       {saveSuccess && (
@@ -983,23 +1257,196 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
         </div>
       )}
 
-      {/* ── Main Canvas Viewport (Infinite 2D Workspace) ───────────────────────── */}
-      <div
-        ref={canvasContainerRef}
-        onMouseDown={handleCanvasMouseDown}
-        onMouseMove={handleCanvasMouseMove}
-        onMouseUp={handleCanvasMouseUp}
-        onDragOver={handleCanvasDragOver}
-        onDragLeave={handleCanvasDragLeave}
-        onDrop={handleCanvasDrop}
-        style={{
-          touchAction: "none",
-          overscrollBehavior: "none",
-        }}
-        className={`flex-1 relative w-full h-full overflow-hidden ${
-          isPanning || activeTool === "hand" || isSpacePressed ? "cursor-grab active:cursor-grabbing" : "cursor-default"
-        }`}
-      >
+      {/* ── Workspace Body: Left Studio Sidebar + Infinite Canvas Viewport ── */}
+      <div className="flex-1 relative w-full h-full flex overflow-hidden">
+        {/* Left Studio Sidebar (Folder Client & Layers) */}
+        {isUiExpanded && (
+          <aside
+            className={`w-64 sm:w-72 shrink-0 h-full border-r flex flex-col z-30 transition-all select-none ${
+              isLight ? "bg-white/95 border-slate-200 text-slate-800" : "bg-[#12141a] border-white/10 text-white"
+            }`}
+          >
+            {/* Sub-tab Switcher: Client Folders vs Layers */}
+            <div className="p-2 border-b border-white/10 flex items-center gap-1 text-xs font-mono">
+              <button
+                type="button"
+                onClick={() => setLeftPanelTab("clients")}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold transition-colors cursor-pointer text-[11px] ${
+                  leftPanelTab === "clients"
+                    ? "bg-[#0c8ce9] text-white shadow-xs"
+                    : "text-neutral-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                📁 Folders ({clients.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setLeftPanelTab("layers")}
+                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold transition-colors cursor-pointer text-[11px] ${
+                  leftPanelTab === "layers"
+                    ? "bg-[#0c8ce9] text-white shadow-xs"
+                    : "text-neutral-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                📑 Layers ({items.length})
+              </button>
+            </div>
+
+            {/* Panel Content List */}
+            <div className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs">
+              {leftPanelTab === "clients" ? (
+                <>
+                  <div className="px-2 py-1.5 text-[10px] font-bold text-neutral-400 flex items-center justify-between tracking-wider uppercase">
+                    <span className="flex items-center gap-1.5">
+                      <span>📁</span> FOLDER CLIENT
+                    </span>
+                    <span className="text-[10px] text-neutral-500">{clients.length} FOLDERS</span>
+                  </div>
+
+                  {/* All Works folder */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveClientFilter(null);
+                      zoomToFitAll();
+                    }}
+                    className={`w-full px-2.5 py-2 rounded-xl flex items-center justify-between transition-colors cursor-pointer text-left ${
+                      activeClientFilter === null
+                        ? "bg-white/15 text-white font-bold"
+                        : "text-neutral-300 hover:bg-white/5 hover:text-white"
+                    }`}
+                  >
+                    <span className="flex items-center gap-2 truncate">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400" />
+                      <span className="truncate">Semua Lembaran Karya</span>
+                    </span>
+                    <span className="text-[10px] text-neutral-400 px-1.5 py-0.5 rounded bg-black/40">
+                      {items.length}
+                    </span>
+                  </button>
+
+                  {/* Client Folders List */}
+                  {clients.map((c) => {
+                    const count = clientCounts[c.clientName] || (c.works ? c.works.length : 0);
+                    const isSelected = activeClientFilter === c.clientName;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveClientFilter(c.clientName);
+                          handleFocusClientFolder(c.clientName);
+                        }}
+                        className={`w-full px-2.5 py-2 rounded-xl flex items-center justify-between transition-colors cursor-pointer text-left ${
+                          isSelected
+                            ? "bg-[#0c8ce9] text-white font-bold shadow-xs"
+                            : "text-neutral-300 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 truncate">
+                          <span className="w-2.5 h-2.5 rounded-sm bg-teal-400/80 shrink-0" />
+                          <span className="truncate">{c.clientName}</span>
+                        </span>
+                        <span className="text-[10px] text-neutral-400 px-1.5 py-0.5 rounded bg-black/40 shrink-0">
+                          {count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </>
+              ) : (
+                <>
+                  <div className="px-2 py-1.5 text-[10px] font-bold text-neutral-400 flex items-center justify-between tracking-wider uppercase">
+                    <span>Layers</span>
+                    <span className="text-[10px] text-neutral-500">{items.length} items</span>
+                  </div>
+
+                  {items.map((it) => {
+                    const isSel = selectedId === it.id;
+                    return (
+                      <div
+                        key={it.id}
+                        onClick={() => handleSelectLayer(it)}
+                        className={`w-full px-2.5 py-1.5 rounded-xl flex items-center justify-between transition-colors cursor-pointer group text-left ${
+                          isSel
+                            ? "bg-[#0c8ce9] text-white font-bold"
+                            : "text-neutral-300 hover:bg-white/5 hover:text-white"
+                        }`}
+                      >
+                        <span className="flex items-center gap-2 truncate flex-1 min-w-0 pr-1">
+                          <span className="text-[10px] opacity-70">
+                            {it.type === "section" ? "⎕" : it.type === "folder" ? "📁" : it.mediaType === "frame" ? "#" : it.type === "text" ? "T" : "🖼"}
+                          </span>
+                          <span className="truncate">{it.title}</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteItem(it.id);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity p-0.5"
+                          title="Hapus Layer"
+                        >
+                          <HiTrash className="w-3 h-3" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          </aside>
+        )}
+
+        {/* ── Main Canvas Viewport (Infinite 2D Workspace) ───────────────────────── */}
+        <div
+          ref={canvasContainerRef}
+          onMouseDown={handleCanvasMouseDown}
+          onMouseMove={handleCanvasMouseMove}
+          onMouseUp={handleCanvasMouseUp}
+          onDragOver={handleCanvasDragOver}
+          onDragLeave={handleCanvasDragLeave}
+          onDrop={handleCanvasDrop}
+          style={{
+            touchAction: "none",
+            overscrollBehavior: "none",
+          }}
+          className={`flex-1 relative w-full h-full overflow-hidden ${
+            isPanning || activeTool === "hand" || isSpacePressed ? "cursor-grab active:cursor-grabbing" : "cursor-default"
+          }`}
+        >
+          {/* Floating Pill when UI is collapsed (Directly on canvas top-left - matches reference screenshot!) */}
+          {!isUiExpanded && (
+            <div className="absolute top-4 left-4 z-40">
+              {renderPillMenu()}
+            </div>
+          )}
+
+          {/* Quick Floating Actions when UI is collapsed */}
+          {!isUiExpanded && (
+            <div className="absolute top-4 right-4 z-40 flex items-center gap-2 font-mono">
+              {hasChanges && (
+                <button
+                  type="button"
+                  onClick={handleSaveChanges}
+                  disabled={isSaving}
+                  className="px-3.5 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-lg flex items-center gap-1.5 cursor-pointer"
+                >
+                  <HiCheckCircle className="w-3.5 h-3.5" />
+                  <span>Save Changes</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={toggleFullscreen}
+                className="p-2 rounded-xl bg-[#1e1e1e]/90 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 text-xs shadow-lg cursor-pointer"
+                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+              >
+                {isFullscreen ? <HiArrowsPointingIn className="w-4 h-4" /> : <HiArrowsPointingOut className="w-4 h-4" />}
+              </button>
+            </div>
+          )}
         {/* Background Dot Grid Pattern */}
         <div
           className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${
@@ -1303,6 +1750,7 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             );
           })}
         </div>
+      </div>
       </div>
 
       {/* ── Figma Floating Studio Toolbar Dock (Images 1, 2, 3, 4, 5) ─────────── */}
