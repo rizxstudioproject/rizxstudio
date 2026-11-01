@@ -157,6 +157,19 @@ export default function CanvasWorkspace({
 
   // Selected element & dragging on canvas
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Context Menu State (Figma Right Click Popup Menu)
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean;
+    x: number;
+    y: number;
+    canvasX: number;
+    canvasY: number;
+    item?: CanvasItem | null;
+  } | null>(null);
+  const [contextSubmenu, setContextSubmenu] = useState<string | null>(null);
+  const contextMenuRef = useRef<HTMLDivElement | null>(null);
+  const copiedItemRef = useRef<CanvasItem | null>(null);
   const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
   const [dragItemOffset, setDragItemOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
@@ -367,6 +380,182 @@ export default function CanvasWorkspace({
     setHasChanges(false);
   }, [canvasItems, clients]);
 
+  // Context Menu & Figma Action Handlers
+  const handleItemContextMenu = useCallback((e: React.MouseEvent, item: CanvasItem) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSelectedId(item.id);
+
+    const menuWidth = 245;
+    const menuHeight = 540;
+    const x = Math.min(e.clientX, window.innerWidth - menuWidth - 12);
+    const y = Math.min(e.clientY, Math.max(12, window.innerHeight - menuHeight - 12));
+    const canvasX = (e.clientX - pan.x) / zoom;
+    const canvasY = (e.clientY - pan.y) / zoom;
+
+    setContextMenu({
+      isOpen: true,
+      x,
+      y,
+      canvasX,
+      canvasY,
+      item,
+    });
+    setContextSubmenu(null);
+  }, [pan, zoom]);
+
+  const handleCanvasContextMenu = useCallback((e: React.MouseEvent) => {
+    // If clicked on input or textarea, let default context menu appear
+    if ((e.target as HTMLElement).tagName === "INPUT" || (e.target as HTMLElement).tagName === "TEXTAREA") return;
+    e.preventDefault();
+
+    const menuWidth = 245;
+    const menuHeight = 540;
+    const x = Math.min(e.clientX, window.innerWidth - menuWidth - 12);
+    const y = Math.min(e.clientY, Math.max(12, window.innerHeight - menuHeight - 12));
+    const canvasX = (e.clientX - pan.x) / zoom;
+    const canvasY = (e.clientY - pan.y) / zoom;
+
+    const currentItem = selectedId ? items.find((i) => i.id === selectedId) || null : null;
+    setContextMenu({
+      isOpen: true,
+      x,
+      y,
+      canvasX,
+      canvasY,
+      item: currentItem,
+    });
+    setContextSubmenu(null);
+  }, [pan, zoom, selectedId, items]);
+
+  const handleCopy = useCallback((itemToCopy?: CanvasItem) => {
+    const target = itemToCopy || items.find((i) => i.id === selectedId);
+    if (!target) return;
+    copiedItemRef.current = JSON.parse(JSON.stringify(target));
+    try {
+      navigator.clipboard.writeText(JSON.stringify(target, null, 2));
+    } catch {}
+  }, [items, selectedId]);
+
+  const handlePaste = useCallback((atCanvasPos?: { x: number; y: number }) => {
+    if (!copiedItemRef.current) return;
+    const source = copiedItemRef.current;
+    const newId = `item-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+    const posX = atCanvasPos ? atCanvasPos.x : (source.x || 0) + 40;
+    const posY = atCanvasPos ? atCanvasPos.y : (source.y || 0) + 40;
+
+    const newItem: CanvasItem = {
+      ...source,
+      id: newId,
+      title: `${source.title} (Copy)`,
+      x: posX,
+      y: posY,
+    };
+    setItems((prev) => [...prev, newItem]);
+    setSelectedId(newId);
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, []);
+
+  const handlePasteToReplace = useCallback((targetItem: CanvasItem) => {
+    if (!copiedItemRef.current) return;
+    const source = copiedItemRef.current;
+    setItems((prev) =>
+      prev.map((i) => {
+        if (i.id === targetItem.id) {
+          return {
+            ...i,
+            title: source.title,
+            image: source.image,
+            aspect: source.aspect,
+            type: source.type,
+            mediaType: source.mediaType,
+            isVideo: source.isVideo,
+            youtubeUrl: source.youtubeUrl,
+            videoId: source.videoId,
+            gdriveUrl: source.gdriveUrl,
+            color: source.color,
+          };
+        }
+        return i;
+      })
+    );
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, []);
+
+  const handleBringToFront = useCallback((itemId: string) => {
+    setItems((prev) => {
+      const target = prev.find((i) => i.id === itemId);
+      if (!target) return prev;
+      return [...prev.filter((i) => i.id !== itemId), target];
+    });
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, []);
+
+  const handleSendToBack = useCallback((itemId: string) => {
+    setItems((prev) => {
+      const target = prev.find((i) => i.id === itemId);
+      if (!target) return prev;
+      return [target, ...prev.filter((i) => i.id !== itemId)];
+    });
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, []);
+
+  const handleConvertSection = useCallback((item: CanvasItem) => {
+    const isSec = item.type === "section" || item.mediaType === "section";
+    setItems((prev) =>
+      prev.map((i) => {
+        if (i.id === item.id) {
+          return {
+            ...i,
+            type: isSec ? ("media" as const) : ("section" as const),
+            mediaType: isSec ? ("image" as const) : ("section" as const),
+          };
+        }
+        return i;
+      })
+    );
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, []);
+
+  const handleToggleHide = useCallback((itemId: string) => {
+    setHiddenItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  }, []);
+
+  const handleToggleLock = useCallback((itemId: string) => {
+    setLockedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(itemId)) next.delete(itemId);
+      else next.add(itemId);
+      return next;
+    });
+  }, []);
+
+  const handleFlipHorizontal = useCallback((itemId: string) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, flipX: !i.flipX } : i))
+    );
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, []);
+
+  const handleFlipVertical = useCallback((itemId: string) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === itemId ? { ...i, flipY: !i.flipY } : i))
+    );
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, []);
+
   // Update items helper with tracking
   const updateItemsWithTracking = useCallback((newItems: CanvasItem[]) => {
     setItems(newItems);
@@ -423,6 +612,43 @@ export default function CanvasWorkspace({
         e.preventDefault();
         handleDeleteItem(selectedId);
       }
+      // Figma shortcuts
+      if ((e.ctrlKey || e.metaKey) && (e.key === "c" || e.key === "C") && selectedId) {
+        handleCopy();
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "v" || e.key === "V")) {
+        e.preventDefault();
+        handlePaste();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "r" || e.key === "R") && selectedId) {
+        e.preventDefault();
+        const target = items.find((i) => i.id === selectedId);
+        if (target) handlePasteToReplace(target);
+      }
+      if (e.key === "]" && selectedId) {
+        e.preventDefault();
+        handleBringToFront(selectedId);
+      }
+      if (e.key === "[" && selectedId) {
+        e.preventDefault();
+        handleSendToBack(selectedId);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "h" || e.key === "H") && selectedId) {
+        e.preventDefault();
+        handleToggleHide(selectedId);
+      }
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "l" || e.key === "L") && selectedId) {
+        e.preventDefault();
+        handleToggleLock(selectedId);
+      }
+      if (e.shiftKey && (e.key === "h" || e.key === "H") && selectedId) {
+        e.preventDefault();
+        handleFlipHorizontal(selectedId);
+      }
+      if (e.shiftKey && (e.key === "v" || e.key === "V") && selectedId) {
+        e.preventDefault();
+        handleFlipVertical(selectedId);
+      }
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
@@ -438,6 +664,30 @@ export default function CanvasWorkspace({
       window.removeEventListener("keyup", handleKeyUp);
     };
   }, [isSpacePressed, selectedId]);
+
+  // Close context menu on outside click or Escape
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      if (contextMenuRef.current && !contextMenuRef.current.contains(e.target as Node)) {
+        setContextMenu(null);
+        setContextSubmenu(null);
+      }
+    };
+    const handleGlobalKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setContextMenu(null);
+        setContextSubmenu(null);
+      }
+    };
+    if (contextMenu?.isOpen) {
+      window.addEventListener("mousedown", handleGlobalClick);
+      window.addEventListener("keydown", handleGlobalKey);
+    }
+    return () => {
+      window.removeEventListener("mousedown", handleGlobalClick);
+      window.removeEventListener("keydown", handleGlobalKey);
+    };
+  }, [contextMenu?.isOpen]);
 
   // Native non-passive event listeners: Completely isolates canvas zoom from browser webpage zoom
   useEffect(() => {
@@ -2590,6 +2840,7 @@ export default function CanvasWorkspace({
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
+          onContextMenu={handleCanvasContextMenu}
           onTouchStart={handleCanvasTouchStart}
           onTouchMove={handleCanvasTouchMove}
           onTouchEnd={handleCanvasTouchEnd}
@@ -2703,8 +2954,9 @@ export default function CanvasWorkspace({
                   key={item.id}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg)`,
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                     width: `${item.width || secWidth}px`,
                     height: `${item.height || secHeight}px`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
@@ -2757,8 +3009,9 @@ export default function CanvasWorkspace({
                   key={item.id}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg)`,
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                     width: `${item.width || 280}px`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
@@ -2809,8 +3062,9 @@ export default function CanvasWorkspace({
                   key={item.id}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg)`,
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                     width: `${item.width || 320}px`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
@@ -2882,11 +3136,15 @@ export default function CanvasWorkspace({
               cardWidth = 460;
             }
 
+            const currentWidth = item.width || cardWidth;
+            const currentHeight = item.height || (item.aspect === "16:9" ? Math.round(currentWidth * (9 / 16)) : item.aspect === "1:1" ? currentWidth : item.aspect === "9:16" ? Math.round(currentWidth * (16 / 9)) : Math.round(currentWidth * (5 / 4)));
+
             return (
               <div
                 key={item.id}
                 onMouseDown={(e) => handleItemMouseDown(e, item)}
                 onTouchStart={(e) => handleItemTouchStart(e, item)}
+                onContextMenu={(e) => handleItemContextMenu(e, item)}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
                   fitItemToScreen(item, e.currentTarget);
@@ -2895,7 +3153,7 @@ export default function CanvasWorkspace({
                   handleItemTouchEnd(e, item, e.currentTarget);
                 }}
                 style={{
-                  transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg)`,
+                  transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                   width: `${item.width || cardWidth}px`,
                   height: item.height ? `${item.height}px` : undefined,
                   opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
@@ -2903,10 +3161,23 @@ export default function CanvasWorkspace({
                 }}
                 className={`group absolute rounded-2xl flex flex-col transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${
                   isSelected
-                    ? "ring-2 ring-teal-400 shadow-[0_25px_60px_rgba(20,184,166,0.35)] scale-[1.01]"
+                    ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
                     : "hover:ring-1 hover:ring-white/40 shadow-2xl"
                 }`}
               >
+                {/* Figma Selection Frame Handles & Dimension Badge */}
+                {isSelected && (
+                  <>
+                    <div className="absolute -top-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-30 pointer-events-none" />
+                    <div className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-30 pointer-events-none" />
+                    <div className="absolute -bottom-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-30 pointer-events-none" />
+                    <div className="absolute -bottom-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-30 pointer-events-none" />
+                    <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-30">
+                      {currentWidth} × {currentHeight}
+                    </div>
+                  </>
+                )}
+
                 {/* Header Label (Editable Title & Actions) */}
                 <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
                   <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
@@ -3715,6 +3986,526 @@ export default function CanvasWorkspace({
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ── Figma Right-Click Context Menu Popup ──────────────────────────────── */}
+      {contextMenu?.isOpen && (
+        <div
+          ref={contextMenuRef}
+          style={{
+            position: "fixed",
+            left: `${contextMenu.x}px`,
+            top: `${contextMenu.y}px`,
+            zIndex: 99999,
+          }}
+          className="w-[245px] py-1.5 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl select-none animate-in fade-in zoom-in-95 duration-100 text-[12.5px] font-sans text-[#e6e6e6] max-h-[88vh] overflow-y-auto"
+        >
+          {/* Section 1: Clipboard & Actions */}
+          <button
+            type="button"
+            onClick={() => {
+              handleCopy(contextMenu.item || undefined);
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Copy</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+C</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handlePaste({ x: contextMenu.canvasX, y: contextMenu.canvasY });
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Paste here</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+V</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) handlePasteToReplace(contextMenu.item);
+              setContextMenu(null);
+            }}
+            disabled={!contextMenu.item || !copiedItemRef.current}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !contextMenu.item || !copiedItemRef.current
+                ? "text-neutral-500 cursor-not-allowed"
+                : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>Paste to replace</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Shift+R</span>
+          </button>
+
+          {/* Copy/Paste as Submenu */}
+          <div
+            className="relative"
+            onMouseEnter={() => setContextSubmenu("copy_as")}
+            onMouseLeave={() => setContextSubmenu(null)}
+          >
+            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
+              <span>Copy/Paste as</span>
+              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
+            </div>
+
+            {contextSubmenu === "copy_as" && (
+              <div className="absolute left-full top-0 ml-1 w-[180px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (contextMenu.item) handleCopy(contextMenu.item);
+                    alert("Data elemen disalin!");
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                >
+                  Copy as PNG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (contextMenu.item) {
+                      navigator.clipboard.writeText(`<div class="figma-frame" style="width:${contextMenu.item.width || 1080}px;height:${contextMenu.item.height || 1350}px"></div>`);
+                    }
+                    alert("SVG / Frame snippet disalin!");
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                >
+                  Copy as SVG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (contextMenu.item) {
+                      navigator.clipboard.writeText(`width: ${contextMenu.item.width || 1080}px;\nheight: ${contextMenu.item.height || 1350}px;`);
+                    }
+                    alert("CSS styles disalin!");
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                >
+                  Copy as CSS
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(window.location.href);
+                    alert("Link canvas disalin!");
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                >
+                  Copy link
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowDevMode(true);
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Build this with code</span>
+            <span className="text-[10px] text-teal-400 font-mono font-bold">{"</>"}</span>
+          </button>
+
+          {/* Add motion Submenu */}
+          <div
+            className="relative"
+            onMouseEnter={() => setContextSubmenu("motion")}
+            onMouseLeave={() => setContextSubmenu(null)}
+          >
+            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
+              <span>Add motion</span>
+              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
+            </div>
+
+            {contextSubmenu === "motion" && (
+              <div className="absolute left-full top-0 ml-1 w-[160px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
+                {["Fade in", "Scale up", "Slide up", "Spring bounce"].map((mot) => (
+                  <button
+                    key={mot}
+                    type="button"
+                    onClick={() => {
+                      alert(`Motion '${mot}' diterapkan ke elemen!`);
+                      setContextMenu(null);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                  >
+                    {mot}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+
+          {/* Section 2: Ordering & Navigation */}
+          {/* Move to page Submenu */}
+          <div
+            className="relative"
+            onMouseEnter={() => setContextSubmenu("move_page")}
+            onMouseLeave={() => setContextSubmenu(null)}
+          >
+            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
+              <span>Move to page</span>
+              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
+            </div>
+
+            {contextSubmenu === "move_page" && (
+              <div className="absolute left-full top-0 ml-1 w-[170px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
+                <button
+                  type="button"
+                  onClick={() => setContextMenu(null)}
+                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors font-medium flex items-center justify-between"
+                >
+                  <span>Page 1 (Active)</span>
+                  <HiCheck className="w-3.5 h-3.5 text-teal-400" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    alert("Halaman baru dibuat!");
+                    setContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-1.5 text-[12px] text-teal-300 hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                >
+                  + Create new page
+                </button>
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) handleBringToFront(contextMenu.item.id);
+              setContextMenu(null);
+            }}
+            disabled={!contextMenu.item}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>Bring to front</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">]</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) handleSendToBack(contextMenu.item.id);
+              setContextMenu(null);
+            }}
+            disabled={!contextMenu.item}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>Send to back</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">[</span>
+          </button>
+
+          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+
+          {/* Section 3: Grouping & Structure */}
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) handleConvertSection(contextMenu.item);
+              setContextMenu(null);
+            }}
+            disabled={!contextMenu.item}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>{contextMenu.item?.type === "section" ? "Convert to frame" : "Convert to section"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              alert("Elemen digabungkan ke Group");
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Group selection</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+G</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handleAddFrame("4:5");
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Frame selection</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Alt+G</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Ungroup</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+⌫</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) {
+                setItems((prev) => prev.map((i) => ({ ...i, isThumbnail: i.id === contextMenu.item?.id })));
+                setHasChanges(true);
+                alert(`'${contextMenu.item.title}' disetel sebagai thumbnail!`);
+              }
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Set as thumbnail</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) {
+                setItems((prev) => prev.map((i) => i.id === contextMenu.item?.id ? { ...i, isMask: !i.isMask } : i));
+                setHasChanges(true);
+              }
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Use as mask</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Alt+M</span>
+          </button>
+
+          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+
+          {/* Section 4: Layout & Components */}
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) {
+                setItems((prev) => prev.map((i) => i.id === contextMenu.item?.id ? { ...i, isAutoLayout: !i.isAutoLayout } : i));
+                setHasChanges(true);
+              }
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Add auto layout</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Shift+A</span>
+          </button>
+
+          {/* More layout options Submenu */}
+          <div
+            className="relative"
+            onMouseEnter={() => setContextSubmenu("more_layout")}
+            onMouseLeave={() => setContextSubmenu(null)}
+          >
+            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
+              <span>More layout options</span>
+              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
+            </div>
+
+            {contextSubmenu === "more_layout" && (
+              <div className="absolute left-full top-0 ml-1 w-[180px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
+                {["Horizontal pack", "Vertical pack", "Distribute horizontal", "Distribute vertical"].map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => {
+                      alert(`Layout: ${opt}`);
+                      setContextMenu(null);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) {
+                setItems((prev) => prev.map((i) => i.id === contextMenu.item?.id ? { ...i, isComponent: !i.isComponent } : i));
+                setHasChanges(true);
+                alert("Master Component dibuat!");
+              }
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Create component</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Alt+K</span>
+          </button>
+
+          {/* Plugins Submenu */}
+          <div
+            className="relative"
+            onMouseEnter={() => setContextSubmenu("plugins")}
+            onMouseLeave={() => setContextSubmenu(null)}
+          >
+            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
+              <span>Plugins</span>
+              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
+            </div>
+
+            {contextSubmenu === "plugins" && (
+              <div className="absolute left-full top-0 ml-1 w-[160px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
+                {["Unsplash Image", "Remove BG AI", "Iconify Icons", "Content Reel"].map((plg) => (
+                  <button
+                    key={plg}
+                    type="button"
+                    onClick={() => {
+                      alert(`Plugin ${plg} diaktifkan`);
+                      setContextMenu(null);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                  >
+                    {plg}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Widgets Submenu */}
+          <div
+            className="relative"
+            onMouseEnter={() => setContextSubmenu("widgets")}
+            onMouseLeave={() => setContextSubmenu(null)}
+          >
+            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
+              <span>Widgets</span>
+              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
+            </div>
+
+            {contextSubmenu === "widgets" && (
+              <div className="absolute left-full top-0 ml-1 w-[160px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
+                {["Sticky Note", "Voting Poll", "Jira Tracker", "Clock Timer"].map((wgt) => (
+                  <button
+                    key={wgt}
+                    type="button"
+                    onClick={() => {
+                      alert(`Widget ${wgt} ditambahkan ke canvas`);
+                      setContextMenu(null);
+                    }}
+                    className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                  >
+                    {wgt}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+
+          {/* Section 5: Visibility & Lock */}
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) handleToggleHide(contextMenu.item.id);
+              setContextMenu(null);
+            }}
+            disabled={!contextMenu.item}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>{contextMenu.item && hiddenItemIds.has(contextMenu.item.id) ? "Show" : "Hide"}</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Shift+H</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) handleToggleLock(contextMenu.item.id);
+              setContextMenu(null);
+            }}
+            disabled={!contextMenu.item}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>{contextMenu.item && lockedItemIds.has(contextMenu.item.id) ? "Unlock" : "Lock"}</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Shift+L</span>
+          </button>
+
+          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+
+          {/* Section 6: Transformations & Delete */}
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) handleFlipHorizontal(contextMenu.item.id);
+              setContextMenu(null);
+            }}
+            disabled={!contextMenu.item}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>Flip horizontal</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Shift+H</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) handleFlipVertical(contextMenu.item.id);
+              setContextMenu(null);
+            }}
+            disabled={!contextMenu.item}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>Flip vertical</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Shift+V</span>
+          </button>
+
+          {contextMenu.item && (
+            <>
+              <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+              <button
+                type="button"
+                onClick={() => {
+                  if (contextMenu.item) handleDeleteItem(contextMenu.item.id);
+                  setContextMenu(null);
+                }}
+                className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] text-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors cursor-pointer group text-left font-medium"
+              >
+                <span>Delete</span>
+                <span className="text-[11px] text-red-400/80 group-hover:text-white font-mono">Del</span>
+              </button>
+            </>
+          )}
         </div>
       )}
 

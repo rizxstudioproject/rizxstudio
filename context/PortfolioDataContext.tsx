@@ -84,6 +84,12 @@ export interface CanvasItem {
   strokeWidth?: number;
   effects?: string;
   clipContent?: boolean;
+  flipX?: boolean;
+  flipY?: boolean;
+  isComponent?: boolean;
+  isMask?: boolean;
+  isAutoLayout?: boolean;
+  isThumbnail?: boolean;
 }
 
 export interface HeroBannerData {
