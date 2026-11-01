@@ -297,7 +297,7 @@ export default function CanvasWorkspace({
     // Default: Seed initial layout with sections, folders, and client deliverables
     const initialList: CanvasItem[] = [];
 
-    // 1. Initial Sections
+    // 1. Initial Sections (Spacious boundaries so cards never crowd together)
     initialList.push({
       id: "section-commercial",
       title: "Commercial & Video Advertising",
@@ -305,8 +305,8 @@ export default function CanvasWorkspace({
       mediaType: "section",
       x: 40,
       y: 40,
-      width: 1400,
-      height: 720,
+      width: 2000,
+      height: 940,
       color: "#00A389",
     });
 
@@ -316,9 +316,9 @@ export default function CanvasWorkspace({
       type: "section",
       mediaType: "section",
       x: 40,
-      y: 800,
-      width: 1400,
-      height: 720,
+      y: 1040,
+      width: 2000,
+      height: 940,
       color: "#3b82f6",
     });
 
@@ -364,12 +364,12 @@ export default function CanvasWorkspace({
             gdriveUrl: w.gdriveUrl,
           });
 
-          cardX += 380;
+          cardX += 580; // Spacious 580px spacing so 440px/560px cards NEVER overlap
           countInRow++;
           if (countInRow >= 3) {
             countInRow = 0;
             cardX = 80;
-            cardY += 460;
+            cardY += 760; // Clean vertical breathing room
           }
         }
       });
@@ -1390,14 +1390,25 @@ export default function CanvasWorkspace({
       const touch = e.changedTouches[0];
       if (!touch) return;
       const now = Date.now();
+
+      // If an item is currently staying fitted, single tap (1x) immediately zooms out to view all!
+      if (fittedItemId) {
+        e.preventDefault();
+        e.stopPropagation();
+        setFittedItemId(null);
+        zoomToFitAll();
+        lastTouchTapRef.current = { time: 0, id: "", x: 0, y: 0 };
+        return;
+      }
+
       const timeSinceLast = now - lastTouchTapRef.current.time;
       const dist = Math.hypot(
         touch.clientX - lastTouchTapRef.current.x,
         touch.clientY - lastTouchTapRef.current.y
       );
 
-      if (timeSinceLast < 400 && dist < 30 && lastTouchTapRef.current.id === item.id) {
-        // Confirmed double-tap on touch screen
+      if (timeSinceLast < 450 && dist < 35 && lastTouchTapRef.current.id === item.id) {
+        // Confirmed double-tap on touch screen: Fit to screen & STAY
         e.preventDefault();
         e.stopPropagation();
         fitItemToScreen(item, targetEl);
@@ -1411,7 +1422,7 @@ export default function CanvasWorkspace({
         };
       }
     },
-    [fitItemToScreen]
+    [fittedItemId, fitItemToScreen, zoomToFitAll]
   );
 
   // Cancel & Save actions

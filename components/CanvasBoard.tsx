@@ -145,11 +145,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
   // Board layout 2D multi-column width calculation
   const gridCols = Math.min(4, Math.max(2, Math.ceil(Math.sqrt(sheets.length || 6))));
-  const gridCardWidth = 460;
-  const gridGap = 40;
-  const gridPad = 60;
+  const gridCardWidth = 480;
+  const gridGap = 80;
+  const gridPad = 100;
   const gridBoardWidth = gridCols * gridCardWidth + (gridCols - 1) * gridGap + gridPad * 2;
-  const gridBoardHeight = Math.ceil(sheets.length / gridCols) * 580 + gridPad * 2;
+  const gridBoardHeight = Math.ceil(sheets.length / gridCols) * 660 + gridPad * 2;
 
   // Center & Fit Canvas on mount / open
   const zoomToFit = useCallback(() => {
@@ -169,17 +169,10 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     setFittedSheetId(null);
   }, [gridBoardWidth, gridBoardHeight]);
 
-  // Fit specific sheet image automatically to screen on double-click / double-tap
+  // Fit specific sheet image automatically to screen on double-click / double-tap (Stays until single-tap)
   const fitSheetToScreen = useCallback(
     (targetEl: HTMLElement, sheetId: string) => {
       if (!containerRef.current || !targetEl) return;
-
-      // Toggle behavior: if already fitted to this sheet, zoom back out to full board
-      if (fittedSheetId === sheetId) {
-        setFittedSheetId(null);
-        zoomToFit();
-        return;
-      }
 
       const containerRect = containerRef.current.getBoundingClientRect();
       const rect = targetEl.getBoundingClientRect();
@@ -203,16 +196,17 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       const canvasW = rect.width / currentZoom;
       const canvasH = rect.height / currentZoom;
 
-      // Calculate optimal scale to fit snugly in viewport (95% width, 94% height to fill screen prominence)
+      // Calculate optimal scale to fit snugly in viewport (generous margin for mobile elegance)
       const viewportWidth = containerRect.width;
       const viewportHeight = containerRect.height;
-      const targetScaleX = (viewportWidth * 0.95) / canvasW;
-      const targetScaleY = (viewportHeight * 0.94) / canvasH;
+      const isMobileScreen = viewportWidth < 640;
+      const targetScaleX = (viewportWidth * (isMobileScreen ? 0.94 : 0.92)) / canvasW;
+      const targetScaleY = (viewportHeight * (isMobileScreen ? 0.88 : 0.90)) / canvasH;
       const targetZoom = Number(
         Math.min(4.0, Math.max(0.25, Math.min(targetScaleX, targetScaleY))).toFixed(2)
       );
 
-      // Calculate pan to center the target sheet directly on screen
+      // Center the target sheet directly on screen
       const targetPanX = Math.round((viewportWidth - canvasW * targetZoom) / 2 - canvasX * targetZoom);
       const targetPanY = Math.round((viewportHeight - canvasH * targetZoom) / 2 - canvasY * targetZoom);
 
@@ -221,10 +215,10 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       setFittedSheetId(sheetId);
       setSelectedSheetId(sheetId);
     },
-    [containerRef, fittedSheetId, zoomToFit]
+    [containerRef]
   );
 
-  // High-reliability touch double-tap tracker
+  // High-reliability touch double-tap tracker (Mobile View UX)
   const lastTouchTapRef = useRef<{ time: number; id: string; x: number; y: number }>({
     time: 0,
     id: "",
@@ -237,14 +231,26 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       const touch = e.changedTouches[0];
       if (!touch) return;
       const now = Date.now();
+
+      // If an image is currently staying fitted:
+      // A single tap (1x) immediately zooms out to view the entire portfolio!
+      if (fittedSheetId) {
+        e.preventDefault();
+        e.stopPropagation();
+        setFittedSheetId(null);
+        zoomToFit();
+        lastTouchTapRef.current = { time: 0, id: "", x: 0, y: 0 };
+        return;
+      }
+
       const timeSinceLast = now - lastTouchTapRef.current.time;
       const dist = Math.hypot(
         touch.clientX - lastTouchTapRef.current.x,
         touch.clientY - lastTouchTapRef.current.y
       );
 
-      if (timeSinceLast < 400 && dist < 30 && lastTouchTapRef.current.id === sheetId) {
-        // Confirmed double-tap on touch screen
+      if (timeSinceLast < 450 && dist < 35 && lastTouchTapRef.current.id === sheetId) {
+        // Confirmed double-tap (2x): Zoom in, fit to screen & STAY until next single tap
         e.preventDefault();
         e.stopPropagation();
         fitSheetToScreen(targetEl, sheetId);
@@ -256,25 +262,35 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           x: touch.clientX,
           y: touch.clientY,
         };
+        setSelectedSheetId(sheetId);
       }
     },
-    [fitSheetToScreen]
+    [fittedSheetId, fitSheetToScreen, zoomToFit]
   );
 
   // Handle double-tap detection for pointer / mouse clicks
   const handleSheetTap = useCallback(
     (targetEl: HTMLElement, sheetId: string) => {
+      // If currently fitted: a single click zooms back out to full portfolio view
+      if (fittedSheetId) {
+        setFittedSheetId(null);
+        zoomToFit();
+        lastTapRef.current = { time: 0, id: "" };
+        return;
+      }
+
       const now = Date.now();
       const timeSinceLast = now - lastTapRef.current.time;
       if (timeSinceLast < 380 && lastTapRef.current.id === sheetId) {
-        // Double click confirmed
+        // Double-click confirmed: fit and stay
         fitSheetToScreen(targetEl, sheetId);
         lastTapRef.current = { time: 0, id: "" };
       } else {
         lastTapRef.current = { time: now, id: sheetId };
+        setSelectedSheetId(sheetId);
       }
     },
-    [fitSheetToScreen]
+    [fittedSheetId, fitSheetToScreen, zoomToFit]
   );
 
   // Handle Fullscreen Request on Open
@@ -392,9 +408,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     }
   };
 
+  const pointerDownPosRef = useRef<{ x: number; y: number; time: number }>({ x: 0, y: 0, time: 0 });
+
   // Pointer / Mouse Pan Events
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    // Left click (0) or Middle click (1) initiates pan
+    pointerDownPosRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
     if (e.button === 0 || e.button === 1 || isSpacePressed) {
       setIsDragging(true);
       setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -416,6 +434,16 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       try {
         (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
       } catch (_) {}
+    }
+
+    // Check if this was a clean single tap (not a drag)
+    const dist = Math.hypot(e.clientX - pointerDownPosRef.current.x, e.clientY - pointerDownPosRef.current.y);
+    const time = Date.now() - pointerDownPosRef.current.time;
+    if (dist < 8 && time < 350) {
+      if (fittedSheetId) {
+        setFittedSheetId(null);
+        zoomToFit();
+      }
     }
   };
 
@@ -912,6 +940,25 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       </header>
 
       {/* ── Shortcuts Help Card Popover ───────────────────────────────────────── */}
+      {/* ── Floating Return-to-Overview Pill when an Image is Fitted / Staying ── */}
+      {fittedSheetId && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setFittedSheetId(null);
+            zoomToFit();
+          }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-black/85 hover:bg-black text-white border border-white/20 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] flex items-center gap-2.5 text-xs font-mono cursor-pointer transition-all animate-in fade-in slide-in-from-bottom-3 hover:scale-105 active:scale-95"
+        >
+          <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse" />
+          <span className="font-semibold">Tap 1x untuk lihat keseluruhan portfolio</span>
+          <span className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[10px] font-bold">
+            ✕
+          </span>
+        </button>
+      )}
+
       {showShortcutsHelp && (
         <div className={`absolute top-20 right-5 z-50 w-72 rounded-2xl border p-4 backdrop-blur-2xl shadow-2xl animate-fade-in font-mono text-xs ${
           isLight
@@ -1221,13 +1268,13 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             })}
           </div>
         ) : (
-          /* Grid Arrangement of Deliverable Sheets in 2D Matrix */
+          /* Grid Arrangement of Deliverable Sheets in 2D Matrix - Generous Spacing */
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: `repeat(${gridCols}, minmax(400px, 460px))`,
-              gap: "40px",
-              padding: "60px",
+              gridTemplateColumns: `repeat(${gridCols}, minmax(400px, 480px))`,
+              gap: "80px",
+              padding: "100px",
               width: "max-content",
             }}
             className="items-start select-none"
