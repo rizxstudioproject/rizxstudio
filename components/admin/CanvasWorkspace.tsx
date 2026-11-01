@@ -226,6 +226,58 @@ export const getCssFontFamily = (family?: string): string => {
   return `"${family}", system-ui, -apple-system, sans-serif`;
 };
 
+// ── Unified Dimensions Engine (Ensures 100% exact match between Canvas DOM & Alignment Engine) ──
+export const getItemDimensions = (it: CanvasItem): { width: number; height: number } => {
+  let w = it.width;
+  let h = it.height;
+
+  if (it.type === "section" || it.mediaType === "section") {
+    w = w || 1200;
+    h = h || 600;
+  } else if (it.type === "text" || it.mediaType === "text") {
+    const textFontSize = it.fontSize || 129;
+    const rawText = it.content !== undefined ? it.content : it.title || "";
+    const textLines = (rawText || " ").split("\n");
+    const longestLineLen = Math.max(...textLines.map((l) => l.length), 1);
+    const isAutoWidth = (it.textAutoResize || "auto_width") === "auto_width";
+    const isFixed = it.textAutoResize === "fixed";
+    w = isAutoWidth ? Math.max(28, Math.round(longestLineLen * textFontSize * 0.58 + 10)) : (w || 320);
+    h = isFixed && h ? h : Math.round(Math.max(textFontSize * 1.15, textLines.length * textFontSize * 1.2 + 8));
+  } else if (it.type === "shape" || it.mediaType === "shape" || it.mediaType === "rectangle" || it.mediaType === "ellipse") {
+    w = w || 320;
+    h = h || 200;
+  } else if ((it.mediaType === "frame" || it.type === "frame") && !it.image) {
+    w = w || 440;
+    h = h || 550;
+  } else {
+    // Media / Image / Deliverable card
+    let cardWidth = 440;
+    if (it.aspect === "16:9") {
+      cardWidth = 560;
+    } else if (it.aspect === "9:16") {
+      cardWidth = 320;
+    } else if (it.aspect === "1:1") {
+      cardWidth = 440;
+    } else if (it.aspect && it.aspect.includes(":")) {
+      const [wStr, hStr] = it.aspect.split(":");
+      const wNum = parseFloat(wStr);
+      const hNum = parseFloat(hStr);
+      if (wNum && hNum) cardWidth = wNum > hNum ? 560 : 440;
+    } else if (it.aspect === "original") {
+      cardWidth = 460;
+    }
+    w = w || cardWidth;
+    if (!h) {
+      if (it.aspect === "16:9") h = Math.round(w * (9 / 16));
+      else if (it.aspect === "1:1") h = w;
+      else if (it.aspect === "9:16") h = Math.round(w * (16 / 9));
+      else h = Math.round(w * (5 / 4));
+    }
+  }
+
+  return { width: Math.round(w), height: Math.round(h) };
+};
+
 export default function CanvasWorkspace({
   onOpenCanvasPreview,
   hideTopHeader = false,
@@ -511,19 +563,11 @@ export default function CanvasWorkspace({
     selectedList.forEach((it) => {
       const itX = it.x || 0;
       const itY = it.y || 0;
-      let itW = it.width || 380;
-      let itH = it.height || 480;
-      if (it.type === "section" || it.mediaType === "section") {
-        itW = it.width || 1200;
-        itH = it.height || 600;
-      } else if (it.type === "text" || it.mediaType === "text") {
-        itW = it.width || 320;
-        itH = it.height || 180;
-      }
+      const dim = getItemDimensions(it);
       minX = Math.min(minX, itX);
       minY = Math.min(minY, itY);
-      maxX = Math.max(maxX, itX + itW);
-      maxY = Math.max(maxY, itY + itH);
+      maxX = Math.max(maxX, itX + dim.width);
+      maxY = Math.max(maxY, itY + dim.height);
     });
 
     if (minX === Infinity) return null;
@@ -535,6 +579,217 @@ export default function CanvasWorkspace({
       count: selectedList.length,
     };
   }, [items, selectedIds, hiddenItemIds]);
+
+  // Figma Smart Selection Grid Engine (Pink center dots & Spacing handles - Matches User's Photo)
+  const smartSelectionGrid = useMemo(() => {
+    if (selectedIds.size < 2 || activeTool === "hand") return null;
+    const selectedList = items.filter((it) => selectedIds.has(it.id) && !hiddenItemIds.has(it.id));
+    if (selectedList.length < 2) return null;
+
+    const rects = selectedList.map((it) => {
+      const dim = getItemDimensions(it);
+      return {
+        id: it.id,
+        x: it.x || 0,
+        y: it.y || 0,
+        width: dim.width,
+        height: dim.height,
+        cx: (it.x || 0) + dim.width / 2,
+        cy: (it.y || 0) + dim.height / 2,
+      };
+    });
+
+    const N = rects.length;
+    const minX = Math.min(...rects.map((r) => r.x));
+    const minY = Math.min(...rects.map((r) => r.y));
+    const maxX = Math.max(...rects.map((r) => r.x + r.width));
+    const maxY = Math.max(...rects.map((r) => r.y + r.height));
+    const spanW = maxX - minX;
+    const spanH = maxY - minY;
+
+    const targetRatio = Math.max(0.2, spanW / (spanH || 1));
+    let bestDiff = Infinity;
+    let cols = Math.ceil(Math.sqrt(N));
+    let rows = Math.ceil(N / cols);
+
+    if (spanW > spanH * 3 && N <= 6) {
+      cols = N;
+      rows = 1;
+    } else if (spanH > spanW * 3 && N <= 6) {
+      cols = 1;
+      rows = N;
+    } else {
+      for (let c = 1; c <= N; c++) {
+        const r = Math.ceil(N / c);
+        const gridRatio = c / r;
+        const diff = Math.abs(gridRatio - targetRatio);
+        if (diff < bestDiff) {
+          bestDiff = diff;
+          cols = c;
+          rows = r;
+        }
+      }
+    }
+
+    const sorted = [...rects].sort((a, b) => {
+      const yDiff = a.y - b.y;
+      const threshold = Math.min(a.height, b.height) * 0.4;
+      if (Math.abs(yDiff) > threshold) return yDiff;
+      return a.x - b.x;
+    });
+
+    const grid: (typeof rects[0] | null)[][] = [];
+    for (let r = 0; r < rows; r++) {
+      grid[r] = [];
+      for (let c = 0; c < cols; c++) {
+        const idx = r * cols + c;
+        grid[r][c] = idx < sorted.length ? sorted[idx] : null;
+      }
+      const rowItems = grid[r].filter(Boolean) as typeof rects;
+      rowItems.sort((a, b) => a.x - b.x);
+      for (let c = 0; c < cols; c++) {
+        grid[r][c] = c < rowItems.length ? rowItems[c] : null;
+      }
+    }
+
+    let detectedGapX = 0;
+    let gapXCount = 0;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols - 1; c++) {
+        const a = grid[r][c];
+        const b = grid[r][c + 1];
+        if (a && b) {
+          const g = b.x - (a.x + a.width);
+          detectedGapX += g;
+          gapXCount++;
+        }
+      }
+    }
+    const avgGapX = gapXCount > 0 ? Math.round(detectedGapX / gapXCount) : 40;
+
+    let detectedGapY = 0;
+    let gapYCount = 0;
+    for (let c = 0; c < cols; c++) {
+      for (let r = 0; r < rows - 1; r++) {
+        const a = grid[r][c];
+        const b = grid[r + 1][c];
+        if (a && b) {
+          const g = b.y - (a.y + a.height);
+          detectedGapY += g;
+          gapYCount++;
+        }
+      }
+    }
+    const avgGapY = gapYCount > 0 ? Math.round(detectedGapY / gapYCount) : 40;
+
+    const rowSeparators: Array<{ y: number; height: number; x: number; width: number; gap: number }> = [];
+    if (rows > 1) {
+      for (let r = 0; r < rows - 1; r++) {
+        const topRowItems = grid[r].filter(Boolean) as typeof rects;
+        const bottomRowItems = grid[r + 1].filter(Boolean) as typeof rects;
+        if (topRowItems.length > 0 && bottomRowItems.length > 0) {
+          const topBottom = Math.max(...topRowItems.map((it) => it.y + it.height));
+          const bottomTop = Math.min(...bottomRowItems.map((it) => it.y));
+          const currentGap = Math.round(bottomTop - topBottom);
+          rowSeparators.push({
+            y: topBottom,
+            height: Math.max(4, currentGap),
+            x: minX,
+            width: spanW,
+            gap: currentGap,
+          });
+        }
+      }
+    }
+
+    const colSeparators: Array<{ x: number; width: number; y: number; height: number; gap: number }> = [];
+    if (cols > 1) {
+      for (let c = 0; c < cols - 1; c++) {
+        const leftColItems = grid.map((row) => row[c]).filter(Boolean) as typeof rects;
+        const rightColItems = grid.map((row) => row[c + 1]).filter(Boolean) as typeof rects;
+        if (leftColItems.length > 0 && rightColItems.length > 0) {
+          const leftRight = Math.max(...leftColItems.map((it) => it.x + it.width));
+          const rightLeft = Math.min(...rightColItems.map((it) => it.x));
+          const currentGap = Math.round(rightLeft - leftRight);
+          colSeparators.push({
+            x: leftRight,
+            width: Math.max(4, currentGap),
+            y: minY,
+            height: spanH,
+            gap: currentGap,
+          });
+        }
+      }
+    }
+
+    return {
+      rects,
+      grid,
+      rows,
+      cols,
+      gapX: avgGapX,
+      gapY: avgGapY,
+      rowSeparators,
+      colSeparators,
+      minX,
+      minY,
+      spanW,
+      spanH,
+    };
+  }, [items, selectedIds, hiddenItemIds, activeTool]);
+
+  const handleUpdateSpacing = useCallback(
+    (newGapX?: number, newGapY?: number) => {
+      if (!smartSelectionGrid) return;
+      const { grid, rows, cols, minX, minY, gapX: currentGapX, gapY: currentGapY } = smartSelectionGrid;
+      const targetGapX = newGapX !== undefined ? Math.max(0, newGapX) : currentGapX;
+      const targetGapY = newGapY !== undefined ? Math.max(0, newGapY) : currentGapY;
+
+      const colW: number[] = new Array(cols).fill(0);
+      const rowH: number[] = new Array(rows).fill(0);
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const item = grid[r][c];
+          if (item) {
+            colW[c] = Math.max(colW[c], item.width);
+            rowH[r] = Math.max(rowH[r], item.height);
+          }
+        }
+      }
+
+      const updates = new Map<string, { x: number; y: number }>();
+      for (let r = 0; r < rows; r++) {
+        let curY = minY;
+        for (let k = 0; k < r; k++) {
+          curY += rowH[k] + targetGapY;
+        }
+
+        for (let c = 0; c < cols; c++) {
+          const item = grid[r][c];
+          if (!item) continue;
+
+          let curX = minX;
+          for (let k = 0; k < c; k++) {
+            curX += colW[k] + targetGapX;
+          }
+
+          updates.set(item.id, {
+            x: Math.round(curX),
+            y: Math.round(curY),
+          });
+        }
+      }
+
+      setItems((prev) =>
+        prev.map((it) => {
+          const pos = updates.get(it.id);
+          return pos ? { ...it, ...pos } : it;
+        })
+      );
+      setHasChanges(true);
+    },
+    [smartSelectionGrid]
+  );
 
   const updateSelectedItem = useCallback((updater: Partial<CanvasItem>) => {
     if (!selectedId) return;
@@ -1187,41 +1442,8 @@ export default function CanvasWorkspace({
       const getItemRect = (it: CanvasItem) => {
         const itX = it.x || 0;
         const itY = it.y || 0;
-        let itW = it.width;
-        let itH = it.height;
-        if (!itW || !itH) {
-          if (it.type === "section" || it.mediaType === "section") {
-            itW = itW || 1200;
-            itH = itH || 600;
-          } else if (it.type === "text" || it.mediaType === "text") {
-            itW = itW || 320;
-            itH = itH || 180;
-          } else if (
-            it.type === "shape" ||
-            it.mediaType === "shape" ||
-            it.mediaType === "rectangle" ||
-            it.mediaType === "ellipse"
-          ) {
-            itW = itW || 320;
-            itH = itH || 200;
-          } else if (it.aspect === "16:9") {
-            itW = itW || 560;
-            itH = itH || 315;
-          } else if (it.aspect === "9:16") {
-            itW = itW || 320;
-            itH = itH || 568;
-          } else if (it.aspect === "1:1") {
-            itW = itW || 400;
-            itH = itH || 400;
-          } else if (it.aspect === "4:5") {
-            itW = itW || 400;
-            itH = itH || 500;
-          } else {
-            itW = itW || 440;
-            itH = itH || 400;
-          }
-        }
-        return { id: it.id, x: itX, y: itY, width: itW, height: itH };
+        const dim = getItemDimensions(it);
+        return { id: it.id, x: itX, y: itY, width: dim.width, height: dim.height };
       };
 
       const rects = targetItems.map(getItemRect);
@@ -1263,13 +1485,15 @@ export default function CanvasWorkspace({
           const totalSpan = last.x + last.width - first.x;
           const sumWidths = sorted.reduce((sum, r) => sum + r.width, 0);
           const totalGap = totalSpan - sumWidths;
-          const gap = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+          const avgWidth = Math.round(sumWidths / sorted.length);
+          const minGap = Math.max(48, Math.round(avgWidth * 0.15));
+          const gap = sorted.length > 1 ? (totalGap > (sorted.length - 1) * 24 ? totalGap / (sorted.length - 1) : minGap) : 0;
           let curX = first.x;
           sorted.forEach((r, idx) => {
             if (idx === 0) {
               updates.set(r.id, { x: r.x });
               curX += r.width + gap;
-            } else if (idx === sorted.length - 1) {
+            } else if (idx === sorted.length - 1 && totalGap > (sorted.length - 1) * 24) {
               updates.set(r.id, { x: Math.round(last.x) });
             } else {
               updates.set(r.id, { x: Math.round(curX) });
@@ -1283,13 +1507,15 @@ export default function CanvasWorkspace({
           const totalSpan = last.y + last.height - first.y;
           const sumHeights = sorted.reduce((sum, r) => sum + r.height, 0);
           const totalGap = totalSpan - sumHeights;
-          const gap = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+          const avgHeight = Math.round(sumHeights / sorted.length);
+          const minGap = Math.max(48, Math.round(avgHeight * 0.15));
+          const gap = sorted.length > 1 ? (totalGap > (sorted.length - 1) * 24 ? totalGap / (sorted.length - 1) : minGap) : 0;
           let curY = first.y;
           sorted.forEach((r, idx) => {
             if (idx === 0) {
               updates.set(r.id, { y: r.y });
               curY += r.height + gap;
-            } else if (idx === sorted.length - 1) {
+            } else if (idx === sorted.length - 1 && totalGap > (sorted.length - 1) * 24) {
               updates.set(r.id, { y: Math.round(last.y) });
             } else {
               updates.set(r.id, { y: Math.round(curY) });
@@ -1301,60 +1527,117 @@ export default function CanvasWorkspace({
           const spanW = maxX - minX;
           const spanH = maxY - minY;
 
-          if (spanW > spanH * 2.5 && N <= 6) {
-            // Predominantly single row
-            const sorted = [...rects].sort((a, b) => a.x - b.x);
-            const gap = 32;
-            let curX = minX;
-            sorted.forEach((r) => {
-              updates.set(r.id, {
-                x: Math.round(curX),
-                y: Math.round(centerY - r.height / 2),
-              });
-              curX += r.width + gap;
-            });
-          } else if (spanH > spanW * 2.5 && N <= 6) {
-            // Predominantly single column
-            const sorted = [...rects].sort((a, b) => a.y - b.y);
-            const gap = 32;
+          // Determine grid cols & rows matching selection bounding box aspect ratio
+          let cols = 1;
+          let rows = 1;
+
+          if (spanW > spanH * 3 && N <= 6) {
+            cols = N;
+            rows = 1;
+          } else if (spanH > spanW * 3 && N <= 6) {
+            cols = 1;
+            rows = N;
+          } else {
+            const targetRatio = Math.max(0.2, spanW / (spanH || 1));
+            let bestDiff = Infinity;
+            cols = Math.ceil(Math.sqrt(N));
+            for (let c = 1; c <= N; c++) {
+              const r = Math.ceil(N / c);
+              const gridRatio = c / r;
+              const diff = Math.abs(gridRatio - targetRatio);
+              if (diff < bestDiff) {
+                bestDiff = diff;
+                cols = c;
+                rows = r;
+              }
+            }
+          }
+
+          // Sort in reading order: top rows first, left-to-right
+          const sorted = [...rects].sort((a, b) => {
+            const yDiff = a.y - b.y;
+            const threshold = Math.min(a.height, b.height) * 0.4;
+            if (Math.abs(yDiff) > threshold) return yDiff;
+            return a.x - b.x;
+          });
+
+          // Break into rows and columns
+          const grid: (typeof rects[0] | null)[][] = [];
+          for (let r = 0; r < rows; r++) {
+            grid[r] = [];
+            for (let c = 0; c < cols; c++) {
+              const idx = r * cols + c;
+              grid[r][c] = idx < sorted.length ? sorted[idx] : null;
+            }
+            const rowItems = grid[r].filter(Boolean) as typeof rects;
+            rowItems.sort((a, b) => a.x - b.x);
+            for (let c = 0; c < cols; c++) {
+              grid[r][c] = c < rowItems.length ? rowItems[c] : null;
+            }
+          }
+
+          // Compute max column widths and row heights
+          const colW: number[] = new Array(cols).fill(0);
+          const rowH: number[] = new Array(rows).fill(0);
+          for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+              const item = grid[r][c];
+              if (item) {
+                colW[c] = Math.max(colW[c], item.width);
+                rowH[r] = Math.max(rowH[r], item.height);
+              }
+            }
+          }
+
+          const sumColsW = colW.reduce((sum, w) => sum + w, 0);
+          const sumRowsH = rowH.reduce((sum, h) => sum + h, 0);
+          const avgW = Math.round(rects.reduce((sum, r) => sum + r.width, 0) / N);
+          const avgH = Math.round(rects.reduce((sum, r) => sum + r.height, 0) / N);
+
+          // Calculate comfortable, generous gap (Figma Tidy Up standard)
+          let gapX = 0;
+          if (cols > 1) {
+            const remainingW = spanW - sumColsW;
+            const minAllowedGap = Math.max(48, Math.round(avgW * 0.15));
+            if (remainingW > (cols - 1) * minAllowedGap) {
+              gapX = Math.round(remainingW / (cols - 1));
+            } else {
+              gapX = Math.max(64, Math.min(240, Math.round(avgW * 0.2)));
+            }
+          }
+
+          let gapY = 0;
+          if (rows > 1) {
+            const remainingH = spanH - sumRowsH;
+            const minAllowedGap = Math.max(48, Math.round(avgH * 0.15));
+            if (remainingH > (rows - 1) * minAllowedGap) {
+              gapY = Math.round(remainingH / (rows - 1));
+            } else {
+              gapY = Math.max(64, Math.min(240, Math.round(avgH * 0.2)));
+            }
+          }
+
+          // Position items in tidy grid
+          for (let r = 0; r < rows; r++) {
             let curY = minY;
-            sorted.forEach((r) => {
-              updates.set(r.id, {
-                x: Math.round(centerX - r.width / 2),
+            for (let k = 0; k < r; k++) {
+              curY += rowH[k] + gapY;
+            }
+
+            for (let c = 0; c < cols; c++) {
+              const item = grid[r][c];
+              if (!item) continue;
+
+              let curX = minX;
+              for (let k = 0; k < c; k++) {
+                curX += colW[k] + gapX;
+              }
+
+              updates.set(item.id, {
+                x: Math.round(curX),
                 y: Math.round(curY),
               });
-              curY += r.height + gap;
-            });
-          } else {
-            // 2D Matrix Grid Tidy Up (Figma Standard)
-            let cols = Math.ceil(Math.sqrt(N));
-            if (spanW > spanH * 1.3) cols = Math.min(N, cols + 1);
-            if (spanH > spanW * 1.3) cols = Math.max(1, cols - 1);
-
-            // Sort in reading order: top rows first, left-to-right
-            const sorted = [...rects].sort((a, b) => {
-              const yDiff = a.y - b.y;
-              if (Math.abs(yDiff) > 80) return yDiff;
-              return a.x - b.x;
-            });
-
-            const avgW = Math.round(
-              rects.reduce((s, r) => s + r.width, 0) / N
-            );
-            const avgH = Math.round(
-              rects.reduce((s, r) => s + r.height, 0) / N
-            );
-            const gapX = 40;
-            const gapY = 40;
-
-            sorted.forEach((r, idx) => {
-              const col = idx % cols;
-              const row = Math.floor(idx / cols);
-              updates.set(r.id, {
-                x: Math.round(minX + col * (avgW + gapX)),
-                y: Math.round(minY + row * (avgH + gapY)),
-              });
-            });
+            }
           }
         }
       } else {
@@ -4201,6 +4484,53 @@ export default function CanvasWorkspace({
               </div>
             </div>
 
+            {/* Figma Multi-Selection Spacing & Tidy Controls (Matches Screenshot media_1793556469713_33b26971.jpg) */}
+            {selectedIds.size >= 2 && (
+              <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-[#222222]/90 border border-white/10">
+                <div className="flex items-center justify-between text-[11px] text-neutral-400 font-medium">
+                  <span className="flex items-center gap-1.5 text-neutral-300">
+                    <span className="w-2 h-2 rounded-full bg-[#ff2a85]" />
+                    Smart Selection Spacing
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleAlign("tidyup")}
+                    className="text-[#0c8ce9] hover:underline cursor-pointer flex items-center gap-1 text-[11px]"
+                  >
+                    Tidy Up
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85]"
+                    title="Horizontal Spacing (gap between columns)"
+                  >
+                    <span className="text-[#ff2a85] font-mono select-none font-bold text-xs">↔</span>
+                    <input
+                      type="number"
+                      value={smartSelectionGrid?.gapX !== undefined ? smartSelectionGrid.gapX : 40}
+                      onChange={(e) => handleUpdateSpacing(Number(e.target.value) || 0, undefined)}
+                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    />
+                    <span className="text-[10px] text-neutral-500">px</span>
+                  </div>
+                  <div
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85]"
+                    title="Vertical Spacing (gap between rows)"
+                  >
+                    <span className="text-[#ff2a85] font-mono select-none font-bold text-xs">↕</span>
+                    <input
+                      type="number"
+                      value={smartSelectionGrid?.gapY !== undefined ? smartSelectionGrid.gapY : 40}
+                      onChange={(e) => handleUpdateSpacing(undefined, Number(e.target.value) || 0)}
+                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    />
+                    <span className="text-[10px] text-neutral-500">px</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Position Coordinates (X, Y) */}
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
@@ -6381,6 +6711,91 @@ export default function CanvasWorkspace({
                 {multiSelectionBounds.width} × {multiSelectionBounds.height}
               </div>
             </div>
+          )}
+
+          {/* Figma Smart Selection Handles (Pink center dots & Spacing handles - Matches Screenshot media_1793556469713_33b26971.jpg & media_1793556356832_89df683a.png) */}
+          {smartSelectionGrid && activeTool !== "hand" && (
+            <>
+              {/* Pink Center Dots on each selected item */}
+              {smartSelectionGrid.rects.map((r) => (
+                <div
+                  key={`pink-center-${r.id}`}
+                  title="Smart Selection (Figma)"
+                  className="absolute pointer-events-auto cursor-grab active:cursor-grabbing w-3.5 h-3.5 rounded-full border-2 border-[#ff2a85] bg-white flex items-center justify-center shadow-md z-40 hover:scale-125 transition-transform"
+                  style={{
+                    transform: `translate3d(${r.cx - 7}px, ${r.cy - 7}px, 0)`,
+                  }}
+                >
+                  <div className="w-1 h-1 rounded-full bg-[#ff2a85]" />
+                </div>
+              ))}
+
+              {/* Horizontal Gap Indicators (between columns) */}
+              {smartSelectionGrid.colSeparators.map((sep, idx) => (
+                <div
+                  key={`col-sep-${idx}`}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    const startX = e.clientX;
+                    const initialGap = sep.gap;
+                    const handleMove = (ev: MouseEvent) => {
+                      const deltaX = (ev.clientX - startX) / zoomRef.current;
+                      handleUpdateSpacing(Math.max(0, Math.round(initialGap + deltaX)), undefined);
+                    };
+                    const handleUp = () => {
+                      window.removeEventListener("mousemove", handleMove);
+                      window.removeEventListener("mouseup", handleUp);
+                    };
+                    window.addEventListener("mousemove", handleMove);
+                    window.addEventListener("mouseup", handleUp);
+                  }}
+                  className="absolute pointer-events-auto cursor-ew-resize bg-[#ff2a85]/20 hover:bg-[#ff2a85]/40 transition-colors z-40 group flex items-center justify-center border-x border-[#ff2a85]/60"
+                  style={{
+                    transform: `translate3d(${sep.x}px, ${sep.y}px, 0)`,
+                    width: `${Math.max(8, sep.width)}px`,
+                    height: `${sep.height}px`,
+                  }}
+                >
+                  <div className="px-2 py-0.5 rounded bg-[#ff2a85] text-white text-[11px] font-mono font-bold shadow-lg flex items-center gap-1 select-none pointer-events-auto group-hover:scale-110 transition-transform">
+                    <span>{Math.round(sep.gap)}</span>
+                    <span className="text-[9px]">↔</span>
+                  </div>
+                </div>
+              ))}
+
+              {/* Vertical Gap Indicators (between rows - Matches User's Photo media_1793556469713_33b26971.jpg) */}
+              {smartSelectionGrid.rowSeparators.map((sep, idx) => (
+                <div
+                  key={`row-sep-${idx}`}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    const startY = e.clientY;
+                    const initialGap = sep.gap;
+                    const handleMove = (ev: MouseEvent) => {
+                      const deltaY = (ev.clientY - startY) / zoomRef.current;
+                      handleUpdateSpacing(undefined, Math.max(0, Math.round(initialGap + deltaY)));
+                    };
+                    const handleUp = () => {
+                      window.removeEventListener("mousemove", handleMove);
+                      window.removeEventListener("mouseup", handleUp);
+                    };
+                    window.addEventListener("mousemove", handleMove);
+                    window.addEventListener("mouseup", handleUp);
+                  }}
+                  className="absolute pointer-events-auto cursor-ns-resize bg-[#ff2a85]/30 hover:bg-[#ff2a85]/60 transition-colors z-40 group flex items-center justify-center border-y border-[#ff2a85]/80"
+                  style={{
+                    transform: `translate3d(${sep.x}px, ${sep.y}px, 0)`,
+                    width: `${sep.width}px`,
+                    height: `${Math.max(12, sep.height)}px`,
+                  }}
+                >
+                  <div className="px-2 py-0.5 rounded bg-[#ff2a85] text-white text-[11px] font-mono font-bold shadow-lg flex items-center gap-1 select-none pointer-events-auto group-hover:scale-110 transition-transform">
+                    <span>{Math.round(sep.gap)}</span>
+                    <span className="text-[9px]">↕</span>
+                  </div>
+                </div>
+              ))}
+            </>
           )}
         </div>
 
