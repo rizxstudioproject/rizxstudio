@@ -42,6 +42,7 @@ import {
   HiMinus,
   HiQuestionMarkCircle,
   HiAdjustmentsHorizontal,
+  HiQueueList,
 } from "react-icons/hi2";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
@@ -240,7 +241,11 @@ export default function CanvasWorkspace({
 
   const isScreenMobile = isMobile || windowWidth < 768;
 
-  const [isUiExpanded, setIsUiExpanded] = useState<boolean>(!isMobile);
+  const [isUiExpanded, setIsUiExpanded] = useState<boolean>(() => {
+    if (isMobile) return false;
+    if (typeof window !== "undefined" && window.innerWidth < 768) return false;
+    return true;
+  });
   const [isPillMenuOpen, setIsPillMenuOpen] = useState<boolean>(false);
   const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
   const [activeClientFilter, setActiveClientFilter] = useState<string | null>(null);
@@ -2781,11 +2786,27 @@ export default function CanvasWorkspace({
 
   const handleSelectLayer = (item: CanvasItem) => {
     setSelectedId(item.id);
+    setSelectedIds(new Set([item.id]));
     if (item.x !== undefined && item.y !== undefined) {
-      setPan({
-        x: -(item.x) * zoom + 240,
-        y: -(item.y) * zoom + 200,
-      });
+      if (isScreenMobile) {
+        if (canvasContainerRef.current) {
+          const { clientWidth, clientHeight } = canvasContainerRef.current;
+          const w = item.width || 380;
+          const h = item.height || 480;
+          setPan({
+            x: Math.round(clientWidth / 2 - (item.x + w / 2) * zoom),
+            y: Math.round(clientHeight / 2 - (item.y + h / 2) * zoom),
+          });
+        }
+        setIsUiExpanded(false); // Close mobile layers drawer so user sees selected item on canvas
+      } else {
+        setPan({
+          x: -(item.x) * zoom + 240,
+          y: -(item.y) * zoom + 200,
+        });
+      }
+    } else if (isScreenMobile) {
+      setIsUiExpanded(false);
     }
   };
 
@@ -4850,49 +4871,73 @@ export default function CanvasWorkspace({
       <div className="flex-1 relative w-full h-full flex overflow-hidden">
         {/* Left Studio Sidebar (Pure Layers Tree matching Figma: Folder > Group, Frame, Section, Text) */}
         {isUiExpanded && (
-          <aside
-            className={`w-64 sm:w-72 shrink-0 h-full border-r flex flex-col z-30 transition-all select-none ${
-              isLight ? "bg-white/95 border-slate-200 text-slate-800" : "bg-[#14161e] border-white/10 text-white"
-            }`}
-          >
-            {/* Layers Header (Matches Figma Image 1) */}
-            <div
-              className={`px-3 py-2.5 border-b flex items-center justify-between shrink-0 ${
-                isLight ? "bg-slate-50 border-slate-200" : "bg-[#161822] border-white/10"
+          <>
+            {/* Mobile Backdrop Overlay - tapping outside closes layers drawer */}
+            {isScreenMobile && (
+              <div
+                className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden animate-in fade-in duration-150"
+                onClick={() => setIsUiExpanded(false)}
+              />
+            )}
+            <aside
+              className={`select-none transition-all flex flex-col ${
+                isScreenMobile
+                  ? "fixed inset-y-0 left-0 w-72 max-w-[85vw] h-full z-50 shadow-[0_25px_60px_rgba(0,0,0,0.9)] animate-in slide-in-from-left duration-200"
+                  : "w-64 sm:w-72 shrink-0 h-full border-r z-30"
+              } ${
+                isLight ? "bg-white/98 border-slate-200 text-slate-800" : "bg-[#14161e]/98 border-white/10 text-white"
               }`}
             >
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold tracking-tight font-sans text-neutral-100">
-                  Layers
-                </span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/10 text-neutral-400">
-                  {items.length}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={toggleExpandAll}
-                title="Expand / Collapse Semua Layer"
-                className="p-1 hover:text-white rounded hover:bg-white/10 text-neutral-400 transition-colors cursor-pointer"
+              {/* Layers Header (Matches Figma Image 1) */}
+              <div
+                className={`px-3 py-2.5 border-b flex items-center justify-between shrink-0 ${
+                  isLight ? "bg-slate-50 border-slate-200" : "bg-[#161822] border-white/10"
+                }`}
               >
-                <HiBars3BottomLeft className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Hierarchical Layers Tree (Figma-style: Frames, Sections, Images, Videos, Text) */}
-            <div
-              onContextMenu={handleCanvasContextMenu}
-              className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs no-scrollbar"
-            >
-              {rootItems.length === 0 ? (
-                <div className="text-center py-8 text-neutral-500 text-xs font-sans">
-                  Belum ada layer di canvas.
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold tracking-tight font-sans text-neutral-100">
+                    Layers
+                  </span>
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/10 text-neutral-400">
+                    {items.length}
+                  </span>
                 </div>
-              ) : (
-                rootItems.map((rootIt) => renderLayerRow(rootIt, 0))
-              )}
-            </div>
-          </aside>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={toggleExpandAll}
+                    title="Expand / Collapse Semua Layer"
+                    className="p-1 hover:text-white rounded hover:bg-white/10 text-neutral-400 transition-colors cursor-pointer"
+                  >
+                    <HiBars3BottomLeft className="w-4 h-4" />
+                  </button>
+                  {/* Close / Minimize Button on Layers Header */}
+                  <button
+                    type="button"
+                    onClick={() => setIsUiExpanded(false)}
+                    title="Tutup / Minimize Panel Layers"
+                    className="p-1 hover:text-white rounded hover:bg-white/10 text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
+                  >
+                    <HiXMark className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Hierarchical Layers Tree (Figma-style: Frames, Sections, Images, Videos, Text) */}
+              <div
+                onContextMenu={handleCanvasContextMenu}
+                className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs no-scrollbar"
+              >
+                {rootItems.length === 0 ? (
+                  <div className="text-center py-8 text-neutral-500 text-xs font-sans">
+                    Belum ada layer di canvas.
+                  </div>
+                ) : (
+                  rootItems.map((rootIt) => renderLayerRow(rootIt, 0))
+                )}
+              </div>
+            </aside>
+          </>
         )}
 
         {/* ── Main Canvas Viewport (Infinite 2D Workspace) ───────────────────────── */}
@@ -4928,8 +4973,21 @@ export default function CanvasWorkspace({
             </div>
           )}
 
-          {/* Quick Floating Actions (Save changes, Fullscreen, Inspector toggle) */}
+          {/* Quick Floating Actions (Save changes, Fullscreen, Inspector toggle, Mobile Layers) */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 font-mono">
+            {/* Mobile Layers Drawer Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsUiExpanded((prev) => !prev)}
+              className={`p-1.5 sm:p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors md:hidden ${
+                isUiExpanded
+                  ? "bg-[#0c8ce9] border-[#0c8ce9] text-white"
+                  : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
+              }`}
+              title="Daftar Layers"
+            >
+              <HiQueueList className="w-4 h-4" />
+            </button>
             {!isScreenMobile && hasChanges && (
               <button
                 type="button"
@@ -5676,8 +5734,8 @@ export default function CanvasWorkspace({
         )}
       </div>
 
-      {/* Figma Design Inspector / Right Sidebar (Images 1, 2, 3) */}
-      {isUiExpanded && isRightSidebarOpen && renderRightInspector()}
+      {/* Figma Design Inspector / Right Sidebar (Images 1, 2, 3) - Only inline on desktop, mobile uses drawer */}
+      {!isScreenMobile && isUiExpanded && isRightSidebarOpen && renderRightInspector()}
       </div>
 
       {/* Figma Color Picker Popover (Matches Screenshot media_1793528907470_542d3124.png) */}
