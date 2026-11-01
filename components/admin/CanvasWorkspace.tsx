@@ -198,6 +198,13 @@ export const FigmaScaleIcon = ({ className = "w-4 h-4" }: { className?: string }
   </svg>
 );
 
+export const FigmaSectionIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="2" width="12" height="12" rx="2.5" />
+    <path d="M2 7.5h4.5a1.5 1.5 0 0 0 1.5-1.5V2" />
+  </svg>
+);
+
 export const getCssFontWeight = (weight?: string | number): number => {
   if (typeof weight === "number") return weight;
   if (!weight) return 400;
@@ -4418,6 +4425,9 @@ export default function CanvasWorkspace({
         {/* Sub-header: Element Category Header & Top Tools (Image 1) */}
         <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between text-xs shrink-0">
           <div className="flex items-center gap-1 font-semibold text-white">
+            {selectedItem && (selectedItem.type === "section" || selectedItem.mediaType === "section") && (
+              <FigmaSectionIcon className="w-3.5 h-3.5 text-neutral-300 mr-0.5" />
+            )}
             <span>
               {selectedItem
                 ? selectedItem.type === "text" || selectedItem.mediaType === "text"
@@ -5868,9 +5878,7 @@ export default function CanvasWorkspace({
 
             {/* Icon: Figma Section Icon vs Frame Hashtag (#) */}
             {isSection ? (
-              <svg className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} viewBox="0 0 16 16" fill="currentColor">
-                <path fillRule="evenodd" clipRule="evenodd" d="M3 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H3zm0 1.5h10a.5.5 0 0 1 .5.5v2H2.5V4a.5.5 0 0 1 .5-.5zM2.5 7.5V12a.5.5 0 0 0 .5.5h10a.5.5 0 0 0 .5-.5V7.5H2.5z" />
-              </svg>
+              <FigmaSectionIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
             ) : (
               <HiHashtag className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
             )}
@@ -6298,12 +6306,13 @@ export default function CanvasWorkspace({
                   {/* Figma Top-Left Section Floating Pill Badge (Matches User Screenshot 2 & 3 [Section 6] [</>]) */}
                   <div className="absolute -top-8 left-0 flex items-center gap-1.5 pointer-events-auto select-none">
                     <div
-                      className={`flex items-center px-2.5 py-1 rounded-lg shadow-md transition-colors ${
+                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg shadow-md transition-colors ${
                         isSelected
                           ? "bg-[#2c2c2c] border border-[#0c8ce9] text-white"
                           : "bg-[#2c2c2c]/95 border border-white/10 text-neutral-200 hover:text-white"
                       }`}
                     >
+                      <FigmaSectionIcon className="w-3.5 h-3.5 shrink-0 text-neutral-300" />
                       <input
                         type="text"
                         value={item.title}
@@ -7498,14 +7507,18 @@ export default function CanvasWorkspace({
               if (isScreenMobile) setIsMobileInspectorOpen(true);
               setActiveSubmenu(null);
             }}
-            title="Frame (F)"
+            title={activeTool === "section" ? "Section (Shift+S)" : "Frame (F)"}
             className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
-              activeTool === "frame"
+              activeTool === "frame" || activeTool === "section"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
             }`}
           >
-            <HiHashtag className="w-4 h-4" />
+            {activeTool === "section" ? (
+              <FigmaSectionIcon className="w-4 h-4" />
+            ) : (
+              <HiHashtag className="w-4 h-4" />
+            )}
           </button>
           <button
             type="button"
@@ -7568,7 +7581,7 @@ export default function CanvasWorkspace({
                   <span className="w-3.5 h-3.5 flex items-center justify-center">
                     {activeTool === "section" && <HiCheck className="w-3.5 h-3.5" />}
                   </span>
-                  <HiRectangleGroup className="w-4 h-4" />
+                  <FigmaSectionIcon className="w-4 h-4" />
                   <span>Section</span>
                 </div>
                 <span className="text-[11px] font-mono opacity-60">Shift+S</span>
@@ -8028,7 +8041,14 @@ export default function CanvasWorkspace({
               !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
             }`}
           >
-            <span>{contextMenu.item?.type === "section" ? "Convert to frame" : "Convert to section"}</span>
+            <div className="flex items-center gap-2">
+              {contextMenu.item?.type === "section" ? (
+                <HiHashtag className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+              ) : (
+                <FigmaSectionIcon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+              )}
+              <span>{contextMenu.item?.type === "section" ? "Convert to frame" : "Convert to section"}</span>
+            </div>
           </button>
 
           <button
