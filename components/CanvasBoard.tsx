@@ -8,7 +8,6 @@ import {
   HiArrowsPointingOut,
   HiArrowPath,
   HiShieldCheck,
-  HiLockClosed,
   HiQuestionMarkCircle,
 } from "react-icons/hi2";
 import { RiFullscreenFill, RiFullscreenExitFill } from "react-icons/ri";
@@ -872,15 +871,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             </div>
           </div>
 
-          {/* DRM Anti-theft Badge */}
-          <div className={`hidden md:flex items-center gap-1.5 px-3 py-2 rounded-2xl border backdrop-blur-xl text-[11px] font-mono ${
-            isLight
-              ? "bg-white/95 border-slate-300 text-slate-600 shadow-sm"
-              : "bg-black/60 border-white/10 text-neutral-400"
-          }`}>
-            <HiLockClosed className={`w-3.5 h-3.5 ${isLight ? "text-teal-600" : "text-emerald-400"}`} />
-            <span>{tr("Proteksi Anti-Save & Anti-Copy Aktif", "DRM Protected · No Right Click")}</span>
-          </div>
+
         </div>
 
         {/* Right: Actions (Help, Fullscreen, Close X) */}
