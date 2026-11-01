@@ -880,6 +880,7 @@ export default function CanvasWorkspace({
     e.preventDefault();
     e.stopPropagation();
     setSelectedId(item.id);
+    setSelectedIds((prev) => (prev.has(item.id) ? prev : new Set([item.id])));
 
     const menuWidth = 245;
     const menuHeight = 540;
@@ -4532,6 +4533,7 @@ export default function CanvasWorkspace({
         {/* Frame Item Row (Matches Screenshot media_1793529279637_a6c81d01.png & media_1793529302513_bd071dc3.png) */}
         <div
           onClick={() => handleSelectLayer(frame)}
+          onContextMenu={(e) => handleItemContextMenu(e, frame)}
           onDoubleClick={(e) => {
             e.stopPropagation();
             fitItemToScreen(frame);
@@ -4632,6 +4634,7 @@ export default function CanvasWorkspace({
       <div
         key={it.id}
         onClick={() => handleSelectLayer(it)}
+        onContextMenu={(e) => handleItemContextMenu(e, it)}
         onDoubleClick={(e) => {
           e.stopPropagation();
           fitItemToScreen(it);
@@ -4718,6 +4721,11 @@ export default function CanvasWorkspace({
           onClick={() => {
             setActiveClientFilter(clientName);
             handleFocusClientFolder(clientName);
+          }}
+          onContextMenu={(e) => {
+            if (childItems.length > 0) {
+              handleItemContextMenu(e, childItems[0]);
+            }
           }}
           className={`w-full px-2 py-1.5 rounded-lg flex items-center justify-between transition-colors cursor-pointer group text-left ${
             isFolderSelected
@@ -4828,7 +4836,10 @@ export default function CanvasWorkspace({
             </div>
 
             {/* Hierarchical Layers Tree (Folder > Group, Frame, Section, Text) */}
-            <div className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs no-scrollbar">
+            <div
+              onContextMenu={handleCanvasContextMenu}
+              className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs no-scrollbar"
+            >
               {/* Client Folders & their child frames, sections, text, media */}
               {folderGroups.map(([clientName, childItems]) =>
                 renderFolder(clientName, childItems)
@@ -6606,6 +6617,28 @@ export default function CanvasWorkspace({
           >
             <span>Ungroup</span>
             <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+⌫</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (contextMenu.item) {
+                const newTitle = window.prompt("Ubah nama layer:", contextMenu.item.title);
+                if (newTitle && newTitle.trim()) {
+                  setItems((prev) =>
+                    prev.map((i) =>
+                      i.id === contextMenu.item?.id ? { ...i, title: newTitle.trim() } : i
+                    )
+                  );
+                  setHasChanges(true);
+                }
+              }
+              setContextMenu(null);
+            }}
+            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+          >
+            <span>Rename</span>
+            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+R</span>
           </button>
 
           <button
