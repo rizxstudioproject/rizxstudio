@@ -57,7 +57,7 @@ export interface CanvasItem {
   clientId?: string;
   year?: string;
   isVideo?: boolean;
-  mediaType?: "image" | "youtube" | "gdrive" | "upload" | "text" | "section" | "folder";
+  mediaType?: "image" | "youtube" | "gdrive" | "upload" | "text" | "section" | "folder" | "frame" | "slice" | "shape" | "ellipse" | "comment" | (string & {});
   youtubeUrl?: string;
   videoId?: string;
   gdriveUrl?: string;

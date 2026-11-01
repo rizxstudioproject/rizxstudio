@@ -6,12 +6,14 @@ import {
   HiTrash,
   HiArrowPath,
   HiCheckCircle,
+  HiCheck,
   HiXMark,
   HiCloudArrowUp,
   HiLink,
   HiPhoto,
   HiFilm,
   HiPencilSquare,
+  HiPencil,
   HiArrowsPointingOut,
   HiArrowsPointingIn,
   HiMiniMagnifyingGlassPlus,
@@ -21,6 +23,15 @@ import {
   HiLanguage,
   HiCursorArrowRays,
   HiHandRaised,
+  HiHashtag,
+  HiScissors,
+  HiSquare2Stack,
+  HiChatBubbleBottomCenterText,
+  HiCodeBracket,
+  HiCodeBracketSquare,
+  HiPlay,
+  HiChevronDown,
+  HiSparkles,
 } from "react-icons/hi2";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
@@ -32,7 +43,7 @@ interface CanvasWorkspaceProps {
   onOpenCanvasPreview?: () => void;
 }
 
-type CanvasTool = "select" | "hand" | "section" | "folder" | "text" | "media";
+type CanvasTool = "select" | "hand" | "scale" | "frame" | "section" | "slice" | "shape" | "pen" | "pencil" | "text" | "folder" | "media" | "comment";
 
 export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspaceProps) {
   const { clients, heroWorks, canvasItems, updateCanvasItems } = usePortfolioData();
@@ -55,7 +66,22 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
+  const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
+  const [showMeasureTool, setShowMeasureTool] = useState(false);
+  const [showDevMode, setShowDevMode] = useState(false);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
+
+  // Close submenus on clicking outside toolbar
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest?.(".figma-toolbar-dock")) {
+        setActiveSubmenu(null);
+      }
+    };
+    window.addEventListener("mousedown", handleGlobalClick);
+    return () => window.removeEventListener("mousedown", handleGlobalClick);
+  }, []);
 
   // Selected element & dragging on canvas
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -196,6 +222,28 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
       }
       if (e.key === "h" || e.key === "H") {
         setActiveTool("hand");
+      }
+      if (e.key === "k" || e.key === "K") {
+        setActiveTool("scale");
+      }
+      if (e.key === "f" || e.key === "F") {
+        handleAddFrame("4:5");
+      }
+      if (e.key === "s" || e.key === "S") {
+        if (e.shiftKey) {
+          handleAddSection();
+        } else {
+          handleAddSlice();
+        }
+      }
+      if (e.key === "t" || e.key === "T") {
+        handleAddText();
+      }
+      if (e.key === "r" || e.key === "R") {
+        handleAddShape("rectangle");
+      }
+      if (e.key === "c" || e.key === "C") {
+        handleAddComment();
       }
       if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
         e.preventDefault();
@@ -351,6 +399,86 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
     };
     updateItemsWithTracking([...items, newSection]);
     setSelectedId(newSection.id);
+  };
+
+  const handleAddFrame = (aspect = "4:5") => {
+    const isWidescreen = aspect === "16:9";
+    const newFrame: CanvasItem = {
+      id: `frame-${Date.now()}`,
+      title: "New Deliverable Frame",
+      type: "media",
+      mediaType: "frame",
+      aspect,
+      x: Math.round((-pan.x + 140) / zoom),
+      y: Math.round((-pan.y + 140) / zoom),
+      width: isWidescreen ? 720 : aspect === "9:16" ? 360 : 480,
+      height: isWidescreen ? 405 : aspect === "9:16" ? 640 : 600,
+      color: "#0c8ce9",
+    };
+    updateItemsWithTracking([...items, newFrame]);
+    setSelectedId(newFrame.id);
+  };
+
+  const handleAddSlice = () => {
+    const newSlice: CanvasItem = {
+      id: `slice-${Date.now()}`,
+      title: "Slice Export Area",
+      type: "section",
+      mediaType: "slice",
+      x: Math.round((-pan.x + 180) / zoom),
+      y: Math.round((-pan.y + 180) / zoom),
+      width: 500,
+      height: 380,
+      color: "#f43f5e",
+    };
+    updateItemsWithTracking([...items, newSlice]);
+    setSelectedId(newSlice.id);
+  };
+
+  const handleAddShape = (shape: "rectangle" | "ellipse") => {
+    const newShape: CanvasItem = {
+      id: `shape-${Date.now()}`,
+      title: shape === "ellipse" ? "Ellipse Shape" : "Rectangle Shape",
+      type: "section",
+      mediaType: shape === "ellipse" ? "ellipse" : "shape",
+      x: Math.round((-pan.x + 160) / zoom),
+      y: Math.round((-pan.y + 160) / zoom),
+      width: 440,
+      height: 320,
+      color: "#3b82f6",
+    };
+    updateItemsWithTracking([...items, newShape]);
+    setSelectedId(newShape.id);
+  };
+
+  const handleAddComment = () => {
+    const newComment: CanvasItem = {
+      id: `comment-${Date.now()}`,
+      title: "Comment / Feedback",
+      type: "text",
+      mediaType: "comment",
+      content: "Tuliskan catatan arahan visual atau feedback desain...",
+      x: Math.round((-pan.x + 220) / zoom),
+      y: Math.round((-pan.y + 220) / zoom),
+      color: "#ec4899",
+    };
+    updateItemsWithTracking([...items, newComment]);
+    setSelectedId(newComment.id);
+  };
+
+  const handleAddTextPath = () => {
+    const newTextPath: CanvasItem = {
+      id: `text-path-${Date.now()}`,
+      title: "Curved Text on Path",
+      type: "text",
+      mediaType: "text",
+      content: "Text on Path ~ Visual Design Line",
+      x: Math.round((-pan.x + 200) / zoom),
+      y: Math.round((-pan.y + 200) / zoom),
+      color: "#06b6d4",
+    };
+    updateItemsWithTracking([...items, newTextPath]);
+    setSelectedId(newTextPath.id);
   };
 
   const handleAddFolder = () => {
@@ -1177,12 +1305,661 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
         </div>
       </div>
 
-      {/* ── Floating Bottom Dock (Zoom Controls, Fit, Quick Add) ─────────────── */}
-      <footer className={`absolute bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 px-3 py-2 rounded-2xl backdrop-blur-2xl font-mono text-xs border ${
-        isLight
-          ? "bg-white/95 border-slate-300 text-slate-800 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
-          : "bg-[#13151b]/95 border-white/15 text-white shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
-      }`}>
+      {/* ── Figma Floating Studio Toolbar Dock (Images 1, 2, 3, 4, 5) ─────────── */}
+      <nav
+        aria-label="Figma Studio Toolbar"
+        className="figma-toolbar-dock fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2.5 py-1.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[95vw] overflow-x-auto no-scrollbar"
+      >
+        {/* 1. MOVE / CURSOR TOOL (With Submenu: Move V, Hand tool H, Scale K - Image 3) */}
+        <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTool("select");
+              setActiveSubmenu(null);
+            }}
+            title="Move (V)"
+            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+              activeTool === "select"
+                ? "bg-[#0c8ce9] text-white shadow-sm"
+                : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiCursorArrowRays className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSubmenu(activeSubmenu === "move" ? null : "move");
+            }}
+            title="Move Tools Menu"
+            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+              activeTool === "select" || activeTool === "hand" || activeTool === "scale"
+                ? "bg-[#0c8ce9] text-white"
+                : "text-neutral-400 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiChevronDown className="w-3 h-3" />
+          </button>
+
+          {/* Move Submenu Dropdown (Image 3) */}
+          {activeSubmenu === "move" && (
+            <div className="absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTool("select");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "select"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "select" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiCursorArrowRays className="w-4 h-4" />
+                  <span>Move</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">V</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTool("hand");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "hand"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "hand" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiHandRaised className="w-4 h-4" />
+                  <span>Hand tool</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">H</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTool("scale");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "scale"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "scale" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiArrowsPointingOut className="w-4 h-4" />
+                  <span>Scale</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">K</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 2. FRAME / SECTION TOOL (With Submenu: Frame F, Section Shift+S, Slice S - Image 2) */}
+        <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={() => {
+              handleAddFrame("4:5");
+              setActiveTool("frame");
+              setActiveSubmenu(null);
+            }}
+            title="Frame (F)"
+            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+              activeTool === "frame"
+                ? "bg-[#0c8ce9] text-white shadow-sm"
+                : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiHashtag className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSubmenu(activeSubmenu === "frame" ? null : "frame");
+            }}
+            title="Frame Tools Menu"
+            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+              activeTool === "frame" || activeTool === "section" || activeTool === "slice"
+                ? "bg-[#0c8ce9] text-white"
+                : "text-neutral-400 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiChevronDown className="w-3 h-3" />
+          </button>
+
+          {/* Frame Submenu Dropdown (Image 2) */}
+          {activeSubmenu === "frame" && (
+            <div className="absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddFrame("4:5");
+                  setActiveTool("frame");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "frame"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "frame" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiHashtag className="w-4 h-4" />
+                  <span>Frame</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">F</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddSection();
+                  setActiveTool("section");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "section"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "section" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiRectangleGroup className="w-4 h-4" />
+                  <span>Section</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">Shift+S</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddSlice();
+                  setActiveTool("slice");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "slice"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "slice" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiScissors className="w-4 h-4" />
+                  <span>Slice</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">S</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 3. SHAPE TOOL (With Submenu: Rectangle R, Ellipse O, Folder Alt+F, Place Media Ctrl+Shift+K) */}
+        <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={() => {
+              handleAddShape("rectangle");
+              setActiveTool("shape");
+              setActiveSubmenu(null);
+            }}
+            title="Rectangle (R)"
+            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+              activeTool === "shape"
+                ? "bg-[#0c8ce9] text-white shadow-sm"
+                : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiSquare2Stack className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSubmenu(activeSubmenu === "shape" ? null : "shape");
+            }}
+            title="Shapes Menu"
+            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+              activeTool === "shape"
+                ? "bg-[#0c8ce9] text-white"
+                : "text-neutral-400 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiChevronDown className="w-3 h-3" />
+          </button>
+
+          {/* Shape Submenu Dropdown */}
+          {activeSubmenu === "shape" && (
+            <div className="absolute bottom-full mb-2 left-0 min-w-[200px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddShape("rectangle");
+                  setActiveTool("shape");
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "shape" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiSquare2Stack className="w-4 h-4" />
+                  <span>Rectangle</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">R</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddShape("ellipse");
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5" />
+                  <span className="w-3.5 h-3.5 rounded-full border border-current inline-block" />
+                  <span>Ellipse</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">O</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddFolder();
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5" />
+                  <HiFolder className="w-4 h-4 text-teal-400" />
+                  <span>Folder Client</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">Alt+F</span>
+              </button>
+
+              <div className="h-[1px] bg-white/10 my-1" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  fileInputRef.current?.click();
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5" />
+                  <HiPhoto className="w-4 h-4 text-cyan-400" />
+                  <span>Place Image / Video...</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">Ctrl+Shift+K</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 4. PEN / DRAW TOOL (With Submenu: Pen P, Pencil Shift+P) */}
+        <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTool("pen");
+              setActiveSubmenu(null);
+            }}
+            title="Pen (P)"
+            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+              activeTool === "pen"
+                ? "bg-[#0c8ce9] text-white shadow-sm"
+                : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiPencil className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSubmenu(activeSubmenu === "pen" ? null : "pen");
+            }}
+            title="Pen Tools Menu"
+            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+              activeTool === "pen" || activeTool === "pencil"
+                ? "bg-[#0c8ce9] text-white"
+                : "text-neutral-400 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiChevronDown className="w-3 h-3" />
+          </button>
+
+          {/* Pen Submenu Dropdown */}
+          {activeSubmenu === "pen" && (
+            <div className="absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTool("pen");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "pen"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "pen" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiPencil className="w-4 h-4" />
+                  <span>Pen</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">P</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setActiveTool("pencil");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "pencil"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "pencil" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <HiPencilSquare className="w-4 h-4" />
+                  <span>Pencil</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">Shift+P</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 5. TEXT TOOL (With Submenu: Text T, Text on Path, Sticky Note N - Image 4) */}
+        <div className="relative flex items-center">
+          <button
+            type="button"
+            onClick={() => {
+              handleAddText();
+              setActiveTool("text");
+              setActiveSubmenu(null);
+            }}
+            title="Text (T)"
+            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer font-serif font-bold text-sm ${
+              activeTool === "text"
+                ? "bg-[#0c8ce9] text-white shadow-sm"
+                : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            T
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSubmenu(activeSubmenu === "text" ? null : "text");
+            }}
+            title="Text Tools Menu"
+            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+              activeTool === "text"
+                ? "bg-[#0c8ce9] text-white"
+                : "text-neutral-400 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            <HiChevronDown className="w-3 h-3" />
+          </button>
+
+          {/* Text Submenu Dropdown (Image 4) */}
+          {activeSubmenu === "text" && (
+            <div className="absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddText();
+                  setActiveTool("text");
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "text"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5 flex items-center justify-center">
+                    {activeTool === "text" && <HiCheck className="w-3.5 h-3.5" />}
+                  </span>
+                  <span className="font-serif font-bold text-sm leading-none">T</span>
+                  <span>Text</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">T</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddTextPath();
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5" />
+                  <span className="text-sm leading-none">⌢</span>
+                  <span>Text on path</span>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddComment();
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5" />
+                  <span>📝</span>
+                  <span>Sticky Note</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">N</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 6. RESOURCES / CODE BRACKETS {} */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setActiveSubmenu(activeSubmenu === "resources" ? null : "resources")}
+            title="Resources / Components ({})"
+            className={`p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-sm ${
+              activeSubmenu === "resources"
+                ? "bg-[#0c8ce9] text-white"
+                : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
+          >
+            {"{ }"}
+          </button>
+
+          {activeSubmenu === "resources" && (
+            <div className="absolute bottom-full mb-2 left-0 min-w-[210px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddFolder();
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer"
+              >
+                <HiFolder className="w-4 h-4 text-teal-400" />
+                <span>Folder Klien Vault</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  fileInputRef.current?.click();
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer"
+              >
+                <HiPhoto className="w-4 h-4 text-cyan-400" />
+                <span>Upload File Media</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLinkModalOpen(true);
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer"
+              >
+                <HiLink className="w-4 h-4 text-amber-400" />
+                <span>Link (YouTube / Drive)</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 7. COMMENT BUBBLE (💬) */}
+        <button
+          type="button"
+          onClick={handleAddComment}
+          title="Add Comment / Annotation (C)"
+          className="p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10"
+        >
+          <HiChatBubbleBottomCenterText className="w-4 h-4" />
+        </button>
+
+        {/* 8. WIDGETS / ASSETS (❖+) */}
+        <button
+          type="button"
+          onClick={() => {
+            handleAddFrame("16:9");
+            setActiveSubmenu(null);
+          }}
+          title="Widgets & Presets (❖+)"
+          className="p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10"
+        >
+          <HiSparkles className="w-4 h-4 text-amber-400" />
+        </button>
+
+        {/* Toolbar Vertical Separator */}
+        <div className="w-[1px] h-5 bg-white/15 mx-1" />
+
+        {/* 9. PENCIL / SCRIBBLER */}
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTool(activeTool === "pencil" ? "select" : "pencil");
+          }}
+          title="Pencil / Draw"
+          className={`p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+            activeTool === "pencil"
+              ? "bg-[#0c8ce9] text-white shadow-sm"
+              : "text-neutral-300 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <HiPencilSquare className="w-4 h-4" />
+        </button>
+
+        {/* 10. MEASURE / RULER (Highlighted in Image 1!) */}
+        <button
+          type="button"
+          onClick={() => setShowMeasureTool(!showMeasureTool)}
+          title="Measure / Dimension Inspect (Ruler)"
+          className={`p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+            showMeasureTool
+              ? "bg-[#0c8ce9] text-white shadow-sm"
+              : "text-neutral-300 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          <span className="text-sm leading-none font-bold">📐</span>
+        </button>
+
+        {/* 11. PRESENT / PREVIEW WEB */}
+        <button
+          type="button"
+          onClick={() => {
+            if (onOpenCanvasPreview) {
+              onOpenCanvasPreview();
+            } else if (typeof window !== "undefined") {
+              window.open("/canvas", "_blank");
+            }
+          }}
+          title="Present / Live Canvas View (▷)"
+          className="p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-teal-400 hover:bg-white/10"
+        >
+          <HiPlay className="w-4 h-4" />
+        </button>
+
+        {/* 12. CODE / DEV MODE (</>) */}
+        <button
+          type="button"
+          onClick={() => setShowDevMode(true)}
+          title="Dev Mode / Inspect Code (</>)"
+          className={`p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-xs ${
+            showDevMode
+              ? "bg-[#0c8ce9] text-white shadow-sm"
+              : "text-neutral-300 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          {"</>"}
+        </button>
+      </nav>
+
+      {/* ── Floating Zoom Dock (Positioned at bottom-right) ──────────────────── */}
+      <aside
+        aria-label="Zoom Controls"
+        className={`fixed bottom-5 right-5 z-40 hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-2xl backdrop-blur-2xl font-mono text-xs border ${
+          isLight
+            ? "bg-white/95 border-slate-300 text-slate-800 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
+            : "bg-[#13151b]/95 border-white/15 text-white shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
+        }`}
+      >
         {/* Zoom Out */}
         <button
           type="button"
@@ -1245,7 +2022,7 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
           title="Fit All Elements (F)"
         >
           <HiArrowsPointingOut className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Fit All</span>
+          <span className="hidden lg:inline">Fit All</span>
         </button>
 
         {/* Center Pan Origin */}
@@ -1278,9 +2055,60 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
           title={isFullscreen ? "Keluar Fullscreen (Esc)" : "Layar Penuh / Fullscreen"}
         >
           {isFullscreen ? <HiArrowsPointingIn className="w-3.5 h-3.5" /> : <HiArrowsPointingOut className="w-3.5 h-3.5" />}
-          <span className="hidden sm:inline">{isFullscreen ? "Exit Full" : "Fullscreen"}</span>
+          <span className="hidden lg:inline">{isFullscreen ? "Exit Full" : "Fullscreen"}</span>
         </button>
-      </footer>
+      </aside>
+
+      {/* ── Modal: Dev Mode / Code Inspect (</>) ───────────────────────────────── */}
+      {showDevMode && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-[#14161d] border border-white/15 p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150 max-h-[85vh]">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded bg-[#0c8ce9] text-white font-mono text-xs font-bold">
+                  {"</>"}
+                </span>
+                <h3 className="font-bold text-sm text-white font-mono">Dev Mode // Canvas JSON Data</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDevMode(false)}
+                className="text-neutral-400 hover:text-white p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-400 font-mono">
+              Total {items.length} elemen pada infinite canvas. Struktur data JSON dapat disalin untuk keperluan integrasi atau backup.
+            </p>
+
+            <pre className="flex-1 overflow-auto p-4 rounded-xl bg-black/60 border border-white/10 text-teal-300 font-mono text-xs max-h-[400px] select-all">
+              {JSON.stringify(items, null, 2)}
+            </pre>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(JSON.stringify(items, null, 2));
+                  alert("JSON berhasil disalin ke clipboard!");
+                }}
+                className="px-4 py-2 rounded-xl bg-[#0c8ce9] hover:bg-blue-500 text-white font-bold text-xs font-mono transition-colors cursor-pointer"
+              >
+                Copy JSON Data
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowDevMode(false)}
+                className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-neutral-300 text-xs font-mono cursor-pointer"
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Modal: Add Media via Link (YouTube / Drive) or Upload ─────────────── */}
       {isLinkModalOpen && (
