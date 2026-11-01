@@ -198,6 +198,34 @@ export const FigmaScaleIcon = ({ className = "w-4 h-4" }: { className?: string }
   </svg>
 );
 
+export const getCssFontWeight = (weight?: string | number): number => {
+  if (typeof weight === "number") return weight;
+  if (!weight) return 400;
+  const w = weight.toString().toLowerCase().trim();
+  if (w === "thin") return 100;
+  if (w === "extralight" || w === "extra-light") return 200;
+  if (w === "light") return 300;
+  if (w === "regular" || w === "normal") return 400;
+  if (w === "medium") return 500;
+  if (w === "semibold" || w === "semi-bold") return 600;
+  if (w === "bold") return 700;
+  if (w === "extrabold" || w === "extra-bold") return 800;
+  if (w === "black") return 900;
+  const parsed = parseInt(weight, 10);
+  return isNaN(parsed) ? 400 : parsed;
+};
+
+export const getCssFontFamily = (family?: string): string => {
+  if (!family) return '"Noto Serif", Georgia, serif';
+  if (family.includes("Serif") || family.includes("Cinzel") || family.includes("Playfair")) {
+    return `"${family}", Georgia, serif`;
+  }
+  if (family.includes("Courier") || family.includes("Mono")) {
+    return `"${family}", monospace`;
+  }
+  return `"${family}", system-ui, -apple-system, sans-serif`;
+};
+
 export default function CanvasWorkspace({
   onOpenCanvasPreview,
   hideTopHeader = false,
@@ -2937,7 +2965,7 @@ export default function CanvasWorkspace({
       y: posY,
       textAutoResize: "auto_width",
       fontFamily: "Noto Serif",
-      fontWeight: "Bold",
+      fontWeight: "Regular",
       fontSize: 48,
       lineHeight: "100%",
       letterSpacing: "-3%",
@@ -4448,7 +4476,7 @@ export default function CanvasWorkspace({
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="relative">
                   <select
-                    value={selectedItem?.fontWeight || "Bold"}
+                    value={selectedItem?.fontWeight || "Regular"}
                     onChange={(e) => updateSelectedItem({ fontWeight: e.target.value })}
                     className="w-full px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] text-white border border-transparent focus:border-[#0c8ce9] text-xs appearance-none cursor-pointer"
                   >
@@ -5796,8 +5824,8 @@ export default function CanvasWorkspace({
             if (item.type === "text" || item.mediaType === "text") {
               const textClipPath = getItemClipPath(item);
               const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
-              const textFontFamily = item.fontFamily || "Noto Serif";
-              const textFontWeight = item.fontWeight || "Bold";
+              const textFontFamily = getCssFontFamily(item.fontFamily || "Noto Serif");
+              const textFontWeight = getCssFontWeight(item.fontWeight || "Regular");
               const textFontSize = item.fontSize || 129;
               const textLineHeight = item.lineHeight || "100%";
               const textLetterSpacing = item.letterSpacing || "-3%";
