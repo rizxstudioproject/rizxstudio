@@ -3738,10 +3738,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             />
           )}
 
-          {/* Canvas Board Manager Workspace */}
-          {sidebarTab === "canvas" && (
+          {/* Canvas Board Manager Workspace (Persisted across tab switches so frames, pan, and zoom are never reset or lost) */}
+          <div className={sidebarTab === "canvas" ? "flex-1 flex flex-col h-full min-w-0 overflow-hidden" : "hidden"}>
             <CanvasWorkspace />
-          )}
+          </div>
 
           {/* 3. Recycle Bin / Tong Sampah & System Restore */}
           {sidebarTab === "trash" && (

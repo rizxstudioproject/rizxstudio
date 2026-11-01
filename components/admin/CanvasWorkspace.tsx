@@ -1025,6 +1025,18 @@ export default function CanvasWorkspace({
     setSaveSuccess(false);
   }, []);
 
+  // Auto-persist unsaved canvas items on tab switch / unmount so newly added frames and elements are never lost
+  const hasChangesRef = useRef(hasChanges);
+  hasChangesRef.current = hasChanges;
+
+  useEffect(() => {
+    return () => {
+      if (hasChangesRef.current && itemsRef.current.length > 0) {
+        updateCanvasItems(itemsRef.current).catch(() => {});
+      }
+    };
+  }, [updateCanvasItems]);
+
   // Helper to identify Frame items
   const isFrameItem = useCallback((it: CanvasItem) => {
     return (
@@ -1990,9 +2002,7 @@ export default function CanvasWorkspace({
           cornerRadius: 0,
           opacity: 100,
         };
-        setItems((prev) => [...prev, newShape]);
-        setHasChanges(true);
-        setSaveSuccess(false);
+        updateItemsWithTracking([...items, newShape]);
         setSelectedId(newShape.id);
         setSelectedIds(new Set([newShape.id]));
       } else if (shapeType === "frame") {
@@ -2015,9 +2025,7 @@ export default function CanvasWorkspace({
           height: Math.round(shapeH),
           color: "#FFFFFF",
         };
-        setItems((prev) => [...prev, newFrame]);
-        setHasChanges(true);
-        setSaveSuccess(false);
+        updateItemsWithTracking([...items, newFrame]);
         setSelectedId(newFrame.id);
         setSelectedIds(new Set([newFrame.id]));
       } else if (shapeType === "section") {
@@ -2039,9 +2047,7 @@ export default function CanvasWorkspace({
           height: Math.round(shapeH),
           color: "#3b82f6",
         };
-        setItems((prev) => [...prev, newSec]);
-        setHasChanges(true);
-        setSaveSuccess(false);
+        updateItemsWithTracking([...items, newSec]);
         setSelectedId(newSec.id);
         setSelectedIds(new Set([newSec.id]));
       }
@@ -5143,22 +5149,26 @@ export default function CanvasWorkspace({
           } ${isHidden ? "opacity-40" : ""}`}
         >
           <div className="flex items-center gap-1.5 truncate flex-1 min-w-0 pr-1">
-            {/* Expand / Collapse Chevron */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFrameExpanded(frame.id);
-              }}
-              className="p-0.5 text-neutral-400 hover:text-white rounded cursor-pointer shrink-0"
-              title={isExpanded ? "Collapse Frame" : "Expand Frame"}
-            >
-              <HiChevronRight
-                className={`w-3.5 h-3.5 transition-transform duration-150 ${
-                  isExpanded ? "rotate-90" : "rotate-0"
-                }`}
-              />
-            </button>
+            {/* Expand / Collapse Chevron (Only shown when frame actually has nested children) */}
+            {children.length > 0 ? (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFrameExpanded(frame.id);
+                }}
+                className="p-0.5 text-neutral-400 hover:text-white rounded cursor-pointer shrink-0"
+                title={isExpanded ? "Collapse Frame" : "Expand Frame"}
+              >
+                <HiChevronRight
+                  className={`w-3.5 h-3.5 transition-transform duration-150 ${
+                    isExpanded ? "rotate-90" : "rotate-0"
+                  }`}
+                />
+              </button>
+            ) : (
+              <span className="w-4.5 h-4.5 shrink-0" />
+            )}
 
             {/* Frame Hashtag Icon (#) */}
             <HiHashtag className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
