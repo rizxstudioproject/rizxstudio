@@ -2046,18 +2046,35 @@ export default function CanvasWorkspace({
       return;
     }
 
-    if (!selectedIds.has(item.id)) {
-      if (e.shiftKey) {
+    const isMultiKey = e.shiftKey || e.metaKey || e.ctrlKey;
+    if (isMultiKey) {
+      if (selectedIds.has(item.id)) {
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(item.id);
+          return next;
+        });
+        if (selectedId === item.id) {
+          const remaining = Array.from(selectedIds).filter((id) => id !== item.id);
+          setSelectedId(remaining.length > 0 ? remaining[remaining.length - 1] : null);
+        }
+        return;
+      } else {
         setSelectedIds((prev) => {
           const next = new Set(prev);
           next.add(item.id);
           return next;
         });
-      } else {
+        setSelectedId(item.id);
+      }
+    } else {
+      if (!selectedIds.has(item.id)) {
         setSelectedIds(new Set([item.id]));
+        setSelectedId(item.id);
+      } else {
+        setSelectedId(item.id);
       }
     }
-    setSelectedId(item.id);
 
     if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
 
@@ -2984,7 +3001,26 @@ export default function CanvasWorkspace({
     }
   };
 
-  const handleSelectLayer = (item: CanvasItem) => {
+  const handleSelectLayer = (item: CanvasItem, e?: React.MouseEvent) => {
+    const isMulti = Boolean(e && (e.shiftKey || e.metaKey || e.ctrlKey));
+
+    if (isMulti) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(item.id)) {
+          next.delete(item.id);
+          const remaining = Array.from(next);
+          setSelectedId(remaining.length > 0 ? remaining[remaining.length - 1] : null);
+        } else {
+          next.add(item.id);
+          setSelectedId(item.id);
+        }
+        return next;
+      });
+      // Do not auto-pan canvas when multi-selecting layers with Shift / Ctrl
+      return;
+    }
+
     setSelectedId(item.id);
     setSelectedIds(new Set([item.id]));
     if (item.x !== undefined && item.y !== undefined) {
@@ -4835,7 +4871,7 @@ export default function CanvasWorkspace({
     });
 
     const isExpanded = expandedFrames[frame.id] ?? false; // Dropdown expand/collapse state
-    const isSel = selectedId === frame.id;
+    const isSel = selectedId === frame.id || selectedIds.has(frame.id);
     const isLocked = lockedItemIds.has(frame.id);
     const isHidden = hiddenItemIds.has(frame.id);
     const paddingLeft = depth === 0 ? "pl-1.5" : depth === 1 ? "pl-4" : "pl-7";
@@ -4844,7 +4880,7 @@ export default function CanvasWorkspace({
       <div key={`frame-layer-${frame.id}`} className="space-y-0.5">
         {/* Frame Item Row (Matches Screenshot media_1793529279637_a6c81d01.png & media_1793529302513_bd071dc3.png) */}
         <div
-          onClick={() => handleSelectLayer(frame)}
+          onClick={(e) => handleSelectLayer(frame, e)}
           onContextMenu={(e) => handleItemContextMenu(e, frame)}
           onDoubleClick={(e) => {
             e.stopPropagation();
@@ -4947,7 +4983,7 @@ export default function CanvasWorkspace({
       return renderFrameLayer(it, depth);
     }
 
-    const isSel = selectedId === it.id;
+    const isSel = selectedId === it.id || selectedIds.has(it.id);
     const isLocked = lockedItemIds.has(it.id);
     const isHidden = hiddenItemIds.has(it.id);
     const isText = it.type === "text" || it.mediaType === "text";
@@ -4957,7 +4993,7 @@ export default function CanvasWorkspace({
     return (
       <div
         key={it.id}
-        onClick={() => handleSelectLayer(it)}
+        onClick={(e) => handleSelectLayer(it, e)}
         onContextMenu={(e) => handleItemContextMenu(e, it)}
         onDoubleClick={(e) => {
           e.stopPropagation();
@@ -5426,8 +5462,24 @@ export default function CanvasWorkspace({
                   key={item.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    setSelectedId(item.id);
-                    setSelectedIds(new Set([item.id]));
+                    const isMulti = e.shiftKey || e.metaKey || e.ctrlKey;
+                    if (isMulti) {
+                      setSelectedIds((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(item.id)) {
+                          next.delete(item.id);
+                          const remaining = Array.from(next);
+                          setSelectedId(remaining.length > 0 ? remaining[remaining.length - 1] : null);
+                        } else {
+                          next.add(item.id);
+                          setSelectedId(item.id);
+                        }
+                        return next;
+                      });
+                    } else {
+                      setSelectedId(item.id);
+                      setSelectedIds(new Set([item.id]));
+                    }
                   }}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
