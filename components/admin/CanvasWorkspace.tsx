@@ -42,11 +42,17 @@ import AspectRatioPicker, { RatioWireframeIcon, AspectPreset } from "./AspectRat
 
 interface CanvasWorkspaceProps {
   onOpenCanvasPreview?: () => void;
+  hideTopHeader?: boolean;
+  isMobile?: boolean;
 }
 
 type CanvasTool = "select" | "hand" | "scale" | "frame" | "section" | "slice" | "shape" | "pen" | "pencil" | "text" | "folder" | "media" | "comment";
 
-export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspaceProps) {
+export default function CanvasWorkspace({
+  onOpenCanvasPreview,
+  hideTopHeader = false,
+  isMobile = false,
+}: CanvasWorkspaceProps) {
   const { clients, heroWorks, canvasItems, updateCanvasItems } = usePortfolioData();
   const { tr } = useLang();
   const { themeMode } = useMotionTheme();
@@ -73,7 +79,7 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
   const [isSpacePressed, setIsSpacePressed] = useState(false);
 
   // Studio UI Layout State (Figma-style Collapsible Panels & Pill)
-  const [isUiExpanded, setIsUiExpanded] = useState<boolean>(true);
+  const [isUiExpanded, setIsUiExpanded] = useState<boolean>(!isMobile);
   const [isPillMenuOpen, setIsPillMenuOpen] = useState<boolean>(false);
   const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
   const [leftPanelTab, setLeftPanelTab] = useState<"clients" | "layers">("clients");
@@ -1097,7 +1103,7 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
       }`}
     >
       {/* ── Top Bar: Figma Style Toolbar & Global Actions ─────────────────────── */}
-      {isUiExpanded && (
+      {!hideTopHeader && isUiExpanded && (
         <header className={`h-14 shrink-0 px-4 flex items-center justify-between z-30 shadow-md border-b transition-colors ${
           isLight ? "bg-white/95 border-slate-200 text-slate-900 shadow-slate-200/50" : "bg-[#0f1115] border-white/10 text-white"
         }`}>
@@ -1794,7 +1800,7 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
       {/* ── Figma Floating Studio Toolbar Dock (Images 1, 2, 3, 4, 5) ─────────── */}
       <nav
         aria-label="Figma Studio Toolbar"
-        className="figma-toolbar-dock fixed bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2.5 py-1.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[95vw] overflow-x-auto no-scrollbar"
+        className="figma-toolbar-dock fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2 py-1.5 sm:px-2.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[96vw] overflow-x-auto no-scrollbar"
       >
         {/* 1. MOVE / CURSOR TOOL (With Submenu: Move V, Hand tool H, Scale K - Image 3) */}
         <div className="relative flex items-center">

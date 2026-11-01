@@ -1244,12 +1244,32 @@ export default function MobileAdminApp({
               {getTabTitle(activeTab)}
             </span>
 
-            {/* Spacer for balanced title centering */}
-            <div className="w-9 h-9" />
+            {/* Right Action / Spacer */}
+            {activeTab === "canvas" ? (
+              <button
+                type="button"
+                onClick={handleSaveWorkspace}
+                disabled={savingAction}
+                className="px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm cursor-pointer"
+                title="Simpan Perubahan Canvas"
+              >
+                <RiSave3Fill className={`w-3.5 h-3.5 ${savingAction ? "animate-spin" : ""}`} />
+                <span>Simpan</span>
+              </button>
+            ) : (
+              /* Spacer for balanced title centering */
+              <div className="w-9 h-9" />
+            )}
           </div>
 
           {/* Workspace Body Container with bottom padding for sticky bar */}
-          <div className="flex-1 overflow-y-auto pb-48">
+          <div
+            className={`flex-1 ${
+              activeTab === "canvas"
+                ? "h-full w-full overflow-hidden flex flex-col relative"
+                : "overflow-y-auto pb-48"
+            }`}
+          >
             {activeTab === "clients" && (
               <ClientsWorkspace
                 clients={clients}
@@ -1351,31 +1371,33 @@ export default function MobileAdminApp({
       )}
 
       {/* RADIAL SATELLITE ACTION MENU (Tahan / Tekan untuk memunculkan Save, View Page, Logout di sekitarnya) */}
-      <AnimatePresence>
-        {isSaveFabExpanded && (
-          <motion.div
-            key="fab-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            className="fixed inset-0 z-30 bg-black/40"
-            onClick={() => setIsSaveFabExpanded(false)}
-          />
-        )}
-      </AnimatePresence>
+      {activeTab !== "canvas" && (
+        <>
+          <AnimatePresence>
+            {isSaveFabExpanded && (
+              <motion.div
+                key="fab-backdrop"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.18, ease: "easeOut" }}
+                className="fixed inset-0 z-30 bg-black/40"
+                onClick={() => setIsSaveFabExpanded(false)}
+              />
+            )}
+          </AnimatePresence>
 
-      <motion.div
-        drag
-        dragConstraints={mobileFrameRef}
-        dragElastic={0.08}
-        dragMomentum={false}
-        onDragStart={handleFabPointerCancel}
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="fixed bottom-[104px] right-4 z-40 cursor-grab active:cursor-grabbing select-none"
-        style={{ touchAction: "none" }}
-      >
+          <motion.div
+            drag
+            dragConstraints={mobileFrameRef}
+            dragElastic={0.08}
+            dragMomentum={false}
+            onDragStart={handleFabPointerCancel}
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="fixed bottom-[104px] right-4 z-40 cursor-grab active:cursor-grabbing select-none"
+            style={{ touchAction: "none" }}
+          >
         <div className="relative w-[52px] h-[52px]">
           {/* ORBITING / SATELLITE ACTION BUTTONS (Clean circular icon-only buttons) */}
           <AnimatePresence>
@@ -1523,13 +1545,16 @@ export default function MobileAdminApp({
           </motion.button>
         </div>
       </motion.div>
+    </>
+  )}
 
       {/* ==============================================================
           FULL-WIDTH BOTTOM DOCK / TAB BAR (SCROLL & TAP)
           Full-width frame to bottom (bottom-0) and left/right (left-0 right-0).
           Pin Bar (Notch & Bubble) glides across the dock.
          ============================================================== */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 w-full pointer-events-auto select-none">
+      {activeTab !== "canvas" && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 w-full pointer-events-auto select-none">
         <motion.div
           initial={{ y: 25, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -1681,6 +1706,7 @@ export default function MobileAdminApp({
           </div>
         </motion.div>
       </div>
-    </div>
-  );
+    )}
+  </div>
+);
 }

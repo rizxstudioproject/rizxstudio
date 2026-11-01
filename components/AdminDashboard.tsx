@@ -3575,7 +3575,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           setNewLogoFile={setNewLogoFile}
           renderWorkspaceContent={(tab) => {
             if (tab === "canvas") {
-              return <CanvasWorkspace />;
+              return <CanvasWorkspace hideTopHeader={true} isMobile={true} />;
             }
             if (tab === "hero-works" || tab === "about") {
               return (
