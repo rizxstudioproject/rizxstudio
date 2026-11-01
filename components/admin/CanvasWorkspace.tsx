@@ -428,6 +428,7 @@ export default function CanvasWorkspace({
     currentY: number;
   } | null>(null);
   const marqueeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const [editingTextId, setEditingTextId] = useState<string | null>(null);
 
   // Interactive Frame & Section Drawing Tool (Figma Style)
   const [isDrawingShape, setIsDrawingShape] = useState<boolean>(false);
@@ -1956,6 +1957,13 @@ export default function CanvasWorkspace({
       if (e.code === "Space" && !isSpacePressed) {
         setIsSpacePressed(true);
       }
+      if (e.key === "Enter" && selectedId) {
+        const targetItem = items.find((it) => it.id === selectedId);
+        if (targetItem && (targetItem.type === "text" || targetItem.mediaType === "text")) {
+          e.preventDefault();
+          setEditingTextId(selectedId);
+        }
+      }
       if (e.key === "v" || e.key === "V") {
         setActiveTool("select");
       }
@@ -2276,6 +2284,9 @@ export default function CanvasWorkspace({
 
     // If clicking on canvas background directly or with hand tool / spacebar
     if (e.target === e.currentTarget || isSpacePressed || activeTool === "hand" || e.button === 1) {
+      if (editingTextId) {
+        setEditingTextId(null);
+      }
       // Purge any orphan empty text layers when clicking away on canvas
       setItems((prev) => {
         const hasEmpty = prev.some(
@@ -2864,9 +2875,22 @@ export default function CanvasWorkspace({
       return;
     }
 
-    const target = e.target as HTMLElement;
-    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("button")) {
+    // If Text tool is active and clicked on an existing text item: activate edit mode!
+    if (activeTool === "text" && (item.type === "text" || item.mediaType === "text")) {
+      e.stopPropagation();
+      setSelectedId(item.id);
+      setSelectedIds(new Set([item.id]));
+      setEditingTextId(item.id);
       return;
+    }
+
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || (target.tagName === "TEXTAREA" && editingTextId === item.id) || target.closest("button")) {
+      return;
+    }
+
+    if (editingTextId && editingTextId !== item.id) {
+      setEditingTextId(null);
     }
 
     e.stopPropagation();
@@ -3088,8 +3112,12 @@ export default function CanvasWorkspace({
   // Start touch dragging an item or panning in Hand tool
   const handleItemTouchStart = (e: React.TouchEvent, item: CanvasItem) => {
     const target = e.target as HTMLElement;
-    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("button")) {
+    if (target.tagName === "INPUT" || (target.tagName === "TEXTAREA" && editingTextId === item.id) || target.closest("button")) {
       return;
+    }
+
+    if (editingTextId && editingTextId !== item.id) {
+      setEditingTextId(null);
     }
 
     // 2-finger pinch-to-zoom: always prioritize pinch zoom when 2 fingers touch an item
@@ -3391,6 +3419,7 @@ export default function CanvasWorkspace({
     updateItemsWithTracking([...cleanItems, newText]);
     setSelectedId(newText.id);
     setSelectedIds(new Set([newText.id]));
+    setEditingTextId(newText.id);
     setActiveTool("text");
   };
 
@@ -3496,6 +3525,7 @@ export default function CanvasWorkspace({
     const updated = items.filter((it) => it.id !== id);
     updateItemsWithTracking(updated);
     if (selectedId === id) setSelectedId(null);
+    if (editingTextId === id) setEditingTextId(null);
   };
 
   // Update item inline text/title
@@ -6560,6 +6590,7 @@ export default function CanvasWorkspace({
 
             // 3. FIGMA TYPOGRAPHY TEXT (Matches Screenshots media_1793529043296_e1253314.png & media_1793529058616_42d79f3a.png)
             if (item.type === "text" || item.mediaType === "text") {
+              const isEditing = editingTextId === item.id;
               const textClipPath = getItemClipPath(item);
               const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
               const textFontFamily = getCssFontFamily(item.fontFamily || "Noto Serif");
@@ -6610,7 +6641,7 @@ export default function CanvasWorkspace({
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     if (hasItemMovedDuringDragRef.current) return;
-                    fitItemToScreen(item, e.currentTarget);
+                    setEditingTextId(item.id);
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
@@ -6623,7 +6654,9 @@ export default function CanvasWorkspace({
                     clipPath: textClipPath ? textClipPath : undefined,
                     touchAction: "none",
                   }}
-                  className={`absolute group cursor-text select-text transition-shadow z-30 ${
+                  className={`absolute group transition-shadow z-30 ${
+                    isEditing ? "cursor-text select-text" : "cursor-move select-none"
+                  } ${
                     isSelected
                       ? "ring-1 ring-[#0c8ce9] z-40"
                       : "hover:ring-1 hover:ring-[#0c8ce9]/50"
@@ -6688,7 +6721,15 @@ export default function CanvasWorkspace({
 
                     {/* Actual Live Textarea that receives keyboard input */}
                     <textarea
+                      ref={(el) => {
+                        if (el && isEditing && document.activeElement !== el) {
+                          el.focus();
+                          const len = el.value.length;
+                          el.setSelectionRange(len, len);
+                        }
+                      }}
                       value={rawText}
+                      readOnly={!isEditing}
                       onChange={(e) => {
                         const val = e.target.value;
                         setItems((prev) =>
@@ -6697,6 +6738,7 @@ export default function CanvasWorkspace({
                         setHasChanges(true);
                       }}
                       onBlur={(e) => {
+                        setEditingTextId(null);
                         const val = e.target.value.trim();
                         if (!val) {
                           handleDeleteItem(item.id);
@@ -6705,6 +6747,7 @@ export default function CanvasWorkspace({
                       onKeyDown={(e) => {
                         if (e.key === "Escape") {
                           e.preventDefault();
+                          setEditingTextId(null);
                           if (!rawText.trim()) {
                             handleDeleteItem(item.id);
                           } else {
@@ -6712,11 +6755,11 @@ export default function CanvasWorkspace({
                           }
                         } else if ((e.key === "Backspace" || e.key === "Delete") && rawText === "") {
                           e.preventDefault();
+                          setEditingTextId(null);
                           handleDeleteItem(item.id);
                         }
                       }}
-                      placeholder={isSelected ? "Tulis teks..." : ""}
-                      autoFocus={isSelected && rawText === ""}
+                      placeholder={isEditing ? "Tulis teks..." : ""}
                       style={{
                         fontFamily: textFontFamily,
                         fontWeight: textFontWeight,
@@ -6725,18 +6768,22 @@ export default function CanvasWorkspace({
                         letterSpacing: textLetterSpacing,
                         color: textColor,
                         textAlign: textAlignment,
-                        caretColor: "#0c8ce9",
+                        caretColor: isEditing ? "#0c8ce9" : "transparent",
                         textShadow: "0 2px 8px rgba(0,0,0,0.4)",
                         whiteSpace: isAutoWidth ? "pre" : "pre-wrap",
                         wordBreak: isAutoWidth ? "normal" : "break-word",
                         overflow: isFixed ? "hidden" : "visible",
                         padding: "2px 4px",
+                        pointerEvents: isEditing ? "auto" : "none",
+                        userSelect: isEditing ? "text" : "none",
                       }}
-                      className="absolute inset-0 w-full h-full bg-transparent border-none outline-none resize-none m-0 leading-tight block"
+                      className={`absolute inset-0 w-full h-full bg-transparent border-none outline-none resize-none m-0 leading-tight block ${
+                        isEditing ? "pointer-events-auto select-text cursor-text" : "pointer-events-none select-none cursor-move"
+                      }`}
                     />
 
-                    {/* Blinking Cursor Indicator when Empty */}
-                    {rawText === "" && (
+                    {/* Blinking Cursor Indicator when Empty & Editing */}
+                    {rawText === "" && isEditing && (
                       <span
                         className="absolute left-1.5 top-1.5 w-[3px] bg-white animate-pulse pointer-events-none"
                         style={{ height: `${textFontSize * 0.85}px` }}
