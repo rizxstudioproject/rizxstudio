@@ -489,11 +489,15 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     initialDistance: number | null;
     initialZoom: number;
     initialPan: { x: number; y: number };
+    initialMidX: number;
+    initialMidY: number;
     startTouch: { x: number; y: number };
   }>({
     initialDistance: null,
     initialZoom: 1,
     initialPan: { x: 0, y: 0 },
+    initialMidX: 0,
+    initialMidY: 0,
     startTouch: { x: 0, y: 0 },
   });
 
@@ -540,14 +544,34 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       e.preventDefault();
 
       if (e.touches.length === 2 && touchStateRef.current.initialDistance !== null) {
-        // 2-Finger Pinch Zoom
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
+        // 2-Finger Pinch Zoom — anchored to the MIDPOINT between the two fingers
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        const dist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
         const scale = dist / touchStateRef.current.initialDistance;
         const newZoom = Math.min(5.5, Math.max(0.15, touchStateRef.current.initialZoom * scale));
+
+        // Current midpoint between 2 fingers (relative to container)
+        const container = containerRef.current;
+        const rect = container?.getBoundingClientRect();
+        const offsetX = rect?.left ?? 0;
+        const offsetY = rect?.top ?? 0;
+
+        const currentMidX = (t0.clientX + t1.clientX) / 2 - offsetX;
+        const currentMidY = (t0.clientY + t1.clientY) / 2 - offsetY;
+
+        const initMidX = touchStateRef.current.initialMidX - offsetX;
+        const initMidY = touchStateRef.current.initialMidY - offsetY;
+
+        const initPan = touchStateRef.current.initialPan;
+        const initZoom = touchStateRef.current.initialZoom;
+
+        // Perfectly locks the canvas point directly between the two fingers without drifting
+        const newPanX = currentMidX - (initMidX - initPan.x) * (newZoom / initZoom);
+        const newPanY = currentMidY - (initMidY - initPan.y) * (newZoom / initZoom);
+
         setZoom(Number(newZoom.toFixed(3)));
+        setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
       } else if (e.touches.length === 1) {
         // 1-Finger Pan
         setPan({
@@ -560,13 +584,15 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     const onNativeTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        const dist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
+        const t0 = e.touches[0];
+        const t1 = e.touches[1];
+        const dist = Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
         touchStateRef.current.initialDistance = dist;
         touchStateRef.current.initialZoom = zoomRef.current;
         touchStateRef.current.initialPan = { ...panRef.current };
+        // Capture absolute midpoint between 2 fingers as zoom anchor
+        touchStateRef.current.initialMidX = (t0.clientX + t1.clientX) / 2;
+        touchStateRef.current.initialMidY = (t0.clientY + t1.clientY) / 2;
         // Mark as pinch so handleSheetTouchEnd won't dismiss fitted state
         touchGestureRef.current.wasPinch = true;
       } else if (e.touches.length === 1) {

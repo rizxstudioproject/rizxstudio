@@ -1440,6 +1440,8 @@ export default function CanvasWorkspace({
     initialPinchDistance: number | null;
     initialZoom: number;
     startPan: { x: number; y: number };
+    initialMidX: number;
+    initialMidY: number;
     startTouch: { x: number; y: number };
     isTouchPanning: boolean;
     touchDraggingItemId: string | null;
@@ -1448,6 +1450,8 @@ export default function CanvasWorkspace({
     initialPinchDistance: null,
     initialZoom: 1,
     startPan: { x: 0, y: 0 },
+    initialMidX: 0,
+    initialMidY: 0,
     startTouch: { x: 0, y: 0 },
     isTouchPanning: false,
     touchDraggingItemId: null,
@@ -1963,6 +1967,9 @@ export default function CanvasWorkspace({
       const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
       touchStateRef.current.initialPinchDistance = dist;
       touchStateRef.current.initialZoom = zoomRef.current;
+      touchStateRef.current.startPan = { ...panRef.current };
+      touchStateRef.current.initialMidX = (t1.clientX + t2.clientX) / 2;
+      touchStateRef.current.initialMidY = (t1.clientY + t2.clientY) / 2;
       touchStateRef.current.isTouchPanning = false;
       touchStateRef.current.touchDraggingItemId = null;
       // Mark as pinch so handleItemTouchEnd won't dismiss fitted state
@@ -2006,12 +2013,15 @@ export default function CanvasWorkspace({
         const container = canvasContainerRef.current;
         if (container) {
           const rect = container.getBoundingClientRect();
-          const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
-          const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+          const currentMidX = (t1.clientX + t2.clientX) / 2 - rect.left;
+          const currentMidY = (t1.clientY + t2.clientY) / 2 - rect.top;
+          const initMidX = touchStateRef.current.initialMidX - rect.left;
+          const initMidY = touchStateRef.current.initialMidY - rect.top;
           const currentPan = touchStateRef.current.startPan;
           const currentZoom = touchStateRef.current.initialZoom;
-          const newPanX = midX - (midX - currentPan.x) * (targetZoom / currentZoom);
-          const newPanY = midY - (midY - currentPan.y) * (targetZoom / currentZoom);
+          // Locks zoom directly at the center between the 2 fingers without drifting
+          const newPanX = currentMidX - (initMidX - currentPan.x) * (targetZoom / currentZoom);
+          const newPanY = currentMidY - (initMidY - currentPan.y) * (targetZoom / currentZoom);
           setZoom(targetZoom);
           setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
         } else {
@@ -2062,6 +2072,23 @@ export default function CanvasWorkspace({
   const handleItemTouchStart = (e: React.TouchEvent, item: CanvasItem) => {
     const target = e.target as HTMLElement;
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("button")) {
+      return;
+    }
+
+    // 2-finger pinch-to-zoom: always prioritize pinch zoom when 2 fingers touch an item
+    if (e.touches.length >= 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      touchStateRef.current.initialPinchDistance = dist;
+      touchStateRef.current.initialZoom = zoomRef.current;
+      touchStateRef.current.startPan = { ...panRef.current };
+      touchStateRef.current.initialMidX = (t1.clientX + t2.clientX) / 2;
+      touchStateRef.current.initialMidY = (t1.clientY + t2.clientY) / 2;
+      touchStateRef.current.isTouchPanning = false;
+      touchStateRef.current.touchDraggingItemId = null;
+      touchGestureRef.current.wasPinch = true;
+      setDraggingItemId(null);
       return;
     }
 
