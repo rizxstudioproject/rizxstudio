@@ -585,6 +585,46 @@ export default function CanvasWorkspace({
     };
   }, [items, selectedIds, hiddenItemIds]);
 
+  const [isMultiResizing, setIsMultiResizing] = useState<boolean>(false);
+  const multiResizeStartRef = useRef<{
+    mouseX: number;
+    mouseY: number;
+    initialBounds: { x: number; y: number; width: number; height: number };
+    initialItems: Map<string, { x: number; y: number; width: number; height: number }>;
+    handle: "nw" | "ne" | "se" | "sw";
+  } | null>(null);
+
+  const handleMultiResizeMouseDown = useCallback(
+    (e: React.MouseEvent, handle: "nw" | "ne" | "se" | "sw") => {
+      e.stopPropagation();
+      e.preventDefault();
+      if (!multiSelectionBounds) return;
+
+      const initialMap = new Map<string, { x: number; y: number; width: number; height: number }>();
+      items.forEach((it) => {
+        if (selectedIds.has(it.id)) {
+          const dim = getItemDimensions(it);
+          initialMap.set(it.id, {
+            x: it.x || 0,
+            y: it.y || 0,
+            width: dim.width,
+            height: dim.height,
+          });
+        }
+      });
+
+      setIsMultiResizing(true);
+      multiResizeStartRef.current = {
+        mouseX: e.clientX,
+        mouseY: e.clientY,
+        initialBounds: { ...multiSelectionBounds },
+        initialItems: initialMap,
+        handle,
+      };
+    },
+    [multiSelectionBounds, items, selectedIds]
+  );
+
   // Figma Smart Selection Grid Engine (Pink center dots & Spacing handles - Matches User's Photo)
   const smartSelectionGrid = useMemo(() => {
     if (selectedIds.size < 2 || activeTool === "hand") return null;
@@ -1500,21 +1540,16 @@ export default function CanvasWorkspace({
           );
         } else if (alignment === "distribute-h") {
           const sorted = [...rects].sort((a, b) => a.x - b.x);
-          const first = sorted[0];
-          const last = sorted[sorted.length - 1];
-          const totalSpan = last.x + last.width - first.x;
           const sumWidths = sorted.reduce((sum, r) => sum + r.width, 0);
-          const totalGap = totalSpan - sumWidths;
-          const avgWidth = Math.round(sumWidths / sorted.length);
-          const minGap = Math.max(48, Math.round(avgWidth * 0.15));
-          const gap = sorted.length > 1 ? (totalGap > (sorted.length - 1) * 24 ? totalGap / (sorted.length - 1) : minGap) : 0;
-          let curX = first.x;
+          const totalGap = (maxX - minX) - sumWidths;
+          const gap = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+          let curX = minX;
           sorted.forEach((r, idx) => {
             if (idx === 0) {
-              updates.set(r.id, { x: r.x });
+              updates.set(r.id, { x: Math.round(minX) });
               curX += r.width + gap;
-            } else if (idx === sorted.length - 1 && totalGap > (sorted.length - 1) * 24) {
-              updates.set(r.id, { x: Math.round(last.x) });
+            } else if (idx === sorted.length - 1) {
+              updates.set(r.id, { x: Math.round(maxX - r.width) });
             } else {
               updates.set(r.id, { x: Math.round(curX) });
               curX += r.width + gap;
@@ -1522,21 +1557,16 @@ export default function CanvasWorkspace({
           });
         } else if (alignment === "distribute-v") {
           const sorted = [...rects].sort((a, b) => a.y - b.y);
-          const first = sorted[0];
-          const last = sorted[sorted.length - 1];
-          const totalSpan = last.y + last.height - first.y;
           const sumHeights = sorted.reduce((sum, r) => sum + r.height, 0);
-          const totalGap = totalSpan - sumHeights;
-          const avgHeight = Math.round(sumHeights / sorted.length);
-          const minGap = Math.max(48, Math.round(avgHeight * 0.15));
-          const gap = sorted.length > 1 ? (totalGap > (sorted.length - 1) * 24 ? totalGap / (sorted.length - 1) : minGap) : 0;
-          let curY = first.y;
+          const totalGap = (maxY - minY) - sumHeights;
+          const gap = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+          let curY = minY;
           sorted.forEach((r, idx) => {
             if (idx === 0) {
-              updates.set(r.id, { y: r.y });
+              updates.set(r.id, { y: Math.round(minY) });
               curY += r.height + gap;
-            } else if (idx === sorted.length - 1 && totalGap > (sorted.length - 1) * 24) {
-              updates.set(r.id, { y: Math.round(last.y) });
+            } else if (idx === sorted.length - 1) {
+              updates.set(r.id, { y: Math.round(maxY - r.height) });
             } else {
               updates.set(r.id, { y: Math.round(curY) });
               curY += r.height + gap;
@@ -1611,37 +1641,32 @@ export default function CanvasWorkspace({
 
           const sumColsW = colW.reduce((sum, w) => sum + w, 0);
           const sumRowsH = rowH.reduce((sum, h) => sum + h, 0);
-          const avgW = Math.round(rects.reduce((sum, r) => sum + r.width, 0) / N);
-          const avgH = Math.round(rects.reduce((sum, r) => sum + r.height, 0) / N);
 
-          // Calculate comfortable, generous gap (Figma Tidy Up standard)
+          // Strictly anchor to outermost lines (minX, maxX, minY, maxY)
           let gapX = 0;
           if (cols > 1) {
             const remainingW = spanW - sumColsW;
-            const minAllowedGap = Math.max(48, Math.round(avgW * 0.15));
-            if (remainingW > (cols - 1) * minAllowedGap) {
-              gapX = Math.round(remainingW / (cols - 1));
-            } else {
-              gapX = Math.max(64, Math.min(240, Math.round(avgW * 0.2)));
-            }
+            gapX = Math.round(remainingW / (cols - 1));
           }
 
           let gapY = 0;
           if (rows > 1) {
             const remainingH = spanH - sumRowsH;
-            const minAllowedGap = Math.max(48, Math.round(avgH * 0.15));
-            if (remainingH > (rows - 1) * minAllowedGap) {
-              gapY = Math.round(remainingH / (rows - 1));
-            } else {
-              gapY = Math.max(64, Math.min(240, Math.round(avgH * 0.2)));
-            }
+            gapY = Math.round(remainingH / (rows - 1));
           }
 
-          // Position items in tidy grid
+          // Position items in tidy grid:
+          // Topmost row stays at minY, bottommost row ends at maxY
+          // Leftmost column stays at minX, rightmost column ends at maxX
+          // Objects in the middle follow along and distribute evenly!
           for (let r = 0; r < rows; r++) {
             let curY = minY;
-            for (let k = 0; k < r; k++) {
-              curY += rowH[k] + gapY;
+            if (rows > 1 && r === rows - 1) {
+              curY = maxY - rowH[r];
+            } else {
+              for (let k = 0; k < r; k++) {
+                curY += rowH[k] + gapY;
+              }
             }
 
             for (let c = 0; c < cols; c++) {
@@ -1649,8 +1674,12 @@ export default function CanvasWorkspace({
               if (!item) continue;
 
               let curX = minX;
-              for (let k = 0; k < c; k++) {
-                curX += colW[k] + gapX;
+              if (cols > 1 && c === cols - 1) {
+                curX = maxX - colW[c];
+              } else {
+                for (let k = 0; k < c; k++) {
+                  curX += colW[k] + gapX;
+                }
               }
 
               updates.set(item.id, {
@@ -2408,7 +2437,7 @@ export default function CanvasWorkspace({
 
   // High-performance 0ms-latency window mouse tracking for pan, drag, and marquee selection
   useEffect(() => {
-    if (!isPanning && !draggingItemId && !isMarqueeSelecting && !isDrawingShape && !resizingItemId) return;
+    if (!isPanning && !draggingItemId && !isMarqueeSelecting && !isDrawingShape && !resizingItemId && !isMultiResizing) return;
 
     const onWindowMove = (e: MouseEvent) => {
       if (isPanning) {
@@ -2425,6 +2454,66 @@ export default function CanvasWorkspace({
             }
           });
         }
+      } else if (isMultiResizing && multiResizeStartRef.current) {
+        // Multi-Selection Bounding Box Resizing (Proportionally resizes & repositions middle items)
+        const { mouseX, mouseY, initialBounds, initialItems, handle } = multiResizeStartRef.current;
+        const curZoom = zoomRef.current || zoom;
+        const deltaX = (e.clientX - mouseX) / curZoom;
+        const deltaY = (e.clientY - mouseY) / curZoom;
+
+        let newX = initialBounds.x;
+        let newY = initialBounds.y;
+        let newW = initialBounds.width;
+        let newH = initialBounds.height;
+
+        if (handle.includes("e")) {
+          newW = Math.max(50, Math.round(initialBounds.width + deltaX));
+        }
+        if (handle.includes("s")) {
+          newH = Math.max(50, Math.round(initialBounds.height + deltaY));
+        }
+        if (handle.includes("w")) {
+          const rawW = initialBounds.width - deltaX;
+          if (rawW >= 50) {
+            newW = Math.round(rawW);
+            newX = Math.round(initialBounds.x + deltaX);
+          }
+        }
+        if (handle.includes("n")) {
+          const rawH = initialBounds.height - deltaY;
+          if (rawH >= 50) {
+            newH = Math.round(rawH);
+            newY = Math.round(initialBounds.y + deltaY);
+          }
+        }
+
+        const scaleX = newW / (initialBounds.width || 1);
+        const scaleY = newH / (initialBounds.height || 1);
+
+        setItems((prev) =>
+          prev.map((it) => {
+            const init = initialItems.get(it.id);
+            if (!init) return it;
+
+            const relX = (init.x - initialBounds.x) / (initialBounds.width || 1);
+            const relY = (init.y - initialBounds.y) / (initialBounds.height || 1);
+
+            const updatedX = Math.round(newX + relX * newW);
+            const updatedY = Math.round(newY + relY * newH);
+            const updatedW = Math.max(20, Math.round(init.width * scaleX));
+            const updatedH = Math.max(20, Math.round(init.height * scaleY));
+
+            return {
+              ...it,
+              x: updatedX,
+              y: updatedY,
+              width: updatedW,
+              height: updatedH,
+              aspect: `${updatedW}:${updatedH}`,
+            };
+          })
+        );
+        setHasChanges(true);
       } else if (resizingItemId && resizeStartRef.current) {
         // Freeform Element Resizing (Corner & Edge Handles - Matches Screenshot Image 2)
         const { mouseX, mouseY, startX, startY, startW, startH, handle } = resizeStartRef.current;
@@ -2589,6 +2678,10 @@ export default function CanvasWorkspace({
         setResizeHandle(null);
         resizeStartRef.current = null;
       }
+      if (isMultiResizing) {
+        setIsMultiResizing(false);
+        multiResizeStartRef.current = null;
+      }
       if (isMarqueeSelecting) {
         setIsMarqueeSelecting(false);
         setMarqueeBox(null);
@@ -2712,6 +2805,7 @@ export default function CanvasWorkspace({
     isDrawingShape,
     drawingShapeBox,
     resizingItemId,
+    isMultiResizing,
     panStart,
     pan,
     zoom,
@@ -2736,6 +2830,10 @@ export default function CanvasWorkspace({
       setResizingItemId(null);
       setResizeHandle(null);
       resizeStartRef.current = null;
+    }
+    if (isMultiResizing) {
+      setIsMultiResizing(false);
+      multiResizeStartRef.current = null;
     }
     if (isMarqueeSelecting) {
       setIsMarqueeSelecting(false);
@@ -6995,11 +7093,27 @@ export default function CanvasWorkspace({
                 height: `${multiSelectionBounds.height}px`,
               }}
             >
-              {/* Corner Handles */}
-              <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-              <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-              <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-              <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+              {/* Corner Handles for Proportional Multi-Object Resizing */}
+              <div
+                onMouseDown={(e) => handleMultiResizeMouseDown(e, "nw")}
+                className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] cursor-nwse-resize pointer-events-auto z-50 hover:scale-125 transition-transform"
+                title="Tarik batas luar group (Top-Left)"
+              />
+              <div
+                onMouseDown={(e) => handleMultiResizeMouseDown(e, "ne")}
+                className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] cursor-nesw-resize pointer-events-auto z-50 hover:scale-125 transition-transform"
+                title="Tarik batas luar group (Top-Right)"
+              />
+              <div
+                onMouseDown={(e) => handleMultiResizeMouseDown(e, "sw")}
+                className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] cursor-nesw-resize pointer-events-auto z-50 hover:scale-125 transition-transform"
+                title="Tarik batas luar group (Bottom-Left)"
+              />
+              <div
+                onMouseDown={(e) => handleMultiResizeMouseDown(e, "se")}
+                className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] cursor-nwse-resize pointer-events-auto z-50 hover:scale-125 transition-transform"
+                title="Tarik batas luar group (Bottom-Right)"
+              />
 
               {/* Figma Tidy Up Star Button on Top Right (Matches Screenshot 3) */}
               <button
