@@ -3149,10 +3149,11 @@ export default function CanvasWorkspace({
     [items, hiddenItemIds, isScreenMobile]
   );
 
-  const lastFitItemCountRef = useRef<number>(0);
+  const hasInitialFitCompletedRef = useRef(false);
 
-  // Auto-fit all elements on initial load and when items are loaded so canvas immediately focuses on images
+  // Auto-fit all elements once on initial load / mount so canvas immediately focuses on images without re-centering on item moves
   useEffect(() => {
+    if (hasInitialFitCompletedRef.current) return;
     if (items.length === 0) return;
 
     // Run multi-pass fit to ensure container layout has settled (especially on mobile tab switch)
@@ -3163,20 +3164,21 @@ export default function CanvasWorkspace({
         const { clientWidth, clientHeight } = canvasContainerRef.current;
         if (clientWidth > 0 && clientHeight > 0) {
           zoomToFitAll(items);
-          lastFitItemCountRef.current = items.length;
           if (attempts >= (isScreenMobile ? 6 : 4)) {
+            hasInitialFitCompletedRef.current = true;
             clearInterval(interval);
           }
           return;
         }
       }
       if (attempts >= 40) {
+        hasInitialFitCompletedRef.current = true;
         clearInterval(interval);
       }
     }, 60);
 
     return () => clearInterval(interval);
-  }, [items, isScreenMobile, zoomToFitAll]);
+  }, [items.length > 0, isScreenMobile, zoomToFitAll]);
 
   // Fit specific item (image / artboard) automatically to screen on double-click / double-tap
   const fitItemToScreen = useCallback(
