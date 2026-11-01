@@ -15,6 +15,7 @@ import { RiFullscreenFill, RiFullscreenExitFill } from "react-icons/ri";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 interface CanvasSheetItem {
   id: string;
@@ -37,6 +38,8 @@ interface CanvasBoardProps {
 export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   const { clients, stage3, heroWorks, canvasItems, addCanvasItem } = usePortfolioData();
   const { t, tr } = useLang();
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
 
   // Viewport & Transform Engine State
   const [zoom, setZoom] = useState<number>(0.8);
@@ -127,27 +130,27 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     return list;
   }, [clients, heroWorks]);
 
+  // Board layout 2D multi-column width calculation
+  const gridCols = Math.min(4, Math.max(2, Math.ceil(Math.sqrt(sheets.length || 6))));
+  const gridBoardWidth = gridCols * 460 + (gridCols - 1) * 44 + 120;
+  const gridBoardHeight = Math.ceil(sheets.length / gridCols) * 560 + 200;
+
   // Center & Fit Canvas on mount / open
   const zoomToFit = useCallback(() => {
     if (!containerRef.current) return;
     const { clientWidth, clientHeight } = containerRef.current;
     if (clientWidth === 0 || clientHeight === 0) return;
 
-    // Board layout width & height estimate based on items
-    const cols = Math.min(4, Math.max(2, Math.ceil(Math.sqrt(sheets.length || 6))));
-    const approxBoardWidth = cols * 380 + (cols - 1) * 60;
-    const approxBoardHeight = Math.ceil(sheets.length / cols) * 520 + 200;
-
-    const scaleX = (clientWidth * 0.88) / approxBoardWidth;
-    const scaleY = (clientHeight * 0.88) / approxBoardHeight;
-    const fitScale = Math.min(1.1, Math.max(0.35, Math.min(scaleX, scaleY)));
+    const scaleX = (clientWidth * 0.9) / gridBoardWidth;
+    const scaleY = (clientHeight * 0.9) / gridBoardHeight;
+    const fitScale = Math.min(1.0, Math.max(0.18, Math.min(scaleX, scaleY)));
 
     setZoom(Number(fitScale.toFixed(2)));
     setPan({
-      x: (clientWidth - approxBoardWidth * fitScale) / 2,
-      y: Math.max(60, (clientHeight - approxBoardHeight * fitScale) / 2),
+      x: (clientWidth - gridBoardWidth * fitScale) / 2,
+      y: Math.max(70, (clientHeight - gridBoardHeight * fitScale) / 2),
     });
-  }, [sheets.length]);
+  }, [gridBoardWidth, gridBoardHeight]);
 
   // Handle Fullscreen Request on Open
   useEffect(() => {
@@ -447,7 +450,9 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         e.stopPropagation();
         return false;
       }}
-      className={`fixed inset-0 z-[99999] bg-[#0c0d11] text-white select-none overflow-hidden touch-none ${
+      className={`fixed inset-0 z-[99999] select-none overflow-hidden touch-none transition-colors duration-200 ${
+        isLight ? "bg-[#f8fafc] text-slate-900" : "bg-[#0c0d11] text-white"
+      } ${
         isDragging
           ? "cursor-grabbing"
           : isSpacePressed
@@ -463,9 +468,13 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     >
       {/* ── Background: Infinite Figma Dot-Grid Pattern ────────────────────────── */}
       <div
-        className="absolute inset-0 pointer-events-none opacity-40 transition-opacity duration-300"
+        className={`absolute inset-0 pointer-events-none transition-opacity duration-300 ${
+          isLight ? "opacity-60" : "opacity-40"
+        }`}
         style={{
-          backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.18) 1.2px, transparent 1.2px)",
+          backgroundImage: isLight
+            ? "radial-gradient(rgba(15, 23, 42, 0.16) 1.2px, transparent 1.2px)"
+            : "radial-gradient(rgba(255, 255, 255, 0.18) 1.2px, transparent 1.2px)",
           backgroundSize: `${28 * zoom}px ${28 * zoom}px`,
           backgroundPosition: `${pan.x}px ${pan.y}px`,
         }}
@@ -473,7 +482,9 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
       {/* Subtle Coordinate Axis Ambient Glow */}
       <div
-        className="absolute w-[600px] h-[600px] rounded-full bg-cyan-500/[0.04] blur-[150px] pointer-events-none"
+        className={`absolute w-[600px] h-[600px] rounded-full blur-[150px] pointer-events-none ${
+          isLight ? "bg-teal-500/[0.06]" : "bg-cyan-500/[0.04]"
+        }`}
         style={{
           transform: `translate3d(${pan.x}px, ${pan.y}px, 0)`,
         }}
@@ -623,28 +634,44 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       <header className="absolute top-0 left-0 right-0 z-50 p-3 sm:p-5 flex items-center justify-between pointer-events-none">
         {/* Left: Rizx Canvas Header Pill */}
         <div className="flex items-center gap-2 pointer-events-auto">
-          <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-[#13151b]/90 border border-white/10 backdrop-blur-xl shadow-2xl">
+          <div className={`flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border backdrop-blur-xl transition-colors ${
+            isLight
+              ? "bg-white/95 border-slate-300 text-slate-900 shadow-xl shadow-slate-200/60"
+              : "bg-[#13151b]/90 border-white/10 text-white shadow-2xl"
+          }`}>
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-400 to-[#16b09f] flex items-center justify-center text-black font-black text-xs shadow-md">
               <span className="font-mono text-[11px] font-black">R</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-mono font-bold tracking-wider text-white">
+                <span className={`text-xs font-mono font-bold tracking-wider ${
+                  isLight ? "text-slate-900" : "text-white"
+                }`}>
                   RIZX CANVAS
                 </span>
-                <span className="px-1.5 py-0.2 rounded bg-cyan-400/20 text-cyan-300 font-mono text-[9px] font-semibold border border-cyan-400/30">
+                <span className={`px-1.5 py-0.2 rounded font-mono text-[9px] font-semibold border ${
+                  isLight
+                    ? "bg-teal-50 text-teal-700 border-teal-200"
+                    : "bg-cyan-400/20 text-cyan-300 border-cyan-400/30"
+                }`}>
                   STUDIO BOARD
                 </span>
               </div>
-              <p className="text-[10px] font-mono text-neutral-400 hidden sm:block">
+              <p className={`text-[10px] font-mono hidden sm:block ${
+                isLight ? "text-slate-500" : "text-neutral-400"
+              }`}>
                 {sheets.length} {tr("Lembaran Karya Tersedia", "Portfolio Sheets")} · {tr("Zoom & Pan Bebas", "Free Zoom & Pan")}
               </p>
             </div>
           </div>
 
           {/* DRM Anti-theft Badge */}
-          <div className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-black/60 border border-white/10 backdrop-blur-xl text-[11px] font-mono text-neutral-400">
-            <HiLockClosed className="w-3.5 h-3.5 text-emerald-400" />
+          <div className={`hidden md:flex items-center gap-1.5 px-3 py-2 rounded-2xl border backdrop-blur-xl text-[11px] font-mono ${
+            isLight
+              ? "bg-white/95 border-slate-300 text-slate-600 shadow-sm"
+              : "bg-black/60 border-white/10 text-neutral-400"
+          }`}>
+            <HiLockClosed className={`w-3.5 h-3.5 ${isLight ? "text-teal-600" : "text-emerald-400"}`} />
             <span>{tr("Proteksi Anti-Save & Anti-Copy Aktif", "DRM Protected · No Right Click")}</span>
           </div>
         </div>
@@ -657,7 +684,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             onClick={() => setShowShortcutsHelp((prev) => !prev)}
             aria-label="Keyboard Shortcuts"
             title="Navigasi Canvas: Scroll = Zoom, Drag = Pan, Space = Hand Tool"
-            className="w-10 h-10 rounded-2xl bg-[#13151b]/90 hover:bg-[#1c1f28] border border-white/10 backdrop-blur-xl flex items-center justify-center text-neutral-300 hover:text-white transition-all shadow-xl active:scale-95 cursor-pointer"
+            className={`w-10 h-10 rounded-2xl border backdrop-blur-xl flex items-center justify-center transition-all shadow-xl active:scale-95 cursor-pointer ${
+              isLight
+                ? "bg-white/95 hover:bg-slate-100 border-slate-300 text-slate-700 hover:text-slate-950"
+                : "bg-[#13151b]/90 hover:bg-[#1c1f28] border-white/10 text-neutral-300 hover:text-white"
+            }`}
           >
             <HiQuestionMarkCircle className="w-5 h-5" />
           </button>
@@ -668,10 +699,14 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             onClick={toggleFullscreen}
             aria-label="Toggle Fullscreen"
             title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-            className="w-10 h-10 rounded-2xl bg-[#13151b]/90 hover:bg-[#1c1f28] border border-white/10 backdrop-blur-xl flex items-center justify-center text-neutral-300 hover:text-white transition-all shadow-xl active:scale-95 cursor-pointer hidden sm:flex"
+            className={`w-10 h-10 rounded-2xl border backdrop-blur-xl flex items-center justify-center transition-all shadow-xl active:scale-95 cursor-pointer hidden sm:flex ${
+              isLight
+                ? "bg-white/95 hover:bg-slate-100 border-slate-300 text-slate-700 hover:text-slate-950"
+                : "bg-[#13151b]/90 hover:bg-[#1c1f28] border-white/10 text-neutral-300 hover:text-white"
+            }`}
           >
             {isFullscreen ? (
-              <RiFullscreenExitFill className="w-4 h-4 text-cyan-400" />
+              <RiFullscreenExitFill className={`w-4 h-4 ${isLight ? "text-teal-600" : "text-cyan-400"}`} />
             ) : (
               <RiFullscreenFill className="w-4 h-4" />
             )}
@@ -683,7 +718,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             onClick={handleClose}
             aria-label="Close Canvas Board"
             title="Tutup Canvas (Esc)"
-            className="flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2 rounded-2xl bg-red-500/20 hover:bg-red-500/30 text-red-200 hover:text-white border border-red-500/40 backdrop-blur-xl transition-all shadow-2xl active:scale-95 cursor-pointer group"
+            className={`flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2 rounded-2xl border backdrop-blur-xl transition-all shadow-2xl active:scale-95 cursor-pointer group ${
+              isLight
+                ? "bg-red-50 hover:bg-red-100 text-red-600 border-red-200 shadow-slate-200/50"
+                : "bg-red-500/20 hover:bg-red-500/30 text-red-200 hover:text-white border-red-500/40"
+            }`}
           >
             <HiXMark className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
             <span className="text-xs font-mono font-bold tracking-wider hidden sm:inline">
@@ -695,36 +734,54 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
       {/* ── Shortcuts Help Card Popover ───────────────────────────────────────── */}
       {showShortcutsHelp && (
-        <div className="absolute top-20 right-5 z-50 w-72 rounded-2xl bg-[#13151b]/95 border border-white/15 p-4 backdrop-blur-2xl shadow-2xl animate-fade-in font-mono text-xs">
-          <div className="flex items-center justify-between pb-2 mb-2.5 border-b border-white/10">
-            <span className="font-bold text-cyan-400 tracking-wider">NAVIGASI CANVAS</span>
+        <div className={`absolute top-20 right-5 z-50 w-72 rounded-2xl border p-4 backdrop-blur-2xl shadow-2xl animate-fade-in font-mono text-xs ${
+          isLight
+            ? "bg-white/98 border-slate-300 text-slate-800"
+            : "bg-[#13151b]/95 border-white/15 text-neutral-300"
+        }`}>
+          <div className={`flex items-center justify-between pb-2 mb-2.5 border-b ${
+            isLight ? "border-slate-200" : "border-white/10"
+          }`}>
+            <span className={`font-bold tracking-wider ${isLight ? "text-teal-700" : "text-cyan-400"}`}>
+              NAVIGASI CANVAS
+            </span>
             <button
               onClick={() => setShowShortcutsHelp(false)}
-              className="text-neutral-400 hover:text-white cursor-pointer"
+              className={`cursor-pointer ${isLight ? "text-slate-400 hover:text-slate-900" : "text-neutral-400 hover:text-white"}`}
             >
               ✕
             </button>
           </div>
-          <div className="space-y-2 text-neutral-300">
+          <div className={`space-y-2 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
             <div className="flex justify-between items-center">
               <span>Zoom In / Out</span>
-              <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold">Scroll Wheel / Pinch</span>
+              <span className={`px-2 py-0.5 rounded font-bold ${isLight ? "bg-slate-100 text-slate-800 border border-slate-300" : "bg-white/10 text-white"}`}>
+                Scroll Wheel / Pinch
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span>Pan / Geser</span>
-              <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold">Klik & Drag / 2 Jari</span>
+              <span className={`px-2 py-0.5 rounded font-bold ${isLight ? "bg-slate-100 text-slate-800 border border-slate-300" : "bg-white/10 text-white"}`}>
+                Klik & Drag / 2 Jari
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span>Hand Tool</span>
-              <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold">Space + Drag</span>
+              <span className={`px-2 py-0.5 rounded font-bold ${isLight ? "bg-slate-100 text-slate-800 border border-slate-300" : "bg-white/10 text-white"}`}>
+                Space + Drag
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span>Fit All / Reset</span>
-              <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold">F / Tombol [ ]</span>
+              <span className={`px-2 py-0.5 rounded font-bold ${isLight ? "bg-slate-100 text-slate-800 border border-slate-300" : "bg-white/10 text-white"}`}>
+                F / Tombol [ ]
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span>Keluar Canvas</span>
-              <span className="px-2 py-0.5 rounded bg-white/10 text-white font-bold">Tombol X / Esc</span>
+              <span className={`px-2 py-0.5 rounded font-bold ${isLight ? "bg-slate-100 text-slate-800 border border-slate-300" : "bg-white/10 text-white"}`}>
+                Tombol X / Esc
+              </span>
             </div>
           </div>
         </div>
@@ -761,8 +818,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       transform: `translate3d(${x}px, ${y}px, 0)`,
                       width: `${secWidth}px`,
                       height: `${secHeight}px`,
-                      borderColor: `${secColor}40`,
-                      backgroundColor: `${secColor}05`,
+                      borderColor: isLight ? `${secColor}70` : `${secColor}40`,
+                      backgroundColor: isLight ? `${secColor}0c` : `${secColor}05`,
                     }}
                     className="absolute rounded-3xl border-2 border-dashed p-4 flex flex-col justify-between pointer-events-none"
                   >
@@ -774,7 +831,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                         {item.title}
                       </span>
                     </div>
-                    <div className="text-right text-[11px] font-mono text-neutral-500">
+                    <div className={`text-right text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
                       {secWidth} × {secHeight}
                     </div>
                   </div>
@@ -798,19 +855,29 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       transform: `translate3d(${x}px, ${y}px, 0)`,
                       width: "280px",
                     }}
-                    className="absolute rounded-2xl bg-[#111318]/95 border border-white/15 hover:border-teal-400 backdrop-blur-xl p-3.5 transition-all shadow-xl flex flex-col gap-2.5 cursor-pointer hover:scale-105 active:scale-95 group"
+                    className={`absolute rounded-2xl border backdrop-blur-xl p-3.5 transition-all shadow-xl flex flex-col gap-2.5 cursor-pointer hover:scale-105 active:scale-95 group ${
+                      isLight
+                        ? "bg-white/95 border-slate-300 hover:border-teal-500 text-slate-900 shadow-slate-200/50"
+                        : "bg-[#111318]/95 border-white/15 hover:border-teal-400 text-white"
+                    }`}
                   >
                     <div className="flex items-center gap-2">
-                      <span className="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold shrink-0 group-hover:scale-110 transition-transform">
+                      <span className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 group-hover:scale-110 transition-transform ${
+                        isLight ? "bg-teal-50 text-teal-600 border border-teal-200" : "bg-teal-500/20 text-teal-400"
+                      }`}>
                         📁
                       </span>
-                      <span className="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">
+                      <span className={`text-xs font-bold transition-colors ${
+                        isLight ? "text-slate-900 group-hover:text-teal-700" : "text-white group-hover:text-teal-300"
+                      }`}>
                         {item.title}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 pt-1 border-t border-white/5">
+                    <div className={`flex items-center justify-between text-[10px] font-mono pt-1 border-t ${
+                      isLight ? "text-slate-500 border-slate-200" : "text-neutral-400 border-white/5"
+                    }`}>
                       <span>Folder Client</span>
-                      <span className="text-teal-400 font-semibold">Buka Karya Vault →</span>
+                      <span className={`font-semibold ${isLight ? "text-teal-700" : "text-teal-400"}`}>Buka Karya Vault →</span>
                     </div>
                   </div>
                 );
@@ -826,7 +893,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       transform: `translate3d(${x}px, ${y}px, 0)`,
                       maxWidth: "460px",
                     }}
-                    className="absolute p-3 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md"
+                    className={`absolute p-3.5 rounded-xl border backdrop-blur-md ${
+                      isLight
+                        ? "bg-white/95 border-slate-300 text-slate-800 shadow-xl shadow-slate-200/50"
+                        : "bg-black/60 border-white/10 text-white"
+                    }`}
                   >
                     <h3
                       className="text-base sm:text-lg font-black tracking-tight"
@@ -835,7 +906,9 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       {item.title}
                     </h3>
                     {item.content && (
-                      <p className="text-xs text-neutral-300 font-sans mt-1 leading-relaxed whitespace-pre-wrap">
+                      <p className={`text-xs font-sans mt-1 leading-relaxed whitespace-pre-wrap ${
+                        isLight ? "text-slate-600" : "text-neutral-300"
+                      }`}>
                         {item.content}
                       </p>
                     )}
@@ -881,24 +954,40 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   }}
                   className={`absolute group flex flex-col rounded-2xl transition-all duration-200 cursor-pointer ${
                     isSelected
-                      ? "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
+                      ? isLight
+                        ? "ring-2 ring-teal-500 shadow-[0_20px_60px_rgba(20,184,166,0.3)] scale-[1.01]"
+                        : "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
+                      : isLight
+                      ? "hover:ring-1 hover:ring-slate-300 shadow-xl"
                       : "hover:ring-1 hover:ring-white/40 shadow-2xl"
                   }`}
                 >
-                  <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
+                  <div className={`flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg border backdrop-blur-md text-[11px] font-mono ${
+                    isLight
+                      ? "bg-white/95 border-slate-300 text-slate-800 shadow-xs"
+                      : "bg-black/60 border-white/10 text-neutral-300"
+                  }`}>
                     <div className="flex items-center gap-1.5 truncate pr-2">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
-                      <span className="font-bold text-white truncate">{item.clientName || "Selected Work"}</span>
-                      <span className="text-neutral-500">/</span>
-                      <span className="truncate opacity-80">{item.title}</span>
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${isLight ? "bg-teal-500" : "bg-cyan-400"}`} />
+                      <span className={`font-bold truncate ${isLight ? "text-slate-900" : "text-white"}`}>{item.clientName || "Selected Work"}</span>
+                      <span className={isLight ? "text-slate-400" : "text-neutral-500"}>/</span>
+                      <span className={`truncate opacity-80 ${isLight ? "text-slate-700" : "text-neutral-200"}`}>{item.title}</span>
                     </div>
-                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-cyan-300 font-bold border border-white/10 shrink-0">
+                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border shrink-0 ${
+                      isLight
+                        ? "bg-slate-100 text-teal-700 border-slate-300"
+                        : "bg-white/10 text-cyan-300 border-white/10"
+                    }`}>
                       {item.aspect === "original" ? "ORIGINAL" : item.aspect || "4:5"}
                     </span>
                   </div>
 
                   <div
-                    className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center`}
+                    className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden border flex items-center justify-center ${
+                      isLight
+                        ? "bg-white border-slate-300 shadow-xl shadow-slate-200/50"
+                        : "bg-neutral-950 border-white/15 shadow-2xl"
+                    }`}
                     style={sheetStyle}
                   >
                     <img
@@ -930,26 +1019,29 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             })}
           </div>
         ) : (
-          /* Grid Arrangement of Deliverable Sheets */
-          <div className="p-16 flex flex-wrap gap-12 sm:gap-14 max-w-[2800px] items-start select-none">
+          /* Grid Arrangement of Deliverable Sheets in 2D Matrix */
+          <div
+            style={{ width: `${gridBoardWidth}px` }}
+            className="p-14 flex flex-wrap gap-10 sm:gap-12 items-start select-none"
+          >
             {sheets.map((sheet, index) => {
               const isSelected = selectedSheetId === sheet.id;
 
               // Sheet dimensions strictly matching original aspect ratio without cropping
-              let sheetWidthClass = "w-[440px] sm:w-[540px]";
+              let sheetWidthClass = "w-[440px] sm:w-[500px]";
               let sheetStyle: React.CSSProperties = { aspectRatio: "4 / 5" };
 
               if (sheet.aspect === "16:9") {
-                sheetWidthClass = "w-[560px] sm:w-[720px]";
+                sheetWidthClass = "w-[560px] sm:w-[680px]";
                 sheetStyle = { aspectRatio: "16 / 9" };
               } else if (sheet.aspect === "9:16") {
-                sheetWidthClass = "w-[320px] sm:w-[380px]";
+                sheetWidthClass = "w-[320px] sm:w-[360px]";
                 sheetStyle = { aspectRatio: "9 / 16" };
               } else if (sheet.aspect === "1:1") {
-                sheetWidthClass = "w-[440px] sm:w-[540px]";
+                sheetWidthClass = "w-[440px] sm:w-[500px]";
                 sheetStyle = { aspectRatio: "1 / 1" };
               } else if (sheet.aspect === "4:5") {
-                sheetWidthClass = "w-[440px] sm:w-[540px]";
+                sheetWidthClass = "w-[440px] sm:w-[500px]";
                 sheetStyle = { aspectRatio: "4 / 5" };
               } else if (sheet.aspect && sheet.aspect.includes(":")) {
                 const [wStr, hStr] = sheet.aspect.split(":");
@@ -957,11 +1049,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                 const hNum = parseFloat(hStr);
                 if (wNum && hNum) {
                   sheetStyle = { aspectRatio: `${wNum} / ${hNum}` };
-                  sheetWidthClass = wNum > hNum ? "w-[560px] sm:w-[720px]" : "w-[440px] sm:w-[540px]";
+                  sheetWidthClass = wNum > hNum ? "w-[560px] sm:w-[680px]" : "w-[440px] sm:w-[500px]";
                 }
               } else if (sheet.aspect === "original" || !sheet.aspect) {
                 sheetStyle = { aspectRatio: "auto", minHeight: "340px" };
-                sheetWidthClass = "w-[460px] sm:w-[580px]";
+                sheetWidthClass = "w-[440px] sm:w-[500px]";
               }
 
               return (
@@ -973,24 +1065,40 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   }}
                   className={`group relative flex flex-col rounded-2xl transition-all duration-300 ${
                     isSelected
-                      ? "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
+                      ? isLight
+                        ? "ring-2 ring-teal-500 shadow-[0_20px_60px_rgba(20,184,166,0.3)] scale-[1.01]"
+                        : "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
+                      : isLight
+                      ? "hover:ring-1 hover:ring-slate-300 shadow-xl"
                       : "hover:ring-1 hover:ring-white/40 shadow-2xl"
                   }`}
                 >
                   {/* Figma Frame Top Label */}
-                  <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
+                  <div className={`flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg border backdrop-blur-md text-[11px] font-mono ${
+                    isLight
+                      ? "bg-white/95 border-slate-300 text-slate-800 shadow-xs"
+                      : "bg-black/60 border-white/10 text-neutral-300"
+                  }`}>
                     <div className="flex items-center gap-1.5 truncate pr-2">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
-                      <span className="font-bold text-white truncate">{sheet.clientName}</span>
-                      <span className="text-neutral-500">/</span>
-                      <span className="truncate opacity-80">{sheet.title}</span>
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${isLight ? "bg-teal-500" : "bg-cyan-400"}`} />
+                      <span className={`font-bold truncate ${isLight ? "text-slate-900" : "text-white"}`}>{sheet.clientName}</span>
+                      <span className={isLight ? "text-slate-400" : "text-neutral-500"}>/</span>
+                      <span className={`truncate opacity-80 ${isLight ? "text-slate-700" : "text-neutral-200"}`}>{sheet.title}</span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-cyan-300 font-bold border border-white/10">
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                        isLight
+                          ? "bg-slate-100 text-teal-700 border-slate-300"
+                          : "bg-white/10 text-cyan-300 border-white/10"
+                      }`}>
                         {sheet.aspect === "original" ? "ORIGINAL" : sheet.aspect}
                       </span>
                       {sheet.isVideo && (
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/30 uppercase">
+                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase ${
+                          isLight
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
+                        }`}>
                           VIDEO
                         </span>
                       )}
@@ -999,7 +1107,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
                   {/* Sheet Visual Container */}
                   <div
-                    className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center`}
+                    className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden border flex items-center justify-center ${
+                      isLight
+                        ? "bg-white border-slate-300 shadow-xl shadow-slate-200/50"
+                        : "bg-neutral-950 border-white/15 shadow-2xl"
+                    }`}
                     style={sheetStyle}
                   >
                     {/* Visual Artwork - 100% Original Resolution & Razor-Sharp when Zoomed */}
@@ -1030,16 +1142,26 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                     />
 
                     {/* Corner Accent */}
-                    <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md text-[10px] font-mono text-neutral-300 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className={`absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md backdrop-blur-md text-[10px] font-mono border opacity-0 group-hover:opacity-100 transition-opacity ${
+                      isLight
+                        ? "bg-white/90 border-slate-300 text-slate-700 shadow-xs"
+                        : "bg-black/75 border-white/10 text-neutral-300"
+                    }`}>
                       #{index + 1}
                     </div>
 
                     {/* Bottom Vignette with Deliverable Info */}
-                    <div className="absolute inset-x-0 bottom-0 z-10 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end">
+                    <div className={`absolute inset-x-0 bottom-0 z-10 p-3 flex flex-col justify-end ${
+                      isLight
+                        ? "bg-gradient-to-t from-slate-900/85 via-slate-900/40 to-transparent"
+                        : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"
+                    }`}>
                       <h5 className="text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">
                         {sheet.title}
                       </h5>
-                      <p className="text-[10px] font-mono text-cyan-400/90 truncate mt-0.5">
+                      <p className={`text-[10px] font-mono truncate mt-0.5 ${
+                        isLight ? "text-teal-300" : "text-cyan-400/90"
+                      }`}>
                         {sheet.type || "Digital Asset"} · {sheet.year}
                       </p>
                     </div>
@@ -1048,10 +1170,10 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   {/* Selection Corners (shown when clicked / focused) */}
                   {isSelected && (
                     <>
-                      <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
-                      <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
-                      <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
-                      <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
+                      <div className={`absolute -top-1.5 -left-1.5 w-3 h-3 border border-black rounded-xs shadow-sm pointer-events-none ${isLight ? "bg-teal-500" : "bg-cyan-400"}`} />
+                      <div className={`absolute -top-1.5 -right-1.5 w-3 h-3 border border-black rounded-xs shadow-sm pointer-events-none ${isLight ? "bg-teal-500" : "bg-cyan-400"}`} />
+                      <div className={`absolute -bottom-1.5 -left-1.5 w-3 h-3 border border-black rounded-xs shadow-sm pointer-events-none ${isLight ? "bg-teal-500" : "bg-cyan-400"}`} />
+                      <div className={`absolute -bottom-1.5 -right-1.5 w-3 h-3 border border-black rounded-xs shadow-sm pointer-events-none ${isLight ? "bg-teal-500" : "bg-cyan-400"}`} />
                     </>
                   )}
                 </div>
@@ -1062,7 +1184,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       </div>
 
       {/* ── Floating Bottom Dock (Zoom Controls, Fit, Shortcuts) ───────────────── */}
-      <footer className="absolute bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#13151b]/95 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] font-mono text-xs">
+      <footer className={`absolute bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex items-center gap-1.5 px-3 py-2 rounded-2xl backdrop-blur-2xl font-mono text-xs border ${
+        isLight
+          ? "bg-white/95 border-slate-300 text-slate-800 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
+          : "bg-[#13151b]/95 border-white/15 text-white shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
+      }`}>
         {/* Zoom Out Button */}
         <button
           type="button"
@@ -1072,7 +1198,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           }}
           aria-label="Zoom Out"
           title="Zoom Out (-)"
-          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-neutral-300 hover:text-white transition-all active:scale-90 cursor-pointer"
+          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90 cursor-pointer ${
+            isLight
+              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950"
+              : "bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white"
+          }`}
         >
           <HiMiniMagnifyingGlassMinus className="w-4 h-4" />
         </button>
@@ -1083,7 +1213,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           onClick={() => setZoom(1.0)}
           aria-label="Reset Zoom 100%"
           title="Klik untuk Reset Zoom ke 100%"
-          className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 font-bold text-cyan-400 hover:text-cyan-300 transition-all text-xs cursor-pointer min-w-[56px] text-center"
+          className={`px-3 py-1 rounded-xl font-bold transition-all text-xs cursor-pointer min-w-[56px] text-center ${
+            isLight
+              ? "bg-teal-50 hover:bg-teal-100 text-teal-700"
+              : "bg-white/5 hover:bg-white/10 text-cyan-400 hover:text-cyan-300"
+          }`}
         >
           {Math.round(zoom * 100)}%
         </button>
@@ -1097,12 +1231,16 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           }}
           aria-label="Zoom In"
           title="Zoom In (+)"
-          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-neutral-300 hover:text-white transition-all active:scale-90 cursor-pointer"
+          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90 cursor-pointer ${
+            isLight
+              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950"
+              : "bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white"
+          }`}
         >
           <HiMiniMagnifyingGlassPlus className="w-4 h-4" />
         </button>
 
-        <div className="w-[1px] h-4 bg-white/15 mx-1" />
+        <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-200" : "bg-white/15"}`} />
 
         {/* Zoom to Fit */}
         <button
@@ -1110,7 +1248,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           onClick={zoomToFit}
           aria-label="Zoom to Fit All"
           title="Zoom to Fit All (F)"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-cyan-500/20 text-neutral-300 hover:text-cyan-300 transition-all active:scale-90 cursor-pointer text-xs"
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all active:scale-90 cursor-pointer text-xs ${
+            isLight
+              ? "bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800"
+              : "bg-white/5 hover:bg-cyan-500/20 text-neutral-300 hover:text-cyan-300"
+          }`}
         >
           <HiArrowsPointingOut className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Fit All</span>
@@ -1122,7 +1264,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           onClick={() => setPan({ x: 0, y: 0 })}
           aria-label="Center Origin"
           title="Kembali ke Titik Awal"
-          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-neutral-400 hover:text-white transition-all active:scale-90 cursor-pointer hidden sm:flex"
+          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all active:scale-90 cursor-pointer hidden sm:flex ${
+            isLight
+              ? "bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900"
+              : "bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white"
+          }`}
         >
           <HiArrowPath className="w-3.5 h-3.5" />
         </button>

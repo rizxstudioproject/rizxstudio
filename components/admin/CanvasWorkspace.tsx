@@ -25,6 +25,7 @@ import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
+import { useMotionTheme } from "@/context/MotionThemeContext";
 
 interface CanvasWorkspaceProps {
   onOpenCanvasPreview?: () => void;
@@ -35,6 +36,8 @@ type CanvasTool = "select" | "hand" | "section" | "folder" | "text" | "media";
 export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspaceProps) {
   const { clients, heroWorks, canvasItems, updateCanvasItems } = usePortfolioData();
   const { tr } = useLang();
+  const { themeMode } = useMotionTheme();
+  const isLight = themeMode === "light";
 
   // Canvas Viewport Transform Engine (Zoom & Pan)
   const [zoom, setZoom] = useState<number>(0.85);
@@ -540,34 +543,48 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#0a0b0e] text-white relative select-none overflow-hidden touch-none">
+    <div className={`flex-1 flex flex-col h-full relative select-none overflow-hidden touch-none transition-colors duration-200 ${
+      isLight ? "bg-[#f8fafc] text-slate-900" : "bg-[#0a0b0e] text-white"
+    }`}>
       {/* ── Top Bar: Figma Style Toolbar & Global Actions ─────────────────────── */}
-      <header className="h-14 shrink-0 bg-[#0f1115] border-b border-white/10 px-4 flex items-center justify-between z-30 shadow-md">
+      <header className={`h-14 shrink-0 px-4 flex items-center justify-between z-30 shadow-md border-b transition-colors ${
+        isLight ? "bg-white/95 border-slate-200 text-slate-900 shadow-slate-200/50" : "bg-[#0f1115] border-white/10 text-white"
+      }`}>
         {/* Left: Branding & Status */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold shadow-xs">
               🎨
             </span>
-            <span className="font-bold text-xs sm:text-sm tracking-tight text-white font-mono">
+            <span className={`font-bold text-xs sm:text-sm tracking-tight font-mono ${
+              isLight ? "text-slate-900" : "text-white"
+            }`}>
               RIZX CANVAS EDITOR
             </span>
           </div>
 
-          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-neutral-400">
+          <span className={`hidden sm:inline-block px-2 py-0.5 rounded-full border text-[10px] font-mono ${
+            isLight ? "bg-slate-100 border-slate-200 text-slate-600" : "bg-white/5 border-white/10 text-neutral-400"
+          }`}>
             {items.length} Elements
           </span>
         </div>
 
         {/* Center: Tools (Select, Hand, + Section, + Folder, + Text, + Media) */}
-        <div className="flex items-center gap-1 p-1 bg-black/60 rounded-xl border border-white/10 shadow-inner">
+        <div className={`flex items-center gap-1 p-1 rounded-xl border shadow-inner ${
+          isLight ? "bg-slate-100 border-slate-200" : "bg-black/60 border-white/10"
+        }`}>
           {/* Select Tool */}
           <button
             type="button"
             onClick={() => setActiveTool("select")}
             title="Select & Move (V)"
             className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              activeTool === "select" ? "bg-teal-500 text-black shadow-sm" : "text-neutral-400 hover:text-white"
+              activeTool === "select"
+                ? "bg-teal-500 text-black shadow-sm"
+                : isLight
+                ? "text-slate-600 hover:text-slate-950 hover:bg-white"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
             <HiCursorArrowRays className="w-4 h-4" />
@@ -580,23 +597,29 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             onClick={() => setActiveTool("hand")}
             title="Hand Tool / Pan (H)"
             className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              activeTool === "hand" ? "bg-teal-500 text-black shadow-sm" : "text-neutral-400 hover:text-white"
+              activeTool === "hand"
+                ? "bg-teal-500 text-black shadow-sm"
+                : isLight
+                ? "text-slate-600 hover:text-slate-950 hover:bg-white"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
             <HiHandRaised className="w-4 h-4" />
             <span className="hidden md:inline">Pan</span>
           </button>
 
-          <div className="w-[1px] h-4 bg-white/15 mx-1" />
+          <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-300" : "bg-white/15"}`} />
 
           {/* + Section */}
           <button
             type="button"
             onClick={handleAddSection}
             title="Tambahkan Section Pembatas Baru"
-            className="p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              isLight ? "text-slate-700 hover:text-slate-950 hover:bg-white" : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
           >
-            <HiRectangleGroup className="w-4 h-4 text-emerald-400" />
+            <HiRectangleGroup className="w-4 h-4 text-emerald-500" />
             <span className="hidden sm:inline">+ Section</span>
           </button>
 
@@ -605,9 +628,11 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             type="button"
             onClick={handleAddFolder}
             title="Tambahkan Folder Client Baru"
-            className="p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              isLight ? "text-slate-700 hover:text-slate-950 hover:bg-white" : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
           >
-            <HiFolder className="w-4 h-4 text-teal-400" />
+            <HiFolder className="w-4 h-4 text-teal-500" />
             <span className="hidden sm:inline">+ Folder</span>
           </button>
 
@@ -616,9 +641,11 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             type="button"
             onClick={handleAddText}
             title="Tambahkan Teks / Catatan Langsung di Canvas"
-            className="p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              isLight ? "text-slate-700 hover:text-slate-950 hover:bg-white" : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
           >
-            <HiLanguage className="w-4 h-4 text-amber-400" />
+            <HiLanguage className="w-4 h-4 text-amber-500" />
             <span className="hidden sm:inline">+ Text</span>
           </button>
 
@@ -627,9 +654,11 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             type="button"
             onClick={() => setIsLinkModalOpen(true)}
             title="Tambahkan Media via Link (YouTube / Drive) atau File"
-            className="p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              isLight ? "text-slate-700 hover:text-slate-950 hover:bg-white" : "text-neutral-300 hover:text-white hover:bg-white/10"
+            }`}
           >
-            <HiPhoto className="w-4 h-4 text-cyan-400" />
+            <HiPhoto className="w-4 h-4 text-cyan-500" />
             <span className="hidden sm:inline">+ Media</span>
           </button>
 
@@ -654,7 +683,9 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
               type="button"
               onClick={handleCancelChanges}
               disabled={isSaving}
-              className="px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 text-neutral-300 text-xs font-semibold transition-all cursor-pointer"
+              className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
+                isLight ? "border-slate-300 hover:bg-slate-100 text-slate-700" : "border-white/10 hover:bg-white/5 text-neutral-300"
+              }`}
             >
               Batal
             </button>
@@ -667,6 +698,8 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer ${
               hasChanges
                 ? "bg-teal-500 hover:bg-teal-400 text-black shadow-teal-500/20"
+                : isLight
+                ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
                 : "bg-white/5 text-neutral-500 border border-white/5 cursor-not-allowed"
             }`}
           >
@@ -709,9 +742,13 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
       >
         {/* Background Dot Grid Pattern */}
         <div
-          className="absolute inset-0 pointer-events-none opacity-40"
+          className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${
+            isLight ? "opacity-60" : "opacity-40"
+          }`}
           style={{
-            backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.22) 1.2px, transparent 1.2px)",
+            backgroundImage: isLight
+              ? "radial-gradient(rgba(15, 23, 42, 0.16) 1.2px, transparent 1.2px)"
+              : "radial-gradient(rgba(255, 255, 255, 0.22) 1.2px, transparent 1.2px)",
             backgroundSize: `${28 * zoom}px ${28 * zoom}px`,
             backgroundPosition: `${pan.x}px ${pan.y}px`,
           }}
@@ -1009,7 +1046,11 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
       </div>
 
       {/* ── Floating Bottom Dock (Zoom Controls, Fit, Quick Add) ─────────────── */}
-      <footer className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#13151b]/95 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] font-mono text-xs">
+      <footer className={`absolute bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5 px-3 py-2 rounded-2xl backdrop-blur-2xl font-mono text-xs border ${
+        isLight
+          ? "bg-white/95 border-slate-300 text-slate-800 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
+          : "bg-[#13151b]/95 border-white/15 text-white shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
+      }`}>
         {/* Zoom Out */}
         <button
           type="button"
@@ -1017,7 +1058,11 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             const newZ = Math.max(0.18, zoom * 0.85);
             setZoom(Number(newZ.toFixed(2)));
           }}
-          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer"
+          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+            isLight
+              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950"
+              : "bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white"
+          }`}
           title="Zoom Out (-)"
         >
           <HiMiniMagnifyingGlassMinus className="w-4 h-4" />
@@ -1027,7 +1072,11 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
         <button
           type="button"
           onClick={() => setZoom(1.0)}
-          className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 font-bold text-teal-400 text-xs cursor-pointer min-w-[56px] text-center"
+          className={`px-3 py-1 rounded-xl font-bold text-xs cursor-pointer min-w-[56px] text-center transition-all ${
+            isLight
+              ? "bg-teal-50 hover:bg-teal-100 text-teal-700"
+              : "bg-white/5 hover:bg-white/10 text-teal-400 hover:text-teal-300"
+          }`}
           title="Reset Zoom ke 100%"
         >
           {Math.round(zoom * 100)}%
@@ -1040,19 +1089,27 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             const newZ = Math.min(5.5, zoom * 1.15);
             setZoom(Number(newZ.toFixed(2)));
           }}
-          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer"
+          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+            isLight
+              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950"
+              : "bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white"
+          }`}
           title="Zoom In (+)"
         >
           <HiMiniMagnifyingGlassPlus className="w-4 h-4" />
         </button>
 
-        <div className="w-[1px] h-4 bg-white/15 mx-1" />
+        <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-200" : "bg-white/15"}`} />
 
         {/* Zoom to Fit All */}
         <button
           type="button"
           onClick={zoomToFitAll}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-teal-500/20 text-neutral-300 hover:text-teal-300 transition-all cursor-pointer text-xs"
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer text-xs ${
+            isLight
+              ? "bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800"
+              : "bg-white/5 hover:bg-teal-500/20 text-neutral-300 hover:text-teal-300"
+          }`}
           title="Fit All Elements (F)"
         >
           <HiArrowsPointingOut className="w-3.5 h-3.5" />
@@ -1063,7 +1120,11 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
         <button
           type="button"
           onClick={() => setPan({ x: 80, y: 80 })}
-          className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white transition-all cursor-pointer text-[11px]"
+          className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer text-[11px] ${
+            isLight
+              ? "bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900"
+              : "bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white"
+          }`}
           title="Reset Posisi Pan"
         >
           Reset Pan
