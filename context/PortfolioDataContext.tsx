@@ -88,6 +88,8 @@ export interface CanvasItem {
   shadowY?: number;
   shadowBlur?: number;
   shadowSpread?: number;
+  gapX?: number;
+  gapY?: number;
   shadowColor?: string;
   shadowOpacity?: number;
   clipContent?: boolean;

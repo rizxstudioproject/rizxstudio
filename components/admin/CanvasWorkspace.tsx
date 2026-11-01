@@ -4723,21 +4723,50 @@ export default function CanvasWorkspace({
               </div>
             </div>
 
-            {/* Spacing & Padding */}
+            {/* Spacing (Horizontal Spacing ||| and Vertical Spacing 吕) - Matches Screenshot 4 */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent">
-                <span className="font-mono text-neutral-400 select-none">⦀</span>
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85] transition-colors"
+                title="Horizontal spacing between items (|||)"
+              >
+                <svg className="w-3.5 h-3.5 text-neutral-400 shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="2" y="2" width="2" height="12" rx="0.5" />
+                  <rect x="7" y="2" width="2" height="12" rx="0.5" />
+                  <rect x="12" y="2" width="2" height="12" rx="0.5" />
+                </svg>
                 <input
-                  type="text"
-                  defaultValue="24"
+                  type="number"
+                  value={smartSelectionGrid ? smartSelectionGrid.gapX : selectedItem?.gapX !== undefined ? selectedItem.gapX : 24}
+                  onChange={(e) => {
+                    const val = Number(e.target.value) || 0;
+                    if (smartSelectionGrid) {
+                      handleUpdateSpacing(val, undefined);
+                    } else if (selectedItem) {
+                      updateSelectedItem({ gapX: val });
+                    }
+                  }}
                   className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
                 />
               </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent">
-                <span className="font-mono text-neutral-400 select-none">吕</span>
+              <div
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85] transition-colors"
+                title="Vertical spacing between items (吕)"
+              >
+                <svg className="w-3.5 h-3.5 text-neutral-400 shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                  <rect x="2" y="2" width="12" height="4.5" rx="0.5" />
+                  <rect x="2" y="9.5" width="12" height="4.5" rx="0.5" />
+                </svg>
                 <input
-                  type="text"
-                  defaultValue="16"
+                  type="number"
+                  value={smartSelectionGrid ? smartSelectionGrid.gapY : selectedItem?.gapY !== undefined ? selectedItem.gapY : 16}
+                  onChange={(e) => {
+                    const val = Number(e.target.value) || 0;
+                    if (smartSelectionGrid) {
+                      handleUpdateSpacing(undefined, val);
+                    } else if (selectedItem) {
+                      updateSelectedItem({ gapY: val });
+                    }
+                  }}
                   className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
                 />
               </div>
@@ -6816,15 +6845,15 @@ export default function CanvasWorkspace({
             </div>
           )}
 
-          {/* Figma Smart Selection Handles (Pink center dots & Spacing handles - Matches Screenshot media_1793556469713_33b26971.jpg & media_1793556356832_89df683a.png) */}
+          {/* Figma Smart Selection Handles (Matches Screenshot 1, 2, 3: media_1793556393083_c2342577.png, media_1793556418206_0c6d7025.png, media_1793556428138_e43349f7.png) */}
           {smartSelectionGrid && activeTool !== "hand" && (
             <>
-              {/* Pink Center Dots on each selected item */}
+              {/* Pink Center Rings (◎) on each selected item */}
               {smartSelectionGrid.rects.map((r) => (
                 <div
                   key={`pink-center-${r.id}`}
-                  title="Smart Selection (Figma)"
-                  className="absolute pointer-events-auto cursor-grab active:cursor-grabbing w-3.5 h-3.5 rounded-full border-2 border-[#ff2a85] bg-white flex items-center justify-center shadow-md z-40 hover:scale-125 transition-transform"
+                  title="Smart Selection handle"
+                  className="absolute pointer-events-auto cursor-grab active:cursor-grabbing w-3.5 h-3.5 rounded-full border-2 border-[#ff2a85] bg-transparent flex items-center justify-center shadow-xs z-40 hover:scale-125 transition-transform"
                   style={{
                     transform: `translate3d(${r.cx - 7}px, ${r.cy - 7}px, 0)`,
                   }}
@@ -6833,40 +6862,7 @@ export default function CanvasWorkspace({
                 </div>
               ))}
 
-              {/* Horizontal Gap Indicators (between columns) */}
-              {smartSelectionGrid.colSeparators.map((sep, idx) => (
-                <div
-                  key={`col-sep-${idx}`}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
-                    const startX = e.clientX;
-                    const initialGap = sep.gap;
-                    const handleMove = (ev: MouseEvent) => {
-                      const deltaX = (ev.clientX - startX) / zoomRef.current;
-                      handleUpdateSpacing(Math.max(0, Math.round(initialGap + deltaX)), undefined);
-                    };
-                    const handleUp = () => {
-                      window.removeEventListener("mousemove", handleMove);
-                      window.removeEventListener("mouseup", handleUp);
-                    };
-                    window.addEventListener("mousemove", handleMove);
-                    window.addEventListener("mouseup", handleUp);
-                  }}
-                  className="absolute pointer-events-auto cursor-ew-resize bg-[#ff2a85]/20 hover:bg-[#ff2a85]/40 transition-colors z-40 group flex items-center justify-center border-x border-[#ff2a85]/60"
-                  style={{
-                    transform: `translate3d(${sep.x}px, ${sep.y}px, 0)`,
-                    width: `${Math.max(8, sep.width)}px`,
-                    height: `${sep.height}px`,
-                  }}
-                >
-                  <div className="px-2 py-0.5 rounded bg-[#ff2a85] text-white text-[11px] font-mono font-bold shadow-lg flex items-center gap-1 select-none pointer-events-auto group-hover:scale-110 transition-transform">
-                    <span>{Math.round(sep.gap)}</span>
-                    <span className="text-[9px]">↔</span>
-                  </div>
-                </div>
-              ))}
-
-              {/* Vertical Gap Indicators (between rows - Matches User's Photo media_1793556469713_33b26971.jpg) */}
+              {/* Horizontal Spacing Lines (between rows - Matches Screenshot 1 & 2: pink line with badge [718]) */}
               {smartSelectionGrid.rowSeparators.map((sep, idx) => (
                 <div
                   key={`row-sep-${idx}`}
@@ -6885,16 +6881,62 @@ export default function CanvasWorkspace({
                     window.addEventListener("mousemove", handleMove);
                     window.addEventListener("mouseup", handleUp);
                   }}
-                  className="absolute pointer-events-auto cursor-ns-resize bg-[#ff2a85]/30 hover:bg-[#ff2a85]/60 transition-colors z-40 group flex items-center justify-center border-y border-[#ff2a85]/80"
+                  className="absolute pointer-events-auto cursor-ns-resize z-40 group flex items-center justify-center"
                   style={{
                     transform: `translate3d(${sep.x}px, ${sep.y}px, 0)`,
                     width: `${sep.width}px`,
-                    height: `${Math.max(12, sep.height)}px`,
+                    height: `${Math.max(16, sep.height)}px`,
                   }}
                 >
-                  <div className="px-2 py-0.5 rounded bg-[#ff2a85] text-white text-[11px] font-mono font-bold shadow-lg flex items-center gap-1 select-none pointer-events-auto group-hover:scale-110 transition-transform">
-                    <span>{Math.round(sep.gap)}</span>
-                    <span className="text-[9px]">↕</span>
+                  {/* Clean Magenta Line spanning across items */}
+                  <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[2px] bg-[#ff2a85] shadow-xs group-hover:h-[3px] transition-all pointer-events-none" />
+
+                  {/* Pink Badge showing current gap [ 718 ] */}
+                  <div className="relative z-10 px-2 py-0.5 rounded bg-[#ff2a85] text-white text-[11px] font-mono font-bold shadow-md select-none group-hover:scale-110 transition-transform">
+                    {Math.round(sep.gap)}
+                  </div>
+                </div>
+              ))}
+
+              {/* Vertical Spacing Capsule Bars (between columns - Matches Screenshot 1 & 3: vertical pills | with badge [409]) */}
+              {smartSelectionGrid.colSeparators.map((sep, idx) => (
+                <div
+                  key={`col-sep-${idx}`}
+                  onMouseDown={(e) => {
+                    e.stopPropagation();
+                    const startX = e.clientX;
+                    const initialGap = sep.gap;
+                    const handleMove = (ev: MouseEvent) => {
+                      const deltaX = (ev.clientX - startX) / zoomRef.current;
+                      handleUpdateSpacing(Math.max(0, Math.round(initialGap + deltaX)), undefined);
+                    };
+                    const handleUp = () => {
+                      window.removeEventListener("mousemove", handleMove);
+                      window.removeEventListener("mouseup", handleUp);
+                    };
+                    window.addEventListener("mousemove", handleMove);
+                    window.addEventListener("mouseup", handleUp);
+                  }}
+                  className="absolute pointer-events-auto cursor-ew-resize z-40 group flex items-center justify-center"
+                  style={{
+                    transform: `translate3d(${sep.x}px, ${sep.y}px, 0)`,
+                    width: `${Math.max(16, sep.width)}px`,
+                    height: `${sep.height}px`,
+                  }}
+                >
+                  {/* Vertical Pink Capsule Pills (|) between rows */}
+                  <div className="flex flex-col justify-around items-center h-full pointer-events-none">
+                    {Array.from({ length: smartSelectionGrid.rows }).map((_, rIdx) => (
+                      <div
+                        key={`capsule-${idx}-${rIdx}`}
+                        className="w-[5px] h-6 rounded-full bg-white border border-[#ff2a85] shadow-xs group-hover:bg-[#ff2a85] transition-colors"
+                      />
+                    ))}
+                  </div>
+
+                  {/* Pink Badge showing current gap [ 409 ] */}
+                  <div className="absolute top-1/2 -translate-y-1/2 left-full ml-1 px-2 py-0.5 rounded bg-[#ff2a85] text-white text-[11px] font-mono font-bold shadow-md select-none group-hover:scale-110 transition-transform whitespace-nowrap">
+                    {Math.round(sep.gap)}
                   </div>
                 </div>
               ))}
