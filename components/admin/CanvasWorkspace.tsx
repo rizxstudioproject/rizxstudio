@@ -326,6 +326,8 @@ export default function CanvasWorkspace({
     if (typeof window !== "undefined" && window.innerWidth < 768) return false;
     return true;
   });
+  const [isPillMenuOpen, setIsPillMenuOpen] = useState<boolean>(false);
+  const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
   const [showFramePresetsPicker, setShowFramePresetsPicker] = useState(false);
   const [isAlignMenuOpen, setIsAlignMenuOpen] = useState<boolean>(false);
   const [expandedPresetCategories, setExpandedPresetCategories] = useState<Record<string, boolean>>({ social: true });
@@ -402,6 +404,9 @@ export default function CanvasWorkspace({
       }
       if (!target.closest?.(".figma-align-menu") && !target.closest?.(".figma-align-trigger")) {
         setIsAlignMenuOpen(false);
+      }
+      if (!target.closest?.(".figma-pill-menu")) {
+        setIsPillMenuOpen(false);
       }
     };
     window.addEventListener("mousedown", handleGlobalClick);
@@ -5443,6 +5448,234 @@ export default function CanvasWorkspace({
     };
   }, [isFullscreen]);
 
+  // Render Studio Top Pill Menu [Logo] [Portfolio] [Free] [◫] (Matches User Screenshot media_1793558036658_5e46c976.png)
+  const renderPillMenu = () => (
+    <div className="relative figma-pill-menu inline-flex items-center">
+      <div
+        className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border backdrop-blur-2xl transition-all shadow-xl ${
+          isLight
+            ? "bg-white/95 border-slate-300 text-slate-800 shadow-slate-300/40"
+            : "bg-[#222222]/95 border-white/10 text-white shadow-[0_12px_32px_rgba(0,0,0,0.7)]"
+        }`}
+      >
+        {/* Studio Monogram Logo */}
+        <button
+          type="button"
+          onClick={() => setIsPillMenuOpen((prev) => !prev)}
+          title="Rizx Studio Canvas Menu"
+          className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+        >
+          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+          </svg>
+        </button>
+
+        {/* Title: Portfolio (with subtle dropdown caret) */}
+        <button
+          type="button"
+          onClick={() => setIsPillMenuOpen((prev) => !prev)}
+          className="flex items-center gap-1 font-bold text-xs sm:text-sm text-white hover:text-cyan-300 transition-colors cursor-pointer"
+        >
+          <span>Portfolio</span>
+          <HiChevronDown className="w-3 h-3 text-neutral-400" />
+        </button>
+
+        {/* Plan Badge: Free */}
+        <span className="px-2 py-0.5 rounded-full bg-[#182635] text-[#38bdf8] font-mono text-[10px] font-bold border border-[#38bdf8]/25 tracking-wide">
+          Free
+        </span>
+
+        {/* Sidebar / UI Toggle Icon [◫] (Matches User Screenshot media_1793558036658_5e46c976.png) */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => {
+              setIsUiExpanded((prev) => !prev);
+              setShowExpandTooltip(false);
+            }}
+            onMouseEnter={() => setShowExpandTooltip(true)}
+            onMouseLeave={() => setShowExpandTooltip(false)}
+            title={isUiExpanded ? "Tutup Menu Sebelah Kiri (Ctrl+Shift+\\)" : "Buka Menu Sebelah Kiri (Ctrl+Shift+\\)"}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center ${
+              isUiExpanded
+                ? "text-neutral-300 hover:text-white hover:bg-white/10"
+                : "text-[#38bdf8] bg-white/10 hover:bg-white/20"
+            }`}
+          >
+            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="2" y="2.5" width="12" height="11" rx="2" />
+              <line x1="6" y1="2.5" x2="6" y2="13.5" />
+            </svg>
+          </button>
+
+          {/* Popover / Tooltip: Expand UI / Collapse UI Ctrl+Shift+\ */}
+          {showExpandTooltip && (
+            <div className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#1e1e1e] border border-white/15 text-white text-[11px] font-mono shadow-2xl flex items-center gap-3 whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-100 pointer-events-none">
+              <span className="font-semibold text-neutral-200">
+                {isUiExpanded ? "Tutup Layers (Ctrl+Shift+\\)" : "Buka Layers (Ctrl+Shift+\\)"}
+              </span>
+              <span className="text-neutral-400 text-[10px]">Ctrl+Shift+\</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Dropdown Menu on clicking Logo or Portfolio */}
+      {isPillMenuOpen && (
+        <div className="absolute top-full mt-2 left-0 w-64 rounded-2xl bg-[#181a20]/95 backdrop-blur-2xl border border-white/15 p-2 shadow-2xl z-50 text-xs font-mono text-neutral-300 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-100">
+          <div className="px-2 py-1.5 text-[11px] text-neutral-400 border-b border-white/10 flex items-center justify-between">
+            <span className="font-bold text-white">Rizx Canvas Studio</span>
+            <span className="text-[10px] text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded">v2.4</span>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setIsUiExpanded((prev) => !prev);
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="2" y="2.5" width="12" height="11" rx="2" />
+                <line x1="6" y1="2.5" x2="6" y2="13.5" />
+              </svg>
+              {isUiExpanded ? "Tutup Menu Kiri" : "Buka Menu Kiri"}
+            </span>
+            <span className="text-[10px] text-neutral-500">Ctrl+Shift+\</span>
+          </button>
+
+          <div className="w-full h-[1px] bg-white/10 my-1" />
+
+          <button
+            type="button"
+            onClick={() => {
+              handleAddFrame("4:5");
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiHashtag className="w-3.5 h-3.5 text-cyan-400" />
+              New Frame
+            </span>
+            <span className="text-[10px] text-neutral-500">F</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handleAddSection();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiSquare2Stack className="w-3.5 h-3.5 text-emerald-400" />
+              New Section
+            </span>
+            <span className="text-[10px] text-neutral-500">Shift+S</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handleAddText();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiLanguage className="w-3.5 h-3.5 text-amber-400" />
+              New Text Box
+            </span>
+            <span className="text-[10px] text-neutral-500">T</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              fileInputRef.current?.click();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiPhoto className="w-3.5 h-3.5 text-teal-400" />
+              Upload Image/Media
+            </span>
+            <span className="text-[10px] text-neutral-500">Drop</span>
+          </button>
+
+          <div className="w-full h-[1px] bg-white/10 my-1" />
+
+          <button
+            type="button"
+            onClick={() => {
+              zoomToFitAll();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiArrowsPointingOut className="w-3.5 h-3.5 text-purple-400" />
+              Fit All Elements
+            </span>
+            <span className="text-[10px] text-neutral-500">F</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowMeasureTool((prev) => !prev);
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <span>📐</span>
+              Toggle Dimensions
+            </span>
+            <span className="text-[10px] text-neutral-500">{showMeasureTool ? "ON" : "OFF"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setShowDevMode(true);
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiCodeBracket className="w-3.5 h-3.5 text-cyan-400" />
+              Dev Mode (JSON)
+            </span>
+            <span className="text-[10px] text-neutral-500">{"</>"}</span>
+          </button>
+
+          <div className="w-full h-[1px] bg-white/10 my-1" />
+
+          <button
+            type="button"
+            onClick={() => {
+              handleSaveChanges();
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500 text-teal-300 hover:text-black font-bold transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <HiCheckCircle className="w-3.5 h-3.5" />
+              Save Changes
+            </span>
+            <span className="text-[10px]">Ctrl+S</span>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
   // Top-level canvas layers (Frames, Sections, Media/Images/Videos, Text)
   const rootItems = useMemo(() => {
     return items.filter((it) => {
@@ -5750,10 +5983,13 @@ export default function CanvasWorkspace({
                   <button
                     type="button"
                     onClick={() => setIsUiExpanded(false)}
-                    title="Tutup / Minimize Panel Layers"
-                    className="p-1 hover:text-white rounded hover:bg-white/10 text-neutral-400 hover:text-rose-400 transition-colors cursor-pointer"
+                    title="Tutup Menu Sebelah Kiri (Ctrl+Shift+\)"
+                    className="p-1 hover:text-white rounded hover:bg-white/10 text-neutral-400 hover:text-[#38bdf8] transition-colors cursor-pointer"
                   >
-                    <HiXMark className="w-4 h-4" />
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <rect x="2" y="2.5" width="12" height="11" rx="2" />
+                      <line x1="6" y1="2.5" x2="6" y2="13.5" />
+                    </svg>
                   </button>
                 </div>
               </div>
@@ -5801,6 +6037,11 @@ export default function CanvasWorkspace({
               : "cursor-default"
           }`}
         >
+          {/* Floating Studio Pill Menu (Matches User Screenshot media_1793558036658_5e46c976.png) */}
+          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-40">
+            {renderPillMenu()}
+          </div>
+
           {/* Quick Floating Actions (Fullscreen, Inspector toggle, Mobile Layers) */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 font-mono">
             {/* Mobile Layers Drawer Toggle */}
