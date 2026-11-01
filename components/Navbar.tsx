@@ -46,6 +46,32 @@ export default function Navbar() {
   const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const langContainerRef = useRef<HTMLDivElement>(null);
   const workMenuRef = useRef<HTMLDivElement>(null);
+  const workMenuTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleWorkMouseEnter = useCallback(() => {
+    if (workMenuTimerRef.current) {
+      clearTimeout(workMenuTimerRef.current);
+      workMenuTimerRef.current = null;
+    }
+    setIsWorkMenuOpen(true);
+  }, []);
+
+  const handleWorkMouseLeave = useCallback(() => {
+    if (workMenuTimerRef.current) {
+      clearTimeout(workMenuTimerRef.current);
+    }
+    workMenuTimerRef.current = setTimeout(() => {
+      setIsWorkMenuOpen(false);
+    }, 220);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (workMenuTimerRef.current) {
+        clearTimeout(workMenuTimerRef.current);
+      }
+    };
+  }, []);
   const languages = [
     { code: "en", label: "EN" },
     { code: "id", label: "ID" },
@@ -281,12 +307,13 @@ export default function Navbar() {
             <div
               ref={workMenuRef}
               className="relative"
-              onMouseEnter={() => setIsWorkMenuOpen(true)}
-              onMouseLeave={() => setIsWorkMenuOpen(false)}
+              onMouseEnter={handleWorkMouseEnter}
+              onMouseLeave={handleWorkMouseLeave}
             >
               <button
                 onClick={() => {
                   scrollTo("projects");
+                  if (workMenuTimerRef.current) clearTimeout(workMenuTimerRef.current);
                   setIsWorkMenuOpen(false);
                 }}
                 className={`flex items-center gap-1.5 transition-colors duration-200 cursor-pointer py-1 ${
@@ -306,49 +333,57 @@ export default function Navbar() {
                 </svg>
               </button>
 
-              {/* Submenu Dropdown */}
+              {/* Submenu Dropdown with Seamless Hit-Bridge Padding (No hover gap!) */}
               {isWorkMenuOpen && (
                 <div
-                  className={`absolute top-full left-0 mt-2.5 w-44 rounded-xl p-1.5 shadow-2xl border backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
-                    isLight
-                      ? "bg-white/95 border-slate-200/90 text-slate-800 shadow-slate-300/40"
-                      : "bg-[#0f1115]/95 border-white/10 text-white shadow-black/80"
-                  }`}
+                  className="absolute top-full left-0 pt-1.5 z-50 animate-in fade-in zoom-in-95 duration-100"
+                  onMouseEnter={handleWorkMouseEnter}
+                  onMouseLeave={handleWorkMouseLeave}
                 >
-                  {/* Canvas Item */}
-                  <button
-                    onClick={() => {
-                      setIsWorkMenuOpen(false);
-                      setIsCanvasOpen(true);
-                      if (typeof document !== "undefined" && document.fullscreenEnabled && !document.fullscreenElement) {
-                        try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
-                      }
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer group ${
+                  <div
+                    className={`w-44 rounded-xl p-1.5 shadow-2xl border backdrop-blur-2xl ${
                       isLight
-                        ? "hover:bg-slate-100 text-slate-800"
-                        : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                        ? "bg-white/98 border-slate-200/90 text-slate-800 shadow-slate-300/40"
+                        : "bg-[#0f1115]/98 border-white/10 text-white shadow-black/80"
                     }`}
                   >
-                    <HiPaintBrush className="w-4 h-4 text-teal-400 shrink-0" />
-                    <span>Rizx Canvas</span>
-                  </button>
+                    {/* Canvas Item */}
+                    <button
+                      onClick={() => {
+                        if (workMenuTimerRef.current) clearTimeout(workMenuTimerRef.current);
+                        setIsWorkMenuOpen(false);
+                        setIsCanvasOpen(true);
+                        if (typeof document !== "undefined" && document.fullscreenEnabled && !document.fullscreenElement) {
+                          try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
+                        }
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer group ${
+                        isLight
+                          ? "hover:bg-slate-100 text-slate-800"
+                          : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                      }`}
+                    >
+                      <HiPaintBrush className="w-4 h-4 text-teal-400 shrink-0" />
+                      <span>Rizx Canvas</span>
+                    </button>
 
-                  {/* Folder Client Item */}
-                  <button
-                    onClick={() => {
-                      setIsWorkMenuOpen(false);
-                      scrollTo("client-folders");
-                    }}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer group mt-0.5 ${
-                      isLight
-                        ? "hover:bg-slate-100 text-slate-800"
-                        : "hover:bg-white/10 text-neutral-200 hover:text-white"
-                    }`}
-                  >
-                    <HiFolder className="w-4 h-4 text-amber-400 shrink-0" />
-                    <span>Folder Client</span>
-                  </button>
+                    {/* Folder Client Item */}
+                    <button
+                      onClick={() => {
+                        if (workMenuTimerRef.current) clearTimeout(workMenuTimerRef.current);
+                        setIsWorkMenuOpen(false);
+                        scrollTo("client-folders");
+                      }}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer group mt-0.5 ${
+                        isLight
+                          ? "hover:bg-slate-100 text-slate-800"
+                          : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                      }`}
+                    >
+                      <HiFolder className="w-4 h-4 text-amber-400 shrink-0" />
+                      <span>Folder Client</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
