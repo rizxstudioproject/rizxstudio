@@ -58,6 +58,124 @@ interface CanvasWorkspaceProps {
 
 type CanvasTool = "select" | "hand" | "scale" | "frame" | "section" | "slice" | "shape" | "pen" | "pencil" | "text" | "folder" | "media" | "comment";
 
+// ── Figma Frame Presets Definition (Matches Screenshot media_1793530390332_97f50010.png) ─────────────
+export interface FramePresetItem {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+}
+
+export interface FramePresetCategory {
+  id: string;
+  title: string;
+  items: FramePresetItem[];
+}
+
+export const FRAME_PRESET_CATEGORIES: FramePresetCategory[] = [
+  {
+    id: "phone",
+    title: "Phone",
+    items: [
+      { id: "iphone-16-pro-max", name: "iPhone 16 Pro Max", width: 440, height: 956 },
+      { id: "iphone-16-pro", name: "iPhone 16 Pro", width: 402, height: 874 },
+      { id: "iphone-16-plus", name: "iPhone 16 Plus", width: 430, height: 932 },
+      { id: "iphone-16", name: "iPhone 16", width: 393, height: 852 },
+      { id: "iphone-15-pro-max", name: "iPhone 15 Pro Max", width: 430, height: 932 },
+      { id: "iphone-15-pro", name: "iPhone 15 Pro", width: 393, height: 852 },
+      { id: "iphone-14", name: "iPhone 14 & 15", width: 393, height: 852 },
+      { id: "iphone-se", name: "iPhone SE", width: 320, height: 568 },
+      { id: "android-compact", name: "Android Compact", width: 360, height: 640 },
+      { id: "android-large", name: "Android Large", width: 412, height: 915 },
+    ],
+  },
+  {
+    id: "tablet",
+    title: "Tablet",
+    items: [
+      { id: "ipad-pro-13", name: "iPad Pro 13\"", width: 1032, height: 1376 },
+      { id: "ipad-pro-11", name: "iPad Pro 11\"", width: 834, height: 1210 },
+      { id: "ipad-air-13", name: "iPad Air 13\"", width: 1032, height: 1376 },
+      { id: "ipad-air-11", name: "iPad Air 11\"", width: 820, height: 1180 },
+      { id: "ipad-mini", name: "iPad mini", width: 744, height: 1133 },
+      { id: "surface-pro-9", name: "Surface Pro 9", width: 1440, height: 960 },
+    ],
+  },
+  {
+    id: "desktop",
+    title: "Desktop",
+    items: [
+      { id: "desktop-standard", name: "Desktop", width: 1440, height: 1024 },
+      { id: "macbook-pro-16", name: "MacBook Pro 16\"", width: 1728, height: 1117 },
+      { id: "macbook-pro-14", name: "MacBook Pro 14\"", width: 1512, height: 982 },
+      { id: "macbook-air", name: "MacBook Air", width: 1280, height: 832 },
+      { id: "imac-24", name: "iMac", width: 2560, height: 1440 },
+      { id: "wireframe", name: "Wireframe", width: 1440, height: 1024 },
+    ],
+  },
+  {
+    id: "presentation",
+    title: "Presentation",
+    items: [
+      { id: "slide-16-9", name: "Slide 16:9", width: 1920, height: 1080 },
+      { id: "slide-4-3", name: "Slide 4:3", width: 1024, height: 768 },
+    ],
+  },
+  {
+    id: "watch",
+    title: "Watch",
+    items: [
+      { id: "watch-45", name: "Apple Watch 45mm", width: 198, height: 242 },
+      { id: "watch-41", name: "Apple Watch 41mm", width: 176, height: 215 },
+      { id: "watch-ultra", name: "Apple Watch Ultra 49mm", width: 205, height: 251 },
+    ],
+  },
+  {
+    id: "paper",
+    title: "Paper",
+    items: [
+      { id: "a4", name: "A4", width: 595, height: 842 },
+      { id: "a5", name: "A5", width: 420, height: 595 },
+      { id: "a6", name: "A6", width: 297, height: 420 },
+      { id: "letter", name: "Letter", width: 612, height: 792 },
+      { id: "tabloid", name: "Tabloid", width: 792, height: 1224 },
+    ],
+  },
+  {
+    id: "social",
+    title: "Social media",
+    items: [
+      { id: "twitter-post", name: "X (Twitter) post", width: 1200, height: 675 },
+      { id: "twitter-header", name: "X (Twitter) header", width: 1500, height: 500 },
+      { id: "facebook-post", name: "Facebook post", width: 1200, height: 630 },
+      { id: "facebook-cover", name: "Facebook cover", width: 820, height: 312 },
+      { id: "instagram-post", name: "Instagram post", width: 1080, height: 1350 },
+      { id: "instagram-story", name: "Instagram story", width: 1080, height: 1920 },
+      { id: "dribbble-shot", name: "Dribbble shot", width: 400, height: 300 },
+      { id: "dribbble-shot-hd", name: "Dribbble shot HD", width: 800, height: 600 },
+      { id: "linkedin-cover", name: "LinkedIn cover", width: 1584, height: 396 },
+    ],
+  },
+  {
+    id: "community",
+    title: "Figma Community",
+    items: [
+      { id: "plugin-icon", name: "Plugin icon", width: 128, height: 128 },
+      { id: "plugin-banner", name: "Plugin banner", width: 1920, height: 1080 },
+      { id: "cover-art", name: "Cover art", width: 1920, height: 960 },
+    ],
+  },
+  {
+    id: "archive",
+    title: "Archive",
+    items: [
+      { id: "iphone-13-14", name: "iPhone 13 / 14", width: 390, height: 844 },
+      { id: "iphone-11-pro", name: "iPhone 11 Pro / X", width: 375, height: 812 },
+      { id: "google-pixel-2", name: "Google Pixel 2", width: 411, height: 731 },
+    ],
+  },
+];
+
 export default function CanvasWorkspace({
   onOpenCanvasPreview,
   hideTopHeader = false,
@@ -94,6 +212,14 @@ export default function CanvasWorkspace({
   const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
   const [activeClientFilter, setActiveClientFilter] = useState<string | null>(null);
   const [showFramePresetsPicker, setShowFramePresetsPicker] = useState(false);
+  const [expandedPresetCategories, setExpandedPresetCategories] = useState<Record<string, boolean>>({ social: true });
+
+  const togglePresetCategory = (catId: string) => {
+    setExpandedPresetCategories((prev) => ({
+      ...prev,
+      [catId]: !prev[catId],
+    }));
+  };
 
   // Layers Tree State (Expanded folders/groups, item lock and visibility toggles)
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
@@ -837,7 +963,10 @@ export default function CanvasWorkspace({
         setActiveTool("scale");
       }
       if (e.key === "f" || e.key === "F") {
-        handleAddFrame("4:5");
+        setActiveTool("frame");
+        setIsRightSidebarOpen(true);
+        setIsUiExpanded(true);
+        if (isMobile) setIsMobileInspectorOpen(true);
       }
       if (e.key === "s" || e.key === "S") {
         if (e.shiftKey) {
@@ -1058,6 +1187,29 @@ export default function CanvasWorkspace({
           canvasY <= (f.y || 0) + (f.height || 600)
       );
       handleAddText(canvasX, canvasY, hitFrame?.id);
+      return;
+    }
+
+    // If clicking on canvas in Frame tool mode: place default frame at click coordinate
+    if (activeTool === "frame" && e.button === 0) {
+      const canvasX = Math.round((e.clientX - pan.x) / zoom);
+      const canvasY = Math.round((e.clientY - pan.y) / zoom);
+      const newFrame: CanvasItem = {
+        id: `frame-${Date.now()}`,
+        title: "Instagram post",
+        type: "media",
+        mediaType: "frame",
+        aspect: "1080:1350",
+        x: canvasX,
+        y: canvasY,
+        width: 1080,
+        height: 1350,
+        color: "#0c8ce9",
+      };
+      updateItemsWithTracking([...items, newFrame]);
+      setSelectedId(newFrame.id);
+      setSelectedIds(new Set([newFrame.id]));
+      setActiveTool("select");
       return;
     }
 
@@ -1544,6 +1696,41 @@ export default function CanvasWorkspace({
     updateItemsWithTracking([...items, newFrame]);
     setSelectedId(newFrame.id);
     setShowFramePresetsPicker(false);
+  };
+
+  const handleApplyFigmaFramePreset = (preset: FramePresetItem) => {
+    // If an existing frame or section or scalable element is currently selected, update its size & name
+    if (selectedItem && (selectedItem.mediaType === "frame" || selectedItem.type === "section" || selectedItem.aspect)) {
+      updateSelectedItem({
+        title: preset.name,
+        width: preset.width,
+        height: preset.height,
+        aspect: `${preset.width}:${preset.height}`,
+      });
+      setShowFramePresetsPicker(false);
+      setActiveTool("select");
+      return;
+    }
+
+    // Otherwise create a new Frame at viewport center
+    const center = getViewportCenter(preset.width, preset.height);
+    const newFrame: CanvasItem = {
+      id: `frame-${Date.now()}`,
+      title: preset.name,
+      type: "media",
+      mediaType: "frame",
+      aspect: `${preset.width}:${preset.height}`,
+      x: center.x,
+      y: center.y,
+      width: preset.width,
+      height: preset.height,
+      color: "#0c8ce9",
+    };
+    updateItemsWithTracking([...items, newFrame]);
+    setSelectedId(newFrame.id);
+    setSelectedIds(new Set([newFrame.id]));
+    setShowFramePresetsPicker(false);
+    setActiveTool("select");
   };
 
   const handleAddSlice = () => {
@@ -2563,6 +2750,65 @@ export default function CanvasWorkspace({
           </button>
         </div>
 
+        {activeTool === "frame" || showFramePresetsPicker ? (
+          /* ── Frame Presets Inspector View (Matches Screenshot media_1793530390332_97f50010.png) ── */
+          <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col divide-y divide-white/5 text-xs font-sans">
+            {/* Header: Frame */}
+            <div className="px-4 pt-3.5 pb-2.5 flex items-center justify-between text-xs font-semibold text-white tracking-wide shrink-0">
+              <span className="text-[13px] font-bold">Frame</span>
+              {showFramePresetsPicker && (
+                <button
+                  type="button"
+                  onClick={() => setShowFramePresetsPicker(false)}
+                  className="text-neutral-400 hover:text-white text-xs font-normal cursor-pointer"
+                >
+                  Done
+                </button>
+              )}
+            </div>
+
+            {/* Accordion Categories List */}
+            <div className="flex-1 overflow-y-auto no-scrollbar py-1 divide-y divide-white/5">
+              {FRAME_PRESET_CATEGORIES.map((cat) => {
+                const isExpanded = !!expandedPresetCategories[cat.id];
+                return (
+                  <div key={cat.id} className="select-none">
+                    <button
+                      type="button"
+                      onClick={() => togglePresetCategory(cat.id)}
+                      className="w-full px-4 py-2 flex items-center gap-2 text-neutral-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
+                    >
+                      <span className="text-[9px] text-neutral-400 w-2.5 inline-block text-center shrink-0">
+                        {isExpanded ? "▾" : "▸"}
+                      </span>
+                      <span>{cat.title}</span>
+                    </button>
+
+                    {isExpanded && (
+                      <div className="py-0.5 bg-black/15">
+                        {cat.items.map((item) => (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={() => handleApplyFigmaFramePreset(item)}
+                            className="w-full flex items-center justify-between pl-7 pr-4 py-1.5 text-xs text-neutral-300 hover:text-white hover:bg-[#0c8ce9]/20 transition-colors cursor-pointer group text-left"
+                            title={`${item.name} (${item.width} × ${item.height})`}
+                          >
+                            <span className="truncate pr-2 group-hover:text-white">{item.name}</span>
+                            <span className="text-[11px] font-mono text-neutral-500 group-hover:text-neutral-300 shrink-0">
+                              {item.width}×{item.height}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <>
         {/* Sub-header: Element Category Header & Top Tools (Image 1) */}
         <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between text-xs shrink-0">
           <div className="flex items-center gap-1 font-semibold text-white">
@@ -3300,6 +3546,8 @@ export default function CanvasWorkspace({
             </div>
           </div>
         </div>
+        </>
+        )}
 
         {/* ── Floating Help Question Button (?) (Matches Screenshot 1 & 2) ───── */}
         <div className="p-3 flex items-center justify-end border-t border-white/10 bg-[#1e1e1e]/90">
@@ -3987,7 +4235,11 @@ export default function CanvasWorkspace({
             overscrollBehavior: "none",
           }}
           className={`flex-1 relative w-full h-full overflow-hidden ${
-            isPanning || activeTool === "hand" || isSpacePressed ? "cursor-grab active:cursor-grabbing" : "cursor-default"
+            activeTool === "frame"
+              ? "cursor-crosshair"
+              : isPanning || activeTool === "hand" || isSpacePressed
+              ? "cursor-grab active:cursor-grabbing"
+              : "cursor-default"
           }`}
         >
           {/* Floating Studio Pill Menu (matches Figma reference) */}
@@ -4619,8 +4871,11 @@ export default function CanvasWorkspace({
           <button
             type="button"
             onClick={() => {
-              handleAddFrame("4:5");
-              setActiveTool("frame");
+              const nextTool = activeTool === "frame" ? "select" : "frame";
+              setActiveTool(nextTool);
+              setIsRightSidebarOpen(true);
+              setIsUiExpanded(true);
+              if (isMobile) setIsMobileInspectorOpen(true);
               setActiveSubmenu(null);
             }}
             title="Frame (F)"
@@ -4654,8 +4909,10 @@ export default function CanvasWorkspace({
               <button
                 type="button"
                 onClick={() => {
-                  handleAddFrame("4:5");
                   setActiveTool("frame");
+                  setIsRightSidebarOpen(true);
+                  setIsUiExpanded(true);
+                  if (isMobile) setIsMobileInspectorOpen(true);
                   setActiveSubmenu(null);
                 }}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
@@ -5869,38 +6126,7 @@ export default function CanvasWorkspace({
         </div>
       )}
 
-      {/* ── Modal: Frame Presets & Aspect Ratios (Screenshot Reference) ───────── */}
-      {showFramePresetsPicker && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="w-full max-w-md rounded-2xl bg-[#14161d] border border-white/15 p-5 shadow-2xl flex flex-col gap-3 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-[#0c8ce9] text-white font-mono text-xs font-bold">
-                  #
-                </span>
-                <h3 className="font-bold text-sm text-white font-mono">Preset Rasio & Format Ukuran</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowFramePresetsPicker(false)}
-                className="text-neutral-400 hover:text-white p-1 cursor-pointer font-bold"
-              >
-                ✕
-              </button>
-            </div>
 
-            <p className="text-xs text-neutral-400">
-              Pilih format ukuran rasio frame (Ratios, Social, Video, Print, Wallpaper) untuk ditambahkan langsung ke canvas.
-            </p>
-
-            <AspectRatioPicker
-              value="16:9"
-              onChange={handleSelectFramePreset}
-              maxHeight="380px"
-            />
-          </div>
-        </div>
-      )}
 
       {/* Mobile Design Inspector Drawer */}
       {isMobileInspectorOpen && (
