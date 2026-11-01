@@ -4208,54 +4208,9 @@ export default function CanvasWorkspace({
             : "bg-[#1e1e1e] border-white/10 text-[#d4d4d4]"
         }`}
       >
-        {/* Top Action Bar (Avatar, Play, Share - Image 1) */}
-        <div className="p-2.5 border-b border-white/10 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-1.5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-teal-400 to-cyan-500 text-black flex items-center justify-center font-bold text-xs shadow-sm">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-              </svg>
-            </div>
-            <HiChevronDown className="w-3 h-3 text-neutral-400" />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleShareCanvas}
-              className="px-3 py-1 rounded-lg bg-[#0c8ce9] hover:bg-[#0b78c7] text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-1 active:scale-95"
-            >
-              <span>Share</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Switcher: Design vs Prototype + Zoom Indicator (Image 1) */}
+        {/* Header: Design + Zoom Indicator */}
         <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between shrink-0 text-xs">
-          <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={() => setInspectorTab("design")}
-              className={`font-semibold pb-1 transition-colors cursor-pointer ${
-                inspectorTab === "design"
-                  ? "text-white border-b-2 border-[#0c8ce9]"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-            >
-              Design
-            </button>
-            <button
-              type="button"
-              onClick={() => setInspectorTab("prototype")}
-              className={`font-semibold pb-1 transition-colors cursor-pointer ${
-                inspectorTab === "prototype"
-                  ? "text-white border-b-2 border-[#0c8ce9]"
-                  : "text-neutral-400 hover:text-white"
-              }`}
-            >
-              Prototype
-            </button>
-          </div>
+          <span className="font-semibold text-white">Design</span>
 
           <button
             type="button"
@@ -4790,10 +4745,6 @@ export default function CanvasWorkspace({
           <div className="p-3 space-y-2.5">
             <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
               <span>Appearance</span>
-              <div className="flex items-center gap-1 text-neutral-400">
-                <HiEye className="w-3.5 h-3.5 cursor-pointer hover:text-white" />
-                <span className="text-xs cursor-pointer hover:text-white">💧</span>
-              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -4837,7 +4788,6 @@ export default function CanvasWorkspace({
             <div className="p-3 space-y-2.5">
               <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
                 <span>Typography</span>
-                <span className="text-sm text-neutral-400 cursor-pointer hover:text-white" title="Typography styles">⠿</span>
               </div>
 
               {/* Font Family Dropdown */}
@@ -5085,17 +5035,14 @@ export default function CanvasWorkspace({
           <div className="p-3 space-y-2">
             <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
               <span>Fill</span>
-              <div className="flex items-center gap-1.5 text-neutral-400">
-                <span className="text-xs cursor-pointer hover:text-white">❖</span>
-                <button
-                  type="button"
-                  onClick={() => updateSelectedItem({ color: "#00A389" })}
-                  className="hover:text-white cursor-pointer"
-                  title="Add Fill"
-                >
-                  <HiPlus className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => updateSelectedItem({ color: "#00A389" })}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+                title="Add Fill"
+              >
+                <HiPlus className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             {/* Color Swatch & Hex input */}
@@ -5183,29 +5130,26 @@ export default function CanvasWorkspace({
           <div className="p-3 space-y-2 relative">
             <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
               <span>Effects</span>
-              <div className="flex items-center gap-1.5 text-neutral-400">
-                <span className="text-xs cursor-pointer hover:text-white" title="Effect Styles">❖</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    updateSelectedItem({
-                      effects: selectedItem?.effects || "drop-shadow",
-                      effectHidden: false,
-                      shadowX: selectedItem?.shadowX !== undefined ? selectedItem.shadowX : 0,
-                      shadowY: selectedItem?.shadowY !== undefined ? selectedItem.shadowY : 4,
-                      shadowBlur: selectedItem?.shadowBlur !== undefined ? selectedItem.shadowBlur : 4,
-                      shadowSpread: selectedItem?.shadowSpread !== undefined ? selectedItem.shadowSpread : 0,
-                      shadowColor: selectedItem?.shadowColor || "#000000",
-                      shadowOpacity: selectedItem?.shadowOpacity !== undefined ? selectedItem.shadowOpacity : 25,
-                    });
-                    setIsEffectPopoverOpen(true);
-                  }}
-                  className="text-neutral-400 hover:text-white cursor-pointer p-0.5 rounded hover:bg-white/10"
-                  title="Add effect"
-                >
-                  <HiPlus className="w-3.5 h-3.5" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  updateSelectedItem({
+                    effects: selectedItem?.effects || "drop-shadow",
+                    effectHidden: false,
+                    shadowX: selectedItem?.shadowX !== undefined ? selectedItem.shadowX : 0,
+                    shadowY: selectedItem?.shadowY !== undefined ? selectedItem.shadowY : 4,
+                    shadowBlur: selectedItem?.shadowBlur !== undefined ? selectedItem.shadowBlur : 4,
+                    shadowSpread: selectedItem?.shadowSpread !== undefined ? selectedItem.shadowSpread : 0,
+                    shadowColor: selectedItem?.shadowColor || "#000000",
+                    shadowOpacity: selectedItem?.shadowOpacity !== undefined ? selectedItem.shadowOpacity : 25,
+                  });
+                  setIsEffectPopoverOpen(true);
+                }}
+                className="text-neutral-400 hover:text-white cursor-pointer p-0.5 rounded hover:bg-white/10"
+                title="Add effect"
+              >
+                <HiPlus className="w-3.5 h-3.5" />
+              </button>
             </div>
 
             {selectedItem?.effects && (
@@ -5295,17 +5239,14 @@ export default function CanvasWorkspace({
                           <option value="background-blur" className="bg-[#1e1e1e] text-white">Background blur</option>
                         </select>
                       </div>
-                      <div className="flex items-center gap-1.5 text-neutral-400">
-                        <span className="text-xs cursor-pointer hover:text-white" title="Effect Style">💧</span>
-                        <button
-                          type="button"
-                          onClick={() => setIsEffectPopoverOpen(false)}
-                          className="hover:text-white cursor-pointer p-0.5 rounded hover:bg-white/10"
-                          title="Tutup Pengaturan"
-                        >
-                          <HiXMark className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setIsEffectPopoverOpen(false)}
+                        className="text-neutral-400 hover:text-white cursor-pointer p-0.5 rounded hover:bg-white/10"
+                        title="Tutup Pengaturan"
+                      >
+                        <HiXMark className="w-3.5 h-3.5" />
+                      </button>
                     </div>
 
                     {/* Row 1: Position X & Y */}
@@ -5408,10 +5349,6 @@ export default function CanvasWorkspace({
           <div className="p-3 space-y-2">
             <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
               <span>Selection colors</span>
-              <div className="flex items-center gap-1.5 text-neutral-400">
-                <span className="text-xs cursor-pointer hover:text-white">❖</span>
-                <span className="text-xs cursor-pointer hover:text-white">🎯</span>
-              </div>
             </div>
 
             {/* List of Swatches matching Screenshot 2 */}
