@@ -3407,10 +3407,14 @@ export default function CanvasWorkspace({
       {/* ── Figma Floating Studio Toolbar Dock (Images 1, 2, 3, 4, 5) ─────────── */}
       <nav
         aria-label="Figma Studio Toolbar"
-        className="figma-toolbar-dock fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2 py-1.5 sm:px-2.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[96vw] overflow-x-auto no-scrollbar touch-manipulation"
+        className="figma-toolbar-dock fixed bottom-[max(12px,env(safe-area-inset-bottom,12px))] sm:bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 sm:gap-1 px-1.5 py-1 sm:px-2.5 sm:py-1.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[95vw] sm:max-w-max overflow-x-auto sm:overflow-visible no-scrollbar touch-manipulation h-11 sm:h-12"
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
       >
         {/* 1. MOVE / CURSOR TOOL (With Submenu: Move V, Hand tool H, Scale K - Image 3) */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -3423,7 +3427,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(null);
             }}
             title={activeTool === "hand" ? "Hand Tool (H) - Panning Canvas" : "Move (V)"}
-            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "select" || activeTool === "hand" || activeTool === "scale"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -3444,7 +3448,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(activeSubmenu === "move" ? null : "move");
             }}
             title="Move Tools Menu"
-            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "select" || activeTool === "hand" || activeTool === "scale"
                 ? "bg-[#0c8ce9] text-white"
                 : "text-neutral-400 hover:text-white hover:bg-white/10"
@@ -3526,7 +3530,7 @@ export default function CanvasWorkspace({
         </div>
 
         {/* 2. FRAME / SECTION TOOL (With Submenu: Frame F, Section Shift+S, Slice S - Image 2) */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -3535,7 +3539,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(null);
             }}
             title="Frame (F)"
-            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "frame"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -3550,7 +3554,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(activeSubmenu === "frame" ? null : "frame");
             }}
             title="Frame Tools Menu"
-            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "frame" || activeTool === "section" || activeTool === "slice"
                 ? "bg-[#0c8ce9] text-white"
                 : "text-neutral-400 hover:text-white hover:bg-white/10"
@@ -3652,7 +3656,7 @@ export default function CanvasWorkspace({
         </div>
 
         {/* 3. SHAPE TOOL (With Submenu: Rectangle R, Ellipse O, Folder Alt+F, Place Media Ctrl+Shift+K) */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -3661,7 +3665,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(null);
             }}
             title="Rectangle (R)"
-            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "shape"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -3676,7 +3680,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(activeSubmenu === "shape" ? null : "shape");
             }}
             title="Shapes Menu"
-            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "shape"
                 ? "bg-[#0c8ce9] text-white"
                 : "text-neutral-400 hover:text-white hover:bg-white/10"
@@ -3761,7 +3765,7 @@ export default function CanvasWorkspace({
         </div>
 
         {/* 4. PEN / DRAW TOOL (With Submenu: Pen P, Pencil Shift+P) */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -3769,7 +3773,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(null);
             }}
             title="Pen (P)"
-            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "pen"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -3784,7 +3788,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(activeSubmenu === "pen" ? null : "pen");
             }}
             title="Pen Tools Menu"
-            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "pen" || activeTool === "pencil"
                 ? "bg-[#0c8ce9] text-white"
                 : "text-neutral-400 hover:text-white hover:bg-white/10"
@@ -3844,7 +3848,7 @@ export default function CanvasWorkspace({
         </div>
 
         {/* 5. TEXT TOOL (With Submenu: Text T, Text on Path, Sticky Note N - Image 4) */}
-        <div className="relative flex items-center">
+        <div className="relative flex items-center shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -3853,7 +3857,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(null);
             }}
             title="Text (T)"
-            className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer font-serif font-bold text-sm ${
+            className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer font-serif font-bold text-sm ${
               activeTool === "text"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -3868,7 +3872,7 @@ export default function CanvasWorkspace({
               setActiveSubmenu(activeSubmenu === "text" ? null : "text");
             }}
             title="Text Tools Menu"
-            className={`px-1 py-2 rounded-r-xl transition-colors cursor-pointer ${
+            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "text"
                 ? "bg-[#0c8ce9] text-white"
                 : "text-neutral-400 hover:text-white hover:bg-white/10"
@@ -3938,12 +3942,12 @@ export default function CanvasWorkspace({
         </div>
 
         {/* 6. RESOURCES / CODE BRACKETS {} */}
-        <div className="relative">
+        <div className="relative shrink-0">
           <button
             type="button"
             onClick={() => setActiveSubmenu(activeSubmenu === "resources" ? null : "resources")}
             title="Resources / Components ({})"
-            className={`p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-sm ${
+            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-xs sm:text-sm ${
               activeSubmenu === "resources"
                 ? "bg-[#0c8ce9] text-white"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -3991,12 +3995,22 @@ export default function CanvasWorkspace({
           )}
         </div>
 
+        {/* Mobile Quick Fit All */}
+        <button
+          type="button"
+          onClick={zoomToFitAll}
+          title="Fit All Elements"
+          className="h-8 px-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 sm:hidden"
+        >
+          <HiArrowsPointingOut className="w-4 h-4 text-teal-400" />
+        </button>
+
         {/* 7. COMMENT BUBBLE (💬) */}
         <button
           type="button"
           onClick={handleAddComment}
           title="Add Comment / Annotation (C)"
-          className="p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10"
+          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 hidden sm:flex"
         >
           <HiChatBubbleBottomCenterText className="w-4 h-4" />
         </button>
@@ -4009,13 +4023,13 @@ export default function CanvasWorkspace({
             setActiveSubmenu(null);
           }}
           title="Widgets & Presets (❖+)"
-          className="p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10"
+          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 hidden sm:flex"
         >
           <HiSparkles className="w-4 h-4 text-amber-400" />
         </button>
 
         {/* Toolbar Vertical Separator */}
-        <div className="w-[1px] h-5 bg-white/15 mx-1" />
+        <div className="w-[1px] h-5 bg-white/15 mx-0.5 sm:mx-1 shrink-0 hidden sm:block" />
 
         {/* 9. PENCIL / SCRIBBLER */}
         <button
@@ -4024,7 +4038,7 @@ export default function CanvasWorkspace({
             setActiveTool(activeTool === "pencil" ? "select" : "pencil");
           }}
           title="Pencil / Draw"
-          className={`p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 hidden sm:flex ${
             activeTool === "pencil"
               ? "bg-[#0c8ce9] text-white shadow-sm"
               : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -4038,7 +4052,7 @@ export default function CanvasWorkspace({
           type="button"
           onClick={() => setShowMeasureTool(!showMeasureTool)}
           title="Measure / Dimension Inspect (Ruler)"
-          className={`p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
+          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 hidden sm:flex ${
             showMeasureTool
               ? "bg-[#0c8ce9] text-white shadow-sm"
               : "text-neutral-300 hover:text-white hover:bg-white/10"
@@ -4058,7 +4072,7 @@ export default function CanvasWorkspace({
             }
           }}
           title="Present / Live Canvas View (▷)"
-          className="p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-teal-400 hover:bg-white/10"
+          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-teal-400 hover:bg-white/10 shrink-0 hidden sm:flex"
         >
           <HiPlay className="w-4 h-4" />
         </button>
@@ -4068,7 +4082,7 @@ export default function CanvasWorkspace({
           type="button"
           onClick={() => setShowDevMode(true)}
           title="Dev Mode / Inspect Code (</>)"
-          className={`p-2 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-xs ${
+          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-xs shrink-0 hidden sm:flex ${
             showDevMode
               ? "bg-[#0c8ce9] text-white shadow-sm"
               : "text-neutral-300 hover:text-white hover:bg-white/10"
