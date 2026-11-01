@@ -157,6 +157,16 @@ export default function CanvasWorkspace({
 
   // Selected element & dragging on canvas
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isMarqueeSelecting, setIsMarqueeSelecting] = useState<boolean>(false);
+  const [marqueeBox, setMarqueeBox] = useState<{
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+  } | null>(null);
+  const marqueeStartRef = useRef<{ x: number; y: number } | null>(null);
+  const dragItemInitialPositionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
 
   // Context Menu State (Figma Right Click Popup Menu)
   const [contextMenu, setContextMenu] = useState<{
@@ -191,6 +201,45 @@ export default function CanvasWorkspace({
   const [isMobileInspectorOpen, setIsMobileInspectorOpen] = useState<boolean>(false);
 
   const selectedItem = useMemo(() => items.find((it) => it.id === selectedId) || null, [items, selectedId]);
+
+  // Combined Bounding Box for Multi-Selection (Figma Style)
+  const multiSelectionBounds = useMemo(() => {
+    if (selectedIds.size <= 1) return null;
+    const selectedList = items.filter((it) => selectedIds.has(it.id) && !hiddenItemIds.has(it.id));
+    if (selectedList.length <= 1) return null;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    selectedList.forEach((it) => {
+      const itX = it.x || 0;
+      const itY = it.y || 0;
+      let itW = it.width || 380;
+      let itH = it.height || 480;
+      if (it.type === "section" || it.mediaType === "section") {
+        itW = it.width || 1200;
+        itH = it.height || 600;
+      } else if (it.type === "text" || it.mediaType === "text") {
+        itW = it.width || 320;
+        itH = it.height || 180;
+      }
+      minX = Math.min(minX, itX);
+      minY = Math.min(minY, itY);
+      maxX = Math.max(maxX, itX + itW);
+      maxY = Math.max(maxY, itY + itH);
+    });
+
+    if (minX === Infinity) return null;
+    return {
+      x: minX,
+      y: minY,
+      width: Math.round(maxX - minX),
+      height: Math.round(maxY - minY),
+      count: selectedList.length,
+    };
+  }, [items, selectedIds, hiddenItemIds]);
 
   const updateSelectedItem = useCallback((updater: Partial<CanvasItem>) => {
     if (!selectedId) return;
@@ -611,9 +660,17 @@ export default function CanvasWorkspace({
       if (e.key === "c" || e.key === "C") {
         handleAddComment();
       }
-      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
+      if ((e.key === "Delete" || e.key === "Backspace") && (selectedId || selectedIds.size > 0)) {
         e.preventDefault();
-        handleDeleteItem(selectedId);
+        if (selectedIds.size > 1) {
+          const idsToDelete = new Set(selectedIds);
+          const updated = items.filter((it) => !idsToDelete.has(it.id));
+          updateItemsWithTracking(updated);
+          setSelectedIds(new Set());
+          setSelectedId(null);
+        } else if (selectedId) {
+          handleDeleteItem(selectedId);
+        }
       }
       // Figma shortcuts
       if ((e.ctrlKey || e.metaKey) && (e.key === "c" || e.key === "C") && selectedId) {
@@ -795,17 +852,34 @@ export default function CanvasWorkspace({
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     // If clicking on canvas background directly or with hand tool / spacebar
     if (e.target === e.currentTarget || isSpacePressed || activeTool === "hand" || e.button === 1) {
-      setIsPanning(true);
-      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-      if (activeTool === "select" && !isSpacePressed) {
+      if (isSpacePressed || activeTool === "hand" || e.button === 1) {
+        setIsPanning(true);
+        setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
         setSelectedId(null);
+        setSelectedIds(new Set());
+      } else if (activeTool === "select" && e.button === 0) {
+        // Desktop Move / Select tool: Hold and drag to select (Figma Marquee Selection)
+        const canvasX = (e.clientX - pan.x) / zoom;
+        const canvasY = (e.clientY - pan.y) / zoom;
+        marqueeStartRef.current = { x: canvasX, y: canvasY };
+        setIsMarqueeSelecting(true);
+        setMarqueeBox({
+          startX: canvasX,
+          startY: canvasY,
+          currentX: canvasX,
+          currentY: canvasY,
+        });
+        if (!e.shiftKey) {
+          setSelectedId(null);
+          setSelectedIds(new Set());
+        }
       }
     }
   };
 
-  // High-performance 0ms-latency window mouse tracking for pan and drag
+  // High-performance 0ms-latency window mouse tracking for pan, drag, and marquee selection
   useEffect(() => {
-    if (!isPanning && !draggingItemId) return;
+    if (!isPanning && !draggingItemId && !isMarqueeSelecting) return;
 
     const onWindowMove = (e: MouseEvent) => {
       if (isPanning) {
@@ -821,21 +895,81 @@ export default function CanvasWorkspace({
             }
           });
         }
+      } else if (isMarqueeSelecting && marqueeStartRef.current) {
+        const curCanvasX = (e.clientX - pan.x) / zoom;
+        const curCanvasY = (e.clientY - pan.y) / zoom;
+        const sX = marqueeStartRef.current.x;
+        const sY = marqueeStartRef.current.y;
+
+        setMarqueeBox({
+          startX: sX,
+          startY: sY,
+          currentX: curCanvasX,
+          currentY: curCanvasY,
+        });
+
+        // Compute marquee box in canvas coordinates
+        const boxLeft = Math.min(sX, curCanvasX);
+        const boxRight = Math.max(sX, curCanvasX);
+        const boxTop = Math.min(sY, curCanvasY);
+        const boxBottom = Math.max(sY, curCanvasY);
+
+        // Find intersecting items
+        const hitIds = new Set<string>();
+        items.forEach((it) => {
+          if (hiddenItemIds.has(it.id)) return;
+          const itX = it.x || 0;
+          const itY = it.y || 0;
+          let itW = it.width || 380;
+          let itH = it.height || 480;
+          if (it.type === "section" || it.mediaType === "section") {
+            itW = it.width || 1200;
+            itH = it.height || 600;
+          } else if (it.type === "text" || it.mediaType === "text") {
+            itW = it.width || 320;
+            itH = it.height || 180;
+          }
+          const itRight = itX + itW;
+          const itBottom = itY + itH;
+
+          // Check AABB intersection
+          if (itX < boxRight && itRight > boxLeft && itY < boxBottom && itBottom > boxTop) {
+            hitIds.add(it.id);
+          }
+        });
+
+        setSelectedIds(hitIds);
+        if (hitIds.size > 0) {
+          setSelectedId(Array.from(hitIds)[0]);
+        } else {
+          setSelectedId(null);
+        }
       } else if (draggingItemId) {
         const curX = Math.round((e.clientX - pan.x) / zoom - dragItemOffset.x);
         const curY = Math.round((e.clientY - pan.y) / zoom - dragItemOffset.y);
-        pendingItemDragRef.current = { id: draggingItemId, x: curX, y: curY };
+        const draggedInit = dragItemInitialPositionsRef.current?.get(draggingItemId);
+        const deltaX = draggedInit ? curX - draggedInit.x : 0;
+        const deltaY = draggedInit ? curY - draggedInit.y : 0;
 
         if (!dragRafRef.current) {
           dragRafRef.current = requestAnimationFrame(() => {
             dragRafRef.current = null;
-            if (pendingItemDragRef.current) {
-              const info = pendingItemDragRef.current;
+            if (dragItemInitialPositionsRef.current && dragItemInitialPositionsRef.current.size > 1) {
               setItems((prev) =>
-                prev.map((it) => (it.id === info.id ? { ...it, x: info.x, y: info.y } : it))
+                prev.map((it) => {
+                  const init = dragItemInitialPositionsRef.current?.get(it.id);
+                  if (init) {
+                    return { ...it, x: init.x + deltaX, y: init.y + deltaY };
+                  }
+                  return it;
+                })
               );
-              setHasChanges(true);
+            } else {
+              setItems((prev) =>
+                prev.map((it) => (it.id === draggingItemId ? { ...it, x: curX, y: curY } : it))
+              );
             }
+            setHasChanges(true);
           });
         }
       }
@@ -846,13 +980,12 @@ export default function CanvasWorkspace({
         cancelAnimationFrame(dragRafRef.current);
         dragRafRef.current = null;
       }
-      if (pendingItemDragRef.current) {
-        const info = pendingItemDragRef.current;
-        setItems((prev) =>
-          prev.map((it) => (it.id === info.id ? { ...it, x: info.x, y: info.y } : it))
-        );
-        pendingItemDragRef.current = null;
+      if (isMarqueeSelecting) {
+        setIsMarqueeSelecting(false);
+        setMarqueeBox(null);
+        marqueeStartRef.current = null;
       }
+      dragItemInitialPositionsRef.current = null;
       setIsPanning(false);
       setDraggingItemId(null);
     };
@@ -868,7 +1001,7 @@ export default function CanvasWorkspace({
         dragRafRef.current = null;
       }
     };
-  }, [isPanning, draggingItemId, panStart, pan.x, pan.y, zoom, dragItemOffset.x, dragItemOffset.y]);
+  }, [isPanning, draggingItemId, isMarqueeSelecting, panStart, pan, zoom, dragItemOffset, items, hiddenItemIds]);
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     // Window listener handles mousemove with passive 0ms latency; kept for fallback
@@ -879,6 +1012,12 @@ export default function CanvasWorkspace({
       cancelAnimationFrame(dragRafRef.current);
       dragRafRef.current = null;
     }
+    if (isMarqueeSelecting) {
+      setIsMarqueeSelecting(false);
+      setMarqueeBox(null);
+      marqueeStartRef.current = null;
+    }
+    dragItemInitialPositionsRef.current = null;
     setIsPanning(false);
     setDraggingItemId(null);
   };
@@ -895,12 +1034,25 @@ export default function CanvasWorkspace({
     // In Hand tool mode: do NOT select item! Pan canvas directly
     if (activeTool === "hand" || isSpacePressed) {
       setSelectedId(null);
+      setSelectedIds(new Set());
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
       return;
     }
 
+    if (!selectedIds.has(item.id)) {
+      if (e.shiftKey) {
+        setSelectedIds((prev) => {
+          const next = new Set(prev);
+          next.add(item.id);
+          return next;
+        });
+      } else {
+        setSelectedIds(new Set([item.id]));
+      }
+    }
     setSelectedId(item.id);
+
     if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
 
     setDraggingItemId(item.id);
@@ -910,6 +1062,14 @@ export default function CanvasWorkspace({
       x: itemCanvasX - (item.x || 0),
       y: itemCanvasY - (item.y || 0),
     });
+
+    const initMap = new Map<string, { x: number; y: number }>();
+    items.forEach((it) => {
+      if (selectedIds.has(it.id) || it.id === item.id) {
+        initMap.set(it.id, { x: it.x || 0, y: it.y || 0 });
+      }
+    });
+    dragItemInitialPositionsRef.current = initMap;
   };
 
   // Mobile Touch Handlers on Canvas Viewport
@@ -3061,7 +3221,7 @@ export default function CanvasWorkspace({
         >
           {items.map((item) => {
             if (hiddenItemIds.has(item.id)) return null;
-            const isSelected = activeTool !== "hand" && selectedId === item.id;
+            const isSelected = activeTool !== "hand" && (selectedId === item.id || selectedIds.has(item.id));
             const isLocked = lockedItemIds.has(item.id);
             const x = item.x || 0;
             const y = item.y || 0;
@@ -3397,6 +3557,42 @@ export default function CanvasWorkspace({
               </div>
             );
           })}
+
+          {/* Combined Multi-Selection Bounding Box & Dimension Badge (Figma Style) */}
+          {multiSelectionBounds && activeTool !== "hand" && (
+            <div
+              className="absolute pointer-events-none border-2 border-[#0c8ce9] z-40 transition-none"
+              style={{
+                transform: `translate3d(${multiSelectionBounds.x}px, ${multiSelectionBounds.y}px, 0)`,
+                width: `${multiSelectionBounds.width}px`,
+                height: `${multiSelectionBounds.height}px`,
+              }}
+            >
+              {/* Corner Handles */}
+              <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+              <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+              <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+              <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+
+              {/* Dimension Badge at Bottom (Matches User's Screenshot!) */}
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-xs font-mono font-medium shadow-lg whitespace-nowrap">
+                {multiSelectionBounds.width} × {multiSelectionBounds.height}
+              </div>
+            </div>
+          )}
+
+          {/* Marquee Selection Box (Rubber-band Drag) */}
+          {marqueeBox && (
+            <div
+              className="absolute pointer-events-none border border-[#0c8ce9] bg-[#0c8ce9]/12 z-50 rounded-xs"
+              style={{
+                left: `${Math.min(marqueeBox.startX, marqueeBox.currentX)}px`,
+                top: `${Math.min(marqueeBox.startY, marqueeBox.currentY)}px`,
+                width: `${Math.abs(marqueeBox.currentX - marqueeBox.startX)}px`,
+                height: `${Math.abs(marqueeBox.currentY - marqueeBox.startY)}px`,
+              }}
+            />
+          )}
         </div>
       </div>
 
