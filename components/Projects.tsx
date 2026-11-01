@@ -1828,23 +1828,28 @@ export default function Projects() {
                 }
               : rawWork;
 
+            const resolvedYouTubeId =
+              (currentWork as any).videoId ||
+              extractYouTubeId((currentWork as any).youtubeUrl || "") ||
+              extractYouTubeId((currentWork as any).videoUrl || "") ||
+              (currentWork.id === "hero-showcase" ? (stage3?.heroCard?.videoId || "dQw4w9WgXcQ") : null);
+
             const resolvedGDriveId =
               (currentWork as any).gdriveId ||
-              extractGoogleDriveFileId((currentWork as any).gdriveUrl || "") ||
-              extractGoogleDriveFileId(currentWork.image || "");
+              extractGoogleDriveFileId((currentWork as any).gdriveUrl || "");
 
             const isCurrentWorkVideo = Boolean(
+              Boolean(resolvedYouTubeId) ||
               (currentWork as any).isVideo === true ||
               (currentWork as any).mediaType === "video" ||
               (currentWork as any).mediaType === "gdrive_video" ||
-              Boolean((currentWork as any).videoId) ||
               ((currentWork as any).gdriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test((currentWork as any).gdriveUrl)) ||
-              (currentWork.image && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test(currentWork.image)) ||
               (currentWork.type && /video|motion|reel|animation/i.test(currentWork.type)) ||
               (currentWork.title && /video|motion|reel|animation/i.test(currentWork.title))
             ) && (currentWork as any).isVideo !== false && (currentWork as any).mediaType !== "image";
 
             const isShowingGDriveVideo = Boolean(
+              !resolvedYouTubeId &&
               resolvedGDriveId && (
                 isPlayingGDriveVideo !== null ? isPlayingGDriveVideo : isCurrentWorkVideo
               )
@@ -1914,7 +1919,7 @@ export default function Projects() {
                     )}
 
                     {/* Main Large Visual Artwork or Interactive YouTube / Google Drive Video Player */}
-                    {currentWork.id === "hero-showcase" || currentWork.videoId ? (
+                    {resolvedYouTubeId ? (
                       <div
                         style={{
                           ...getModalMediaStyle(currentWork.aspect || "16:9"),
@@ -1923,7 +1928,7 @@ export default function Projects() {
                         className="relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center select-none"
                       >
                         <iframe
-                          src={`https://www.youtube.com/embed/${currentWork.videoId || stage3?.heroCard?.videoId || "dQw4w9WgXcQ"}?autoplay=1&rel=0&modestbranding=1`}
+                          src={`https://www.youtube.com/embed/${resolvedYouTubeId}?autoplay=1&rel=0&modestbranding=1`}
                           title={currentWork.title}
                           className="w-full h-full border-0"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"

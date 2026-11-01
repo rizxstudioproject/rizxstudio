@@ -1627,9 +1627,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [uploadProgressText, setUploadProgressText] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Upload Source: Device File vs Google Drive Link
-  const [uploadSource, setUploadSource] = useState<"file" | "gdrive">("file");
+  // Upload Source: Device File vs Google Drive Link vs YouTube Video Link
+  const [uploadSource, setUploadSource] = useState<"file" | "gdrive" | "youtube">("file");
   const [uploadGDriveUrl, setUploadGDriveUrl] = useState("");
+  const [uploadYouTubeUrl, setUploadYouTubeUrl] = useState("");
   const [uploadIsVideo, setUploadIsVideo] = useState(false);
   const [gdrivePreviews, setGdrivePreviews] = useState<{ id: string; fileId: string; url: string; directUrl: string }[]>([]);
 
@@ -1675,6 +1676,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [editWorkSolution, setEditWorkSolution] = useState("");
   const [editWorkRole, setEditWorkRole] = useState("");
   const [editWorkToolsInput, setEditWorkToolsInput] = useState("");
+  const [editWorkMediaType, setEditWorkMediaType] = useState<"image" | "youtube">("image");
+  const [editWorkYouTubeUrl, setEditWorkYouTubeUrl] = useState("");
   const [editWorkIsVideo, setEditWorkIsVideo] = useState(false);
   const [editWorkGDriveUrl, setEditWorkGDriveUrl] = useState("");
 
@@ -1689,6 +1692,17 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     );
 
     const initialGDriveUrl = work.gdriveUrl || (work.gdriveId ? `https://drive.google.com/file/d/${work.gdriveId}/view` : "") || "";
+    const initialYouTubeUrl = work.youtubeUrl || (work.videoId ? `https://www.youtube.com/watch?v=${work.videoId}` : "");
+    const isVideoWork = Boolean(
+      work.videoId ||
+      work.youtubeUrl ||
+      work.isVideo === true ||
+      work.mediaType === "video" ||
+      work.mediaType === "gdrive_video" ||
+      (work.type && /video|motion|reel|animation/i.test(work.type)) ||
+      (work.title && /video|motion|reel|animation/i.test(work.title)) ||
+      (initialGDriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test(initialGDriveUrl))
+    ) && (work as any).mediaType !== "image" && (work as any).isVideo !== false;
 
     setEditingWork(work);
     setEditWorkTitle(work.title || defaultStudy.brand || "");
@@ -1700,14 +1714,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     setEditWorkSolution(work.solution || defaultStudy.solution || "");
     setEditWorkRole(work.role || defaultStudy.role || "");
     setEditWorkGDriveUrl(initialGDriveUrl);
-    setEditWorkIsVideo(Boolean(
-      work.isVideo === true ||
-      work.mediaType === "video" ||
-      work.mediaType === "gdrive_video" ||
-      (work.type && /video|motion|reel|animation/i.test(work.type)) ||
-      (work.title && /video|motion|reel|animation/i.test(work.title)) ||
-      (initialGDriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test(initialGDriveUrl))
-    ) && (work as any).mediaType !== "image" && (work as any).isVideo !== false);
+    setEditWorkYouTubeUrl(initialYouTubeUrl);
+    setEditWorkMediaType(isVideoWork ? "youtube" : "image");
+    setEditWorkIsVideo(isVideoWork);
 
     const initialTools =
       work.tools && work.tools.length > 0
@@ -1817,9 +1826,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
 
+    const isYt = editWorkMediaType === "youtube";
+    const ytId = isYt ? extractYouTubeId(editWorkYouTubeUrl.trim()) : "";
+
     const parsedFileId = extractGoogleDriveFileId(editWorkGDriveUrl.trim()) || extractGoogleDriveId(editWorkGDriveUrl.trim());
     const finalGDriveUrl = editWorkGDriveUrl.trim();
     const hasGDrive = Boolean(finalGDriveUrl || parsedFileId);
+
+    // Compute thumbnail image
+    let computedImage = editingWork.image;
+    if (isYt && ytId) {
+      computedImage = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+    } else if (!isYt && hasGDrive && parsedFileId) {
+      computedImage = `https://lh3.googleusercontent.com/d/${parsedFileId}`;
+    }
 
     const updatedWork = {
       ...editingWork,
@@ -1832,10 +1852,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       solution: editWorkSolution.trim(),
       role: editWorkRole.trim(),
       tools: parsedTools,
-      gdriveUrl: finalGDriveUrl || editingWork.gdriveUrl || "",
-      gdriveId: parsedFileId || editingWork.gdriveId || "",
-      isVideo: editWorkIsVideo,
-      mediaType: editWorkIsVideo ? "video" : "image",
+      image: computedImage,
+      gdriveUrl: !isYt ? (finalGDriveUrl || editingWork.gdriveUrl || "") : "",
+      gdriveId: !isYt ? (parsedFileId || editingWork.gdriveId || "") : "",
+      youtubeUrl: isYt ? editWorkYouTubeUrl.trim() : "",
+      videoId: isYt ? (ytId || "") : "",
+      isVideo: isYt,
+      mediaType: isYt ? "video" : "image",
     };
 
     updateClientWork(selectedClient.id, updatedWork);
@@ -2085,7 +2108,63 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       .map((t) => t.trim().toLowerCase())
       .filter(Boolean);
 
-    // 1. Handling Google Drive Link Upload
+    // 0. Handling YouTube Video Link Upload
+    if (uploadSource === "youtube") {
+      const ytId = extractYouTubeId(uploadYouTubeUrl.trim());
+      if (!ytId) {
+        showToast("Peringatan: Masukkan link YouTube yang valid (contoh: https://www.youtube.com/watch?v=... atau https://youtu.be/... atau shorts).");
+        return;
+      }
+
+      setIsUploadingWork(true);
+      setUploadProgressText(tx("Menyimpan video YouTube...", "Saving YouTube video...", "Mangarangian video YouTube..."));
+
+      try {
+        const defaultTitle = uploadTitle.trim() || "Video Showcase";
+        const ytThumb = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+
+        const workItem = {
+          id: `${selectedClient.id}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          title: defaultTitle,
+          type: uploadType.trim() || "Motion Graphics / Video",
+          image: ytThumb,
+          videoId: ytId,
+          youtubeUrl: uploadYouTubeUrl.trim(),
+          aspect: uploadAspect || "16:9",
+          brand: selectedClient.clientName,
+          year: uploadYear.trim() || new Date().getFullYear().toString(),
+          brief: `Commercial video and motion production produced for ${selectedClient.clientName}.`,
+          approach: "High-impact visual pacing, kinetic typography, and motion design tailored for audience engagement.",
+          role: "Creative direction, video editing, motion graphics, and audio sync.",
+          challenge: "Creating memorable narrative hooks while keeping high viewer retention.",
+          solution: "Polished composition with dynamic transitions and clear brand messaging.",
+          tools: toolsArray.length > 0 ? toolsArray : ["after effects", "premiere", "digital asset"],
+          isClientWork: true,
+          isVideo: true,
+          mediaType: "video",
+        };
+
+        await addClientWork(selectedClient.id, [workItem]);
+        showToast(`Video YouTube "${workItem.title}" berhasil disimpan!`);
+
+        // Reset Form Modal
+        setUploadSource("file");
+        setUploadYouTubeUrl("");
+        setUploadTitle("");
+        setUploadToolsInput(selectedClient?.tools && selectedClient.tools.length > 0 ? selectedClient.tools.join(", ") : "Digital Asset, Photoshop, Magnific AI");
+        setUploadYear(new Date().getFullYear().toString());
+        setIsUploadModalOpen(false);
+      } catch (err: any) {
+        console.error("Upload YouTube error:", err);
+        showToast("Terjadi kesalahan saat memproses video YouTube: " + (err?.message || ""));
+      } finally {
+        setIsUploadingWork(false);
+        setUploadProgressText("");
+      }
+      return;
+    }
+
+    // 1. Handling Google Drive Link Upload (For Images)
     if (uploadSource === "gdrive") {
       if (gdrivePreviews.length === 0) {
         showToast("Peringatan: Masukkan minimal 1 link Google Drive yang valid.");
@@ -2120,8 +2199,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             solution: "Developed controlled prompts, tailored color palettes, and balanced typography for high-impact social reach.",
             tools: toolsArray.length > 0 ? toolsArray : ["figma", "photoshop"],
             isClientWork: true,
-            isVideo: uploadIsVideo,
-            mediaType: uploadIsVideo ? "video" : "image",
+            isVideo: false,
+            mediaType: "image",
           };
           newWorks.push(workItem);
         }
@@ -7511,22 +7590,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   FOLDER: client - {selectedClient?.clientName}
                 </span>
                 <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
-                  {tx("Upload Gambar Portofolio", "Upload Portfolio Image")}
+                  {tx("Upload Karya (Gambar & Video)", "Upload Deliverables (Image & Video)")}
                 </h3>
                 <p className={`text-xs mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                  {tx("Gambar yang diupload atau dari Google Drive akan langsung tersimpan dan muncul di galeri publik folder klien ini.", "Uploaded or Google Drive image will be saved and displayed live in this client folder's public gallery.")}
+                  {tx("Upload gambar melalui file device / Google Drive, atau tambahkan video melalui link YouTube.", "Upload images via device files / Google Drive, or add videos via YouTube links.")}
                 </p>
               </div>
 
               <form onSubmit={handleUploadSubmit} className="space-y-4">
-                {/* Source Selection Tabs */}
-                <div className={`grid grid-cols-2 gap-2 p-1 rounded-xl border mb-2 ${
+                {/* Source Selection Tabs: Device Gambar, GDrive Gambar, YouTube Video */}
+                <div className={`grid grid-cols-3 gap-1.5 p-1 rounded-xl border mb-2 ${
                   isLight ? "bg-slate-100/80 border-slate-200" : "bg-black/30 border-white/10"
                 }`}>
                   <button
                     type="button"
                     onClick={() => setUploadSource("file")}
-                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-mono font-medium transition-all ${
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
                       uploadSource === "file"
                         ? isLight
                           ? "bg-white text-teal-800 font-bold shadow-xs border border-slate-200"
@@ -7537,13 +7616,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }`}
                   >
                     <HiPhoto className="w-4 h-4 shrink-0" />
-                    <span>{tx("File Komputer (Multi-upload)", "Device Files (Multi-upload)")}</span>
+                    <span className="truncate">{tx("Device (Gambar)", "Device (Image)")}</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setUploadSource("gdrive")}
-                    className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-mono font-medium transition-all ${
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
                       uploadSource === "gdrive"
                         ? isLight
                           ? "bg-white text-emerald-800 font-bold shadow-xs border border-slate-200"
@@ -7554,12 +7633,86 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     }`}
                   >
                     <RiDriveFill className="w-4 h-4 shrink-0 text-emerald-400" />
-                    <span>{tx("Link Google Drive", "Google Drive Links")}</span>
+                    <span className="truncate">{tx("GDrive (Gambar)", "GDrive (Image)")}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUploadSource("youtube");
+                      if (uploadAspect === "4:5") setUploadAspect("16:9");
+                    }}
+                    className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                      uploadSource === "youtube"
+                        ? "bg-red-500/25 border-red-500 text-red-400 font-bold shadow-xs border"
+                        : isLight
+                          ? "text-slate-600 hover:text-slate-900"
+                          : "text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    <RiYoutubeFill className="w-4 h-4 shrink-0 text-red-500" />
+                    <span className="truncate">{tx("YouTube (Video)", "YouTube (Video)")}</span>
                   </button>
                 </div>
 
-                {/* Upload Source: Google Drive */}
-                {uploadSource === "gdrive" ? (
+                {/* Upload Source: YouTube Video */}
+                {uploadSource === "youtube" ? (
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                          {tx("Link Video YouTube", "YouTube Video Link")} <span className="text-red-400 font-bold">*</span>
+                        </label>
+                        {extractYouTubeId(uploadYouTubeUrl) && (
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                            ✓ YouTube ID: {extractYouTubeId(uploadYouTubeUrl)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          required
+                          value={uploadYouTubeUrl}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setUploadYouTubeUrl(val);
+                            if (val.includes("shorts") && uploadAspect !== "9:16") {
+                              setUploadAspect("9:16");
+                            }
+                          }}
+                          placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/... atau shorts"
+                          className={`w-full px-4 py-2.5 pl-10 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
+                            isLight
+                              ? "bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                              : "bg-neutral-950 border-white/15 text-white placeholder:text-neutral-600 focus:border-red-400 focus:ring-1 focus:ring-red-400"
+                          }`}
+                        />
+                        <RiYoutubeFill className="w-4 h-4 text-red-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                      <p className={`text-[10px] font-mono mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                        {tx(
+                          "Mendukung link video YouTube standar (16:9) maupun YouTube Shorts (9:16). Video akan auto-play langsung saat dibuka.",
+                          "Supports standard YouTube videos (16:9) and YouTube Shorts (9:16). Video auto-plays directly."
+                        )}
+                      </p>
+                    </div>
+
+                    {/* YouTube Preview */}
+                    {extractYouTubeId(uploadYouTubeUrl) && (
+                      <div className="relative rounded-xl overflow-hidden border border-white/15 bg-black p-2 flex items-center justify-center">
+                        <img
+                          src={`https://img.youtube.com/vi/${extractYouTubeId(uploadYouTubeUrl)}/maxresdefault.jpg`}
+                          alt="YouTube Thumbnail"
+                          className="max-h-48 w-auto rounded-lg object-contain shadow-md"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${extractYouTubeId(uploadYouTubeUrl)}/hqdefault.jpg`;
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : uploadSource === "gdrive" ? (
                   <div className="space-y-3">
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
@@ -7994,22 +8147,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
               {/* Modal Body: Scrollable Form */}
               <form onSubmit={handleSaveEditWork} className="space-y-4 pt-4 overflow-y-auto pr-1">
-                {/* Format Media (Gambar Still vs Video Google Drive) */}
+                {/* Format Media (Gambar Device/GDrive vs Video YouTube) */}
                 <div className={`p-3 rounded-2xl border ${isLight ? "bg-slate-50 border-slate-200" : "bg-white/[0.02] border-white/10"}`}>
-                  <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center justify-between mb-2">
                     <label className={`block text-xs font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                       {tx("Format Konten Karya", "Deliverable Format")}
                     </label>
-                    <span className={`text-[10px] font-mono ${editWorkIsVideo ? "text-emerald-400 font-bold" : "text-neutral-400"}`}>
-                      {editWorkIsVideo ? tx("🎬 Video akan auto-play", "🎬 Video will auto-play") : tx("📷 Gambar statis", "📷 Static artwork")}
+                    <span className={`text-[10px] font-mono ${editWorkMediaType === "youtube" ? "text-red-400 font-bold" : "text-teal-400 font-bold"}`}>
+                      {editWorkMediaType === "youtube" ? tx("🎬 Video YouTube (Auto-play)", "🎬 YouTube Video (Auto-play)") : tx("📷 Gambar (Device / GDrive)", "📷 Image (Device / GDrive)")}
                     </span>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
-                      onClick={() => setEditWorkIsVideo(false)}
+                      onClick={() => setEditWorkMediaType("image")}
                       className={`py-2 px-3 rounded-xl border text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                        !editWorkIsVideo
+                        editWorkMediaType === "image"
                           ? isLight
                             ? "bg-teal-50 border-teal-500 text-teal-900 font-bold shadow-xs"
                             : "bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold shadow-sm"
@@ -8018,63 +8171,104 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           : "bg-neutral-900 border-white/10 text-neutral-400 hover:text-white"
                       }`}
                     >
-                      <span>📷 {tx("Gambar Still", "Still Image")}</span>
+                      <HiPhoto className="w-3.5 h-3.5 text-teal-500" />
+                      <span>{tx("Gambar Still", "Still Image")}</span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditWorkIsVideo(true)}
+                      onClick={() => {
+                        setEditWorkMediaType("youtube");
+                        if (editWorkAspect === "4:5") setEditWorkAspect("16:9");
+                      }}
                       className={`py-2 px-3 rounded-xl border text-xs font-mono font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                        editWorkIsVideo
-                          ? "bg-emerald-500/25 border-emerald-400 text-emerald-300 font-bold shadow-sm shadow-emerald-500/20"
+                        editWorkMediaType === "youtube"
+                          ? "bg-red-500/25 border-red-500 text-red-400 font-bold shadow-sm shadow-red-500/20"
                           : isLight
                           ? "bg-white border-slate-200 text-slate-600 hover:text-slate-900"
                           : "bg-neutral-900 border-white/10 text-neutral-400 hover:text-white"
                       }`}
                     >
-                      <HiPlay className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>{tx("Video Google Drive (Auto-play)", "Google Drive Video (Auto-play)")}</span>
+                      <RiYoutubeFill className="w-4 h-4 text-red-500" />
+                      <span>{tx("Video YouTube", "YouTube Video")}</span>
                     </button>
                   </div>
 
-                  {/* Input Link Google Drive */}
-                  <div className={`mt-3 pt-3 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
-                    <div className="flex items-center justify-between mb-1.5">
-                      <label className={`block text-[11px] font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                        {tx("Link Google Drive (Video / Gambar)", "Google Drive Link (Video / Image)")}
-                      </label>
-                      {extractGoogleDriveFileId(editWorkGDriveUrl) && (
-                        <span className="text-[10px] font-mono text-emerald-400 font-bold">
-                          ✓ ID: {extractGoogleDriveFileId(editWorkGDriveUrl)?.substring(0, 8)}...
-                        </span>
-                      )}
+                  {/* Input Media based on format */}
+                  {editWorkMediaType === "youtube" ? (
+                    <div className={`mt-3 pt-3 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className={`block text-[11px] font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                          {tx("Link Video YouTube", "YouTube Video Link")}
+                        </label>
+                        {extractYouTubeId(editWorkYouTubeUrl) && (
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                            ✓ YouTube ID: {extractYouTubeId(editWorkYouTubeUrl)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={editWorkYouTubeUrl}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setEditWorkYouTubeUrl(val);
+                            if (val.includes("shorts") && editWorkAspect !== "9:16") {
+                              setEditWorkAspect("9:16");
+                            }
+                          }}
+                          placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/... atau shorts"
+                          className={`w-full px-3.5 py-2 pl-9 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
+                            isLight
+                              ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-red-500"
+                              : "bg-neutral-950 border-white/15 text-white placeholder:text-neutral-600 focus:border-red-400"
+                          }`}
+                        />
+                        <RiYoutubeFill className="w-4 h-4 text-red-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                      <p className={`text-[10px] font-mono mt-1 ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                        {tx(
+                          "Video akan diputar menggunakan embed YouTube resmi. Mendukung video 16:9 maupun YouTube Shorts (9:16).",
+                          "Video will play using official YouTube player. Supports 16:9 landscape and 9:16 vertical Shorts."
+                        )}
+                      </p>
                     </div>
-                    <div className="relative">
-                      <input
-                        type="url"
-                        value={editWorkGDriveUrl}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setEditWorkGDriveUrl(val);
-                          if (val.trim()) {
-                            setEditWorkIsVideo(true);
-                          }
-                        }}
-                        placeholder="https://drive.google.com/file/d/1a2b3c4d5e.../view?usp=sharing"
-                        className={`w-full px-3.5 py-2 pl-9 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
-                          isLight
-                            ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-teal-500"
-                            : "bg-neutral-950 border-white/15 text-white placeholder:text-neutral-600 focus:border-emerald-400"
-                        }`}
-                      />
-                      <RiDriveFill className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  ) : (
+                    <div className={`mt-3 pt-3 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className={`block text-[11px] font-mono font-medium ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                          {tx("Link Google Drive (Untuk Gambar)", "Google Drive Link (For Image)")}
+                        </label>
+                        {extractGoogleDriveFileId(editWorkGDriveUrl) && (
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                            ✓ ID: {extractGoogleDriveFileId(editWorkGDriveUrl)?.substring(0, 8)}...
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="url"
+                          value={editWorkGDriveUrl}
+                          onChange={(e) => {
+                            setEditWorkGDriveUrl(e.target.value);
+                          }}
+                          placeholder="https://drive.google.com/file/d/1a2b3c4d5e.../view?usp=sharing"
+                          className={`w-full px-3.5 py-2 pl-9 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
+                            isLight
+                              ? "bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-teal-500"
+                              : "bg-neutral-950 border-white/15 text-white placeholder:text-neutral-600 focus:border-emerald-400"
+                          }`}
+                        />
+                        <RiDriveFill className="w-4 h-4 text-emerald-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                      </div>
+                      <p className={`text-[10px] font-mono mt-1 ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                        {tx(
+                          "Link Google Drive akan otomatis dimuat sebagai gambar beresolusi tinggi langsung tanpa iframe/pop-out.",
+                          "Google Drive link will automatically load as high-res image directly without iframe or pop-out."
+                        )}
+                      </p>
                     </div>
-                    <p className={`text-[10px] font-mono mt-1 ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
-                      {tx(
-                        "Paste link Google Drive file video (.mp4/.mov). Video akan langsung dimuat dan auto-play saat pengunjung membuka detail karya.",
-                        "Paste Google Drive video file link (.mp4/.mov). The video will load and auto-play when visitors open deliverable."
-                      )}
-                    </p>
-                  </div>
+                  )}
                 </div>
 
                 {/* 1. Judul & Kategori */}
