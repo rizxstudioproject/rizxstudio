@@ -7663,99 +7663,23 @@ export default function CanvasWorkspace({
           )}
         </div>
 
-        {/* 4. TEXT TOOL (With Submenu: Text T, Text on Path, Sticky Note N) */}
-        <div className="relative flex items-center shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              handleAddText();
-              setActiveTool("text");
-              setActiveSubmenu(null);
-            }}
-            title="Text (T)"
-            className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer font-serif font-bold text-sm ${
-              activeTool === "text"
-                ? "bg-[#0c8ce9] text-white shadow-sm"
-                : "text-neutral-300 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            T
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveSubmenu(activeSubmenu === "text" ? null : "text");
-            }}
-            title="Text Tools Menu"
-            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
-              activeTool === "text"
-                ? "bg-[#0c8ce9] text-white"
-                : "text-neutral-400 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiChevronDown className="w-3 h-3" />
-          </button>
-
-          {/* Text Submenu Dropdown (Image 4) */}
-          {activeSubmenu === "text" && (
-            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddText();
-                  setActiveTool("text");
-                  setActiveSubmenu(null);
-                }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                  activeTool === "text"
-                    ? "bg-[#0c8ce9] text-white font-medium"
-                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "text" && <HiCheck className="w-3.5 h-3.5" />}
-                  </span>
-                  <span className="font-serif font-bold text-sm leading-none">T</span>
-                  <span>Text</span>
-                </div>
-                <span className="text-[11px] font-mono opacity-60">T</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddTextPath();
-                  setActiveSubmenu(null);
-                }}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5" />
-                  <span className="text-sm leading-none">⌢</span>
-                  <span>Text on path</span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddComment();
-                  setActiveSubmenu(null);
-                }}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5" />
-                  <span>📝</span>
-                  <span>Sticky Note</span>
-                </div>
-                <span className="text-[11px] font-mono opacity-60">N</span>
-              </button>
-            </div>
-          )}
-        </div>
+        {/* 4. TEXT TOOL */}
+        <button
+          type="button"
+          onClick={() => {
+            handleAddText();
+            setActiveTool("text");
+            setActiveSubmenu(null);
+          }}
+          title="Text (T)"
+          className={`h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-serif font-bold text-sm shrink-0 ${
+            activeTool === "text"
+              ? "bg-[#0c8ce9] text-white shadow-sm"
+              : "text-neutral-300 hover:text-white hover:bg-white/10"
+          }`}
+        >
+          T
+        </button>
 
         {/* Mobile Quick Fit All */}
         <button
