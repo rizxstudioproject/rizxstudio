@@ -31,7 +31,13 @@ import {
   HiCodeBracketSquare,
   HiPlay,
   HiChevronDown,
+  HiChevronRight,
   HiSparkles,
+  HiLockClosed,
+  HiLockOpen,
+  HiEye,
+  HiEyeSlash,
+  HiBars3BottomLeft,
 } from "react-icons/hi2";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
@@ -82,9 +88,49 @@ export default function CanvasWorkspace({
   const [isUiExpanded, setIsUiExpanded] = useState<boolean>(!isMobile);
   const [isPillMenuOpen, setIsPillMenuOpen] = useState<boolean>(false);
   const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
-  const [leftPanelTab, setLeftPanelTab] = useState<"clients" | "layers">("clients");
   const [activeClientFilter, setActiveClientFilter] = useState<string | null>(null);
   const [showFramePresetsPicker, setShowFramePresetsPicker] = useState(false);
+
+  // Layers Tree State (Expanded folders/groups, item lock and visibility toggles)
+  const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const [lockedItemIds, setLockedItemIds] = useState<Set<string>>(new Set());
+  const [hiddenItemIds, setHiddenItemIds] = useState<Set<string>>(new Set());
+
+  const toggleFolderExpanded = (key: string) => {
+    setExpandedFolders((prev) => ({
+      ...prev,
+      [key]: prev[key] === false ? true : false,
+    }));
+  };
+
+  const toggleExpandAll = () => {
+    const isAnyCollapsed = Object.values(expandedFolders).some((v) => v === false);
+    const nextState: Record<string, boolean> = {};
+    clients.forEach((c) => {
+      nextState[c.clientName] = isAnyCollapsed ? true : false;
+    });
+    setExpandedFolders(nextState);
+  };
+
+  const toggleItemLock = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setLockedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleItemVisibility = (id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setHiddenItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   // Close submenus on clicking outside toolbar or pill menu
   useEffect(() => {
@@ -401,6 +447,7 @@ export default function CanvasWorkspace({
     setSelectedId(item.id);
 
     if (activeTool === "hand" || isSpacePressed) return;
+    if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
 
     setDraggingItemId(item.id);
     const itemCanvasX = (e.clientX - pan.x) / zoom;
@@ -1198,6 +1245,182 @@ export default function CanvasWorkspace({
     };
   }, [isFullscreen]);
 
+  // Group canvas items into Client Folders (Folder > Group, Frame, Section, Text) and Root items
+  const { folderGroups, rootItems } = useMemo(() => {
+    const foldersMap: Record<string, CanvasItem[]> = {};
+    const roots: CanvasItem[] = [];
+
+    // Initialize all client folders from clients data
+    clients.forEach((c) => {
+      foldersMap[c.clientName] = [];
+    });
+
+    items.forEach((it) => {
+      if (it.clientName && foldersMap[it.clientName] !== undefined) {
+        foldersMap[it.clientName].push(it);
+      } else {
+        roots.push(it);
+      }
+    });
+
+    return {
+      folderGroups: Object.entries(foldersMap),
+      rootItems: roots,
+    };
+  }, [clients, items]);
+
+  const renderLayerRow = (it: CanvasItem, depth: number = 0) => {
+    const isSel = selectedId === it.id;
+    const isLocked = lockedItemIds.has(it.id);
+    const isHidden = hiddenItemIds.has(it.id);
+
+    // Determine icon based on item type
+    let TypeIcon = HiPhoto;
+    let iconColor = "text-neutral-400";
+
+    if (it.type === "section" || it.mediaType === "section") {
+      TypeIcon = HiRectangleGroup;
+      iconColor = "text-teal-400";
+    } else if (it.type === "folder" || it.mediaType === "folder") {
+      TypeIcon = HiFolder;
+      iconColor = "text-amber-400";
+    } else if (it.mediaType === "frame" || (it.aspect && it.aspect !== "original")) {
+      TypeIcon = HiHashtag;
+      iconColor = "text-neutral-400";
+    } else if (it.type === "group" || it.mediaType === "group") {
+      TypeIcon = HiSquare2Stack;
+      iconColor = "text-indigo-400";
+    }
+
+    const paddingLeft = depth === 0 ? "pl-2" : depth === 1 ? "pl-5" : "pl-8";
+
+    return (
+      <div
+        key={it.id}
+        onClick={() => handleSelectLayer(it)}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          fitItemToScreen(it);
+        }}
+        className={`w-full ${paddingLeft} pr-2 py-1.5 rounded-lg flex items-center justify-between transition-colors cursor-pointer group text-left ${
+          isSel
+            ? "bg-[#0c8ce9] text-white font-medium shadow-xs"
+            : isLight
+            ? "text-slate-700 hover:bg-slate-100"
+            : "text-neutral-300 hover:bg-white/8 hover:text-white"
+        } ${isHidden ? "opacity-40" : ""}`}
+      >
+        <div className="flex items-center gap-2 truncate flex-1 min-w-0 pr-1">
+          {/* Item Type Icon */}
+          {it.type === "text" || it.mediaType === "text" ? (
+            <span className="font-mono font-bold text-xs text-amber-300 w-3.5 text-center shrink-0">T</span>
+          ) : (
+            <TypeIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : iconColor}`} />
+          )}
+          <span className="truncate text-xs font-sans tracking-tight">{it.title}</span>
+        </div>
+
+        {/* Action icons: Lock, Eye, Delete (Visible on Hover or when active - Matches Figma Image 1) */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          {/* Lock Button */}
+          <button
+            type="button"
+            onClick={(e) => toggleItemLock(it.id, e)}
+            className={`p-1 rounded transition-opacity cursor-pointer ${
+              isLocked
+                ? "opacity-100 text-amber-400"
+                : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
+            }`}
+            title={isLocked ? "Buka Kunci Layer" : "Kunci Layer (Cegah Geser)"}
+          >
+            {isLocked ? <HiLockClosed className="w-3.5 h-3.5" /> : <HiLockOpen className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Eye / Visibility Button */}
+          <button
+            type="button"
+            onClick={(e) => toggleItemVisibility(it.id, e)}
+            className={`p-1 rounded transition-opacity cursor-pointer ${
+              isHidden
+                ? "opacity-100 text-rose-400"
+                : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
+            }`}
+            title={isHidden ? "Tampilkan Layer di Kanvas" : "Sembunyikan Layer di Kanvas"}
+          >
+            {isHidden ? <HiEyeSlash className="w-3.5 h-3.5" /> : <HiEye className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* Delete Button */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteItem(it.id);
+            }}
+            className="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity p-1 text-neutral-400 cursor-pointer"
+            title="Hapus Layer"
+          >
+            <HiTrash className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderFolder = (clientName: string, childItems: CanvasItem[]) => {
+    const isExpanded = expandedFolders[clientName] !== false; // default expanded
+    const isFolderSelected = activeClientFilter === clientName;
+
+    return (
+      <div key={`folder-${clientName}`} className="space-y-0.5">
+        <div
+          onClick={() => {
+            setActiveClientFilter(clientName);
+            handleFocusClientFolder(clientName);
+          }}
+          className={`w-full px-2 py-1.5 rounded-lg flex items-center justify-between transition-colors cursor-pointer group text-left ${
+            isFolderSelected
+              ? "bg-white/10 text-white font-semibold"
+              : isLight
+              ? "text-slate-800 hover:bg-slate-100"
+              : "text-neutral-200 hover:bg-white/5 hover:text-white"
+          }`}
+        >
+          <div className="flex items-center gap-1.5 truncate flex-1 min-w-0 pr-1">
+            {/* Expand / Collapse Chevron */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFolderExpanded(clientName);
+              }}
+              className="p-0.5 text-neutral-400 hover:text-white rounded cursor-pointer"
+            >
+              <HiChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                  isExpanded ? "" : "-rotate-90"
+                }`}
+              />
+            </button>
+            <span className="text-xs">📁</span>
+            <span className="truncate text-xs font-bold tracking-tight font-sans">{clientName}</span>
+          </div>
+
+          <span className="text-[10px] font-mono text-neutral-400 px-1.5 py-0.2 rounded bg-black/30 shrink-0">
+            {childItems.length}
+          </span>
+        </div>
+
+        {/* Child items inside this folder: groups, frames, sections, text, images */}
+        {isExpanded && childItems.length > 0 && (
+          <div className="space-y-0.5 pl-2 border-l border-white/5 ml-3">
+            {childItems.map((child) => renderLayerRow(child, 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div
       ref={workspaceRootRef}
@@ -1410,141 +1633,53 @@ export default function CanvasWorkspace({
 
       {/* ── Workspace Body: Left Studio Sidebar + Infinite Canvas Viewport ── */}
       <div className="flex-1 relative w-full h-full flex overflow-hidden">
-        {/* Left Studio Sidebar (Folder Client & Layers) */}
+        {/* Left Studio Sidebar (Pure Layers Tree matching Figma: Folder > Group, Frame, Section, Text) */}
         {isUiExpanded && (
           <aside
             className={`w-64 sm:w-72 shrink-0 h-full border-r flex flex-col z-30 transition-all select-none ${
-              isLight ? "bg-white/95 border-slate-200 text-slate-800" : "bg-[#12141a] border-white/10 text-white"
+              isLight ? "bg-white/95 border-slate-200 text-slate-800" : "bg-[#14161e] border-white/10 text-white"
             }`}
           >
-            {/* Sub-tab Switcher: Client Folders vs Layers */}
-            <div className="p-2 border-b border-white/10 flex items-center gap-1 text-xs font-mono">
+            {/* Layers Header (Matches Figma Image 1) */}
+            <div
+              className={`px-3 py-2.5 border-b flex items-center justify-between shrink-0 ${
+                isLight ? "bg-slate-50 border-slate-200" : "bg-[#161822] border-white/10"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold tracking-tight font-sans text-neutral-100">
+                  Layers
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/10 text-neutral-400">
+                  {items.length}
+                </span>
+              </div>
               <button
                 type="button"
-                onClick={() => setLeftPanelTab("clients")}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold transition-colors cursor-pointer text-[11px] ${
-                  leftPanelTab === "clients"
-                    ? "bg-[#0c8ce9] text-white shadow-xs"
-                    : "text-neutral-400 hover:text-white hover:bg-white/5"
-                }`}
+                onClick={toggleExpandAll}
+                title="Expand / Collapse Semua Layer"
+                className="p-1 hover:text-white rounded hover:bg-white/10 text-neutral-400 transition-colors cursor-pointer"
               >
-                📁 Folders ({clients.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setLeftPanelTab("layers")}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold transition-colors cursor-pointer text-[11px] ${
-                  leftPanelTab === "layers"
-                    ? "bg-[#0c8ce9] text-white shadow-xs"
-                    : "text-neutral-400 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                📑 Layers ({items.length})
+                <HiBars3BottomLeft className="w-4 h-4" />
               </button>
             </div>
 
-            {/* Panel Content List */}
-            <div className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs">
-              {leftPanelTab === "clients" ? (
-                <>
-                  <div className="px-2 py-1.5 text-[10px] font-bold text-neutral-400 flex items-center justify-between tracking-wider uppercase">
-                    <span className="flex items-center gap-1.5">
-                      <span>📁</span> FOLDER CLIENT
-                    </span>
-                    <span className="text-[10px] text-neutral-500">{clients.length} FOLDERS</span>
+            {/* Hierarchical Layers Tree (Folder > Group, Frame, Section, Text) */}
+            <div className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs no-scrollbar">
+              {/* Client Folders & their child frames, sections, text, media */}
+              {folderGroups.map(([clientName, childItems]) =>
+                renderFolder(clientName, childItems)
+              )}
+
+              {/* Root / Standalone Layers (Not in any client folder) */}
+              {rootItems.length > 0 && (
+                <div className="pt-2 border-t border-white/10 space-y-0.5">
+                  <div className="px-2 py-1 text-[10px] font-bold text-neutral-400 tracking-wider uppercase flex items-center justify-between">
+                    <span>Root Canvas</span>
+                    <span className="text-[9px] text-neutral-500">{rootItems.length}</span>
                   </div>
-
-                  {/* All Works folder */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setActiveClientFilter(null);
-                      zoomToFitAll();
-                    }}
-                    className={`w-full px-2.5 py-2 rounded-xl flex items-center justify-between transition-colors cursor-pointer text-left ${
-                      activeClientFilter === null
-                        ? "bg-white/15 text-white font-bold"
-                        : "text-neutral-300 hover:bg-white/5 hover:text-white"
-                    }`}
-                  >
-                    <span className="flex items-center gap-2 truncate">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                      <span className="truncate">Semua Lembaran Karya</span>
-                    </span>
-                    <span className="text-[10px] text-neutral-400 px-1.5 py-0.5 rounded bg-black/40">
-                      {items.length}
-                    </span>
-                  </button>
-
-                  {/* Client Folders List */}
-                  {clients.map((c) => {
-                    const count = clientCounts[c.clientName] || (c.works ? c.works.length : 0);
-                    const isSelected = activeClientFilter === c.clientName;
-                    return (
-                      <button
-                        key={c.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveClientFilter(c.clientName);
-                          handleFocusClientFolder(c.clientName);
-                        }}
-                        className={`w-full px-2.5 py-2 rounded-xl flex items-center justify-between transition-colors cursor-pointer text-left ${
-                          isSelected
-                            ? "bg-[#0c8ce9] text-white font-bold shadow-xs"
-                            : "text-neutral-300 hover:bg-white/5 hover:text-white"
-                        }`}
-                      >
-                        <span className="flex items-center gap-2 truncate">
-                          <span className="w-2.5 h-2.5 rounded-sm bg-teal-400/80 shrink-0" />
-                          <span className="truncate">{c.clientName}</span>
-                        </span>
-                        <span className="text-[10px] text-neutral-400 px-1.5 py-0.5 rounded bg-black/40 shrink-0">
-                          {count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </>
-              ) : (
-                <>
-                  <div className="px-2 py-1.5 text-[10px] font-bold text-neutral-400 flex items-center justify-between tracking-wider uppercase">
-                    <span>Layers</span>
-                    <span className="text-[10px] text-neutral-500">{items.length} items</span>
-                  </div>
-
-                  {items.map((it) => {
-                    const isSel = selectedId === it.id;
-                    return (
-                      <div
-                        key={it.id}
-                        onClick={() => handleSelectLayer(it)}
-                        className={`w-full px-2.5 py-1.5 rounded-xl flex items-center justify-between transition-colors cursor-pointer group text-left ${
-                          isSel
-                            ? "bg-[#0c8ce9] text-white font-bold"
-                            : "text-neutral-300 hover:bg-white/5 hover:text-white"
-                        }`}
-                      >
-                        <span className="flex items-center gap-2 truncate flex-1 min-w-0 pr-1">
-                          <span className="text-[10px] opacity-70">
-                            {it.type === "section" ? "⎕" : it.type === "folder" ? "📁" : it.mediaType === "frame" ? "#" : it.type === "text" ? "T" : "🖼"}
-                          </span>
-                          <span className="truncate">{it.title}</span>
-                        </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteItem(it.id);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity p-0.5"
-                          title="Hapus Layer"
-                        >
-                          <HiTrash className="w-3 h-3" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </>
+                  {rootItems.map((rootIt) => renderLayerRow(rootIt, 0))}
+                </div>
               )}
             </div>
           </aside>
@@ -1634,7 +1769,9 @@ export default function CanvasWorkspace({
           }}
         >
           {items.map((item) => {
+            if (hiddenItemIds.has(item.id)) return null;
             const isSelected = selectedId === item.id;
+            const isLocked = lockedItemIds.has(item.id);
             const x = item.x || 0;
             const y = item.y || 0;
 
@@ -1846,6 +1983,11 @@ export default function CanvasWorkspace({
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
+                    {isLocked && (
+                      <span className="p-0.5 text-amber-400" title="Layer Terkunci">
+                        <HiLockClosed className="w-3.5 h-3.5" />
+                      </span>
+                    )}
                     <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-teal-300 font-bold border border-white/10">
                       {item.aspect === "original" ? "ORIGINAL" : item.aspect}
                     </span>
