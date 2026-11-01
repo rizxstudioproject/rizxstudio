@@ -3880,6 +3880,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
 
           {/* 9. All Other Real Portfolio Admin Sections */}
           {sidebarTab !== "clients" &&
+            sidebarTab !== "canvas" &&
             sidebarTab !== "resources" &&
             sidebarTab !== "trash" &&
             sidebarTab !== "storage" &&

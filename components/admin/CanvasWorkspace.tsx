@@ -13,6 +13,7 @@ import {
   HiFilm,
   HiPencilSquare,
   HiArrowsPointingOut,
+  HiArrowsPointingIn,
   HiMiniMagnifyingGlassPlus,
   HiMiniMagnifyingGlassMinus,
   HiFolder,
@@ -542,10 +543,58 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
     setModalTitle("");
   };
 
+  // Fullscreen Mode Toggle & Listeners
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const workspaceRootRef = useRef<HTMLDivElement>(null);
+
+  const toggleFullscreen = () => {
+    if (!isFullscreen) {
+      setIsFullscreen(true);
+      if (typeof document !== "undefined" && document.fullscreenEnabled && !document.fullscreenElement) {
+        try {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } catch (_) {}
+      }
+    } else {
+      setIsFullscreen(false);
+      if (typeof document !== "undefined" && document.fullscreenElement) {
+        try {
+          document.exitFullscreen().catch(() => {});
+        } catch (_) {}
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      if (!document.fullscreenElement) {
+        setIsFullscreen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isFullscreen) {
+        setIsFullscreen(false);
+      }
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFsChange);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFullscreen]);
+
   return (
-    <div className={`flex-1 flex flex-col h-full relative select-none overflow-hidden touch-none transition-colors duration-200 ${
-      isLight ? "bg-[#f8fafc] text-slate-900" : "bg-[#0a0b0e] text-white"
-    }`}>
+    <div
+      ref={workspaceRootRef}
+      className={`${
+        isFullscreen
+          ? "fixed inset-0 z-[999999] w-screen h-screen"
+          : "flex-1 w-full h-full relative min-w-0"
+      } flex flex-col select-none overflow-hidden touch-none transition-colors duration-200 ${
+        isLight ? "bg-[#f8fafc] text-slate-900" : "bg-[#0a0b0e] text-white"
+      }`}
+    >
       {/* ── Top Bar: Figma Style Toolbar & Global Actions ─────────────────────── */}
       <header className={`h-14 shrink-0 px-4 flex items-center justify-between z-30 shadow-md border-b transition-colors ${
         isLight ? "bg-white/95 border-slate-200 text-slate-900 shadow-slate-200/50" : "bg-[#0f1115] border-white/10 text-white"
@@ -676,8 +725,34 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
           />
         </div>
 
-        {/* Right: Save / Cancel Controls & Zoom */}
+        {/* Right: Fullscreen, Save / Cancel Controls */}
         <div className="flex items-center gap-2">
+          {/* Fullscreen Mode Toggle */}
+          <button
+            type="button"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? "Keluar Layar Penuh (Esc)" : "Layar Penuh / Fullscreen"}
+            className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              isFullscreen
+                ? "bg-teal-500 text-black border-teal-400 font-bold shadow-sm"
+                : isLight
+                ? "border-slate-300 hover:bg-slate-100 text-slate-700 hover:text-slate-950"
+                : "border-white/10 hover:bg-white/10 text-neutral-200 hover:text-white"
+            }`}
+          >
+            {isFullscreen ? (
+              <>
+                <HiArrowsPointingIn className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Exit Fullscreen</span>
+              </>
+            ) : (
+              <>
+                <HiArrowsPointingOut className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Fullscreen</span>
+              </>
+            )}
+          </button>
+
           {hasChanges && (
             <button
               type="button"
@@ -1128,6 +1203,25 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
           title="Reset Posisi Pan"
         >
           Reset Pan
+        </button>
+
+        <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-200" : "bg-white/15"}`} />
+
+        {/* Fullscreen Dock Button */}
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer text-xs ${
+            isFullscreen
+              ? "bg-teal-500 text-black font-bold shadow-sm"
+              : isLight
+              ? "bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800"
+              : "bg-white/5 hover:bg-teal-500/20 text-neutral-300 hover:text-teal-300"
+          }`}
+          title={isFullscreen ? "Keluar Fullscreen (Esc)" : "Layar Penuh / Fullscreen"}
+        >
+          {isFullscreen ? <HiArrowsPointingIn className="w-3.5 h-3.5" /> : <HiArrowsPointingOut className="w-3.5 h-3.5" />}
+          <span className="hidden sm:inline">{isFullscreen ? "Exit Full" : "Fullscreen"}</span>
         </button>
       </footer>
 
