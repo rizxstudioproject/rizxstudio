@@ -304,6 +304,186 @@ export default function CanvasWorkspace({
     return Array.from(set);
   }, [items]);
 
+  // ── Figma Color Picker Utilities & State (Matches Screenshot media_1793528907470_542d3124.png) ──────────────
+  const hexToHsv = useCallback((hex: string) => {
+    let cleaned = hex.replace("#", "").trim();
+    if (cleaned.length === 3) {
+      cleaned = cleaned.split("").map((c) => c + c).join("");
+    }
+    if (cleaned.length !== 6) {
+      return { h: 45, s: 100, v: 90 };
+    }
+    const r = parseInt(cleaned.slice(0, 2), 16) / 255;
+    const g = parseInt(cleaned.slice(2, 4), 16) / 255;
+    const b = parseInt(cleaned.slice(4, 6), 16) / 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const diff = max - min;
+    let h = 0;
+    if (diff !== 0) {
+      if (max === r) h = ((g - b) / diff + (g < b ? 6 : 0)) / 6;
+      else if (max === g) h = ((b - r) / diff + 2) / 6;
+      else h = ((r - g) / diff + 4) / 6;
+    }
+    const s = max === 0 ? 0 : diff / max;
+    const v = max;
+    return {
+      h: Math.round(h * 360),
+      s: Math.round(s * 100),
+      v: Math.round(v * 100),
+    };
+  }, []);
+
+  const hsvToHex = useCallback((h: number, s: number, v: number) => {
+    const hNorm = ((h % 360) + 360) % 360 / 360;
+    const sNorm = Math.min(100, Math.max(0, s)) / 100;
+    const vNorm = Math.min(100, Math.max(0, v)) / 100;
+
+    const i = Math.floor(hNorm * 6);
+    const f = hNorm * 6 - i;
+    const p = vNorm * (1 - sNorm);
+    const q = vNorm * (1 - f * sNorm);
+    const t = vNorm * (1 - (1 - f) * sNorm);
+
+    let r = 0, g = 0, b = 0;
+    switch (i % 6) {
+      case 0: r = vNorm; g = t; b = p; break;
+      case 1: r = q; g = vNorm; b = p; break;
+      case 2: r = p; g = vNorm; b = t; break;
+      case 3: r = p; g = q; b = vNorm; break;
+      case 4: r = t; g = p; b = vNorm; break;
+      case 5: r = vNorm; g = p; b = q; break;
+    }
+
+    const toHex = (n: number) => {
+      const val = Math.round(Math.max(0, Math.min(255, n * 255)));
+      const hex = val.toString(16).toUpperCase();
+      return hex.length === 1 ? "0" + hex : hex;
+    };
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  }, []);
+
+  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false);
+  const [colorPickerTarget, setColorPickerTarget] = useState<"fill" | "stroke">("fill");
+  const [colorPickerTab, setColorPickerTab] = useState<"custom" | "libraries">("custom");
+  const [colorFillMode, setColorFillMode] = useState<"solid" | "linear" | "radial" | "image" | "video">("solid");
+  const [colorFormat, setColorFormat] = useState<"Hex" | "RGB" | "CSS">("Hex");
+  const [colorHue, setColorHue] = useState<number>(45);
+  const [colorSat, setColorSat] = useState<number>(100);
+  const [colorVal, setColorVal] = useState<number>(90);
+  const [colorAlpha, setColorAlpha] = useState<number>(100);
+  const [colorHexInput, setColorHexInput] = useState<string>("E5BF00");
+  const [recentPickedColors, setRecentPickedColors] = useState<string[]>([]);
+  const [isPagePaletteOpen, setIsPagePaletteOpen] = useState<boolean>(true);
+
+  const currentColorHex = useMemo(() => {
+    return hsvToHex(colorHue, colorSat, colorVal);
+  }, [colorHue, colorSat, colorVal, hsvToHex]);
+
+  const onThisPageColors = useMemo(() => {
+    const set = new Set<string>();
+    // All colors used on this page across canvas items
+    items.forEach((it) => {
+      if (it.color && it.color.startsWith("#")) set.add(it.color.toUpperCase());
+      if (it.strokeColor && it.strokeColor.startsWith("#")) set.add(it.strokeColor.toUpperCase());
+    });
+    // Add recently picked colors
+    recentPickedColors.forEach((c) => {
+      if (c.startsWith("#")) set.add(c.toUpperCase());
+    });
+    // Add Figma signature palette presets (matching screenshot media_1793528907470_542d3124.png)
+    const figmaPaletteDefaults = [
+      "#FFFFFF", "#F9FAEF", "#BAE6FD", "#000000", "#1E293B", "#EF4444", "#991B1B", "#64748B", "#F59E0B",
+      "#F97316", "#F43F5E", "#38BDF8", "#7DD3FC", "#0F172A", "#334155", "#475569", "#E2E8F0", "#F1F5F9",
+      "#18181B", "#84CC16", "#22C55E", "#06B6D4", "#0C8CE9", "#00A389", "#E5BF00", "#7C3AED", "#BE185D"
+    ];
+    figmaPaletteDefaults.forEach((c) => set.add(c));
+    return Array.from(set);
+  }, [items, recentPickedColors]);
+
+  const applyColor = useCallback((hex: string, alpha?: number) => {
+    const cleanHex = hex.startsWith("#") ? hex.toUpperCase() : `#${hex.toUpperCase()}`;
+    setColorHexInput(cleanHex.replace("#", ""));
+    
+    // Track in recent picked colors
+    setRecentPickedColors((prev) => {
+      const next = [cleanHex, ...prev.filter((c) => c !== cleanHex)].slice(0, 20);
+      return next;
+    });
+
+    if (colorPickerTarget === "fill") {
+      updateSelectedItem({ 
+        color: cleanHex, 
+        ...(alpha !== undefined ? { opacity: alpha } : {}) 
+      });
+    } else {
+      updateSelectedItem({ strokeColor: cleanHex });
+    }
+  }, [colorPickerTarget, updateSelectedItem]);
+
+  const openColorPicker = useCallback((target: "fill" | "stroke", initialHex?: string) => {
+    const raw = initialHex || (target === "fill" ? selectedItem?.color || "#E5BF00" : selectedItem?.strokeColor || "#FFFFFF");
+    const safeHex = raw.startsWith("#") ? raw : `#${raw}`;
+    const { h, s, v } = hexToHsv(safeHex);
+    setColorPickerTarget(target);
+    setColorHue(h);
+    setColorSat(s);
+    setColorVal(v);
+    setColorHexInput(safeHex.replace("#", "").toUpperCase());
+    setColorAlpha(selectedItem?.opacity !== undefined ? selectedItem.opacity : 100);
+    setIsColorPickerOpen(true);
+  }, [selectedItem, hexToHsv]);
+
+  const handleEyeDropper = useCallback(async () => {
+    if (typeof window !== "undefined" && "EyeDropper" in window) {
+      try {
+        const eyeDropper = new (window as any).EyeDropper();
+        const result = await eyeDropper.open();
+        if (result?.sRGBHex) {
+          const pickedHex = result.sRGBHex.toUpperCase();
+          const { h, s, v } = hexToHsv(pickedHex);
+          setColorHue(h);
+          setColorSat(s);
+          setColorVal(v);
+          applyColor(pickedHex);
+        }
+      } catch {
+        // User cancelled picker
+      }
+    }
+  }, [applyColor, hexToHsv]);
+
+  const handleSatValPointer = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+    const newSat = Math.round((x / rect.width) * 100);
+    const newVal = Math.round((1 - y / rect.height) * 100);
+    setColorSat(newSat);
+    setColorVal(newVal);
+    const newHex = hsvToHex(colorHue, newSat, newVal);
+    applyColor(newHex);
+  }, [colorHue, hsvToHex, applyColor]);
+
+  const handleHuePointer = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const newHue = Math.round((x / rect.width) * 360);
+    setColorHue(newHue);
+    const newHex = hsvToHex(newHue, colorSat, colorVal);
+    applyColor(newHex);
+  }, [colorSat, colorVal, hsvToHex, applyColor]);
+
+  const handleAlphaPointer = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+    const newAlpha = Math.round((x / rect.width) * 100);
+    setColorAlpha(newAlpha);
+    const curHex = hsvToHex(colorHue, colorSat, colorVal);
+    applyColor(curHex, newAlpha);
+  }, [colorHue, colorSat, colorVal, hsvToHex, applyColor]);
+
   const handleExportSelection = useCallback((format = "png") => {
     if (!selectedItem) return;
     if (format === "json") {
@@ -1818,6 +1998,380 @@ export default function CanvasWorkspace({
     }
   };
 
+  // ── Figma Color Picker Modal Component (Matches Screenshot media_1793528907470_542d3124.png) ──────────
+  const renderFigmaColorPicker = () => {
+    if (!isColorPickerOpen) return null;
+
+    return (
+      <>
+        {/* Backdrop for closing when clicking outside */}
+        <div
+          className="fixed inset-0 z-40 bg-black/40 sm:bg-transparent"
+          onClick={() => setIsColorPickerOpen(false)}
+        />
+
+        {/* Floating Figma Color Picker Popover */}
+        <div
+          className="fixed right-3 sm:right-[300px] top-16 sm:top-20 z-50 w-[270px] max-w-[calc(100vw-24px)] rounded-xl bg-[#222222] border border-[#383838] shadow-[0_20px_50px_rgba(0,0,0,0.92)] text-white select-none overflow-hidden flex flex-col font-sans animate-in fade-in zoom-in-95 duration-150"
+        >
+          {/* 1. Header Tabs: [Custom] Libraries  +  ✕ */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-[#303030]">
+            <div className="flex items-center gap-1 text-xs">
+              <button
+                type="button"
+                onClick={() => setColorPickerTab("custom")}
+                className={`px-2.5 py-1 rounded-md font-semibold transition-colors cursor-pointer ${
+                  colorPickerTab === "custom"
+                    ? "bg-[#383838] text-white"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                Custom
+              </button>
+              <button
+                type="button"
+                onClick={() => setColorPickerTab("libraries")}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  colorPickerTab === "libraries"
+                    ? "bg-[#383838] text-white"
+                    : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                Libraries
+              </button>
+            </div>
+
+            <div className="flex items-center gap-1.5 text-neutral-400">
+              <button
+                type="button"
+                onClick={() => {
+                  setRecentPickedColors((prev) => [currentColorHex, ...prev.filter((c) => c !== currentColorHex)]);
+                }}
+                className="p-1 hover:text-white rounded hover:bg-white/10 transition-colors cursor-pointer"
+                title="Add to color styles"
+              >
+                <HiPlus className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsColorPickerOpen(false)}
+                className="p-1 hover:text-white rounded hover:bg-white/10 transition-colors cursor-pointer"
+                title="Close"
+              >
+                <HiXMark className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Fill Modes Toolbar Row (Solid, Linear, Radial, Image, Video, Mesh, Tint, None) */}
+          <div className="flex items-center justify-between px-3 py-2 border-b border-[#303030] text-neutral-400">
+            <button
+              type="button"
+              onClick={() => setColorFillMode("solid")}
+              className={`p-1 rounded cursor-pointer ${colorFillMode === "solid" ? "text-white bg-white/15" : "hover:text-white"}`}
+              title="Solid Fill"
+            >
+              <span className="w-3.5 h-3.5 border-2 border-current rounded-xs block bg-current" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setColorFillMode("linear")}
+              className={`p-1 rounded cursor-pointer ${colorFillMode === "linear" ? "text-white bg-white/15" : "hover:text-white"}`}
+              title="Linear Gradient"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M2 2h12v12H2V2zm2 2v8h8V4H4z" opacity="0.6"/>
+                <path d="M4 12L12 4" stroke="currentColor" strokeWidth="1.5"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => setColorFillMode("radial")}
+              className={`p-1 rounded cursor-pointer ${colorFillMode === "radial" ? "text-white bg-white/15" : "hover:text-white"}`}
+              title="Radial Gradient"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <rect x="2" y="2" width="12" height="12" rx="2" />
+                <circle cx="8" cy="8" r="3" fill="currentColor" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => setColorFillMode("image")}
+              className={`p-1 rounded cursor-pointer ${colorFillMode === "image" ? "text-white bg-white/15" : "hover:text-white"}`}
+              title="Image Fill"
+            >
+              <HiPhoto className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setColorFillMode("video")}
+              className={`p-1 rounded cursor-pointer ${colorFillMode === "video" ? "text-white bg-white/15" : "hover:text-white"}`}
+              title="Video Fill"
+            >
+              <HiPlay className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              className="p-1 rounded hover:text-white cursor-pointer"
+              title="Pattern / Mesh"
+            >
+              <HiSparkles className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleEyeDropper}
+              className="p-1 rounded hover:text-white cursor-pointer"
+              title="Eyedropper Droplet"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                <path d="M8 1c-1.5 2.5-4 5.5-4 8a4 4 0 008 0c0-2.5-2.5-5.5-4-8z" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (colorPickerTarget === "fill") updateSelectedItem({ color: undefined });
+                else updateSelectedItem({ strokeColor: undefined });
+              }}
+              className="p-1 rounded hover:text-red-400 cursor-pointer"
+              title="Remove Fill"
+            >
+              <HiEyeSlash className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {colorPickerTab === "custom" ? (
+            <>
+              {/* 3. 2D Color Saturation & Brightness/Value Gradient Area */}
+              <div className="p-3 pb-2">
+                <div
+                  className="w-full h-40 rounded-lg relative overflow-hidden cursor-crosshair select-none touch-none shadow-inner"
+                  style={{ backgroundColor: `hsl(${colorHue}, 100%, 50%)` }}
+                  onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
+                    handleSatValPointer(e);
+                  }}
+                  onPointerMove={(e) => {
+                    if (e.buttons === 1) handleSatValPointer(e);
+                  }}
+                >
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: "linear-gradient(to right, #ffffff, transparent)" }}
+                  />
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: "linear-gradient(to top, #000000, transparent)" }}
+                  />
+                  <div
+                    className="absolute w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_2px_4px_rgba(0,0,0,0.6)] pointer-events-none"
+                    style={{
+                      left: `${colorSat}%`,
+                      top: `${100 - colorVal}%`,
+                      backgroundColor: currentColorHex,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* 4. Controls: Eyedropper + Hue Slider + Alpha Slider */}
+              <div className="px-3 pb-3 flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={handleEyeDropper}
+                  className="p-1.5 rounded-lg text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+                  title="Eyedropper tool"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M19 2l3 3-9 9-4 1 1-4 9-9zM3 21l3-3M2 22l1-1" />
+                  </svg>
+                </button>
+
+                <div className="flex-1 space-y-2">
+                  {/* Hue Rainbow Track */}
+                  <div
+                    className="w-full h-3 rounded-full relative cursor-pointer select-none touch-none shadow-inner"
+                    style={{
+                      background:
+                        "linear-gradient(to right, #ff0000 0%, #ffff00 17%, #00ff00 33%, #00ffff 50%, #0000ff 67%, #ff00ff 83%, #ff0000 100%)",
+                    }}
+                    onPointerDown={(e) => {
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      handleHuePointer(e);
+                    }}
+                    onPointerMove={(e) => {
+                      if (e.buttons === 1) handleHuePointer(e);
+                    }}
+                  >
+                    <div
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-white shadow-md pointer-events-none"
+                      style={{
+                        left: `${(colorHue / 360) * 100}%`,
+                        backgroundColor: `hsl(${colorHue}, 100%, 50%)`,
+                      }}
+                    />
+                  </div>
+
+                  {/* Alpha / Opacity Track */}
+                  <div
+                    className="w-full h-3 rounded-full relative cursor-pointer select-none touch-none shadow-inner overflow-hidden"
+                    style={{
+                      backgroundImage:
+                        "linear-gradient(45deg, #444 25%, transparent 25%), linear-gradient(-45deg, #444 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #444 75%), linear-gradient(-45deg, transparent 75%, #444 75%)",
+                      backgroundSize: "8px 8px",
+                      backgroundPosition: "0 0, 0 4px, 4px -4px, -4px 0px",
+                    }}
+                    onPointerDown={(e) => {
+                      e.currentTarget.setPointerCapture(e.pointerId);
+                      handleAlphaPointer(e);
+                    }}
+                    onPointerMove={(e) => {
+                      if (e.buttons === 1) handleAlphaPointer(e);
+                    }}
+                  >
+                    <div
+                      className="absolute inset-0 pointer-events-none"
+                      style={{
+                        background: `linear-gradient(to right, transparent, ${currentColorHex})`,
+                      }}
+                    />
+                    <div
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-white shadow-md pointer-events-none"
+                      style={{
+                        left: `${colorAlpha}%`,
+                        backgroundColor: currentColorHex,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 5. Format & Hex / Opacity Input Row */}
+              <div className="px-3 pb-3 flex items-center gap-2">
+                <div className="relative">
+                  <select
+                    value={colorFormat}
+                    onChange={(e) => setColorFormat(e.target.value as any)}
+                    className="px-2 py-1 pr-5 rounded-md bg-[#2c2c2c] border border-white/10 text-xs font-semibold text-neutral-200 appearance-none cursor-pointer focus:outline-none focus:border-[#0c8ce9]"
+                  >
+                    <option value="Hex">Hex</option>
+                    <option value="RGB">RGB</option>
+                    <option value="CSS">CSS</option>
+                  </select>
+                  <HiChevronDown className="w-3 h-3 text-neutral-400 absolute right-1.5 top-2 pointer-events-none" />
+                </div>
+
+                <div className="flex-1 px-2.5 py-1 rounded-md bg-[#2c2c2c] border border-white/10 flex items-center focus-within:border-[#0c8ce9]">
+                  <input
+                    type="text"
+                    value={colorHexInput}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9A-Fa-f]/g, "").toUpperCase().slice(0, 6);
+                      setColorHexInput(val);
+                      if (val.length === 6) {
+                        const { h, s, v } = hexToHsv(`#${val}`);
+                        setColorHue(h);
+                        setColorSat(s);
+                        setColorVal(v);
+                        applyColor(val);
+                      }
+                    }}
+                    className="w-full bg-transparent text-white font-mono text-xs uppercase focus:outline-none"
+                    placeholder="E5BF00"
+                  />
+                </div>
+
+                <div className="w-16 px-2 py-1 rounded-md bg-[#2c2c2c] border border-white/10 flex items-center justify-between text-xs font-mono focus-within:border-[#0c8ce9]">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={colorAlpha}
+                    onChange={(e) => {
+                      const val = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                      setColorAlpha(val);
+                      applyColor(currentColorHex, val);
+                    }}
+                    className="w-8 bg-transparent text-white text-right focus:outline-none"
+                  />
+                  <span className="text-neutral-400">%</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* Libraries Tab: Brand Styles & Themes */
+            <div className="p-3 space-y-2 text-xs">
+              <span className="text-[11px] text-neutral-400 font-medium">Design System Library</span>
+              <div className="space-y-1">
+                {["#0C8CE9", "#00A389", "#E5BF00", "#EF4444", "#7C3AED", "#18181B"].map((c, idx) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => {
+                      const { h, s, v } = hexToHsv(c);
+                      setColorHue(h);
+                      setColorSat(s);
+                      setColorVal(v);
+                      applyColor(c);
+                    }}
+                    className="w-full flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] hover:bg-[#383838] transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-4 h-4 rounded-xs border border-white/20" style={{ backgroundColor: c }} />
+                      <span className="font-mono text-white uppercase">{c}</span>
+                    </div>
+                    <span className="text-neutral-400">Color {idx + 1}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 6. On this page Section (Matches Screenshot media_1793528907470_542d3124.png) */}
+          <div className="border-t border-[#303030] p-3 pt-2.5 bg-[#1e1e1e]/60">
+            <button
+              type="button"
+              onClick={() => setIsPagePaletteOpen(!isPagePaletteOpen)}
+              className="w-full flex items-center justify-between px-2 py-1 rounded-md bg-[#2c2c2c] text-xs font-medium text-neutral-300 hover:text-white mb-2 transition-colors cursor-pointer"
+            >
+              <span>On this page</span>
+              <HiChevronDown className={`w-3.5 h-3.5 text-neutral-400 transition-transform ${isPagePaletteOpen ? "rotate-0" : "-rotate-90"}`} />
+            </button>
+
+            {isPagePaletteOpen && (
+              <div className="grid grid-cols-7 gap-1.5 max-h-36 overflow-y-auto no-scrollbar p-0.5">
+                {onThisPageColors.map((hex, i) => {
+                  const isSelected = currentColorHex.toUpperCase() === hex.toUpperCase();
+                  return (
+                    <button
+                      key={`${hex}-${i}`}
+                      type="button"
+                      onClick={() => {
+                        const { h, s, v } = hexToHsv(hex);
+                        setColorHue(h);
+                        setColorSat(s);
+                        setColorVal(v);
+                        applyColor(hex);
+                      }}
+                      title={hex}
+                      className={`w-6 h-6 rounded-md border transition-transform cursor-pointer relative shadow-sm ${
+                        isSelected
+                          ? "border-white ring-2 ring-[#0c8ce9] scale-110 z-10"
+                          : "border-white/15 hover:scale-110 hover:border-white/40"
+                      }`}
+                      style={{ backgroundColor: hex }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      </>
+    );
+  };
+
   // ── Figma Design Inspector Right Sidebar (Images 1, 2, 3) ──────────────────
   const renderRightInspector = () => {
     const isTextSelected = selectedItem?.type === "text" || selectedItem?.mediaType === "text";
@@ -2429,28 +2983,29 @@ export default function CanvasWorkspace({
             {/* Color Swatch & Hex input */}
             <div className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-[#2c2c2c]">
               <div className="flex items-center gap-2 flex-1 min-w-0">
-                <label className="relative cursor-pointer shrink-0">
+                <button
+                  type="button"
+                  onClick={() => openColorPicker("fill", itemColor)}
+                  className="relative cursor-pointer shrink-0 group focus:outline-none"
+                  title="Open Figma Color Picker"
+                >
                   <span
-                    className="w-4 h-4 rounded-xs border border-white/20 inline-block shadow-sm"
+                    className="w-4 h-4 rounded-xs border border-white/20 inline-block shadow-sm group-hover:scale-110 transition-transform"
                     style={{ backgroundColor: itemColor }}
                   />
-                  <input
-                    type="color"
-                    value={itemColor.startsWith("#") ? itemColor.slice(0, 7) : "#f9faef"}
-                    onChange={(e) => updateSelectedItem({ color: e.target.value.toUpperCase() })}
-                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
-                  />
-                </label>
-                <input
-                  type="text"
-                  value={itemColor.replace("#", "")}
-                  onChange={(e) => updateSelectedItem({ color: `#${e.target.value}` })}
-                  className="w-20 bg-transparent text-white font-mono text-xs uppercase focus:outline-none"
-                />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openColorPicker("fill", itemColor)}
+                  className="text-left font-mono text-xs uppercase text-white hover:text-[#0c8ce9] transition-colors focus:outline-none cursor-pointer"
+                  title="Click to edit color"
+                >
+                  {itemColor.replace("#", "")}
+                </button>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-neutral-400">
-                <span className="font-mono text-neutral-300">100%</span>
+                <span className="font-mono text-neutral-300">{itemOpacity}%</span>
                 <button type="button" className="hover:text-white cursor-pointer">
                   <HiEye className="w-3.5 h-3.5" />
                 </button>
@@ -2480,12 +3035,16 @@ export default function CanvasWorkspace({
             </div>
             {selectedItem?.strokeColor && (
               <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] text-xs">
-                <div className="flex items-center gap-2">
+                <div
+                  onClick={() => openColorPicker("stroke", selectedItem.strokeColor)}
+                  className="flex items-center gap-2 cursor-pointer group"
+                  title="Change Stroke Color"
+                >
                   <span
-                    className="w-3.5 h-3.5 rounded-xs border border-white/30"
+                    className="w-3.5 h-3.5 rounded-xs border border-white/30 group-hover:scale-110 transition-transform"
                     style={{ backgroundColor: selectedItem.strokeColor }}
                   />
-                  <span className="font-mono text-neutral-200">{selectedItem.strokeColor}</span>
+                  <span className="font-mono text-neutral-200 group-hover:text-white uppercase">{selectedItem.strokeColor.replace("#", "")}</span>
                 </div>
                 <div className="flex items-center gap-1 text-neutral-400">
                   <input
@@ -2537,15 +3096,21 @@ export default function CanvasWorkspace({
               {selectionColors.map((colorHex, idx) => (
                 <div
                   key={`${colorHex}-${idx}`}
-                  onClick={() => updateSelectedItem({ color: colorHex })}
+                  onClick={() => {
+                    updateSelectedItem({ color: colorHex });
+                    openColorPicker("fill", colorHex);
+                  }}
                   className="flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] hover:bg-[#343434] transition-colors cursor-pointer group"
+                  title="Select color and open picker"
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-4 h-4 rounded-xs border border-white/20 shrink-0 shadow-sm"
+                      className="w-4 h-4 rounded-xs border border-white/20 shrink-0 shadow-sm group-hover:scale-110 transition-transform"
                       style={{ backgroundColor: colorHex }}
                     />
-                    <span className="font-mono text-xs text-white uppercase">{colorHex.replace("#", "")}</span>
+                    <span className="font-mono text-xs text-white uppercase group-hover:text-[#0c8ce9] transition-colors">
+                      {colorHex.replace("#", "")}
+                    </span>
                   </div>
                   <span className="text-[11px] font-mono text-neutral-400 group-hover:text-white">100 %</span>
                 </div>
@@ -3599,6 +4164,9 @@ export default function CanvasWorkspace({
       {/* Figma Design Inspector / Right Sidebar (Images 1, 2, 3) */}
       {isUiExpanded && isRightSidebarOpen && renderRightInspector()}
       </div>
+
+      {/* Figma Color Picker Popover (Matches Screenshot media_1793528907470_542d3124.png) */}
+      {renderFigmaColorPicker()}
 
       {/* ── Figma Floating Studio Toolbar Dock (Images 1, 2, 3, 4, 5) ─────────── */}
       <nav
