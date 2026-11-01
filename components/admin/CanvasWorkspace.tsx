@@ -2517,19 +2517,6 @@ export default function CanvasWorkspace({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => {
-                if (onOpenCanvasPreview) onOpenCanvasPreview();
-                else if (typeof window !== "undefined") window.open("/canvas", "_blank");
-              }}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer flex items-center gap-0.5"
-              title="Present / Live Canvas"
-            >
-              <HiPlay className="w-3.5 h-3.5" />
-              <HiChevronDown className="w-2.5 h-2.5 text-neutral-400" />
-            </button>
-
-            <button
-              type="button"
               onClick={handleShareCanvas}
               className="px-3 py-1 rounded-lg bg-[#0c8ce9] hover:bg-[#0b78c7] text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-1 active:scale-95"
             >
