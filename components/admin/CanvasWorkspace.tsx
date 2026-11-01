@@ -411,6 +411,7 @@ export default function CanvasWorkspace({
   const pendingPanRef = useRef<{ x: number; y: number } | null>(null);
   const pendingItemDragRef = useRef<{ id: string; x: number; y: number } | null>(null);
   const hasWorkspaceDraggedRef = useRef<boolean>(false);
+  const hasItemMovedDuringDragRef = useRef<boolean>(false);
 
   // Canvas items state
   const [items, setItems] = useState<CanvasItem[]>([]);
@@ -2197,6 +2198,7 @@ export default function CanvasWorkspace({
           setSelectedId(null);
         }
       } else if (draggingItemId) {
+        hasItemMovedDuringDragRef.current = true;
         const curX = Math.round((e.clientX - pan.x) / zoom - dragItemOffset.x);
         const curY = Math.round((e.clientY - pan.y) / zoom - dragItemOffset.y);
         const draggedInit = dragItemInitialPositionsRef.current?.get(draggingItemId);
@@ -2330,6 +2332,11 @@ export default function CanvasWorkspace({
       dragItemInitialPositionsRef.current = null;
       setIsPanning(false);
       setDraggingItemId(null);
+      if (hasItemMovedDuringDragRef.current) {
+        setTimeout(() => {
+          hasItemMovedDuringDragRef.current = false;
+        }, 200);
+      }
       if (hasWorkspaceDraggedRef.current) {
         setTimeout(() => {
           hasWorkspaceDraggedRef.current = false;
@@ -2460,6 +2467,7 @@ export default function CanvasWorkspace({
 
     if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
 
+    hasItemMovedDuringDragRef.current = false;
     setDraggingItemId(item.id);
     const itemCanvasX = (e.clientX - pan.x) / zoom;
     const itemCanvasY = (e.clientY - pan.y) / zoom;
@@ -3069,10 +3077,13 @@ export default function CanvasWorkspace({
     wasPinch: false,
   });
 
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
   // Zoom to Fit All Elements (Figma Shift+1: fits and centers canvas items directly on screen)
   const zoomToFitAll = useCallback(
     (targetItems?: CanvasItem[] | any) => {
-      const listToFit = Array.isArray(targetItems) && targetItems.length > 0 ? targetItems : items;
+      const listToFit = Array.isArray(targetItems) && targetItems.length > 0 ? targetItems : itemsRef.current;
       if (!canvasContainerRef.current || listToFit.length === 0) return;
       const { clientWidth, clientHeight } = canvasContainerRef.current;
       if (clientWidth === 0 || clientHeight === 0) return;
@@ -3146,39 +3157,34 @@ export default function CanvasWorkspace({
       });
       setFittedItemId(null);
     },
-    [items, hiddenItemIds, isScreenMobile]
+    [hiddenItemIds, isScreenMobile]
   );
 
-  const hasInitialFitCompletedRef = useRef(false);
+  const hasFittedOnceRef = useRef(false);
 
-  // Auto-fit all elements once on initial load / mount so canvas immediately focuses on images without re-centering on item moves
+  // Auto-fit all elements ONCE on initial load / mount so canvas immediately focuses on images without re-centering or zooming on subsequent moves
   useEffect(() => {
-    if (hasInitialFitCompletedRef.current) return;
-    if (items.length === 0) return;
+    if (hasFittedOnceRef.current) return;
 
-    // Run multi-pass fit to ensure container layout has settled (especially on mobile tab switch)
     let attempts = 0;
     const interval = setInterval(() => {
       attempts++;
-      if (canvasContainerRef.current) {
-        const { clientWidth, clientHeight } = canvasContainerRef.current;
-        if (clientWidth > 0 && clientHeight > 0) {
-          zoomToFitAll(items);
-          if (attempts >= (isScreenMobile ? 6 : 4)) {
-            hasInitialFitCompletedRef.current = true;
-            clearInterval(interval);
-          }
-          return;
-        }
+      const container = canvasContainerRef.current;
+      const currentItems = itemsRef.current;
+      if (container && container.clientWidth > 0 && container.clientHeight > 0 && currentItems.length > 0) {
+        hasFittedOnceRef.current = true;
+        zoomToFitAll(currentItems);
+        clearInterval(interval);
+        return;
       }
       if (attempts >= 40) {
-        hasInitialFitCompletedRef.current = true;
+        hasFittedOnceRef.current = true;
         clearInterval(interval);
       }
-    }, 60);
+    }, 50);
 
     return () => clearInterval(interval);
-  }, [items.length > 0, isScreenMobile, zoomToFitAll]);
+  }, [zoomToFitAll]);
 
   // Fit specific item (image / artboard) automatically to screen on double-click / double-tap
   const fitItemToScreen = useCallback(
@@ -5546,6 +5552,7 @@ export default function CanvasWorkspace({
                   onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
+                    if (hasItemMovedDuringDragRef.current) return;
                     fitItemToScreen(item, e.currentTarget);
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
@@ -5635,6 +5642,7 @@ export default function CanvasWorkspace({
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
+                    if (hasItemMovedDuringDragRef.current) return;
                     fitItemToScreen(item, e.currentTarget);
                   }}
                   onTouchEnd={(e) => {
@@ -5721,6 +5729,7 @@ export default function CanvasWorkspace({
                   onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
+                    if (hasItemMovedDuringDragRef.current) return;
                     fitItemToScreen(item, e.currentTarget);
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
@@ -5825,6 +5834,7 @@ export default function CanvasWorkspace({
                   onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
+                    if (hasItemMovedDuringDragRef.current) return;
                     fitItemToScreen(item, e.currentTarget);
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
@@ -5977,6 +5987,7 @@ export default function CanvasWorkspace({
                   onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
+                    if (hasItemMovedDuringDragRef.current) return;
                     fitItemToScreen(item, e.currentTarget);
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
@@ -6126,6 +6137,7 @@ export default function CanvasWorkspace({
                 onContextMenu={(e) => handleItemContextMenu(e, item)}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
+                  if (hasItemMovedDuringDragRef.current) return;
                   fitItemToScreen(item, e.currentTarget);
                 }}
                 onTouchEnd={(e) => {
