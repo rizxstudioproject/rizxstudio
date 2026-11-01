@@ -97,6 +97,7 @@ export default function CanvasWorkspace({
 
   // Layers Tree State (Expanded folders/groups, item lock and visibility toggles)
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({});
+  const [expandedFrames, setExpandedFrames] = useState<Record<string, boolean>>({});
   const [lockedItemIds, setLockedItemIds] = useState<Set<string>>(new Set());
   const [hiddenItemIds, setHiddenItemIds] = useState<Set<string>>(new Set());
 
@@ -107,13 +108,27 @@ export default function CanvasWorkspace({
     }));
   };
 
+  const toggleFrameExpanded = (id: string) => {
+    setExpandedFrames((prev) => ({
+      ...prev,
+      [id]: prev[id] ? false : true,
+    }));
+  };
+
   const toggleExpandAll = () => {
-    const isAnyCollapsed = Object.values(expandedFolders).some((v) => v === false);
+    const isAnyCollapsed =
+      Object.values(expandedFolders).some((v) => v === false) ||
+      Object.values(expandedFrames).some((v) => v === false);
     const nextState: Record<string, boolean> = {};
     clients.forEach((c) => {
       nextState[c.clientName] = isAnyCollapsed ? true : false;
     });
+    const nextFrames: Record<string, boolean> = {};
+    items.forEach((it) => {
+      nextFrames[it.id] = isAnyCollapsed ? true : false;
+    });
     setExpandedFolders(nextState);
+    setExpandedFrames(nextFrames);
   };
 
   const toggleItemLock = (id: string, e?: React.MouseEvent) => {
@@ -3561,6 +3576,32 @@ export default function CanvasWorkspace({
     };
   }, [isFullscreen]);
 
+  // Helper to identify Frame items
+  const isFrameItem = useCallback((it: CanvasItem) => {
+    return (
+      it.mediaType === "frame" ||
+      it.type === "section" ||
+      it.type === "frame" ||
+      (it.aspect && it.aspect !== "original")
+    );
+  }, []);
+
+  // Helper to find parent frame ID of an item
+  const getParentFrameId = useCallback((it: CanvasItem) => {
+    if (it.frameId) return it.frameId;
+    const itX = it.x || 0;
+    const itY = it.y || 0;
+    const parent = items.find((f) => {
+      if (f.id === it.id || !isFrameItem(f)) return false;
+      const fW = f.width || (f.aspect === "16:9" ? 720 : 480);
+      const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
+      const fX = f.x || 0;
+      const fY = f.y || 0;
+      return itX >= fX && itX <= fX + fW && itY >= fY && itY <= fY + fH;
+    });
+    return parent?.id;
+  }, [items, isFrameItem]);
+
   // Group canvas items into Client Folders (Folder > Group, Frame, Section, Text) and Root items
   const { folderGroups, rootItems } = useMemo(() => {
     const foldersMap: Record<string, CanvasItem[]> = {};
@@ -3572,10 +3613,14 @@ export default function CanvasWorkspace({
     });
 
     items.forEach((it) => {
-      if (it.clientName && foldersMap[it.clientName] !== undefined) {
-        foldersMap[it.clientName].push(it);
-      } else {
-        roots.push(it);
+      const parentId = getParentFrameId(it);
+      // Items that are nested inside a frame will be rendered under that frame's dropdown
+      if (!parentId) {
+        if (it.clientName && foldersMap[it.clientName] !== undefined) {
+          foldersMap[it.clientName].push(it);
+        } else {
+          roots.push(it);
+        }
       }
     });
 
@@ -3583,30 +3628,136 @@ export default function CanvasWorkspace({
       folderGroups: Object.entries(foldersMap),
       rootItems: roots,
     };
-  }, [clients, items]);
+  }, [clients, items, getParentFrameId]);
 
-  const renderLayerRow = (it: CanvasItem, depth: number = 0) => {
+  // Render Frame Layer with Hierarchical Dropdown (Matches Screenshots media_1793529279637_a6c81d01.png & media_1793529302513_bd071dc3.png)
+  const renderFrameLayer = (frame: CanvasItem, depth: number = 0): React.ReactNode => {
+    const frameW = frame.width || (frame.aspect === "16:9" ? 720 : 480);
+    const frameH = frame.height || (frame.aspect === "16:9" ? 405 : 600);
+    const frameX = frame.x || 0;
+    const frameY = frame.y || 0;
+
+    // Direct children belonging to this frame
+    const children = items.filter((it) => {
+      if (it.id === frame.id) return false;
+      if (it.frameId === frame.id) return true;
+      if (!it.frameId) {
+        const itX = it.x || 0;
+        const itY = it.y || 0;
+        return (
+          itX >= frameX &&
+          itX <= frameX + frameW &&
+          itY >= frameY &&
+          itY <= frameY + frameH
+        );
+      }
+      return false;
+    });
+
+    const isExpanded = expandedFrames[frame.id] ?? false; // Dropdown expand/collapse state
+    const isSel = selectedId === frame.id;
+    const isLocked = lockedItemIds.has(frame.id);
+    const isHidden = hiddenItemIds.has(frame.id);
+    const paddingLeft = depth === 0 ? "pl-1.5" : depth === 1 ? "pl-4" : "pl-7";
+
+    return (
+      <div key={`frame-layer-${frame.id}`} className="space-y-0.5">
+        {/* Frame Item Row (Matches Screenshot media_1793529279637_a6c81d01.png & media_1793529302513_bd071dc3.png) */}
+        <div
+          onClick={() => handleSelectLayer(frame)}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            fitItemToScreen(frame);
+          }}
+          className={`w-full ${paddingLeft} pr-2 py-1.5 rounded-md flex items-center justify-between transition-colors cursor-pointer group text-left ${
+            isSel
+              ? "bg-[#2d3748] text-white font-medium shadow-xs"
+              : isLight
+              ? "text-slate-700 hover:bg-slate-100"
+              : "text-neutral-200 hover:bg-white/5 hover:text-white"
+          } ${isHidden ? "opacity-40" : ""}`}
+        >
+          <div className="flex items-center gap-1.5 truncate flex-1 min-w-0 pr-1">
+            {/* Expand / Collapse Chevron */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFrameExpanded(frame.id);
+              }}
+              className="p-0.5 text-neutral-400 hover:text-white rounded cursor-pointer shrink-0"
+              title={isExpanded ? "Collapse Frame" : "Expand Frame"}
+            >
+              <HiChevronRight
+                className={`w-3.5 h-3.5 transition-transform duration-150 ${
+                  isExpanded ? "rotate-90" : "rotate-0"
+                }`}
+              />
+            </button>
+
+            {/* Frame Hashtag Icon (#) */}
+            <HiHashtag className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
+
+            {/* Frame Title */}
+            <span className="truncate text-xs font-sans tracking-tight font-medium">
+              {frame.title}
+            </span>
+          </div>
+
+          {/* Action icons: Lock & Eye (Matches Screenshot media_1793529279637_a6c81d01.png) */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            <button
+              type="button"
+              onClick={(e) => toggleItemLock(frame.id, e)}
+              className={`p-1 rounded transition-opacity cursor-pointer ${
+                isLocked
+                  ? "opacity-100 text-amber-400"
+                  : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
+              }`}
+              title={isLocked ? "Buka Kunci" : "Kunci Frame"}
+            >
+              {isLocked ? <HiLockClosed className="w-3.5 h-3.5" /> : <HiLockOpen className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => toggleItemVisibility(frame.id, e)}
+              className={`p-1 rounded transition-opacity cursor-pointer ${
+                isHidden
+                  ? "opacity-100 text-rose-400"
+                  : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
+              }`}
+              title={isHidden ? "Tampilkan" : "Sembunyikan"}
+            >
+              {isHidden ? <HiEyeSlash className="w-3.5 h-3.5" /> : <HiEye className="w-3.5 h-3.5" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Nested Children Inside This Frame (Matches Screenshot media_1793529302513_bd071dc3.png) */}
+        {isExpanded && children.length > 0 && (
+          <div className="space-y-0.5 pl-3 border-l border-white/10 ml-3">
+            {children.map((child) => {
+              if (isFrameItem(child)) {
+                return renderFrameLayer(child, depth + 1);
+              }
+              return renderLayerRow(child, depth + 1);
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderLayerRow = (it: CanvasItem, depth: number = 0): React.ReactNode => {
+    if (isFrameItem(it)) {
+      return renderFrameLayer(it, depth);
+    }
+
     const isSel = selectedId === it.id;
     const isLocked = lockedItemIds.has(it.id);
     const isHidden = hiddenItemIds.has(it.id);
-
-    // Determine icon based on item type
-    let TypeIcon = HiPhoto;
-    let iconColor = "text-neutral-400";
-
-    if (it.type === "section" || it.mediaType === "section") {
-      TypeIcon = HiRectangleGroup;
-      iconColor = "text-teal-400";
-    } else if (it.type === "folder" || it.mediaType === "folder") {
-      TypeIcon = HiFolder;
-      iconColor = "text-amber-400";
-    } else if (it.mediaType === "frame" || (it.aspect && it.aspect !== "original")) {
-      TypeIcon = HiHashtag;
-      iconColor = "text-neutral-400";
-    } else if (it.type === "group" || it.mediaType === "group") {
-      TypeIcon = HiSquare2Stack;
-      iconColor = "text-indigo-400";
-    }
+    const isText = it.type === "text" || it.mediaType === "text";
 
     const paddingLeft = depth === 0 ? "pl-2" : depth === 1 ? "pl-5" : "pl-8";
 
@@ -3618,27 +3769,36 @@ export default function CanvasWorkspace({
           e.stopPropagation();
           fitItemToScreen(it);
         }}
-        className={`w-full ${paddingLeft} pr-2 py-1.5 rounded-lg flex items-center justify-between transition-colors cursor-pointer group text-left ${
+        className={`w-full ${paddingLeft} pr-2 py-1 rounded-md flex items-center justify-between transition-colors cursor-pointer group text-left ${
           isSel
-            ? "bg-[#0c8ce9] text-white font-medium shadow-xs"
+            ? "bg-[#2d3748] text-white font-medium shadow-xs"
             : isLight
             ? "text-slate-700 hover:bg-slate-100"
             : "text-neutral-300 hover:bg-white/8 hover:text-white"
         } ${isHidden ? "opacity-40" : ""}`}
       >
         <div className="flex items-center gap-2 truncate flex-1 min-w-0 pr-1">
-          {/* Item Type Icon */}
-          {it.type === "text" || it.mediaType === "text" ? (
-            <span className="font-mono font-bold text-xs text-amber-300 w-3.5 text-center shrink-0">T</span>
+          {/* Item Type Icon (T for text, Outline Rectangle for shapes/media) */}
+          {isText ? (
+            <span className="font-serif font-bold text-xs text-neutral-300 w-3.5 text-center shrink-0">T</span>
           ) : (
-            <TypeIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : iconColor}`} />
+            <svg
+              className="w-3.5 h-3.5 text-neutral-400 shrink-0"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <rect x="2" y="3.5" width="12" height="9" rx="2" />
+            </svg>
           )}
-          <span className="truncate text-xs font-sans tracking-tight">{it.title}</span>
+          <span className="truncate text-xs font-sans tracking-tight">
+            {isText && it.content ? (it.content.slice(0, 32) || it.title) : it.title}
+          </span>
         </div>
 
-        {/* Action icons: Lock, Eye, Delete (Visible on Hover or when active - Matches Figma Image 1) */}
+        {/* Action icons: Lock, Eye, Delete */}
         <div className="flex items-center gap-0.5 shrink-0">
-          {/* Lock Button */}
           <button
             type="button"
             onClick={(e) => toggleItemLock(it.id, e)}
@@ -3647,12 +3807,11 @@ export default function CanvasWorkspace({
                 ? "opacity-100 text-amber-400"
                 : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
             }`}
-            title={isLocked ? "Buka Kunci Layer" : "Kunci Layer (Cegah Geser)"}
+            title={isLocked ? "Buka Kunci Layer" : "Kunci Layer"}
           >
             {isLocked ? <HiLockClosed className="w-3.5 h-3.5" /> : <HiLockOpen className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Eye / Visibility Button */}
           <button
             type="button"
             onClick={(e) => toggleItemVisibility(it.id, e)}
@@ -3661,12 +3820,11 @@ export default function CanvasWorkspace({
                 ? "opacity-100 text-rose-400"
                 : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
             }`}
-            title={isHidden ? "Tampilkan Layer di Kanvas" : "Sembunyikan Layer di Kanvas"}
+            title={isHidden ? "Tampilkan Layer" : "Sembunyikan Layer"}
           >
             {isHidden ? <HiEyeSlash className="w-3.5 h-3.5" /> : <HiEye className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Delete Button */}
           <button
             type="button"
             onClick={(e) => {
