@@ -146,8 +146,11 @@ export default function Navbar() {
       router.push(`/#${id === "projects" ? "client-folders" : id}`);
       return;
     }
-    // Direct smooth scroll to Client Folders stage when "Work" is clicked
+    // Direct smooth scroll to Client Folders stage when "Work" or "Folder Client" is clicked
     if (id === "projects" || id === "client-folders" || id === "client-productions") {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("scroll-to-client-folders"));
+      }
       const projectsEl = document.getElementById("projects");
       if (projectsEl) {
         const rect = projectsEl.getBoundingClientRect();
@@ -347,7 +350,7 @@ export default function Navbar() {
                   <button
                     onClick={() => {
                       setIsWorkMenuOpen(false);
-                      scrollTo("projects");
+                      scrollTo("client-folders");
                     }}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer mt-0.5 group ${
                       isLight
@@ -602,7 +605,7 @@ export default function Navbar() {
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                scrollTo("projects");
+                scrollTo("client-folders");
               }}
               className={`text-left py-2 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer flex items-center justify-between border ${
                 isLight

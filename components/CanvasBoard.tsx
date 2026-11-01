@@ -48,9 +48,13 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isSpacePressed, setIsSpacePressed] = useState(false);
   const [selectedSheetId, setSelectedSheetId] = useState<string | null>(null);
+  const [fittedSheetId, setFittedSheetId] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showShortcutsHelp, setShowShortcutsHelp] = useState(false);
   const [isWindowBlurred, setIsWindowBlurred] = useState(false);
+
+  // Double-tap tracking for mobile devices
+  const lastTapRef = useRef<{ time: number; id: string }>({ time: 0, id: "" });
 
   // Direct Drag & Drop state on Canvas Board
   const [isCanvasDragOver, setIsCanvasDragOver] = useState(false);
@@ -132,8 +136,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
   // Board layout 2D multi-column width calculation
   const gridCols = Math.min(4, Math.max(2, Math.ceil(Math.sqrt(sheets.length || 6))));
-  const gridBoardWidth = gridCols * 460 + (gridCols - 1) * 44 + 120;
-  const gridBoardHeight = Math.ceil(sheets.length / gridCols) * 560 + 200;
+  const gridCardWidth = 460;
+  const gridGap = 40;
+  const gridPad = 60;
+  const gridBoardWidth = gridCols * gridCardWidth + (gridCols - 1) * gridGap + gridPad * 2;
+  const gridBoardHeight = Math.ceil(sheets.length / gridCols) * 580 + gridPad * 2;
 
   // Center & Fit Canvas on mount / open
   const zoomToFit = useCallback(() => {
@@ -141,8 +148,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     const { clientWidth, clientHeight } = containerRef.current;
     if (clientWidth === 0 || clientHeight === 0) return;
 
-    const scaleX = (clientWidth * 0.9) / gridBoardWidth;
-    const scaleY = (clientHeight * 0.9) / gridBoardHeight;
+    const scaleX = (clientWidth * 0.92) / gridBoardWidth;
+    const scaleY = (clientHeight * 0.88) / gridBoardHeight;
     const fitScale = Math.min(1.0, Math.max(0.18, Math.min(scaleX, scaleY)));
 
     setZoom(Number(fitScale.toFixed(2)));
@@ -150,7 +157,76 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       x: (clientWidth - gridBoardWidth * fitScale) / 2,
       y: Math.max(70, (clientHeight - gridBoardHeight * fitScale) / 2),
     });
+    setFittedSheetId(null);
   }, [gridBoardWidth, gridBoardHeight]);
+
+  // Fit specific sheet image automatically to screen on double-click / double-tap
+  const fitSheetToScreen = useCallback(
+    (targetEl: HTMLElement, sheetId: string) => {
+      if (!containerRef.current || !targetEl) return;
+
+      // Toggle behavior: if already fitted to this sheet, zoom back out to full board
+      if (fittedSheetId === sheetId) {
+        setFittedSheetId(null);
+        zoomToFit();
+        return;
+      }
+
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const rect = targetEl.getBoundingClientRect();
+
+      if (
+        containerRect.width === 0 ||
+        containerRect.height === 0 ||
+        rect.width === 0 ||
+        rect.height === 0
+      )
+        return;
+
+      // Convert current screen coordinates into unscaled canvas coordinate space
+      const elLeft = rect.left - containerRect.left;
+      const elTop = rect.top - containerRect.top;
+      const canvasX = (elLeft - pan.x) / zoom;
+      const canvasY = (elTop - pan.y) / zoom;
+      const canvasW = rect.width / zoom;
+      const canvasH = rect.height / zoom;
+
+      // Calculate optimal scale to fit snugly in viewport (with pleasant 8% padding)
+      const viewportWidth = containerRect.width;
+      const viewportHeight = containerRect.height;
+      const targetScaleX = (viewportWidth * 0.92) / canvasW;
+      const targetScaleY = (viewportHeight * 0.82) / canvasH;
+      const targetZoom = Number(
+        Math.min(3.5, Math.max(0.25, Math.min(targetScaleX, targetScaleY))).toFixed(2)
+      );
+
+      // Calculate pan to center the target sheet directly on screen
+      const targetPanX = Math.round((viewportWidth - canvasW * targetZoom) / 2 - canvasX * targetZoom);
+      const targetPanY = Math.round((viewportHeight - canvasH * targetZoom) / 2 - canvasY * targetZoom);
+
+      setZoom(targetZoom);
+      setPan({ x: targetPanX, y: targetPanY });
+      setFittedSheetId(sheetId);
+      setSelectedSheetId(sheetId);
+    },
+    [containerRef, pan, zoom, fittedSheetId, zoomToFit]
+  );
+
+  // Handle double-tap detection for touch screens
+  const handleSheetTap = useCallback(
+    (targetEl: HTMLElement, sheetId: string) => {
+      const now = Date.now();
+      const timeSinceLast = now - lastTapRef.current.time;
+      if (timeSinceLast < 360 && lastTapRef.current.id === sheetId) {
+        // Double tap confirmed
+        fitSheetToScreen(targetEl, sheetId);
+        lastTapRef.current = { time: 0, id: "" };
+      } else {
+        lastTapRef.current = { time: now, id: sheetId };
+      }
+    },
+    [fitSheetToScreen]
+  );
 
   // Handle Fullscreen Request on Open
   useEffect(() => {
@@ -772,6 +848,12 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
               </span>
             </div>
             <div className="flex justify-between items-center">
+              <span>Fit Gambar Layar</span>
+              <span className={`px-2 py-0.5 rounded font-bold ${isLight ? "bg-teal-50 text-teal-800 border border-teal-200" : "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"}`}>
+                Tap 2x / Double Click
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
               <span>Fit All / Reset</span>
               <span className={`px-2 py-0.5 rounded font-bold ${isLight ? "bg-slate-100 text-slate-800 border border-slate-300" : "bg-white/10 text-white"}`}>
                 F / Tombol [ ]
@@ -790,8 +872,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       {/* ── 2D Infinite Transform Content Engine ───────────────────────────────── */}
       <div
         ref={boardContentRef}
-        className={`absolute top-0 left-0 origin-top-left transition-transform duration-75 ${
-          isDragging ? "will-change-transform" : ""
+        className={`absolute top-0 left-0 origin-top-left transition-transform duration-300 ease-out ${
+          isDragging ? "!transition-none will-change-transform" : ""
         }`}
         style={{
           transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
@@ -948,6 +1030,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedSheetId(item.id);
+                    handleSheetTap(e.currentTarget, item.id);
+                  }}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    fitSheetToScreen(e.currentTarget, item.id);
                   }}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0)`,
@@ -1021,27 +1108,29 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         ) : (
           /* Grid Arrangement of Deliverable Sheets in 2D Matrix */
           <div
-            style={{ width: `${gridBoardWidth}px` }}
-            className="p-14 flex flex-wrap gap-10 sm:gap-12 items-start select-none"
+            style={{
+              display: "grid",
+              gridTemplateColumns: `repeat(${gridCols}, minmax(400px, 460px))`,
+              gap: "40px",
+              padding: "60px",
+              width: "max-content",
+            }}
+            className="items-start select-none"
           >
             {sheets.map((sheet, index) => {
               const isSelected = selectedSheetId === sheet.id;
 
               // Sheet dimensions strictly matching original aspect ratio without cropping
-              let sheetWidthClass = "w-[440px] sm:w-[500px]";
+              let sheetWidthClass = "w-full";
               let sheetStyle: React.CSSProperties = { aspectRatio: "4 / 5" };
 
               if (sheet.aspect === "16:9") {
-                sheetWidthClass = "w-[560px] sm:w-[680px]";
                 sheetStyle = { aspectRatio: "16 / 9" };
               } else if (sheet.aspect === "9:16") {
-                sheetWidthClass = "w-[320px] sm:w-[360px]";
                 sheetStyle = { aspectRatio: "9 / 16" };
               } else if (sheet.aspect === "1:1") {
-                sheetWidthClass = "w-[440px] sm:w-[500px]";
                 sheetStyle = { aspectRatio: "1 / 1" };
               } else if (sheet.aspect === "4:5") {
-                sheetWidthClass = "w-[440px] sm:w-[500px]";
                 sheetStyle = { aspectRatio: "4 / 5" };
               } else if (sheet.aspect && sheet.aspect.includes(":")) {
                 const [wStr, hStr] = sheet.aspect.split(":");
@@ -1049,11 +1138,9 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                 const hNum = parseFloat(hStr);
                 if (wNum && hNum) {
                   sheetStyle = { aspectRatio: `${wNum} / ${hNum}` };
-                  sheetWidthClass = wNum > hNum ? "w-[560px] sm:w-[680px]" : "w-[440px] sm:w-[500px]";
                 }
               } else if (sheet.aspect === "original" || !sheet.aspect) {
                 sheetStyle = { aspectRatio: "auto", minHeight: "340px" };
-                sheetWidthClass = "w-[440px] sm:w-[500px]";
               }
 
               return (
@@ -1062,8 +1149,14 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedSheetId(sheet.id);
+                    handleSheetTap(e.currentTarget, sheet.id);
                   }}
-                  className={`group relative flex flex-col rounded-2xl transition-all duration-300 ${
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    fitSheetToScreen(e.currentTarget, sheet.id);
+                  }}
+                  style={{ width: "460px" }}
+                  className={`group relative flex flex-col rounded-2xl transition-all duration-300 cursor-pointer ${
                     isSelected
                       ? isLight
                         ? "ring-2 ring-teal-500 shadow-[0_20px_60px_rgba(20,184,166,0.3)] scale-[1.01]"

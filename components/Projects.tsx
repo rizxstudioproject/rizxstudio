@@ -1251,9 +1251,16 @@ export default function Projects() {
       }
     };
 
+    const handleDirectEvent = () => {
+      scrollToClientFolders();
+    };
+    window.addEventListener("scroll-to-client-folders", handleDirectEvent);
     handleCheckDirectScroll();
     window.addEventListener("hashchange", handleCheckDirectScroll);
-    return () => window.removeEventListener("hashchange", handleCheckDirectScroll);
+    return () => {
+      window.removeEventListener("scroll-to-client-folders", handleDirectEvent);
+      window.removeEventListener("hashchange", handleCheckDirectScroll);
+    };
   }, [scrollToFlagshipStage, scrollToClientFolders]);
 
   const activeClientData = stage4.clients.find((c) => c.id === selectedClient) || stage4.clients[0];
