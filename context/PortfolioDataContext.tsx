@@ -83,6 +83,13 @@ export interface CanvasItem {
   strokeColor?: string;
   strokeWidth?: number;
   effects?: string;
+  effectHidden?: boolean;
+  shadowX?: number;
+  shadowY?: number;
+  shadowBlur?: number;
+  shadowSpread?: number;
+  shadowColor?: string;
+  shadowOpacity?: number;
   clipContent?: boolean;
   flipX?: boolean;
   flipY?: boolean;

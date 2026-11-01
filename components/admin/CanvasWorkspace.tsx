@@ -378,6 +378,46 @@ export default function CanvasWorkspace({
   const [showShareToast, setShowShareToast] = useState<boolean>(false);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
   const [isMobileInspectorOpen, setIsMobileInspectorOpen] = useState<boolean>(false);
+  const [isEffectPopoverOpen, setIsEffectPopoverOpen] = useState<boolean>(false);
+
+  // Computes CSS boxShadow from element's effect properties (Figma Drop Shadow & Inner Shadow)
+  const getEffectBoxShadow = useCallback((item: CanvasItem) => {
+    if (!item.effects || item.effectHidden) return undefined;
+    const sX = item.shadowX !== undefined ? item.shadowX : 0;
+    const sY = item.shadowY !== undefined ? item.shadowY : 4;
+    const sBlur = item.shadowBlur !== undefined ? item.shadowBlur : 4;
+    const sSpread = item.shadowSpread !== undefined ? item.shadowSpread : 0;
+    const sColor = item.shadowColor || "#000000";
+    const sOpacity = item.shadowOpacity !== undefined ? item.shadowOpacity : 25;
+
+    let cleanHex = sColor.replace("#", "");
+    if (cleanHex.length === 3) {
+      cleanHex = cleanHex.split("").map((c) => c + c).join("");
+    }
+    const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+    const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+    const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+    const a = Math.max(0, Math.min(1, sOpacity / 100));
+    const rgba = `rgba(${r}, ${g}, ${b}, ${a})`;
+
+    if (item.effects === "inner-shadow") {
+      return `inset ${sX}px ${sY}px ${sBlur}px ${sSpread}px ${rgba}`;
+    }
+    if (item.effects === "drop-shadow") {
+      return `${sX}px ${sY}px ${sBlur}px ${sSpread}px ${rgba}`;
+    }
+    return undefined;
+  }, []);
+
+  // Computes CSS filter blur from element's layer-blur effect
+  const getEffectFilter = useCallback((item: CanvasItem) => {
+    if (!item.effects || item.effectHidden) return undefined;
+    if (item.effects === "layer-blur") {
+      const sBlur = item.shadowBlur !== undefined ? item.shadowBlur : 4;
+      return `blur(${sBlur}px)`;
+    }
+    return undefined;
+  }, []);
 
   const selectedItem = useMemo(() => items.find((it) => it.id === selectedId) || null, [items, selectedId]);
 
@@ -3785,22 +3825,227 @@ export default function CanvasWorkspace({
             )}
           </div>
 
-          {/* 7. EFFECTS SECTION (Matches Screenshot 1 & 2) */}
-          <div className="p-3 space-y-2">
+          {/* 7. EFFECTS SECTION (Matches Screenshots media_1793533049501_ef649907.png & media_1793533075434_40d113b1.png) */}
+          <div className="p-3 space-y-2 relative">
             <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
               <span>Effects</span>
-              <button
-                type="button"
-                onClick={() => updateSelectedItem({ effects: "drop-shadow" })}
-                className="text-neutral-400 hover:text-white cursor-pointer"
-              >
-                <HiPlus className="w-3.5 h-3.5" />
-              </button>
+              <div className="flex items-center gap-1.5 text-neutral-400">
+                <span className="text-xs cursor-pointer hover:text-white" title="Effect Styles">❖</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    updateSelectedItem({
+                      effects: selectedItem?.effects || "drop-shadow",
+                      effectHidden: false,
+                      shadowX: selectedItem?.shadowX !== undefined ? selectedItem.shadowX : 0,
+                      shadowY: selectedItem?.shadowY !== undefined ? selectedItem.shadowY : 4,
+                      shadowBlur: selectedItem?.shadowBlur !== undefined ? selectedItem.shadowBlur : 4,
+                      shadowSpread: selectedItem?.shadowSpread !== undefined ? selectedItem.shadowSpread : 0,
+                      shadowColor: selectedItem?.shadowColor || "#000000",
+                      shadowOpacity: selectedItem?.shadowOpacity !== undefined ? selectedItem.shadowOpacity : 25,
+                    });
+                    setIsEffectPopoverOpen(true);
+                  }}
+                  className="text-neutral-400 hover:text-white cursor-pointer p-0.5 rounded hover:bg-white/10"
+                  title="Add effect"
+                >
+                  <HiPlus className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
+
             {selectedItem?.effects && (
-              <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] text-xs">
-                <span className="text-neutral-300">Drop shadow</span>
-                <span className="text-[10px] text-teal-400 font-mono">25% 0 10px</span>
+              <div className="relative">
+                {/* Effect Item Row matching Figma Image 2 */}
+                <div
+                  className={`flex items-center justify-between p-1.5 rounded-lg text-xs transition-colors select-none ${
+                    isEffectPopoverOpen
+                      ? "bg-[#1c2c3e] border border-[#0c8ce9]/50 shadow-sm"
+                      : "bg-[#2c2c2c] hover:bg-[#343434]"
+                  } ${selectedItem.effectHidden ? "opacity-50" : "opacity-100"}`}
+                >
+                  {/* Left: Clickable Icon + Label */}
+                  <div
+                    className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                    onClick={() => setIsEffectPopoverOpen((prev) => !prev)}
+                    title="Click to edit effect settings"
+                  >
+                    <span className="w-4 h-4 rounded-[3px] border border-white/30 flex items-center justify-center text-[9px] text-[#0c8ce9] shadow-sm bg-black/40 shrink-0">
+                      ▢
+                    </span>
+                    <span className="text-[#0c8ce9] font-medium truncate">
+                      {selectedItem.effects === "drop-shadow"
+                        ? "Drop shadow"
+                        : selectedItem.effects === "inner-shadow"
+                        ? "Inner shadow"
+                        : selectedItem.effects === "layer-blur"
+                        ? "Layer blur"
+                        : selectedItem.effects === "background-blur"
+                        ? "Background blur"
+                        : "Drop shadow"}
+                    </span>
+                  </div>
+
+                  {/* Right Actions: View/Hide (Eye) & Remove (Minus) - Matches Screenshot Image 2 */}
+                  <div className="flex items-center gap-1 shrink-0 text-neutral-400">
+                    {/* View / Hide (Eye) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateSelectedItem({ effectHidden: !selectedItem.effectHidden });
+                      }}
+                      className="p-1 hover:text-white rounded hover:bg-white/10 cursor-pointer transition-colors"
+                      title={selectedItem.effectHidden ? "Show effect" : "Hide effect"}
+                    >
+                      {selectedItem.effectHidden ? (
+                        <HiEyeSlash className="w-3.5 h-3.5 text-neutral-500" />
+                      ) : (
+                        <HiEye className="w-3.5 h-3.5 text-neutral-300 hover:text-white" />
+                      )}
+                    </button>
+
+                    {/* Remove (Minus) */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateSelectedItem({ effects: undefined, effectHidden: undefined });
+                        setIsEffectPopoverOpen(false);
+                      }}
+                      className="p-1 hover:text-red-400 rounded hover:bg-white/10 cursor-pointer transition-colors"
+                      title="Remove effect"
+                    >
+                      <HiMinus className="w-3.5 h-3.5 text-neutral-400 hover:text-red-400" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Drop Shadow Settings Popover (Matches Screenshot Image 1 media_1793533049501_ef649907.png) */}
+                {isEffectPopoverOpen && (
+                  <div className="relative mt-2 sm:absolute sm:right-full sm:top-0 sm:mr-3 sm:mt-0 w-full sm:w-[250px] p-3 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-2xl z-50 text-xs font-sans space-y-3 animate-in fade-in zoom-in-95 duration-100">
+                    {/* Popover Header */}
+                    <div className="flex items-center justify-between pb-1.5 border-b border-white/10">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-3.5 h-3.5 rounded-[2px] border border-white/40 flex items-center justify-center text-[8px] text-[#0c8ce9] shadow-sm bg-black/40">
+                          ▢
+                        </span>
+                        <select
+                          value={selectedItem.effects || "drop-shadow"}
+                          onChange={(e) => updateSelectedItem({ effects: e.target.value })}
+                          className="bg-transparent text-white font-medium focus:outline-none cursor-pointer pr-1 text-xs"
+                        >
+                          <option value="drop-shadow" className="bg-[#1e1e1e] text-white">Drop shadow</option>
+                          <option value="inner-shadow" className="bg-[#1e1e1e] text-white">Inner shadow</option>
+                          <option value="layer-blur" className="bg-[#1e1e1e] text-white">Layer blur</option>
+                          <option value="background-blur" className="bg-[#1e1e1e] text-white">Background blur</option>
+                        </select>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-neutral-400">
+                        <span className="text-xs cursor-pointer hover:text-white" title="Effect Style">💧</span>
+                        <button
+                          type="button"
+                          onClick={() => setIsEffectPopoverOpen(false)}
+                          className="hover:text-white cursor-pointer p-0.5 rounded hover:bg-white/10"
+                          title="Tutup Pengaturan"
+                        >
+                          <HiXMark className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Row 1: Position X & Y */}
+                    <div className="flex items-center justify-between text-neutral-400">
+                      <span className="text-[11px] font-medium">Position</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-[#161616] border border-white/10 rounded-lg px-2 py-1 w-[72px]">
+                          <span className="text-[10px] text-neutral-500 font-mono">X</span>
+                          <input
+                            type="number"
+                            value={selectedItem.shadowX !== undefined ? selectedItem.shadowX : 0}
+                            onChange={(e) => updateSelectedItem({ shadowX: Number(e.target.value) })}
+                            className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1 bg-[#161616] border border-white/10 rounded-lg px-2 py-1 w-[72px]">
+                          <span className="text-[10px] text-neutral-500 font-mono">Y</span>
+                          <input
+                            type="number"
+                            value={selectedItem.shadowY !== undefined ? selectedItem.shadowY : 4}
+                            onChange={(e) => updateSelectedItem({ shadowY: Number(e.target.value) })}
+                            className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Row 2: Blur */}
+                    <div className="flex items-center justify-between text-neutral-400">
+                      <span className="text-[11px] font-medium">Blur</span>
+                      <div className="flex items-center gap-1.5 bg-[#161616] border border-white/10 rounded-lg px-2 py-1 w-[152px]">
+                        <span className="text-xs text-neutral-500 select-none">⠿</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={selectedItem.shadowBlur !== undefined ? selectedItem.shadowBlur : 4}
+                          onChange={(e) => updateSelectedItem({ shadowBlur: Math.max(0, Number(e.target.value)) })}
+                          className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 3: Spread */}
+                    <div className="flex items-center justify-between text-neutral-400">
+                      <span className="text-[11px] font-medium">Spread</span>
+                      <div className="flex items-center gap-1.5 bg-[#161616] border border-white/10 rounded-lg px-2 py-1 w-[152px]">
+                        <span className="text-xs text-neutral-500 select-none">☼</span>
+                        <input
+                          type="number"
+                          value={selectedItem.shadowSpread !== undefined ? selectedItem.shadowSpread : 0}
+                          onChange={(e) => updateSelectedItem({ shadowSpread: Number(e.target.value) })}
+                          className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Row 4: Color & Opacity */}
+                    <div className="flex items-center justify-between text-neutral-400">
+                      <span className="text-[11px] font-medium">Color</span>
+                      <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 bg-[#161616] border border-white/10 rounded-lg px-2 py-1">
+                          <span
+                            onClick={() => openColorPicker("fill", selectedItem.shadowColor || "#000000")}
+                            className="w-4 h-4 rounded-[2px] border border-white/20 shrink-0 shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                            style={{ backgroundColor: selectedItem.shadowColor || "#000000" }}
+                            title="Pilih warna shadow"
+                          />
+                          <input
+                            type="text"
+                            value={(selectedItem.shadowColor || "#000000").replace("#", "").toUpperCase()}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9A-Fa-f]/g, "");
+                              if (val.length <= 6) {
+                                updateSelectedItem({ shadowColor: `#${val}` });
+                              }
+                            }}
+                            className="w-14 bg-transparent text-white font-mono text-xs focus:outline-none uppercase"
+                          />
+                        </div>
+                        <div className="flex items-center gap-0.5 bg-[#161616] border border-white/10 rounded-lg px-1.5 py-1 w-14">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={selectedItem.shadowOpacity !== undefined ? selectedItem.shadowOpacity : 25}
+                            onChange={(e) => updateSelectedItem({ shadowOpacity: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                            className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                          />
+                          <span className="text-[10px] text-neutral-500 font-mono">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -4647,6 +4892,8 @@ export default function CanvasWorkspace({
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : isGrp ? "12px" : undefined,
                     borderColor: item.color && item.color !== "transparent" ? item.color : isGrp ? "#0c8ce9" : undefined,
+                    boxShadow: getEffectBoxShadow(item),
+                    filter: getEffectFilter(item),
                   }}
                   className={`absolute rounded-3xl border-2 ${isGrp ? "border-solid border-[#0c8ce9]/60" : "border-dashed"} p-4 flex flex-col justify-between ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-30" : "transition-colors duration-150"
@@ -4717,6 +4964,8 @@ export default function CanvasWorkspace({
                     width: `${item.width || 280}px`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
+                    boxShadow: getEffectBoxShadow(item),
+                    filter: getEffectFilter(item),
                   }}
                   className={`absolute rounded-2xl bg-[#111318]/95 border backdrop-blur-xl p-3.5 shadow-xl flex flex-col gap-2.5 cursor-grab active:cursor-grabbing ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-40 cursor-grabbing scale-102" : "transition-colors duration-150"
@@ -4786,6 +5035,7 @@ export default function CanvasWorkspace({
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                     minWidth: "60px",
                     maxWidth: item.width ? `${item.width}px` : "max-content",
+                    filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
                   }}
                   className={`absolute group cursor-text select-text transition-shadow z-30 ${
                     isSelected
@@ -4924,6 +5174,8 @@ export default function CanvasWorkspace({
                   height: item.height ? `${item.height}px` : undefined,
                   opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                   borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
+                  boxShadow: getEffectBoxShadow(item),
+                  filter: getEffectFilter(item),
                 }}
                 className={`group absolute rounded-2xl flex flex-col select-none cursor-grab active:cursor-grabbing ${
                   draggingItemId === item.id
