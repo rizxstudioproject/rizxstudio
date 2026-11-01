@@ -61,21 +61,27 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const boardContentRef = useRef<HTMLDivElement>(null);
 
+  const hasFreeformLayout = useMemo(() => {
+    return (canvasItems || []).some((item) => item.x !== undefined && item.y !== undefined);
+  }, [canvasItems]);
+
   // Gather all works across client vaults into Canvas reference sheets
   const sheets: CanvasSheetItem[] = useMemo(() => {
     if (canvasItems && canvasItems.length > 0) {
-      return canvasItems.map((item) => ({
-        id: item.id,
-        title: item.title,
-        type: item.type || item.clientName || "Canvas Asset",
-        image: normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : "")),
-        aspect: item.aspect || "4:5",
-        clientName: item.clientName || "Selected Work",
-        clientId: item.clientId || "canvas",
-        year: item.year || "2026",
-        isVideo: Boolean(item.isVideo || item.videoId || item.mediaType === "youtube" || item.mediaType === "gdrive"),
-        tools: item.tools || ["digital", "visual"],
-      }));
+      return canvasItems
+        .filter((item) => item.type !== "section" && item.mediaType !== "section" && item.type !== "text" && item.mediaType !== "text")
+        .map((item) => ({
+          id: item.id,
+          title: item.title,
+          type: item.type || item.clientName || "Canvas Asset",
+          image: normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : "")),
+          aspect: item.aspect || "4:5",
+          clientName: item.clientName || "Selected Work",
+          clientId: item.clientId || "canvas",
+          year: item.year || "2026",
+          isVideo: Boolean(item.isVideo || item.videoId || item.mediaType === "youtube" || item.mediaType === "gdrive"),
+          tools: item.tools || ["digital", "visual"],
+        }));
     }
 
     const list: CanvasSheetItem[] = [];
@@ -735,134 +741,324 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           transformOrigin: "0 0",
         }}
       >
-        {/* Grid Arrangement of Deliverable Sheets */}
-        <div className="p-16 flex flex-wrap gap-12 sm:gap-14 max-w-[2800px] items-start select-none">
-          {sheets.map((sheet, index) => {
-            const isSelected = selectedSheetId === sheet.id;
+        {/* Canvas Elements: Either Freeform Figma-style coordinates or Flex-wrap Grid */}
+        {hasFreeformLayout ? (
+          <div className="relative w-[5000px] h-[4000px] select-none">
+            {(canvasItems || []).map((item, index) => {
+              const x = item.x ?? 80;
+              const y = item.y ?? 80;
+              const isSelected = selectedSheetId === item.id;
 
-            // Sheet dimensions strictly matching original aspect ratio without cropping
-            let sheetWidthClass = "w-[440px] sm:w-[540px]";
-            let sheetStyle: React.CSSProperties = { aspectRatio: "4 / 5" };
-
-            if (sheet.aspect === "16:9") {
-              sheetWidthClass = "w-[560px] sm:w-[720px]";
-              sheetStyle = { aspectRatio: "16 / 9" };
-            } else if (sheet.aspect === "9:16") {
-              sheetWidthClass = "w-[320px] sm:w-[380px]";
-              sheetStyle = { aspectRatio: "9 / 16" };
-            } else if (sheet.aspect === "1:1") {
-              sheetWidthClass = "w-[440px] sm:w-[540px]";
-              sheetStyle = { aspectRatio: "1 / 1" };
-            } else if (sheet.aspect === "4:5") {
-              sheetWidthClass = "w-[440px] sm:w-[540px]";
-              sheetStyle = { aspectRatio: "4 / 5" };
-            } else if (sheet.aspect && sheet.aspect.includes(":")) {
-              const [wStr, hStr] = sheet.aspect.split(":");
-              const wNum = parseFloat(wStr);
-              const hNum = parseFloat(hStr);
-              if (wNum && hNum) {
-                sheetStyle = { aspectRatio: `${wNum} / ${hNum}` };
-                sheetWidthClass = wNum > hNum ? "w-[560px] sm:w-[720px]" : "w-[440px] sm:w-[540px]";
-              }
-            } else if (sheet.aspect === "original" || !sheet.aspect) {
-              sheetStyle = { aspectRatio: "auto", minHeight: "340px" };
-              sheetWidthClass = "w-[460px] sm:w-[580px]";
-            }
-
-            return (
-              <div
-                key={sheet.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setSelectedSheetId(sheet.id);
-                }}
-                className={`group relative flex flex-col rounded-2xl transition-all duration-300 ${
-                  isSelected
-                    ? "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
-                    : "hover:ring-1 hover:ring-white/40 shadow-2xl"
-                }`}
-              >
-                {/* Figma Frame Top Label */}
-                <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
-                  <div className="flex items-center gap-1.5 truncate pr-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
-                    <span className="font-bold text-white truncate">{sheet.clientName}</span>
-                    <span className="text-neutral-500">/</span>
-                    <span className="truncate opacity-80">{sheet.title}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-cyan-300 font-bold border border-white/10">
-                      {sheet.aspect === "original" ? "ORIGINAL" : sheet.aspect}
-                    </span>
-                    {sheet.isVideo && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/30 uppercase">
-                        VIDEO
+              // 1. SECTION BOUNDARY BOX
+              if (item.type === "section" || item.mediaType === "section") {
+                const secWidth = item.width || 1200;
+                const secHeight = item.height || 680;
+                const secColor = item.color || "#00A389";
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      transform: `translate3d(${x}px, ${y}px, 0)`,
+                      width: `${secWidth}px`,
+                      height: `${secHeight}px`,
+                      borderColor: `${secColor}40`,
+                      backgroundColor: `${secColor}05`,
+                    }}
+                    className="absolute rounded-3xl border-2 border-dashed p-4 flex flex-col justify-between pointer-events-none"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="px-2.5 py-1 rounded-lg text-xs font-mono font-bold tracking-wider text-black uppercase shadow-sm"
+                        style={{ backgroundColor: secColor }}
+                      >
+                        {item.title}
                       </span>
+                    </div>
+                    <div className="text-right text-[11px] font-mono text-neutral-500">
+                      {secWidth} × {secHeight}
+                    </div>
+                  </div>
+                );
+              }
+
+              // 2. FOLDER CLIENT CARD
+              if (item.type === "folder" || item.mediaType === "folder") {
+                return (
+                  <div
+                    key={item.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClose();
+                      if (typeof window !== "undefined") {
+                        const el = document.getElementById("client-productions");
+                        if (el) el.scrollIntoView({ behavior: "smooth" });
+                      }
+                    }}
+                    style={{
+                      transform: `translate3d(${x}px, ${y}px, 0)`,
+                      width: "280px",
+                    }}
+                    className="absolute rounded-2xl bg-[#111318]/95 border border-white/15 hover:border-teal-400 backdrop-blur-xl p-3.5 transition-all shadow-xl flex flex-col gap-2.5 cursor-pointer hover:scale-105 active:scale-95 group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="w-8 h-8 rounded-xl bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold shrink-0 group-hover:scale-110 transition-transform">
+                        📁
+                      </span>
+                      <span className="text-xs font-bold text-white group-hover:text-teal-300 transition-colors">
+                        {item.title}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 pt-1 border-t border-white/5">
+                      <span>Folder Client</span>
+                      <span className="text-teal-400 font-semibold">Buka Karya Vault →</span>
+                    </div>
+                  </div>
+                );
+              }
+
+              // 3. TEXT NOTE
+              if (item.type === "text" || item.mediaType === "text") {
+                const textColor = item.color || "#00A389";
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      transform: `translate3d(${x}px, ${y}px, 0)`,
+                      maxWidth: "460px",
+                    }}
+                    className="absolute p-3 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md"
+                  >
+                    <h3
+                      className="text-base sm:text-lg font-black tracking-tight"
+                      style={{ color: textColor }}
+                    >
+                      {item.title}
+                    </h3>
+                    {item.content && (
+                      <p className="text-xs text-neutral-300 font-sans mt-1 leading-relaxed whitespace-pre-wrap">
+                        {item.content}
+                      </p>
                     )}
                   </div>
-                </div>
+                );
+              }
 
-                {/* Sheet Visual Container */}
+              // 4. MEDIA SHEET
+              const imgSrc = normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : ""));
+              let sheetWidthClass = "w-[440px] sm:w-[540px]";
+              let sheetStyle: React.CSSProperties = { aspectRatio: "4 / 5" };
+              if (item.aspect === "16:9") {
+                sheetWidthClass = "w-[560px] sm:w-[720px]";
+                sheetStyle = { aspectRatio: "16 / 9" };
+              } else if (item.aspect === "9:16") {
+                sheetWidthClass = "w-[320px] sm:w-[380px]";
+                sheetStyle = { aspectRatio: "9 / 16" };
+              } else if (item.aspect === "1:1") {
+                sheetWidthClass = "w-[440px] sm:w-[540px]";
+                sheetStyle = { aspectRatio: "1 / 1" };
+              } else if (item.aspect === "4:5") {
+                sheetWidthClass = "w-[440px] sm:w-[540px]";
+                sheetStyle = { aspectRatio: "4 / 5" };
+              } else if (item.aspect && item.aspect.includes(":")) {
+                const [wStr, hStr] = item.aspect.split(":");
+                const wNum = parseFloat(wStr);
+                const hNum = parseFloat(hStr);
+                if (wNum && hNum) {
+                  sheetStyle = { aspectRatio: `${wNum} / ${hNum}` };
+                  sheetWidthClass = wNum > hNum ? "w-[560px] sm:w-[720px]" : "w-[440px] sm:w-[540px]";
+                }
+              }
+
+              return (
                 <div
-                  className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center`}
-                  style={sheetStyle}
+                  key={item.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSheetId(item.id);
+                  }}
+                  style={{
+                    transform: `translate3d(${x}px, ${y}px, 0)`,
+                  }}
+                  className={`absolute group flex flex-col rounded-2xl transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
+                      : "hover:ring-1 hover:ring-white/40 shadow-2xl"
+                  }`}
                 >
-                  {/* Visual Artwork - 100% Original Resolution & Razor-Sharp when Zoomed */}
-                  <img
-                    src={sheet.image}
-                    alt={sheet.title}
-                    draggable={false}
-                    decoding="sync"
-                    loading="eager"
-                    className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
-                    style={{
-                      imageRendering: "-webkit-optimize-contrast",
-                      WebkitBackfaceVisibility: "hidden",
-                      transform: "translateZ(0)",
-                    }}
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
-
-                  {/* Anti-theft Transparent Shield Layer (Interception Layer) */}
-                  <div
-                    className="absolute inset-0 z-20 pointer-events-auto cursor-grab"
-                    onContextMenu={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      return false;
-                    }}
-                    draggable={false}
-                  />
-
-                  {/* Corner Accent */}
-                  <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md text-[10px] font-mono text-neutral-300 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                    #{index + 1}
+                  <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
+                    <div className="flex items-center gap-1.5 truncate pr-2">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
+                      <span className="font-bold text-white truncate">{item.clientName || "Selected Work"}</span>
+                      <span className="text-neutral-500">/</span>
+                      <span className="truncate opacity-80">{item.title}</span>
+                    </div>
+                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-cyan-300 font-bold border border-white/10 shrink-0">
+                      {item.aspect === "original" ? "ORIGINAL" : item.aspect || "4:5"}
+                    </span>
                   </div>
 
-                  {/* Bottom Vignette with Deliverable Info */}
-                  <div className="absolute inset-x-0 bottom-0 z-10 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end">
-                    <h5 className="text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">
-                      {sheet.title}
-                    </h5>
-                    <p className="text-[10px] font-mono text-cyan-400/90 truncate mt-0.5">
-                      {sheet.type || "Digital Asset"} · {sheet.year}
-                    </p>
+                  <div
+                    className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center`}
+                    style={sheetStyle}
+                  >
+                    <img
+                      src={imgSrc}
+                      alt={item.title}
+                      draggable={false}
+                      decoding="sync"
+                      loading="eager"
+                      className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
+                      style={{
+                        imageRendering: "-webkit-optimize-contrast",
+                        WebkitBackfaceVisibility: "hidden",
+                        transform: "translateZ(0)",
+                      }}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+                    <div
+                      className="absolute inset-0 z-20 pointer-events-auto cursor-grab"
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                      }}
+                      draggable={false}
+                    />
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* Grid Arrangement of Deliverable Sheets */
+          <div className="p-16 flex flex-wrap gap-12 sm:gap-14 max-w-[2800px] items-start select-none">
+            {sheets.map((sheet, index) => {
+              const isSelected = selectedSheetId === sheet.id;
 
-                {/* Selection Corners (shown when clicked / focused) */}
-                {isSelected && (
-                  <>
-                    <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
-                    <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
-                    <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
-                    <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
-                  </>
-                )}
-              </div>
-            );
-          })}
-        </div>
+              // Sheet dimensions strictly matching original aspect ratio without cropping
+              let sheetWidthClass = "w-[440px] sm:w-[540px]";
+              let sheetStyle: React.CSSProperties = { aspectRatio: "4 / 5" };
+
+              if (sheet.aspect === "16:9") {
+                sheetWidthClass = "w-[560px] sm:w-[720px]";
+                sheetStyle = { aspectRatio: "16 / 9" };
+              } else if (sheet.aspect === "9:16") {
+                sheetWidthClass = "w-[320px] sm:w-[380px]";
+                sheetStyle = { aspectRatio: "9 / 16" };
+              } else if (sheet.aspect === "1:1") {
+                sheetWidthClass = "w-[440px] sm:w-[540px]";
+                sheetStyle = { aspectRatio: "1 / 1" };
+              } else if (sheet.aspect === "4:5") {
+                sheetWidthClass = "w-[440px] sm:w-[540px]";
+                sheetStyle = { aspectRatio: "4 / 5" };
+              } else if (sheet.aspect && sheet.aspect.includes(":")) {
+                const [wStr, hStr] = sheet.aspect.split(":");
+                const wNum = parseFloat(wStr);
+                const hNum = parseFloat(hStr);
+                if (wNum && hNum) {
+                  sheetStyle = { aspectRatio: `${wNum} / ${hNum}` };
+                  sheetWidthClass = wNum > hNum ? "w-[560px] sm:w-[720px]" : "w-[440px] sm:w-[540px]";
+                }
+              } else if (sheet.aspect === "original" || !sheet.aspect) {
+                sheetStyle = { aspectRatio: "auto", minHeight: "340px" };
+                sheetWidthClass = "w-[460px] sm:w-[580px]";
+              }
+
+              return (
+                <div
+                  key={sheet.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedSheetId(sheet.id);
+                  }}
+                  className={`group relative flex flex-col rounded-2xl transition-all duration-300 ${
+                    isSelected
+                      ? "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
+                      : "hover:ring-1 hover:ring-white/40 shadow-2xl"
+                  }`}
+                >
+                  {/* Figma Frame Top Label */}
+                  <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
+                    <div className="flex items-center gap-1.5 truncate pr-2">
+                      <span className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
+                      <span className="font-bold text-white truncate">{sheet.clientName}</span>
+                      <span className="text-neutral-500">/</span>
+                      <span className="truncate opacity-80">{sheet.title}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-cyan-300 font-bold border border-white/10">
+                        {sheet.aspect === "original" ? "ORIGINAL" : sheet.aspect}
+                      </span>
+                      {sheet.isVideo && (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/30 uppercase">
+                          VIDEO
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Sheet Visual Container */}
+                  <div
+                    className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center`}
+                    style={sheetStyle}
+                  >
+                    {/* Visual Artwork - 100% Original Resolution & Razor-Sharp when Zoomed */}
+                    <img
+                      src={sheet.image}
+                      alt={sheet.title}
+                      draggable={false}
+                      decoding="sync"
+                      loading="eager"
+                      className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
+                      style={{
+                        imageRendering: "-webkit-optimize-contrast",
+                        WebkitBackfaceVisibility: "hidden",
+                        transform: "translateZ(0)",
+                      }}
+                      onContextMenu={(e) => e.preventDefault()}
+                    />
+
+                    {/* Anti-theft Transparent Shield Layer (Interception Layer) */}
+                    <div
+                      className="absolute inset-0 z-20 pointer-events-auto cursor-grab"
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                      }}
+                      draggable={false}
+                    />
+
+                    {/* Corner Accent */}
+                    <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md text-[10px] font-mono text-neutral-300 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      #{index + 1}
+                    </div>
+
+                    {/* Bottom Vignette with Deliverable Info */}
+                    <div className="absolute inset-x-0 bottom-0 z-10 p-3 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end">
+                      <h5 className="text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">
+                        {sheet.title}
+                      </h5>
+                      <p className="text-[10px] font-mono text-cyan-400/90 truncate mt-0.5">
+                        {sheet.type || "Digital Asset"} · {sheet.year}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Selection Corners (shown when clicked / focused) */}
+                  {isSelected && (
+                    <>
+                      <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
+                      <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
+                      <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
+                      <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* ── Floating Bottom Dock (Zoom Controls, Fit, Shortcuts) ───────────────── */}

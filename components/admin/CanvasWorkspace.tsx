@@ -12,10 +12,14 @@ import {
   HiPhoto,
   HiFilm,
   HiPencilSquare,
-  HiArrowUp,
-  HiArrowDown,
-  HiExclamationCircle,
-  HiEye,
+  HiArrowsPointingOut,
+  HiMiniMagnifyingGlassPlus,
+  HiMiniMagnifyingGlassMinus,
+  HiFolder,
+  HiRectangleGroup,
+  HiLanguage,
+  HiCursorArrowRays,
+  HiHandRaised,
 } from "react-icons/hi2";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
@@ -26,370 +30,633 @@ interface CanvasWorkspaceProps {
   onOpenCanvasPreview?: () => void;
 }
 
+type CanvasTool = "select" | "hand" | "section" | "folder" | "text" | "media";
+
 export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspaceProps) {
   const { clients, heroWorks, canvasItems, updateCanvasItems } = usePortfolioData();
   const { tr } = useLang();
 
-  // Local state for editing sheets before saving
+  // Canvas Viewport Transform Engine (Zoom & Pan)
+  const [zoom, setZoom] = useState<number>(0.85);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 80, y: 80 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [activeTool, setActiveTool] = useState<CanvasTool>("select");
+  const [isSpacePressed, setIsSpacePressed] = useState(false);
+
+  // Selected element & dragging on canvas
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [draggingItemId, setDraggingItemId] = useState<string | null>(null);
+  const [dragItemOffset, setDragItemOffset] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // Canvas items state
   const [items, setItems] = useState<CanvasItem[]>([]);
   const initialItemsRef = useRef<CanvasItem[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Form State for Adding / Editing Canvas Item
-  const [mediaMode, setMediaMode] = useState<"upload" | "link">("upload");
-  const [titleInput, setTitleInput] = useState("");
-  const [subtitleInput, setSubtitleInput] = useState("");
-  const [clientNameInput, setClientNameInput] = useState("");
-  const [aspectInput, setAspectInput] = useState<string>("4:5");
-  const [linkInput, setLinkInput] = useState("");
-  const [mediaPreview, setMediaPreview] = useState<string>("");
-  const [isVideoMedia, setIsVideoMedia] = useState(false);
-  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  // Drag & drop file overlay state
+  const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
 
-  // Drag & drop state for the upload zone
-  const [isDragOver, setIsDragOver] = useState(false);
+  // Modal / Quick Link input state
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
+  const [modalLinkUrl, setModalLinkUrl] = useState("");
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalAspect, setModalAspect] = useState("original");
+
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize items from context or fallback to client works
+  // Initialize items from context or layout initial client works
   useEffect(() => {
-    let sourceItems: CanvasItem[] = [];
-
     if (canvasItems && canvasItems.length > 0) {
-      sourceItems = [...canvasItems];
-    } else {
-      // Collect initial items from client deliverables
-      (clients || []).forEach((c) => {
-        (c.works || []).forEach((w: any) => {
-          if (w.image || w.gdriveUrl || w.videoId) {
-            sourceItems.push({
-              id: w.id || `canvas-${c.id}-${Math.random().toString(36).substr(2, 6)}`,
-              title: w.title || "Client Deliverable",
-              type: w.type || c.category || "Digital Asset",
-              image: normalizeMediaUrl(
-                w.image || (w.videoId ? `https://img.youtube.com/vi/${w.videoId}/maxresdefault.jpg` : "")
-              ),
-              aspect: w.aspect || "4:5",
-              clientName: c.clientName || "Client Vault",
-              clientId: c.id,
-              year: w.year || "2026",
-              isVideo: Boolean(w.isVideo || w.videoId || w.mediaType === "video"),
-              youtubeUrl: w.youtubeUrl || (w.videoId ? `https://www.youtube.com/watch?v=${w.videoId}` : ""),
-              videoId: w.videoId,
-              gdriveUrl: w.gdriveUrl,
-              gdriveId: w.gdriveId,
-              tools: w.tools || c.tools || [],
-            });
-          }
-        });
-      });
-
-      // Append hero showcases if fewer than 4
-      if (sourceItems.length < 4 && heroWorks?.deckCards) {
-        heroWorks.deckCards.forEach((c: any, idx: number) => {
-          sourceItems.push({
-            id: c.id || `canvas-hero-${idx}`,
-            title: c.title || `Curated Asset ${idx + 1}`,
-            type: c.category || "Selected Work",
-            image: normalizeMediaUrl(c.image),
-            aspect: "1:1",
-            clientName: "Selected Works",
-            clientId: "hero",
-            year: "2026",
-            isVideo: false,
-            tools: ["figma", "photoshop"],
-          });
-        });
-      }
+      setItems(canvasItems);
+      initialItemsRef.current = JSON.parse(JSON.stringify(canvasItems));
+      setHasChanges(false);
+      return;
     }
 
-    setItems(sourceItems);
-    initialItemsRef.current = JSON.parse(JSON.stringify(sourceItems));
-    setHasChanges(false);
-  }, [canvasItems, clients, heroWorks]);
+    // Default: Seed initial layout with sections, folders, and client deliverables
+    const initialList: CanvasItem[] = [];
 
-  // Mark changes when items differ from snapshot
+    // 1. Initial Sections
+    initialList.push({
+      id: "section-commercial",
+      title: "Commercial & Video Advertising",
+      type: "section",
+      mediaType: "section",
+      x: 40,
+      y: 40,
+      width: 1400,
+      height: 720,
+      color: "#00A389",
+    });
+
+    initialList.push({
+      id: "section-identity",
+      title: "Brand Identity & Graphic Assets",
+      type: "section",
+      mediaType: "section",
+      x: 40,
+      y: 800,
+      width: 1400,
+      height: 720,
+      color: "#3b82f6",
+    });
+
+    // 2. Initial Folders from clients
+    (clients || []).slice(0, 3).forEach((c, idx) => {
+      initialList.push({
+        id: `folder-${c.id}`,
+        title: c.clientName,
+        type: "folder",
+        mediaType: "folder",
+        clientName: c.clientName,
+        clientId: c.id,
+        x: 80 + idx * 320,
+        y: 110,
+        color: c.color || "#00A389",
+      });
+    });
+
+    // 3. Client Deliverables
+    let cardX = 80;
+    let cardY = 220;
+    let countInRow = 0;
+
+    (clients || []).forEach((c) => {
+      (c.works || []).forEach((w: any) => {
+        if (w.image || w.gdriveUrl || w.videoId) {
+          initialList.push({
+            id: w.id || `canvas-${c.id}-${Math.random().toString(36).substr(2, 6)}`,
+            title: w.title || "Deliverable",
+            type: "media",
+            mediaType: w.videoId ? "youtube" : w.gdriveUrl ? "gdrive" : "image",
+            image: normalizeMediaUrl(
+              w.image || (w.videoId ? `https://img.youtube.com/vi/${w.videoId}/maxresdefault.jpg` : "")
+            ),
+            aspect: w.aspect || "4:5",
+            clientName: c.clientName,
+            clientId: c.id,
+            x: cardX,
+            y: cardY,
+            isVideo: Boolean(w.isVideo || w.videoId),
+            youtubeUrl: w.youtubeUrl,
+            videoId: w.videoId,
+            gdriveUrl: w.gdriveUrl,
+          });
+
+          cardX += 380;
+          countInRow++;
+          if (countInRow >= 3) {
+            countInRow = 0;
+            cardX = 80;
+            cardY += 460;
+          }
+        }
+      });
+    });
+
+    setItems(initialList);
+    initialItemsRef.current = JSON.parse(JSON.stringify(initialList));
+    setHasChanges(false);
+  }, [canvasItems, clients]);
+
+  // Update items helper with tracking
   const updateItemsWithTracking = useCallback((newItems: CanvasItem[]) => {
     setItems(newItems);
     setHasChanges(true);
     setSaveSuccess(false);
   }, []);
 
-  // Process and preview dropped or chosen media file
-  const handleProcessFile = (file: File) => {
-    setErrorMsg(null);
-    const isVideo = file.type.startsWith("video/");
-    const isImage = file.type.startsWith("image/");
+  // Keyboard Shortcuts (Space for Pan, Delete to Remove)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
-    if (!isImage && !isVideo) {
-      setErrorMsg("Format file tidak didukung. Mohon gunakan gambar (PNG, JPG, WEBP, GIF) atau video (MP4, WEBM).");
+      if (e.code === "Space" && !isSpacePressed) {
+        setIsSpacePressed(true);
+      }
+      if (e.key === "v" || e.key === "V") {
+        setActiveTool("select");
+      }
+      if (e.key === "h" || e.key === "H") {
+        setActiveTool("hand");
+      }
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedId) {
+        e.preventDefault();
+        handleDeleteItem(selectedId);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") {
+        setIsSpacePressed(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [isSpacePressed, selectedId]);
+
+  // Wheel Zoom centered at Cursor
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+    const newZoom = Math.min(5.5, Math.max(0.18, zoom * zoomFactor));
+
+    if (!canvasContainerRef.current) return;
+    const rect = canvasContainerRef.current.getBoundingClientRect();
+    const cursorX = e.clientX - rect.left;
+    const cursorY = e.clientY - rect.top;
+
+    const newPanX = cursorX - (cursorX - pan.x) * (newZoom / zoom);
+    const newPanY = cursorY - (cursorY - pan.y) * (newZoom / zoom);
+
+    setZoom(Number(newZoom.toFixed(3)));
+    setPan({ x: newPanX, y: newPanY });
+  };
+
+  // Canvas Mouse Down (Panning or Selecting background)
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // If clicking on canvas background directly
+    if (e.target === e.currentTarget || isSpacePressed || activeTool === "hand" || e.button === 1) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+      if (activeTool === "select" && !isSpacePressed) {
+        setSelectedId(null);
+      }
+    }
+  };
+
+  const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isPanning) {
+      setPan({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y,
+      });
       return;
     }
 
-    // Auto-populate title if empty from clean file name
-    if (!titleInput.trim()) {
-      const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-      setTitleInput(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
+    if (draggingItemId) {
+      // Calculate canvas coordinates based on zoom and pan
+      const currentX = (e.clientX - pan.x) / zoom - dragItemOffset.x;
+      const currentY = (e.clientY - pan.y) / zoom - dragItemOffset.y;
+
+      setItems((prev) =>
+        prev.map((it) => (it.id === draggingItemId ? { ...it, x: Math.round(currentX), y: Math.round(currentY) } : it))
+      );
+      setHasChanges(true);
     }
+  };
 
-    setIsVideoMedia(isVideo);
+  const handleCanvasMouseUp = () => {
+    setIsPanning(false);
+    setDraggingItemId(null);
+  };
 
+  // Start dragging an individual canvas item
+  const handleItemMouseDown = (e: React.MouseEvent, item: CanvasItem) => {
+    e.stopPropagation();
+    setSelectedId(item.id);
+
+    if (activeTool === "hand" || isSpacePressed) return;
+
+    setDraggingItemId(item.id);
+    const itemCanvasX = (e.clientX - pan.x) / zoom;
+    const itemCanvasY = (e.clientY - pan.y) / zoom;
+    setDragItemOffset({
+      x: itemCanvasX - (item.x || 0),
+      y: itemCanvasY - (item.y || 0),
+    });
+  };
+
+  // Add Tools Directly on Canvas
+  const handleAddSection = () => {
+    const newSection: CanvasItem = {
+      id: `section-${Date.now()}`,
+      title: "New Section Frame",
+      type: "section",
+      mediaType: "section",
+      x: Math.round((-pan.x + 120) / zoom),
+      y: Math.round((-pan.y + 120) / zoom),
+      width: 1100,
+      height: 600,
+      color: "#00A389",
+    };
+    updateItemsWithTracking([...items, newSection]);
+    setSelectedId(newSection.id);
+  };
+
+  const handleAddFolder = () => {
+    const newFolder: CanvasItem = {
+      id: `folder-${Date.now()}`,
+      title: "New Client Folder",
+      type: "folder",
+      mediaType: "folder",
+      clientName: "Client Project",
+      x: Math.round((-pan.x + 160) / zoom),
+      y: Math.round((-pan.y + 160) / zoom),
+      color: "#00A389",
+    };
+    updateItemsWithTracking([...items, newFolder]);
+    setSelectedId(newFolder.id);
+  };
+
+  const handleAddText = () => {
+    const newText: CanvasItem = {
+      id: `text-${Date.now()}`,
+      title: "Add Title / Sticky Note",
+      type: "text",
+      mediaType: "text",
+      content: "Tuliskan keterangan karya atau catatan arahan visual...",
+      x: Math.round((-pan.x + 200) / zoom),
+      y: Math.round((-pan.y + 200) / zoom),
+      color: "#f59e0b",
+    };
+    updateItemsWithTracking([...items, newText]);
+    setSelectedId(newText.id);
+  };
+
+  // Process Dropped or Uploaded File
+  const handleProcessDroppedFile = (file: File, dropCanvasX?: number, dropCanvasY?: number) => {
+    const isVideo = file.type.startsWith("video/");
+    const isImg = file.type.startsWith("image/");
+    if (!isImg && !isVideo) return;
+
+    const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
     const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setMediaPreview(result);
-      if (isImage) {
+
+    reader.onload = (ev) => {
+      const result = ev.target?.result as string;
+
+      const placeX = dropCanvasX ?? Math.round((-pan.x + 200) / zoom);
+      const placeY = dropCanvasY ?? Math.round((-pan.y + 200) / zoom);
+
+      if (isImg) {
         const img = new Image();
         img.onload = () => {
           const nw = img.naturalWidth;
           const nh = img.naturalHeight;
+          let detectedAspect = "original";
           if (nw && nh) {
             const ratio = nw / nh;
-            if (Math.abs(ratio - 1) < 0.04) setAspectInput("1:1");
-            else if (Math.abs(ratio - 16 / 9) < 0.05) setAspectInput("16:9");
-            else if (Math.abs(ratio - 9 / 16) < 0.05) setAspectInput("9:16");
-            else if (Math.abs(ratio - 4 / 5) < 0.05) setAspectInput("4:5");
-            else setAspectInput(`${nw}:${nh}`);
+            if (Math.abs(ratio - 1) < 0.04) detectedAspect = "1:1";
+            else if (Math.abs(ratio - 16 / 9) < 0.05) detectedAspect = "16:9";
+            else if (Math.abs(ratio - 9 / 16) < 0.05) detectedAspect = "9:16";
+            else if (Math.abs(ratio - 4 / 5) < 0.05) detectedAspect = "4:5";
+            else detectedAspect = `${nw}:${nh}`;
           }
+
+          const newItem: CanvasItem = {
+            id: `media-${Date.now()}`,
+            title: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+            type: "media",
+            mediaType: "image",
+            image: result,
+            aspect: detectedAspect,
+            clientName: "Selected Work",
+            x: placeX,
+            y: placeY,
+            isVideo: false,
+          };
+          updateItemsWithTracking([newItem, ...items]);
+          setSelectedId(newItem.id);
         };
         img.src = result;
-      } else if (isVideo) {
-        setAspectInput("16:9");
+      } else {
+        const newItem: CanvasItem = {
+          id: `media-${Date.now()}`,
+          title: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+          type: "media",
+          mediaType: "upload",
+          image: result,
+          aspect: "16:9",
+          clientName: "Selected Work",
+          x: placeX,
+          y: placeY,
+          isVideo: true,
+        };
+        updateItemsWithTracking([newItem, ...items]);
+        setSelectedId(newItem.id);
       }
     };
+
     reader.readAsDataURL(file);
   };
 
-  // Handle Drag Over / Leave / Drop
-  const handleDragOver = (e: React.DragEvent) => {
+  // Direct Drag & Drop on Canvas
+  const handleCanvasDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(true);
+    setIsDragOverCanvas(true);
   };
 
-  const handleDragLeave = (e: React.DragEvent) => {
+  const handleCanvasDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(false);
+    setIsDragOverCanvas(false);
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleCanvasDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsDragOver(false);
+    setIsDragOverCanvas(false);
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      handleProcessFile(e.dataTransfer.files[0]);
+      const rect = canvasContainerRef.current?.getBoundingClientRect();
+      const dropClientX = rect ? e.clientX - rect.left : e.clientX;
+      const dropClientY = rect ? e.clientY - rect.top : e.clientY;
+      const dropCanvasX = Math.round((dropClientX - pan.x) / zoom);
+      const dropCanvasY = Math.round((dropClientY - pan.y) / zoom);
+
+      handleProcessDroppedFile(e.dataTransfer.files[0], dropCanvasX, dropCanvasY);
     }
   };
 
-  // Process Link input (YouTube, Google Drive, or Image URL)
-  const handleLinkChange = (url: string) => {
-    setLinkInput(url);
-    setErrorMsg(null);
-    const trimmed = url.trim();
-    if (!trimmed) {
-      setMediaPreview("");
-      setIsVideoMedia(false);
-      return;
-    }
-
-    // 1. YouTube Link
-    const ytId = extractYouTubeId(trimmed);
-    if (ytId) {
-      setIsVideoMedia(true);
-      setMediaPreview(`https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`);
-      if (!titleInput.trim()) setTitleInput("YouTube Video Reel");
-      if (!aspectInput) setAspectInput("16:9");
-      return;
-    }
-
-    // 2. Google Drive Link
-    const driveId = extractGoogleDriveFileId(trimmed);
-    if (driveId) {
-      setIsVideoMedia(true);
-      setMediaPreview(`https://drive.google.com/thumbnail?id=${driveId}&sz=w1200`);
-      if (!titleInput.trim()) setTitleInput("Google Drive Showcase");
-      return;
-    }
-
-    // 3. Direct Image or Video Link
-    if (trimmed.match(/\.(mp4|webm|mov)(\?.*)?$/i)) {
-      setIsVideoMedia(true);
-      setMediaPreview(trimmed);
-    } else {
-      setIsVideoMedia(false);
-      setMediaPreview(trimmed);
-    }
-  };
-
-  // Reset Add/Edit Form
-  const resetForm = () => {
-    setTitleInput("");
-    setSubtitleInput("");
-    setClientNameInput("");
-    setAspectInput("4:5");
-    setLinkInput("");
-    setMediaPreview("");
-    setIsVideoMedia(false);
-    setEditingItemId(null);
-    setErrorMsg(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  // Save new item or update existing item
-  const handleSaveItem = () => {
-    if (!titleInput.trim()) {
-      setErrorMsg("Mohon masukkan Judul Text untuk karya canvas.");
-      return;
-    }
-
-    if (!mediaPreview && !linkInput) {
-      setErrorMsg("Mohon upload file gambar/video atau masukkan link.");
-      return;
-    }
-
-    const ytId = extractYouTubeId(linkInput);
-    const gdriveId = extractGoogleDriveFileId(linkInput);
-
-    if (editingItemId) {
-      // Update existing item
-      const updated = items.map((item) => {
-        if (item.id === editingItemId) {
-          return {
-            ...item,
-            title: titleInput.trim(),
-            type: subtitleInput.trim() || item.type,
-            clientName: clientNameInput.trim() || item.clientName,
-            aspect: aspectInput,
-            image: mediaPreview || item.image,
-            isVideo: isVideoMedia,
-            youtubeUrl: ytId ? linkInput : item.youtubeUrl,
-            videoId: ytId || item.videoId,
-            gdriveUrl: gdriveId ? linkInput : item.gdriveUrl,
-            gdriveId: gdriveId || item.gdriveId,
-          };
-        }
-        return item;
-      });
-      updateItemsWithTracking(updated);
-    } else {
-      // Add new item to beginning of canvas
-      const newItem: CanvasItem = {
-        id: `canvas-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
-        title: titleInput.trim(),
-        type: subtitleInput.trim() || "Canvas Showcase",
-        clientName: clientNameInput.trim() || "Studio Work",
-        aspect: aspectInput,
-        image: mediaPreview,
-        isVideo: isVideoMedia,
-        mediaType: ytId ? "youtube" : gdriveId ? "gdrive" : isVideoMedia ? "upload" : "image",
-        youtubeUrl: ytId ? linkInput : undefined,
-        videoId: ytId || undefined,
-        gdriveUrl: gdriveId ? linkInput : undefined,
-        gdriveId: gdriveId || undefined,
-        year: new Date().getFullYear().toString(),
-        tools: ["digital", "visual"],
-      };
-      updateItemsWithTracking([newItem, ...items]);
-    }
-
-    resetForm();
-  };
-
-  // Open Edit Mode for an existing item
-  const handleEditItem = (item: CanvasItem) => {
-    setEditingItemId(item.id);
-    setTitleInput(item.title);
-    setSubtitleInput(item.type || "");
-    setClientNameInput(item.clientName || "");
-    setAspectInput(item.aspect || "4:5");
-    setMediaPreview(item.image);
-    setIsVideoMedia(Boolean(item.isVideo));
-    setLinkInput(item.youtubeUrl || item.gdriveUrl || "");
-    if (item.youtubeUrl || item.gdriveUrl) {
-      setMediaMode("link");
-    } else {
-      setMediaMode("upload");
-    }
-    // Scroll smoothly to form
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  // Delete an item from canvas
+  // Delete an Item
   const handleDeleteItem = (id: string) => {
-    const updated = items.filter((item) => item.id !== id);
+    const updated = items.filter((it) => it.id !== id);
     updateItemsWithTracking(updated);
-    if (editingItemId === id) resetForm();
+    if (selectedId === id) setSelectedId(null);
   };
 
-  // Move item up / down
-  const handleMoveItem = (index: number, direction: "up" | "down") => {
-    const targetIndex = direction === "up" ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= items.length) return;
-    const newItems = [...items];
-    const temp = newItems[index];
-    newItems[index] = newItems[targetIndex];
-    newItems[targetIndex] = temp;
-    updateItemsWithTracking(newItems);
+  // Update item inline text/title
+  const handleUpdateItemTitle = (id: string, newTitle: string) => {
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, title: newTitle } : it)));
+    setHasChanges(true);
   };
 
-  // Cancel action: Discard uncommitted changes
+  const handleUpdateItemContent = (id: string, newContent: string) => {
+    setItems((prev) => prev.map((it) => (it.id === id ? { ...it, content: newContent } : it)));
+    setHasChanges(true);
+  };
+
+  // Zoom to Fit All Elements
+  const zoomToFitAll = () => {
+    if (!canvasContainerRef.current || items.length === 0) return;
+    const { clientWidth, clientHeight } = canvasContainerRef.current;
+    if (clientWidth === 0 || clientHeight === 0) return;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    items.forEach((it) => {
+      const x = it.x || 0;
+      const y = it.y || 0;
+      const w = it.width || 380;
+      const h = it.height || 480;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x + w);
+      maxY = Math.max(maxY, y + h);
+    });
+
+    const contentW = maxX - minX + 200;
+    const contentH = maxY - minY + 200;
+
+    const scaleX = (clientWidth * 0.9) / contentW;
+    const scaleY = (clientHeight * 0.9) / contentH;
+    const fitScale = Math.min(1.2, Math.max(0.25, Math.min(scaleX, scaleY)));
+
+    setZoom(Number(fitScale.toFixed(2)));
+    setPan({
+      x: Math.round((clientWidth - contentW * fitScale) / 2 - minX * fitScale + 100 * fitScale),
+      y: Math.round((clientHeight - contentH * fitScale) / 2 - minY * fitScale + 100 * fitScale),
+    });
+  };
+
+  // Cancel & Save actions
   const handleCancelChanges = () => {
     setItems(JSON.parse(JSON.stringify(initialItemsRef.current)));
     setHasChanges(false);
-    resetForm();
-    setErrorMsg(null);
+    setSelectedId(null);
   };
 
-  // Save changes action: Persist to Supabase & localStorage
   const handleSaveChanges = async () => {
     setIsSaving(true);
-    setErrorMsg(null);
     try {
       await updateCanvasItems(items);
       initialItemsRef.current = JSON.parse(JSON.stringify(items));
       setHasChanges(false);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3500);
-    } catch (err: any) {
-      setErrorMsg("Gagal menyimpan data canvas. Silakan coba lagi.");
+    } catch (_) {
+      // ignore
     } finally {
       setIsSaving(false);
     }
   };
 
+  // Add Media from Modal Link
+  const handleAddMediaFromLink = () => {
+    if (!modalLinkUrl.trim()) return;
+
+    const ytId = extractYouTubeId(modalLinkUrl);
+    const driveId = extractGoogleDriveFileId(modalLinkUrl);
+
+    let imgPreview = modalLinkUrl;
+    let isVideo = false;
+
+    if (ytId) {
+      imgPreview = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+      isVideo = true;
+    } else if (driveId) {
+      imgPreview = `https://drive.google.com/thumbnail?id=${driveId}&sz=w1200`;
+      isVideo = true;
+    }
+
+    const newItem: CanvasItem = {
+      id: `media-${Date.now()}`,
+      title: modalTitle.trim() || (ytId ? "YouTube Video" : "Digital Asset"),
+      type: "media",
+      mediaType: ytId ? "youtube" : driveId ? "gdrive" : isVideo ? "upload" : "image",
+      image: imgPreview,
+      aspect: modalAspect,
+      clientName: "Selected Work",
+      x: Math.round((-pan.x + 200) / zoom),
+      y: Math.round((-pan.y + 200) / zoom),
+      isVideo,
+      youtubeUrl: ytId ? modalLinkUrl : undefined,
+      videoId: ytId || undefined,
+      gdriveUrl: driveId ? modalLinkUrl : undefined,
+      gdriveId: driveId || undefined,
+    };
+
+    updateItemsWithTracking([newItem, ...items]);
+    setSelectedId(newItem.id);
+    setIsLinkModalOpen(false);
+    setModalLinkUrl("");
+    setModalTitle("");
+  };
+
   return (
-    <div className="flex-1 flex flex-col h-full bg-[#08090a] text-white overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
-      {/* ── Top Header & Global Actions ────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-white/5">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-black flex items-center justify-center text-sm font-black shadow-md">
+    <div className="flex-1 flex flex-col h-full bg-[#0a0b0e] text-white relative select-none overflow-hidden touch-none">
+      {/* ── Top Bar: Figma Style Toolbar & Global Actions ─────────────────────── */}
+      <header className="h-14 shrink-0 bg-[#0f1115] border-b border-white/10 px-4 flex items-center justify-between z-30 shadow-md">
+        {/* Left: Branding & Status */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <span className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold shadow-xs">
               🎨
             </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Rizx Canvas Manager</h1>
-            <span className="px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20 text-[10px] font-mono font-bold uppercase tracking-wider">
-              Studio Board
+            <span className="font-bold text-xs sm:text-sm tracking-tight text-white font-mono">
+              RIZX CANVAS EDITOR
             </span>
           </div>
-          <p className="text-xs sm:text-sm text-neutral-400 mt-1">
-            Kelola lembaran karya pada Rizx Canvas (zoom & pan infinite board). Masukkan foto/video via drag & drop atau link YouTube/Drive.
-          </p>
+
+          <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono text-neutral-400">
+            {items.length} Elements
+          </span>
         </div>
 
-        {/* Global Save / Cancel Buttons */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        {/* Center: Tools (Select, Hand, + Section, + Folder, + Text, + Media) */}
+        <div className="flex items-center gap-1 p-1 bg-black/60 rounded-xl border border-white/10 shadow-inner">
+          {/* Select Tool */}
+          <button
+            type="button"
+            onClick={() => setActiveTool("select")}
+            title="Select & Move (V)"
+            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              activeTool === "select" ? "bg-teal-500 text-black shadow-sm" : "text-neutral-400 hover:text-white"
+            }`}
+          >
+            <HiCursorArrowRays className="w-4 h-4" />
+            <span className="hidden md:inline">Select</span>
+          </button>
+
+          {/* Hand Tool */}
+          <button
+            type="button"
+            onClick={() => setActiveTool("hand")}
+            title="Hand Tool / Pan (H)"
+            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+              activeTool === "hand" ? "bg-teal-500 text-black shadow-sm" : "text-neutral-400 hover:text-white"
+            }`}
+          >
+            <HiHandRaised className="w-4 h-4" />
+            <span className="hidden md:inline">Pan</span>
+          </button>
+
+          <div className="w-[1px] h-4 bg-white/15 mx-1" />
+
+          {/* + Section */}
+          <button
+            type="button"
+            onClick={handleAddSection}
+            title="Tambahkan Section Pembatas Baru"
+            className="p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <HiRectangleGroup className="w-4 h-4 text-emerald-400" />
+            <span className="hidden sm:inline">+ Section</span>
+          </button>
+
+          {/* + Folder */}
+          <button
+            type="button"
+            onClick={handleAddFolder}
+            title="Tambahkan Folder Client Baru"
+            className="p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <HiFolder className="w-4 h-4 text-teal-400" />
+            <span className="hidden sm:inline">+ Folder</span>
+          </button>
+
+          {/* + Text */}
+          <button
+            type="button"
+            onClick={handleAddText}
+            title="Tambahkan Teks / Catatan Langsung di Canvas"
+            className="p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <HiLanguage className="w-4 h-4 text-amber-400" />
+            <span className="hidden sm:inline">+ Text</span>
+          </button>
+
+          {/* + Media (Drop or Link) */}
+          <button
+            type="button"
+            onClick={() => setIsLinkModalOpen(true)}
+            title="Tambahkan Media via Link (YouTube / Drive) atau File"
+            className="p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 text-neutral-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+          >
+            <HiPhoto className="w-4 h-4 text-cyan-400" />
+            <span className="hidden sm:inline">+ Media</span>
+          </button>
+
+          {/* Hidden File Picker Input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*,video/*"
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                handleProcessDroppedFile(e.target.files[0]);
+              }
+            }}
+            className="hidden"
+          />
+        </div>
+
+        {/* Right: Save / Cancel Controls & Zoom */}
+        <div className="flex items-center gap-2">
           {hasChanges && (
             <button
               type="button"
               onClick={handleCancelChanges}
               disabled={isSaving}
-              className="px-4 py-2 rounded-xl border border-white/10 hover:bg-white/5 text-neutral-300 text-xs font-semibold transition-all cursor-pointer flex items-center gap-1.5"
+              className="px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 text-neutral-300 text-xs font-semibold transition-all cursor-pointer"
             >
-              <HiXMark className="w-4 h-4 text-neutral-400" />
-              <span>Batal (Cancel)</span>
+              Batal
             </button>
           )}
 
@@ -397,479 +664,525 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             type="button"
             onClick={handleSaveChanges}
             disabled={isSaving || !hasChanges}
-            className={`px-5 py-2.5 rounded-xl font-bold text-xs transition-all shadow-lg flex items-center gap-2 cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer ${
               hasChanges
-                ? "bg-gradient-to-r from-teal-500 to-emerald-500 text-black hover:opacity-95 shadow-teal-500/20 scale-100"
+                ? "bg-teal-500 hover:bg-teal-400 text-black shadow-teal-500/20"
                 : "bg-white/5 text-neutral-500 border border-white/5 cursor-not-allowed"
             }`}
           >
             {isSaving ? (
               <>
-                <HiArrowPath className="w-4 h-4 animate-spin" />
+                <HiArrowPath className="w-3.5 h-3.5 animate-spin" />
                 <span>Menyimpan...</span>
               </>
             ) : (
               <>
-                <HiCheckCircle className="w-4 h-4" />
-                <span>Save Changes & Update Web</span>
+                <HiCheckCircle className="w-3.5 h-3.5" />
+                <span>Save Changes</span>
               </>
             )}
           </button>
         </div>
-      </div>
+      </header>
 
-      {/* Success Toast */}
+      {/* Success Notification Bar */}
       {saveSuccess && (
-        <div className="mt-4 p-3.5 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200">
-          <HiCheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
-          <span>✓ Perubahan Canvas Berhasil Disimpan & Live di Website!</span>
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-40 px-4 py-2 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-200 shadow-xl backdrop-blur-md">
+          <HiCheckCircle className="w-4 h-4 text-emerald-400" />
+          <span>✓ Perubahan Canvas Berhasil Disimpan & Live di Web!</span>
         </div>
       )}
 
-      {/* Error Message */}
-      {errorMsg && (
-        <div className="mt-4 p-3.5 rounded-xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-medium flex items-center gap-2 animate-in fade-in duration-200">
-          <HiExclamationCircle className="w-5 h-5 text-red-400 shrink-0" />
-          <span>{errorMsg}</span>
-        </div>
-      )}
+      {/* ── Main Canvas Viewport (Infinite 2D Workspace) ───────────────────────── */}
+      <div
+        ref={canvasContainerRef}
+        onWheel={handleWheel}
+        onMouseDown={handleCanvasMouseDown}
+        onMouseMove={handleCanvasMouseMove}
+        onMouseUp={handleCanvasMouseUp}
+        onDragOver={handleCanvasDragOver}
+        onDragLeave={handleCanvasDragLeave}
+        onDrop={handleCanvasDrop}
+        className={`flex-1 relative w-full h-full overflow-hidden ${
+          isPanning || activeTool === "hand" || isSpacePressed ? "cursor-grab active:cursor-grabbing" : "cursor-default"
+        }`}
+      >
+        {/* Background Dot Grid Pattern */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-40"
+          style={{
+            backgroundImage: "radial-gradient(rgba(255, 255, 255, 0.22) 1.2px, transparent 1.2px)",
+            backgroundSize: `${28 * zoom}px ${28 * zoom}px`,
+            backgroundPosition: `${pan.x}px ${pan.y}px`,
+          }}
+        />
 
-      {/* ── Section 1: Add / Edit Canvas Sheet Form ────────────────────────────── */}
-      <div className="mt-6 p-5 sm:p-6 rounded-2xl bg-[#0f1115] border border-white/10 shadow-xl">
-        <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-5">
-          <div className="flex items-center gap-2">
-            <span className="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs font-bold">
-              {editingItemId ? "✎" : "+"}
-            </span>
-            <h2 className="text-sm sm:text-base font-bold text-white">
-              {editingItemId ? "Edit Judul & Media Lembaran Canvas" : "Tambah Lembaran Karya ke Canvas"}
-            </h2>
+        {/* Drag & Drop Visual Overlay */}
+        {isDragOverCanvas && (
+          <div className="absolute inset-0 z-50 bg-teal-950/70 border-4 border-dashed border-teal-400 flex flex-col items-center justify-center pointer-events-none backdrop-blur-xs">
+            <div className="w-16 h-16 rounded-2xl bg-teal-500/20 text-teal-300 border border-teal-400/40 flex items-center justify-center text-3xl mb-3 animate-bounce">
+              📥
+            </div>
+            <p className="text-lg font-bold text-white font-mono">Lepaskan File di Sini ke Canvas</p>
+            <p className="text-xs text-teal-300 font-mono mt-0.5">Mendukung Gambar (PNG, JPG, WEBP) & Video (MP4)</p>
           </div>
-          {editingItemId && (
-            <button
-              onClick={resetForm}
-              className="text-xs text-neutral-400 hover:text-white transition-colors"
-            >
-              Batalkan Edit (Kembali ke Tambah Baru)
-            </button>
-          )}
-        </div>
+        )}
 
-        {/* Input Mode Selector: Upload Drag & Drop vs Link */}
-        <div className="grid grid-cols-2 gap-2 p-1 bg-black/40 rounded-xl border border-white/5 max-w-md mb-5">
-          <button
-            type="button"
-            onClick={() => setMediaMode("upload")}
-            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              mediaMode === "upload"
-                ? "bg-white/10 text-white shadow-sm"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            <HiCloudArrowUp className="w-4 h-4 text-teal-400" />
-            <span>Upload / Drag & Drop</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMediaMode("link")}
-            className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-              mediaMode === "link"
-                ? "bg-white/10 text-white shadow-sm"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            <HiLink className="w-4 h-4 text-teal-400" />
-            <span>Link (YouTube / Drive)</span>
-          </button>
-        </div>
+        {/* ── Transform Content Engine (Scales and Pans Elements) ──────────────── */}
+        <div
+          className={`absolute top-0 left-0 origin-top-left transition-transform duration-75 ${
+            isPanning ? "will-change-transform" : ""
+          }`}
+          style={{
+            transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+            transformOrigin: "0 0",
+          }}
+        >
+          {items.map((item) => {
+            const isSelected = selectedId === item.id;
+            const x = item.x || 0;
+            const y = item.y || 0;
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Left Column: Media Drop Area / Link Input & Live Preview */}
-          <div className="lg:col-span-5 flex flex-col gap-3">
-            {mediaMode === "upload" ? (
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                onClick={() => fileInputRef.current?.click()}
-                className={`relative min-h-[220px] rounded-2xl border-2 border-dashed flex flex-col items-center justify-center p-6 text-center transition-all cursor-pointer group ${
-                  isDragOver
-                    ? "border-teal-400 bg-teal-500/10 scale-[1.01]"
-                    : mediaPreview
-                    ? "border-white/20 bg-black/50"
-                    : "border-white/15 bg-white/[0.02] hover:border-teal-400/50 hover:bg-white/[0.04]"
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,video/*"
-                  onChange={(e) => {
-                    if (e.target.files && e.target.files.length > 0) {
-                      handleProcessFile(e.target.files[0]);
-                    }
+            // 1. SECTION FRAME (Figma Style Boundary Section)
+            if (item.type === "section" || item.mediaType === "section") {
+              const secWidth = item.width || 1200;
+              const secHeight = item.height || 600;
+
+              return (
+                <div
+                  key={item.id}
+                  onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  style={{
+                    transform: `translate3d(${x}px, ${y}px, 0)`,
+                    width: `${secWidth}px`,
+                    height: `${secHeight}px`,
                   }}
-                  className="hidden"
-                />
-
-                {mediaPreview ? (
-                  <div className="relative w-full h-full flex flex-col items-center">
-                    <div className="w-full max-h-48 overflow-hidden rounded-xl border border-white/10 bg-black flex items-center justify-center">
-                      {isVideoMedia ? (
-                        <div className="relative w-full flex items-center justify-center">
-                          {mediaPreview.startsWith("data:video") || mediaPreview.endsWith(".mp4") ? (
-                            <video src={mediaPreview} controls className="max-h-48 w-auto rounded-lg" />
-                          ) : (
-                            <img src={mediaPreview} alt="Preview" className="max-h-48 w-auto object-contain" />
-                          )}
-                          <span className="absolute top-2 right-2 px-2 py-0.5 rounded bg-black/70 text-teal-400 text-[10px] font-mono font-bold flex items-center gap-1">
-                            <HiFilm className="w-3 h-3" /> VIDEO
-                          </span>
-                        </div>
-                      ) : (
-                        <img src={mediaPreview} alt="Preview" className="max-h-48 w-auto object-contain" />
-                      )}
-                    </div>
-                    <p className="text-[11px] text-teal-400 mt-2 font-mono">
-                      Klik atau Drag file baru untuk mengganti media
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <HiCloudArrowUp className="w-6 h-6" />
-                    </div>
-                    <p className="text-xs font-bold text-white mb-1">
-                      Drag & Drop File Gambar atau Video ke Sini
-                    </p>
-                    <p className="text-[11px] text-neutral-400 mb-3">
-                      Mendukung PNG, JPG, WEBP, GIF, atau MP4/MOV
-                    </p>
-                    <span className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-colors">
-                      Pilih File dari Device
-                    </span>
-                  </>
-                )}
-              </div>
-            ) : (
-              /* Link Mode */
-              <div className="flex flex-col gap-3">
-                <div className="p-4 rounded-2xl bg-black/40 border border-white/10 flex flex-col gap-2.5">
-                  <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
-                    <HiLink className="w-4 h-4 text-teal-400" />
-                    <span>URL / Link YouTube atau Google Drive</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={linkInput}
-                    onChange={(e) => handleLinkChange(e.target.value)}
-                    placeholder="Contoh: https://www.youtube.com/watch?v=... atau link Drive"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400 transition-colors"
-                  />
-                  <div className="flex items-center gap-2 pt-1 text-[11px] text-neutral-400 font-mono">
-                    <span className="flex items-center gap-1">
-                      <SiYoutube className="w-3 h-3 text-red-500" /> YouTube
-                    </span>
-                    <span>·</span>
-                    <span className="flex items-center gap-1">
-                      <SiGoogledrive className="w-3 h-3 text-emerald-400" /> Google Drive
-                    </span>
-                  </div>
-                </div>
-
-                {mediaPreview && (
-                  <div className="relative w-full h-44 overflow-hidden rounded-2xl border border-white/10 bg-black flex items-center justify-center">
-                    <img src={mediaPreview} alt="Link Preview" className="max-h-44 w-auto object-contain" />
-                    <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 text-white text-[10px] font-mono border border-white/10">
-                      Thumbnail Preview
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Right Column: Title, Subtitle, Aspect Ratio, Client & Add Button */}
-          <div className="lg:col-span-7 flex flex-col justify-between gap-4">
-            <div className="space-y-3.5">
-              {/* Judul Text Input */}
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                  Judul Text Karya <span className="text-teal-400">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={titleInput}
-                  onChange={(e) => setTitleInput(e.target.value)}
-                  placeholder="Contoh: Byru HRIS - Mobile App 2026"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400 transition-colors"
-                />
-              </div>
-
-              {/* Subtitle / Kategori */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                    Kategori / Sub-judul
-                  </label>
-                  <input
-                    type="text"
-                    value={subtitleInput}
-                    onChange={(e) => setSubtitleInput(e.target.value)}
-                    placeholder="Contoh: Digital Product Advertising"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400 transition-colors"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                    Nama Klien / Tag
-                  </label>
-                  <input
-                    type="text"
-                    value={clientNameInput}
-                    onChange={(e) => setClientNameInput(e.target.value)}
-                    placeholder="Contoh: BYRU - HRIS"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400 transition-colors"
-                  />
-                </div>
-              </div>
-
-              {/* Aspect Ratio Selector */}
-              <div>
-                <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                  Format Ukuran Frame (Aspect Ratio)
-                </label>
-                <div className="grid grid-cols-5 gap-2">
-                  {[
-                    { label: "original", name: "Original (Asli)" },
-                    { label: "4:5", name: "Poster" },
-                    { label: "16:9", name: "Landscape" },
-                    { label: "1:1", name: "Square" },
-                    { label: "9:16", name: "Story/Reel" },
-                  ].map((ratio) => (
-                    <button
-                      key={ratio.label}
-                      type="button"
-                      onClick={() => setAspectInput(ratio.label)}
-                      className={`p-2 rounded-xl border text-center transition-all cursor-pointer ${
-                        aspectInput === ratio.label
-                          ? "border-teal-400 bg-teal-500/15 text-white shadow-sm"
-                          : "border-white/10 bg-white/[0.02] text-neutral-400 hover:text-white hover:border-white/20"
-                      }`}
-                    >
-                      <div className="text-xs font-bold font-mono">{ratio.label}</div>
-                      <div className="text-[10px] text-neutral-400">{ratio.name}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons: Add Item & Reset */}
-            <div className="flex items-center gap-3 pt-2">
-              <button
-                type="button"
-                onClick={handleSaveItem}
-                className="flex-1 py-3 px-4 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-teal-500/10"
-              >
-                <HiPlus className="w-4 h-4" />
-                <span>{editingItemId ? "Perbarui Lembaran Canvas" : "+ Tambah Lembaran ke Canvas"}</span>
-              </button>
-
-              {(titleInput || mediaPreview || linkInput || editingItemId) && (
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="py-3 px-4 rounded-xl border border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white font-medium text-xs transition-colors cursor-pointer"
+                  className={`absolute rounded-3xl border-2 border-dashed transition-all duration-150 p-4 flex flex-col justify-between ${
+                    isSelected
+                      ? "border-teal-400 bg-teal-500/[0.04] shadow-[0_0_30px_rgba(20,184,166,0.15)] ring-2 ring-teal-400/50"
+                      : "border-white/15 bg-white/[0.015] hover:border-white/30"
+                  }`}
                 >
-                  Reset Form
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+                  {/* Section Top Header Pill */}
+                  <div className="flex items-center justify-between pointer-events-auto">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-teal-400" />
+                      <input
+                        type="text"
+                        value={item.title}
+                        onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
+                        className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-teal-400 text-sm font-bold text-white font-mono focus:outline-none px-1 py-0.5 rounded"
+                      />
+                      <span className="text-[10px] font-mono text-neutral-500 uppercase">SECTION</span>
+                    </div>
 
-      {/* ── Section 2: Canvas Sheets Gallery (List, Reorder, Delete, Inline Edit) ── */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm sm:text-base font-bold text-white">
-              Daftar Lembaran Karya di Canvas ({items.length} Sheets)
-            </h2>
-          </div>
-          <span className="text-xs text-neutral-400 font-mono">
-            {hasChanges ? "⚠️ Perubahan belum disimpan" : "✓ Tersinkronisasi"}
-          </span>
-        </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteItem(item.id);
+                      }}
+                      className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer"
+                      title="Hapus Section"
+                    >
+                      <HiTrash className="w-4 h-4" />
+                    </button>
+                  </div>
 
-        {items.length === 0 ? (
-          <div className="p-12 rounded-2xl bg-[#0f1115] border border-white/5 text-center flex flex-col items-center">
-            <span className="text-4xl mb-3">🎨</span>
-            <p className="text-sm font-semibold text-white">Belum Ada Lembaran di Canvas</p>
-            <p className="text-xs text-neutral-400 max-w-sm mt-1">
-              Gunakan form di atas untuk memasukkan karya pertama melalui upload file drag & drop atau link.
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
-            {items.map((item, idx) => (
+                  <div className="text-right text-[11px] font-mono text-neutral-500 select-none">
+                    {secWidth} × {secHeight}
+                  </div>
+                </div>
+              );
+            }
+
+            // 2. FOLDER CLIENT (Folder Card directly on Canvas)
+            if (item.type === "folder" || item.mediaType === "folder") {
+              return (
+                <div
+                  key={item.id}
+                  onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  style={{
+                    transform: `translate3d(${x}px, ${y}px, 0)`,
+                    width: "280px",
+                  }}
+                  className={`absolute rounded-2xl bg-[#111318]/95 border backdrop-blur-xl p-3.5 transition-all shadow-xl flex flex-col gap-2.5 cursor-grab active:cursor-grabbing ${
+                    isSelected
+                      ? "border-teal-400 shadow-[0_15px_40px_rgba(20,184,166,0.3)] ring-2 ring-teal-400/40"
+                      : "border-white/15 hover:border-white/30 hover:bg-[#14171f]"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold shrink-0">
+                        📁
+                      </span>
+                      <input
+                        type="text"
+                        value={item.title}
+                        onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
+                        className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-teal-400 text-xs font-bold text-white focus:outline-none w-36"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteItem(item.id);
+                      }}
+                      className="text-neutral-500 hover:text-red-400 p-1 rounded"
+                    >
+                      <HiTrash className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] font-mono text-neutral-400 pt-1 border-t border-white/5">
+                    <span>Folder Client</span>
+                    <span className="text-teal-400">Direct Vault Link</span>
+                  </div>
+                </div>
+              );
+            }
+
+            // 3. TEXT / STICKY NOTE (Direct Typography on Canvas)
+            if (item.type === "text" || item.mediaType === "text") {
+              return (
+                <div
+                  key={item.id}
+                  onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  style={{
+                    transform: `translate3d(${x}px, ${y}px, 0)`,
+                    width: "320px",
+                  }}
+                  className={`absolute rounded-2xl bg-[#15171e]/95 border p-4 transition-all shadow-xl flex flex-col gap-2 cursor-grab active:cursor-grabbing ${
+                    isSelected
+                      ? "border-amber-400 shadow-[0_15px_40px_rgba(245,158,11,0.25)] ring-2 ring-amber-400/40"
+                      : "border-white/15 hover:border-white/30"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <input
+                      type="text"
+                      value={item.title}
+                      onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
+                      className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-amber-400 text-sm font-bold text-amber-300 focus:outline-none w-full"
+                    />
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteItem(item.id);
+                      }}
+                      className="text-neutral-500 hover:text-red-400 p-1"
+                    >
+                      <HiTrash className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <textarea
+                    value={item.content || ""}
+                    onChange={(e) => handleUpdateItemContent(item.id, e.target.value)}
+                    rows={3}
+                    placeholder="Tuliskan catatan arahan visual..."
+                    className="w-full bg-white/5 border border-white/10 rounded-xl p-2 text-xs text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400 resize-none font-sans"
+                  />
+                </div>
+              );
+            }
+
+            // 4. MEDIA ARTBOARD (Gambar & Video) - 100% Original Resolution & Aspect Ratio
+            let cardWidth = 440;
+            let cardAspect = "4 / 5";
+
+            if (item.aspect === "16:9") {
+              cardWidth = 560;
+              cardAspect = "16 / 9";
+            } else if (item.aspect === "9:16") {
+              cardWidth = 320;
+              cardAspect = "9 / 16";
+            } else if (item.aspect === "1:1") {
+              cardWidth = 440;
+              cardAspect = "1 / 1";
+            } else if (item.aspect && item.aspect.includes(":")) {
+              const [wStr, hStr] = item.aspect.split(":");
+              const wNum = parseFloat(wStr);
+              const hNum = parseFloat(hStr);
+              if (wNum && hNum) {
+                cardAspect = `${wNum} / ${hNum}`;
+                cardWidth = wNum > hNum ? 560 : 440;
+              }
+            } else if (item.aspect === "original") {
+              cardAspect = "auto";
+              cardWidth = 460;
+            }
+
+            return (
               <div
                 key={item.id}
-                className="group relative rounded-2xl bg-[#0f1115] border border-white/10 hover:border-teal-400/40 transition-all flex flex-col overflow-hidden shadow-md"
+                onMouseDown={(e) => handleItemMouseDown(e, item)}
+                style={{
+                  transform: `translate3d(${x}px, ${y}px, 0)`,
+                  width: `${cardWidth}px`,
+                }}
+                className={`group absolute rounded-2xl flex flex-col transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${
+                  isSelected
+                    ? "ring-2 ring-teal-400 shadow-[0_25px_60px_rgba(20,184,166,0.35)] scale-[1.01]"
+                    : "hover:ring-1 hover:ring-white/40 shadow-2xl"
+                }`}
               >
-                {/* Media Thumbnail Container with Chosen Aspect Ratio */}
-                <div
-                  className="relative w-full overflow-hidden bg-black/60 flex items-center justify-center"
-                  style={{
-                    aspectRatio:
-                      item.aspect === "16:9"
-                        ? "16/9"
-                        : item.aspect === "1:1"
-                        ? "1/1"
-                        : item.aspect === "9:16"
-                        ? "9/16"
-                        : item.aspect === "original"
-                        ? "auto"
-                        : item.aspect?.includes(":")
-                        ? item.aspect.replace(":", "/")
-                        : "4/5",
-                    minHeight: item.aspect === "original" ? "200px" : undefined,
-                  }}
-                >
-                  {item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      className="w-full h-full object-contain group-hover:scale-102 transition-transform duration-300"
-                      style={{
-                        imageRendering: "-webkit-optimize-contrast",
-                      }}
+                {/* Header Label (Editable Title & Actions) */}
+                <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
+                    <span className="w-2 h-2 rounded-full bg-teal-400 shrink-0" />
+                    <input
+                      type="text"
+                      value={item.title}
+                      onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
+                      className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-teal-400 text-white font-bold truncate focus:outline-none w-full"
                     />
-                  ) : (
-                    <div className="text-neutral-600 text-xs font-mono">No Media</div>
-                  )}
-
-                  {/* Badges on Top */}
-                  <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md bg-black/70 backdrop-blur-md text-white font-mono text-[9px] font-bold border border-white/10">
-                      {item.aspect || "4:5"}
-                    </span>
-                    {item.isVideo && (
-                      <span className="px-2 py-0.5 rounded-md bg-teal-500/80 backdrop-blur-md text-black font-mono text-[9px] font-black flex items-center gap-1">
-                        <HiFilm className="w-2.5 h-2.5" /> VIDEO
-                      </span>
-                    )}
                   </div>
 
-                  {/* Reorder and Delete Quick Floating Toolbar */}
-                  <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 rounded-xl p-1 border border-white/10 backdrop-blur-md">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-teal-300 font-bold border border-white/10">
+                      {item.aspect === "original" ? "ORIGINAL" : item.aspect}
+                    </span>
+                    {item.isVideo && (
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/30 uppercase">
+                        VIDEO
+                      </span>
+                    )}
                     <button
                       type="button"
-                      onClick={() => handleMoveItem(idx, "up")}
-                      disabled={idx === 0}
-                      title="Geser ke Kiri/Atas"
-                      className="p-1 rounded hover:bg-white/10 text-neutral-300 hover:text-white disabled:opacity-30 cursor-pointer"
-                    >
-                      <HiArrowUp className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleMoveItem(idx, "down")}
-                      disabled={idx === items.length - 1}
-                      title="Geser ke Kanan/Bawah"
-                      className="p-1 rounded hover:bg-white/10 text-neutral-300 hover:text-white disabled:opacity-30 cursor-pointer"
-                    >
-                      <HiArrowDown className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteItem(item.id)}
-                      title="Hapus Lembaran Ini"
-                      className="p-1 rounded hover:bg-red-500/20 text-red-400 hover:text-red-300 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteItem(item.id);
+                      }}
+                      className="text-neutral-500 hover:text-red-400 p-1 rounded transition-colors"
+                      title="Hapus Media"
                     >
                       <HiTrash className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
-                {/* Card Info & Inline Actions */}
-                <div className="p-3.5 flex flex-col justify-between flex-1">
-                  <div>
-                    <h3 className="font-bold text-xs text-white line-clamp-1 group-hover:text-teal-400 transition-colors">
-                      {item.title}
-                    </h3>
-                    <p className="text-[10px] text-neutral-400 line-clamp-1 mt-0.5">
-                      {item.type || item.clientName || "Canvas Asset"}
-                    </p>
-                  </div>
+                {/* Media Container - High-DPI Sharp Rendering */}
+                <div
+                  className="relative w-full rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center"
+                  style={{
+                    aspectRatio: cardAspect,
+                    minHeight: item.aspect === "original" ? "320px" : undefined,
+                  }}
+                >
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      draggable={false}
+                      decoding="sync"
+                      loading="eager"
+                      className="w-full h-full object-contain pointer-events-none select-none"
+                      style={{
+                        imageRendering: "-webkit-optimize-contrast",
+                        WebkitBackfaceVisibility: "hidden",
+                        transform: "translateZ(0)",
+                      }}
+                    />
+                  ) : (
+                    <div className="text-neutral-600 text-xs font-mono">No Media</div>
+                  )}
 
-                  <div className="flex items-center justify-between pt-3 mt-2 border-t border-white/5">
-                    <span className="text-[10px] font-mono text-neutral-500">
-                      #{idx + 1}
-                    </span>
-
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleEditItem(item)}
-                        className="flex items-center gap-1 text-[11px] font-semibold text-teal-400 hover:text-teal-300 cursor-pointer"
-                      >
-                        <HiPencilSquare className="w-3.5 h-3.5" />
-                        <span>Edit Judul</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteItem(item.id)}
-                        className="text-[11px] font-semibold text-neutral-500 hover:text-red-400 cursor-pointer"
-                      >
-                        Hapus
-                      </button>
-                    </div>
-                  </div>
+                  {/* Corner Drag Indicator */}
+                  {isSelected && (
+                    <>
+                      <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
+                      <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
+                      <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
+                      <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
+                    </>
+                  )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
-      {/* Floating Bottom Bar when changes exist */}
-      {hasChanges && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-2xl bg-[#0f1115]/95 border border-teal-500/40 shadow-2xl backdrop-blur-2xl flex items-center gap-4 animate-in fade-in slide-in-from-bottom-3 duration-200">
-          <div className="flex items-center gap-2 text-xs font-medium text-white">
-            <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
-            <span>Ada perubahan canvas yang belum disimpan</span>
-          </div>
+      {/* ── Floating Bottom Dock (Zoom Controls, Fit, Quick Add) ─────────────── */}
+      <footer className="absolute bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-[#13151b]/95 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] font-mono text-xs">
+        {/* Zoom Out */}
+        <button
+          type="button"
+          onClick={() => {
+            const newZ = Math.max(0.18, zoom * 0.85);
+            setZoom(Number(newZ.toFixed(2)));
+          }}
+          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer"
+          title="Zoom Out (-)"
+        >
+          <HiMiniMagnifyingGlassMinus className="w-4 h-4" />
+        </button>
 
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleCancelChanges}
-              disabled={isSaving}
-              className="px-3 py-1.5 rounded-lg border border-white/10 hover:bg-white/5 text-neutral-300 text-xs font-semibold cursor-pointer"
+        {/* Reset 100% */}
+        <button
+          type="button"
+          onClick={() => setZoom(1.0)}
+          className="px-3 py-1 rounded-xl bg-white/5 hover:bg-white/10 font-bold text-teal-400 text-xs cursor-pointer min-w-[56px] text-center"
+          title="Reset Zoom ke 100%"
+        >
+          {Math.round(zoom * 100)}%
+        </button>
+
+        {/* Zoom In */}
+        <button
+          type="button"
+          onClick={() => {
+            const newZ = Math.min(5.5, zoom * 1.15);
+            setZoom(Number(newZ.toFixed(2)));
+          }}
+          className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 flex items-center justify-center text-neutral-300 hover:text-white transition-all cursor-pointer"
+          title="Zoom In (+)"
+        >
+          <HiMiniMagnifyingGlassPlus className="w-4 h-4" />
+        </button>
+
+        <div className="w-[1px] h-4 bg-white/15 mx-1" />
+
+        {/* Zoom to Fit All */}
+        <button
+          type="button"
+          onClick={zoomToFitAll}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-teal-500/20 text-neutral-300 hover:text-teal-300 transition-all cursor-pointer text-xs"
+          title="Fit All Elements (F)"
+        >
+          <HiArrowsPointingOut className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Fit All</span>
+        </button>
+
+        {/* Center Pan Origin */}
+        <button
+          type="button"
+          onClick={() => setPan({ x: 80, y: 80 })}
+          className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white transition-all cursor-pointer text-[11px]"
+          title="Reset Posisi Pan"
+        >
+          Reset Pan
+        </button>
+      </footer>
+
+      {/* ── Modal: Add Media via Link (YouTube / Drive) or Upload ─────────────── */}
+      {isLinkModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-md rounded-2xl bg-[#0f1115] border border-white/15 p-6 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm font-bold">
+                  🖼️
+                </span>
+                <h3 className="font-bold text-sm text-white">Tambahkan Media ke Canvas</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsLinkModalOpen(false)}
+                className="text-neutral-400 hover:text-white p-1 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Quick Upload from Device */}
+            <div
+              onClick={() => {
+                fileInputRef.current?.click();
+                setIsLinkModalOpen(false);
+              }}
+              className="p-4 rounded-xl border border-dashed border-teal-500/40 bg-teal-500/5 hover:bg-teal-500/10 flex items-center justify-center gap-2 text-xs font-bold text-teal-300 cursor-pointer transition-all"
             >
-              Batal
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveChanges}
-              disabled={isSaving}
-              className="px-4 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-black text-xs font-bold cursor-pointer shadow-md flex items-center gap-1.5"
-            >
-              {isSaving ? (
-                <>
-                  <HiArrowPath className="w-3.5 h-3.5 animate-spin" />
-                  <span>Menyimpan...</span>
-                </>
-              ) : (
-                <>
-                  <HiCheckCircle className="w-3.5 h-3.5" />
-                  <span>Save Changes</span>
-                </>
-              )}
-            </button>
+              <HiCloudArrowUp className="w-5 h-5 text-teal-400" />
+              <span>Upload Gambar atau Video dari Device</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-[11px] text-neutral-500 font-mono">
+              <div className="flex-1 h-[1px] bg-white/10" />
+              <span>ATAU MASUKKAN LINK</span>
+              <div className="flex-1 h-[1px] bg-white/10" />
+            </div>
+
+            {/* Link URL Input */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                Link YouTube atau Google Drive
+              </label>
+              <input
+                type="text"
+                value={modalLinkUrl}
+                onChange={(e) => setModalLinkUrl(e.target.value)}
+                placeholder="https://youtube.com/watch?v=... atau link Drive"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400"
+              />
+            </div>
+
+            {/* Judul Text */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                Judul Karya
+              </label>
+              <input
+                type="text"
+                value={modalTitle}
+                onChange={(e) => setModalTitle(e.target.value)}
+                placeholder="Contoh: Byru HRIS - Reel 2026"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400"
+              />
+            </div>
+
+            {/* Aspect Ratio */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-300 mb-1">
+                Aspect Ratio Frame
+              </label>
+              <div className="grid grid-cols-5 gap-1.5">
+                {[
+                  { id: "original", label: "Original" },
+                  { id: "4:5", label: "4:5" },
+                  { id: "16:9", label: "16:9" },
+                  { id: "1:1", label: "1:1" },
+                  { id: "9:16", label: "9:16" },
+                ].map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setModalAspect(r.id)}
+                    className={`py-1.5 px-1.5 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                      modalAspect === r.id
+                        ? "border-teal-400 bg-teal-500/20 text-teal-300"
+                        : "border-white/10 bg-white/5 text-neutral-400 hover:text-white"
+                    }`}
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setIsLinkModalOpen(false)}
+                className="flex-1 py-2.5 rounded-xl border border-white/10 hover:bg-white/5 text-neutral-400 hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={handleAddMediaFromLink}
+                disabled={!modalLinkUrl.trim()}
+                className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-black text-xs font-bold transition-colors shadow-lg shadow-teal-500/20 cursor-pointer"
+              >
+                + Tambah ke Canvas
+              </button>
+            </div>
           </div>
         </div>
       )}

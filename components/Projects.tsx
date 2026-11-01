@@ -951,6 +951,23 @@ export const getModalMediaStyle = (aspect?: string): React.CSSProperties => {
   };
 };
 
+export const getModalContainerMaxWidthClass = (aspect?: string): string => {
+  const norm = (aspect || "").trim().toLowerCase();
+  if (norm === "9:16" || norm === "9/16" || norm === "story" || norm === "reel") {
+    return "max-w-[460px]";
+  }
+  if (norm === "4:5" || norm === "4/5" || norm === "3:4" || norm === "3/4") {
+    return "max-w-[560px]";
+  }
+  if (norm === "1:1" || norm === "1/1" || norm === "square") {
+    return "max-w-[680px]";
+  }
+  if (norm === "16:9" || norm === "16/9" || norm === "landscape" || norm === "21:9") {
+    return "max-w-5xl";
+  }
+  return "max-w-[620px]";
+};
+
 export default function Projects() {
   const { stage1: defaultStage1, stage2: defaultStage2 } = antigravityData;
   // Use context for live edits from Admin Dashboard
@@ -1865,10 +1882,8 @@ export default function Projects() {
               Boolean(resolvedYouTubeId) ||
               (currentWork as any).isVideo === true ||
               (currentWork as any).mediaType === "video" ||
-              (currentWork as any).mediaType === "gdrive_video" ||
-              ((currentWork as any).gdriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test((currentWork as any).gdriveUrl)) ||
-              (currentWork.type && /video|motion|reel|animation/i.test(currentWork.type)) ||
-              (currentWork.title && /video|motion|reel|animation/i.test(currentWork.title))
+              (currentWork as any).mediaType === "youtube" ||
+              ((currentWork as any).gdriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test((currentWork as any).gdriveUrl))
             ) && (currentWork as any).isVideo !== false && (currentWork as any).mediaType !== "image";
 
             const isShowingGDriveVideo = Boolean(
@@ -1885,9 +1900,9 @@ export default function Projects() {
                 }`}
                 onClick={() => setModalData(null)}
               >
-                {/* Modal Container */}
+                {/* Modal Container — Sizes proportionally to the artwork's aspect ratio */}
                 <div
-                  className={`relative max-w-5xl max-h-[92vh] w-full rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col no-scrollbar border ${
+                  className={`relative ${getModalContainerMaxWidthClass(currentWork.aspect)} max-h-[92vh] w-full rounded-2xl sm:rounded-3xl overflow-y-auto shadow-2xl flex flex-col no-scrollbar border ${
                     isLight
                       ? "bg-white border-slate-200 text-slate-800"
                       : "bg-neutral-950 border-white/15 text-white"
@@ -1909,7 +1924,7 @@ export default function Projects() {
 
                   {/* Full-Scale Hero Image Preview Box (Artwork is never shrunk or cropped) */}
                   <div
-                    className={`relative w-full flex items-center justify-center p-3 sm:p-6 select-none shrink-0 ${
+                    className={`relative w-full flex items-center justify-center p-2 sm:p-4 select-none shrink-0 ${
                       isLight ? "bg-slate-100/90" : "bg-black"
                     }`}
                     onTouchStart={handleTouchStart}
@@ -1982,27 +1997,9 @@ export default function Projects() {
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                           allowFullScreen
                         />
-                        {/* Top-right corner patch: seamlessly covers Google Drive [↗] pop-out icon with original artwork */}
+                        {/* Solid opaque top-right corner shield: completely covers and blocks Google Drive pop-out icon [↗] */}
                         <div
-                          className="absolute inset-0 pointer-events-none z-20 overflow-hidden rounded-xl sm:rounded-2xl select-none"
-                          style={{
-                            clipPath: "polygon(calc(100% - 72px) 0, 100% 0, 100% 64px, calc(100% - 72px) 64px)",
-                            WebkitClipPath: "polygon(calc(100% - 72px) 0, 100% 0, 100% 64px, calc(100% - 72px) 64px)",
-                          }}
-                        >
-                          {currentWork.image ? (
-                            <img
-                              src={normalizeMediaUrl(currentWork.image)}
-                              alt=""
-                              className="w-full h-full object-cover pointer-events-none"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-black/80 backdrop-blur-md" />
-                          )}
-                        </div>
-                        {/* Top-right click guard: blocks external pop-out trigger while keeping full video visible */}
-                        <div
-                          className="absolute top-0 right-0 w-20 h-16 z-30 pointer-events-auto cursor-default bg-transparent"
+                          className="absolute top-0 right-0 w-24 h-16 z-30 pointer-events-auto cursor-default bg-neutral-950"
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -2019,7 +2016,7 @@ export default function Projects() {
                       >
                         <img
                           key={currentWork.id}
-                          src={normalizeMediaUrl(currentWork.image)}
+                          src={normalizeMediaUrl(currentWork.image || (currentWork as any).gdriveUrl)}
                           alt={currentWork.title}
                           className="w-full h-full object-cover rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
                           draggable={false}

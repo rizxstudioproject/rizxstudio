@@ -51,19 +51,25 @@ export interface CanvasItem {
   id: string;
   title: string;
   type?: string;
-  image: string;
-  aspect?: string; // "4:5" | "16:9" | "1:1" | "9:16"
+  image?: string;
+  aspect?: string; // "original" | "4:5" | "16:9" | "1:1" | "9:16"
   clientName?: string;
   clientId?: string;
   year?: string;
   isVideo?: boolean;
-  mediaType?: "image" | "youtube" | "gdrive" | "upload";
+  mediaType?: "image" | "youtube" | "gdrive" | "upload" | "text" | "section" | "folder";
   youtubeUrl?: string;
   videoId?: string;
   gdriveUrl?: string;
   gdriveId?: string;
   tools?: string[];
   order?: number;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  color?: string;
+  content?: string;
   createdAt?: string;
 }
 
@@ -2116,7 +2122,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     async (newItems: CanvasItem[]) => {
       const normalized = newItems.map((item) => ({
         ...item,
-        image: normalizeMediaUrl(item.image),
+        image: normalizeMediaUrl(item.image || ""),
       }));
       setCanvasItems(normalized);
       canvasItemsRef.current = normalized;
@@ -2145,7 +2151,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       const newItem: CanvasItem = {
         ...item,
         id: item.id || `canvas-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-        image: normalizeMediaUrl(item.image),
+        image: normalizeMediaUrl(item.image || ""),
         createdAt: new Date().toISOString(),
       };
       const updated = [newItem, ...canvasItemsRef.current];
