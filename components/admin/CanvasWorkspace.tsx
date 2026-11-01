@@ -1555,6 +1555,85 @@ export default function CanvasWorkspace({
     }
   };
 
+  // Helper to commit and finalize creation of user-drawn Frame or Section
+  const finishDrawingShape = useCallback(
+    (clientX: number, clientY: number) => {
+      if (!drawingShapeStartRef.current) return;
+      const start = drawingShapeStartRef.current;
+      const { x: endCanvasX, y: endCanvasY } = getCanvasCoords(clientX, clientY);
+      const rect = canvasContainerRef.current?.getBoundingClientRect();
+      const endScreenX = rect ? clientX - rect.left : clientX;
+      const endScreenY = rect ? clientY - rect.top : clientY;
+      const dragDist = Math.hypot(endScreenX - start.screenX, endScreenY - start.screenY);
+
+      let shapeX = Math.min(start.canvasX, endCanvasX);
+      let shapeY = Math.min(start.canvasY, endCanvasY);
+      let shapeW = Math.abs(endCanvasX - start.canvasX);
+      let shapeH = Math.abs(endCanvasY - start.canvasY);
+
+      const shapeType = drawingShapeBox?.type || (activeTool === "section" ? "section" : "frame");
+
+      if (shapeType === "frame") {
+        if (dragDist < 20) {
+          shapeW = 440;
+          shapeH = 550;
+          shapeX = start.canvasX;
+          shapeY = start.canvasY;
+        }
+        const frameTitle = `Frame ${Math.floor(Date.now() / 1000)}`;
+        const newFrame: CanvasItem = {
+          id: `frame-${Date.now()}`,
+          title: frameTitle,
+          type: "frame",
+          mediaType: "frame",
+          aspect: `${Math.round(shapeW)}:${Math.round(shapeH)}`,
+          x: Math.round(shapeX),
+          y: Math.round(shapeY),
+          width: Math.round(shapeW),
+          height: Math.round(shapeH),
+          color: "#FFFFFF",
+        };
+        setItems((prev) => [...prev, newFrame]);
+        setHasChanges(true);
+        setSaveSuccess(false);
+        setSelectedId(newFrame.id);
+        setSelectedIds(new Set([newFrame.id]));
+      } else if (shapeType === "section") {
+        if (dragDist < 20) {
+          shapeW = 1200;
+          shapeH = 600;
+          shapeX = start.canvasX;
+          shapeY = start.canvasY;
+        }
+        const secCount = items.filter((i) => i.type === "section" || i.mediaType === "section").length + 1;
+        const newSec: CanvasItem = {
+          id: `section-${Date.now()}`,
+          title: `Section ${secCount}`,
+          type: "section",
+          mediaType: "section",
+          x: Math.round(shapeX),
+          y: Math.round(shapeY),
+          width: Math.round(shapeW),
+          height: Math.round(shapeH),
+          color: "#3b82f6",
+        };
+        setItems((prev) => [...prev, newSec]);
+        setHasChanges(true);
+        setSaveSuccess(false);
+        setSelectedId(newSec.id);
+        setSelectedIds(new Set([newSec.id]));
+      }
+
+      setIsDrawingShape(false);
+      setDrawingShapeBox(null);
+      drawingShapeStartRef.current = null;
+      setActiveTool("select");
+      setIsRightSidebarOpen(true);
+      setIsUiExpanded(true);
+    },
+    [drawingShapeBox, activeTool, getCanvasCoords, items]
+  );
+
   // High-performance 0ms-latency window mouse tracking for pan, drag, and marquee selection
   useEffect(() => {
     if (!isPanning && !draggingItemId && !isMarqueeSelecting && !isDrawingShape && !resizingItemId) return;
@@ -1743,73 +1822,7 @@ export default function CanvasWorkspace({
       }
 
       if (isDrawingShape && drawingShapeStartRef.current) {
-        const start = drawingShapeStartRef.current;
-        const { x: endCanvasX, y: endCanvasY } = getCanvasCoords(e.clientX, e.clientY);
-        const rect = canvasContainerRef.current?.getBoundingClientRect();
-        const endScreenX = rect ? e.clientX - rect.left : e.clientX;
-        const endScreenY = rect ? e.clientY - rect.top : e.clientY;
-        const dragDist = Math.hypot(endScreenX - start.screenX, endScreenY - start.screenY);
-
-        let shapeX = Math.min(start.canvasX, endCanvasX);
-        let shapeY = Math.min(start.canvasY, endCanvasY);
-        let shapeW = Math.abs(endCanvasX - start.canvasX);
-        let shapeH = Math.abs(endCanvasY - start.canvasY);
-
-        const shapeType = drawingShapeBox?.type || "frame";
-
-        if (shapeType === "frame") {
-          if (dragDist < 20) {
-            shapeW = 440;
-            shapeH = 550;
-            shapeX = start.canvasX;
-            shapeY = start.canvasY;
-          }
-          const frameTitle = `Frame ${Math.floor(Date.now() / 1000)}`;
-          const newFrame: CanvasItem = {
-            id: `frame-${Date.now()}`,
-            title: frameTitle,
-            type: "media",
-            mediaType: "frame",
-            aspect: `${shapeW}:${shapeH}`,
-            x: shapeX,
-            y: shapeY,
-            width: shapeW,
-            height: shapeH,
-            color: "#FFFFFF",
-          };
-          updateItemsWithTracking([...items, newFrame]);
-          setSelectedId(newFrame.id);
-          setSelectedIds(new Set([newFrame.id]));
-        } else if (shapeType === "section") {
-          if (dragDist < 20) {
-            shapeW = 1200;
-            shapeH = 600;
-            shapeX = start.canvasX;
-            shapeY = start.canvasY;
-          }
-          const secCount = items.filter((i) => i.type === "section" || i.mediaType === "section").length + 1;
-          const newSec: CanvasItem = {
-            id: `section-${Date.now()}`,
-            title: `Section ${secCount}`,
-            type: "section",
-            mediaType: "section",
-            x: shapeX,
-            y: shapeY,
-            width: shapeW,
-            height: shapeH,
-            color: "#3b82f6",
-          };
-          updateItemsWithTracking([...items, newSec]);
-          setSelectedId(newSec.id);
-          setSelectedIds(new Set([newSec.id]));
-        }
-
-        setIsDrawingShape(false);
-        setDrawingShapeBox(null);
-        drawingShapeStartRef.current = null;
-        setActiveTool("select");
-        setIsRightSidebarOpen(true);
-        setIsUiExpanded(true);
+        finishDrawingShape(e.clientX, e.clientY);
       }
 
       // Check if dropped text was dragged into a Frame (Automatic Figma Frame Nesting)
@@ -1852,13 +1865,29 @@ export default function CanvasWorkspace({
         dragRafRef.current = null;
       }
     };
-  }, [isPanning, draggingItemId, isMarqueeSelecting, isDrawingShape, drawingShapeBox, resizingItemId, panStart, pan, zoom, dragItemOffset, items, hiddenItemIds, getCanvasCoords, updateItemsWithTracking]);
+  }, [
+    isPanning,
+    draggingItemId,
+    isMarqueeSelecting,
+    isDrawingShape,
+    drawingShapeBox,
+    resizingItemId,
+    panStart,
+    pan,
+    zoom,
+    dragItemOffset,
+    items,
+    hiddenItemIds,
+    getCanvasCoords,
+    updateItemsWithTracking,
+    finishDrawingShape,
+  ]);
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     // Window listener handles mousemove with passive 0ms latency; kept for fallback
   };
 
-  const handleCanvasMouseUp = () => {
+  const handleCanvasMouseUp = (e?: React.MouseEvent<HTMLDivElement>) => {
     if (dragRafRef.current) {
       cancelAnimationFrame(dragRafRef.current);
       dragRafRef.current = null;
@@ -1874,9 +1903,13 @@ export default function CanvasWorkspace({
       marqueeStartRef.current = null;
     }
     if (isDrawingShape) {
-      setIsDrawingShape(false);
-      setDrawingShapeBox(null);
-      drawingShapeStartRef.current = null;
+      if (e) {
+        finishDrawingShape(e.clientX, e.clientY);
+      } else {
+        setIsDrawingShape(false);
+        setDrawingShapeBox(null);
+        drawingShapeStartRef.current = null;
+      }
     }
     dragItemInitialPositionsRef.current = null;
     setIsPanning(false);
