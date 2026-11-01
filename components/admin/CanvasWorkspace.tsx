@@ -783,97 +783,34 @@ export default function CanvasWorkspace({
   // Initialize items from context or layout initial client works
   useEffect(() => {
     if (canvasItems && canvasItems.length > 0) {
-      setItems(canvasItems);
-      initialItemsRef.current = JSON.parse(JSON.stringify(canvasItems));
+      // Clean legacy auto-generated folder headers if any
+      const cleanedItems = canvasItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
+      setItems(cleanedItems);
+      initialItemsRef.current = JSON.parse(JSON.stringify(cleanedItems));
       setHasChanges(false);
       return;
     }
 
-    // Default: Seed initial layout with sections, folders, and client deliverables
-    const initialList: CanvasItem[] = [];
-
-    // 1. Initial Sections (Spacious boundaries so cards never crowd together)
-    initialList.push({
-      id: "section-commercial",
-      title: "Commercial & Video Advertising",
-      type: "section",
-      mediaType: "section",
-      x: 40,
-      y: 40,
-      width: 2000,
-      height: 940,
-      color: "#00A389",
-    });
-
-    initialList.push({
-      id: "section-identity",
-      title: "Brand Identity & Graphic Assets",
-      type: "section",
-      mediaType: "section",
-      x: 40,
-      y: 1040,
-      width: 2000,
-      height: 940,
-      color: "#3b82f6",
-    });
-
-    // 2. Initial Folders from clients
-    (clients || []).slice(0, 3).forEach((c, idx) => {
-      initialList.push({
-        id: `folder-${c.id}`,
-        title: c.clientName,
-        type: "folder",
-        mediaType: "folder",
-        clientName: c.clientName,
-        clientId: c.id,
-        x: 80 + idx * 320,
-        y: 110,
-        color: c.color || "#00A389",
-      });
-    });
-
-    // 3. Client Deliverables
-    let cardX = 80;
-    let cardY = 220;
-    let countInRow = 0;
-
-    (clients || []).forEach((c) => {
-      (c.works || []).forEach((w: any) => {
-        if (w.image || w.gdriveUrl || w.videoId) {
-          initialList.push({
-            id: w.id || `canvas-${c.id}-${Math.random().toString(36).substr(2, 6)}`,
-            title: w.title || "Deliverable",
-            type: "media",
-            mediaType: w.videoId ? "youtube" : w.gdriveUrl ? "gdrive" : "image",
-            image: normalizeMediaUrl(
-              w.image || (w.videoId ? `https://img.youtube.com/vi/${w.videoId}/maxresdefault.jpg` : "")
-            ),
-            aspect: w.aspect || "4:5",
-            clientName: c.clientName,
-            clientId: c.id,
-            x: cardX,
-            y: cardY,
-            isVideo: Boolean(w.isVideo || w.videoId),
-            youtubeUrl: w.youtubeUrl,
-            videoId: w.videoId,
-            gdriveUrl: w.gdriveUrl,
-          });
-
-          cardX += 580; // Spacious 580px spacing so 440px/560px cards NEVER overlap
-          countInRow++;
-          if (countInRow >= 3) {
-            countInRow = 0;
-            cardX = 80;
-            cardY += 760; // Clean vertical breathing room
-          }
-        }
-      });
-    });
+    // Default: Clean presentation frame layout for presentations, landing pages, videos, and images
+    const initialList: CanvasItem[] = [
+      {
+        id: "frame-presentation-1",
+        title: "Presentation 16:9",
+        type: "frame",
+        mediaType: "frame",
+        x: 80,
+        y: 80,
+        width: 1280,
+        height: 720,
+        aspect: "16:9",
+        color: "#1e1e1e",
+      },
+    ];
 
     setItems(initialList);
     initialItemsRef.current = JSON.parse(JSON.stringify(initialList));
     setHasChanges(false);
-  }, [canvasItems, clients]);
+  }, [canvasItems]);
 
   // Context Menu & Figma Action Handlers
   const handleItemContextMenu = useCallback((e: React.MouseEvent, item: CanvasItem) => {
@@ -4470,33 +4407,14 @@ export default function CanvasWorkspace({
     };
   }, [isFullscreen]);
 
-  // Group canvas items into Client Folders (Folder > Group, Frame, Section, Text) and Root items
-  const { folderGroups, rootItems } = useMemo(() => {
-    const foldersMap: Record<string, CanvasItem[]> = {};
-    const roots: CanvasItem[] = [];
-
-    // Initialize all client folders from clients data
-    clients.forEach((c) => {
-      foldersMap[c.clientName] = [];
-    });
-
-    items.forEach((it) => {
+  // Top-level canvas layers (Frames, Sections, Media/Images/Videos, Text)
+  const rootItems = useMemo(() => {
+    return items.filter((it) => {
+      // Exclude items nested inside a frame from top-level
       const parentId = getParentFrameId(it);
-      // Items that are nested inside a frame will be rendered under that frame's dropdown
-      if (!parentId) {
-        if (it.clientName && foldersMap[it.clientName] !== undefined) {
-          foldersMap[it.clientName].push(it);
-        } else {
-          roots.push(it);
-        }
-      }
+      return !parentId;
     });
-
-    return {
-      folderGroups: Object.entries(foldersMap),
-      rootItems: roots,
-    };
-  }, [clients, items, getParentFrameId]);
+  }, [items, getParentFrameId]);
 
   // Render Frame Layer with Hierarchical Dropdown (Matches Screenshots media_1793529279637_a6c81d01.png & media_1793529302513_bd071dc3.png)
   const renderFrameLayer = (frame: CanvasItem, depth: number = 0): React.ReactNode => {
@@ -4599,6 +4517,18 @@ export default function CanvasWorkspace({
               title={isHidden ? "Tampilkan" : "Sembunyikan"}
             >
               {isHidden ? <HiEyeSlash className="w-3.5 h-3.5" /> : <HiEye className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteItem(frame.id);
+              }}
+              className="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity p-1 text-neutral-400 cursor-pointer"
+              title="Hapus Frame"
+            >
+              <HiTrash className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
@@ -4711,65 +4641,6 @@ export default function CanvasWorkspace({
     );
   };
 
-  const renderFolder = (clientName: string, childItems: CanvasItem[]) => {
-    const isExpanded = expandedFolders[clientName] !== false; // default expanded
-    const isFolderSelected = activeClientFilter === clientName;
-
-    return (
-      <div key={`folder-${clientName}`} className="space-y-0.5">
-        <div
-          onClick={() => {
-            setActiveClientFilter(clientName);
-            handleFocusClientFolder(clientName);
-          }}
-          onContextMenu={(e) => {
-            if (childItems.length > 0) {
-              handleItemContextMenu(e, childItems[0]);
-            }
-          }}
-          className={`w-full px-2 py-1.5 rounded-lg flex items-center justify-between transition-colors cursor-pointer group text-left ${
-            isFolderSelected
-              ? "bg-white/10 text-white font-semibold"
-              : isLight
-              ? "text-slate-800 hover:bg-slate-100"
-              : "text-neutral-200 hover:bg-white/5 hover:text-white"
-          }`}
-        >
-          <div className="flex items-center gap-1.5 truncate flex-1 min-w-0 pr-1">
-            {/* Expand / Collapse Chevron */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleFolderExpanded(clientName);
-              }}
-              className="p-0.5 text-neutral-400 hover:text-white rounded cursor-pointer"
-            >
-              <HiChevronDown
-                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                  isExpanded ? "" : "-rotate-90"
-                }`}
-              />
-            </button>
-            <span className="text-xs">📁</span>
-            <span className="truncate text-xs font-bold tracking-tight font-sans">{clientName}</span>
-          </div>
-
-          <span className="text-[10px] font-mono text-neutral-400 px-1.5 py-0.2 rounded bg-black/30 shrink-0">
-            {childItems.length}
-          </span>
-        </div>
-
-        {/* Child items inside this folder: groups, frames, sections, text, images */}
-        {isExpanded && childItems.length > 0 && (
-          <div className="space-y-0.5 pl-2 border-l border-white/5 ml-3">
-            {childItems.map((child) => renderLayerRow(child, 1))}
-          </div>
-        )}
-      </div>
-    );
-  };
-
   return (
     <div
       ref={workspaceRootRef}
@@ -4835,25 +4706,17 @@ export default function CanvasWorkspace({
               </button>
             </div>
 
-            {/* Hierarchical Layers Tree (Folder > Group, Frame, Section, Text) */}
+            {/* Hierarchical Layers Tree (Figma-style: Frames, Sections, Images, Videos, Text) */}
             <div
               onContextMenu={handleCanvasContextMenu}
               className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs no-scrollbar"
             >
-              {/* Client Folders & their child frames, sections, text, media */}
-              {folderGroups.map(([clientName, childItems]) =>
-                renderFolder(clientName, childItems)
-              )}
-
-              {/* Root / Standalone Layers (Not in any client folder) */}
-              {rootItems.length > 0 && (
-                <div className="pt-2 border-t border-white/10 space-y-0.5">
-                  <div className="px-2 py-1 text-[10px] font-bold text-neutral-400 tracking-wider uppercase flex items-center justify-between">
-                    <span>Root Canvas</span>
-                    <span className="text-[9px] text-neutral-500">{rootItems.length}</span>
-                  </div>
-                  {rootItems.map((rootIt) => renderLayerRow(rootIt, 0))}
+              {rootItems.length === 0 ? (
+                <div className="text-center py-8 text-neutral-500 text-xs font-sans">
+                  Belum ada layer di canvas.
                 </div>
+              ) : (
+                rootItems.map((rootIt) => renderLayerRow(rootIt, 0))
               )}
             </div>
           </aside>
