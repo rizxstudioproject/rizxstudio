@@ -38,6 +38,10 @@ import {
   HiEye,
   HiEyeSlash,
   HiBars3BottomLeft,
+  HiEllipsisHorizontal,
+  HiMinus,
+  HiQuestionMarkCircle,
+  HiAdjustmentsHorizontal,
 } from "react-icons/hi2";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
@@ -162,6 +166,99 @@ export default function CanvasWorkspace({
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+
+  // Right Inspector Sidebar State (Images 1, 2, 3)
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(true);
+  const [inspectorTab, setInspectorTab] = useState<"design" | "prototype">("design");
+  const [showShareToast, setShowShareToast] = useState<boolean>(false);
+  const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
+  const [isMobileInspectorOpen, setIsMobileInspectorOpen] = useState<boolean>(false);
+
+  const selectedItem = useMemo(() => items.find((it) => it.id === selectedId) || null, [items, selectedId]);
+
+  const updateSelectedItem = useCallback((updater: Partial<CanvasItem>) => {
+    if (!selectedId) return;
+    setItems((prev) =>
+      prev.map((it) => (it.id === selectedId ? { ...it, ...updater } : it))
+    );
+    setHasChanges(true);
+  }, [selectedId]);
+
+  const handleShareCanvas = useCallback(async () => {
+    const url = typeof window !== "undefined" ? `${window.location.origin}/canvas` : "/canvas";
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+      }
+    } catch (_) {}
+    setShowShareToast(true);
+    setTimeout(() => setShowShareToast(false), 3000);
+  }, []);
+
+  // Alignment Handler
+  const handleAlign = useCallback(
+    (alignment: "left" | "hcenter" | "right" | "top" | "vcenter" | "bottom" | "distribute") => {
+      if (!selectedItem) return;
+      const curW = selectedItem.width || 440;
+      const curH = selectedItem.height || 400;
+
+      const container = canvasContainerRef.current;
+      const cw = container?.clientWidth || 800;
+      const ch = container?.clientHeight || 600;
+      const viewCenterX = Math.round((cw / 2 - pan.x) / zoom);
+      const viewCenterY = Math.round((ch / 2 - pan.y) / zoom);
+
+      if (alignment === "left") {
+        updateSelectedItem({ x: 0 });
+      } else if (alignment === "hcenter") {
+        updateSelectedItem({ x: Math.round(viewCenterX - curW / 2) });
+      } else if (alignment === "right") {
+        updateSelectedItem({ x: 1000 });
+      } else if (alignment === "top") {
+        updateSelectedItem({ y: 0 });
+      } else if (alignment === "vcenter") {
+        updateSelectedItem({ y: Math.round(viewCenterY - curH / 2) });
+      } else if (alignment === "bottom") {
+        updateSelectedItem({ y: 800 });
+      } else if (alignment === "distribute") {
+        updateSelectedItem({ x: Math.round(selectedItem.x || 0), y: Math.round(selectedItem.y || 0) });
+      }
+    },
+    [selectedItem, pan, zoom, updateSelectedItem]
+  );
+
+  // Selection Colors (Matches Image 2)
+  const selectionColors = useMemo(() => {
+    const set = new Set<string>();
+    items.forEach((it) => {
+      if (it.color) set.add(it.color.toUpperCase());
+    });
+    // Add iconic Figma preset colors matching screenshot 2
+    const defaultColors = ["#E5BF00", "#F9FAEF", "#FDD835", "#000000", "#5B502B", "#00A389", "#0C8CE9", "#FFFFFF"];
+    defaultColors.forEach((c) => set.add(c));
+    return Array.from(set);
+  }, [items]);
+
+  const handleExportSelection = useCallback((format = "png") => {
+    if (!selectedItem) return;
+    if (format === "json") {
+      const blob = new Blob([JSON.stringify(selectedItem, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${selectedItem.title || "canvas-item"}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else if (selectedItem.image) {
+      const a = document.createElement("a");
+      a.href = selectedItem.image;
+      a.download = `${selectedItem.title || "export"}.${format}`;
+      a.click();
+    } else {
+      setShowShareToast(true);
+      setTimeout(() => setShowShareToast(false), 2000);
+    }
+  }, [selectedItem]);
 
   // Drag & drop file overlay state
   const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
@@ -1189,6 +1286,795 @@ export default function CanvasWorkspace({
     }
   };
 
+  // ── Figma Design Inspector Right Sidebar (Images 1, 2, 3) ──────────────────
+  const renderRightInspector = () => {
+    const isTextSelected = selectedItem?.type === "text" || selectedItem?.mediaType === "text";
+    const itemColor = selectedItem?.color || "#F9FAEF";
+    const itemOpacity = selectedItem?.opacity !== undefined ? selectedItem.opacity : 100;
+    const itemRadius = selectedItem?.cornerRadius !== undefined ? selectedItem.cornerRadius : 0;
+    const itemRotation = selectedItem?.rotation !== undefined ? selectedItem.rotation : 0;
+    const itemWidth = selectedItem?.width || (selectedItem?.aspect === "16:9" ? 560 : selectedItem?.aspect === "9:16" ? 320 : 440);
+    const itemHeight = selectedItem?.height || (selectedItem?.aspect === "16:9" ? 315 : selectedItem?.aspect === "9:16" ? 568 : 550);
+    const itemX = selectedItem?.x !== undefined ? selectedItem.x : 0;
+    const itemY = selectedItem?.y !== undefined ? selectedItem.y : 0;
+
+    return (
+      <aside
+        aria-label="Figma Design Inspector"
+        className={`w-64 sm:w-72 shrink-0 h-full border-l flex flex-col z-30 transition-all select-none overflow-y-auto no-scrollbar font-sans ${
+          isLight
+            ? "bg-white/95 border-slate-200 text-slate-800"
+            : "bg-[#1e1e1e] border-white/10 text-[#d4d4d4]"
+        }`}
+      >
+        {/* Top Action Bar (Avatar, Play, Share - Image 1) */}
+        <div className="p-2.5 border-b border-white/10 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-1.5">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-teal-400 to-cyan-500 text-black flex items-center justify-center font-bold text-xs shadow-sm">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <HiChevronDown className="w-3 h-3 text-neutral-400" />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (onOpenCanvasPreview) onOpenCanvasPreview();
+                else if (typeof window !== "undefined") window.open("/canvas", "_blank");
+              }}
+              className="p-1.5 rounded-lg hover:bg-white/10 text-neutral-300 hover:text-white transition-colors cursor-pointer flex items-center gap-0.5"
+              title="Present / Live Canvas"
+            >
+              <HiPlay className="w-3.5 h-3.5" />
+              <HiChevronDown className="w-2.5 h-2.5 text-neutral-400" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleShareCanvas}
+              className="px-3 py-1 rounded-lg bg-[#0c8ce9] hover:bg-[#0b78c7] text-white text-xs font-semibold shadow-sm transition-colors cursor-pointer flex items-center gap-1 active:scale-95"
+            >
+              <span>Share</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Switcher: Design vs Prototype + Zoom Indicator (Image 1) */}
+        <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between shrink-0 text-xs">
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setInspectorTab("design")}
+              className={`font-semibold pb-1 transition-colors cursor-pointer ${
+                inspectorTab === "design"
+                  ? "text-white border-b-2 border-[#0c8ce9]"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              Design
+            </button>
+            <button
+              type="button"
+              onClick={() => setInspectorTab("prototype")}
+              className={`font-semibold pb-1 transition-colors cursor-pointer ${
+                inspectorTab === "prototype"
+                  ? "text-white border-b-2 border-[#0c8ce9]"
+                  : "text-neutral-400 hover:text-white"
+              }`}
+            >
+              Prototype
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={zoomToFitAll}
+            className="flex items-center gap-1 text-[11px] font-mono text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            title="Zoom percentage (click to fit)"
+          >
+            <span>{Math.round(zoom * 100)}%</span>
+            <HiChevronDown className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Sub-header: Element Category Header & Top Tools (Image 1) */}
+        <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between text-xs shrink-0">
+          <div className="flex items-center gap-1 font-semibold text-white">
+            <span>
+              {selectedItem
+                ? selectedItem.type === "section"
+                  ? "Section"
+                  : selectedItem.type === "folder"
+                  ? "Folder Client"
+                  : selectedItem.type === "text"
+                  ? "Text"
+                  : selectedItem.mediaType === "frame"
+                  ? "Frame"
+                  : "Media"
+                : "Canvas Page"}
+            </span>
+            <HiChevronDown className="w-3 h-3 text-neutral-400" />
+          </div>
+
+          <div className="flex items-center gap-1 text-neutral-400">
+            <button
+              type="button"
+              onClick={() => setShowDevMode(true)}
+              className="p-1 rounded hover:bg-white/10 hover:text-white cursor-pointer"
+              title="Dev Mode (Inspect Code)"
+            >
+              <span className="font-mono text-[11px] font-bold">{"</>"}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowFramePresetsPicker(true)}
+              className="p-1 rounded hover:bg-white/10 hover:text-white cursor-pointer"
+              title="Presets & Components"
+            >
+              <span className="text-xs">❖</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedItem) {
+                  updateSelectedItem({ color: itemColor === "#0c8ce9" ? "#00A389" : "#0c8ce9" });
+                }
+              }}
+              className="p-1 rounded hover:bg-white/10 hover:text-white cursor-pointer"
+              title="Toggle Theme / Fill"
+            >
+              <span className="text-xs">◐</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (selectedItem) handleDeleteItem(selectedItem.id);
+              }}
+              className="p-1 rounded hover:bg-white/10 hover:text-red-400 cursor-pointer"
+              title="Delete Element"
+            >
+              <HiEllipsisHorizontal className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* ── Scrollable Inspector Sections ───────────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto divide-y divide-white/10 text-xs">
+          {/* 1. POSITION SECTION (Image 1) */}
+          <div className="p-3 space-y-2.5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Position</span>
+            </div>
+
+            {/* Alignment Row (7 buttons) */}
+            <div className="flex items-center justify-between p-1 rounded-lg bg-[#2c2c2c]/80 border border-white/5 text-neutral-300">
+              <button
+                type="button"
+                onClick={() => handleAlign("left")}
+                title="Align Left"
+                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M2 1h1.5v14H2V1zm3 3h8v3H5V4zm0 5h6v3H5V9z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAlign("hcenter")}
+                title="Align Horizontal Centers"
+                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M7.25 1h1.5v3H13v3H8.75v2H11v3H8.75v3h-1.5v-3H5V9h2.25V7H3V4h4.25V1z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAlign("right")}
+                title="Align Right"
+                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M14 1h-1.5v14H14V1zm-3 3H3v3h8V4zm0 5H5v3h6V9z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAlign("top")}
+                title="Align Top"
+                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M1 2v1.5h14V2H1zm3 3v8h3V5H4zm5 0v6h3V5H9z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAlign("vcenter")}
+                title="Align Vertical Centers"
+                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M1 7.25v1.5h3V13h3V8.75h2V11h3V8.75h3v-1.5h-3V5H9v2.25H7V3H4v4.25H1z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAlign("bottom")}
+                title="Align Bottom"
+                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M1 14v-1.5h14V14H1zm3-3V3h3v8H4zm5 0V5h3v6H9z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAlign("distribute")}
+                title="Tidy Up / Distribute"
+                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M1 3h3v3H1V3zm5 0h4v3H6V3zm6 0h3v3h-3V3zM1 9h3v4H1V9zm5 0h4v4H6V9zm6 0h3v4h-3V9z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Position Coordinates (X, Y) */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                <span className="font-mono text-neutral-400 select-none">X</span>
+                <input
+                  type="number"
+                  value={selectedItem ? itemX : ""}
+                  placeholder="Mixed"
+                  onChange={(e) => updateSelectedItem({ x: Number(e.target.value) || 0 })}
+                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                <span className="font-mono text-neutral-400 select-none">Y</span>
+                <input
+                  type="number"
+                  value={selectedItem ? itemY : ""}
+                  placeholder="Mixed"
+                  onChange={(e) => updateSelectedItem({ y: Number(e.target.value) || 0 })}
+                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Rotation & Flip */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                <span className="font-mono text-neutral-400 select-none">∠</span>
+                <input
+                  type="number"
+                  value={selectedItem ? itemRotation : 0}
+                  onChange={(e) => updateSelectedItem({ rotation: Number(e.target.value) || 0 })}
+                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                />
+                <span className="text-[10px] text-neutral-500">°</span>
+              </div>
+              <div className="flex items-center justify-around rounded-lg bg-[#2c2c2c] p-1 text-neutral-400">
+                <button
+                  type="button"
+                  onClick={() => updateSelectedItem({ rotation: ((selectedItem?.rotation || 0) + 90) % 360 })}
+                  className="p-1 hover:text-white transition-colors cursor-pointer"
+                  title="Rotate 90°"
+                >
+                  <HiArrowPath className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateSelectedItem({ rotation: (selectedItem?.rotation || 0) === 180 ? 0 : 180 })}
+                  className="p-1 hover:text-white transition-colors cursor-pointer"
+                  title="Flip Horizontal / 180°"
+                >
+                  <HiArrowsPointingOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. LAYOUT SECTION (Dimensions, Flow, Spacing - Image 1) */}
+          <div className="p-3 space-y-2.5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Layout</span>
+              <div className="flex items-center gap-1 text-neutral-400">
+                <HiArrowsPointingIn className="w-3.5 h-3.5 cursor-pointer hover:text-white" />
+                <span className="text-xs cursor-pointer hover:text-white">❖</span>
+              </div>
+            </div>
+
+            {/* Flow Buttons */}
+            <div className="flex items-center justify-between p-1 rounded-lg bg-[#2c2c2c]/80 border border-white/5 text-neutral-400">
+              <button
+                type="button"
+                onClick={() => updateSelectedItem({ aspect: "4:5" })}
+                className="p-1 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                title="Grid Flow"
+              >
+                <HiRectangleGroup className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSelectedItem({ aspect: "9:16" })}
+                className="p-1 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                title="Vertical Flow"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M7 2v9.5H4.5L8 15l3.5-3.5H9V2H7z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSelectedItem({ aspect: "16:9" })}
+                className="p-1 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                title="Horizontal Flow"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M2 7h9.5V4.5L15 8l-3.5 3.5V9H2V7z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => updateSelectedItem({ aspect: "1:1" })}
+                className="p-1 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
+                title="Wrap Flow"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M3 4h10v2H3V4zm0 4h7v2H3V8zm0 4h10v2H3v-2z" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Dimensions (W, H) */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                <span className="font-mono text-neutral-400 select-none">W</span>
+                <input
+                  type="number"
+                  value={selectedItem ? itemWidth : 1080}
+                  onChange={(e) => updateSelectedItem({ width: Number(e.target.value) || 100 })}
+                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                <span className="font-mono text-neutral-400 select-none">H</span>
+                <input
+                  type="number"
+                  value={selectedItem ? itemHeight : 1350}
+                  onChange={(e) => updateSelectedItem({ height: Number(e.target.value) || 100 })}
+                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Spacing & Padding */}
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent">
+                <span className="font-mono text-neutral-400 select-none">⦀</span>
+                <input
+                  type="text"
+                  defaultValue="24"
+                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                />
+              </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent">
+                <span className="font-mono text-neutral-400 select-none">吕</span>
+                <input
+                  type="text"
+                  defaultValue="16"
+                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Clip content Checkbox */}
+            <label className="flex items-center gap-2 cursor-pointer pt-1 text-neutral-300 text-[11px]">
+              <input
+                type="checkbox"
+                checked={selectedItem?.clipContent !== false}
+                onChange={(e) => updateSelectedItem({ clipContent: e.target.checked })}
+                className="rounded bg-[#2c2c2c] border-white/20 text-[#0c8ce9] focus:ring-0"
+              />
+              <span>Clip content</span>
+            </label>
+          </div>
+
+          {/* 3. APPEARANCE SECTION (Image 1) */}
+          <div className="p-3 space-y-2.5">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Appearance</span>
+              <div className="flex items-center gap-1 text-neutral-400">
+                <HiEye className="w-3.5 h-3.5 cursor-pointer hover:text-white" />
+                <span className="text-xs cursor-pointer hover:text-white">💧</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-xs">
+              {/* Opacity */}
+              <div className="space-y-1">
+                <span className="text-[10px] text-neutral-400">Opacity</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                  <span className="text-neutral-400 text-xs">▦</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={itemOpacity}
+                    onChange={(e) => updateSelectedItem({ opacity: Math.min(100, Math.max(0, Number(e.target.value))) })}
+                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  />
+                  <span className="text-[10px] text-neutral-500">%</span>
+                </div>
+              </div>
+
+              {/* Corner radius */}
+              <div className="space-y-1">
+                <span className="text-[10px] text-neutral-400">Corner radius</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                  <span className="text-neutral-400 text-xs">⛶</span>
+                  <input
+                    type="number"
+                    min={0}
+                    max={120}
+                    value={itemRadius}
+                    onChange={(e) => updateSelectedItem({ cornerRadius: Math.max(0, Number(e.target.value)) })}
+                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4. TYPOGRAPHY SECTION (Matches Screenshot 3) */}
+          {(isTextSelected || selectedItem?.content || selectedItem?.type === "text") && (
+            <div className="p-3 space-y-2.5">
+              <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+                <span>Typography</span>
+                <span className="text-xs text-neutral-400 cursor-pointer hover:text-white">❖</span>
+              </div>
+
+              {/* Font Family Dropdown */}
+              <div className="relative">
+                <select
+                  value={selectedItem?.fontFamily || "Noto Serif"}
+                  onChange={(e) => updateSelectedItem({ fontFamily: e.target.value })}
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] text-white border border-transparent focus:border-[#0c8ce9] text-xs font-serif appearance-none cursor-pointer"
+                >
+                  <option value="Noto Serif">Noto Serif</option>
+                  <option value="Cinzel">Cinzel (Luxury Serif)</option>
+                  <option value="Inter">Inter (Clean Sans)</option>
+                  <option value="Roboto">Roboto</option>
+                  <option value="Plus Jakarta Sans">Plus Jakarta Sans</option>
+                  <option value="Geist Sans">Geist Sans</option>
+                  <option value="Playfair Display">Playfair Display</option>
+                  <option value="Courier New">Courier New (Mono)</option>
+                </select>
+                <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2.5 top-2.5 pointer-events-none" />
+              </div>
+
+              {/* Font Weight & Size */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="relative">
+                  <select
+                    value={selectedItem?.fontWeight || "Bold"}
+                    onChange={(e) => updateSelectedItem({ fontWeight: e.target.value })}
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] text-white border border-transparent focus:border-[#0c8ce9] text-xs appearance-none cursor-pointer"
+                  >
+                    <option value="Regular">Regular</option>
+                    <option value="Medium">Medium</option>
+                    <option value="SemiBold">SemiBold</option>
+                    <option value="Bold">Bold</option>
+                    <option value="Black">Black</option>
+                  </select>
+                  <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-2 pointer-events-none" />
+                </div>
+                <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                  <input
+                    type="number"
+                    value={selectedItem?.fontSize || 129}
+                    onChange={(e) => updateSelectedItem({ fontSize: Number(e.target.value) || 16 })}
+                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  />
+                  <HiChevronDown className="w-3 h-3 text-neutral-400 shrink-0" />
+                </div>
+              </div>
+
+              {/* Line height & Letter spacing */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="space-y-1">
+                  <span className="text-[10px] text-neutral-400">Line height</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent">
+                    <span className="text-neutral-400 text-xs">A</span>
+                    <input
+                      type="text"
+                      value={selectedItem?.lineHeight || "100%"}
+                      onChange={(e) => updateSelectedItem({ lineHeight: e.target.value })}
+                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <span className="text-[10px] text-neutral-400">Letter spacing</span>
+                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent">
+                    <span className="text-neutral-400 text-xs">|A|</span>
+                    <input
+                      type="text"
+                      value={selectedItem?.letterSpacing || "-3%"}
+                      onChange={(e) => updateSelectedItem({ letterSpacing: e.target.value })}
+                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Text Alignments */}
+              <div className="space-y-1">
+                <span className="text-[10px] text-neutral-400">Alignment</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center p-0.5 rounded-lg bg-[#2c2c2c] text-neutral-300">
+                    <button
+                      type="button"
+                      onClick={() => updateSelectedItem({ textAlign: "left" })}
+                      className={`p-1 rounded ${selectedItem?.textAlign === "left" ? "bg-white/20 text-white" : "hover:text-white"}`}
+                      title="Align Left"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M2 3h12v1.5H2V3zm0 4h8v1.5H2V7zm0 4h12v1.5H2V11z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSelectedItem({ textAlign: "center" })}
+                      className={`p-1 rounded ${selectedItem?.textAlign === "center" ? "bg-white/20 text-white" : "hover:text-white"}`}
+                      title="Align Center"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M2 3h12v1.5H2V3zm2 4h8v1.5H4V7zm-2 4h12v1.5H2V11z" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => updateSelectedItem({ textAlign: "right" })}
+                      className={`p-1 rounded ${selectedItem?.textAlign === "right" ? "bg-white/20 text-white" : "hover:text-white"}`}
+                      title="Align Right"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M2 3h12v1.5H2V3zm4 4h8v1.5H6V7zm-4 4h12v1.5H2V11z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center p-0.5 rounded-lg bg-[#2c2c2c] text-neutral-300">
+                    <button type="button" className="p-1 rounded hover:text-white" title="Align Top">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M2 2h12v1.5H2V2zm6 3l3 3H9v6H7V8H5l3-3z" />
+                      </svg>
+                    </button>
+                    <button type="button" className="p-1 rounded bg-white/20 text-white" title="Align Middle">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M2 7.25h12v1.5H2V7.25zm6-5l2.5 2.5H9v2H7v-2H5.5L8 2.25zm0 11.5L5.5 11.25H7v-2h2v2h1.5L8 13.75z" />
+                      </svg>
+                    </button>
+                    <button type="button" className="p-1 rounded hover:text-white" title="Align Bottom">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M2 12.5h12V14H2v-1.5zm6-3l-3-3h2V2h2v4.5h2l-3 3z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <button type="button" className="p-1 text-neutral-400 hover:text-white">
+                    <HiAdjustmentsHorizontal className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 5. FILL SECTION (Matches Screenshot 1 & 2) */}
+          <div className="p-3 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Fill</span>
+              <div className="flex items-center gap-1.5 text-neutral-400">
+                <span className="text-xs cursor-pointer hover:text-white">❖</span>
+                <button
+                  type="button"
+                  onClick={() => updateSelectedItem({ color: "#00A389" })}
+                  className="hover:text-white cursor-pointer"
+                  title="Add Fill"
+                >
+                  <HiPlus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Color Swatch & Hex input */}
+            <div className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-[#2c2c2c]">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <label className="relative cursor-pointer shrink-0">
+                  <span
+                    className="w-4 h-4 rounded-xs border border-white/20 inline-block shadow-sm"
+                    style={{ backgroundColor: itemColor }}
+                  />
+                  <input
+                    type="color"
+                    value={itemColor.startsWith("#") ? itemColor.slice(0, 7) : "#f9faef"}
+                    onChange={(e) => updateSelectedItem({ color: e.target.value.toUpperCase() })}
+                    className="opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                  />
+                </label>
+                <input
+                  type="text"
+                  value={itemColor.replace("#", "")}
+                  onChange={(e) => updateSelectedItem({ color: `#${e.target.value}` })}
+                  className="w-20 bg-transparent text-white font-mono text-xs uppercase focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 text-xs text-neutral-400">
+                <span className="font-mono text-neutral-300">100%</span>
+                <button type="button" className="hover:text-white cursor-pointer">
+                  <HiEye className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => updateSelectedItem({ color: undefined })}
+                  className="hover:text-red-400 cursor-pointer"
+                  title="Remove Fill"
+                >
+                  <HiMinus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* 6. STROKE SECTION (Matches Screenshot 1 & 2) */}
+          <div className="p-3 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Stroke</span>
+              <button
+                type="button"
+                onClick={() => updateSelectedItem({ strokeColor: "#ffffff", strokeWidth: 1 })}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+              >
+                <HiPlus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {selectedItem?.strokeColor && (
+              <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] text-xs">
+                <div className="flex items-center gap-2">
+                  <span
+                    className="w-3.5 h-3.5 rounded-xs border border-white/30"
+                    style={{ backgroundColor: selectedItem.strokeColor }}
+                  />
+                  <span className="font-mono text-neutral-200">{selectedItem.strokeColor}</span>
+                </div>
+                <div className="flex items-center gap-1 text-neutral-400">
+                  <input
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={selectedItem.strokeWidth || 1}
+                    onChange={(e) => updateSelectedItem({ strokeWidth: Number(e.target.value) || 1 })}
+                    className="w-8 bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                  />
+                  <span>px</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 7. EFFECTS SECTION (Matches Screenshot 1 & 2) */}
+          <div className="p-3 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Effects</span>
+              <button
+                type="button"
+                onClick={() => updateSelectedItem({ effects: "drop-shadow" })}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+              >
+                <HiPlus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+            {selectedItem?.effects && (
+              <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] text-xs">
+                <span className="text-neutral-300">Drop shadow</span>
+                <span className="text-[10px] text-teal-400 font-mono">25% 0 10px</span>
+              </div>
+            )}
+          </div>
+
+          {/* 8. SELECTION COLORS (Matches Screenshot 2) */}
+          <div className="p-3 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Selection colors</span>
+              <div className="flex items-center gap-1.5 text-neutral-400">
+                <span className="text-xs cursor-pointer hover:text-white">❖</span>
+                <span className="text-xs cursor-pointer hover:text-white">🎯</span>
+              </div>
+            </div>
+
+            {/* List of Swatches matching Screenshot 2 */}
+            <div className="space-y-1">
+              {selectionColors.map((colorHex, idx) => (
+                <div
+                  key={`${colorHex}-${idx}`}
+                  onClick={() => updateSelectedItem({ color: colorHex })}
+                  className="flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] hover:bg-[#343434] transition-colors cursor-pointer group"
+                >
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="w-4 h-4 rounded-xs border border-white/20 shrink-0 shadow-sm"
+                      style={{ backgroundColor: colorHex }}
+                    />
+                    <span className="font-mono text-xs text-white uppercase">{colorHex.replace("#", "")}</span>
+                  </div>
+                  <span className="text-[11px] font-mono text-neutral-400 group-hover:text-white">100 %</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 9. LAYOUT GUIDE SECTION (Matches Screenshot 2) */}
+          <div className="p-3 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Layout guide</span>
+              <button type="button" className="text-neutral-400 hover:text-white cursor-pointer">
+                <HiPlus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          {/* 10. EXPORT SECTION (Matches Screenshot 2) */}
+          <div className="p-3 space-y-2">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
+              <span>Export</span>
+              <button
+                type="button"
+                onClick={() => handleExportSelection("png")}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+                title="Quick Export"
+              >
+                <HiPlus className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-1 text-[10px] font-mono">
+              {["PNG", "JPG", "SVG", "PDF"].map((fmt) => (
+                <button
+                  key={fmt}
+                  type="button"
+                  onClick={() => handleExportSelection(fmt.toLowerCase())}
+                  className="py-1 rounded bg-[#2c2c2c] hover:bg-white/10 text-neutral-300 hover:text-white text-center cursor-pointer transition-colors"
+                >
+                  {fmt}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Floating Help Question Button (?) (Matches Screenshot 1 & 2) ───── */}
+        <div className="p-3 flex items-center justify-end border-t border-white/10 bg-[#1e1e1e]/90">
+          <button
+            type="button"
+            onClick={() => setShowHelpModal(true)}
+            className="w-7 h-7 rounded-full bg-[#2c2c2c] hover:bg-white/20 text-neutral-300 hover:text-white flex items-center justify-center font-bold text-xs shadow-lg transition-all cursor-pointer"
+            title="Help & Shortcuts (?)"
+          >
+            ?
+          </button>
+        </div>
+      </aside>
+    );
+  };
+
   // Render Studio Top Pill Menu [Logo] [Portfolio] [Free] [◫]
   const renderPillMenu = () => (
     <div className="relative figma-pill-menu inline-flex items-center">
@@ -1926,6 +2812,24 @@ export default function CanvasWorkspace({
               >
                 {isFullscreen ? <HiArrowsPointingIn className="w-4 h-4" /> : <HiArrowsPointingOut className="w-4 h-4" />}
               </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined" && window.innerWidth < 640) {
+                    setIsMobileInspectorOpen((prev) => !prev);
+                  } else {
+                    setIsRightSidebarOpen((prev) => !prev);
+                  }
+                }}
+                className={`p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors ${
+                  isRightSidebarOpen || isMobileInspectorOpen
+                    ? "bg-[#0c8ce9] border-[#0c8ce9] text-white"
+                    : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
+                }`}
+                title="Design Inspector (Right Menu)"
+              >
+                <HiAdjustmentsHorizontal className="w-4 h-4" />
+              </button>
             </div>
           )}
         {/* Background Dot Grid Pattern */}
@@ -1981,9 +2885,12 @@ export default function CanvasWorkspace({
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0)`,
-                    width: `${secWidth}px`,
-                    height: `${secHeight}px`,
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg)`,
+                    width: `${item.width || secWidth}px`,
+                    height: `${item.height || secHeight}px`,
+                    opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
+                    borderColor: item.color || undefined,
                   }}
                   className={`absolute rounded-3xl border-2 border-dashed transition-all duration-150 p-4 flex flex-col justify-between ${
                     isSelected
@@ -2032,8 +2939,10 @@ export default function CanvasWorkspace({
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0)`,
-                    width: "280px",
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg)`,
+                    width: `${item.width || 280}px`,
+                    opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                   }}
                   className={`absolute rounded-2xl bg-[#111318]/95 border backdrop-blur-xl p-3.5 transition-all shadow-xl flex flex-col gap-2.5 cursor-grab active:cursor-grabbing ${
                     isSelected
@@ -2082,8 +2991,15 @@ export default function CanvasWorkspace({
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0)`,
-                    width: "320px",
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg)`,
+                    width: `${item.width || 320}px`,
+                    opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
+                    fontFamily: item.fontFamily || undefined,
+                    fontSize: item.fontSize ? `${item.fontSize}px` : undefined,
+                    fontWeight: item.fontWeight || undefined,
+                    textAlign: item.textAlign || undefined,
+                    color: item.color || undefined,
                   }}
                   className={`absolute rounded-2xl bg-[#15171e]/95 border p-4 transition-all shadow-xl flex flex-col gap-2 cursor-grab active:cursor-grabbing ${
                     isSelected
@@ -2160,8 +3076,11 @@ export default function CanvasWorkspace({
                   handleItemTouchEnd(e, item, e.currentTarget);
                 }}
                 style={{
-                  transform: `translate3d(${x}px, ${y}px, 0)`,
-                  width: `${cardWidth}px`,
+                  transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg)`,
+                  width: `${item.width || cardWidth}px`,
+                  height: item.height ? `${item.height}px` : undefined,
+                  opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                  borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                 }}
                 className={`group absolute rounded-2xl flex flex-col transition-all duration-150 select-none cursor-grab active:cursor-grabbing ${
                   isSelected
@@ -2259,6 +3178,9 @@ export default function CanvasWorkspace({
           })}
         </div>
       </div>
+
+      {/* Figma Design Inspector / Right Sidebar (Images 1, 2, 3) */}
+      {isUiExpanded && isRightSidebarOpen && renderRightInspector()}
       </div>
 
       {/* ── Figma Floating Studio Toolbar Dock (Images 1, 2, 3, 4, 5) ─────────── */}
@@ -3212,6 +4134,60 @@ export default function CanvasWorkspace({
               onChange={handleSelectFramePreset}
               maxHeight="380px"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Design Inspector Drawer */}
+      {isMobileInspectorOpen && (
+        <div className="fixed inset-0 z-50 sm:hidden flex justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="w-80 max-w-[85vw] h-full shadow-2xl relative animate-in slide-in-from-right duration-200">
+            <button
+              type="button"
+              onClick={() => setIsMobileInspectorOpen(false)}
+              className="absolute top-2.5 right-2.5 z-50 p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-white cursor-pointer"
+              title="Close Inspector"
+            >
+              <HiXMark className="w-4 h-4" />
+            </button>
+            {renderRightInspector()}
+          </div>
+        </div>
+      )}
+
+      {/* Share Toast Notification */}
+      {showShareToast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-teal-500 text-black font-semibold text-xs shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-150">
+          <HiCheckCircle className="w-4 h-4 text-black" />
+          <span>✨ Link Rizx Canvas disalin ke clipboard!</span>
+        </div>
+      )}
+
+      {/* Help & Shortcuts Modal */}
+      {showHelpModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-sm rounded-2xl bg-[#1e1e1e] border border-white/15 p-5 shadow-2xl text-xs space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-2 border-b border-white/10">
+              <span className="font-bold text-white text-sm">Figma Studio Shortcuts</span>
+              <button
+                type="button"
+                onClick={() => setShowHelpModal(false)}
+                className="text-neutral-400 hover:text-white cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2 text-neutral-300 font-mono text-[11px]">
+              <div className="flex justify-between"><span>Move tool</span><span className="text-white">V</span></div>
+              <div className="flex justify-between"><span>Hand tool (Pan)</span><span className="text-white">H / Space+Drag</span></div>
+              <div className="flex justify-between"><span>Frame</span><span className="text-white">F</span></div>
+              <div className="flex justify-between"><span>Section</span><span className="text-white">Shift+S</span></div>
+              <div className="flex justify-between"><span>Rectangle</span><span className="text-white">R</span></div>
+              <div className="flex justify-between"><span>Text</span><span className="text-white">T</span></div>
+              <div className="flex justify-between"><span>Zoom In / Out</span><span className="text-white">+ / -</span></div>
+              <div className="flex justify-between"><span>Zoom to Fit</span><span className="text-white">Shift+1</span></div>
+              <div className="flex justify-between"><span>Expand / Collapse UI</span><span className="text-white">Ctrl+Shift+\</span></div>
+            </div>
           </div>
         </div>
       )}

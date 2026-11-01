@@ -71,6 +71,19 @@ export interface CanvasItem {
   color?: string;
   content?: string;
   createdAt?: string;
+  opacity?: number;
+  cornerRadius?: number;
+  rotation?: number;
+  fontFamily?: string;
+  fontSize?: number;
+  fontWeight?: string;
+  textAlign?: "left" | "center" | "right";
+  lineHeight?: string;
+  letterSpacing?: string;
+  strokeColor?: string;
+  strokeWidth?: number;
+  effects?: string;
+  clipContent?: boolean;
 }
 
 export interface HeroBannerData {
