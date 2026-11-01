@@ -2438,16 +2438,6 @@ export default function CanvasWorkspace({
             </button>
             <button
               type="button"
-              onClick={handleEyeDropper}
-              className="p-1 rounded hover:text-white cursor-pointer"
-              title="Eyedropper Droplet"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                <path d="M8 1c-1.5 2.5-4 5.5-4 8a4 4 0 008 0c0-2.5-2.5-5.5-4-8z" />
-              </svg>
-            </button>
-            <button
-              type="button"
               onClick={() => {
                 if (colorPickerTarget === "fill") updateSelectedItem({ color: undefined });
                 else updateSelectedItem({ strokeColor: undefined });
@@ -3034,52 +3024,6 @@ export default function CanvasWorkspace({
           <div className="p-3 space-y-2.5">
             <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
               <span>Layout</span>
-              <div className="flex items-center gap-1 text-neutral-400">
-                <HiArrowsPointingIn className="w-3.5 h-3.5 cursor-pointer hover:text-white" />
-                <span className="text-xs cursor-pointer hover:text-white">❖</span>
-              </div>
-            </div>
-
-            {/* Flow Buttons */}
-            <div className="flex items-center justify-between p-1 rounded-lg bg-[#2c2c2c]/80 border border-white/5 text-neutral-400">
-              <button
-                type="button"
-                onClick={() => updateSelectedItem({ aspect: "4:5" })}
-                className="p-1 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-                title="Grid Flow"
-              >
-                <HiRectangleGroup className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => updateSelectedItem({ aspect: "9:16" })}
-                className="p-1 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-                title="Vertical Flow"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M7 2v9.5H4.5L8 15l3.5-3.5H9V2H7z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => updateSelectedItem({ aspect: "16:9" })}
-                className="p-1 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-                title="Horizontal Flow"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M2 7h9.5V4.5L15 8l-3.5 3.5V9H2V7z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => updateSelectedItem({ aspect: "1:1" })}
-                className="p-1 rounded hover:bg-white/10 hover:text-white transition-colors cursor-pointer"
-                title="Wrap Flow"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M3 4h10v2H3V4zm0 4h7v2H3V8zm0 4h10v2H3v-2z" />
-                </svg>
-              </button>
             </div>
 
             {/* Dimensions (W, H) */}
@@ -3526,16 +3470,6 @@ export default function CanvasWorkspace({
                   <span className="text-[11px] font-mono text-neutral-400 group-hover:text-white">100 %</span>
                 </div>
               ))}
-            </div>
-          </div>
-
-          {/* 9. LAYOUT GUIDE SECTION (Matches Screenshot 2) */}
-          <div className="p-3 space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Layout guide</span>
-              <button type="button" className="text-neutral-400 hover:text-white cursor-pointer">
-                <HiPlus className="w-3.5 h-3.5" />
-              </button>
             </div>
           </div>
 
