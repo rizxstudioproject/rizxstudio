@@ -328,6 +328,23 @@ export default function CanvasWorkspace({
     currentY: number;
   } | null>(null);
   const marqueeStartRef = useRef<{ x: number; y: number } | null>(null);
+
+  // Interactive Frame & Section Drawing Tool (Figma Style)
+  const [isDrawingShape, setIsDrawingShape] = useState<boolean>(false);
+  const [drawingShapeBox, setDrawingShapeBox] = useState<{
+    startX: number;
+    startY: number;
+    currentX: number;
+    currentY: number;
+    type: "frame" | "section";
+  } | null>(null);
+  const drawingShapeStartRef = useRef<{
+    screenX: number;
+    screenY: number;
+    canvasX: number;
+    canvasY: number;
+  } | null>(null);
+
   const dragItemInitialPositionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
 
   // Context Menu State (Figma Right Click Popup Menu)
@@ -684,9 +701,11 @@ export default function CanvasWorkspace({
     const rect = canvasContainerRef.current?.getBoundingClientRect();
     const offsetX = rect ? clientX - rect.left : clientX;
     const offsetY = rect ? clientY - rect.top : clientY;
+    const curPan = panRef.current || pan;
+    const curZoom = zoomRef.current || zoom;
     return {
-      x: Math.round((offsetX - pan.x) / zoom),
-      y: Math.round((offsetY - pan.y) / zoom),
+      x: Math.round((offsetX - curPan.x) / curZoom),
+      y: Math.round((offsetY - curPan.y) / curZoom),
     };
   }, [pan, zoom]);
 
@@ -1441,25 +1460,22 @@ export default function CanvasWorkspace({
       return;
     }
 
-    // If clicking on canvas in Frame tool mode: place default frame at click coordinate
-    if (activeTool === "frame" && e.button === 0) {
+    // If clicking on canvas in Frame tool or Section tool mode: interactive drag & drop frame creation!
+    if ((activeTool === "frame" || activeTool === "section") && e.button === 0) {
+      const rect = canvasContainerRef.current?.getBoundingClientRect();
+      const screenX = rect ? e.clientX - rect.left : e.clientX;
+      const screenY = rect ? e.clientY - rect.top : e.clientY;
       const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
-      const newFrame: CanvasItem = {
-        id: `frame-${Date.now()}`,
-        title: "Instagram post",
-        type: "media",
-        mediaType: "frame",
-        aspect: "1080:1350",
-        x: canvasX,
-        y: canvasY,
-        width: 1080,
-        height: 1350,
-        color: "#0c8ce9",
-      };
-      updateItemsWithTracking([...items, newFrame]);
-      setSelectedId(newFrame.id);
-      setSelectedIds(new Set([newFrame.id]));
-      setActiveTool("select");
+
+      drawingShapeStartRef.current = { screenX, screenY, canvasX, canvasY };
+      setIsDrawingShape(true);
+      setDrawingShapeBox({
+        startX: screenX,
+        startY: screenY,
+        currentX: screenX,
+        currentY: screenY,
+        type: activeTool === "section" ? "section" : "frame",
+      });
       return;
     }
 
@@ -1488,15 +1504,18 @@ export default function CanvasWorkspace({
         setSelectedId(null);
         setSelectedIds(new Set());
       } else if (activeTool === "select" && e.button === 0) {
-        // Desktop Move / Select tool: Hold and drag to select (Figma Marquee Selection)
-        const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
-        marqueeStartRef.current = { x: canvasX, y: canvasY };
+        // Desktop Move / Select tool: Hold and drag to select (Figma Marquee Selection in container screen space)
+        const rect = canvasContainerRef.current?.getBoundingClientRect();
+        const screenX = rect ? e.clientX - rect.left : e.clientX;
+        const screenY = rect ? e.clientY - rect.top : e.clientY;
+
+        marqueeStartRef.current = { x: screenX, y: screenY };
         setIsMarqueeSelecting(true);
         setMarqueeBox({
-          startX: canvasX,
-          startY: canvasY,
-          currentX: canvasX,
-          currentY: canvasY,
+          startX: screenX,
+          startY: screenY,
+          currentX: screenX,
+          currentY: screenY,
         });
         if (!e.shiftKey) {
           setSelectedId(null);
@@ -1508,7 +1527,7 @@ export default function CanvasWorkspace({
 
   // High-performance 0ms-latency window mouse tracking for pan, drag, and marquee selection
   useEffect(() => {
-    if (!isPanning && !draggingItemId && !isMarqueeSelecting) return;
+    if (!isPanning && !draggingItemId && !isMarqueeSelecting && !isDrawingShape) return;
 
     const onWindowMove = (e: MouseEvent) => {
       if (isPanning) {
@@ -1524,23 +1543,46 @@ export default function CanvasWorkspace({
             }
           });
         }
+      } else if (isDrawingShape && drawingShapeStartRef.current) {
+        const rect = canvasContainerRef.current?.getBoundingClientRect();
+        const curScreenX = rect ? e.clientX - rect.left : e.clientX;
+        const curScreenY = rect ? e.clientY - rect.top : e.clientY;
+
+        setDrawingShapeBox((prev) =>
+          prev
+            ? {
+                ...prev,
+                currentX: curScreenX,
+                currentY: curScreenY,
+              }
+            : null
+        );
       } else if (isMarqueeSelecting && marqueeStartRef.current) {
-        const { x: curCanvasX, y: curCanvasY } = getCanvasCoords(e.clientX, e.clientY);
+        const rect = canvasContainerRef.current?.getBoundingClientRect();
+        const curScreenX = rect ? e.clientX - rect.left : e.clientX;
+        const curScreenY = rect ? e.clientY - rect.top : e.clientY;
         const sX = marqueeStartRef.current.x;
         const sY = marqueeStartRef.current.y;
 
         setMarqueeBox({
           startX: sX,
           startY: sY,
-          currentX: curCanvasX,
-          currentY: curCanvasY,
+          currentX: curScreenX,
+          currentY: curScreenY,
         });
 
-        // Compute marquee box in canvas coordinates
-        const boxLeft = Math.min(sX, curCanvasX);
-        const boxRight = Math.max(sX, curCanvasX);
-        const boxTop = Math.min(sY, curCanvasY);
-        const boxBottom = Math.max(sY, curCanvasY);
+        // Compute marquee box in canvas coordinates for item hit testing
+        const curPan = panRef.current || pan;
+        const curZoom = zoomRef.current || zoom;
+        const minScreenX = Math.min(sX, curScreenX);
+        const maxScreenX = Math.max(sX, curScreenX);
+        const minScreenY = Math.min(sY, curScreenY);
+        const maxScreenY = Math.max(sY, curScreenY);
+
+        const boxLeft = (minScreenX - curPan.x) / curZoom;
+        const boxRight = (maxScreenX - curPan.x) / curZoom;
+        const boxTop = (minScreenY - curPan.y) / curZoom;
+        const boxBottom = (maxScreenY - curPan.y) / curZoom;
 
         // Find intersecting items
         const hitIds = new Set<string>();
@@ -1603,7 +1645,7 @@ export default function CanvasWorkspace({
       }
     };
 
-    const onWindowUp = () => {
+    const onWindowUp = (e: MouseEvent) => {
       if (dragRafRef.current) {
         cancelAnimationFrame(dragRafRef.current);
         dragRafRef.current = null;
@@ -1612,6 +1654,76 @@ export default function CanvasWorkspace({
         setIsMarqueeSelecting(false);
         setMarqueeBox(null);
         marqueeStartRef.current = null;
+      }
+
+      if (isDrawingShape && drawingShapeStartRef.current) {
+        const start = drawingShapeStartRef.current;
+        const { x: endCanvasX, y: endCanvasY } = getCanvasCoords(e.clientX, e.clientY);
+        const rect = canvasContainerRef.current?.getBoundingClientRect();
+        const endScreenX = rect ? e.clientX - rect.left : e.clientX;
+        const endScreenY = rect ? e.clientY - rect.top : e.clientY;
+        const dragDist = Math.hypot(endScreenX - start.screenX, endScreenY - start.screenY);
+
+        let shapeX = Math.min(start.canvasX, endCanvasX);
+        let shapeY = Math.min(start.canvasY, endCanvasY);
+        let shapeW = Math.abs(endCanvasX - start.canvasX);
+        let shapeH = Math.abs(endCanvasY - start.canvasY);
+
+        const shapeType = drawingShapeBox?.type || "frame";
+
+        if (shapeType === "frame") {
+          if (dragDist < 20) {
+            shapeW = 440;
+            shapeH = 550;
+            shapeX = start.canvasX;
+            shapeY = start.canvasY;
+          }
+          const frameCount = items.filter((i) => i.mediaType === "frame" && i.type !== "group").length + 1;
+          const newFrame: CanvasItem = {
+            id: `frame-${Date.now()}`,
+            title: `Frame ${frameCount}`,
+            type: "media",
+            mediaType: "frame",
+            aspect: `${shapeW}:${shapeH}`,
+            x: shapeX,
+            y: shapeY,
+            width: shapeW,
+            height: shapeH,
+            color: "#0c8ce9",
+          };
+          updateItemsWithTracking([...items, newFrame]);
+          setSelectedId(newFrame.id);
+          setSelectedIds(new Set([newFrame.id]));
+        } else if (shapeType === "section") {
+          if (dragDist < 20) {
+            shapeW = 1200;
+            shapeH = 600;
+            shapeX = start.canvasX;
+            shapeY = start.canvasY;
+          }
+          const secCount = items.filter((i) => i.type === "section" || i.mediaType === "section").length + 1;
+          const newSec: CanvasItem = {
+            id: `section-${Date.now()}`,
+            title: `Section ${secCount}`,
+            type: "section",
+            mediaType: "section",
+            x: shapeX,
+            y: shapeY,
+            width: shapeW,
+            height: shapeH,
+            color: "#3b82f6",
+          };
+          updateItemsWithTracking([...items, newSec]);
+          setSelectedId(newSec.id);
+          setSelectedIds(new Set([newSec.id]));
+        }
+
+        setIsDrawingShape(false);
+        setDrawingShapeBox(null);
+        drawingShapeStartRef.current = null;
+        setActiveTool("select");
+        setIsRightSidebarOpen(true);
+        setIsUiExpanded(true);
       }
 
       // Check if dropped text was dragged into a Frame (Automatic Figma Frame Nesting)
@@ -1654,7 +1766,7 @@ export default function CanvasWorkspace({
         dragRafRef.current = null;
       }
     };
-  }, [isPanning, draggingItemId, isMarqueeSelecting, panStart, pan, zoom, dragItemOffset, items, hiddenItemIds]);
+  }, [isPanning, draggingItemId, isMarqueeSelecting, isDrawingShape, drawingShapeBox, panStart, pan, zoom, dragItemOffset, items, hiddenItemIds, getCanvasCoords, updateItemsWithTracking]);
 
   const handleCanvasMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     // Window listener handles mousemove with passive 0ms latency; kept for fallback
@@ -1669,6 +1781,11 @@ export default function CanvasWorkspace({
       setIsMarqueeSelecting(false);
       setMarqueeBox(null);
       marqueeStartRef.current = null;
+    }
+    if (isDrawingShape) {
+      setIsDrawingShape(false);
+      setDrawingShapeBox(null);
+      drawingShapeStartRef.current = null;
     }
     dragItemInitialPositionsRef.current = null;
     setIsPanning(false);
@@ -4942,20 +5059,41 @@ export default function CanvasWorkspace({
               </div>
             </div>
           )}
-
-          {/* Marquee Selection Box (Rubber-band Drag) */}
-          {marqueeBox && (
-            <div
-              className="absolute pointer-events-none border border-[#0c8ce9] bg-[#0c8ce9]/12 z-50 rounded-xs"
-              style={{
-                left: `${Math.min(marqueeBox.startX, marqueeBox.currentX)}px`,
-                top: `${Math.min(marqueeBox.startY, marqueeBox.currentY)}px`,
-                width: `${Math.abs(marqueeBox.currentX - marqueeBox.startX)}px`,
-                height: `${Math.abs(marqueeBox.currentY - marqueeBox.startY)}px`,
-              }}
-            />
-          )}
         </div>
+
+        {/* ── Screen-space Overlays directly on canvasContainerRef (100% exact cursor match, no offset) ── */}
+
+        {/* Marquee Selection Box (Rubber-band Drag - Matches Screenshot Image 2) */}
+        {marqueeBox && (
+          <div
+            className="absolute pointer-events-none border border-[#0c8ce9] bg-[#0c8ce9]/12 z-50 rounded-xs"
+            style={{
+              left: `${Math.min(marqueeBox.startX, marqueeBox.currentX)}px`,
+              top: `${Math.min(marqueeBox.startY, marqueeBox.currentY)}px`,
+              width: `${Math.abs(marqueeBox.currentX - marqueeBox.startX)}px`,
+              height: `${Math.abs(marqueeBox.currentY - marqueeBox.startY)}px`,
+            }}
+          />
+        )}
+
+        {/* Interactive Frame & Section Drawing Preview Box (Matches Figma Reference Screenshot Image 2) */}
+        {drawingShapeBox && (
+          <div
+            className="absolute pointer-events-none border-2 border-[#0c8ce9] bg-[#0c8ce9]/10 z-50 rounded-lg shadow-lg"
+            style={{
+              left: `${Math.min(drawingShapeBox.startX, drawingShapeBox.currentX)}px`,
+              top: `${Math.min(drawingShapeBox.startY, drawingShapeBox.currentY)}px`,
+              width: `${Math.max(2, Math.abs(drawingShapeBox.currentX - drawingShapeBox.startX))}px`,
+              height: `${Math.max(2, Math.abs(drawingShapeBox.currentY - drawingShapeBox.startY))}px`,
+            }}
+          >
+            {/* Figma Dimension Badge right at cursor corner */}
+            <div className="absolute -bottom-7 right-0 px-2 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none">
+              {Math.round(Math.abs(drawingShapeBox.currentX - drawingShapeBox.startX) / (zoomRef.current || zoom))} ×{" "}
+              {Math.round(Math.abs(drawingShapeBox.currentY - drawingShapeBox.startY) / (zoomRef.current || zoom))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Figma Design Inspector / Right Sidebar (Images 1, 2, 3) */}
