@@ -957,6 +957,212 @@ export default function CanvasWorkspace({
     setSaveSuccess(false);
   }, []);
 
+  // Helper to identify Frame items
+  const isFrameItem = useCallback((it: CanvasItem) => {
+    return (
+      it.mediaType === "frame" ||
+      it.type === "section" ||
+      it.type === "frame" ||
+      it.type === "group" ||
+      (it.aspect && it.aspect !== "original")
+    );
+  }, []);
+
+  // Helper to find parent frame ID of an item
+  const getParentFrameId = useCallback((it: CanvasItem) => {
+    if (it.frameId) return it.frameId;
+    const itX = it.x || 0;
+    const itY = it.y || 0;
+    const parent = items.find((f) => {
+      if (f.id === it.id || !isFrameItem(f)) return false;
+      const fW = f.width || (f.aspect === "16:9" ? 720 : 480);
+      const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
+      const fX = f.x || 0;
+      const fY = f.y || 0;
+      return itX >= fX && itX <= fX + fW && itY >= fY && itY <= fY + fH;
+    });
+    return parent?.id;
+  }, [items, isFrameItem]);
+
+  // ── Figma Group, Frame Selection & Ungroup Handlers ─────────────────────────
+  const handleGroupSelection = useCallback(() => {
+    const contextItem = contextMenu?.item;
+    const selectedList = items.filter(
+      (it) => selectedIds.has(it.id) || it.id === selectedId || (contextItem && it.id === contextItem.id)
+    );
+    if (selectedList.length === 0) return;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    selectedList.forEach((it) => {
+      const x = it.x || 0;
+      const y = it.y || 0;
+      const w = it.width || 440;
+      const h = it.height || 550;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x + w);
+      maxY = Math.max(maxY, y + h);
+    });
+
+    const padding = 20;
+    const groupX = Math.max(0, Math.round(minX - padding));
+    const groupY = Math.max(0, Math.round(minY - padding));
+    const groupW = Math.round(maxX - minX + padding * 2);
+    const groupH = Math.round(maxY - minY + padding * 2);
+
+    const groupId = `group-${Date.now()}`;
+    const newGroup: CanvasItem = {
+      id: groupId,
+      title: `Group ${items.filter((i) => i.type === "group").length + 1}`,
+      type: "group",
+      mediaType: "frame",
+      x: groupX,
+      y: groupY,
+      width: groupW,
+      height: groupH,
+      color: "transparent",
+      strokeColor: "#0c8ce9",
+      strokeWidth: 1,
+    };
+
+    const targetIds = new Set(selectedList.map((i) => i.id));
+    const updated = items.map((it) => {
+      if (targetIds.has(it.id)) {
+        return { ...it, frameId: groupId };
+      }
+      return it;
+    });
+
+    updateItemsWithTracking([...updated, newGroup]);
+    setSelectedId(groupId);
+    setSelectedIds(new Set([groupId]));
+  }, [items, selectedId, selectedIds, contextMenu?.item, updateItemsWithTracking]);
+
+  const handleFrameSelection = useCallback(() => {
+    const contextItem = contextMenu?.item;
+    const selectedList = items.filter(
+      (it) => selectedIds.has(it.id) || it.id === selectedId || (contextItem && it.id === contextItem.id)
+    );
+    if (selectedList.length === 0) return;
+
+    let minX = Infinity;
+    let minY = Infinity;
+    let maxX = -Infinity;
+    let maxY = -Infinity;
+
+    selectedList.forEach((it) => {
+      const x = it.x || 0;
+      const y = it.y || 0;
+      const w = it.width || 440;
+      const h = it.height || 550;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x + w);
+      maxY = Math.max(maxY, y + h);
+    });
+
+    const padding = 20;
+    const frameX = Math.max(0, Math.round(minX - padding));
+    const frameY = Math.max(0, Math.round(minY - padding));
+    const frameW = Math.round(maxX - minX + padding * 2);
+    const frameH = Math.round(maxY - minY + padding * 2);
+
+    const frameId = `frame-${Date.now()}`;
+    const newFrame: CanvasItem = {
+      id: frameId,
+      title: `Frame ${items.filter((i) => i.mediaType === "frame" && i.type !== "group").length + 1}`,
+      type: "media",
+      mediaType: "frame",
+      aspect: `${frameW}:${frameH}`,
+      x: frameX,
+      y: frameY,
+      width: frameW,
+      height: frameH,
+      color: "#0c8ce9",
+    };
+
+    const targetIds = new Set(selectedList.map((i) => i.id));
+    const updated = items.map((it) => {
+      if (targetIds.has(it.id)) {
+        return { ...it, frameId };
+      }
+      return it;
+    });
+
+    updateItemsWithTracking([...updated, newFrame]);
+    setSelectedId(frameId);
+    setSelectedIds(new Set([frameId]));
+  }, [items, selectedId, selectedIds, contextMenu?.item, updateItemsWithTracking]);
+
+  const handleUngroup = useCallback((targetItem?: CanvasItem | null) => {
+    const it = targetItem || contextMenu?.item || selectedItem || (selectedId ? items.find((i) => i.id === selectedId) : null);
+    if (!it) return;
+
+    const targetId = it.id;
+    const isGroup = it.type === "group";
+    const isFrame = it.mediaType === "frame" || it.type === "section" || it.type === "frame";
+
+    // Direct children linked to this container
+    const childItems = items.filter(
+      (c) => c.id !== targetId && (c.frameId === targetId || getParentFrameId(c) === targetId)
+    );
+
+    if (childItems.length > 0) {
+      const childIds = new Set(childItems.map((c) => c.id));
+      const nextItems = items
+        .filter((item) => (isGroup ? item.id !== targetId : true))
+        .map((item) => {
+          if (childIds.has(item.id)) {
+            return { ...item, frameId: undefined };
+          }
+          if (item.id === targetId && !isGroup) {
+            return { ...item, type: "media", mediaType: item.image ? "image" : "shape", aspect: "original" };
+          }
+          return item;
+        });
+
+      updateItemsWithTracking(nextItems);
+      setSelectedId(childItems[0]?.id || null);
+      setSelectedIds(childIds);
+    } else if (it.frameId) {
+      // Release individual item from its parent frame
+      const nextItems = items.map((item) =>
+        item.id === targetId ? { ...item, frameId: undefined } : item
+      );
+      updateItemsWithTracking(nextItems);
+      setSelectedId(targetId);
+      setSelectedIds(new Set([targetId]));
+    } else if (isGroup) {
+      // Dissolve empty group
+      const nextItems = items.filter((item) => item.id !== targetId);
+      updateItemsWithTracking(nextItems);
+      setSelectedId(null);
+      setSelectedIds(new Set());
+    } else if (isFrame || (it.aspect && it.aspect !== "original")) {
+      // Reset frame / deliverable back to unconstrained original aspect
+      const nextItems = items.map((item) =>
+        item.id === targetId
+          ? { ...item, type: "media", mediaType: item.image ? "image" : "shape", aspect: "original" }
+          : item
+      );
+      updateItemsWithTracking(nextItems);
+      setSelectedId(targetId);
+      setSelectedIds(new Set([targetId]));
+    } else if (it.clientName) {
+      // Detach from client folder group
+      const nextItems = items.map((item) =>
+        item.id === targetId ? { ...item, clientName: undefined, clientId: undefined } : item
+      );
+      updateItemsWithTracking(nextItems);
+      setSelectedId(targetId);
+      setSelectedIds(new Set([targetId]));
+    }
+  }, [contextMenu?.item, selectedItem, selectedId, items, getParentFrameId, updateItemsWithTracking]);
+
   // Keyboard Shortcuts (Space for Pan, Delete to Remove)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -1053,6 +1259,22 @@ export default function CanvasWorkspace({
       if (e.shiftKey && (e.key === "v" || e.key === "V") && selectedId) {
         e.preventDefault();
         handleFlipVertical(selectedId);
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "g" || e.key === "G")) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleUngroup();
+        } else if (e.altKey) {
+          handleFrameSelection();
+        } else {
+          handleGroupSelection();
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "Backspace" || e.key === "Delete")) {
+        if (selectedId || selectedIds.size > 0) {
+          e.preventDefault();
+          handleUngroup();
+        }
       }
     };
 
@@ -3766,32 +3988,6 @@ export default function CanvasWorkspace({
     };
   }, [isFullscreen]);
 
-  // Helper to identify Frame items
-  const isFrameItem = useCallback((it: CanvasItem) => {
-    return (
-      it.mediaType === "frame" ||
-      it.type === "section" ||
-      it.type === "frame" ||
-      (it.aspect && it.aspect !== "original")
-    );
-  }, []);
-
-  // Helper to find parent frame ID of an item
-  const getParentFrameId = useCallback((it: CanvasItem) => {
-    if (it.frameId) return it.frameId;
-    const itX = it.x || 0;
-    const itY = it.y || 0;
-    const parent = items.find((f) => {
-      if (f.id === it.id || !isFrameItem(f)) return false;
-      const fW = f.width || (f.aspect === "16:9" ? 720 : 480);
-      const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
-      const fX = f.x || 0;
-      const fY = f.y || 0;
-      return itX >= fX && itX <= fX + fW && itY >= fY && itY <= fY + fH;
-    });
-    return parent?.id;
-  }, [items, isFrameItem]);
-
   // Group canvas items into Client Folders (Folder > Group, Frame, Section, Text) and Root items
   const { folderGroups, rootItems } = useMemo(() => {
     const foldersMap: Record<string, CanvasItem[]> = {};
@@ -4285,10 +4481,11 @@ export default function CanvasWorkspace({
             const x = item.x || 0;
             const y = item.y || 0;
 
-            // 1. SECTION FRAME (Figma Style Boundary Section)
-            if (item.type === "section" || item.mediaType === "section") {
+            // 1. SECTION & GROUP FRAME (Figma Style Boundary)
+            if (item.type === "section" || item.mediaType === "section" || item.type === "group") {
               const secWidth = item.width || 1200;
               const secHeight = item.height || 600;
+              const isGrp = item.type === "group";
 
               return (
                 <div
@@ -4301,45 +4498,60 @@ export default function CanvasWorkspace({
                     width: `${item.width || secWidth}px`,
                     height: `${item.height || secHeight}px`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
-                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
-                    borderColor: item.color || undefined,
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : isGrp ? "12px" : undefined,
+                    borderColor: item.color && item.color !== "transparent" ? item.color : isGrp ? "#0c8ce9" : undefined,
                   }}
-                  className={`absolute rounded-3xl border-2 border-dashed p-4 flex flex-col justify-between ${
+                  className={`absolute rounded-3xl border-2 ${isGrp ? "border-solid border-[#0c8ce9]/60" : "border-dashed"} p-4 flex flex-col justify-between ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-30" : "transition-colors duration-150"
                   } ${
                     isSelected
-                      ? "border-teal-400 bg-teal-500/[0.04] shadow-[0_0_30px_rgba(20,184,166,0.15)] ring-2 ring-teal-400/50"
+                      ? "border-[#0c8ce9] bg-[#0c8ce9]/[0.05] ring-2 ring-[#0c8ce9]/40"
                       : "border-white/15 bg-white/[0.015] hover:border-white/30"
                   }`}
                 >
-                  {/* Section Top Header Pill */}
+                  {/* Section / Group Top Header Pill */}
                   <div className="flex items-center justify-between pointer-events-auto">
                     <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-teal-400" />
+                      <span className={`w-2.5 h-2.5 rounded-full ${isGrp ? "bg-[#0c8ce9]" : "bg-teal-400"}`} />
                       <input
                         type="text"
                         value={item.title}
                         onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
-                        className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-teal-400 text-sm font-bold text-white font-mono focus:outline-none px-1 py-0.5 rounded"
+                        className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-[#0c8ce9] text-sm font-bold text-white font-mono focus:outline-none px-1 py-0.5 rounded"
                       />
-                      <span className="text-[10px] font-mono text-neutral-500 uppercase">SECTION</span>
+                      <span className="text-[10px] font-mono text-neutral-500 uppercase">{isGrp ? "GROUP" : "SECTION"}</span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteItem(item.id);
-                      }}
-                      className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer"
-                      title="Hapus Section"
-                    >
-                      <HiTrash className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      {isGrp && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUngroup(item);
+                          }}
+                          className="px-2 py-0.5 rounded bg-white/10 hover:bg-[#0c8ce9] text-white text-[11px] font-sans transition-colors cursor-pointer"
+                          title="Ungroup (Ctrl+Shift+G / Ctrl+⌫)"
+                        >
+                          Ungroup
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteItem(item.id);
+                        }}
+                        className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer"
+                        title="Hapus"
+                      >
+                        <HiTrash className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="text-right text-[11px] font-mono text-neutral-500 select-none">
-                    {secWidth} × {secHeight}
+                    {Math.round(secWidth)} × {Math.round(secHeight)}
                   </div>
                 </div>
               );
@@ -5695,7 +5907,7 @@ export default function CanvasWorkspace({
           <button
             type="button"
             onClick={() => {
-              alert("Elemen digabungkan ke Group");
+              handleGroupSelection();
               setContextMenu(null);
             }}
             className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
@@ -5707,7 +5919,7 @@ export default function CanvasWorkspace({
           <button
             type="button"
             onClick={() => {
-              handleAddFrame("4:5");
+              handleFrameSelection();
               setContextMenu(null);
             }}
             className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
@@ -5719,6 +5931,7 @@ export default function CanvasWorkspace({
           <button
             type="button"
             onClick={() => {
+              handleUngroup(contextMenu.item);
               setContextMenu(null);
             }}
             className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
