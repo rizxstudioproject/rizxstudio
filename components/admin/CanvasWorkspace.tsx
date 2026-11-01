@@ -3044,7 +3044,7 @@ export default function CanvasWorkspace({
     wasPinch: false,
   });
 
-  // Zoom to Fit All Elements (Figma Shift+1: fits and centers all canvas items in viewport)
+  // Zoom to Fit All Elements (Figma Shift+1: fits and centers canvas items directly on screen)
   const zoomToFitAll = useCallback(
     (targetItems?: CanvasItem[] | any) => {
       const listToFit = Array.isArray(targetItems) && targetItems.length > 0 ? targetItems : items;
@@ -3052,13 +3052,29 @@ export default function CanvasWorkspace({
       const { clientWidth, clientHeight } = canvasContainerRef.current;
       if (clientWidth === 0 || clientHeight === 0) return;
 
+      const visibleList = listToFit.filter((it: CanvasItem) => !hiddenItemIds.has(it.id));
+      if (visibleList.length === 0) return;
+
+      // Smart Content Detection:
+      // Focus directly on media images, artwork, videos, cards and deliverables so we zoom straight onto visual content!
+      const mediaList = visibleList.filter(
+        (it: CanvasItem) =>
+          it.image ||
+          it.videoId ||
+          it.type === "media" ||
+          it.mediaType === "image" ||
+          it.mediaType === "youtube" ||
+          it.mediaType === "gdrive"
+      );
+
+      const itemsToCalculate = mediaList.length > 0 ? mediaList : visibleList;
+
       let minX = Infinity;
       let minY = Infinity;
       let maxX = -Infinity;
       let maxY = -Infinity;
 
-      listToFit.forEach((it) => {
-        if (hiddenItemIds.has(it.id)) return;
+      itemsToCalculate.forEach((it: CanvasItem) => {
         const x = it.x || 0;
         const y = it.y || 0;
         let w = it.width || 440;
@@ -3089,13 +3105,14 @@ export default function CanvasWorkspace({
       const centerX = (minX + maxX) / 2;
       const centerY = (minY + maxY) / 2;
 
-      // Viewport padding to ensure items don't collide with floating bottom bar or left panel
-      const paddingX = Math.max(80, clientWidth * 0.08);
-      const paddingY = Math.max(80, clientHeight * 0.1);
+      // Responsive Viewport Padding (compact on mobile so images are large and prominent)
+      const paddingX = isScreenMobile ? Math.max(20, clientWidth * 0.05) : Math.max(80, clientWidth * 0.08);
+      const paddingY = isScreenMobile ? Math.max(30, clientHeight * 0.06) : Math.max(80, clientHeight * 0.1);
 
       const scaleX = (clientWidth - paddingX * 2) / Math.max(contentW, 100);
       const scaleY = (clientHeight - paddingY * 2) / Math.max(contentH, 100);
-      const fitScale = Number(Math.min(1.0, Math.max(0.08, Math.min(scaleX, scaleY))).toFixed(3));
+      const minAllowedScale = isScreenMobile ? 0.02 : 0.05;
+      const fitScale = Number(Math.min(1.0, Math.max(minAllowedScale, Math.min(scaleX, scaleY))).toFixed(3));
 
       setZoom(fitScale);
       setPan({
@@ -3104,16 +3121,16 @@ export default function CanvasWorkspace({
       });
       setFittedItemId(null);
     },
-    [items, hiddenItemIds]
+    [items, hiddenItemIds, isScreenMobile]
   );
 
-  const hasDoneInitialFitRef = useRef(false);
+  const lastFitItemCountRef = useRef<number>(0);
 
-  // Auto-fit all elements on initial load so the canvas starts with full overview (no empty void)
+  // Auto-fit all elements on initial load and when items are loaded so canvas immediately focuses on images
   useEffect(() => {
-    if (hasDoneInitialFitRef.current) return;
     if (items.length === 0) return;
 
+    // Run multi-pass fit to ensure container layout has settled (especially on mobile tab switch)
     let attempts = 0;
     const interval = setInterval(() => {
       attempts++;
@@ -3121,18 +3138,20 @@ export default function CanvasWorkspace({
         const { clientWidth, clientHeight } = canvasContainerRef.current;
         if (clientWidth > 0 && clientHeight > 0) {
           zoomToFitAll(items);
-          hasDoneInitialFitRef.current = true;
-          clearInterval(interval);
+          lastFitItemCountRef.current = items.length;
+          if (attempts >= (isScreenMobile ? 6 : 4)) {
+            clearInterval(interval);
+          }
           return;
         }
       }
       if (attempts >= 40) {
         clearInterval(interval);
       }
-    }, 50);
+    }, 60);
 
     return () => clearInterval(interval);
-  }, [items, zoomToFitAll]);
+  }, [items, isScreenMobile, zoomToFitAll]);
 
   // Fit specific item (image / artboard) automatically to screen on double-click / double-tap
   const fitItemToScreen = useCallback(
