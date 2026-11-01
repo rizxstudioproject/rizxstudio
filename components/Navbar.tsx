@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
-import { HiBars3, HiXMark, HiArrowUp } from "react-icons/hi2";
+import { HiBars3, HiXMark, HiArrowUp, HiFolder, HiPaintBrush } from "react-icons/hi2";
 import { RiSunFill, RiMoonFill } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -309,10 +309,10 @@ export default function Navbar() {
               {/* Submenu Dropdown */}
               {isWorkMenuOpen && (
                 <div
-                  className={`absolute top-full left-0 mt-2.5 w-72 rounded-2xl p-2 shadow-2xl border backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                  className={`absolute top-full left-0 mt-2.5 w-44 rounded-xl p-1.5 shadow-2xl border backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
                     isLight
-                      ? "bg-white/95 border-slate-200/90 text-slate-800"
-                      : "bg-[#0f1115]/95 border-white/10 text-white"
+                      ? "bg-white/95 border-slate-200/90 text-slate-800 shadow-slate-300/40"
+                      : "bg-[#0f1115]/95 border-white/10 text-white shadow-black/80"
                   }`}
                 >
                   {/* Canvas Item */}
@@ -324,26 +324,14 @@ export default function Navbar() {
                         try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
                       }
                     }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer group ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer group ${
                       isLight
-                        ? "hover:bg-teal-50 border border-transparent hover:border-teal-200 text-slate-800"
-                        : "hover:bg-teal-500/10 border border-transparent hover:border-teal-500/20 text-neutral-200 hover:text-white"
+                        ? "hover:bg-slate-100 text-slate-800"
+                        : "hover:bg-white/10 text-neutral-200 hover:text-white"
                     }`}
                   >
-                    <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-black flex items-center justify-center text-sm font-black shrink-0 shadow-sm group-hover:scale-105 transition-transform">
-                      🎨
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold flex items-center justify-between">
-                        <span className="truncate">Rizx Canvas</span>
-                        <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 font-mono font-bold tracking-wider shrink-0">
-                          Live
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-neutral-400 font-normal truncate">
-                        Infinite zoom & pan board
-                      </div>
-                    </div>
+                    <HiPaintBrush className="w-4 h-4 text-teal-400 shrink-0" />
+                    <span>Rizx Canvas</span>
                   </button>
 
                   {/* Folder Client Item */}
@@ -352,26 +340,14 @@ export default function Navbar() {
                       setIsWorkMenuOpen(false);
                       scrollTo("client-folders");
                     }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer mt-0.5 group ${
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-left transition-all cursor-pointer group mt-0.5 ${
                       isLight
-                        ? "hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-800"
-                        : "hover:bg-white/5 border border-transparent hover:border-white/10 text-neutral-200 hover:text-white"
+                        ? "hover:bg-slate-100 text-slate-800"
+                        : "hover:bg-white/10 text-neutral-200 hover:text-white"
                     }`}
                   >
-                    <span className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
-                      📁
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-semibold flex items-center justify-between">
-                        <span className="truncate">Folder Client</span>
-                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-neutral-400">
-                          {(clients || []).length} Folders
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-neutral-400 font-normal truncate">
-                        Arsip karya & proyek klien
-                      </div>
-                    </div>
+                    <HiFolder className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Folder Client</span>
                   </button>
                 </div>
               )}
@@ -584,21 +560,14 @@ export default function Navbar() {
                   try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
                 }
               }}
-              className={`text-left py-2 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer flex items-center justify-between border ${
+              className={`text-left py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2.5 ${
                 isLight
-                  ? "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-900"
-                  : "bg-white/[0.03] hover:bg-white/[0.08] border-white/10 text-white"
+                  ? "hover:bg-slate-100 text-slate-800"
+                  : "hover:bg-white/10 text-neutral-200 hover:text-white"
               }`}
             >
-              <span className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-md bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
-                  🎨
-                </span>
-                <span className="font-semibold">Rizx Canvas</span>
-              </span>
-              <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 font-mono font-bold">
-                New
-              </span>
+              <HiPaintBrush className="w-4 h-4 text-teal-400 shrink-0" />
+              <span>Rizx Canvas</span>
             </button>
 
             {/* Folder Client Button for Mobile Drawer */}
@@ -607,21 +576,14 @@ export default function Navbar() {
                 setMobileMenuOpen(false);
                 scrollTo("client-folders");
               }}
-              className={`text-left py-2 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer flex items-center justify-between border ${
+              className={`text-left py-2 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center gap-2.5 ${
                 isLight
-                  ? "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-900"
-                  : "bg-white/[0.03] hover:bg-white/[0.08] border-white/10 text-white"
+                  ? "hover:bg-slate-100 text-slate-800"
+                  : "hover:bg-white/10 text-neutral-200 hover:text-white"
               }`}
             >
-              <span className="flex items-center gap-2">
-                <span className="w-5 h-5 rounded-md bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
-                  📁
-                </span>
-                <span className="font-semibold">Folder Client</span>
-              </span>
-              <span className="text-[10px] font-mono text-neutral-400">
-                {(clients || []).length} Folders
-              </span>
+              <HiFolder className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Folder Client</span>
             </button>
           </div>
           <Link
