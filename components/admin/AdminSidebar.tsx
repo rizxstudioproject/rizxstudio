@@ -83,7 +83,7 @@ export default function AdminSidebar({
     },
     {
       id: "canvas",
-      label: tr("Canvas Board", "Canvas Board (PureRef)", "Canvas Board (PureRef)"),
+      label: tr("Rizx Canvas", "Rizx Canvas", "Rizx Canvas"),
       icon: RiGridFill,
       badge: "NEW",
     },

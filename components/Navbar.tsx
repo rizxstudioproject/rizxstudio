@@ -332,13 +332,13 @@ export default function Navbar() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <div className="font-semibold flex items-center justify-between">
-                        <span className="truncate">Canvas</span>
+                        <span className="truncate">Rizx Canvas</span>
                         <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 font-mono font-bold tracking-wider shrink-0">
-                          PureRef
+                          Live
                         </span>
                       </div>
                       <div className="text-[10px] text-neutral-400 font-normal truncate">
-                        Figma & PureRef infinite board
+                        Infinite zoom & pan board
                       </div>
                     </div>
                   </button>
@@ -633,7 +633,7 @@ export default function Navbar() {
                 <span className="w-5 h-5 rounded-md bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
                   🎨
                 </span>
-                <span className="font-semibold">Canvas (PureRef Board)</span>
+                <span className="font-semibold">Rizx Canvas</span>
               </span>
               <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 font-mono font-bold">
                 New

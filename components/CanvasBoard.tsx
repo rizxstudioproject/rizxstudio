@@ -12,7 +12,6 @@ import {
   HiQuestionMarkCircle,
 } from "react-icons/hi2";
 import { RiFullscreenFill, RiFullscreenExitFill } from "react-icons/ri";
-import { SiFigma } from "react-icons/si";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
@@ -75,7 +74,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         clientId: item.clientId || "canvas",
         year: item.year || "2026",
         isVideo: Boolean(item.isVideo || item.videoId || item.mediaType === "youtube" || item.mediaType === "gdrive"),
-        tools: item.tools || ["figma", "pure-ref"],
+        tools: item.tools || ["digital", "visual"],
       }));
     }
 
@@ -205,7 +204,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         return;
       }
 
-      // Spacebar for Pan Mode (Figma / PureRef standard)
+      // Spacebar for Pan Mode
       if (e.code === "Space" && !isSpacePressed) {
         setIsSpacePressed(true);
       }
@@ -259,7 +258,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     }
   };
 
-  // Mouse Wheel Zoom centered at Cursor (Figma / PureRef physics)
+  // Mouse Wheel Zoom centered at Cursor
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -601,7 +600,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                     isVideo: droppedMedia.isVideo,
                     mediaType: droppedMedia.isVideo ? "upload" : "image",
                     year: new Date().getFullYear().toString(),
-                    tools: ["figma", "pure-ref"],
+                    tools: ["digital", "visual"],
                   });
                   setDroppedMedia(null);
                 }}
@@ -616,19 +615,19 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
       {/* ── Top Bar: Branding, Live Statistics, Fullscreen & Close (X) ─────────── */}
       <header className="absolute top-0 left-0 right-0 z-50 p-3 sm:p-5 flex items-center justify-between pointer-events-none">
-        {/* Left: PureRef / Figma Style Header Pill */}
+        {/* Left: Rizx Canvas Header Pill */}
         <div className="flex items-center gap-2 pointer-events-auto">
           <div className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-[#13151b]/90 border border-white/10 backdrop-blur-xl shadow-2xl">
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-400 to-[#16b09f] flex items-center justify-center text-black font-black text-xs shadow-md">
-              <SiFigma className="w-3.5 h-3.5" />
+              <span className="font-mono text-[11px] font-black">R</span>
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono font-bold tracking-wider text-white">
-                  CANVAS BOARD
+                  RIZX CANVAS
                 </span>
                 <span className="px-1.5 py-0.2 rounded bg-cyan-400/20 text-cyan-300 font-mono text-[9px] font-semibold border border-cyan-400/30">
-                  PURE REF
+                  STUDIO BOARD
                 </span>
               </div>
               <p className="text-[10px] font-mono text-neutral-400 hidden sm:block">
@@ -736,7 +735,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           transformOrigin: "0 0",
         }}
       >
-        {/* Moodboard / PureRef Grid Arrangement of Deliverable Sheets */}
+        {/* Grid Arrangement of Deliverable Sheets */}
         <div className="p-16 flex flex-wrap gap-12 sm:gap-14 max-w-[2800px] items-start select-none">
           {sheets.map((sheet, index) => {
             const isSelected = selectedSheetId === sheet.id;
@@ -835,7 +834,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                     draggable={false}
                   />
 
-                  {/* Corner Accent for Figma / PureRef Feel */}
+                  {/* Corner Accent */}
                   <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md bg-black/75 backdrop-blur-md text-[10px] font-mono text-neutral-300 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
                     #{index + 1}
                   </div>
@@ -851,7 +850,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   </div>
                 </div>
 
-                {/* Figma Selection Corners (shown when clicked / focused) */}
+                {/* Selection Corners (shown when clicked / focused) */}
                 {isSelected && (
                   <>
                     <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-cyan-400 border border-black rounded-xs shadow-sm pointer-events-none" />
@@ -866,7 +865,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         </div>
       </div>
 
-      {/* ── Floating PureRef Bottom Dock (Zoom Controls, Fit, Shortcuts) ──────── */}
+      {/* ── Floating Bottom Dock (Zoom Controls, Fit, Shortcuts) ───────────────── */}
       <footer className="absolute bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#13151b]/95 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] font-mono text-xs">
         {/* Zoom Out Button */}
         <button
@@ -897,7 +896,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         <button
           type="button"
           onClick={() => {
-            const newZ = Math.min(3.5, zoom * 1.15);
+            const newZ = Math.min(5.5, zoom * 1.15);
             setZoom(Number(newZ.toFixed(2)));
           }}
           aria-label="Zoom In"
@@ -909,7 +908,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
         <div className="w-[1px] h-4 bg-white/15 mx-1" />
 
-        {/* Zoom to Fit (Figma / PureRef Frame Fit) */}
+        {/* Zoom to Fit */}
         <button
           type="button"
           onClick={zoomToFit}

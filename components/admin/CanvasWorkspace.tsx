@@ -17,7 +17,7 @@ import {
   HiExclamationCircle,
   HiEye,
 } from "react-icons/hi2";
-import { SiFigma, SiYoutube, SiGoogledrive } from "react-icons/si";
+import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
@@ -290,7 +290,7 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
         gdriveUrl: gdriveId ? linkInput : undefined,
         gdriveId: gdriveId || undefined,
         year: new Date().getFullYear().toString(),
-        tools: ["figma", "pure-ref"],
+        tools: ["digital", "visual"],
       };
       updateItemsWithTracking([newItem, ...items]);
     }
@@ -369,13 +369,13 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
             <span className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-black flex items-center justify-center text-sm font-black shadow-md">
               🎨
             </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Canvas Board Manager</h1>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight">Rizx Canvas Manager</h1>
             <span className="px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/20 text-[10px] font-mono font-bold uppercase tracking-wider">
-              PureRef & Figma Mode
+              Studio Board
             </span>
           </div>
           <p className="text-xs sm:text-sm text-neutral-400 mt-1">
-            Kelola lembaran karya pada canvas (zoom & pan infinite board). Masukkan foto/video via drag & drop atau link YouTube/Drive.
+            Kelola lembaran karya pada Rizx Canvas (zoom & pan infinite board). Masukkan foto/video via drag & drop atau link YouTube/Drive.
           </p>
         </div>
 

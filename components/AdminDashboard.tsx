@@ -2608,7 +2608,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       case "clients":
         return tx("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien");
       case "canvas":
-        return tx("Canvas Board (PureRef)", "Canvas Board (PureRef)", "Canvas Board (PureRef)");
+        return tx("Rizx Canvas", "Rizx Canvas", "Rizx Canvas");
       case "crm":
         return tx("CRM & Prospek Leads", "CRM & Leads", "CRM & Prospek Leads");
       case "seo":

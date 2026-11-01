@@ -327,7 +327,7 @@ export default function MobileAdminApp({
       case "clients":
         return tr("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien");
       case "canvas":
-        return tr("Canvas Board", "Canvas Board", "Canvas Board");
+        return tr("Rizx Canvas", "Rizx Canvas", "Rizx Canvas");
       case "crm":
         return tr("CRM & Prospek Leads", "CRM & Leads", "CRM & Prospek");
       case "seo":
@@ -416,7 +416,7 @@ export default function MobileAdminApp({
     },
     {
       id: "canvas",
-      label: tr("Canvas", "Canvas", "Canvas"),
+      label: tr("Rizx Canvas", "Rizx Canvas", "Rizx Canvas"),
       icon: RiGridFill,
       accentColor: "#14b8a6",
       gradient: "from-teal-500 to-emerald-400",
