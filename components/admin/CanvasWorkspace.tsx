@@ -1772,7 +1772,8 @@ export default function CanvasWorkspace({
 
       const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
       const currentZoom = zoomRef.current;
-      const newZoom = Math.min(5.5, Math.max(0.18, currentZoom * zoomFactor));
+      const minAllowed = isScreenMobile ? 0.015 : 0.03;
+      const newZoom = Math.min(5.5, Math.max(minAllowed, currentZoom * zoomFactor));
 
       const rect = container.getBoundingClientRect();
       const cursorX = e.clientX - rect.left;
@@ -1803,7 +1804,8 @@ export default function CanvasWorkspace({
         if (e.key === "+" || e.key === "=") {
           setZoom((prev) => Number(Math.min(5.5, prev * 1.15).toFixed(2)));
         } else if (e.key === "-") {
-          setZoom((prev) => Number(Math.max(0.18, prev * 0.85).toFixed(2)));
+          const minAllowed = isScreenMobile ? 0.015 : 0.03;
+          setZoom((prev) => Number(Math.max(minAllowed, prev * 0.85).toFixed(2)));
         } else if (e.key === "0") {
           zoomToFitAll();
         }
@@ -2492,10 +2494,10 @@ export default function CanvasWorkspace({
     dragItemInitialPositionsRef.current = initMap;
   };
 
-  // Mobile Touch Handlers on Canvas Viewport
+  // Mobile Touch Handlers on Canvas Viewport (Pinch-to-Zoom & Pan Engine)
   const handleCanvasTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    // 2-finger pinch-to-zoom
-    if (e.touches.length === 2) {
+    // 2-finger pinch-to-zoom (works anywhere: empty background or over items)
+    if (e.touches.length >= 2) {
       const t1 = e.touches[0];
       const t2 = e.touches[1];
       const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
@@ -2506,7 +2508,7 @@ export default function CanvasWorkspace({
       touchStateRef.current.initialMidY = (t1.clientY + t2.clientY) / 2;
       touchStateRef.current.isTouchPanning = false;
       touchStateRef.current.touchDraggingItemId = null;
-      // Mark as pinch so handleItemTouchEnd won't dismiss fitted state
+      setDraggingItemId(null);
       touchGestureRef.current.wasPinch = true;
       return;
     }
@@ -2517,32 +2519,48 @@ export default function CanvasWorkspace({
       touchStateRef.current.startTouch = { x: t.clientX, y: t.clientY };
       touchStateRef.current.startPan = { ...panRef.current };
       touchStateRef.current.initialPinchDistance = null;
-      // Track absolute start position for pan-distance check in fitted state
       touchGestureRef.current.startX = t.clientX;
       touchGestureRef.current.startY = t.clientY;
-      // Only reset wasPinch when no prior pinch in flight
       touchGestureRef.current.wasPinch = false;
 
-      // If active tool is hand, or touching canvas background directly
+      // In Hand tool mode, or touching canvas background directly:
       if (activeTool === "hand" || e.target === e.currentTarget) {
         touchStateRef.current.isTouchPanning = true;
         setIsPanning(true);
         if (activeTool === "select") {
           setSelectedId(null);
+          setSelectedIds(new Set());
         }
       }
     }
   };
 
   const handleCanvasTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    // 2-finger pinch-to-zoom
-    if (e.touches.length === 2 && touchStateRef.current.initialPinchDistance) {
+    // 2-finger pinch-to-zoom (works in BOTH hand tool and select tool)
+    if (e.touches.length >= 2) {
       const t1 = e.touches[0];
       const t2 = e.touches[1];
       const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-      if (currentDist > 5) {
+
+      // If initial pinch distance was missed, initialize dynamically mid-touch
+      if (!touchStateRef.current.initialPinchDistance || touchStateRef.current.initialPinchDistance === 0) {
+        touchStateRef.current.initialPinchDistance = currentDist;
+        touchStateRef.current.initialZoom = zoomRef.current;
+        touchStateRef.current.startPan = { ...panRef.current };
+        touchStateRef.current.initialMidX = (t1.clientX + t2.clientX) / 2;
+        touchStateRef.current.initialMidY = (t1.clientY + t2.clientY) / 2;
+        touchStateRef.current.isTouchPanning = false;
+        touchStateRef.current.touchDraggingItemId = null;
+        setDraggingItemId(null);
+        touchGestureRef.current.wasPinch = true;
+        return;
+      }
+
+      if (currentDist > 4) {
         const scale = currentDist / touchStateRef.current.initialPinchDistance;
-        const targetZoom = Number(Math.min(5.5, Math.max(0.18, touchStateRef.current.initialZoom * scale)).toFixed(3));
+        const minAllowed = isScreenMobile ? 0.015 : 0.04;
+        const maxAllowed = 5.5;
+        const targetZoom = Number(Math.min(maxAllowed, Math.max(minAllowed, touchStateRef.current.initialZoom * scale)).toFixed(3));
 
         const container = canvasContainerRef.current;
         if (container) {
@@ -2553,7 +2571,7 @@ export default function CanvasWorkspace({
           const initMidY = touchStateRef.current.initialMidY - rect.top;
           const currentPan = touchStateRef.current.startPan;
           const currentZoom = touchStateRef.current.initialZoom;
-          // Locks zoom directly at the center between the 2 fingers without drifting
+          // Locks zoom directly at the center between the 2 fingers while allowing simultaneous 2-finger panning
           const newPanX = currentMidX - (initMidX - currentPan.x) * (targetZoom / currentZoom);
           const newPanY = currentMidY - (initMidY - currentPan.y) * (targetZoom / currentZoom);
           setZoom(targetZoom);
@@ -2565,12 +2583,12 @@ export default function CanvasWorkspace({
       return;
     }
 
-    // 1-finger drag item or pan
+    // 1-finger move
     if (e.touches.length === 1) {
       const t = e.touches[0];
 
-      // Dragging item across canvas
-      if (touchStateRef.current.touchDraggingItemId) {
+      // Dragging item across canvas (ONLY in Select tool)
+      if (activeTool === "select" && touchStateRef.current.touchDraggingItemId) {
         const itemId = touchStateRef.current.touchDraggingItemId;
         const currentX = (t.clientX - panRef.current.x) / zoomRef.current - touchStateRef.current.touchItemOffset.x;
         const currentY = (t.clientY - panRef.current.y) / zoomRef.current - touchStateRef.current.touchItemOffset.y;
@@ -2582,8 +2600,8 @@ export default function CanvasWorkspace({
         return;
       }
 
-      // Panning canvas (hand tool or hold canvas)
-      if (touchStateRef.current.isTouchPanning || activeTool === "hand") {
+      // Panning canvas (Hand tool OR 1-finger on empty background)
+      if (activeTool === "hand" || touchStateRef.current.isTouchPanning) {
         const deltaX = t.clientX - touchStateRef.current.startTouch.x;
         const deltaY = t.clientY - touchStateRef.current.startTouch.y;
         setPan({
@@ -2594,7 +2612,17 @@ export default function CanvasWorkspace({
     }
   };
 
-  const handleCanvasTouchEnd = () => {
+  const handleCanvasTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    // If one finger remains after a 2-finger pinch, smoothly transition to 1-finger without jumping
+    if (e.touches && e.touches.length === 1) {
+      const t = e.touches[0];
+      touchStateRef.current.startTouch = { x: t.clientX, y: t.clientY };
+      touchStateRef.current.startPan = { ...panRef.current };
+      touchStateRef.current.initialPinchDistance = null;
+      touchStateRef.current.isTouchPanning = activeTool === "hand";
+      return;
+    }
+
     touchStateRef.current.isTouchPanning = false;
     touchStateRef.current.touchDraggingItemId = null;
     touchStateRef.current.initialPinchDistance = null;
@@ -2602,7 +2630,7 @@ export default function CanvasWorkspace({
     setDraggingItemId(null);
   };
 
-  // Start touch dragging an item on mobile
+  // Start touch dragging an item or panning in Hand tool
   const handleItemTouchStart = (e: React.TouchEvent, item: CanvasItem) => {
     const target = e.target as HTMLElement;
     if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("button")) {
@@ -2626,26 +2654,25 @@ export default function CanvasWorkspace({
       return;
     }
 
-    e.stopPropagation();
-
-    // In Hand tool mode on mobile: NEVER select image! Only pan canvas (kiri, kanan, atas, bawah)
+    // In Hand tool mode on mobile:
+    // Panning canvas (kiri, kanan, atas, bawah) anywhere! Never select or drag item!
     if (activeTool === "hand") {
-      setSelectedId(null);
       const t = e.touches[0];
       if (t) {
         touchStateRef.current.isTouchPanning = true;
         touchStateRef.current.startTouch = { x: t.clientX, y: t.clientY };
         touchStateRef.current.startPan = { ...panRef.current };
+        touchStateRef.current.touchDraggingItemId = null;
+        touchStateRef.current.initialPinchDistance = null;
         setIsPanning(true);
-        // Track absolute start for fitted-state gesture detection
-        touchGestureRef.current.startX = t.clientX;
-        touchGestureRef.current.startY = t.clientY;
-        touchGestureRef.current.wasPinch = false;
       }
       return;
     }
 
+    // In Select tool mode:
+    e.stopPropagation();
     setSelectedId(item.id);
+    setSelectedIds(new Set([item.id]));
 
     if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
 
@@ -2658,11 +2685,9 @@ export default function CanvasWorkspace({
         x: itemCanvasX - (item.x || 0),
         y: itemCanvasY - (item.y || 0),
       };
+      touchStateRef.current.startTouch = { x: t.clientX, y: t.clientY };
+      touchStateRef.current.startPan = { ...panRef.current };
       setDraggingItemId(item.id);
-      // Track absolute start for fitted-state gesture detection
-      touchGestureRef.current.startX = t.clientX;
-      touchGestureRef.current.startY = t.clientY;
-      touchGestureRef.current.wasPinch = false;
     }
   };
 
@@ -3160,7 +3185,7 @@ export default function CanvasWorkspace({
       const { clientWidth, clientHeight } = canvasContainerRef.current;
       if (clientWidth === 0 || clientHeight === 0) return;
 
-      // Toggle: if already fitted to this item, return to full fit
+      // Toggle: if already fitted to this item, return to full overview
       if (fittedItemId === item.id) {
         setFittedItemId(null);
         zoomToFitAll();
@@ -3203,11 +3228,13 @@ export default function CanvasWorkspace({
       const itemX = item.x || 0;
       const itemY = item.y || 0;
 
-      // Optimal scale to fit comfortably in viewport (95% width, 93% height for prominence)
-      const targetScaleX = (clientWidth * 0.95) / w;
-      const targetScaleY = (clientHeight * 0.93) / h;
+      // Optimal scale to fit comfortably in viewport (leave breathing room for header & toolbar)
+      const scalePaddingX = isScreenMobile ? 0.90 : 0.94;
+      const scalePaddingY = isScreenMobile ? 0.82 : 0.90;
+      const targetScaleX = (clientWidth * scalePaddingX) / w;
+      const targetScaleY = (clientHeight * scalePaddingY) / h;
       const targetZoom = Number(
-        Math.min(3.8, Math.max(0.25, Math.min(targetScaleX, targetScaleY))).toFixed(2)
+        Math.min(3.8, Math.max(0.12, Math.min(targetScaleX, targetScaleY))).toFixed(2)
       );
 
       // Pan to center the item directly on screen
@@ -3218,100 +3245,53 @@ export default function CanvasWorkspace({
       setPan({ x: targetPanX, y: targetPanY });
       setFittedItemId(item.id);
       setSelectedId(item.id);
+      setSelectedIds(new Set([item.id]));
       lastWorkspaceFitTimeRef.current = Date.now();
     },
-    [fittedItemId]
+    [fittedItemId, isScreenMobile, zoomToFitAll]
   );
 
   const handleItemTouchEnd = useCallback(
     (e: React.TouchEvent<HTMLElement>, item: CanvasItem, targetEl?: HTMLElement) => {
-      const touch = e.changedTouches[0];
-      if (!touch) return;
-      const now = Date.now();
-
       // IN HAND TOOL MODE ON MOBILE:
-      // Dragging pans canvas (kiri, kanan, atas, bawah).
-      // Clean tap triggers "tap full" or "tap close" without selecting!
+      // Hand tool is purely for panning canvas — do not select or drag items!
       if (activeTool === "hand") {
-        const dist = Math.hypot(
-          touch.clientX - touchStateRef.current.startTouch.x,
-          touch.clientY - touchStateRef.current.startTouch.y
-        );
-
-        // If finger moved >= 10px, it was a pan/swipe gesture, not a tap
-        if (dist >= 10) {
-          touchStateRef.current.isTouchPanning = false;
-          setIsPanning(false);
-          return;
-        }
-
-        // Clean tap in Hand mode:
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (fittedItemId) {
-          if (now - lastWorkspaceFitTimeRef.current < 450) return;
-          // "Tap Close": return to normal overview canvas
-          setFittedItemId(null);
-          zoomToFitAll();
-        } else {
-          // "Tap Full": fit image to full screen if already selected
-          if (selectedId === item.id) {
-            fitItemToScreen(item, targetEl);
-          } else {
-            setSelectedId(item.id);
-            setSelectedIds(new Set([item.id]));
-          }
-        }
+        touchStateRef.current.isTouchPanning = false;
+        setIsPanning(false);
         return;
       }
 
       // SELECT TOOL MODE:
-      // If an item is currently staying fitted, single tap (1x) immediately zooms out to view all!
-      if (fittedItemId) {
-        if (now - lastWorkspaceFitTimeRef.current < 450) {
-          // Synthetic touch event from the double-tap itself - DO NOT CLOSE
-          return;
-        }
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      const now = Date.now();
 
-        // Allow pinch zoom & pan inside fitted state — only dismiss on a clean tap!
-        const wasPinch = touchGestureRef.current.wasPinch;
-        const movedDist = Math.hypot(
-          touch.clientX - touchGestureRef.current.startX,
-          touch.clientY - touchGestureRef.current.startY
-        );
-        // Reset wasPinch flag after read
-        touchGestureRef.current.wasPinch = false;
+      // Check if finger moved during touch (if moved > 10px, it was dragging the item, not a tap)
+      const movedFromStart = Math.hypot(
+        touch.clientX - touchStateRef.current.startTouch.x,
+        touch.clientY - touchStateRef.current.startTouch.y
+      );
 
-        if (wasPinch || movedDist > 12) {
-          // Was a gesture (pinch zoom or pan) — keep fitted state, do NOT dismiss!
-          return;
-        }
-
-        e.preventDefault();
-        e.stopPropagation();
-        setFittedItemId(null);
-        zoomToFitAll();
-        lastTouchTapRef.current = { time: 0, id: "", x: 0, y: 0 };
+      if (movedFromStart > 10) {
+        touchStateRef.current.touchDraggingItemId = null;
+        setDraggingItemId(null);
         return;
       }
 
-      // Requirement: "yang bisa di tap 2x hanya image atau frame yang di select bukan random image atau frame"
-      const isAlreadySelected = selectedId === item.id || selectedIds.has(item.id);
-
       const timeSinceLast = now - lastTouchTapRef.current.time;
-      const dist = Math.hypot(
+      const distFromLastTap = Math.hypot(
         touch.clientX - lastTouchTapRef.current.x,
         touch.clientY - lastTouchTapRef.current.y
       );
 
-      if (isAlreadySelected && timeSinceLast < 450 && dist < 35 && lastTouchTapRef.current.id === item.id) {
-        // Confirmed double-tap on touch screen on SELECTED item: Fit to screen & STAY
+      // Double-Tap (tap 2x within 420ms on the item): Zoom fit directly on screen!
+      if (timeSinceLast < 420 && distFromLastTap < 45 && lastTouchTapRef.current.id === item.id) {
         e.preventDefault();
         e.stopPropagation();
         fitItemToScreen(item, targetEl);
         lastTouchTapRef.current = { time: 0, id: "", x: 0, y: 0 };
       } else {
+        // Single tap: select item and start double-tap window
         lastTouchTapRef.current = {
           time: now,
           id: item.id,
@@ -3322,29 +3302,15 @@ export default function CanvasWorkspace({
         setSelectedIds(new Set([item.id]));
       }
     },
-    [activeTool, fittedItemId, selectedId, selectedIds, fitItemToScreen, zoomToFitAll]
+    [activeTool, fitItemToScreen]
   );
 
-  // Click handler for Hand tool mode (tap full / tap close on click)
+  // Click handler for Hand tool mode
   const handleItemClick = (e: React.MouseEvent, item: CanvasItem, targetEl?: HTMLElement) => {
     if (activeTool === "hand") {
       e.stopPropagation();
-      if (hasWorkspaceDraggedRef.current) {
-        hasWorkspaceDraggedRef.current = false;
-        return;
-      }
-      if (fittedItemId) {
-        if (Date.now() - lastWorkspaceFitTimeRef.current < 450) return;
-        setFittedItemId(null);
-        zoomToFitAll();
-      } else {
-        if (selectedId === item.id) {
-          fitItemToScreen(item, targetEl);
-        } else {
-          setSelectedId(item.id);
-          setSelectedIds(new Set([item.id]));
-        }
-      }
+      // Hand tool is purely for panning canvas, do nothing on click
+      return;
     }
   };
 
@@ -5553,6 +5519,7 @@ export default function CanvasWorkspace({
           style={{
             transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
             transformOrigin: "0 0",
+            touchAction: "none",
           }}
         >
           {items.map((item) => {
@@ -5571,8 +5538,14 @@ export default function CanvasWorkspace({
               return (
                 <div
                   key={item.id}
+                  onClick={(e) => handleItemClick(e, item, e.currentTarget)}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    fitItemToScreen(item, e.currentTarget);
+                  }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
@@ -5583,6 +5556,7 @@ export default function CanvasWorkspace({
                     borderColor: item.color && item.color !== "transparent" ? item.color : isGrp ? "#0c8ce9" : undefined,
                     boxShadow: getEffectBoxShadow(item),
                     filter: getEffectFilter(item),
+                    touchAction: "none",
                   }}
                   className={`absolute rounded-3xl border-2 ${isGrp ? "border-solid border-[#0c8ce9]/60" : "border-dashed"} p-4 flex flex-col justify-between ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-30" : "transition-colors duration-150"
@@ -5659,12 +5633,7 @@ export default function CanvasWorkspace({
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
-                    if (selectedId === item.id || selectedIds.has(item.id)) {
-                      fitItemToScreen(item, e.currentTarget);
-                    } else {
-                      setSelectedId(item.id);
-                      setSelectedIds(new Set([item.id]));
-                    }
+                    fitItemToScreen(item, e.currentTarget);
                   }}
                   onTouchEnd={(e) => {
                     handleItemTouchEnd(e, item, e.currentTarget);
@@ -5680,6 +5649,7 @@ export default function CanvasWorkspace({
                     filter: getEffectFilter(item),
                     zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
                     clipPath: shapeClipPath ? shapeClipPath : undefined,
+                    touchAction: "none",
                   }}
                   className={`absolute flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-50 shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]" : ""
@@ -5743,8 +5713,14 @@ export default function CanvasWorkspace({
               return (
                 <div
                   key={item.id}
+                  onClick={(e) => handleItemClick(e, item, e.currentTarget)}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    fitItemToScreen(item, e.currentTarget);
+                  }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
@@ -5753,6 +5729,7 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                     boxShadow: getEffectBoxShadow(item),
                     filter: getEffectFilter(item),
+                    touchAction: "none",
                   }}
                   className={`absolute rounded-2xl bg-[#111318]/95 border backdrop-blur-xl p-3.5 shadow-xl flex flex-col gap-2.5 cursor-grab active:cursor-grabbing ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-40 cursor-grabbing scale-102" : "transition-colors duration-150"
@@ -5843,6 +5820,11 @@ export default function CanvasWorkspace({
                   }}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    fitItemToScreen(item, e.currentTarget);
+                  }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
@@ -5852,6 +5834,7 @@ export default function CanvasWorkspace({
                     filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
                     zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
                     clipPath: textClipPath ? textClipPath : undefined,
+                    touchAction: "none",
                   }}
                   className={`absolute group cursor-text select-text transition-shadow z-30 ${
                     isSelected
@@ -5989,6 +5972,11 @@ export default function CanvasWorkspace({
                   onClick={(e) => handleItemClick(e, item, e.currentTarget)}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
                   onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    fitItemToScreen(item, e.currentTarget);
+                  }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
@@ -6000,6 +5988,7 @@ export default function CanvasWorkspace({
                     boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.35)",
                     filter: getEffectFilter(item),
                     zIndex: isSelected ? 8 : 4,
+                    touchAction: "none",
                   }}
                   className={`absolute rounded-xl flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-30" : ""
@@ -6135,12 +6124,7 @@ export default function CanvasWorkspace({
                 onContextMenu={(e) => handleItemContextMenu(e, item)}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
-                  if (selectedId === item.id || selectedIds.has(item.id)) {
-                    fitItemToScreen(item, e.currentTarget);
-                  } else {
-                    setSelectedId(item.id);
-                    setSelectedIds(new Set([item.id]));
-                  }
+                  fitItemToScreen(item, e.currentTarget);
                 }}
                 onTouchEnd={(e) => {
                   handleItemTouchEnd(e, item, e.currentTarget);
@@ -6155,6 +6139,7 @@ export default function CanvasWorkspace({
                   filter: getEffectFilter(item),
                   zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
                   clipPath: clipPathStyle ? clipPathStyle : undefined,
+                  touchAction: "none",
                 }}
                 className={`group absolute rounded-2xl flex flex-col select-none cursor-grab active:cursor-grabbing ${
                   draggingItemId === item.id
