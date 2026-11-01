@@ -550,8 +550,10 @@ export default function Navbar() {
 
       {/* Mobile Drawer Menu Dropdown */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          mobileMenuOpen ? "max-h-[360px] opacity-100 pt-4 pb-2" : "max-h-0 opacity-0 py-0"
+        className={`md:hidden transition-all duration-300 ease-in-out ${
+          mobileMenuOpen
+            ? "max-h-[85vh] opacity-100 pt-4 pb-5 overflow-y-auto no-scrollbar"
+            : "max-h-0 opacity-0 py-0 overflow-hidden"
         }`}
       >
         <div className={`flex flex-col gap-3.5 border-t pt-4 px-2 ${isLight ? "border-slate-200" : "border-white/10"}`}>
@@ -663,7 +665,9 @@ export default function Navbar() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => setMobileMenuOpen(false)}
-            className="flex items-center justify-between py-2.5 px-3.5 rounded-xl border text-white font-medium text-sm transition-all mt-1"
+            className={`flex items-center justify-between py-2.5 px-3.5 rounded-xl border font-medium text-sm transition-all mt-1 ${
+              isLight ? "text-slate-900" : "text-white"
+            }`}
             style={{
               backgroundColor: `${primaryColor}20`,
               borderColor: `${primaryColor}40`,
