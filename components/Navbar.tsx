@@ -9,6 +9,7 @@ import { RiSunFill, RiMoonFill } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { normalizeSocialUrl, formatWhatsAppUrl } from "@/lib/socialService";
+import CanvasBoard from "@/components/CanvasBoard";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -39,7 +40,10 @@ export default function Navbar() {
     toggleThemeMode();
   };
   const [isLangOpen, setIsLangOpen] = useState(false);
+  const [isWorkMenuOpen, setIsWorkMenuOpen] = useState(false);
+  const [isCanvasOpen, setIsCanvasOpen] = useState(false);
   const langContainerRef = useRef<HTMLDivElement>(null);
+  const workMenuRef = useRef<HTMLDivElement>(null);
   const languages = [
     { code: "en", label: "EN" },
     { code: "id", label: "ID" },
@@ -51,6 +55,9 @@ export default function Navbar() {
     const handleClickOutside = (e: MouseEvent) => {
       if (langContainerRef.current && !langContainerRef.current.contains(e.target as Node)) {
         setIsLangOpen(false);
+      }
+      if (workMenuRef.current && !workMenuRef.current.contains(e.target as Node)) {
+        setIsWorkMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -250,16 +257,94 @@ export default function Navbar() {
             >
               {t("nav.about")}
             </button>
-            <button
-              onClick={() => scrollTo("projects")}
-              className={`transition-colors duration-200 cursor-pointer ${
-                activeSection === "projects" && !isProductsPage
-                  ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
-                  : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
-              }`}
+            {/* Work dropdown menu with Canvas submenu */}
+            <div
+              ref={workMenuRef}
+              className="relative"
+              onMouseEnter={() => setIsWorkMenuOpen(true)}
+              onMouseLeave={() => setIsWorkMenuOpen(false)}
             >
-              {t("nav.work")}
-            </button>
+              <button
+                onClick={() => {
+                  scrollTo("projects");
+                  setIsWorkMenuOpen(false);
+                }}
+                className={`flex items-center gap-1.5 transition-colors duration-200 cursor-pointer py-1 ${
+                  activeSection === "projects" && !isProductsPage
+                    ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                    : isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
+              >
+                <span>{t("nav.work")}</span>
+                <svg
+                  className={`w-3 h-3 transition-transform duration-200 opacity-60 ${isWorkMenuOpen ? "rotate-180" : ""}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Submenu Dropdown */}
+              {isWorkMenuOpen && (
+                <div
+                  className={`absolute top-full left-0 mt-2.5 w-60 rounded-2xl p-1.5 shadow-2xl border backdrop-blur-2xl z-50 animate-in fade-in zoom-in-95 duration-150 ${
+                    isLight
+                      ? "bg-white/95 border-slate-200/90 text-slate-800"
+                      : "bg-[#0f1115]/95 border-white/10 text-white"
+                  }`}
+                >
+                  <button
+                    onClick={() => {
+                      setIsWorkMenuOpen(false);
+                      scrollTo("projects");
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer ${
+                      isLight
+                        ? "hover:bg-slate-100 text-slate-800"
+                        : "hover:bg-white/5 text-neutral-200 hover:text-white"
+                    }`}
+                  >
+                    <span className="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center text-sm shrink-0">
+                      📁
+                    </span>
+                    <div>
+                      <div className="font-semibold">Client Vault</div>
+                      <div className="text-[10px] text-neutral-400 font-normal">All client deliverables</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setIsWorkMenuOpen(false);
+                      setIsCanvasOpen(true);
+                      if (typeof document !== "undefined" && document.fullscreenEnabled && !document.fullscreenElement) {
+                        try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
+                      }
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-colors cursor-pointer mt-0.5 group ${
+                      isLight
+                        ? "hover:bg-teal-50 text-slate-800"
+                        : "hover:bg-teal-500/10 text-neutral-200 hover:text-white"
+                    }`}
+                  >
+                    <span className="w-7 h-7 rounded-lg bg-gradient-to-tr from-teal-500 to-emerald-400 text-black flex items-center justify-center text-xs font-black shrink-0 shadow-sm">
+                      🎨
+                    </span>
+                    <div className="flex-1">
+                      <div className="font-semibold flex items-center justify-between">
+                        <span>Canvas</span>
+                        <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 font-mono font-bold tracking-wider">
+                          PureRef
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-neutral-400 font-normal">Infinite zoom & pan board</div>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
             <Link
               href="/products"
               className={`transition-colors duration-200 cursor-pointer ${
@@ -443,16 +528,48 @@ export default function Navbar() {
           >
             {t("nav.about")}
           </button>
-          <button
-            onClick={() => scrollTo("projects")}
-            className={`text-left py-1 text-sm font-medium transition-colors cursor-pointer ${
-              activeSection === "projects" && !isProductsPage
-                ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
-                : isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
-            }`}
-          >
-            {t("nav.work")}
-          </button>
+          <div className="flex flex-col gap-1.5 py-1">
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                scrollTo("projects");
+              }}
+              className={`text-left py-1.5 text-sm font-medium transition-colors cursor-pointer flex items-center justify-between ${
+                activeSection === "projects" && !isProductsPage
+                  ? isLight ? "text-slate-900 font-bold" : "text-white font-bold"
+                  : isLight ? "text-slate-800 hover:text-slate-950 font-semibold" : "text-neutral-300 hover:text-white"
+              }`}
+            >
+              <span>{t("nav.work")}</span>
+              <span className="text-[10px] font-mono text-neutral-400">Vault</span>
+            </button>
+
+            {/* Canvas Submenu for Mobile Drawer */}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                setIsCanvasOpen(true);
+                if (typeof document !== "undefined" && document.fullscreenEnabled && !document.fullscreenElement) {
+                  try { document.documentElement.requestFullscreen().catch(() => {}); } catch (_) {}
+                }
+              }}
+              className={`text-left py-2 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer flex items-center justify-between border ${
+                isLight
+                  ? "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-900"
+                  : "bg-white/[0.03] hover:bg-white/[0.08] border-white/10 text-white"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-md bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
+                  🎨
+                </span>
+                <span className="font-semibold">Canvas (PureRef Board)</span>
+              </span>
+              <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-teal-500/20 text-teal-400 font-mono font-bold">
+                New
+              </span>
+            </button>
+          </div>
           <Link
             href="/products"
             onClick={() => setMobileMenuOpen(false)}
@@ -535,6 +652,8 @@ export default function Navbar() {
         <HiArrowUp className="w-5 h-5 text-white" />
       </button>
     )}
+    {/* Canvas Modal Board */}
+    <CanvasBoard isOpen={isCanvasOpen} onClose={() => setIsCanvasOpen(false)} />
   </>
   );
 }
