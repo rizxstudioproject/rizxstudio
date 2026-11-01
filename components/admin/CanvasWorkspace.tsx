@@ -2436,31 +2436,30 @@ export default function CanvasWorkspace({
     }
 
     const isMultiKey = e.shiftKey || e.metaKey || e.ctrlKey;
+    let targetSelectedIds: Set<string>;
+
     if (isMultiKey) {
       if (selectedIds.has(item.id)) {
-        setSelectedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(item.id);
-          return next;
-        });
-        if (selectedId === item.id) {
-          const remaining = Array.from(selectedIds).filter((id) => id !== item.id);
-          setSelectedId(remaining.length > 0 ? remaining[remaining.length - 1] : null);
-        }
+        targetSelectedIds = new Set(Array.from(selectedIds).filter((id) => id !== item.id));
+        setSelectedIds(targetSelectedIds);
+        const remaining = Array.from(targetSelectedIds);
+        setSelectedId(remaining.length > 0 ? remaining[remaining.length - 1] : null);
         return;
       } else {
-        setSelectedIds((prev) => {
-          const next = new Set(prev);
-          next.add(item.id);
-          return next;
-        });
+        targetSelectedIds = new Set([...Array.from(selectedIds), item.id]);
+        setSelectedIds(targetSelectedIds);
         setSelectedId(item.id);
       }
     } else {
-      if (!selectedIds.has(item.id)) {
-        setSelectedIds(new Set([item.id]));
+      // Normal click without Shift/Ctrl/Cmd:
+      // If clicking an item that is already part of a multi-selection group, keep the group to drag together
+      // If clicking any other item, clear previous selection and select ONLY this single item!
+      if (selectedIds.has(item.id) && selectedIds.size > 1) {
+        targetSelectedIds = selectedIds;
         setSelectedId(item.id);
       } else {
+        targetSelectedIds = new Set([item.id]);
+        setSelectedIds(targetSelectedIds);
         setSelectedId(item.id);
       }
     }
@@ -2484,9 +2483,9 @@ export default function CanvasWorkspace({
 
     const initMap = new Map<string, { x: number; y: number }>();
     items.forEach((it) => {
-      if (selectedIds.has(it.id) || it.id === item.id) {
+      if (targetSelectedIds.has(it.id)) {
         initMap.set(it.id, { x: it.x || 0, y: it.y || 0 });
-      } else if (isFrame) {
+      } else if (isFrame && targetSelectedIds.has(item.id)) {
         // Child text or elements nested inside this frame move together with the frame
         const itX = it.x || 0;
         const itY = it.y || 0;
