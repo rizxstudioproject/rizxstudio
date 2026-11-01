@@ -1038,6 +1038,64 @@ export default function CanvasWorkspace({
     return parent?.id;
   }, [items, isFrameItem]);
 
+  // Helper to compute CSS clip-path inset when an item is nested inside a frame with clipContent enabled
+  const getItemClipPath = useCallback(
+    (item: CanvasItem) => {
+      const parentFrameId = item.frameId || getParentFrameId(item);
+      if (!parentFrameId) return undefined;
+
+      const parentFrame = items.find((f) => f.id === parentFrameId);
+      if (!parentFrame) return undefined;
+
+      // In Figma, clipContent defaults to true unless explicitly disabled (clipContent === false)
+      if (parentFrame.clipContent === false) return undefined;
+
+      const fLeft = parentFrame.x || 0;
+      const fTop = parentFrame.y || 0;
+      const fWidth = parentFrame.width || (parentFrame.aspect === "16:9" ? 720 : 480);
+      const fHeight = parentFrame.height || (parentFrame.aspect === "16:9" ? 405 : 600);
+      const fRight = fLeft + fWidth;
+      const fBottom = fTop + fHeight;
+
+      const itLeft = item.x || 0;
+      const itTop = item.y || 0;
+      let itWidth = item.width || 440;
+      let itHeight = item.height || 550;
+
+      if (
+        item.type === "media" ||
+        item.mediaType === "image" ||
+        item.mediaType === "youtube" ||
+        item.mediaType === "gdrive" ||
+        item.mediaType === "upload"
+      ) {
+        if (!item.height) {
+          if (item.aspect === "16:9") itHeight = Math.round(itWidth * (9 / 16));
+          else if (item.aspect === "1:1") itHeight = itWidth;
+          else if (item.aspect === "9:16") itHeight = Math.round(itWidth * (16 / 9));
+          else if (item.aspect === "4:5" || !item.aspect || item.aspect === "original")
+            itHeight = Math.round(itWidth * (5 / 4));
+        }
+      }
+
+      const itRight = itLeft + itWidth;
+      const itBottom = itTop + itHeight;
+
+      const clipTop = Math.max(0, fTop - itTop);
+      const clipRight = Math.max(0, itRight - fRight);
+      const clipBottom = Math.max(0, itBottom - fBottom);
+      const clipLeft = Math.max(0, fLeft - itLeft);
+
+      if (clipTop === 0 && clipRight === 0 && clipBottom === 0 && clipLeft === 0) {
+        return undefined;
+      }
+
+      const radius = parentFrame.cornerRadius !== undefined ? `${parentFrame.cornerRadius}px` : "12px";
+      return `inset(${Math.round(clipTop)}px ${Math.round(clipRight)}px ${Math.round(clipBottom)}px ${Math.round(clipLeft)}px round ${radius})`;
+    },
+    [items, getParentFrameId]
+  );
+
   // ── Figma Group, Frame Selection & Ungroup Handlers ─────────────────────────
   const handleGroupSelection = useCallback(() => {
     const contextItem = contextMenu?.item;
@@ -1825,28 +1883,74 @@ export default function CanvasWorkspace({
         finishDrawingShape(e.clientX, e.clientY);
       }
 
-      // Check if dropped text was dragged into a Frame (Automatic Figma Frame Nesting)
+      // Check if dropped item was dragged into or out of a Frame (Automatic Figma Frame Nesting)
       if (draggingItemId) {
-        const dragged = items.find((i) => i.id === draggingItemId);
-        if (dragged && (dragged.type === "text" || dragged.mediaType === "text")) {
-          const dx = dragged.x || 0;
-          const dy = dragged.y || 0;
-          const targetFrame = items.find(
-            (f) =>
-              (f.mediaType === "frame" || f.type === "section" || (f.aspect && f.aspect !== "original")) &&
-              f.id !== dragged.id &&
-              dx >= (f.x || 0) &&
-              dx <= (f.x || 0) + (f.width || 480) &&
-              dy >= (f.y || 0) &&
-              dy <= (f.y || 0) + (f.height || 600)
-          );
-          if (targetFrame && dragged.frameId !== targetFrame.id) {
-            setItems((prev) =>
-              prev.map((it) => (it.id === dragged.id ? { ...it, frameId: targetFrame.id } : it))
-            );
+        const draggedIds = selectedIds.has(draggingItemId) ? Array.from(selectedIds) : [draggingItemId];
+
+        setItems((prev) => {
+          let hasChangesNested = false;
+          const next = prev.map((it) => {
+            if (!draggedIds.includes(it.id)) return it;
+
+            const isFrameItself =
+              it.mediaType === "frame" ||
+              it.type === "section" ||
+              it.type === "frame" ||
+              (it.aspect && it.aspect !== "original");
+
+            const dx = it.x || 0;
+            const dy = it.y || 0;
+            const itW = it.width || (it.aspect === "16:9" ? 560 : 440);
+            const itH = it.height || 550;
+            const centerX = dx + itW / 2;
+            const centerY = dy + itH / 2;
+
+            // Find frames containing either center point or top-left of this item
+            const candidateFrames = prev.filter((f) => {
+              if (f.id === it.id) return false;
+              const isTargetFrame =
+                f.mediaType === "frame" ||
+                f.type === "section" ||
+                f.type === "frame" ||
+                (f.aspect && f.aspect !== "original");
+              if (!isTargetFrame) return false;
+
+              const fX = f.x || 0;
+              const fY = f.y || 0;
+              const fW = f.width || (f.aspect === "16:9" ? 720 : 480);
+              const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
+
+              const centerInside = centerX >= fX && centerX <= fX + fW && centerY >= fY && centerY <= fY + fH;
+              const topLeftInside = dx >= fX && dx <= fX + fW && dy >= fY && dy <= fY + fH;
+              return centerInside || topLeftInside;
+            });
+
+            let targetFrame: CanvasItem | undefined = undefined;
+            if (candidateFrames.length > 0) {
+              // Pick innermost frame (smallest area)
+              targetFrame = candidateFrames.reduce((best, cur) => {
+                const bestArea = (best.width || 480) * (best.height || 600);
+                const curArea = (cur.width || 480) * (cur.height || 600);
+                return curArea < bestArea ? cur : best;
+              });
+            }
+
+            if (targetFrame && it.frameId !== targetFrame.id) {
+              hasChangesNested = true;
+              return { ...it, frameId: targetFrame.id };
+            } else if (!targetFrame && it.frameId) {
+              // Dragged outside frame
+              hasChangesNested = true;
+              return { ...it, frameId: undefined };
+            }
+            return it;
+          });
+
+          if (hasChangesNested) {
             setHasChanges(true);
           }
-        }
+          return next;
+        });
       }
 
       dragItemInitialPositionsRef.current = null;
@@ -5302,6 +5406,8 @@ export default function CanvasWorkspace({
 
             // 3. FIGMA TYPOGRAPHY TEXT (Matches Screenshots media_1793529043296_e1253314.png & media_1793529058616_42d79f3a.png)
             if (item.type === "text" || item.mediaType === "text") {
+              const textClipPath = getItemClipPath(item);
+              const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
               const textFontFamily = item.fontFamily || "Noto Serif";
               const textFontWeight = item.fontWeight || "Bold";
               const textFontSize = item.fontSize || 129;
@@ -5332,6 +5438,8 @@ export default function CanvasWorkspace({
                     width: isAutoWidth ? "max-content" : item.width ? `${item.width}px` : "320px",
                     height: isFixed && item.height ? `${item.height}px` : "auto",
                     filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
+                    zIndex: isSelected ? 40 : isChildOfFrame ? 15 : 10,
+                    clipPath: !isSelected && textClipPath ? textClipPath : undefined,
                   }}
                   className={`absolute group cursor-text select-text transition-shadow z-30 ${
                     isSelected
@@ -5487,6 +5595,7 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                     boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.35)",
                     filter: getEffectFilter(item),
+                    zIndex: isSelected ? 40 : 5,
                   }}
                   className={`absolute rounded-xl flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-30" : ""
@@ -5581,6 +5690,8 @@ export default function CanvasWorkspace({
 
             const currentWidth = item.width || cardWidth;
             const currentHeight = item.height || (item.aspect === "16:9" ? Math.round(currentWidth * (9 / 16)) : item.aspect === "1:1" ? currentWidth : item.aspect === "9:16" ? Math.round(currentWidth * (16 / 9)) : Math.round(currentWidth * (5 / 4)));
+            const clipPathStyle = getItemClipPath(item);
+            const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
 
             return (
               <div
@@ -5609,6 +5720,8 @@ export default function CanvasWorkspace({
                   borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                   boxShadow: getEffectBoxShadow(item),
                   filter: getEffectFilter(item),
+                  zIndex: isSelected ? 40 : isChildOfFrame ? 15 : 10,
+                  clipPath: !isSelected && clipPathStyle ? clipPathStyle : undefined,
                 }}
                 className={`group absolute rounded-2xl flex flex-col select-none cursor-grab active:cursor-grabbing ${
                   draggingItemId === item.id
@@ -5666,6 +5779,13 @@ export default function CanvasWorkspace({
                   </>
                 )}
 
+                {/* Clippable Card Content Wrapper (Clips image/label inside frame, preserving selection outline) */}
+                <div
+                  className="flex flex-col w-full h-full"
+                  style={{
+                    clipPath: isSelected && clipPathStyle ? clipPathStyle : undefined,
+                  }}
+                >
                 {/* Header Label (Editable Title & Actions) */}
                 <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
                   <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
@@ -5755,6 +5875,7 @@ export default function CanvasWorkspace({
                       <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
                     </>
                   )}
+                </div>
                 </div>
               </div>
             );
