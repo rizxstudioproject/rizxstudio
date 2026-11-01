@@ -176,6 +176,27 @@ export const FRAME_PRESET_CATEGORIES: FramePresetCategory[] = [
   },
 ];
 
+// ── Figma Icons Matching Screenshots ──────────────────────────────────────────
+export const FigmaMoveIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4.5 3.5l13.5 7-6.5 2-2 6.5z" />
+  </svg>
+);
+
+export const FigmaHandIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v0M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+  </svg>
+);
+
+export const FigmaScaleIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="3" />
+    <rect x="6.5" y="12.5" width="5" height="5" rx="1" />
+    <path d="M12 12l5-5m0 0h-3.5m3.5 0v3.5" />
+  </svg>
+);
+
 export default function CanvasWorkspace({
   onOpenCanvasPreview,
   hideTopHeader = false,
@@ -4750,7 +4771,7 @@ export default function CanvasWorkspace({
           msOverflowStyle: "none",
         }}
       >
-        {/* 1. MOVE / CURSOR TOOL (With Submenu: Move V, Hand tool H, Scale K - Image 3) */}
+        {/* 1. MOVE / CURSOR TOOL (With Submenu: Move V, Hand tool H, Scale K - Matches Screenshot media_1793530537028_7e3a0dab.png & media_1793530528546_57ff5efa.png) */}
         <div className="relative flex items-center shrink-0">
           <button
             type="button"
@@ -4760,22 +4781,23 @@ export default function CanvasWorkspace({
               } else {
                 setActiveTool("hand");
                 setSelectedId(null);
+                setSelectedIds(new Set());
               }
               setActiveSubmenu(null);
             }}
             title={activeTool === "hand" ? "Hand Tool (H) - Panning Canvas" : "Move (V)"}
-            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
+            className={`h-8 w-8 sm:h-9 sm:w-9 rounded-xl flex items-center justify-center transition-colors cursor-pointer ${
               activeTool === "select" || activeTool === "hand" || activeTool === "scale"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
             }`}
           >
             {activeTool === "hand" ? (
-              <HiHandRaised className="w-4 h-4" />
+              <FigmaHandIcon className="w-4 h-4" />
             ) : activeTool === "scale" ? (
-              <HiArrowsPointingOut className="w-4 h-4" />
+              <FigmaScaleIcon className="w-4 h-4" />
             ) : (
-              <HiCursorArrowRays className="w-4 h-4" />
+              <FigmaMoveIcon className="w-4 h-4" />
             )}
           </button>
           <button
@@ -4785,18 +4807,14 @@ export default function CanvasWorkspace({
               setActiveSubmenu(activeSubmenu === "move" ? null : "move");
             }}
             title="Move Tools Menu"
-            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
-              activeTool === "select" || activeTool === "hand" || activeTool === "scale"
-                ? "bg-[#0c8ce9] text-white"
-                : "text-neutral-400 hover:text-white hover:bg-white/10"
-            }`}
+            className="h-8 sm:h-9 px-1.5 ml-1 rounded-xl bg-[#2c2c2c] hover:bg-[#383838] text-white flex items-center justify-center transition-colors cursor-pointer"
           >
-            <HiChevronDown className="w-3 h-3" />
+            <HiChevronDown className="w-3 h-3 text-white" />
           </button>
 
-          {/* Move Submenu Dropdown (Image 3) */}
+          {/* Move Submenu Dropdown (Matches Screenshot media_1793530528546_57ff5efa.png) */}
           {activeSubmenu === "move" && (
-            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[155px] bg-[#1e1e1e] border border-white/10 rounded-xl p-1 shadow-[0_12px_36px_rgba(0,0,0,0.85)] z-50 text-xs font-sans">
               <button
                 type="button"
                 onClick={() => {
@@ -4805,40 +4823,54 @@ export default function CanvasWorkspace({
                 }}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
                   activeTool === "select"
-                    ? "bg-[#0c8ce9] text-white font-medium"
+                    ? "bg-[#0c8ce9] text-white font-medium shadow-sm"
                     : "hover:bg-white/10 text-neutral-200 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "select" && <HiCheck className="w-3.5 h-3.5" />}
+                  <span className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                    {activeTool === "select" && (
+                      <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
                   </span>
-                  <HiCursorArrowRays className="w-4 h-4" />
+                  <FigmaMoveIcon className="w-4 h-4 shrink-0" />
                   <span>Move</span>
                 </div>
-                <span className="text-[11px] font-mono opacity-60">V</span>
+                <span className={`text-[11px] font-sans ${activeTool === "select" ? "text-white font-medium" : "text-neutral-400"}`}>
+                  V
+                </span>
               </button>
 
               <button
                 type="button"
                 onClick={() => {
                   setActiveTool("hand");
+                  setSelectedId(null);
+                  setSelectedIds(new Set());
                   setActiveSubmenu(null);
                 }}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
                   activeTool === "hand"
-                    ? "bg-[#0c8ce9] text-white font-medium"
+                    ? "bg-[#0c8ce9] text-white font-medium shadow-sm"
                     : "hover:bg-white/10 text-neutral-200 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "hand" && <HiCheck className="w-3.5 h-3.5" />}
+                  <span className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                    {activeTool === "hand" && (
+                      <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
                   </span>
-                  <HiHandRaised className="w-4 h-4" />
+                  <FigmaHandIcon className="w-4 h-4 shrink-0" />
                   <span>Hand tool</span>
                 </div>
-                <span className="text-[11px] font-mono opacity-60">H</span>
+                <span className={`text-[11px] font-sans ${activeTool === "hand" ? "text-white font-medium" : "text-neutral-400"}`}>
+                  H
+                </span>
               </button>
 
               <button
@@ -4849,18 +4881,24 @@ export default function CanvasWorkspace({
                 }}
                 className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
                   activeTool === "scale"
-                    ? "bg-[#0c8ce9] text-white font-medium"
+                    ? "bg-[#0c8ce9] text-white font-medium shadow-sm"
                     : "hover:bg-white/10 text-neutral-200 hover:text-white"
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "scale" && <HiCheck className="w-3.5 h-3.5" />}
+                  <span className="w-3.5 h-3.5 flex items-center justify-center shrink-0">
+                    {activeTool === "scale" && (
+                      <svg className="w-3.5 h-3.5 stroke-[2.5]" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
                   </span>
-                  <HiArrowsPointingOut className="w-4 h-4" />
+                  <FigmaScaleIcon className="w-4 h-4 shrink-0" />
                   <span>Scale</span>
                 </div>
-                <span className="text-[11px] font-mono opacity-60">K</span>
+                <span className={`text-[11px] font-sans ${activeTool === "scale" ? "text-white font-medium" : "text-neutral-400"}`}>
+                  K
+                </span>
               </button>
             </div>
           )}
