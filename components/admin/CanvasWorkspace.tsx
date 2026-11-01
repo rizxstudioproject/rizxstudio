@@ -2509,196 +2509,18 @@ export default function CanvasWorkspace({
         isLight ? "bg-[#f8fafc] text-slate-900" : "bg-[#0a0b0e] text-white"
       }`}
     >
-      {/* ── Top Bar: Figma Style Toolbar & Global Actions ─────────────────────── */}
-      {!hideTopHeader && isUiExpanded && (
-        <header className={`h-14 shrink-0 px-4 flex items-center justify-between z-30 shadow-md border-b transition-colors ${
-          isLight ? "bg-white/95 border-slate-200 text-slate-900 shadow-slate-200/50" : "bg-[#0f1115] border-white/10 text-white"
-        }`}>
-          {/* Left: Studio Pill Menu & Status */}
-          <div className="flex items-center gap-3">
-            {renderPillMenu()}
-
-            <span className={`hidden sm:inline-block px-2.5 py-0.5 rounded-full border text-[10px] font-mono ${
-              isLight ? "bg-slate-100 border-slate-200 text-slate-600" : "bg-white/5 border-white/10 text-neutral-400"
-            }`}>
-              {items.length} Elements
-            </span>
-          </div>
-
-        {/* Center: Tools (Select, Hand, + Section, + Folder, + Text, + Media) */}
-        <div className={`flex items-center gap-1 p-1 rounded-xl border shadow-inner ${
-          isLight ? "bg-slate-100 border-slate-200" : "bg-black/60 border-white/10"
-        }`}>
-          {/* Select Tool */}
-          <button
-            type="button"
-            onClick={() => setActiveTool("select")}
-            title="Select & Move (V)"
-            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              activeTool === "select"
-                ? "bg-teal-500 text-black shadow-sm"
-                : isLight
-                ? "text-slate-600 hover:text-slate-950 hover:bg-white"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            <HiCursorArrowRays className="w-4 h-4" />
-            <span className="hidden md:inline">Select</span>
-          </button>
-
-          {/* Hand Tool */}
-          <button
-            type="button"
-            onClick={() => setActiveTool("hand")}
-            title="Hand Tool / Pan (H)"
-            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              activeTool === "hand"
-                ? "bg-teal-500 text-black shadow-sm"
-                : isLight
-                ? "text-slate-600 hover:text-slate-950 hover:bg-white"
-                : "text-neutral-400 hover:text-white"
-            }`}
-          >
-            <HiHandRaised className="w-4 h-4" />
-            <span className="hidden md:inline">Pan</span>
-          </button>
-
-          <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-300" : "bg-white/15"}`} />
-
-          {/* + Section */}
-          <button
-            type="button"
-            onClick={handleAddSection}
-            title="Tambahkan Section Pembatas Baru"
-            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              isLight ? "text-slate-700 hover:text-slate-950 hover:bg-white" : "text-neutral-300 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiRectangleGroup className="w-4 h-4 text-emerald-500" />
-            <span className="hidden sm:inline">+ Section</span>
-          </button>
-
-          {/* + Folder */}
-          <button
-            type="button"
-            onClick={handleAddFolder}
-            title="Tambahkan Folder Client Baru"
-            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              isLight ? "text-slate-700 hover:text-slate-950 hover:bg-white" : "text-neutral-300 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiFolder className="w-4 h-4 text-teal-500" />
-            <span className="hidden sm:inline">+ Folder</span>
-          </button>
-
-          {/* + Text */}
-          <button
-            type="button"
-            onClick={handleAddText}
-            title="Tambahkan Teks / Catatan Langsung di Canvas"
-            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              isLight ? "text-slate-700 hover:text-slate-950 hover:bg-white" : "text-neutral-300 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiLanguage className="w-4 h-4 text-amber-500" />
-            <span className="hidden sm:inline">+ Text</span>
-          </button>
-
-          {/* + Media (Drop or Link) */}
-          <button
-            type="button"
-            onClick={() => setIsLinkModalOpen(true)}
-            title="Tambahkan Media via Link (YouTube / Drive) atau File"
-            className={`p-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
-              isLight ? "text-slate-700 hover:text-slate-950 hover:bg-white" : "text-neutral-300 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiPhoto className="w-4 h-4 text-cyan-500" />
-            <span className="hidden sm:inline">+ Media</span>
-          </button>
-
-          {/* Hidden File Picker Input */}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            onChange={(e) => {
-              if (e.target.files && e.target.files.length > 0) {
-                handleProcessDroppedFile(e.target.files[0]);
-              }
-            }}
-            className="hidden"
-          />
-        </div>
-
-        {/* Right: Fullscreen, Save / Cancel Controls */}
-        <div className="flex items-center gap-2">
-          {/* Fullscreen Mode Toggle */}
-          <button
-            type="button"
-            onClick={toggleFullscreen}
-            title={isFullscreen ? "Keluar Layar Penuh (Esc)" : "Layar Penuh / Fullscreen"}
-            className={`px-3 py-1.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-              isFullscreen
-                ? "bg-teal-500 text-black border-teal-400 font-bold shadow-sm"
-                : isLight
-                ? "border-slate-300 hover:bg-slate-100 text-slate-700 hover:text-slate-950"
-                : "border-white/10 hover:bg-white/10 text-neutral-200 hover:text-white"
-            }`}
-          >
-            {isFullscreen ? (
-              <>
-                <HiArrowsPointingIn className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Exit Fullscreen</span>
-              </>
-            ) : (
-              <>
-                <HiArrowsPointingOut className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Fullscreen</span>
-              </>
-            )}
-          </button>
-
-          {hasChanges && (
-            <button
-              type="button"
-              onClick={handleCancelChanges}
-              disabled={isSaving}
-              className={`px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer ${
-                isLight ? "border-slate-300 hover:bg-slate-100 text-slate-700" : "border-white/10 hover:bg-white/5 text-neutral-300"
-              }`}
-            >
-              Batal
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={handleSaveChanges}
-            disabled={isSaving || !hasChanges}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md flex items-center gap-1.5 cursor-pointer ${
-              hasChanges
-                ? "bg-teal-500 hover:bg-teal-400 text-black shadow-teal-500/20"
-                : isLight
-                ? "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
-                : "bg-white/5 text-neutral-500 border border-white/5 cursor-not-allowed"
-            }`}
-          >
-            {isSaving ? (
-              <>
-                <HiArrowPath className="w-3.5 h-3.5 animate-spin" />
-                <span>Menyimpan...</span>
-              </>
-            ) : (
-              <>
-                <HiCheckCircle className="w-3.5 h-3.5" />
-                <span>Save Changes</span>
-              </>
-            )}
-          </button>
-        </div>
-      </header>
-      )}
+      {/* Hidden File Picker Input for Canvas Media Upload */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*"
+        onChange={(e) => {
+          if (e.target.files && e.target.files.length > 0) {
+            handleProcessDroppedFile(e.target.files[0]);
+          }
+        }}
+        className="hidden"
+      />
 
       {/* Success Notification Bar */}
       {saveSuccess && (
@@ -2783,55 +2605,52 @@ export default function CanvasWorkspace({
             isPanning || activeTool === "hand" || isSpacePressed ? "cursor-grab active:cursor-grabbing" : "cursor-default"
           }`}
         >
-          {/* Floating Pill when UI is collapsed (Directly on canvas top-left - matches reference screenshot!) */}
-          {!isUiExpanded && (
-            <div className="absolute top-4 left-4 z-40">
-              {renderPillMenu()}
-            </div>
-          )}
+          {/* Floating Studio Pill Menu (matches Figma reference) */}
+          <div className="absolute top-4 left-4 z-40">
+            {renderPillMenu()}
+          </div>
 
-          {/* Quick Floating Actions when UI is collapsed */}
-          {!isUiExpanded && (
-            <div className="absolute top-4 right-4 z-40 flex items-center gap-2 font-mono">
-              {hasChanges && (
-                <button
-                  type="button"
-                  onClick={handleSaveChanges}
-                  disabled={isSaving}
-                  className="px-3.5 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-lg flex items-center gap-1.5 cursor-pointer"
-                >
-                  <HiCheckCircle className="w-3.5 h-3.5" />
-                  <span>Save Changes</span>
-                </button>
-              )}
+          {/* Quick Floating Actions (Save changes, Fullscreen, Inspector toggle) */}
+          <div className="absolute top-4 right-4 z-40 flex items-center gap-2 font-mono">
+            {hasChanges && (
               <button
                 type="button"
-                onClick={toggleFullscreen}
-                className="p-2 rounded-xl bg-[#1e1e1e]/90 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 text-xs shadow-lg cursor-pointer"
-                title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                onClick={handleSaveChanges}
+                disabled={isSaving}
+                className="px-3.5 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-lg flex items-center gap-1.5 cursor-pointer"
               >
-                {isFullscreen ? <HiArrowsPointingIn className="w-4 h-4" /> : <HiArrowsPointingOut className="w-4 h-4" />}
+                <HiCheckCircle className="w-3.5 h-3.5" />
+                <span>Save Changes</span>
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (typeof window !== "undefined" && window.innerWidth < 640) {
-                    setIsMobileInspectorOpen((prev) => !prev);
-                  } else {
-                    setIsRightSidebarOpen((prev) => !prev);
-                  }
-                }}
-                className={`p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors ${
-                  isRightSidebarOpen || isMobileInspectorOpen
-                    ? "bg-[#0c8ce9] border-[#0c8ce9] text-white"
-                    : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
-                }`}
-                title="Design Inspector (Right Menu)"
-              >
-                <HiAdjustmentsHorizontal className="w-4 h-4" />
-              </button>
-            </div>
-          )}
+            )}
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className="p-2 rounded-xl bg-[#1e1e1e]/90 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 text-xs shadow-lg cursor-pointer"
+              title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? <HiArrowsPointingIn className="w-4 h-4" /> : <HiArrowsPointingOut className="w-4 h-4" />}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (typeof window !== "undefined" && window.innerWidth < 640) {
+                  setIsMobileInspectorOpen((prev) => !prev);
+                } else {
+                  setIsRightSidebarOpen((prev) => !prev);
+                }
+              }}
+              className={`p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors ${
+                isRightSidebarOpen || isMobileInspectorOpen
+                  ? "bg-[#0c8ce9] border-[#0c8ce9] text-white"
+                  : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
+              }`}
+              title="Design Inspector (Right Menu)"
+            >
+              <HiAdjustmentsHorizontal className="w-4 h-4" />
+            </button>
+          </div>
+
         {/* Background Dot Grid Pattern */}
         <div
           className={`absolute inset-0 pointer-events-none transition-opacity duration-200 ${
@@ -3846,113 +3665,7 @@ export default function CanvasWorkspace({
         </button>
       </nav>
 
-      {/* ── Floating Zoom Dock (Positioned at bottom-right) ──────────────────── */}
-      <aside
-        aria-label="Zoom Controls"
-        className={`fixed bottom-5 right-5 z-40 hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-2xl backdrop-blur-2xl font-mono text-xs border ${
-          isLight
-            ? "bg-white/95 border-slate-300 text-slate-800 shadow-[0_15px_40px_rgba(0,0,0,0.12)]"
-            : "bg-[#13151b]/95 border-white/15 text-white shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
-        }`}
-      >
-        {/* Zoom Out */}
-        <button
-          type="button"
-          onClick={() => {
-            const newZ = Math.max(0.18, zoom * 0.85);
-            setZoom(Number(newZ.toFixed(2)));
-          }}
-          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-            isLight
-              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950"
-              : "bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white"
-          }`}
-          title="Zoom Out (-)"
-        >
-          <HiMiniMagnifyingGlassMinus className="w-4 h-4" />
-        </button>
-
-        {/* Reset 100% */}
-        <button
-          type="button"
-          onClick={() => setZoom(1.0)}
-          className={`px-3 py-1 rounded-xl font-bold text-xs cursor-pointer min-w-[56px] text-center transition-all ${
-            isLight
-              ? "bg-teal-50 hover:bg-teal-100 text-teal-700"
-              : "bg-white/5 hover:bg-white/10 text-teal-400 hover:text-teal-300"
-          }`}
-          title="Reset Zoom ke 100%"
-        >
-          {Math.round(zoom * 100)}%
-        </button>
-
-        {/* Zoom In */}
-        <button
-          type="button"
-          onClick={() => {
-            const newZ = Math.min(5.5, zoom * 1.15);
-            setZoom(Number(newZ.toFixed(2)));
-          }}
-          className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
-            isLight
-              ? "bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950"
-              : "bg-white/5 hover:bg-white/15 text-neutral-300 hover:text-white"
-          }`}
-          title="Zoom In (+)"
-        >
-          <HiMiniMagnifyingGlassPlus className="w-4 h-4" />
-        </button>
-
-        <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-200" : "bg-white/15"}`} />
-
-        {/* Zoom to Fit All */}
-        <button
-          type="button"
-          onClick={zoomToFitAll}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer text-xs ${
-            isLight
-              ? "bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800"
-              : "bg-white/5 hover:bg-teal-500/20 text-neutral-300 hover:text-teal-300"
-          }`}
-          title="Fit All Elements (F)"
-        >
-          <HiArrowsPointingOut className="w-3.5 h-3.5" />
-          <span className="hidden lg:inline">Fit All</span>
-        </button>
-
-        {/* Center Pan Origin */}
-        <button
-          type="button"
-          onClick={() => setPan({ x: 80, y: 80 })}
-          className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer text-[11px] ${
-            isLight
-              ? "bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900"
-              : "bg-white/5 hover:bg-white/15 text-neutral-400 hover:text-white"
-          }`}
-          title="Reset Posisi Pan"
-        >
-          Reset Pan
-        </button>
-
-        <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-200" : "bg-white/15"}`} />
-
-        {/* Fullscreen Dock Button */}
-        <button
-          type="button"
-          onClick={toggleFullscreen}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer text-xs ${
-            isFullscreen
-              ? "bg-teal-500 text-black font-bold shadow-sm"
-              : isLight
-              ? "bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-800"
-              : "bg-white/5 hover:bg-teal-500/20 text-neutral-300 hover:text-teal-300"
-          }`}
-          title={isFullscreen ? "Keluar Fullscreen (Esc)" : "Layar Penuh / Fullscreen"}
-        >
-          {isFullscreen ? <HiArrowsPointingIn className="w-3.5 h-3.5" /> : <HiArrowsPointingOut className="w-3.5 h-3.5" />}
-          <span className="hidden lg:inline">{isFullscreen ? "Exit Full" : "Fullscreen"}</span>
-        </button>
-      </aside>
+      
 
       {/* ── Modal: Dev Mode / Code Inspect (</>) ───────────────────────────────── */}
       {showDevMode && (
