@@ -285,6 +285,292 @@ export const getItemDimensions = (it: CanvasItem): { width: number; height: numb
   return { width: Math.round(w), height: Math.round(h) };
 };
 
+export interface SnapGuideLine {
+  type: "horizontal" | "vertical";
+  pos: number;
+  start: number;
+  end: number;
+}
+
+export interface DistanceGuide {
+  type: "horizontal" | "vertical";
+  startPos: number;
+  endPos: number;
+  crossPos: number;
+  distance: number;
+}
+
+export const getItemBounds = (it: CanvasItem) => {
+  const { width: w, height: h } = getItemDimensions(it);
+  const x = it.x || 0;
+  const y = it.y || 0;
+  return {
+    x,
+    y,
+    w,
+    h,
+    left: x,
+    right: x + w,
+    top: y,
+    bottom: y + h,
+    centerX: x + w / 2,
+    centerY: y + h / 2,
+  };
+};
+
+export const calculateSnapAndGuides = (
+  draggedId: string,
+  rawX: number,
+  rawY: number,
+  allItems: CanvasItem[],
+  currentZoom: number,
+  selectedIdSet: Set<string>,
+  hiddenIdSet: Set<string>
+): {
+  snappedX: number;
+  snappedY: number;
+  guides: { lines: SnapGuideLine[]; distances: DistanceGuide[] };
+} => {
+  const dragged = allItems.find((it) => it.id === draggedId);
+  if (!dragged) {
+    return { snappedX: Math.round(rawX), snappedY: Math.round(rawY), guides: { lines: [], distances: [] } };
+  }
+
+  const baseBounds = getItemBounds(dragged);
+  const dragW = baseBounds.w;
+  const dragH = baseBounds.h;
+
+  let curX = rawX;
+  let curY = rawY;
+
+  const snapThreshold = Math.max(6, 8 / currentZoom);
+
+  // Other items to consider for snapping
+  const otherItems = allItems.filter(
+    (it) =>
+      it.id !== draggedId &&
+      !selectedIdSet.has(it.id) &&
+      !hiddenIdSet.has(it.id) &&
+      it.frameId !== draggedId
+  );
+
+  const otherBounds = otherItems.map((it) => getItemBounds(it));
+
+  // --- 1. Snapping on Y axis (Horizontal Alignment Lines) ---
+  const dragYTargets = [
+    { val: curY, offset: 0 },
+    { val: curY + dragH / 2, offset: -dragH / 2 },
+    { val: curY + dragH, offset: -dragH },
+  ];
+
+  let bestDeltaY: number | null = null;
+  for (const ob of otherBounds) {
+    const obYTargets = [ob.top, ob.centerY, ob.bottom];
+    for (const dt of dragYTargets) {
+      for (const ot of obYTargets) {
+        const diff = ot - dt.val;
+        if (Math.abs(diff) <= snapThreshold) {
+          if (bestDeltaY === null || Math.abs(diff) < Math.abs(bestDeltaY)) {
+            bestDeltaY = diff;
+          }
+        }
+      }
+    }
+  }
+
+  if (bestDeltaY !== null) {
+    curY += bestDeltaY;
+  }
+
+  // --- 2. Snapping on X axis (Vertical Alignment Lines) ---
+  const dragXTargets = [
+    { val: curX, offset: 0 },
+    { val: curX + dragW / 2, offset: -dragW / 2 },
+    { val: curX + dragW, offset: -dragW },
+  ];
+
+  let bestDeltaX: number | null = null;
+  for (const ob of otherBounds) {
+    const obXTargets = [ob.left, ob.centerX, ob.right];
+    for (const dt of dragXTargets) {
+      for (const ot of obXTargets) {
+        const diff = ot - dt.val;
+        if (Math.abs(diff) <= snapThreshold) {
+          if (bestDeltaX === null || Math.abs(diff) < Math.abs(bestDeltaX)) {
+            bestDeltaX = diff;
+          }
+        }
+      }
+    }
+  }
+
+  if (bestDeltaX !== null) {
+    curX += bestDeltaX;
+  }
+
+  // --- 3. Compute Active Guide Lines with snapped positions ---
+  const lines: SnapGuideLine[] = [];
+  const currentYValues = [curY, curY + dragH / 2, curY + dragH];
+  const currentXValues = [curX, curX + dragW / 2, curX + dragW];
+
+  for (const ob of otherBounds) {
+    // Horizontal lines (Y-axis matches)
+    const obYTargets = [ob.top, ob.centerY, ob.bottom];
+    for (const cy of currentYValues) {
+      for (const ot of obYTargets) {
+        if (Math.abs(cy - ot) <= 1.5) {
+          lines.push({
+            type: "horizontal",
+            pos: Math.round(ot),
+            start: Math.min(curX, ob.left) - 16,
+            end: Math.max(curX + dragW, ob.right) + 16,
+          });
+        }
+      }
+    }
+
+    // Vertical lines (X-axis matches)
+    const obXTargets = [ob.left, ob.centerX, ob.right];
+    for (const cx of currentXValues) {
+      for (const ot of obXTargets) {
+        if (Math.abs(cx - ot) <= 1.5) {
+          lines.push({
+            type: "vertical",
+            pos: Math.round(ot),
+            start: Math.min(curY, ob.top) - 16,
+            end: Math.max(curY + dragH, ob.bottom) + 16,
+          });
+        }
+      }
+    }
+  }
+
+  // Deduplicate lines
+  const uniqueLines: SnapGuideLine[] = [];
+  for (const l of lines) {
+    const existing = uniqueLines.find((u) => u.type === l.type && Math.abs(u.pos - l.pos) < 1);
+    if (existing) {
+      existing.start = Math.min(existing.start, l.start);
+      existing.end = Math.max(existing.end, l.end);
+    } else {
+      uniqueLines.push({ ...l });
+    }
+  }
+
+  // --- 4. Equal Distance / Spacing Guides (Matches Screenshot 2) ---
+  const distances: DistanceGuide[] = [];
+
+  // Horizontal spacing (left item < curX < right item)
+  const hNeighbors = otherBounds.filter(
+    (ob) => Math.max(curY, ob.top) <= Math.min(curY + dragH, ob.bottom) + 80
+  );
+
+  const leftNeighbors = hNeighbors.filter((ob) => ob.right <= curX);
+  const rightNeighbors = hNeighbors.filter((ob) => ob.left >= curX + dragW);
+
+  if (leftNeighbors.length > 0 && rightNeighbors.length > 0) {
+    leftNeighbors.sort((a, b) => b.right - a.right);
+    rightNeighbors.sort((a, b) => a.left - b.left);
+    const closestLeft = leftNeighbors[0];
+    const closestRight = rightNeighbors[0];
+
+    const gapLeft = curX - closestLeft.right;
+    const gapRight = closestRight.left - (curX + dragW);
+
+    if (gapLeft > 0 && gapRight > 0) {
+      if (Math.abs(gapLeft - gapRight) <= snapThreshold) {
+        curX = Math.round(closestLeft.right + (closestRight.left - closestLeft.right - dragW) / 2);
+        const finalGap = Math.round(curX - closestLeft.right);
+        distances.push({
+          type: "horizontal",
+          startPos: Math.round(closestLeft.right),
+          endPos: Math.round(curX),
+          crossPos: Math.round(curY + dragH / 2),
+          distance: finalGap,
+        });
+        distances.push({
+          type: "horizontal",
+          startPos: Math.round(curX + dragW),
+          endPos: Math.round(closestRight.left),
+          crossPos: Math.round(curY + dragH / 2),
+          distance: finalGap,
+        });
+      }
+    }
+  } else if (leftNeighbors.length > 0) {
+    leftNeighbors.sort((a, b) => b.right - a.right);
+    const closestLeft = leftNeighbors[0];
+    const gapLeft = curX - closestLeft.right;
+    if (gapLeft > 10 && gapLeft < 800) {
+      distances.push({
+        type: "horizontal",
+        startPos: Math.round(closestLeft.right),
+        endPos: Math.round(curX),
+        crossPos: Math.round(curY + dragH / 2),
+        distance: Math.round(gapLeft),
+      });
+    }
+  } else if (rightNeighbors.length > 0) {
+    rightNeighbors.sort((a, b) => a.left - b.left);
+    const closestRight = rightNeighbors[0];
+    const gapRight = closestRight.left - (curX + dragW);
+    if (gapRight > 10 && gapRight < 800) {
+      distances.push({
+        type: "horizontal",
+        startPos: Math.round(curX + dragW),
+        endPos: Math.round(closestRight.left),
+        crossPos: Math.round(curY + dragH / 2),
+        distance: Math.round(gapRight),
+      });
+    }
+  }
+
+  // Vertical spacing (top item < curY < bottom item)
+  const vNeighbors = otherBounds.filter(
+    (ob) => Math.max(curX, ob.left) <= Math.min(curX + dragW, ob.right) + 80
+  );
+
+  const topNeighbors = vNeighbors.filter((ob) => ob.bottom <= curY);
+  const bottomNeighbors = vNeighbors.filter((ob) => ob.top >= curY + dragH);
+
+  if (topNeighbors.length > 0 && bottomNeighbors.length > 0) {
+    topNeighbors.sort((a, b) => b.bottom - a.bottom);
+    bottomNeighbors.sort((a, b) => a.top - b.top);
+    const closestTop = topNeighbors[0];
+    const closestBottom = bottomNeighbors[0];
+
+    const gapTop = curY - closestTop.bottom;
+    const gapBottom = closestBottom.top - (curY + dragH);
+
+    if (gapTop > 0 && gapBottom > 0) {
+      if (Math.abs(gapTop - gapBottom) <= snapThreshold) {
+        curY = Math.round(closestTop.bottom + (closestBottom.top - closestTop.bottom - dragH) / 2);
+        const finalGap = Math.round(curY - closestTop.bottom);
+        distances.push({
+          type: "vertical",
+          startPos: Math.round(closestTop.bottom),
+          endPos: Math.round(curY),
+          crossPos: Math.round(curX + dragW / 2),
+          distance: finalGap,
+        });
+        distances.push({
+          type: "vertical",
+          startPos: Math.round(curY + dragH),
+          endPos: Math.round(closestBottom.top),
+          crossPos: Math.round(curX + dragW / 2),
+          distance: finalGap,
+        });
+      }
+    }
+  }
+
+  return {
+    snappedX: Math.round(curX),
+    snappedY: Math.round(curY),
+    guides: { lines: uniqueLines, distances },
+  };
+};
+
 export default function CanvasWorkspace({
   onOpenCanvasPreview,
   hideTopHeader = false,
@@ -436,6 +722,12 @@ export default function CanvasWorkspace({
   } | null>(null);
   const marqueeStartRef = useRef<{ x: number; y: number } | null>(null);
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
+
+  // Figma Smart Guides & Snap Alignment System (Matches Screenshots 1, 2 & 3)
+  const [activeSnapGuides, setActiveSnapGuides] = useState<{
+    lines: SnapGuideLine[];
+    distances: DistanceGuide[];
+  }>({ lines: [], distances: [] });
 
   // Interactive Frame & Section Drawing Tool (Figma Style)
   const [isDrawingShape, setIsDrawingShape] = useState<boolean>(false);
@@ -2656,8 +2948,22 @@ export default function CanvasWorkspace({
         }
       } else if (draggingItemId) {
         hasItemMovedDuringDragRef.current = true;
-        const curX = Math.round((e.clientX - pan.x) / zoom - dragItemOffset.x);
-        const curY = Math.round((e.clientY - pan.y) / zoom - dragItemOffset.y);
+        const rawX = (e.clientX - pan.x) / zoom - dragItemOffset.x;
+        const rawY = (e.clientY - pan.y) / zoom - dragItemOffset.y;
+
+        const snapResult = calculateSnapAndGuides(
+          draggingItemId,
+          rawX,
+          rawY,
+          items,
+          zoom,
+          selectedIds,
+          hiddenItemIds
+        );
+        const curX = snapResult.snappedX;
+        const curY = snapResult.snappedY;
+        setActiveSnapGuides(snapResult.guides);
+
         const draggedInit = dragItemInitialPositionsRef.current?.get(draggingItemId);
         const deltaX = draggedInit ? curX - draggedInit.x : 0;
         const deltaY = draggedInit ? curY - draggedInit.y : 0;
@@ -2687,6 +2993,7 @@ export default function CanvasWorkspace({
     };
 
     const onWindowUp = (e: MouseEvent) => {
+      setActiveSnapGuides({ lines: [], distances: [] });
       if (dragRafRef.current) {
         cancelAnimationFrame(dragRafRef.current);
         dragRafRef.current = null;
@@ -3076,11 +3383,24 @@ export default function CanvasWorkspace({
       // Dragging item across canvas (ONLY in Select tool)
       if (activeTool === "select" && touchStateRef.current.touchDraggingItemId) {
         const itemId = touchStateRef.current.touchDraggingItemId;
-        const currentX = (t.clientX - panRef.current.x) / zoomRef.current - touchStateRef.current.touchItemOffset.x;
-        const currentY = (t.clientY - panRef.current.y) / zoomRef.current - touchStateRef.current.touchItemOffset.y;
+        const rawX = (t.clientX - panRef.current.x) / zoomRef.current - touchStateRef.current.touchItemOffset.x;
+        const rawY = (t.clientY - panRef.current.y) / zoomRef.current - touchStateRef.current.touchItemOffset.y;
+
+        const snapResult = calculateSnapAndGuides(
+          itemId,
+          rawX,
+          rawY,
+          items,
+          zoomRef.current,
+          selectedIds,
+          hiddenItemIds
+        );
+        const currentX = snapResult.snappedX;
+        const currentY = snapResult.snappedY;
+        setActiveSnapGuides(snapResult.guides);
 
         setItems((prev) =>
-          prev.map((it) => (it.id === itemId ? { ...it, x: Math.round(currentX), y: Math.round(currentY) } : it))
+          prev.map((it) => (it.id === itemId ? { ...it, x: currentX, y: currentY } : it))
         );
         setHasChanges(true);
         return;
@@ -3099,6 +3419,7 @@ export default function CanvasWorkspace({
   };
 
   const handleCanvasTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    setActiveSnapGuides({ lines: [], distances: [] });
     // If one finger remains after a 2-finger pinch, smoothly transition to 1-finger without jumping
     if (e.touches && e.touches.length === 1) {
       const t = e.touches[0];
@@ -7289,6 +7610,158 @@ export default function CanvasWorkspace({
                 </div>
               ))}
             </>
+          )}
+
+          {/* Figma Smart Alignment & Snapping Guides (Matches Screenshots 1, 2 & 3) */}
+          {(activeSnapGuides.lines.length > 0 || activeSnapGuides.distances.length > 0) && (
+            <div className="absolute inset-0 pointer-events-none z-50">
+              <svg className="absolute inset-0 w-full h-full overflow-visible pointer-events-none">
+                {/* 1. Alignment Guide Lines */}
+                {activeSnapGuides.lines.map((line, idx) => (
+                  <g key={`guide-${idx}`}>
+                    {line.type === "horizontal" ? (
+                      <>
+                        <line
+                          x1={line.start}
+                          y1={line.pos}
+                          x2={line.end}
+                          y2={line.pos}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                          strokeDasharray="none"
+                        />
+                        {/* Figma Crosshair Endpoints / Ticks */}
+                        <line
+                          x1={line.start}
+                          y1={line.pos - 5 / zoom}
+                          x2={line.start}
+                          y2={line.pos + 5 / zoom}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                        <line
+                          x1={line.end}
+                          y1={line.pos - 5 / zoom}
+                          x2={line.end}
+                          y2={line.pos + 5 / zoom}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <line
+                          x1={line.pos}
+                          y1={line.start}
+                          x2={line.pos}
+                          y2={line.end}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                          strokeDasharray="none"
+                        />
+                        {/* Figma Crosshair Endpoints / Ticks */}
+                        <line
+                          x1={line.pos - 5 / zoom}
+                          y1={line.start}
+                          x2={line.pos + 5 / zoom}
+                          y2={line.start}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                        <line
+                          x1={line.pos - 5 / zoom}
+                          y1={line.end}
+                          x2={line.pos + 5 / zoom}
+                          y2={line.end}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                      </>
+                    )}
+                  </g>
+                ))}
+
+                {/* 2. Distance Measurement Lines */}
+                {activeSnapGuides.distances.map((dist, idx) => (
+                  <g key={`dist-line-${idx}`}>
+                    {dist.type === "horizontal" ? (
+                      <>
+                        <line
+                          x1={dist.startPos}
+                          y1={dist.crossPos}
+                          x2={dist.endPos}
+                          y2={dist.crossPos}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                        <line
+                          x1={dist.startPos}
+                          y1={dist.crossPos - 5 / zoom}
+                          x2={dist.startPos}
+                          y2={dist.crossPos + 5 / zoom}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                        <line
+                          x1={dist.endPos}
+                          y1={dist.crossPos - 5 / zoom}
+                          x2={dist.endPos}
+                          y2={dist.crossPos + 5 / zoom}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <line
+                          x1={dist.crossPos}
+                          y1={dist.startPos}
+                          x2={dist.crossPos}
+                          y2={dist.endPos}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                        <line
+                          x1={dist.crossPos - 5 / zoom}
+                          y1={dist.startPos}
+                          x2={dist.crossPos + 5 / zoom}
+                          y2={dist.startPos}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                        <line
+                          x1={dist.crossPos - 5 / zoom}
+                          y1={dist.endPos}
+                          x2={dist.crossPos + 5 / zoom}
+                          y2={dist.endPos}
+                          stroke="#ff5500"
+                          strokeWidth={1.5 / zoom}
+                        />
+                      </>
+                    )}
+                  </g>
+                ))}
+              </svg>
+
+              {/* 3. Figma Orange Distance Pill Badges (Matches Screenshot 2 [ 788 ]) */}
+              {activeSnapGuides.distances.map((dist, idx) => {
+                const midX = dist.type === "horizontal" ? (dist.startPos + dist.endPos) / 2 : dist.crossPos;
+                const midY = dist.type === "horizontal" ? dist.crossPos : (dist.startPos + dist.endPos) / 2;
+                return (
+                  <div
+                    key={`dist-badge-${idx}`}
+                    className="absolute pointer-events-none px-1.5 py-0.5 rounded bg-[#ff5500] text-white text-[11px] font-mono font-bold shadow-md whitespace-nowrap select-none"
+                    style={{
+                      left: `${midX}px`,
+                      top: `${midY}px`,
+                      transform: `translate(-50%, -50%) scale(${1 / zoom})`,
+                    }}
+                  >
+                    {dist.distance}
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
