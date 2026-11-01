@@ -85,26 +85,31 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   const boardContentRef = useRef<HTMLDivElement>(null);
 
   const hasFreeformLayout = useMemo(() => {
-    return (canvasItems || []).some((item) => item.x !== undefined && item.y !== undefined);
+    const validMedia = (canvasItems || []).filter(
+      (item) => item.type !== "section" && item.mediaType !== "section" && item.type !== "text" && item.mediaType !== "text" && (item.image || item.videoId)
+    );
+    return validMedia.length > 0 && validMedia.some((item) => item.x !== undefined && item.y !== undefined);
   }, [canvasItems]);
 
   // Gather all works across client vaults into Canvas reference sheets
   const sheets: CanvasSheetItem[] = useMemo(() => {
-    if (canvasItems && canvasItems.length > 0) {
-      return canvasItems
-        .filter((item) => item.type !== "section" && item.mediaType !== "section" && item.type !== "text" && item.mediaType !== "text")
-        .map((item) => ({
-          id: item.id,
-          title: item.title,
-          type: item.type || item.clientName || "Canvas Asset",
-          image: normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : "")),
-          aspect: item.aspect || "4:5",
-          clientName: item.clientName || "Selected Work",
-          clientId: item.clientId || "canvas",
-          year: item.year || "2026",
-          isVideo: Boolean(item.isVideo || item.videoId || item.mediaType === "youtube" || item.mediaType === "gdrive"),
-          tools: item.tools || ["digital", "visual"],
-        }));
+    const validCanvasMedia = (canvasItems || []).filter(
+      (item) => item.type !== "section" && item.mediaType !== "section" && item.type !== "text" && item.mediaType !== "text" && (item.image || item.videoId)
+    );
+
+    if (validCanvasMedia.length > 0) {
+      return validCanvasMedia.map((item) => ({
+        id: item.id,
+        title: item.title,
+        type: item.type || item.clientName || "Canvas Asset",
+        image: normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : "")),
+        aspect: item.aspect || "4:5",
+        clientName: item.clientName || "Selected Work",
+        clientId: item.clientId || "canvas",
+        year: item.year || "2026",
+        isVideo: Boolean(item.isVideo || item.videoId || item.mediaType === "youtube" || item.mediaType === "gdrive"),
+        tools: item.tools || ["digital", "visual"],
+      }));
     }
 
     const list: CanvasSheetItem[] = [];
@@ -300,7 +305,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
   // Handle double-tap detection for pointer / mouse clicks
   const handleSheetTap = useCallback(
-    (targetEl: HTMLElement, sheetId: string) => {
+    (targetEl: HTMLElement, sheetId: string, e?: React.MouseEvent) => {
       const now = Date.now();
       // If currently fitted: a single click zooms back out to full portfolio view
       if (fittedSheetId) {
@@ -308,6 +313,22 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           // Synthetic click from the double-tap gesture itself - DO NOT CLOSE!
           return;
         }
+
+        // Allow panning/dragging around image without closing!
+        if (hasDraggedRef.current) {
+          hasDraggedRef.current = false;
+          return;
+        }
+        if (e) {
+          const moveDist = Math.hypot(
+            e.clientX - pointerDownPosRef.current.x,
+            e.clientY - pointerDownPosRef.current.y
+          );
+          if (moveDist > 6) {
+            return;
+          }
+        }
+
         setFittedSheetId(null);
         zoomToFit();
         lastTapRef.current = { time: 0, id: "" };
@@ -446,10 +467,12 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   };
 
   const pointerDownPosRef = useRef<{ x: number; y: number; time: number }>({ x: 0, y: 0, time: 0 });
+  const hasDraggedRef = useRef<boolean>(false);
 
   // Pointer / Mouse Pan Events
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     pointerDownPosRef.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+    hasDraggedRef.current = false;
     if (e.button === 0 || e.button === 1 || isSpacePressed) {
       setIsDragging(true);
       setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -459,6 +482,10 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
+    const moveDist = Math.hypot(e.clientX - pointerDownPosRef.current.x, e.clientY - pointerDownPosRef.current.y);
+    if (moveDist > 6) {
+      hasDraggedRef.current = true;
+    }
     setPan({
       x: e.clientX - dragStart.x,
       y: e.clientY - dragStart.y,
@@ -466,6 +493,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    const dist = Math.hypot(e.clientX - pointerDownPosRef.current.x, e.clientY - pointerDownPosRef.current.y);
+    if (dist > 6) {
+      hasDraggedRef.current = true;
+    }
+
     if (isDragging) {
       setIsDragging(false);
       try {
@@ -474,9 +506,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     }
 
     // Check if this was a clean single tap (not a drag) on the canvas background
-    const dist = Math.hypot(e.clientX - pointerDownPosRef.current.x, e.clientY - pointerDownPosRef.current.y);
     const time = Date.now() - pointerDownPosRef.current.time;
-    if (dist < 8 && time < 350) {
+    if (dist < 8 && time < 350 && !hasDraggedRef.current) {
       if (fittedSheetId && Date.now() - lastFitTimeRef.current >= 450) {
         setFittedSheetId(null);
         zoomToFit();
@@ -1243,7 +1274,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   key={item.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSheetTap(e.currentTarget, item.id);
+                    handleSheetTap(e.currentTarget, item.id, e);
                   }}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
@@ -1381,7 +1412,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   key={sheet.id}
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleSheetTap(e.currentTarget, sheet.id);
+                    handleSheetTap(e.currentTarget, sheet.id, e);
                   }}
                   onDoubleClick={(e) => {
                     e.stopPropagation();

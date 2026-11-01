@@ -412,6 +412,7 @@ export default function CanvasWorkspace({
   const dragRafRef = useRef<number | null>(null);
   const pendingPanRef = useRef<{ x: number; y: number } | null>(null);
   const pendingItemDragRef = useRef<{ id: string; x: number; y: number } | null>(null);
+  const hasWorkspaceDraggedRef = useRef<boolean>(false);
 
   // Canvas items state
   const [items, setItems] = useState<CanvasItem[]>([]);
@@ -802,32 +803,78 @@ export default function CanvasWorkspace({
     if (canvasItems && canvasItems.length > 0) {
       // Clean legacy auto-generated folder headers if any
       const cleanedItems = canvasItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
-      setItems(cleanedItems);
-      initialItemsRef.current = JSON.parse(JSON.stringify(cleanedItems));
-      setHasChanges(false);
-      return;
+      const hasMedia = cleanedItems.some(
+        (it) => it.type !== "frame" && it.type !== "section" && (it.image || it.videoId)
+      );
+      if (hasMedia || cleanedItems.length > 1) {
+        setItems(cleanedItems);
+        initialItemsRef.current = JSON.parse(JSON.stringify(cleanedItems));
+        setHasChanges(false);
+        return;
+      }
     }
 
-    // Default: Clean presentation frame layout for presentations, landing pages, videos, and images
-    const initialList: CanvasItem[] = [
-      {
-        id: "frame-presentation-1",
-        title: "Presentation 16:9",
-        type: "frame",
-        mediaType: "frame",
-        x: 80,
-        y: 80,
-        width: 1280,
-        height: 720,
-        aspect: "16:9",
-        color: "#1e1e1e",
-      },
-    ];
+    // Default: Seed initial layout with presentation frame and all client deliverables
+    const initialList: CanvasItem[] = [];
+
+    // 1. Initial Presentation Frame
+    initialList.push({
+      id: "frame-presentation-1",
+      title: "Digital Campaign Showcase",
+      type: "frame",
+      mediaType: "frame",
+      x: 40,
+      y: 40,
+      width: 1920,
+      height: 1080,
+      aspect: "16:9",
+      color: "#18181b",
+    });
+
+    // 2. Client Deliverables - populate initial works so canvas is never empty
+    let cardX = 80;
+    let cardY = 120;
+    let countInRow = 0;
+
+    (clients || []).forEach((c) => {
+      (c.works || []).forEach((w: any) => {
+        if (w.image || w.gdriveUrl || w.videoId) {
+          initialList.push({
+            id: w.id || `canvas-${c.id}-${Math.random().toString(36).substr(2, 6)}`,
+            title: w.title || "Deliverable",
+            type: "media",
+            mediaType: w.videoId ? "youtube" : w.gdriveUrl ? "gdrive" : "image",
+            image: normalizeMediaUrl(
+              w.image || (w.videoId ? `https://img.youtube.com/vi/${w.videoId}/maxresdefault.jpg` : "")
+            ),
+            aspect: w.aspect || "4:5",
+            clientName: c.clientName,
+            clientId: c.id,
+            x: cardX,
+            y: cardY,
+            width: 440,
+            height: 550,
+            isVideo: Boolean(w.isVideo || w.videoId),
+            youtubeUrl: w.youtubeUrl,
+            videoId: w.videoId,
+            gdriveUrl: w.gdriveUrl,
+          });
+
+          cardX += 500;
+          countInRow++;
+          if (countInRow >= 3) {
+            countInRow = 0;
+            cardX = 80;
+            cardY += 640;
+          }
+        }
+      });
+    });
 
     setItems(initialList);
     initialItemsRef.current = JSON.parse(JSON.stringify(initialList));
     setHasChanges(false);
-  }, [canvasItems]);
+  }, [canvasItems, clients]);
 
   // Context Menu & Figma Action Handlers
   const handleItemContextMenu = useCallback((e: React.MouseEvent, item: CanvasItem) => {
@@ -1587,10 +1634,13 @@ export default function CanvasWorkspace({
       });
 
       if (isSpacePressed || activeTool === "hand" || e.button === 1) {
+        hasWorkspaceDraggedRef.current = false;
         setIsPanning(true);
         setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
-        setSelectedId(null);
-        setSelectedIds(new Set());
+        if (!fittedItemId) {
+          setSelectedId(null);
+          setSelectedIds(new Set());
+        }
       } else if (activeTool === "select" && e.button === 0) {
         // Desktop Move / Select tool: Hold and drag to select (Figma Marquee Selection in container screen space)
         const rect = canvasContainerRef.current?.getBoundingClientRect();
@@ -1698,6 +1748,7 @@ export default function CanvasWorkspace({
 
     const onWindowMove = (e: MouseEvent) => {
       if (isPanning) {
+        hasWorkspaceDraggedRef.current = true;
         pendingPanRef.current = {
           x: e.clientX - panStart.x,
           y: e.clientY - panStart.y,
@@ -1956,6 +2007,11 @@ export default function CanvasWorkspace({
       dragItemInitialPositionsRef.current = null;
       setIsPanning(false);
       setDraggingItemId(null);
+      if (hasWorkspaceDraggedRef.current) {
+        setTimeout(() => {
+          hasWorkspaceDraggedRef.current = false;
+        }, 150);
+      }
     };
 
     window.addEventListener("mousemove", onWindowMove, { passive: true });
@@ -2039,8 +2095,11 @@ export default function CanvasWorkspace({
 
     // In Hand tool mode: do NOT select item! Pan canvas directly
     if (activeTool === "hand" || isSpacePressed) {
-      setSelectedId(null);
-      setSelectedIds(new Set());
+      hasWorkspaceDraggedRef.current = false;
+      if (!fittedItemId) {
+        setSelectedId(null);
+        setSelectedIds(new Set());
+      }
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
       return;
@@ -2874,6 +2933,10 @@ export default function CanvasWorkspace({
   const handleItemClick = (e: React.MouseEvent, item: CanvasItem, targetEl?: HTMLElement) => {
     if (activeTool === "hand") {
       e.stopPropagation();
+      if (hasWorkspaceDraggedRef.current) {
+        hasWorkspaceDraggedRef.current = false;
+        return;
+      }
       if (fittedItemId) {
         if (Date.now() - lastWorkspaceFitTimeRef.current < 450) return;
         setFittedItemId(null);
