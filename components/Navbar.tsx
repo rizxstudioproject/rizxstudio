@@ -343,75 +343,33 @@ export default function Navbar() {
                     </div>
                   </button>
 
-                  {/* Section Divider: Folder Client */}
-                  <div className="my-2 px-3 pt-2 border-t border-white/5 flex items-center justify-between">
-                    <span className="text-[10px] font-mono font-bold tracking-wider uppercase text-neutral-400">
-                      📁 Folder Client
+                  {/* Folder Client Item */}
+                  <button
+                    onClick={() => {
+                      setIsWorkMenuOpen(false);
+                      scrollTo("projects");
+                    }}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-left transition-all cursor-pointer mt-0.5 group ${
+                      isLight
+                        ? "hover:bg-slate-100 border border-transparent hover:border-slate-200 text-slate-800"
+                        : "hover:bg-white/5 border border-transparent hover:border-white/10 text-neutral-200 hover:text-white"
+                    }`}
+                  >
+                    <span className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center text-base shrink-0 group-hover:scale-105 transition-transform">
+                      📁
                     </span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-neutral-400">
-                      {(clients || []).length} Folders
-                    </span>
-                  </div>
-
-                  {/* Client Folders List */}
-                  <div className="max-h-56 overflow-y-auto space-y-0.5 custom-scrollbar pr-0.5">
-                    {/* All Folders Option */}
-                    <button
-                      onClick={() => {
-                        setIsWorkMenuOpen(false);
-                        scrollTo("projects");
-                      }}
-                      className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer ${
-                        isLight
-                          ? "hover:bg-slate-100 text-slate-700"
-                          : "hover:bg-white/5 text-neutral-300 hover:text-white"
-                      }`}
-                    >
-                      <span className="w-5 h-5 rounded-md bg-teal-500/10 text-teal-400 flex items-center justify-center text-xs shrink-0">
-                        📁
-                      </span>
-                      <span className="flex-1 truncate">Semua Folder Client</span>
-                    </button>
-
-                    {/* Specific Client Folders */}
-                    {(clients || []).map((client) => {
-                      const count = client.works?.length || client.itemsCount || 0;
-                      return (
-                        <button
-                          key={client.id}
-                          onClick={() => handleSelectClient(client.id)}
-                          className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer group ${
-                            isLight
-                              ? "hover:bg-slate-100 text-slate-700"
-                              : "hover:bg-white/5 text-neutral-300 hover:text-white"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                            {client.logo ? (
-                              <img
-                                src={client.logo}
-                                alt={client.clientName}
-                                className="w-5 h-5 rounded-md object-contain bg-white/5 p-0.5 shrink-0"
-                              />
-                            ) : (
-                              <span
-                                className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold text-white shrink-0"
-                                style={{ backgroundColor: client.color || "#00A389" }}
-                              >
-                                {client.clientName?.charAt(0) || "C"}
-                              </span>
-                            )}
-                            <span className="truncate group-hover:text-teal-400 transition-colors">
-                              {client.clientName}
-                            </span>
-                          </div>
-                          <span className="text-[10px] font-mono text-neutral-400 shrink-0">
-                            {count}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold flex items-center justify-between">
+                        <span className="truncate">Folder Client</span>
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-neutral-400">
+                          {(clients || []).length} Folders
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-neutral-400 font-normal truncate">
+                        Arsip karya & proyek klien
+                      </div>
+                    </div>
+                  </button>
                 </div>
               )}
             </div>
@@ -640,49 +598,28 @@ export default function Navbar() {
               </span>
             </button>
 
-            {/* Folder Client Submenu for Mobile Drawer */}
-            <div className={`p-2 rounded-xl border mt-1 ${isLight ? "bg-slate-50 border-slate-200" : "bg-white/[0.02] border-white/10"}`}>
-              <div className="flex items-center justify-between px-2 py-1 mb-1 text-[11px] font-mono text-neutral-400 font-semibold uppercase">
-                <span className="flex items-center gap-1.5">
-                  <span>📁</span>
-                  <span>Folder Client</span>
+            {/* Folder Client Button for Mobile Drawer */}
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                scrollTo("projects");
+              }}
+              className={`text-left py-2 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer flex items-center justify-between border ${
+                isLight
+                  ? "bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-900"
+                  : "bg-white/[0.03] hover:bg-white/[0.08] border-white/10 text-white"
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-md bg-teal-500/20 text-teal-400 flex items-center justify-center text-xs">
+                  📁
                 </span>
-                <span className="text-[10px]">{(clients || []).length} Folders</span>
-              </div>
-              <div className="space-y-1 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
-                {(clients || []).map((client) => {
-                  const count = client.works?.length || client.itemsCount || 0;
-                  return (
-                    <button
-                      key={client.id}
-                      onClick={() => handleSelectClient(client.id)}
-                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-medium text-left transition-colors cursor-pointer ${
-                        isLight ? "hover:bg-slate-200 text-slate-800" : "hover:bg-white/10 text-neutral-200"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {client.logo ? (
-                          <img
-                            src={client.logo}
-                            alt={client.clientName}
-                            className="w-4 h-4 rounded object-contain bg-white/5 p-0.5 shrink-0"
-                          />
-                        ) : (
-                          <span
-                            className="w-4 h-4 rounded flex items-center justify-center text-[9px] font-bold text-white shrink-0"
-                            style={{ backgroundColor: client.color || "#00A389" }}
-                          >
-                            {client.clientName?.charAt(0) || "C"}
-                          </span>
-                        )}
-                        <span className="truncate">{client.clientName}</span>
-                      </div>
-                      <span className="text-[10px] font-mono text-neutral-400 shrink-0">{count}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+                <span className="font-semibold">Folder Client</span>
+              </span>
+              <span className="text-[10px] font-mono text-neutral-400">
+                {(clients || []).length} Folders
+              </span>
+            </button>
           </div>
           <Link
             href="/products"
