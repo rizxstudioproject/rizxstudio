@@ -267,7 +267,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     // Check if user is scrolling/pinching or panning with trackpad
     if (e.ctrlKey || e.metaKey || Math.abs(e.deltaY) > 0) {
       const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-      const newZoom = Math.min(3.5, Math.max(0.18, zoom * zoomFactor));
+      const newZoom = Math.min(5.5, Math.max(0.15, zoom * zoomFactor));
 
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -351,7 +351,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         e.touches[0].clientY - e.touches[1].clientY
       );
       const scale = dist / touchStateRef.current.initialDistance;
-      const newZoom = Math.min(3.5, Math.max(0.18, touchStateRef.current.initialZoom * scale));
+      const newZoom = Math.min(5.5, Math.max(0.15, touchStateRef.current.initialZoom * scale));
       setZoom(Number(newZoom.toFixed(3)));
     } else if (e.touches.length === 1 && isDragging) {
       // Panning
@@ -401,12 +401,37 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
             const reader = new FileReader();
             reader.onload = (ev) => {
-              setDroppedMedia({
-                fileUrl: ev.target?.result as string,
-                isVideo,
-                title: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
-                aspect: "4:5",
-              });
+              const fileDataUrl = ev.target?.result as string;
+              if (isImg) {
+                const img = new Image();
+                img.onload = () => {
+                  const nw = img.naturalWidth;
+                  const nh = img.naturalHeight;
+                  let detectedAspect = "original";
+                  if (nw && nh) {
+                    const ratio = nw / nh;
+                    if (Math.abs(ratio - 1) < 0.04) detectedAspect = "1:1";
+                    else if (Math.abs(ratio - 16 / 9) < 0.05) detectedAspect = "16:9";
+                    else if (Math.abs(ratio - 9 / 16) < 0.05) detectedAspect = "9:16";
+                    else if (Math.abs(ratio - 4 / 5) < 0.05) detectedAspect = "4:5";
+                    else detectedAspect = `${nw}:${nh}`;
+                  }
+                  setDroppedMedia({
+                    fileUrl: fileDataUrl,
+                    isVideo: false,
+                    title: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+                    aspect: detectedAspect,
+                  });
+                };
+                img.src = fileDataUrl;
+              } else {
+                setDroppedMedia({
+                  fileUrl: fileDataUrl,
+                  isVideo: true,
+                  title: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+                  aspect: "16:9",
+                });
+              }
             };
             reader.readAsDataURL(file);
           }
@@ -529,19 +554,25 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
               <label className="block text-xs font-semibold text-neutral-300 mb-1">
                 Aspect Ratio Frame
               </label>
-              <div className="grid grid-cols-4 gap-1.5">
-                {["4:5", "16:9", "1:1", "9:16"].map((r) => (
+              <div className="grid grid-cols-5 gap-1.5">
+                {[
+                  { id: "original", label: "Original" },
+                  { id: "4:5", label: "4:5" },
+                  { id: "16:9", label: "16:9" },
+                  { id: "1:1", label: "1:1" },
+                  { id: "9:16", label: "9:16" },
+                ].map((r) => (
                   <button
-                    key={r}
+                    key={r.id}
                     type="button"
-                    onClick={() => setDroppedMedia({ ...droppedMedia, aspect: r })}
-                    className={`py-1.5 px-2 rounded-lg border text-xs font-mono font-bold transition-all cursor-pointer ${
-                      droppedMedia.aspect === r
-                        ? "border-teal-400 bg-teal-500/20 text-white"
+                    onClick={() => setDroppedMedia({ ...droppedMedia, aspect: r.id })}
+                    className={`py-1.5 px-1.5 rounded-lg border text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                      droppedMedia.aspect === r.id
+                        ? "border-teal-400 bg-teal-500/20 text-teal-300"
                         : "border-white/10 bg-white/5 text-neutral-400 hover:text-white"
                     }`}
                   >
-                    {r}
+                    {r.label}
                   </button>
                 ))}
               </div>
@@ -697,21 +728,47 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       {/* ── 2D Infinite Transform Content Engine ───────────────────────────────── */}
       <div
         ref={boardContentRef}
-        className="absolute top-0 left-0 origin-top-left transition-transform duration-75 will-change-transform"
+        className={`absolute top-0 left-0 origin-top-left transition-transform duration-75 ${
+          isDragging ? "will-change-transform" : ""
+        }`}
         style={{
           transform: `translate3d(${pan.x}px, ${pan.y}px, 0) scale(${zoom})`,
+          transformOrigin: "0 0",
         }}
       >
         {/* Moodboard / PureRef Grid Arrangement of Deliverable Sheets */}
-        <div className="p-16 flex flex-wrap gap-12 sm:gap-14 max-w-[2400px] items-start select-none">
+        <div className="p-16 flex flex-wrap gap-12 sm:gap-14 max-w-[2800px] items-start select-none">
           {sheets.map((sheet, index) => {
             const isSelected = selectedSheetId === sheet.id;
 
-            // Sheet dimensions strictly matching aspect ratio
-            let sheetAspectClass = "aspect-[4/5] w-[340px] sm:w-[380px]";
-            if (sheet.aspect === "9:16") sheetAspectClass = "aspect-[9/16] w-[290px] sm:w-[320px]";
-            else if (sheet.aspect === "1:1") sheetAspectClass = "aspect-square w-[340px] sm:w-[380px]";
-            else if (sheet.aspect === "16:9") sheetAspectClass = "aspect-[16/9] w-[460px] sm:w-[520px]";
+            // Sheet dimensions strictly matching original aspect ratio without cropping
+            let sheetWidthClass = "w-[440px] sm:w-[540px]";
+            let sheetStyle: React.CSSProperties = { aspectRatio: "4 / 5" };
+
+            if (sheet.aspect === "16:9") {
+              sheetWidthClass = "w-[560px] sm:w-[720px]";
+              sheetStyle = { aspectRatio: "16 / 9" };
+            } else if (sheet.aspect === "9:16") {
+              sheetWidthClass = "w-[320px] sm:w-[380px]";
+              sheetStyle = { aspectRatio: "9 / 16" };
+            } else if (sheet.aspect === "1:1") {
+              sheetWidthClass = "w-[440px] sm:w-[540px]";
+              sheetStyle = { aspectRatio: "1 / 1" };
+            } else if (sheet.aspect === "4:5") {
+              sheetWidthClass = "w-[440px] sm:w-[540px]";
+              sheetStyle = { aspectRatio: "4 / 5" };
+            } else if (sheet.aspect && sheet.aspect.includes(":")) {
+              const [wStr, hStr] = sheet.aspect.split(":");
+              const wNum = parseFloat(wStr);
+              const hNum = parseFloat(hStr);
+              if (wNum && hNum) {
+                sheetStyle = { aspectRatio: `${wNum} / ${hNum}` };
+                sheetWidthClass = wNum > hNum ? "w-[560px] sm:w-[720px]" : "w-[440px] sm:w-[540px]";
+              }
+            } else if (sheet.aspect === "original" || !sheet.aspect) {
+              sheetStyle = { aspectRatio: "auto", minHeight: "340px" };
+              sheetWidthClass = "w-[460px] sm:w-[580px]";
+            }
 
             return (
               <div
@@ -736,7 +793,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-cyan-300 font-bold border border-white/10">
-                      {sheet.aspect}
+                      {sheet.aspect === "original" ? "ORIGINAL" : sheet.aspect}
                     </span>
                     {sheet.isVideo && (
                       <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/30 uppercase">
@@ -748,15 +805,22 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
                 {/* Sheet Visual Container */}
                 <div
-                  className={`relative ${sheetAspectClass} rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center`}
+                  className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center`}
+                  style={sheetStyle}
                 >
-                  {/* Visual Artwork */}
+                  {/* Visual Artwork - 100% Original Resolution & Razor-Sharp when Zoomed */}
                   <img
                     src={sheet.image}
                     alt={sheet.title}
                     draggable={false}
-                    className="w-full h-full object-cover pointer-events-none select-none transition-transform duration-500 group-hover:scale-102"
-                    loading="lazy"
+                    decoding="sync"
+                    loading="eager"
+                    className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
+                    style={{
+                      imageRendering: "-webkit-optimize-contrast",
+                      WebkitBackfaceVisibility: "hidden",
+                      transform: "translateZ(0)",
+                    }}
                     onContextMenu={(e) => e.preventDefault()}
                   />
 

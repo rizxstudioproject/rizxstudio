@@ -140,6 +140,24 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
     reader.onload = (e) => {
       const result = e.target?.result as string;
       setMediaPreview(result);
+      if (isImage) {
+        const img = new Image();
+        img.onload = () => {
+          const nw = img.naturalWidth;
+          const nh = img.naturalHeight;
+          if (nw && nh) {
+            const ratio = nw / nh;
+            if (Math.abs(ratio - 1) < 0.04) setAspectInput("1:1");
+            else if (Math.abs(ratio - 16 / 9) < 0.05) setAspectInput("16:9");
+            else if (Math.abs(ratio - 9 / 16) < 0.05) setAspectInput("9:16");
+            else if (Math.abs(ratio - 4 / 5) < 0.05) setAspectInput("4:5");
+            else setAspectInput(`${nw}:${nh}`);
+          }
+        };
+        img.src = result;
+      } else if (isVideo) {
+        setAspectInput("16:9");
+      }
     };
     reader.readAsDataURL(file);
   };
@@ -622,8 +640,9 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
                 <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
                   Format Ukuran Frame (Aspect Ratio)
                 </label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-5 gap-2">
                   {[
+                    { label: "original", name: "Original (Asli)" },
                     { label: "4:5", name: "Poster" },
                     { label: "16:9", name: "Landscape" },
                     { label: "1:1", name: "Square" },
@@ -711,14 +730,22 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
                         ? "1/1"
                         : item.aspect === "9:16"
                         ? "9/16"
+                        : item.aspect === "original"
+                        ? "auto"
+                        : item.aspect?.includes(":")
+                        ? item.aspect.replace(":", "/")
                         : "4/5",
+                    minHeight: item.aspect === "original" ? "200px" : undefined,
                   }}
                 >
                   {item.image ? (
                     <img
                       src={item.image}
                       alt={item.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-contain group-hover:scale-102 transition-transform duration-300"
+                      style={{
+                        imageRendering: "-webkit-optimize-contrast",
+                      }}
                     />
                   ) : (
                     <div className="text-neutral-600 text-xs font-mono">No Media</div>
