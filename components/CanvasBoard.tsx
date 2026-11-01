@@ -192,21 +192,24 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       )
         return;
 
+      const currentZoom = zoomRef.current;
+      const currentPan = panRef.current;
+
       // Convert current screen coordinates into unscaled canvas coordinate space
       const elLeft = rect.left - containerRect.left;
       const elTop = rect.top - containerRect.top;
-      const canvasX = (elLeft - pan.x) / zoom;
-      const canvasY = (elTop - pan.y) / zoom;
-      const canvasW = rect.width / zoom;
-      const canvasH = rect.height / zoom;
+      const canvasX = (elLeft - currentPan.x) / currentZoom;
+      const canvasY = (elTop - currentPan.y) / currentZoom;
+      const canvasW = rect.width / currentZoom;
+      const canvasH = rect.height / currentZoom;
 
-      // Calculate optimal scale to fit snugly in viewport (with pleasant 8% padding)
+      // Calculate optimal scale to fit snugly in viewport (95% width, 94% height to fill screen prominence)
       const viewportWidth = containerRect.width;
       const viewportHeight = containerRect.height;
-      const targetScaleX = (viewportWidth * 0.92) / canvasW;
-      const targetScaleY = (viewportHeight * 0.82) / canvasH;
+      const targetScaleX = (viewportWidth * 0.95) / canvasW;
+      const targetScaleY = (viewportHeight * 0.94) / canvasH;
       const targetZoom = Number(
-        Math.min(3.5, Math.max(0.25, Math.min(targetScaleX, targetScaleY))).toFixed(2)
+        Math.min(4.0, Math.max(0.25, Math.min(targetScaleX, targetScaleY))).toFixed(2)
       );
 
       // Calculate pan to center the target sheet directly on screen
@@ -218,16 +221,53 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       setFittedSheetId(sheetId);
       setSelectedSheetId(sheetId);
     },
-    [containerRef, pan, zoom, fittedSheetId, zoomToFit]
+    [containerRef, fittedSheetId, zoomToFit]
   );
 
-  // Handle double-tap detection for touch screens
+  // High-reliability touch double-tap tracker
+  const lastTouchTapRef = useRef<{ time: number; id: string; x: number; y: number }>({
+    time: 0,
+    id: "",
+    x: 0,
+    y: 0,
+  });
+
+  const handleSheetTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLElement>, targetEl: HTMLElement, sheetId: string) => {
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      const now = Date.now();
+      const timeSinceLast = now - lastTouchTapRef.current.time;
+      const dist = Math.hypot(
+        touch.clientX - lastTouchTapRef.current.x,
+        touch.clientY - lastTouchTapRef.current.y
+      );
+
+      if (timeSinceLast < 400 && dist < 30 && lastTouchTapRef.current.id === sheetId) {
+        // Confirmed double-tap on touch screen
+        e.preventDefault();
+        e.stopPropagation();
+        fitSheetToScreen(targetEl, sheetId);
+        lastTouchTapRef.current = { time: 0, id: "", x: 0, y: 0 };
+      } else {
+        lastTouchTapRef.current = {
+          time: now,
+          id: sheetId,
+          x: touch.clientX,
+          y: touch.clientY,
+        };
+      }
+    },
+    [fitSheetToScreen]
+  );
+
+  // Handle double-tap detection for pointer / mouse clicks
   const handleSheetTap = useCallback(
     (targetEl: HTMLElement, sheetId: string) => {
       const now = Date.now();
       const timeSinceLast = now - lastTapRef.current.time;
-      if (timeSinceLast < 360 && lastTapRef.current.id === sheetId) {
-        // Double tap confirmed
+      if (timeSinceLast < 380 && lastTapRef.current.id === sheetId) {
+        // Double click confirmed
         fitSheetToScreen(targetEl, sheetId);
         lastTapRef.current = { time: 0, id: "" };
       } else {
@@ -1099,10 +1139,13 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                     e.stopPropagation();
                     fitSheetToScreen(e.currentTarget, item.id);
                   }}
+                  onTouchEnd={(e) => {
+                    handleSheetTouchEnd(e, e.currentTarget, item.id);
+                  }}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0)`,
                   }}
-                  className={`absolute group flex flex-col rounded-2xl transition-all duration-200 cursor-pointer ${
+                  className={`canvas-sheet-item absolute group flex flex-col rounded-2xl transition-all duration-200 cursor-pointer ${
                     isSelected
                       ? isLight
                         ? "ring-2 ring-teal-500 shadow-[0_20px_60px_rgba(20,184,166,0.3)] scale-[1.01]"
@@ -1161,6 +1204,15 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                         e.stopPropagation();
                         return false;
                       }}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
+                        fitSheetToScreen(card, item.id);
+                      }}
+                      onTouchEnd={(e) => {
+                        const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
+                        handleSheetTouchEnd(e, card, item.id);
+                      }}
                       draggable={false}
                     />
                   </div>
@@ -1218,8 +1270,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                     e.stopPropagation();
                     fitSheetToScreen(e.currentTarget, sheet.id);
                   }}
+                  onTouchEnd={(e) => {
+                    handleSheetTouchEnd(e, e.currentTarget, sheet.id);
+                  }}
                   style={{ width: "460px" }}
-                  className={`group relative flex flex-col rounded-2xl transition-all duration-300 cursor-pointer ${
+                  className={`canvas-sheet-item group relative flex flex-col rounded-2xl transition-all duration-300 cursor-pointer ${
                     isSelected
                       ? isLight
                         ? "ring-2 ring-teal-500 shadow-[0_20px_60px_rgba(20,184,166,0.3)] scale-[1.01]"
@@ -1293,6 +1348,15 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                         e.preventDefault();
                         e.stopPropagation();
                         return false;
+                      }}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
+                        fitSheetToScreen(card, sheet.id);
+                      }}
+                      onTouchEnd={(e) => {
+                        const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
+                        handleSheetTouchEnd(e, card, sheet.id);
                       }}
                       draggable={false}
                     />

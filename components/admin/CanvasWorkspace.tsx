@@ -688,6 +688,14 @@ export default function CanvasWorkspace({
     setHasChanges(true);
   };
 
+  const [fittedItemId, setFittedItemId] = useState<string | null>(null);
+  const lastTouchTapRef = useRef<{ time: number; id: string; x: number; y: number }>({
+    time: 0,
+    id: "",
+    x: 0,
+    y: 0,
+  });
+
   // Zoom to Fit All Elements
   const zoomToFitAll = () => {
     if (!canvasContainerRef.current || items.length === 0) return;
@@ -722,7 +730,106 @@ export default function CanvasWorkspace({
       x: Math.round((clientWidth - contentW * fitScale) / 2 - minX * fitScale + 100 * fitScale),
       y: Math.round((clientHeight - contentH * fitScale) / 2 - minY * fitScale + 100 * fitScale),
     });
+    setFittedItemId(null);
   };
+
+  // Fit specific item (image / artboard) automatically to screen on double-click / double-tap
+  const fitItemToScreen = useCallback(
+    (item: CanvasItem, targetEl?: HTMLElement) => {
+      if (!canvasContainerRef.current) return;
+      const { clientWidth, clientHeight } = canvasContainerRef.current;
+      if (clientWidth === 0 || clientHeight === 0) return;
+
+      // Toggle: if already fitted to this item, return to full fit
+      if (fittedItemId === item.id) {
+        setFittedItemId(null);
+        zoomToFitAll();
+        return;
+      }
+
+      let w = item.width || 440;
+      let h = item.height || 550;
+
+      if (item.aspect === "16:9") {
+        w = 560;
+        h = Math.round(560 * (9 / 16)) + 40;
+      } else if (item.aspect === "9:16") {
+        w = 320;
+        h = Math.round(320 * (16 / 9)) + 40;
+      } else if (item.aspect === "1:1") {
+        w = 440;
+        h = 440 + 40;
+      } else if (item.aspect === "4:5") {
+        w = 440;
+        h = Math.round(440 * (5 / 4)) + 40;
+      } else if (item.aspect && item.aspect.includes(":")) {
+        const [wStr, hStr] = item.aspect.split(":");
+        const wNum = parseFloat(wStr);
+        const hNum = parseFloat(hStr);
+        if (wNum && hNum) {
+          w = wNum > hNum ? 560 : 440;
+          h = Math.round(w * (hNum / wNum)) + 40;
+        }
+      }
+
+      if (targetEl) {
+        const rect = targetEl.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+          w = Math.round(rect.width / zoomRef.current);
+          h = Math.round(rect.height / zoomRef.current);
+        }
+      }
+
+      const itemX = item.x || 0;
+      const itemY = item.y || 0;
+
+      // Optimal scale to fit comfortably in viewport (95% width, 93% height for prominence)
+      const targetScaleX = (clientWidth * 0.95) / w;
+      const targetScaleY = (clientHeight * 0.93) / h;
+      const targetZoom = Number(
+        Math.min(3.8, Math.max(0.25, Math.min(targetScaleX, targetScaleY))).toFixed(2)
+      );
+
+      // Pan to center the item directly on screen
+      const targetPanX = Math.round((clientWidth - w * targetZoom) / 2 - itemX * targetZoom);
+      const targetPanY = Math.round((clientHeight - h * targetZoom) / 2 - itemY * targetZoom);
+
+      setZoom(targetZoom);
+      setPan({ x: targetPanX, y: targetPanY });
+      setFittedItemId(item.id);
+      setSelectedId(item.id);
+    },
+    [fittedItemId]
+  );
+
+  const handleItemTouchEnd = useCallback(
+    (e: React.TouchEvent<HTMLElement>, item: CanvasItem, targetEl?: HTMLElement) => {
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      const now = Date.now();
+      const timeSinceLast = now - lastTouchTapRef.current.time;
+      const dist = Math.hypot(
+        touch.clientX - lastTouchTapRef.current.x,
+        touch.clientY - lastTouchTapRef.current.y
+      );
+
+      if (timeSinceLast < 400 && dist < 30 && lastTouchTapRef.current.id === item.id) {
+        // Confirmed double-tap on touch screen
+        e.preventDefault();
+        e.stopPropagation();
+        fitItemToScreen(item, targetEl);
+        lastTouchTapRef.current = { time: 0, id: "", x: 0, y: 0 };
+      } else {
+        lastTouchTapRef.current = {
+          time: now,
+          id: item.id,
+          x: touch.clientX,
+          y: touch.clientY,
+        };
+      }
+    },
+    [fitItemToScreen]
+  );
 
   // Cancel & Save actions
   const handleCancelChanges = () => {
@@ -1709,6 +1816,13 @@ export default function CanvasWorkspace({
               <div
                 key={item.id}
                 onMouseDown={(e) => handleItemMouseDown(e, item)}
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  fitItemToScreen(item, e.currentTarget);
+                }}
+                onTouchEnd={(e) => {
+                  handleItemTouchEnd(e, item, e.currentTarget);
+                }}
                 style={{
                   transform: `translate3d(${x}px, ${y}px, 0)`,
                   width: `${cardWidth}px`,
@@ -1756,10 +1870,19 @@ export default function CanvasWorkspace({
 
                 {/* Media Container - High-DPI Sharp Rendering */}
                 <div
-                  className="relative w-full rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center"
+                  className="relative w-full rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center cursor-pointer"
                   style={{
                     aspectRatio: cardAspect,
                     minHeight: item.aspect === "original" ? "320px" : undefined,
+                  }}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    const card = e.currentTarget.parentElement as HTMLElement;
+                    fitItemToScreen(item, card);
+                  }}
+                  onTouchEnd={(e) => {
+                    const card = e.currentTarget.parentElement as HTMLElement;
+                    handleItemTouchEnd(e, item, card);
                   }}
                 >
                   {item.image ? (
