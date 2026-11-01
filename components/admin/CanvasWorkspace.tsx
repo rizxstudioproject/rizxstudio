@@ -891,9 +891,16 @@ export default function CanvasWorkspace({
     }
 
     e.stopPropagation();
-    setSelectedId(item.id);
 
-    if (activeTool === "hand" || isSpacePressed) return;
+    // In Hand tool mode: do NOT select item! Pan canvas directly
+    if (activeTool === "hand" || isSpacePressed) {
+      setSelectedId(null);
+      setIsPanning(true);
+      setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+      return;
+    }
+
+    setSelectedId(item.id);
     if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
 
     setDraggingItemId(item.id);
@@ -1010,10 +1017,10 @@ export default function CanvasWorkspace({
     }
 
     e.stopPropagation();
-    setSelectedId(item.id);
 
-    // If Hand tool is active, touch pans the canvas instead of dragging item
+    // In Hand tool mode on mobile: NEVER select image! Only pan canvas (kiri, kanan, atas, bawah)
     if (activeTool === "hand") {
+      setSelectedId(null);
       const t = e.touches[0];
       if (t) {
         touchStateRef.current.isTouchPanning = true;
@@ -1023,6 +1030,8 @@ export default function CanvasWorkspace({
       }
       return;
     }
+
+    setSelectedId(item.id);
 
     if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
 
@@ -1448,6 +1457,38 @@ export default function CanvasWorkspace({
       if (!touch) return;
       const now = Date.now();
 
+      // IN HAND TOOL MODE ON MOBILE:
+      // Dragging pans canvas (kiri, kanan, atas, bawah).
+      // Clean tap triggers "tap full" or "tap close" without selecting!
+      if (activeTool === "hand") {
+        const dist = Math.hypot(
+          touch.clientX - touchStateRef.current.startTouch.x,
+          touch.clientY - touchStateRef.current.startTouch.y
+        );
+
+        // If finger moved >= 10px, it was a pan/swipe gesture, not a tap
+        if (dist >= 10) {
+          touchStateRef.current.isTouchPanning = false;
+          setIsPanning(false);
+          return;
+        }
+
+        // Clean tap in Hand mode:
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (fittedItemId) {
+          // "Tap Close": return to normal overview canvas
+          setFittedItemId(null);
+          zoomToFitAll();
+        } else {
+          // "Tap Full": fit image to full screen
+          fitItemToScreen(item, targetEl);
+        }
+        return;
+      }
+
+      // SELECT TOOL MODE:
       // If an item is currently staying fitted, single tap (1x) immediately zooms out to view all!
       if (fittedItemId) {
         e.preventDefault();
@@ -1479,8 +1520,21 @@ export default function CanvasWorkspace({
         };
       }
     },
-    [fittedItemId, fitItemToScreen, zoomToFitAll]
+    [activeTool, fittedItemId, fitItemToScreen, zoomToFitAll]
   );
+
+  // Click handler for Hand tool mode (tap full / tap close on click)
+  const handleItemClick = (e: React.MouseEvent, item: CanvasItem, targetEl?: HTMLElement) => {
+    if (activeTool === "hand") {
+      e.stopPropagation();
+      if (fittedItemId) {
+        setFittedItemId(null);
+        zoomToFitAll();
+      } else {
+        fitItemToScreen(item, targetEl);
+      }
+    }
+  };
 
   // Cancel & Save actions
   const handleCancelChanges = () => {
@@ -3007,7 +3061,7 @@ export default function CanvasWorkspace({
         >
           {items.map((item) => {
             if (hiddenItemIds.has(item.id)) return null;
-            const isSelected = selectedId === item.id;
+            const isSelected = activeTool !== "hand" && selectedId === item.id;
             const isLocked = lockedItemIds.has(item.id);
             const x = item.x || 0;
             const y = item.y || 0;
@@ -3214,6 +3268,7 @@ export default function CanvasWorkspace({
             return (
               <div
                 key={item.id}
+                onClick={(e) => handleItemClick(e, item, e.currentTarget)}
                 onMouseDown={(e) => handleItemMouseDown(e, item)}
                 onTouchStart={(e) => handleItemTouchStart(e, item)}
                 onContextMenu={(e) => handleItemContextMenu(e, item)}
@@ -3359,17 +3414,28 @@ export default function CanvasWorkspace({
           <button
             type="button"
             onClick={() => {
-              setActiveTool("select");
+              if (activeTool === "hand") {
+                setActiveTool("select");
+              } else {
+                setActiveTool("hand");
+                setSelectedId(null);
+              }
               setActiveSubmenu(null);
             }}
-            title="Move (V)"
+            title={activeTool === "hand" ? "Hand Tool (H) - Panning Canvas" : "Move (V)"}
             className={`p-2 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
-              activeTool === "select"
+              activeTool === "select" || activeTool === "hand" || activeTool === "scale"
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
             }`}
           >
-            <HiCursorArrowRays className="w-4 h-4" />
+            {activeTool === "hand" ? (
+              <HiHandRaised className="w-4 h-4" />
+            ) : activeTool === "scale" ? (
+              <HiArrowsPointingOut className="w-4 h-4" />
+            ) : (
+              <HiCursorArrowRays className="w-4 h-4" />
+            )}
           </button>
           <button
             type="button"
@@ -4013,6 +4079,25 @@ export default function CanvasWorkspace({
       </nav>
 
       
+
+      {/* ── Floating Return-to-Overview Pill when an Image is Fitted / Full View ── */}
+      {fittedItemId && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setFittedItemId(null);
+            zoomToFitAll();
+          }}
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-black/85 hover:bg-black text-white border border-white/20 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] flex items-center gap-2.5 text-xs font-mono cursor-pointer transition-all animate-in fade-in slide-in-from-bottom-3 hover:scale-105 active:scale-95"
+        >
+          <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse" />
+          <span className="font-semibold">Tap 1x untuk kembali ke kanvas</span>
+          <span className="w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-[10px] font-bold">
+            ✕
+          </span>
+        </button>
+      )}
 
       {/* ── Modal: Dev Mode / Code Inspect (</>) ───────────────────────────────── */}
       {showDevMode && (
