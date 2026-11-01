@@ -43,6 +43,15 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
   // Canvas Viewport Transform Engine (Zoom & Pan)
   const [zoom, setZoom] = useState<number>(0.85);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 80, y: 80 });
+  const zoomRef = useRef(zoom);
+  const panRef = useRef(pan);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
+
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [activeTool, setActiveTool] = useState<CanvasTool>("select");
@@ -208,25 +217,70 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
     };
   }, [isSpacePressed, selectedId]);
 
-  // Wheel Zoom centered at Cursor
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
+  // Native non-passive event listeners: Completely isolates canvas zoom from browser webpage zoom
+  useEffect(() => {
+    const container = canvasContainerRef.current;
+    if (!container) return;
 
-    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-    const newZoom = Math.min(5.5, Math.max(0.18, zoom * zoomFactor));
+    // Non-passive wheel: ALWAYS prevents browser page zoom when zooming canvas
+    const onNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    if (!canvasContainerRef.current) return;
-    const rect = canvasContainerRef.current.getBoundingClientRect();
-    const cursorX = e.clientX - rect.left;
-    const cursorY = e.clientY - rect.top;
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+      const currentZoom = zoomRef.current;
+      const newZoom = Math.min(5.5, Math.max(0.18, currentZoom * zoomFactor));
 
-    const newPanX = cursorX - (cursorX - pan.x) * (newZoom / zoom);
-    const newPanY = cursorY - (cursorY - pan.y) * (newZoom / zoom);
+      const rect = container.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorY = e.clientY - rect.top;
 
-    setZoom(Number(newZoom.toFixed(3)));
-    setPan({ x: newPanX, y: newPanY });
-  };
+      const currentPan = panRef.current;
+      const newPanX = cursorX - (cursorX - currentPan.x) * (newZoom / currentZoom);
+      const newPanY = cursorY - (cursorY - currentPan.y) * (newZoom / currentZoom);
+
+      setZoom(Number(newZoom.toFixed(3)));
+      setPan({ x: newPanX, y: newPanY });
+    };
+
+    // Non-passive touchmove for mobile admin
+    const onNativeTouchMove = (e: TouchEvent) => {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    };
+
+    const onGesture = (e: Event) => {
+      e.preventDefault();
+    };
+
+    const onKeyBlock = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && ["+", "-", "=", "0"].includes(e.key)) {
+        e.preventDefault();
+        if (e.key === "+" || e.key === "=") {
+          setZoom((prev) => Number(Math.min(5.5, prev * 1.15).toFixed(2)));
+        } else if (e.key === "-") {
+          setZoom((prev) => Number(Math.max(0.18, prev * 0.85).toFixed(2)));
+        } else if (e.key === "0") {
+          zoomToFitAll();
+        }
+      }
+    };
+
+    container.addEventListener("wheel", onNativeWheel, { passive: false });
+    container.addEventListener("touchmove", onNativeTouchMove, { passive: false });
+    container.addEventListener("gesturestart", onGesture, { passive: false });
+    container.addEventListener("gesturechange", onGesture, { passive: false });
+    window.addEventListener("keydown", onKeyBlock, { capture: true });
+
+    return () => {
+      container.removeEventListener("wheel", onNativeWheel);
+      container.removeEventListener("touchmove", onNativeTouchMove);
+      container.removeEventListener("gesturestart", onGesture);
+      container.removeEventListener("gesturechange", onGesture);
+      window.removeEventListener("keydown", onKeyBlock, { capture: true });
+    };
+  }, []);
 
   // Canvas Mouse Down (Panning or Selecting background)
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -804,13 +858,16 @@ export default function CanvasWorkspace({ onOpenCanvasPreview }: CanvasWorkspace
       {/* ── Main Canvas Viewport (Infinite 2D Workspace) ───────────────────────── */}
       <div
         ref={canvasContainerRef}
-        onWheel={handleWheel}
         onMouseDown={handleCanvasMouseDown}
         onMouseMove={handleCanvasMouseMove}
         onMouseUp={handleCanvasMouseUp}
         onDragOver={handleCanvasDragOver}
         onDragLeave={handleCanvasDragLeave}
         onDrop={handleCanvasDrop}
+        style={{
+          touchAction: "none",
+          overscrollBehavior: "none",
+        }}
         className={`flex-1 relative w-full h-full overflow-hidden ${
           isPanning || activeTool === "hand" || isSpacePressed ? "cursor-grab active:cursor-grabbing" : "cursor-default"
         }`}

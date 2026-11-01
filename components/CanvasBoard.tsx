@@ -44,6 +44,15 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   // Viewport & Transform Engine State
   const [zoom, setZoom] = useState<number>(0.8);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const zoomRef = useRef(zoom);
+  const panRef = useRef(pan);
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+  useEffect(() => {
+    panRef.current = pan;
+  }, [pan]);
+
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isSpacePressed, setIsSpacePressed] = useState(false);
@@ -343,30 +352,6 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     }
   };
 
-  // Mouse Wheel Zoom centered at Cursor
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Check if user is scrolling/pinching or panning with trackpad
-    if (e.ctrlKey || e.metaKey || Math.abs(e.deltaY) > 0) {
-      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
-      const newZoom = Math.min(5.5, Math.max(0.15, zoom * zoomFactor));
-
-      if (!containerRef.current) return;
-      const rect = containerRef.current.getBoundingClientRect();
-      const cursorX = e.clientX - rect.left;
-      const cursorY = e.clientY - rect.top;
-
-      // Adjust pan so the point under cursor remains pinned
-      const newPanX = cursorX - (cursorX - pan.x) * (newZoom / zoom);
-      const newPanY = cursorY - (cursorY - pan.y) * (newZoom / zoom);
-
-      setZoom(Number(newZoom.toFixed(3)));
-      setPan({ x: newPanX, y: newPanY });
-    }
-  };
-
   // Pointer / Mouse Pan Events
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     // Left click (0) or Middle click (1) initiates pan
@@ -407,62 +392,138 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     startTouch: { x: 0, y: 0 },
   });
 
-  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2) {
-      // 2-Finger Pinch Zoom
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      touchStateRef.current.initialDistance = dist;
-      touchStateRef.current.initialZoom = zoom;
-      touchStateRef.current.initialPan = { ...pan };
-    } else if (e.touches.length === 1) {
-      // 1-Finger Pan
-      touchStateRef.current.startTouch = {
-        x: e.touches[0].clientX - pan.x,
-        y: e.touches[0].clientY - pan.y,
-      };
-      setIsDragging(true);
-    }
-  };
+  // Native non-passive event listeners: Completely isolates canvas zoom from browser webpage zoom
+  useEffect(() => {
+    if (!isOpen) return;
 
-  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.touches.length === 2 && touchStateRef.current.initialDistance !== null) {
-      // Pinching
-      const dist = Math.hypot(
-        e.touches[0].clientX - e.touches[1].clientX,
-        e.touches[0].clientY - e.touches[1].clientY
-      );
-      const scale = dist / touchStateRef.current.initialDistance;
-      const newZoom = Math.min(5.5, Math.max(0.15, touchStateRef.current.initialZoom * scale));
+    // Lock page background scrolling and zoom on document body
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+    const originalOverscroll = document.body.style.overscrollBehavior;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.body.style.overscrollBehavior = "none";
+
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Non-passive wheel listener: ALWAYS prevents native browser webpage zoom (Ctrl+wheel / trackpad pinch)
+    const onNativeWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+      const currentZoom = zoomRef.current;
+      const newZoom = Math.min(5.5, Math.max(0.15, currentZoom * zoomFactor));
+
+      const rect = container.getBoundingClientRect();
+      const cursorX = e.clientX - rect.left;
+      const cursorY = e.clientY - rect.top;
+
+      const currentPan = panRef.current;
+      const newPanX = cursorX - (cursorX - currentPan.x) * (newZoom / currentZoom);
+      const newPanY = cursorY - (cursorY - currentPan.y) * (newZoom / currentZoom);
+
       setZoom(Number(newZoom.toFixed(3)));
-    } else if (e.touches.length === 1 && isDragging) {
-      // Panning
-      setPan({
-        x: e.touches[0].clientX - touchStateRef.current.startTouch.x,
-        y: e.touches[0].clientY - touchStateRef.current.startTouch.y,
-      });
-    }
-  };
+      setPan({ x: newPanX, y: newPanY });
+    };
 
-  const handleTouchEnd = () => {
-    touchStateRef.current.initialDistance = null;
-    setIsDragging(false);
-  };
+    // Non-passive touchmove listener: ALWAYS prevents mobile browser webpage pinch zoom
+    const onNativeTouchMove = (e: TouchEvent) => {
+      // Prevent browser default gesture zoom or page pull
+      e.preventDefault();
+
+      if (e.touches.length === 2 && touchStateRef.current.initialDistance !== null) {
+        // 2-Finger Pinch Zoom
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        const scale = dist / touchStateRef.current.initialDistance;
+        const newZoom = Math.min(5.5, Math.max(0.15, touchStateRef.current.initialZoom * scale));
+        setZoom(Number(newZoom.toFixed(3)));
+      } else if (e.touches.length === 1) {
+        // 1-Finger Pan
+        setPan({
+          x: e.touches[0].clientX - touchStateRef.current.startTouch.x,
+          y: e.touches[0].clientY - touchStateRef.current.startTouch.y,
+        });
+      }
+    };
+
+    const onNativeTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const dist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        touchStateRef.current.initialDistance = dist;
+        touchStateRef.current.initialZoom = zoomRef.current;
+        touchStateRef.current.initialPan = { ...panRef.current };
+      } else if (e.touches.length === 1) {
+        touchStateRef.current.startTouch = {
+          x: e.touches[0].clientX - panRef.current.x,
+          y: e.touches[0].clientY - panRef.current.y,
+        };
+      }
+    };
+
+    const onNativeTouchEnd = () => {
+      touchStateRef.current.initialDistance = null;
+    };
+
+    // Prevent Safari iOS gesture zoom
+    const onGesture = (e: Event) => {
+      e.preventDefault();
+    };
+
+    // Prevent Ctrl + '+', Ctrl + '-', Ctrl + '0' browser zoom
+    const onKeyBlock = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && ["+", "-", "=", "0"].includes(e.key)) {
+        e.preventDefault();
+        if (e.key === "+" || e.key === "=") {
+          setZoom((prev) => Number(Math.min(5.5, prev * 1.15).toFixed(2)));
+        } else if (e.key === "-") {
+          setZoom((prev) => Number(Math.max(0.18, prev * 0.85).toFixed(2)));
+        } else if (e.key === "0") {
+          zoomToFit();
+        }
+      }
+    };
+
+    container.addEventListener("wheel", onNativeWheel, { passive: false });
+    container.addEventListener("touchstart", onNativeTouchStart, { passive: false });
+    container.addEventListener("touchmove", onNativeTouchMove, { passive: false });
+    container.addEventListener("touchend", onNativeTouchEnd, { passive: false });
+    container.addEventListener("gesturestart", onGesture, { passive: false });
+    container.addEventListener("gesturechange", onGesture, { passive: false });
+    window.addEventListener("keydown", onKeyBlock, { capture: true });
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+      document.body.style.overscrollBehavior = originalOverscroll;
+
+      container.removeEventListener("wheel", onNativeWheel);
+      container.removeEventListener("touchstart", onNativeTouchStart);
+      container.removeEventListener("touchmove", onNativeTouchMove);
+      container.removeEventListener("touchend", onNativeTouchEnd);
+      container.removeEventListener("gesturestart", onGesture);
+      container.removeEventListener("gesturechange", onGesture);
+      window.removeEventListener("keydown", onKeyBlock, { capture: true });
+    };
+  }, [isOpen, zoomToFit]);
 
   if (!isOpen) return null;
 
   return (
     <div
       ref={containerRef}
-      onWheel={handleWheel}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -536,6 +597,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           : "cursor-default"
       }`}
       style={{
+        touchAction: "none",
+        overscrollBehavior: "none",
         WebkitUserSelect: "none",
         MozUserSelect: "none",
         msUserSelect: "none",
