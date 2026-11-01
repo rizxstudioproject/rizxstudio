@@ -5091,38 +5091,6 @@ export default function CanvasWorkspace({
                 <span className="text-[11px] font-mono opacity-60">R</span>
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddShape("ellipse");
-                  setActiveSubmenu(null);
-                }}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5" />
-                  <span className="w-3.5 h-3.5 rounded-full border border-current inline-block" />
-                  <span>Ellipse</span>
-                </div>
-                <span className="text-[11px] font-mono opacity-60">O</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddFolder();
-                  setActiveSubmenu(null);
-                }}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5" />
-                  <HiFolder className="w-4 h-4 text-teal-400" />
-                  <span>Folder Client</span>
-                </div>
-                <span className="text-[11px] font-mono opacity-60">Alt+F</span>
-              </button>
-
               <div className="h-[1px] bg-white/10 my-1" />
 
               <button
