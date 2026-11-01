@@ -7526,46 +7526,6 @@ export default function CanvasWorkspace({
                 </div>
                 <span className="text-[11px] font-mono opacity-60">Shift+S</span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddSlice();
-                  setActiveTool("slice");
-                  setActiveSubmenu(null);
-                }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                  activeTool === "slice"
-                    ? "bg-[#0c8ce9] text-white font-medium"
-                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "slice" && <HiCheck className="w-3.5 h-3.5" />}
-                  </span>
-                  <HiScissors className="w-4 h-4" />
-                  <span>Slice</span>
-                </div>
-                <span className="text-[11px] font-mono opacity-60">S</span>
-              </button>
-
-              <div className="w-full h-[1px] bg-white/10 my-1" />
-
-              <button
-                type="button"
-                onClick={() => {
-                  setShowFramePresetsPicker(true);
-                  setActiveSubmenu(null);
-                }}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer"
-              >
-                <div className="flex items-center gap-2">
-                  <RatioWireframeIcon ratio="16:9" className="text-cyan-400" />
-                  <span>Preset Rasio & Ukuran...</span>
-                </div>
-                <span className="text-[10px] text-teal-400 font-mono">All</span>
-              </button>
             </div>
           )}
         </div>
