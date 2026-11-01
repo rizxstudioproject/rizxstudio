@@ -353,7 +353,7 @@ export default function CanvasWorkspace({
     startY: number;
     currentX: number;
     currentY: number;
-    type: "frame" | "section";
+    type: "frame" | "section" | "shape";
   } | null>(null);
   const drawingShapeStartRef = useRef<{
     screenX: number;
@@ -1067,7 +1067,11 @@ export default function CanvasWorkspace({
         it.mediaType === "section" ||
         it.type === "group") &&
       !it.image &&
-      !it.videoId
+      !it.videoId &&
+      it.type !== "shape" &&
+      it.mediaType !== "shape" &&
+      it.mediaType !== "rectangle" &&
+      it.mediaType !== "ellipse"
     );
   }, []);
 
@@ -1367,7 +1371,12 @@ export default function CanvasWorkspace({
         handleAddText();
       }
       if (e.key === "r" || e.key === "R") {
-        handleAddShape("rectangle");
+        setActiveTool("shape");
+        setActiveSubmenu(null);
+      }
+      if (e.key === "o" || e.key === "O") {
+        setActiveTool("shape");
+        setActiveSubmenu(null);
       }
       if (e.key === "c" || e.key === "C") {
         handleAddComment();
@@ -1597,8 +1606,8 @@ export default function CanvasWorkspace({
       return;
     }
 
-    // If clicking on canvas in Frame tool or Section tool mode: interactive drag & drop frame creation!
-    if ((activeTool === "frame" || activeTool === "section") && e.button === 0) {
+    // If clicking on canvas in Frame, Section, or Shape tool mode: interactive drag & drop creation!
+    if ((activeTool === "frame" || activeTool === "section" || activeTool === "shape") && e.button === 0) {
       const rect = canvasContainerRef.current?.getBoundingClientRect();
       const screenX = rect ? e.clientX - rect.left : e.clientX;
       const screenY = rect ? e.clientY - rect.top : e.clientY;
@@ -1611,7 +1620,7 @@ export default function CanvasWorkspace({
         startY: screenY,
         currentX: screenX,
         currentY: screenY,
-        type: activeTool === "section" ? "section" : "frame",
+        type: activeTool === "shape" ? "shape" : activeTool === "section" ? "section" : "frame",
       });
       return;
     }
@@ -1681,9 +1690,35 @@ export default function CanvasWorkspace({
       let shapeW = Math.abs(endCanvasX - start.canvasX);
       let shapeH = Math.abs(endCanvasY - start.canvasY);
 
-      const shapeType = drawingShapeBox?.type || (activeTool === "section" ? "section" : "frame");
+      const shapeType = drawingShapeBox?.type || (activeTool === "shape" ? "shape" : activeTool === "section" ? "section" : "frame");
 
-      if (shapeType === "frame") {
+      if (shapeType === "shape") {
+        if (dragDist < 20) {
+          shapeW = 320;
+          shapeH = 200;
+          shapeX = start.canvasX;
+          shapeY = start.canvasY;
+        }
+        const shapeCount = items.filter((i) => i.type === "shape" || i.mediaType === "shape" || i.mediaType === "rectangle" || i.title.startsWith("Rectangle")).length + 1;
+        const newShape: CanvasItem = {
+          id: `shape-${Date.now()}`,
+          title: `Rectangle ${shapeCount}`,
+          type: "shape",
+          mediaType: "shape",
+          x: Math.round(shapeX),
+          y: Math.round(shapeY),
+          width: Math.round(shapeW),
+          height: Math.round(shapeH),
+          color: "#D9D9D9",
+          cornerRadius: 0,
+          opacity: 100,
+        };
+        setItems((prev) => [...prev, newShape]);
+        setHasChanges(true);
+        setSaveSuccess(false);
+        setSelectedId(newShape.id);
+        setSelectedIds(new Set([newShape.id]));
+      } else if (shapeType === "frame") {
         if (dragDist < 20) {
           shapeW = 440;
           shapeH = 550;
@@ -2486,17 +2521,20 @@ export default function CanvasWorkspace({
   };
 
   const handleAddShape = (shape: "rectangle" | "ellipse") => {
-    const center = getViewportCenter(440, 320);
+    const center = getViewportCenter(320, 200);
+    const count = items.filter((i) => i.type === "shape" || i.mediaType === "shape" || i.mediaType === "rectangle" || i.mediaType === "ellipse" || i.title.startsWith("Rectangle")).length + 1;
     const newShape: CanvasItem = {
       id: `shape-${Date.now()}`,
-      title: shape === "ellipse" ? "Ellipse Shape" : "Rectangle Shape",
-      type: "section",
+      title: shape === "ellipse" ? `Ellipse ${count}` : `Rectangle ${count}`,
+      type: "shape",
       mediaType: shape === "ellipse" ? "ellipse" : "shape",
       x: center.x,
       y: center.y,
-      width: 440,
-      height: 320,
-      color: "#3b82f6",
+      width: 320,
+      height: 200,
+      color: "#D9D9D9",
+      cornerRadius: shape === "ellipse" ? 9999 : 0,
+      opacity: 100,
     };
     updateItemsWithTracking([...items, newShape]);
     setSelectedId(newShape.id);
@@ -5323,7 +5361,7 @@ export default function CanvasWorkspace({
             overscrollBehavior: "none",
           }}
           className={`flex-1 relative w-full h-full overflow-hidden ${
-            activeTool === "frame"
+            activeTool === "frame" || activeTool === "section" || activeTool === "shape"
               ? "cursor-crosshair"
               : isPanning || activeTool === "hand" || isSpacePressed
               ? "cursor-grab active:cursor-grabbing"
@@ -5434,7 +5472,7 @@ export default function CanvasWorkspace({
             const y = item.y || 0;
 
             // 1. SECTION & GROUP FRAME (Figma Style Boundary)
-            if (item.type === "section" || item.mediaType === "section" || item.type === "group") {
+            if ((item.type === "section" || item.mediaType === "section" || item.type === "group") && item.type !== "shape" && item.mediaType !== "shape" && item.mediaType !== "rectangle" && item.mediaType !== "ellipse") {
               const secWidth = item.width || 1200;
               const secHeight = item.height || 600;
               const isGrp = item.type === "group";
@@ -5507,6 +5545,104 @@ export default function CanvasWorkspace({
                   <div className="text-right text-[11px] font-mono text-neutral-500 select-none">
                     {Math.round(secWidth)} × {Math.round(secHeight)}
                   </div>
+                </div>
+              );
+            }
+
+            // 1.5 FIGMA VECTOR SHAPE (Rectangle & Ellipse - Matches Figma Images 4 & 5)
+            if (item.type === "shape" || item.mediaType === "shape" || item.mediaType === "rectangle" || item.mediaType === "ellipse") {
+              const shapeWidth = item.width || 320;
+              const shapeHeight = item.height || 200;
+              const isEllipse = item.mediaType === "ellipse";
+              const shapeBg = item.color || "#D9D9D9";
+              const radius = isEllipse ? "9999px" : item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px";
+              const shapeClipPath = getItemClipPath(item);
+              const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={(e) => handleItemClick(e, item, e.currentTarget)}
+                  onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onContextMenu={(e) => handleItemContextMenu(e, item)}
+                  onDoubleClick={(e) => {
+                    e.stopPropagation();
+                    if (selectedId === item.id || selectedIds.has(item.id)) {
+                      fitItemToScreen(item, e.currentTarget);
+                    } else {
+                      setSelectedId(item.id);
+                      setSelectedIds(new Set([item.id]));
+                    }
+                  }}
+                  onTouchEnd={(e) => {
+                    handleItemTouchEnd(e, item, e.currentTarget);
+                  }}
+                  style={{
+                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                    width: `${shapeWidth}px`,
+                    height: `${shapeHeight}px`,
+                    backgroundColor: shapeBg,
+                    opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                    borderRadius: radius,
+                    boxShadow: getEffectBoxShadow(item),
+                    filter: getEffectFilter(item),
+                    zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
+                    clipPath: shapeClipPath ? shapeClipPath : undefined,
+                  }}
+                  className={`absolute flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
+                    draggingItemId === item.id ? "!transition-none will-change-transform z-50 shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]" : ""
+                  } ${
+                    isSelected
+                      ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
+                      : "hover:ring-1 hover:ring-white/40 shadow-sm"
+                  }`}
+                >
+                  {/* Figma Selection Handles & Dimension Badge (Matches Figma Images 4 & 5) */}
+                  {isSelected && (
+                    <>
+                      {/* 4 Corner Resize Handles */}
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "nw")}
+                        className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "ne")}
+                        className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "sw")}
+                        className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
+                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                      />
+
+                      {/* 4 Edge Resize Handles */}
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
+                        className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
+                        className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
+                        className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                        className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                      />
+
+                      {/* Figma Dimension Badge Centered at Bottom (1972 × 1388 / 2433 × 399) */}
+                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
+                        {Math.round(shapeWidth)} × {Math.round(shapeHeight)}
+                      </div>
+                    </>
+                  )}
                 </div>
               );
             }
@@ -6124,10 +6260,12 @@ export default function CanvasWorkspace({
           />
         )}
 
-        {/* Interactive Frame & Section Drawing Preview Box (Matches Screenshot Image 1) */}
+        {/* Interactive Frame, Section & Shape Drawing Preview Box (Matches Screenshot Image 1) */}
         {drawingShapeBox && (
           <div
-            className="absolute pointer-events-none border-2 border-[#0c8ce9] bg-white/[0.04] z-50 shadow-xl"
+            className={`absolute pointer-events-none border-2 border-[#0c8ce9] z-50 shadow-xl ${
+              drawingShapeBox.type === "shape" ? "bg-[#D9D9D9]" : "bg-white/[0.04]"
+            }`}
             style={{
               left: `${Math.min(drawingShapeBox.startX, drawingShapeBox.currentX)}px`,
               top: `${Math.min(drawingShapeBox.startY, drawingShapeBox.currentY)}px`,
@@ -6135,10 +6273,12 @@ export default function CanvasWorkspace({
               height: `${Math.max(2, Math.abs(drawingShapeBox.currentY - drawingShapeBox.startY))}px`,
             }}
           >
-            {/* Top Frame Label (Matches Screenshot Image 1 Frame 2147258851) */}
-            <div className="absolute -top-6 left-0 text-[12px] font-sans font-medium text-neutral-400 select-none whitespace-nowrap">
-              {drawingShapeBox.type === "section" ? "New Section" : `Frame ${Math.floor(Date.now() / 1000)}`}
-            </div>
+            {/* Top Frame Label (Only for Frame & Section) */}
+            {drawingShapeBox.type !== "shape" && (
+              <div className="absolute -top-6 left-0 text-[12px] font-sans font-medium text-neutral-400 select-none whitespace-nowrap">
+                {drawingShapeBox.type === "section" ? "New Section" : `Frame ${Math.floor(Date.now() / 1000)}`}
+              </div>
+            )}
 
             {/* 4 Corner Handles (Matches Screenshot Image 1) */}
             <div className="absolute -top-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
@@ -6146,7 +6286,7 @@ export default function CanvasWorkspace({
             <div className="absolute -bottom-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
             <div className="absolute -bottom-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
 
-            {/* Figma Dimension Badge Centered at Bottom (Matches Screenshot Image 1: 1571 × 1427) */}
+            {/* Figma Dimension Badge Centered at Bottom (Matches Screenshots 4 & 5: 1972 × 1388) */}
             <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none">
               {Math.round(Math.abs(drawingShapeBox.currentX - drawingShapeBox.startX) / (zoomRef.current || zoom))} ×{" "}
               {Math.round(Math.abs(drawingShapeBox.currentY - drawingShapeBox.startY) / (zoomRef.current || zoom))}
@@ -6444,8 +6584,7 @@ export default function CanvasWorkspace({
           <button
             type="button"
             onClick={() => {
-              handleAddShape("rectangle");
-              setActiveTool("shape");
+              setActiveTool(activeTool === "shape" ? "select" : "shape");
               setActiveSubmenu(null);
             }}
             title="Rectangle (R)"
@@ -6479,11 +6618,12 @@ export default function CanvasWorkspace({
               <button
                 type="button"
                 onClick={() => {
-                  handleAddShape("rectangle");
                   setActiveTool("shape");
                   setActiveSubmenu(null);
                 }}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                  activeTool === "shape" ? "bg-[#0c8ce9] text-white" : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                }`}
               >
                 <div className="flex items-center gap-2">
                   <span className="w-3.5 h-3.5 flex items-center justify-center">
@@ -6493,6 +6633,22 @@ export default function CanvasWorkspace({
                   <span>Rectangle</span>
                 </div>
                 <span className="text-[11px] font-mono opacity-60">R</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddShape("ellipse");
+                  setActiveSubmenu(null);
+                }}
+                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="w-3.5 h-3.5" />
+                  <span className="w-3.5 h-3.5 rounded-full border border-current inline-block shrink-0" />
+                  <span>Ellipse</span>
+                </div>
+                <span className="text-[11px] font-mono opacity-60">O</span>
               </button>
 
               <div className="h-[1px] bg-white/10 my-1" />

@@ -1217,7 +1217,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                 const isSelected = selectedSheetId === item.id;
 
               // 1. SECTION BOUNDARY BOX
-              if (item.type === "section" || item.mediaType === "section") {
+              if ((item.type === "section" || item.mediaType === "section") && item.type !== "shape" && item.mediaType !== "shape" && item.mediaType !== "rectangle" && item.mediaType !== "ellipse") {
                 const secWidth = item.width || 1200;
                 const secHeight = item.height || 680;
                 const secColor = item.color || "#00A389";
@@ -1348,6 +1348,31 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       {item.title}
                     </div>
                   </div>
+                );
+              }
+
+              // 3.6 FIGMA SHAPE (Rectangle & Ellipse)
+              if (item.type === "shape" || item.mediaType === "shape" || item.mediaType === "rectangle" || item.mediaType === "ellipse") {
+                const shapeWidth = item.width || 320;
+                const shapeHeight = item.height || 200;
+                const isEllipse = item.mediaType === "ellipse";
+                const shapeBg = item.color || "#D9D9D9";
+                const radius = isEllipse ? "9999px" : item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px";
+                return (
+                  <div
+                    key={item.id}
+                    style={{
+                      transform: `translate3d(${x}px, ${y}px, 0)`,
+                      width: `${shapeWidth}px`,
+                      height: `${shapeHeight}px`,
+                      backgroundColor: shapeBg,
+                      opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                      borderRadius: radius,
+                      zIndex: item.frameId ? 25 : 10,
+                      clipPath: getItemClipPath(item),
+                    }}
+                    className="absolute shadow-sm"
+                  />
                 );
               }
 
