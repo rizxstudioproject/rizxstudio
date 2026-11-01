@@ -169,6 +169,53 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     const { clientWidth, clientHeight } = containerRef.current;
     if (clientWidth === 0 || clientHeight === 0) return;
 
+    if (hasFreeformLayout && canvasItems && canvasItems.length > 0) {
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
+
+      canvasItems.forEach((it) => {
+        const x = it.x || 0;
+        const y = it.y || 0;
+        let w = it.width || 440;
+        let h = it.height || 550;
+        if (it.type === "section" || it.mediaType === "section") {
+          w = it.width || 1200;
+          h = it.height || 600;
+        } else if (it.aspect === "16:9") {
+          w = it.width || 560;
+          h = it.height || 315;
+        }
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + w);
+        maxY = Math.max(maxY, y + h);
+      });
+
+      if (minX !== Infinity && maxX !== -Infinity) {
+        const contentW = maxX - minX;
+        const contentH = maxY - minY;
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        const paddingX = Math.max(60, clientWidth * 0.08);
+        const paddingY = Math.max(60, clientHeight * 0.1);
+
+        const scaleX = (clientWidth - paddingX * 2) / Math.max(contentW, 100);
+        const scaleY = (clientHeight - paddingY * 2) / Math.max(contentH, 100);
+        const fitScale = Number(Math.min(1.0, Math.max(0.08, Math.min(scaleX, scaleY))).toFixed(3));
+
+        setZoom(fitScale);
+        setPan({
+          x: Math.round(clientWidth / 2 - centerX * fitScale),
+          y: Math.round(clientHeight / 2 - centerY * fitScale),
+        });
+        setFittedSheetId(null);
+        return;
+      }
+    }
+
     const scaleX = (clientWidth * 0.92) / gridBoardWidth;
     const scaleY = (clientHeight * 0.88) / gridBoardHeight;
     const fitScale = Math.min(1.0, Math.max(0.18, Math.min(scaleX, scaleY)));
@@ -179,7 +226,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       y: Math.max(70, (clientHeight - gridBoardHeight * fitScale) / 2),
     });
     setFittedSheetId(null);
-  }, [gridBoardWidth, gridBoardHeight]);
+  }, [hasFreeformLayout, canvasItems, gridBoardWidth, gridBoardHeight]);
 
   // Fit specific sheet image automatically to screen on double-click / double-tap (Stays until single-tap)
   const fitSheetToScreen = useCallback(

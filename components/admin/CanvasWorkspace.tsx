@@ -2732,42 +2732,95 @@ export default function CanvasWorkspace({
     wasPinch: false,
   });
 
-  // Zoom to Fit All Elements
-  const zoomToFitAll = () => {
-    if (!canvasContainerRef.current || items.length === 0) return;
-    const { clientWidth, clientHeight } = canvasContainerRef.current;
-    if (clientWidth === 0 || clientHeight === 0) return;
+  // Zoom to Fit All Elements (Figma Shift+1: fits and centers all canvas items in viewport)
+  const zoomToFitAll = useCallback(
+    (targetItems?: CanvasItem[] | any) => {
+      const listToFit = Array.isArray(targetItems) && targetItems.length > 0 ? targetItems : items;
+      if (!canvasContainerRef.current || listToFit.length === 0) return;
+      const { clientWidth, clientHeight } = canvasContainerRef.current;
+      if (clientWidth === 0 || clientHeight === 0) return;
 
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
+      let minX = Infinity;
+      let minY = Infinity;
+      let maxX = -Infinity;
+      let maxY = -Infinity;
 
-    items.forEach((it) => {
-      const x = it.x || 0;
-      const y = it.y || 0;
-      const w = it.width || 380;
-      const h = it.height || 480;
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x + w);
-      maxY = Math.max(maxY, y + h);
-    });
+      listToFit.forEach((it) => {
+        if (hiddenItemIds.has(it.id)) return;
+        const x = it.x || 0;
+        const y = it.y || 0;
+        let w = it.width || 440;
+        let h = it.height || 550;
+        if (it.type === "section" || it.mediaType === "section") {
+          w = it.width || 1200;
+          h = it.height || 600;
+        } else if (it.aspect === "16:9") {
+          w = it.width || 560;
+          h = it.height || 315;
+        } else if (it.aspect === "9:16") {
+          w = it.width || 320;
+          h = it.height || 568;
+        } else if (it.aspect === "1:1") {
+          w = it.width || 440;
+          h = it.height || 440;
+        }
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x + w);
+        maxY = Math.max(maxY, y + h);
+      });
 
-    const contentW = maxX - minX + 200;
-    const contentH = maxY - minY + 200;
+      if (minX === Infinity || maxX === -Infinity) return;
 
-    const scaleX = (clientWidth * 0.9) / contentW;
-    const scaleY = (clientHeight * 0.9) / contentH;
-    const fitScale = Math.min(1.2, Math.max(0.25, Math.min(scaleX, scaleY)));
+      const contentW = maxX - minX;
+      const contentH = maxY - minY;
+      const centerX = (minX + maxX) / 2;
+      const centerY = (minY + maxY) / 2;
 
-    setZoom(Number(fitScale.toFixed(2)));
-    setPan({
-      x: Math.round((clientWidth - contentW * fitScale) / 2 - minX * fitScale + 100 * fitScale),
-      y: Math.round((clientHeight - contentH * fitScale) / 2 - minY * fitScale + 100 * fitScale),
-    });
-    setFittedItemId(null);
-  };
+      // Viewport padding to ensure items don't collide with floating bottom bar or left panel
+      const paddingX = Math.max(80, clientWidth * 0.08);
+      const paddingY = Math.max(80, clientHeight * 0.1);
+
+      const scaleX = (clientWidth - paddingX * 2) / Math.max(contentW, 100);
+      const scaleY = (clientHeight - paddingY * 2) / Math.max(contentH, 100);
+      const fitScale = Number(Math.min(1.0, Math.max(0.08, Math.min(scaleX, scaleY))).toFixed(3));
+
+      setZoom(fitScale);
+      setPan({
+        x: Math.round(clientWidth / 2 - centerX * fitScale),
+        y: Math.round(clientHeight / 2 - centerY * fitScale),
+      });
+      setFittedItemId(null);
+    },
+    [items, hiddenItemIds]
+  );
+
+  const hasDoneInitialFitRef = useRef(false);
+
+  // Auto-fit all elements on initial load so the canvas starts with full overview (no empty void)
+  useEffect(() => {
+    if (hasDoneInitialFitRef.current) return;
+    if (items.length === 0) return;
+
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      if (canvasContainerRef.current) {
+        const { clientWidth, clientHeight } = canvasContainerRef.current;
+        if (clientWidth > 0 && clientHeight > 0) {
+          zoomToFitAll(items);
+          hasDoneInitialFitRef.current = true;
+          clearInterval(interval);
+          return;
+        }
+      }
+      if (attempts >= 40) {
+        clearInterval(interval);
+      }
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [items, zoomToFitAll]);
 
   // Fit specific item (image / artboard) automatically to screen on double-click / double-tap
   const fitItemToScreen = useCallback(
