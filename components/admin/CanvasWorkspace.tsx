@@ -1061,11 +1061,13 @@ export default function CanvasWorkspace({
   // Helper to identify Frame items
   const isFrameItem = useCallback((it: CanvasItem) => {
     return (
-      it.mediaType === "frame" ||
-      it.type === "section" ||
-      it.type === "frame" ||
-      it.type === "group" ||
-      (it.aspect && it.aspect !== "original")
+      (it.mediaType === "frame" ||
+        it.type === "frame" ||
+        it.type === "section" ||
+        it.mediaType === "section" ||
+        it.type === "group") &&
+      !it.image &&
+      !it.videoId
     );
   }, []);
 
@@ -1951,30 +1953,40 @@ export default function CanvasWorkspace({
             const dy = it.y || 0;
             const itW = it.width || (it.aspect === "16:9" ? 560 : 440);
             const itH = it.height || 550;
+            const itRight = dx + itW;
+            const itBottom = dy + itH;
             const centerX = dx + itW / 2;
             const centerY = dy + itH / 2;
 
-            // Find frames containing mouse drop point, center point, or top-left of this item
+            // Find frames that contain or overlap this item
             const candidateFrames = prev.filter((f) => {
-              if (f.id === it.id) return false;
-              const isTargetFrame = isFrameItem(f);
-              if (!isTargetFrame) return false;
+              if (f.id === it.id || !isFrameItem(f)) return false;
 
               const fX = f.x || 0;
               const fY = f.y || 0;
               const fW = f.width || (f.aspect === "16:9" ? 720 : 480);
               const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
+              const fRight = fX + fW;
+              const fBottom = fY + fH;
 
-              const dropInside = mouseDropX >= fX && mouseDropX <= fX + fW && mouseDropY >= fY && mouseDropY <= fY + fH;
-              const centerInside = centerX >= fX && centerX <= fX + fW && centerY >= fY && centerY <= fY + fH;
-              const topLeftInside = dx >= fX && dx <= fX + fW && dy >= fY && dy <= fY + fH;
-              return dropInside || centerInside || topLeftInside;
+              const dropInside = mouseDropX >= fX && mouseDropX <= fRight && mouseDropY >= fY && mouseDropY <= fBottom;
+              const centerInside = centerX >= fX && centerX <= fRight && centerY >= fY && centerY <= fBottom;
+              const overlaps = dx < fRight && itRight > fX && dy < fBottom && itBottom > fY;
+
+              // If item already belongs to this frame: keep it inside as long as it still overlaps the frame
+              if (it.frameId === f.id) {
+                return overlaps || dropInside;
+              }
+
+              // If entering a frame from outside: require dropInside or centerInside
+              return dropInside || centerInside;
             });
 
             let targetFrame: CanvasItem | undefined = undefined;
             if (candidateFrames.length > 0) {
-              // Pick innermost frame (smallest area)
-              targetFrame = candidateFrames.reduce((best, cur) => {
+              // Prefer staying in current frame if it is still a valid candidate
+              const currentParent = candidateFrames.find((f) => f.id === it.frameId);
+              targetFrame = currentParent || candidateFrames.reduce((best, cur) => {
                 const bestArea = (best.width || 480) * (best.height || 600);
                 const curArea = (cur.width || 480) * (cur.height || 600);
                 return curArea < bestArea ? cur : best;
@@ -1982,39 +1994,15 @@ export default function CanvasWorkspace({
             }
 
             if (targetFrame) {
-              const fX = targetFrame.x || 0;
-              const fY = targetFrame.y || 0;
-              const fW = targetFrame.width || (targetFrame.aspect === "16:9" ? 720 : 480);
-              const fH = targetFrame.height || (targetFrame.aspect === "16:9" ? 405 : 600);
-
-              hasChangesNested = true;
-
-              let fitW = it.width || (it.aspect === "16:9" ? 560 : 440);
-              let fitH = it.height || 550;
-
-              // Scale down nicely if item is wider than the target frame
-              if (fitW > fW - 32) {
-                fitW = Math.max(160, Math.round(fW - 32));
-                if (it.aspect === "16:9") fitH = Math.round(fitW * (9 / 16));
-                else if (it.aspect === "1:1") fitH = fitW;
-                else if (it.aspect === "9:16") fitH = Math.round(fitW * (16 / 9));
-                else fitH = Math.round(fitW * (5 / 4));
+              if (it.frameId !== targetFrame.id) {
+                hasChangesNested = true;
               }
-
-              // Fit coordinates neatly inside frame bounds
-              const newX = Math.max(fX + 16, Math.min(dx, fX + fW - fitW - 16));
-              const newY = Math.max(fY + 16, Math.min(dy, fY + fH - fitH - 16));
-
               return {
                 ...it,
                 frameId: targetFrame.id,
-                x: newX,
-                y: newY,
-                width: fitW,
-                height: fitH,
               };
             } else if (!targetFrame && it.frameId) {
-              // Dragged outside frame
+              // Completely moved outside frame (no overlap with any frame)
               hasChangesNested = true;
               return { ...it, frameId: undefined };
             }
@@ -5577,7 +5565,7 @@ export default function CanvasWorkspace({
                     width: isAutoWidth ? "max-content" : item.width ? `${item.width}px` : "320px",
                     height: isFixed && item.height ? `${item.height}px` : "auto",
                     filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
-                    zIndex: isSelected ? 40 : isChildOfFrame ? 15 : 10,
+                    zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
                     clipPath: textClipPath ? textClipPath : undefined,
                   }}
                   className={`absolute group cursor-text select-text transition-shadow z-30 ${
@@ -5734,13 +5722,13 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                     boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.35)",
                     filter: getEffectFilter(item),
-                    zIndex: isSelected ? 40 : 5,
+                    zIndex: isSelected ? 8 : 4,
                   }}
                   className={`absolute rounded-xl flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
                     draggingItemId === item.id ? "!transition-none will-change-transform z-30" : ""
                   } ${
                     isSelected
-                      ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)] z-40"
+                      ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
                       : "hover:ring-1 hover:ring-white/40 shadow-xl"
                   }`}
                 >
@@ -5888,7 +5876,7 @@ export default function CanvasWorkspace({
                   borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                   boxShadow: getEffectBoxShadow(item),
                   filter: getEffectFilter(item),
-                  zIndex: isSelected ? 40 : isChildOfFrame ? 15 : 10,
+                  zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
                   clipPath: clipPathStyle ? clipPathStyle : undefined,
                 }}
                 className={`group absolute rounded-2xl flex flex-col select-none cursor-grab active:cursor-grabbing ${

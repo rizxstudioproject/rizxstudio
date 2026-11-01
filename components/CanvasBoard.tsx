@@ -11,7 +11,7 @@ import {
   HiQuestionMarkCircle,
 } from "react-icons/hi2";
 import { RiFullscreenFill, RiFullscreenExitFill } from "react-icons/ri";
-import { usePortfolioData } from "@/context/PortfolioDataContext";
+import { usePortfolioData, CanvasItem } from "@/context/PortfolioDataContext";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -1128,10 +1128,46 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         {/* Canvas Elements: Either Freeform Figma-style coordinates or Flex-wrap Grid */}
         {hasFreeformLayout ? (
           <div className="relative w-[5000px] h-[4000px] select-none">
-            {(canvasItems || []).map((item, index) => {
-              const x = item.x ?? 80;
-              const y = item.y ?? 80;
-              const isSelected = selectedSheetId === item.id;
+            {(() => {
+              const getItemClipPath = (item: CanvasItem) => {
+                if (!item.frameId) return undefined;
+                const parentFrame = (canvasItems || []).find((f) => f.id === item.frameId);
+                if (!parentFrame) return undefined;
+                if (parentFrame.clipContent === false) return undefined;
+
+                const fLeft = parentFrame.x || 0;
+                const fTop = parentFrame.y || 0;
+                const fWidth = parentFrame.width || 440;
+                const fHeight = parentFrame.height || 550;
+                const fRight = fLeft + fWidth;
+                const fBottom = fTop + fHeight;
+
+                const itLeft = item.x || 0;
+                const itTop = item.y || 0;
+                let itWidth = item.width || 440;
+                let itHeight = item.height || 550;
+                if (item.aspect === "16:9") itHeight = Math.round(itWidth * (9 / 16));
+                else if (item.aspect === "1:1") itHeight = itWidth;
+                else if (item.aspect === "9:16") itHeight = Math.round(itWidth * (16 / 9));
+                else if (item.aspect === "4:5" || !item.aspect || item.aspect === "original") itHeight = Math.round(itWidth * (5 / 4));
+
+                const clipTop = Math.max(0, fTop - itTop);
+                const clipRight = Math.max(0, (itLeft + itWidth) - fRight);
+                const clipBottom = Math.max(0, (itTop + itHeight) - fBottom);
+                const clipLeft = Math.max(0, fLeft - itLeft);
+
+                if (clipTop === 0 && clipRight === 0 && clipBottom === 0 && clipLeft === 0) {
+                  return undefined;
+                }
+
+                const radius = parentFrame.cornerRadius !== undefined ? `${parentFrame.cornerRadius}px` : "16px";
+                return `inset(${Math.round(clipTop)}px ${Math.round(clipRight)}px ${Math.round(clipBottom)}px ${Math.round(clipLeft)}px round ${radius})`;
+              };
+
+              return (canvasItems || []).map((item, index) => {
+                const x = item.x ?? 80;
+                const y = item.y ?? 80;
+                const isSelected = selectedSheetId === item.id;
 
               // 1. SECTION BOUNDARY BOX
               if (item.type === "section" || item.mediaType === "section") {
@@ -1314,6 +1350,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   }}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0)`,
+                    zIndex: isSelected ? 40 : item.frameId ? 25 : 10,
+                    clipPath: getItemClipPath(item),
                   }}
                   className={`canvas-sheet-item absolute group flex flex-col rounded-2xl transition-all duration-200 cursor-pointer ${
                     isSelected
@@ -1392,7 +1430,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   </div>
                 </div>
               );
-            })}
+            });
+            })()}
           </div>
         ) : (
           /* Grid Arrangement of Deliverable Sheets in 2D Matrix - Generous Spacing */
