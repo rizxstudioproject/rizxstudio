@@ -134,9 +134,9 @@ export default function CanvasWorkspace({
 
   // Close submenus on clicking outside toolbar or pill menu
   useEffect(() => {
-    const handleGlobalClick = (e: MouseEvent) => {
+    const handleGlobalClick = (e: MouseEvent | TouchEvent) => {
       const target = e.target as HTMLElement;
-      if (!target.closest?.(".figma-toolbar-dock")) {
+      if (!target.closest?.(".figma-toolbar-dock") && !target.closest?.(".figma-toolbar-submenu")) {
         setActiveSubmenu(null);
       }
       if (!target.closest?.(".figma-pill-menu")) {
@@ -144,7 +144,11 @@ export default function CanvasWorkspace({
       }
     };
     window.addEventListener("mousedown", handleGlobalClick);
-    return () => window.removeEventListener("mousedown", handleGlobalClick);
+    window.addEventListener("touchstart", handleGlobalClick, { passive: true });
+    return () => {
+      window.removeEventListener("mousedown", handleGlobalClick);
+      window.removeEventListener("touchstart", handleGlobalClick);
+    };
   }, []);
 
   // Selected element & dragging on canvas
@@ -366,7 +370,7 @@ export default function CanvasWorkspace({
 
     // Non-passive touchmove for mobile admin
     const onNativeTouchMove = (e: TouchEvent) => {
-      if (e.touches.length > 1) {
+      if (e.cancelable) {
         e.preventDefault();
       }
     };
@@ -403,9 +407,43 @@ export default function CanvasWorkspace({
     };
   }, []);
 
+  // Mobile Touch Engine Ref (Touch Hold, Hand Tool Panning, Pinch Zoom, and Dragging)
+  const touchStateRef = useRef<{
+    initialPinchDistance: number | null;
+    initialZoom: number;
+    startPan: { x: number; y: number };
+    startTouch: { x: number; y: number };
+    isTouchPanning: boolean;
+    touchDraggingItemId: string | null;
+    touchItemOffset: { x: number; y: number };
+  }>({
+    initialPinchDistance: null,
+    initialZoom: 1,
+    startPan: { x: 0, y: 0 },
+    startTouch: { x: 0, y: 0 },
+    isTouchPanning: false,
+    touchDraggingItemId: null,
+    touchItemOffset: { x: 0, y: 0 },
+  });
+
+  // Helper: Get center coordinate of current viewport converted to canvas space
+  const getViewportCenter = useCallback((itemWidth = 480, itemHeight = 360) => {
+    const container = canvasContainerRef.current;
+    const cw = container?.clientWidth || (typeof window !== "undefined" ? window.innerWidth : 800);
+    const ch = container?.clientHeight || (typeof window !== "undefined" ? window.innerHeight : 600);
+    const curZoom = zoomRef.current || zoom;
+    const curPan = panRef.current || pan;
+    const cx = (cw / 2 - curPan.x) / curZoom - itemWidth / 2;
+    const cy = (ch / 2 - curPan.y) / curZoom - itemHeight / 2;
+    return {
+      x: Math.round(cx),
+      y: Math.round(cy),
+    };
+  }, [pan, zoom]);
+
   // Canvas Mouse Down (Panning or Selecting background)
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // If clicking on canvas background directly
+    // If clicking on canvas background directly or with hand tool / spacebar
     if (e.target === e.currentTarget || isSpacePressed || activeTool === "hand" || e.button === 1) {
       setIsPanning(true);
       setPanStart({ x: e.clientX - pan.x, y: e.clientY - pan.y });
@@ -441,8 +479,13 @@ export default function CanvasWorkspace({
     setDraggingItemId(null);
   };
 
-  // Start dragging an individual canvas item
+  // Start dragging an individual canvas item with mouse
   const handleItemMouseDown = (e: React.MouseEvent, item: CanvasItem) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("button")) {
+      return;
+    }
+
     e.stopPropagation();
     setSelectedId(item.id);
 
@@ -458,15 +501,150 @@ export default function CanvasWorkspace({
     });
   };
 
-  // Add Tools Directly on Canvas
+  // Mobile Touch Handlers on Canvas Viewport
+  const handleCanvasTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    // 2-finger pinch-to-zoom
+    if (e.touches.length === 2) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      touchStateRef.current.initialPinchDistance = dist;
+      touchStateRef.current.initialZoom = zoomRef.current;
+      touchStateRef.current.isTouchPanning = false;
+      touchStateRef.current.touchDraggingItemId = null;
+      return;
+    }
+
+    // 1-finger touch
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      touchStateRef.current.startTouch = { x: t.clientX, y: t.clientY };
+      touchStateRef.current.startPan = { ...panRef.current };
+      touchStateRef.current.initialPinchDistance = null;
+
+      // If active tool is hand, or touching canvas background directly
+      if (activeTool === "hand" || e.target === e.currentTarget) {
+        touchStateRef.current.isTouchPanning = true;
+        setIsPanning(true);
+        if (activeTool === "select") {
+          setSelectedId(null);
+        }
+      }
+    }
+  };
+
+  const handleCanvasTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    // 2-finger pinch-to-zoom
+    if (e.touches.length === 2 && touchStateRef.current.initialPinchDistance) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      if (currentDist > 5) {
+        const scale = currentDist / touchStateRef.current.initialPinchDistance;
+        const targetZoom = Number(Math.min(5.5, Math.max(0.18, touchStateRef.current.initialZoom * scale)).toFixed(3));
+
+        const container = canvasContainerRef.current;
+        if (container) {
+          const rect = container.getBoundingClientRect();
+          const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+          const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+          const currentPan = touchStateRef.current.startPan;
+          const currentZoom = touchStateRef.current.initialZoom;
+          const newPanX = midX - (midX - currentPan.x) * (targetZoom / currentZoom);
+          const newPanY = midY - (midY - currentPan.y) * (targetZoom / currentZoom);
+          setZoom(targetZoom);
+          setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+        } else {
+          setZoom(targetZoom);
+        }
+      }
+      return;
+    }
+
+    // 1-finger drag item or pan
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+
+      // Dragging item across canvas
+      if (touchStateRef.current.touchDraggingItemId) {
+        const itemId = touchStateRef.current.touchDraggingItemId;
+        const currentX = (t.clientX - panRef.current.x) / zoomRef.current - touchStateRef.current.touchItemOffset.x;
+        const currentY = (t.clientY - panRef.current.y) / zoomRef.current - touchStateRef.current.touchItemOffset.y;
+
+        setItems((prev) =>
+          prev.map((it) => (it.id === itemId ? { ...it, x: Math.round(currentX), y: Math.round(currentY) } : it))
+        );
+        setHasChanges(true);
+        return;
+      }
+
+      // Panning canvas (hand tool or hold canvas)
+      if (touchStateRef.current.isTouchPanning || activeTool === "hand") {
+        const deltaX = t.clientX - touchStateRef.current.startTouch.x;
+        const deltaY = t.clientY - touchStateRef.current.startTouch.y;
+        setPan({
+          x: Math.round(touchStateRef.current.startPan.x + deltaX),
+          y: Math.round(touchStateRef.current.startPan.y + deltaY),
+        });
+      }
+    }
+  };
+
+  const handleCanvasTouchEnd = () => {
+    touchStateRef.current.isTouchPanning = false;
+    touchStateRef.current.touchDraggingItemId = null;
+    touchStateRef.current.initialPinchDistance = null;
+    setIsPanning(false);
+    setDraggingItemId(null);
+  };
+
+  // Start touch dragging an item on mobile
+  const handleItemTouchStart = (e: React.TouchEvent, item: CanvasItem) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("button")) {
+      return;
+    }
+
+    e.stopPropagation();
+    setSelectedId(item.id);
+
+    // If Hand tool is active, touch pans the canvas instead of dragging item
+    if (activeTool === "hand") {
+      const t = e.touches[0];
+      if (t) {
+        touchStateRef.current.isTouchPanning = true;
+        touchStateRef.current.startTouch = { x: t.clientX, y: t.clientY };
+        touchStateRef.current.startPan = { ...panRef.current };
+        setIsPanning(true);
+      }
+      return;
+    }
+
+    if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
+
+    if (e.touches.length === 1) {
+      const t = e.touches[0];
+      const itemCanvasX = (t.clientX - panRef.current.x) / zoomRef.current;
+      const itemCanvasY = (t.clientY - panRef.current.y) / zoomRef.current;
+      touchStateRef.current.touchDraggingItemId = item.id;
+      touchStateRef.current.touchItemOffset = {
+        x: itemCanvasX - (item.x || 0),
+        y: itemCanvasY - (item.y || 0),
+      };
+      setDraggingItemId(item.id);
+    }
+  };
+
+  // Add Tools Directly on Canvas (Centered to current viewport)
   const handleAddSection = () => {
+    const center = getViewportCenter(1100, 600);
     const newSection: CanvasItem = {
       id: `section-${Date.now()}`,
       title: "New Section Frame",
       type: "section",
       mediaType: "section",
-      x: Math.round((-pan.x + 120) / zoom),
-      y: Math.round((-pan.y + 120) / zoom),
+      x: center.x,
+      y: center.y,
       width: 1100,
       height: 600,
       color: "#00A389",
@@ -477,16 +655,19 @@ export default function CanvasWorkspace({
 
   const handleAddFrame = (aspect = "4:5") => {
     const isWidescreen = aspect === "16:9";
+    const w = isWidescreen ? 720 : aspect === "9:16" ? 360 : 480;
+    const h = isWidescreen ? 405 : aspect === "9:16" ? 640 : 600;
+    const center = getViewportCenter(w, h);
     const newFrame: CanvasItem = {
       id: `frame-${Date.now()}`,
       title: "New Deliverable Frame",
       type: "media",
       mediaType: "frame",
       aspect,
-      x: Math.round((-pan.x + 140) / zoom),
-      y: Math.round((-pan.y + 140) / zoom),
-      width: isWidescreen ? 720 : aspect === "9:16" ? 360 : 480,
-      height: isWidescreen ? 405 : aspect === "9:16" ? 640 : 600,
+      x: center.x,
+      y: center.y,
+      width: w,
+      height: h,
       color: "#0c8ce9",
     };
     updateItemsWithTracking([...items, newFrame]);
@@ -512,14 +693,15 @@ export default function CanvasWorkspace({
       else if (ratio === "21:9") { w = 750; h = 320; }
     }
 
+    const center = getViewportCenter(w, h);
     const newFrame: CanvasItem = {
       id: `frame-${Date.now()}`,
       title: preset ? `${preset.name} (${ratio})` : `Frame ${ratio}`,
       type: "media",
       mediaType: "frame",
       aspect: ratio,
-      x: Math.round((-pan.x + 140) / zoom),
-      y: Math.round((-pan.y + 140) / zoom),
+      x: center.x,
+      y: center.y,
       width: w,
       height: h,
       color: "#0c8ce9",
@@ -530,13 +712,14 @@ export default function CanvasWorkspace({
   };
 
   const handleAddSlice = () => {
+    const center = getViewportCenter(500, 380);
     const newSlice: CanvasItem = {
       id: `slice-${Date.now()}`,
       title: "Slice Export Area",
       type: "section",
       mediaType: "slice",
-      x: Math.round((-pan.x + 180) / zoom),
-      y: Math.round((-pan.y + 180) / zoom),
+      x: center.x,
+      y: center.y,
       width: 500,
       height: 380,
       color: "#f43f5e",
@@ -546,13 +729,14 @@ export default function CanvasWorkspace({
   };
 
   const handleAddShape = (shape: "rectangle" | "ellipse") => {
+    const center = getViewportCenter(440, 320);
     const newShape: CanvasItem = {
       id: `shape-${Date.now()}`,
       title: shape === "ellipse" ? "Ellipse Shape" : "Rectangle Shape",
       type: "section",
       mediaType: shape === "ellipse" ? "ellipse" : "shape",
-      x: Math.round((-pan.x + 160) / zoom),
-      y: Math.round((-pan.y + 160) / zoom),
+      x: center.x,
+      y: center.y,
       width: 440,
       height: 320,
       color: "#3b82f6",
@@ -562,14 +746,15 @@ export default function CanvasWorkspace({
   };
 
   const handleAddComment = () => {
+    const center = getViewportCenter(320, 160);
     const newComment: CanvasItem = {
       id: `comment-${Date.now()}`,
       title: "Comment / Feedback",
       type: "text",
       mediaType: "comment",
       content: "Tuliskan catatan arahan visual atau feedback desain...",
-      x: Math.round((-pan.x + 220) / zoom),
-      y: Math.round((-pan.y + 220) / zoom),
+      x: center.x,
+      y: center.y,
       color: "#ec4899",
     };
     updateItemsWithTracking([...items, newComment]);
@@ -577,14 +762,15 @@ export default function CanvasWorkspace({
   };
 
   const handleAddTextPath = () => {
+    const center = getViewportCenter(360, 160);
     const newTextPath: CanvasItem = {
       id: `text-path-${Date.now()}`,
       title: "Curved Text on Path",
       type: "text",
       mediaType: "text",
       content: "Text on Path ~ Visual Design Line",
-      x: Math.round((-pan.x + 200) / zoom),
-      y: Math.round((-pan.y + 200) / zoom),
+      x: center.x,
+      y: center.y,
       color: "#06b6d4",
     };
     updateItemsWithTracking([...items, newTextPath]);
@@ -592,14 +778,15 @@ export default function CanvasWorkspace({
   };
 
   const handleAddFolder = () => {
+    const center = getViewportCenter(280, 160);
     const newFolder: CanvasItem = {
       id: `folder-${Date.now()}`,
       title: "New Client Folder",
       type: "folder",
       mediaType: "folder",
       clientName: "Client Project",
-      x: Math.round((-pan.x + 160) / zoom),
-      y: Math.round((-pan.y + 160) / zoom),
+      x: center.x,
+      y: center.y,
       color: "#00A389",
     };
     updateItemsWithTracking([...items, newFolder]);
@@ -607,14 +794,15 @@ export default function CanvasWorkspace({
   };
 
   const handleAddText = () => {
+    const center = getViewportCenter(320, 160);
     const newText: CanvasItem = {
       id: `text-${Date.now()}`,
       title: "Add Title / Sticky Note",
       type: "text",
       mediaType: "text",
       content: "Tuliskan keterangan karya atau catatan arahan visual...",
-      x: Math.round((-pan.x + 200) / zoom),
-      y: Math.round((-pan.y + 200) / zoom),
+      x: center.x,
+      y: center.y,
       color: "#f59e0b",
     };
     updateItemsWithTracking([...items, newText]);
@@ -633,8 +821,9 @@ export default function CanvasWorkspace({
     reader.onload = (ev) => {
       const result = ev.target?.result as string;
 
-      const placeX = dropCanvasX ?? Math.round((-pan.x + 200) / zoom);
-      const placeY = dropCanvasY ?? Math.round((-pan.y + 200) / zoom);
+      const center = getViewportCenter(460, 460);
+      const placeX = dropCanvasX ?? center.x;
+      const placeY = dropCanvasY ?? center.y;
 
       if (isImg) {
         const img = new Image();
@@ -918,6 +1107,8 @@ export default function CanvasWorkspace({
       isVideo = true;
     }
 
+    const center = getViewportCenter(440, 400);
+
     const newItem: CanvasItem = {
       id: `media-${Date.now()}`,
       title: modalTitle.trim() || (ytId ? "YouTube Video" : "Digital Asset"),
@@ -926,8 +1117,8 @@ export default function CanvasWorkspace({
       image: imgPreview,
       aspect: modalAspect,
       clientName: "Selected Work",
-      x: Math.round((-pan.x + 200) / zoom),
-      y: Math.round((-pan.y + 200) / zoom),
+      x: center.x,
+      y: center.y,
       isVideo,
       youtubeUrl: ytId ? modalLinkUrl : undefined,
       videoId: ytId || undefined,
@@ -1691,6 +1882,10 @@ export default function CanvasWorkspace({
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
+          onTouchStart={handleCanvasTouchStart}
+          onTouchMove={handleCanvasTouchMove}
+          onTouchEnd={handleCanvasTouchEnd}
+          onTouchCancel={handleCanvasTouchEnd}
           onDragOver={handleCanvasDragOver}
           onDragLeave={handleCanvasDragLeave}
           onDrop={handleCanvasDrop}
@@ -1784,6 +1979,7 @@ export default function CanvasWorkspace({
                 <div
                   key={item.id}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  onTouchStart={(e) => handleItemTouchStart(e, item)}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0)`,
                     width: `${secWidth}px`,
@@ -1834,6 +2030,7 @@ export default function CanvasWorkspace({
                 <div
                   key={item.id}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  onTouchStart={(e) => handleItemTouchStart(e, item)}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0)`,
                     width: "280px",
@@ -1883,6 +2080,7 @@ export default function CanvasWorkspace({
                 <div
                   key={item.id}
                   onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  onTouchStart={(e) => handleItemTouchStart(e, item)}
                   style={{
                     transform: `translate3d(${x}px, ${y}px, 0)`,
                     width: "320px",
@@ -1953,6 +2151,7 @@ export default function CanvasWorkspace({
               <div
                 key={item.id}
                 onMouseDown={(e) => handleItemMouseDown(e, item)}
+                onTouchStart={(e) => handleItemTouchStart(e, item)}
                 onDoubleClick={(e) => {
                   e.stopPropagation();
                   fitItemToScreen(item, e.currentTarget);
@@ -2065,7 +2264,7 @@ export default function CanvasWorkspace({
       {/* ── Figma Floating Studio Toolbar Dock (Images 1, 2, 3, 4, 5) ─────────── */}
       <nav
         aria-label="Figma Studio Toolbar"
-        className="figma-toolbar-dock fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2 py-1.5 sm:px-2.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[96vw] overflow-x-auto no-scrollbar"
+        className="figma-toolbar-dock fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-0.5 px-2 py-1.5 sm:px-2.5 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-white select-none max-w-[96vw] overflow-x-auto no-scrollbar touch-manipulation"
       >
         {/* 1. MOVE / CURSOR TOOL (With Submenu: Move V, Hand tool H, Scale K - Image 3) */}
         <div className="relative flex items-center">
@@ -2102,7 +2301,7 @@ export default function CanvasWorkspace({
 
           {/* Move Submenu Dropdown (Image 3) */}
           {activeSubmenu === "move" && (
-            <div className="absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
               <button
                 type="button"
                 onClick={() => {
@@ -2208,7 +2407,7 @@ export default function CanvasWorkspace({
 
           {/* Frame Submenu Dropdown (Image 2) */}
           {activeSubmenu === "frame" && (
-            <div className="absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
               <button
                 type="button"
                 onClick={() => {
@@ -2334,7 +2533,7 @@ export default function CanvasWorkspace({
 
           {/* Shape Submenu Dropdown */}
           {activeSubmenu === "shape" && (
-            <div className="absolute bottom-full mb-2 left-0 min-w-[200px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[200px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
               <button
                 type="button"
                 onClick={() => {
@@ -2442,7 +2641,7 @@ export default function CanvasWorkspace({
 
           {/* Pen Submenu Dropdown */}
           {activeSubmenu === "pen" && (
-            <div className="absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
               <button
                 type="button"
                 onClick={() => {
@@ -2526,7 +2725,7 @@ export default function CanvasWorkspace({
 
           {/* Text Submenu Dropdown (Image 4) */}
           {activeSubmenu === "text" && (
-            <div className="absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
               <button
                 type="button"
                 onClick={() => {
@@ -2600,7 +2799,7 @@ export default function CanvasWorkspace({
           </button>
 
           {activeSubmenu === "resources" && (
-            <div className="absolute bottom-full mb-2 left-0 min-w-[210px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[210px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
               <button
                 type="button"
                 onClick={() => {
