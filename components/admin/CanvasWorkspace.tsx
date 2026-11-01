@@ -247,6 +247,7 @@ export default function CanvasWorkspace({
     return true;
   });
   const [showFramePresetsPicker, setShowFramePresetsPicker] = useState(false);
+  const [isAlignMenuOpen, setIsAlignMenuOpen] = useState<boolean>(false);
   const [expandedPresetCategories, setExpandedPresetCategories] = useState<Record<string, boolean>>({ social: true });
 
   const togglePresetCategory = (catId: string) => {
@@ -312,12 +313,15 @@ export default function CanvasWorkspace({
     });
   };
 
-  // Close submenus on clicking outside toolbar
+  // Close submenus on clicking outside toolbar or menus
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent | TouchEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest?.(".figma-toolbar-dock") && !target.closest?.(".figma-toolbar-submenu")) {
         setActiveSubmenu(null);
+      }
+      if (!target.closest?.(".figma-align-menu") && !target.closest?.(".figma-align-trigger")) {
+        setIsAlignMenuOpen(false);
       }
     };
     window.addEventListener("mousedown", handleGlobalClick);
@@ -521,38 +525,6 @@ export default function CanvasWorkspace({
     setShowShareToast(true);
     setTimeout(() => setShowShareToast(false), 3000);
   }, []);
-
-  // Alignment Handler
-  const handleAlign = useCallback(
-    (alignment: "left" | "hcenter" | "right" | "top" | "vcenter" | "bottom" | "distribute") => {
-      if (!selectedItem) return;
-      const curW = selectedItem.width || 440;
-      const curH = selectedItem.height || 400;
-
-      const container = canvasContainerRef.current;
-      const cw = container?.clientWidth || 800;
-      const ch = container?.clientHeight || 600;
-      const viewCenterX = Math.round((cw / 2 - pan.x) / zoom);
-      const viewCenterY = Math.round((ch / 2 - pan.y) / zoom);
-
-      if (alignment === "left") {
-        updateSelectedItem({ x: 0 });
-      } else if (alignment === "hcenter") {
-        updateSelectedItem({ x: Math.round(viewCenterX - curW / 2) });
-      } else if (alignment === "right") {
-        updateSelectedItem({ x: 1000 });
-      } else if (alignment === "top") {
-        updateSelectedItem({ y: 0 });
-      } else if (alignment === "vcenter") {
-        updateSelectedItem({ y: Math.round(viewCenterY - curH / 2) });
-      } else if (alignment === "bottom") {
-        updateSelectedItem({ y: 800 });
-      } else if (alignment === "distribute") {
-        updateSelectedItem({ x: Math.round(selectedItem.x || 0), y: Math.round(selectedItem.y || 0) });
-      }
-    },
-    [selectedItem, pan, zoom, updateSelectedItem]
-  );
 
   // Selection Colors (Matches Image 2)
   const selectionColors = useMemo(() => {
@@ -1145,6 +1117,276 @@ export default function CanvasWorkspace({
     [items, getParentFrameId]
   );
 
+  // ── Figma Professional Alignment Engine (Left, HCenter, Right, Top, VCenter, Bottom, Distribute, Tidy Up) ──
+  const handleAlign = useCallback(
+    (
+      alignment:
+        | "left"
+        | "hcenter"
+        | "right"
+        | "top"
+        | "vcenter"
+        | "bottom"
+        | "distribute-h"
+        | "distribute-v"
+        | "tidyup"
+        | "distribute"
+    ) => {
+      const targetIds =
+        selectedIds.size > 0
+          ? Array.from(selectedIds)
+          : selectedId
+          ? [selectedId]
+          : [];
+      const targetItems = items.filter(
+        (it) => targetIds.includes(it.id) && !hiddenItemIds.has(it.id)
+      );
+      if (targetItems.length === 0) return;
+
+      const getItemRect = (it: CanvasItem) => {
+        const itX = it.x || 0;
+        const itY = it.y || 0;
+        let itW = it.width;
+        let itH = it.height;
+        if (!itW || !itH) {
+          if (it.type === "section" || it.mediaType === "section") {
+            itW = itW || 1200;
+            itH = itH || 600;
+          } else if (it.type === "text" || it.mediaType === "text") {
+            itW = itW || 320;
+            itH = itH || 180;
+          } else if (
+            it.type === "shape" ||
+            it.mediaType === "shape" ||
+            it.mediaType === "rectangle" ||
+            it.mediaType === "ellipse"
+          ) {
+            itW = itW || 320;
+            itH = itH || 200;
+          } else if (it.aspect === "16:9") {
+            itW = itW || 560;
+            itH = itH || 315;
+          } else if (it.aspect === "9:16") {
+            itW = itW || 320;
+            itH = itH || 568;
+          } else if (it.aspect === "1:1") {
+            itW = itW || 400;
+            itH = itH || 400;
+          } else if (it.aspect === "4:5") {
+            itW = itW || 400;
+            itH = itH || 500;
+          } else {
+            itW = itW || 440;
+            itH = itH || 400;
+          }
+        }
+        return { id: it.id, x: itX, y: itY, width: itW, height: itH };
+      };
+
+      const rects = targetItems.map(getItemRect);
+      const updates = new Map<string, { x?: number; y?: number }>();
+
+      if (rects.length > 1) {
+        // Multi-Selection Bounding Box
+        const minX = Math.min(...rects.map((r) => r.x));
+        const minY = Math.min(...rects.map((r) => r.y));
+        const maxX = Math.max(...rects.map((r) => r.x + r.width));
+        const maxY = Math.max(...rects.map((r) => r.y + r.height));
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+
+        if (alignment === "left") {
+          rects.forEach((r) => updates.set(r.id, { x: minX }));
+        } else if (alignment === "hcenter") {
+          rects.forEach((r) =>
+            updates.set(r.id, { x: Math.round(centerX - r.width / 2) })
+          );
+        } else if (alignment === "right") {
+          rects.forEach((r) =>
+            updates.set(r.id, { x: Math.round(maxX - r.width) })
+          );
+        } else if (alignment === "top") {
+          rects.forEach((r) => updates.set(r.id, { y: minY }));
+        } else if (alignment === "vcenter") {
+          rects.forEach((r) =>
+            updates.set(r.id, { y: Math.round(centerY - r.height / 2) })
+          );
+        } else if (alignment === "bottom") {
+          rects.forEach((r) =>
+            updates.set(r.id, { y: Math.round(maxY - r.height) })
+          );
+        } else if (alignment === "distribute-h") {
+          const sorted = [...rects].sort((a, b) => a.x - b.x);
+          const first = sorted[0];
+          const last = sorted[sorted.length - 1];
+          const totalSpan = last.x + last.width - first.x;
+          const sumWidths = sorted.reduce((sum, r) => sum + r.width, 0);
+          const totalGap = totalSpan - sumWidths;
+          const gap = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+          let curX = first.x;
+          sorted.forEach((r, idx) => {
+            if (idx === 0) {
+              updates.set(r.id, { x: r.x });
+              curX += r.width + gap;
+            } else if (idx === sorted.length - 1) {
+              updates.set(r.id, { x: Math.round(last.x) });
+            } else {
+              updates.set(r.id, { x: Math.round(curX) });
+              curX += r.width + gap;
+            }
+          });
+        } else if (alignment === "distribute-v") {
+          const sorted = [...rects].sort((a, b) => a.y - b.y);
+          const first = sorted[0];
+          const last = sorted[sorted.length - 1];
+          const totalSpan = last.y + last.height - first.y;
+          const sumHeights = sorted.reduce((sum, r) => sum + r.height, 0);
+          const totalGap = totalSpan - sumHeights;
+          const gap = sorted.length > 1 ? totalGap / (sorted.length - 1) : 0;
+          let curY = first.y;
+          sorted.forEach((r, idx) => {
+            if (idx === 0) {
+              updates.set(r.id, { y: r.y });
+              curY += r.height + gap;
+            } else if (idx === sorted.length - 1) {
+              updates.set(r.id, { y: Math.round(last.y) });
+            } else {
+              updates.set(r.id, { y: Math.round(curY) });
+              curY += r.height + gap;
+            }
+          });
+        } else if (alignment === "tidyup" || alignment === "distribute") {
+          const N = rects.length;
+          const spanW = maxX - minX;
+          const spanH = maxY - minY;
+
+          if (spanW > spanH * 2.5 && N <= 6) {
+            // Predominantly single row
+            const sorted = [...rects].sort((a, b) => a.x - b.x);
+            const gap = 32;
+            let curX = minX;
+            sorted.forEach((r) => {
+              updates.set(r.id, {
+                x: Math.round(curX),
+                y: Math.round(centerY - r.height / 2),
+              });
+              curX += r.width + gap;
+            });
+          } else if (spanH > spanW * 2.5 && N <= 6) {
+            // Predominantly single column
+            const sorted = [...rects].sort((a, b) => a.y - b.y);
+            const gap = 32;
+            let curY = minY;
+            sorted.forEach((r) => {
+              updates.set(r.id, {
+                x: Math.round(centerX - r.width / 2),
+                y: Math.round(curY),
+              });
+              curY += r.height + gap;
+            });
+          } else {
+            // 2D Matrix Grid Tidy Up (Figma Standard)
+            let cols = Math.ceil(Math.sqrt(N));
+            if (spanW > spanH * 1.3) cols = Math.min(N, cols + 1);
+            if (spanH > spanW * 1.3) cols = Math.max(1, cols - 1);
+
+            // Sort in reading order: top rows first, left-to-right
+            const sorted = [...rects].sort((a, b) => {
+              const yDiff = a.y - b.y;
+              if (Math.abs(yDiff) > 80) return yDiff;
+              return a.x - b.x;
+            });
+
+            const avgW = Math.round(
+              rects.reduce((s, r) => s + r.width, 0) / N
+            );
+            const avgH = Math.round(
+              rects.reduce((s, r) => s + r.height, 0) / N
+            );
+            const gapX = 40;
+            const gapY = 40;
+
+            sorted.forEach((r, idx) => {
+              const col = idx % cols;
+              const row = Math.floor(idx / cols);
+              updates.set(r.id, {
+                x: Math.round(minX + col * (avgW + gapX)),
+                y: Math.round(minY + row * (avgH + gapY)),
+              });
+            });
+          }
+        }
+      } else {
+        // Single item alignment
+        const r = rects[0];
+        const targetItem = targetItems[0];
+        const parentId = targetItem.frameId || getParentFrameId(targetItem);
+        const parentFrame = parentId ? items.find((f) => f.id === parentId) : null;
+
+        let boundX = 0;
+        let boundY = 0;
+        let boundW = 800;
+        let boundH = 600;
+
+        if (parentFrame) {
+          boundX = parentFrame.x || 0;
+          boundY = parentFrame.y || 0;
+          boundW = parentFrame.width || 800;
+          boundH = parentFrame.height || 600;
+        } else {
+          const container = canvasContainerRef.current;
+          const cw = container?.clientWidth || 800;
+          const ch = container?.clientHeight || 600;
+          boundX = Math.round(-pan.x / zoom);
+          boundY = Math.round(-pan.y / zoom);
+          boundW = Math.round(cw / zoom);
+          boundH = Math.round(ch / zoom);
+        }
+
+        if (alignment === "left") {
+          updates.set(r.id, { x: boundX });
+        } else if (alignment === "hcenter") {
+          updates.set(r.id, {
+            x: Math.round(boundX + (boundW - r.width) / 2),
+          });
+        } else if (alignment === "right") {
+          updates.set(r.id, {
+            x: Math.round(boundX + boundW - r.width),
+          });
+        } else if (alignment === "top") {
+          updates.set(r.id, { y: boundY });
+        } else if (alignment === "vcenter") {
+          updates.set(r.id, {
+            y: Math.round(boundY + (boundH - r.height) / 2),
+          });
+        } else if (alignment === "bottom") {
+          updates.set(r.id, {
+            y: Math.round(boundY + boundH - r.height),
+          });
+        }
+      }
+
+      if (updates.size > 0) {
+        const nextItems = items.map((it) => {
+          const up = updates.get(it.id);
+          if (!up) return it;
+          return { ...it, ...up };
+        });
+        updateItemsWithTracking(nextItems);
+      }
+    },
+    [
+      items,
+      selectedId,
+      selectedIds,
+      hiddenItemIds,
+      pan,
+      zoom,
+      getParentFrameId,
+      updateItemsWithTracking,
+    ]
+  );
+
   // ── Figma Group, Frame Selection & Ungroup Handlers ─────────────────────────
   const handleGroupSelection = useCallback(() => {
     const contextItem = contextMenu?.item;
@@ -1417,6 +1659,42 @@ export default function CanvasWorkspace({
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "l" || e.key === "L") && selectedId) {
         e.preventDefault();
         handleToggleLock(selectedId);
+      }
+
+      // Figma Alignment shortcuts (Alt + A, H, D, W, V, S, Alt+Shift+H/V, Ctrl+Alt+Shift+T)
+      if (selectedId || selectedIds.size > 0) {
+        if (e.altKey && !e.ctrlKey && !e.shiftKey) {
+          if (e.key === "a" || e.key === "A") {
+            e.preventDefault();
+            handleAlign("left");
+          } else if (e.key === "h" || e.key === "H") {
+            e.preventDefault();
+            handleAlign("hcenter");
+          } else if (e.key === "d" || e.key === "D") {
+            e.preventDefault();
+            handleAlign("right");
+          } else if (e.key === "w" || e.key === "W") {
+            e.preventDefault();
+            handleAlign("top");
+          } else if (e.key === "v" || e.key === "V") {
+            e.preventDefault();
+            handleAlign("vcenter");
+          } else if (e.key === "s" || e.key === "S") {
+            e.preventDefault();
+            handleAlign("bottom");
+          }
+        } else if (e.altKey && e.shiftKey && !e.ctrlKey) {
+          if (e.key === "h" || e.key === "H") {
+            e.preventDefault();
+            handleAlign("distribute-h");
+          } else if (e.key === "v" || e.key === "V") {
+            e.preventDefault();
+            handleAlign("distribute-v");
+          }
+        } else if ((e.ctrlKey || e.metaKey) && e.altKey && e.shiftKey && (e.key === "t" || e.key === "T")) {
+          e.preventDefault();
+          handleAlign("tidyup");
+        }
       }
       if (e.shiftKey && (e.key === "h" || e.key === "H") && selectedId) {
         e.preventDefault();
@@ -3743,77 +4021,158 @@ export default function CanvasWorkspace({
             </div>
 
             {/* Alignment Row (7 buttons) */}
-            <div className="flex items-center justify-between p-1 rounded-lg bg-[#2c2c2c]/80 border border-white/5 text-neutral-300">
-              <button
-                type="button"
-                onClick={() => handleAlign("left")}
-                title="Align Left"
-                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M2 1h1.5v14H2V1zm3 3h8v3H5V4zm0 5h6v3H5V9z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAlign("hcenter")}
-                title="Align Horizontal Centers"
-                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M7.25 1h1.5v3H13v3H8.75v2H11v3H8.75v3h-1.5v-3H5V9h2.25V7H3V4h4.25V1z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAlign("right")}
-                title="Align Right"
-                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M14 1h-1.5v14H14V1zm-3 3H3v3h8V4zm0 5H5v3h6V9z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAlign("top")}
-                title="Align Top"
-                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M1 2v1.5h14V2H1zm3 3v8h3V5H4zm5 0v6h3V5H9z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAlign("vcenter")}
-                title="Align Vertical Centers"
-                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M1 7.25v1.5h3V13h3V8.75h2V11h3V8.75h3v-1.5h-3V5H9v2.25H7V3H4v4.25H1z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAlign("bottom")}
-                title="Align Bottom"
-                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M1 14v-1.5h14V14H1zm3-3V3h3v8H4zm5 0V5h3v6H9z" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleAlign("distribute")}
-                title="Tidy Up / Distribute"
-                className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
-              >
-                <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
-                  <path d="M1 3h3v3H1V3zm5 0h4v3H6V3zm6 0h3v3h-3V3zM1 9h3v4H1V9zm5 0h4v4H6V9zm6 0h3v4h-3V9z" />
-                </svg>
-              </button>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] text-neutral-400 font-medium">Alignment</span>
+              <div className="relative flex items-center justify-between p-1 rounded-lg bg-[#2c2c2c]/80 border border-white/5 text-neutral-300">
+                <button
+                  type="button"
+                  onClick={() => handleAlign("left")}
+                  title="Align Left (Alt+A)"
+                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M2 1h1.5v14H2V1zm3 3h8v3H5V4zm0 5h6v3H5V9z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAlign("hcenter")}
+                  title="Align Horizontal Centers (Alt+H)"
+                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M7.25 1h1.5v3H13v3H8.75v2H11v3H8.75v3h-1.5v-3H5V9h2.25V7H3V4h4.25V1z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAlign("right")}
+                  title="Align Right (Alt+D)"
+                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M14 1h-1.5v14H14V1zm-3 3H3v3h8V4zm0 5H5v3h6V9z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAlign("top")}
+                  title="Align Top (Alt+W)"
+                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M1 2v1.5h14V2H1zm3 3v8h3V5H4zm5 0v6h3V5H9z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAlign("vcenter")}
+                  title="Align Vertical Centers (Alt+V)"
+                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M1 7.25v1.5h3V13h3V8.75h2V11h3V8.75h3v-1.5h-3V5H9v2.25H7V3H4v4.25H1z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleAlign("bottom")}
+                  title="Align Bottom (Alt+S)"
+                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                    <path d="M1 14v-1.5h14V14H1zm3-3V3h3v8H4zm5 0V5h3v6H9z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsAlignMenuOpen((prev) => !prev)}
+                  title="More actions"
+                  className={`figma-align-trigger p-1 rounded transition-colors cursor-pointer ${
+                    isAlignMenuOpen ? "bg-[#0c8ce9] text-white" : "hover:bg-white/15 hover:text-white"
+                  }`}
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+                    <rect x="2" y="2" width="3" height="3" rx="0.5" />
+                    <rect x="6.5" y="2" width="3" height="3" rx="0.5" />
+                    <rect x="11" y="2" width="3" height="3" rx="0.5" />
+                    <rect x="2" y="6.5" width="3" height="3" rx="0.5" />
+                    <rect x="6.5" y="6.5" width="3" height="3" rx="0.5" />
+                    <rect x="11" y="6.5" width="3" height="3" rx="0.5" />
+                    <rect x="2" y="11" width="3" height="3" rx="0.5" />
+                    <rect x="6.5" y="11" width="3" height="3" rx="0.5" />
+                    <rect x="11" y="11" width="3" height="3" rx="0.5" />
+                  </svg>
+                </button>
+
+                {/* More actions dropdown popup (Matches Figma Screenshot media_1793548295530_893b43a6.png) */}
+                {isAlignMenuOpen && (
+                  <div className="figma-align-menu absolute top-full right-0 mt-1.5 w-64 rounded-xl bg-[#1e1e1e]/98 border border-white/15 p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans text-neutral-200 flex flex-col gap-0.5 backdrop-blur-2xl">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleAlign("tidyup");
+                        setIsAlignMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left hover:bg-[#0c8ce9] hover:text-white transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-neutral-400 group-hover:text-white shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                          <rect x="2" y="2" width="2.5" height="2.5" rx="0.5" />
+                          <rect x="6.75" y="2" width="2.5" height="2.5" rx="0.5" />
+                          <rect x="11.5" y="2" width="2.5" height="2.5" rx="0.5" />
+                          <rect x="2" y="6.75" width="2.5" height="2.5" rx="0.5" />
+                          <rect x="6.75" y="6.75" width="2.5" height="2.5" rx="0.5" />
+                          <rect x="11.5" y="6.75" width="2.5" height="2.5" rx="0.5" />
+                          <rect x="2" y="11.5" width="2.5" height="2.5" rx="0.5" />
+                          <rect x="6.75" y="11.5" width="2.5" height="2.5" rx="0.5" />
+                          <rect x="11.5" y="11.5" width="2.5" height="2.5" rx="0.5" />
+                        </svg>
+                        <span className="font-medium">Tidy up</span>
+                      </div>
+                      <span className="text-[11px] font-mono opacity-60">Ctrl+Alt+Shift+T</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleAlign("distribute-v");
+                        setIsAlignMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left hover:bg-[#0c8ce9] hover:text-white transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-neutral-400 group-hover:text-white shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                          <rect x="2" y="2" width="12" height="1.5" rx="0.5" />
+                          <rect x="4" y="6" width="8" height="4" rx="0.5" />
+                          <rect x="2" y="12.5" width="12" height="1.5" rx="0.5" />
+                        </svg>
+                        <span className="font-medium">Distribute vertical spacing</span>
+                      </div>
+                      <span className="text-[11px] font-mono opacity-60">Alt+Shift+V</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        handleAlign("distribute-h");
+                        setIsAlignMenuOpen(false);
+                      }}
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-lg text-left hover:bg-[#0c8ce9] hover:text-white transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-neutral-400 group-hover:text-white shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                          <rect x="2" y="2" width="1.5" height="12" rx="0.5" />
+                          <rect x="6" y="4" width="4" height="8" rx="0.5" />
+                          <rect x="12.5" y="2" width="1.5" height="12" rx="0.5" />
+                        </svg>
+                        <span className="font-medium">Distribute horizontal spacing</span>
+                      </div>
+                      <span className="text-[11px] font-mono opacity-60">Alt+Shift+H</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Position Coordinates (X, Y) */}
@@ -5946,6 +6305,21 @@ export default function CanvasWorkspace({
               <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
               <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
               <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+
+              {/* Figma Tidy Up Star Button on Top Right (Matches Screenshot 3) */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAlign("tidyup");
+                }}
+                title="Tidy Up (Ctrl+Alt+Shift+T)"
+                className="absolute -top-2.5 -right-7 w-5 h-5 rounded-md bg-[#1e1e1e] border border-[#0c8ce9] text-[#0c8ce9] hover:bg-[#0c8ce9] hover:text-white pointer-events-auto flex items-center justify-center shadow-md transition-transform hover:scale-110 active:scale-95 cursor-pointer z-50"
+              >
+                <svg className="w-3 h-3" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 0L14.59 9.41L24 12L14.59 14.59L12 24L9.41 14.59L0 12L9.41 9.41L12 0Z" />
+                </svg>
+              </button>
 
               {/* Dimension Badge at Bottom (Matches User's Screenshot!) */}
               <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-xs font-mono font-medium shadow-lg whitespace-nowrap">
