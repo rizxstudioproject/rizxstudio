@@ -246,9 +246,6 @@ export default function CanvasWorkspace({
     if (typeof window !== "undefined" && window.innerWidth < 768) return false;
     return true;
   });
-  const [isPillMenuOpen, setIsPillMenuOpen] = useState<boolean>(false);
-  const [showExpandTooltip, setShowExpandTooltip] = useState<boolean>(false);
-  const [activeClientFilter, setActiveClientFilter] = useState<string | null>(null);
   const [showFramePresetsPicker, setShowFramePresetsPicker] = useState(false);
   const [expandedPresetCategories, setExpandedPresetCategories] = useState<Record<string, boolean>>({ social: true });
 
@@ -315,15 +312,12 @@ export default function CanvasWorkspace({
     });
   };
 
-  // Close submenus on clicking outside toolbar or pill menu
+  // Close submenus on clicking outside toolbar
   useEffect(() => {
     const handleGlobalClick = (e: MouseEvent | TouchEvent) => {
       const target = e.target as HTMLElement;
       if (!target.closest?.(".figma-toolbar-dock") && !target.closest?.(".figma-toolbar-submenu")) {
         setActiveSubmenu(null);
-      }
-      if (!target.closest?.(".figma-pill-menu")) {
-        setIsPillMenuOpen(false);
       }
     };
     window.addEventListener("mousedown", handleGlobalClick);
@@ -3738,47 +3732,6 @@ export default function CanvasWorkspace({
             </span>
             <HiChevronDown className="w-3 h-3 text-neutral-400" />
           </div>
-
-          <div className="flex items-center gap-1 text-neutral-400">
-            <button
-              type="button"
-              onClick={() => setShowDevMode(true)}
-              className="p-1 rounded hover:bg-white/10 hover:text-white cursor-pointer"
-              title="Dev Mode (Inspect Code)"
-            >
-              <span className="font-mono text-[11px] font-bold">{"</>"}</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowFramePresetsPicker(true)}
-              className="p-1 rounded hover:bg-white/10 hover:text-white cursor-pointer"
-              title="Presets & Components"
-            >
-              <span className="text-xs">❖</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (selectedItem) {
-                  updateSelectedItem({ color: itemColor === "#0c8ce9" ? "#00A389" : "#0c8ce9" });
-                }
-              }}
-              className="p-1 rounded hover:bg-white/10 hover:text-white cursor-pointer"
-              title="Toggle Theme / Fill"
-            >
-              <span className="text-xs">◐</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (selectedItem) handleDeleteItem(selectedItem.id);
-              }}
-              className="p-1 rounded hover:bg-white/10 hover:text-red-400 cursor-pointer"
-              title="Delete Element"
-            >
-              <HiEllipsisHorizontal className="w-4 h-4" />
-            </button>
-          </div>
         </div>
 
         {/* ── Scrollable Inspector Sections ───────────────────────────────────── */}
@@ -4762,234 +4715,6 @@ export default function CanvasWorkspace({
     );
   };
 
-  // Render Studio Top Pill Menu [Logo] [Portfolio] [Free] [◫]
-  const renderPillMenu = () => (
-    <div className="relative figma-pill-menu inline-flex items-center">
-      <div
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border backdrop-blur-2xl transition-all shadow-xl ${
-          isLight
-            ? "bg-white/95 border-slate-300 text-slate-800 shadow-slate-300/40"
-            : "bg-[#222222]/95 border-white/10 text-white shadow-[0_12px_32px_rgba(0,0,0,0.7)]"
-        }`}
-      >
-        {/* Studio Monogram Logo */}
-        <button
-          type="button"
-          onClick={() => setIsPillMenuOpen((prev) => !prev)}
-          title="Rizx Studio Canvas Menu"
-          className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
-        >
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
-        </button>
-
-        {/* Title: Portfolio (with subtle dropdown caret) */}
-        <button
-          type="button"
-          onClick={() => setIsPillMenuOpen((prev) => !prev)}
-          className="flex items-center gap-1 font-bold text-xs sm:text-sm text-white hover:text-cyan-300 transition-colors cursor-pointer"
-        >
-          <span>Portfolio</span>
-          <HiChevronDown className="w-3 h-3 text-neutral-400" />
-        </button>
-
-        {/* Plan Badge: Free */}
-        <span className="px-2 py-0.5 rounded-full bg-[#182635] text-[#38bdf8] font-mono text-[10px] font-bold border border-[#38bdf8]/25 tracking-wide">
-          Free
-        </span>
-
-        {/* Sidebar / UI Toggle Icon [◫] */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => {
-              setIsUiExpanded((prev) => !prev);
-              setShowExpandTooltip(false);
-            }}
-            onMouseEnter={() => setShowExpandTooltip(true)}
-            onMouseLeave={() => setShowExpandTooltip(false)}
-            title={isUiExpanded ? "Collapse UI (Ctrl+Shift+\\)" : "Expand UI (Ctrl+Shift+\\)"}
-            className={`p-1.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center ${
-              isUiExpanded
-                ? "text-neutral-300 hover:text-white hover:bg-white/10"
-                : "text-[#38bdf8] bg-white/10 hover:bg-white/20"
-            }`}
-          >
-            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <rect x="2" y="2.5" width="12" height="11" rx="2" />
-              <line x1="6" y1="2.5" x2="6" y2="13.5" />
-            </svg>
-          </button>
-
-          {/* Popover / Tooltip: Expand UI / Collapse UI Ctrl+Shift+\ */}
-          {showExpandTooltip && (
-            <div className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#1e1e1e] border border-white/15 text-white text-[11px] font-mono shadow-2xl flex items-center gap-3 whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-100 pointer-events-none">
-              <span className="font-semibold text-neutral-200">
-                {isUiExpanded ? "Collapse UI" : "Expand UI"}
-              </span>
-              <span className="text-neutral-400 text-[10px]">Ctrl+Shift+\</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Dropdown Menu on clicking Logo or Portfolio */}
-      {isPillMenuOpen && (
-        <div className="absolute top-full mt-2 left-0 w-64 rounded-2xl bg-[#181a20]/95 backdrop-blur-2xl border border-white/15 p-2 shadow-2xl z-50 text-xs font-mono text-neutral-300 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-2 py-1.5 text-[11px] text-neutral-400 border-b border-white/10 flex items-center justify-between">
-            <span className="font-bold text-white">Rizx Canvas Studio</span>
-            <span className="text-[10px] text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded">v2.4</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => {
-              setIsUiExpanded((prev) => !prev);
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="2" y="2.5" width="12" height="11" rx="2" />
-                <line x1="6" y1="2.5" x2="6" y2="13.5" />
-              </svg>
-              {isUiExpanded ? "Collapse UI" : "Expand UI"}
-            </span>
-            <span className="text-[10px] text-neutral-500">Ctrl+Shift+\</span>
-          </button>
-
-          <div className="w-full h-[1px] bg-white/10 my-1" />
-
-          <button
-            type="button"
-            onClick={() => {
-              handleAddFrame("4:5");
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <HiHashtag className="w-3.5 h-3.5 text-cyan-400" />
-              New Frame
-            </span>
-            <span className="text-[10px] text-neutral-500">F</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              handleAddSection();
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <HiSquare2Stack className="w-3.5 h-3.5 text-emerald-400" />
-              New Section
-            </span>
-            <span className="text-[10px] text-neutral-500">Shift+S</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              handleAddText();
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <HiLanguage className="w-3.5 h-3.5 text-amber-400" />
-              New Text Box
-            </span>
-            <span className="text-[10px] text-neutral-500">T</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              fileInputRef.current?.click();
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <HiPhoto className="w-3.5 h-3.5 text-teal-400" />
-              Upload Image/Media
-            </span>
-            <span className="text-[10px] text-neutral-500">Drop</span>
-          </button>
-
-          <div className="w-full h-[1px] bg-white/10 my-1" />
-
-          <button
-            type="button"
-            onClick={() => {
-              zoomToFitAll();
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <HiArrowsPointingOut className="w-3.5 h-3.5 text-purple-400" />
-              Fit All Elements
-            </span>
-            <span className="text-[10px] text-neutral-500">F</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setShowMeasureTool((prev) => !prev);
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <span>📐</span>
-              Toggle Dimensions
-            </span>
-            <span className="text-[10px] text-neutral-500">{showMeasureTool ? "ON" : "OFF"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => {
-              setShowDevMode(true);
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <HiCodeBracket className="w-3.5 h-3.5 text-cyan-400" />
-              Dev Mode (JSON)
-            </span>
-            <span className="text-[10px] text-neutral-500">{"</>"}</span>
-          </button>
-
-          <div className="w-full h-[1px] bg-white/10 my-1" />
-
-          <button
-            type="button"
-            onClick={() => {
-              handleSaveChanges();
-              setIsPillMenuOpen(false);
-            }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500 text-teal-300 hover:text-black font-bold transition-colors cursor-pointer text-left"
-          >
-            <span className="flex items-center gap-2">
-              <HiCheckCircle className="w-3.5 h-3.5" />
-              Save Changes
-            </span>
-            <span className="text-[10px]">Ctrl+S</span>
-          </button>
-        </div>
-      )}
-    </div>
-  );
-
   useEffect(() => {
     const handleFsChange = () => {
       if (!document.fullscreenElement) {
@@ -5374,14 +5099,7 @@ export default function CanvasWorkspace({
               : "cursor-default"
           }`}
         >
-          {/* Floating Studio Pill Menu (matches Figma reference - hidden on mobile/when top header is hidden) */}
-          {!hideTopHeader && !isScreenMobile && (
-            <div className="absolute top-4 left-4 z-40 hidden md:block">
-              {renderPillMenu()}
-            </div>
-          )}
-
-          {/* Quick Floating Actions (Save changes, Fullscreen, Inspector toggle, Mobile Layers) */}
+          {/* Quick Floating Actions (Fullscreen, Inspector toggle, Mobile Layers) */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 font-mono">
             {/* Mobile Layers Drawer Toggle */}
             <button
@@ -5396,17 +5114,6 @@ export default function CanvasWorkspace({
             >
               <HiQueueList className="w-4 h-4" />
             </button>
-            {!isScreenMobile && hasChanges && (
-              <button
-                type="button"
-                onClick={handleSaveChanges}
-                disabled={isSaving}
-                className="px-3.5 py-1.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-black font-bold text-xs shadow-lg flex items-center gap-1.5 cursor-pointer"
-              >
-                <HiCheckCircle className="w-3.5 h-3.5" />
-                <span>Save Changes</span>
-              </button>
-            )}
             <button
               type="button"
               onClick={toggleFullscreen}
@@ -6675,90 +6382,7 @@ export default function CanvasWorkspace({
           )}
         </div>
 
-        {/* 4. PEN / DRAW TOOL (With Submenu: Pen P, Pencil Shift+P) */}
-        <div className="relative hidden md:flex items-center shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTool("pen");
-              setActiveSubmenu(null);
-            }}
-            title="Pen (P)"
-            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
-              activeTool === "pen"
-                ? "bg-[#0c8ce9] text-white shadow-sm"
-                : "text-neutral-300 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiPencil className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveSubmenu(activeSubmenu === "pen" ? null : "pen");
-            }}
-            title="Pen Tools Menu"
-            className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
-              activeTool === "pen" || activeTool === "pencil"
-                ? "bg-[#0c8ce9] text-white"
-                : "text-neutral-400 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            <HiChevronDown className="w-3 h-3" />
-          </button>
-
-          {/* Pen Submenu Dropdown */}
-          {activeSubmenu === "pen" && (
-            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTool("pen");
-                  setActiveSubmenu(null);
-                }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                  activeTool === "pen"
-                    ? "bg-[#0c8ce9] text-white font-medium"
-                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "pen" && <HiCheck className="w-3.5 h-3.5" />}
-                  </span>
-                  <HiPencil className="w-4 h-4" />
-                  <span>Pen</span>
-                </div>
-                <span className="text-[11px] font-mono opacity-60">P</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTool("pencil");
-                  setActiveSubmenu(null);
-                }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                  activeTool === "pencil"
-                    ? "bg-[#0c8ce9] text-white font-medium"
-                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "pencil" && <HiCheck className="w-3.5 h-3.5" />}
-                  </span>
-                  <HiPencilSquare className="w-4 h-4" />
-                  <span>Pencil</span>
-                </div>
-                <span className="text-[11px] font-mono opacity-60">Shift+P</span>
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* 5. TEXT TOOL (With Submenu: Text T, Text on Path, Sticky Note N - Image 4) */}
+        {/* 4. TEXT TOOL (With Submenu: Text T, Text on Path, Sticky Note N) */}
         <div className="relative flex items-center shrink-0">
           <button
             type="button"
@@ -6852,60 +6476,6 @@ export default function CanvasWorkspace({
           )}
         </div>
 
-        {/* 6. RESOURCES / CODE BRACKETS {} */}
-        <div className="relative hidden md:block shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveSubmenu(activeSubmenu === "resources" ? null : "resources")}
-            title="Resources / Components ({})"
-            className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-xs sm:text-sm ${
-              activeSubmenu === "resources"
-                ? "bg-[#0c8ce9] text-white"
-                : "text-neutral-300 hover:text-white hover:bg-white/10"
-            }`}
-          >
-            {"{ }"}
-          </button>
-
-          {activeSubmenu === "resources" && (
-            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[210px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
-              <button
-                type="button"
-                onClick={() => {
-                  handleAddFolder();
-                  setActiveSubmenu(null);
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer"
-              >
-                <HiFolder className="w-4 h-4 text-teal-400" />
-                <span>Folder Klien Vault</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  fileInputRef.current?.click();
-                  setActiveSubmenu(null);
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer"
-              >
-                <HiPhoto className="w-4 h-4 text-cyan-400" />
-                <span>Upload File Media</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsLinkModalOpen(true);
-                  setActiveSubmenu(null);
-                }}
-                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer"
-              >
-                <HiLink className="w-4 h-4 text-amber-400" />
-                <span>Link (YouTube / Drive)</span>
-              </button>
-            </div>
-          )}
-        </div>
-
         {/* Mobile Quick Fit All */}
         <button
           type="button"
@@ -6928,92 +6498,6 @@ export default function CanvasWorkspace({
           }`}
         >
           <HiAdjustmentsHorizontal className="w-4 h-4" />
-        </button>
-
-        {/* 7. COMMENT BUBBLE (💬) */}
-        <button
-          type="button"
-          onClick={handleAddComment}
-          title="Add Comment / Annotation (C)"
-          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 hidden md:flex"
-        >
-          <HiChatBubbleBottomCenterText className="w-4 h-4" />
-        </button>
-
-        {/* 8. WIDGETS / ASSETS (❖+) */}
-        <button
-          type="button"
-          onClick={() => {
-            handleAddFrame("16:9");
-            setActiveSubmenu(null);
-          }}
-          title="Widgets & Presets (❖+)"
-          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-white hover:bg-white/10 shrink-0 hidden md:flex"
-        >
-          <HiSparkles className="w-4 h-4 text-amber-400" />
-        </button>
-
-        {/* Toolbar Vertical Separator */}
-        <div className="w-[1px] h-5 bg-white/15 mx-0.5 sm:mx-1 shrink-0 hidden md:block" />
-
-        {/* 9. PENCIL / SCRIBBLER */}
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTool(activeTool === "pencil" ? "select" : "pencil");
-          }}
-          title="Pencil / Draw"
-          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 hidden md:flex ${
-            activeTool === "pencil"
-              ? "bg-[#0c8ce9] text-white shadow-sm"
-              : "text-neutral-300 hover:text-white hover:bg-white/10"
-          }`}
-        >
-          <HiPencilSquare className="w-4 h-4" />
-        </button>
-
-        {/* 10. MEASURE / RULER (Highlighted in Image 1!) */}
-        <button
-          type="button"
-          onClick={() => setShowMeasureTool(!showMeasureTool)}
-          title="Measure / Dimension Inspect (Ruler)"
-          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer shrink-0 hidden md:flex ${
-            showMeasureTool
-              ? "bg-[#0c8ce9] text-white shadow-sm"
-              : "text-neutral-300 hover:text-white hover:bg-white/10"
-          }`}
-        >
-          <span className="text-sm leading-none font-bold">📐</span>
-        </button>
-
-        {/* 11. PRESENT / PREVIEW WEB */}
-        <button
-          type="button"
-          onClick={() => {
-            if (onOpenCanvasPreview) {
-              onOpenCanvasPreview();
-            } else if (typeof window !== "undefined") {
-              window.open("/canvas", "_blank");
-            }
-          }}
-          title="Present / Live Canvas View (▷)"
-          className="h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer text-neutral-300 hover:text-teal-400 hover:bg-white/10 shrink-0 hidden md:flex"
-        >
-          <HiPlay className="w-4 h-4" />
-        </button>
-
-        {/* 12. CODE / DEV MODE (</>) */}
-        <button
-          type="button"
-          onClick={() => setShowDevMode(true)}
-          title="Dev Mode / Inspect Code (</>)"
-          className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-xl flex items-center justify-center transition-colors cursor-pointer font-mono font-bold text-xs shrink-0 hidden md:flex ${
-            showDevMode
-              ? "bg-[#0c8ce9] text-white shadow-sm"
-              : "text-neutral-300 hover:text-white hover:bg-white/10"
-          }`}
-        >
-          {"</>"}
         </button>
       </nav>
 
