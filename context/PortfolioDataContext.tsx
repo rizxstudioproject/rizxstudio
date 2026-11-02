@@ -93,6 +93,9 @@ export interface CanvasItem {
   shadowColor?: string;
   shadowOpacity?: number;
   clipContent?: boolean;
+  svgRaw?: string;
+  svgViewBox?: string;
+  pathData?: string;
   flipX?: boolean;
   flipY?: boolean;
   isComponent?: boolean;

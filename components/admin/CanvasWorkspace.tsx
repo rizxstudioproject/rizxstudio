@@ -58,7 +58,7 @@ interface CanvasWorkspaceProps {
   isMobile?: boolean;
 }
 
-type CanvasTool = "select" | "hand" | "scale" | "frame" | "section" | "slice" | "shape" | "pen" | "pencil" | "text" | "folder" | "media" | "comment";
+type CanvasTool = "select" | "hand" | "scale" | "frame" | "section" | "slice" | "shape" | "pen" | "pencil" | "text" | "folder" | "media" | "comment" | "image_place";
 
 // ── Figma Frame Presets Definition (Matches Screenshot media_1793530390332_97f50010.png) ─────────────
 export interface FramePresetItem {
@@ -980,11 +980,41 @@ export default function CanvasWorkspace({
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(true);
   const [inspectorTab, setInspectorTab] = useState<"design" | "prototype">("design");
   const [showShareToast, setShowShareToast] = useState<boolean>(false);
+  const [canvasToast, setCanvasToast] = useState<string | null>(null);
+  const showToast = useCallback((msg: string) => {
+    setCanvasToast(msg);
+    setTimeout(() => setCanvasToast(null), 2500);
+  }, []);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
   const [isMobileInspectorOpen, setIsMobileInspectorOpen] = useState<boolean>(false);
   const [isEffectPopoverOpen, setIsEffectPopoverOpen] = useState<boolean>(false);
   const [isFontSizeDropdownOpen, setIsFontSizeDropdownOpen] = useState<boolean>(false);
   const fontSizeDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Pending Image & SVG Placement Queue (Matches Figma "Click or drag to place" + SVG cursor badge / Image preview)
+  const [pendingPlacementQueue, setPendingPlacementQueue] = useState<Array<{
+    file: File;
+    name: string;
+    isSvg: boolean;
+    svgText?: string;
+    svgWidth?: number;
+    svgHeight?: number;
+    svgViewBox?: string;
+    svgElements?: Array<{
+      d?: string;
+      fill?: string;
+      stroke?: string;
+      strokeWidth?: number;
+      rawHtml?: string;
+    }>;
+    dataUrl?: string;
+    naturalWidth?: number;
+    naturalHeight?: number;
+    detectedAspect?: string;
+  }>>([]);
+  const pendingPlacement = pendingPlacementQueue[0] || null;
+  const [mouseScreenPos, setMouseScreenPos] = useState<{ x: number; y: number } | null>(null);
+  const [svgCodeModal, setSvgCodeModal] = useState<{ isOpen: boolean; itemId: string; svgCode: string } | null>(null);
 
   // Close font size dropdown on outside click or escape
   useEffect(() => {
@@ -2215,6 +2245,8 @@ export default function CanvasWorkspace({
       it.mediaType !== "shape" &&
       it.mediaType !== "rectangle" &&
       it.mediaType !== "ellipse" &&
+      it.mediaType !== "vector" &&
+      it.type !== "vector" &&
       it.type !== "text" &&
       it.mediaType !== "text"
     );
@@ -2972,6 +3004,23 @@ export default function CanvasWorkspace({
       if (e.key === "v" || e.key === "V") {
         setActiveTool("select");
       }
+      // Cancel image placement on Escape
+      if (e.key === "Escape") {
+        if (pendingPlacementQueue.length > 0) {
+          e.preventDefault();
+          setPendingPlacementQueue([]);
+          setActiveTool("select");
+          return;
+        }
+      }
+
+      // Figma Place Image / Video (Ctrl+Shift+K or Cmd+Shift+K)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "k" || e.key === "K")) {
+        e.preventDefault();
+        fileInputRef.current?.click();
+        return;
+      }
+
       if (e.key === "h" || e.key === "H") {
         setActiveTool("hand");
       }
@@ -3249,8 +3298,319 @@ export default function CanvasWorkspace({
     };
   }, [pan, zoom]);
 
+  // Handle file preparation for interactive image/SVG placement (Matches Figma Screenshots 1, 2, 5)
+  const handlePrepareFilesForPlacement = async (fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
+    if (files.length === 0) return;
+
+    const newItems: typeof pendingPlacementQueue = [];
+
+    for (const file of files) {
+      const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
+      const isImg = file.type.startsWith("image/") || isSvg;
+      const isVideo = file.type.startsWith("video/");
+      if (!isImg && !isVideo) continue;
+
+      const cleanName = file.name.replace(/\.[^/.]+$/, "");
+
+      if (isSvg) {
+        let svgText = "";
+        try {
+          svgText = await file.text();
+        } catch {
+          svgText = await new Promise<string>((res) => {
+            const r = new FileReader();
+            r.onload = (ev) => res((ev.target?.result as string) || "");
+            r.readAsText(file);
+          });
+        }
+
+        let vbWidth = 91;
+        let vbHeight = 91;
+        let vbString = "0 0 91 91";
+        const svgElements: Array<{ d?: string; fill?: string; stroke?: string; strokeWidth?: number; rawHtml?: string }> = [];
+
+        try {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(svgText, "image/svg+xml");
+          const svgEl = doc.querySelector("svg");
+          if (svgEl) {
+            const vb = svgEl.getAttribute("viewBox");
+            if (vb) {
+              vbString = vb;
+              const parts = vb.trim().split(/[\s,]+/).map(Number);
+              if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+                vbWidth = Math.round(parts[2]);
+                vbHeight = Math.round(parts[3]);
+              }
+            } else {
+              const wAttr = parseFloat(svgEl.getAttribute("width") || "0");
+              const hAttr = parseFloat(svgEl.getAttribute("height") || "0");
+              if (wAttr > 0 && hAttr > 0) {
+                vbWidth = Math.round(wAttr);
+                vbHeight = Math.round(hAttr);
+                vbString = `0 0 ${vbWidth} ${vbHeight}`;
+              }
+            }
+
+            const els = svgEl.querySelectorAll("path, polygon, polyline, circle, ellipse, rect");
+            els.forEach((el) => {
+              const fill = el.getAttribute("fill") || (el as SVGElement).style.fill || (el.getAttribute("stroke") ? "transparent" : "#000000");
+              const stroke = el.getAttribute("stroke") || (el as SVGElement).style.stroke || undefined;
+              const strokeW = parseFloat(el.getAttribute("stroke-width") || (el as SVGElement).style.strokeWidth || "1") || undefined;
+              const d = el.getAttribute("d") || "";
+              svgElements.push({
+                d,
+                fill: fill === "none" ? "transparent" : fill,
+                stroke: stroke === "none" ? undefined : stroke,
+                strokeWidth: strokeW,
+                rawHtml: el.outerHTML,
+              });
+            });
+          }
+        } catch (err) {
+          console.warn("SVG parsing warning:", err);
+        }
+
+        const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+
+        newItems.push({
+          file,
+          name: cleanName,
+          isSvg: true,
+          svgText,
+          svgWidth: vbWidth,
+          svgHeight: vbHeight,
+          svgViewBox: vbString,
+          svgElements,
+          dataUrl: svgDataUrl,
+        });
+      } else {
+        // PNG, JPEG, WebP, Video
+        const dataUrl = await new Promise<string>((res) => {
+          const r = new FileReader();
+          r.onload = (ev) => res((ev.target?.result as string) || "");
+          r.readAsDataURL(file);
+        });
+
+        let nw = 480;
+        let nh = 360;
+        let detectedAspect = "original";
+
+        if (isImg) {
+          await new Promise<void>((res) => {
+            const img = new Image();
+            img.onload = () => {
+              nw = img.naturalWidth || 480;
+              nh = img.naturalHeight || 360;
+              const ratio = nw / nh;
+              if (Math.abs(ratio - 1) < 0.04) detectedAspect = "1:1";
+              else if (Math.abs(ratio - 16 / 9) < 0.05) detectedAspect = "16:9";
+              else if (Math.abs(ratio - 9 / 16) < 0.05) detectedAspect = "9:16";
+              else if (Math.abs(ratio - 4 / 5) < 0.05) detectedAspect = "4:5";
+              else detectedAspect = `${nw}:${nh}`;
+              res();
+            };
+            img.onerror = () => res();
+            img.src = dataUrl;
+          });
+        }
+
+        newItems.push({
+          file,
+          name: cleanName,
+          isSvg: false,
+          dataUrl,
+          naturalWidth: nw,
+          naturalHeight: nh,
+          detectedAspect,
+        });
+      }
+    }
+
+    if (newItems.length > 0) {
+      setPendingPlacementQueue((prev) => [...prev, ...newItems]);
+      setActiveTool("image_place");
+    }
+  };
+
+  const handlePlacePendingItem = (canvasX: number, canvasY: number, itemToPlace?: (typeof pendingPlacementQueue)[0]) => {
+    const target = itemToPlace || pendingPlacementQueue[0];
+    if (!target) return;
+
+    if (target.isSvg) {
+      const frameId = `frame-svg-${Date.now()}`;
+      const w = target.svgWidth || 91;
+      const h = target.svgHeight || 91;
+
+      const parentSvgFrame: CanvasItem = {
+        id: frameId,
+        title: target.name || "SVG Frame",
+        type: "frame",
+        mediaType: "frame",
+        x: canvasX,
+        y: canvasY,
+        width: w,
+        height: h,
+        color: "transparent",
+        svgRaw: target.svgText,
+        svgViewBox: target.svgViewBox || `0 0 ${w} ${h}`,
+        aspect: "free",
+        clipContent: false,
+      };
+
+      const childVectors: CanvasItem[] = (target.svgElements && target.svgElements.length > 0)
+        ? target.svgElements.map((el, idx) => ({
+            id: `vector-${Date.now()}-${idx}`,
+            title: "Vector",
+            type: "shape",
+            mediaType: "vector",
+            frameId,
+            color: el.fill || "#000000",
+            strokeColor: el.stroke,
+            strokeWidth: el.strokeWidth,
+            pathData: el.d,
+            svgRaw: el.rawHtml,
+            x: canvasX,
+            y: canvasY,
+            width: w,
+            height: h,
+          }))
+        : [
+            {
+              id: `vector-${Date.now()}-0`,
+              title: "Vector",
+              type: "shape",
+              mediaType: "vector",
+              frameId,
+              color: "#000000",
+              svgRaw: target.svgText,
+              x: canvasX,
+              y: canvasY,
+              width: w,
+              height: h,
+            },
+          ];
+
+      updateItemsWithTracking([parentSvgFrame, ...childVectors, ...items]);
+      setSelectedId(parentSvgFrame.id);
+      setSelectedIds(new Set([parentSvgFrame.id]));
+    } else {
+      // PNG / JPEG / Media
+      const isVideo = target.file.type.startsWith("video/");
+      const targetW = Math.min(target.naturalWidth || 480, 800);
+      const targetH = Math.round(targetW * ((target.naturalHeight || 360) / (target.naturalWidth || 480)));
+
+      const newItem: CanvasItem = {
+        id: `media-${Date.now()}`,
+        title: target.name.charAt(0).toUpperCase() + target.name.slice(1),
+        type: "media",
+        mediaType: isVideo ? "upload" : "image",
+        image: target.dataUrl,
+        aspect: target.detectedAspect || "original",
+        clientName: "Selected Work",
+        x: canvasX,
+        y: canvasY,
+        width: targetW,
+        height: targetH,
+        isVideo,
+      };
+
+      updateItemsWithTracking([newItem, ...items]);
+      setSelectedId(newItem.id);
+      setSelectedIds(new Set([newItem.id]));
+    }
+
+    if (!itemToPlace) {
+      setPendingPlacementQueue((prev) => {
+        const nextQueue = prev.slice(1);
+        if (nextQueue.length === 0) {
+          setActiveTool("select");
+        }
+        return nextQueue;
+      });
+    }
+  };
+
+  const handlePlaceAllPending = () => {
+    if (pendingPlacementQueue.length === 0) return;
+    const center = getViewportCenter(300, 300);
+    let ox = 0;
+    let oy = 0;
+    pendingPlacementQueue.forEach((it) => {
+      handlePlacePendingItem(center.x + ox, center.y + oy, it);
+      ox += 40;
+      oy += 40;
+    });
+    setPendingPlacementQueue([]);
+    setActiveTool("select");
+  };
+
+  const handleCancelPendingPlacement = () => {
+    setPendingPlacementQueue([]);
+    setActiveTool("select");
+  };
+
+  const handleApplySvgCodeChanges = (frameId: string, newSvgCode: string) => {
+    const targetFrame = items.find((it) => it.id === frameId);
+    if (!targetFrame) return;
+
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(newSvgCode, "image/svg+xml");
+      const svgEl = doc.querySelector("svg");
+      if (!svgEl) return;
+
+      const vb = svgEl.getAttribute("viewBox") || targetFrame.svgViewBox;
+      const elements = svgEl.querySelectorAll("path, polygon, polyline, circle, ellipse, rect");
+
+      const childVectors: CanvasItem[] = Array.from(elements).map((el, idx) => {
+        const fill = el.getAttribute("fill") || (el as SVGElement).style.fill || "#000000";
+        const stroke = el.getAttribute("stroke") || (el as SVGElement).style.stroke || undefined;
+        const strokeW = parseFloat(el.getAttribute("stroke-width") || (el as SVGElement).style.strokeWidth || "1") || undefined;
+        const d = el.getAttribute("d") || "";
+
+        return {
+          id: `vector-${Date.now()}-${idx}`,
+          title: "Vector",
+          type: "shape",
+          mediaType: "vector",
+          frameId: targetFrame.id,
+          color: fill === "none" ? "transparent" : fill,
+          strokeColor: stroke === "none" ? undefined : stroke,
+          strokeWidth: strokeW,
+          pathData: d,
+          svgRaw: el.outerHTML,
+          x: targetFrame.x,
+          y: targetFrame.y,
+          width: targetFrame.width,
+          height: targetFrame.height,
+        };
+      });
+
+      const otherItems = items.filter((it) => it.id !== frameId && it.frameId !== frameId);
+      const updatedFrame = {
+        ...targetFrame,
+        svgRaw: newSvgCode,
+        svgViewBox: vb,
+      };
+
+      updateItemsWithTracking([updatedFrame, ...childVectors, ...otherItems]);
+      showToast(tr("Kode SVG berhasil diperbarui!", "SVG updated successfully!", "Kode SVG barasil dipabarui!"));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   // Canvas Mouse Down (Panning, Text placement, or Marquee Selecting background)
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    // If in Image / SVG placement mode: click places the pending item directly!
+    if (pendingPlacement && e.button === 0) {
+      const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
+      handlePlacePendingItem(canvasX, canvasY);
+      return;
+    }
+
     // If clicking on canvas in Text tool mode: place new text at click coordinate (or in frame under cursor)
     if (activeTool === "text" && e.button === 0) {
       const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
@@ -3450,6 +3810,16 @@ export default function CanvasWorkspace({
     },
     [drawingShapeBox, activeTool, getCanvasCoords, items]
   );
+
+  // Mouse screen tracking for interactive placement cursor badge & thumbnail (Figma style)
+  useEffect(() => {
+    if (!pendingPlacement) return;
+    const handleMove = (e: MouseEvent) => {
+      setMouseScreenPos({ x: e.clientX, y: e.clientY });
+    };
+    window.addEventListener("mousemove", handleMove, { passive: true });
+    return () => window.removeEventListener("mousemove", handleMove);
+  }, [pendingPlacement]);
 
   // High-performance 0ms-latency window mouse tracking for pan, drag, and marquee selection
   useEffect(() => {
@@ -4036,6 +4406,14 @@ export default function CanvasWorkspace({
 
   // Start dragging an individual canvas item with mouse
   const handleItemMouseDown = (e: React.MouseEvent, item: CanvasItem) => {
+    // If in Image / SVG placement mode: click places the pending item directly!
+    if (pendingPlacement && e.button === 0) {
+      e.stopPropagation();
+      const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
+      handlePlacePendingItem(canvasX, canvasY);
+      return;
+    }
+
     // If Frame, Section, or Shape tool is active: let canvas handle drawing/placing anywhere
     if (activeTool === "frame" || activeTool === "section" || activeTool === "shape") {
       return;
@@ -4646,20 +5024,140 @@ export default function CanvasWorkspace({
   };
 
   // Process Dropped or Uploaded File
-  const handleProcessDroppedFile = (file: File, dropCanvasX?: number, dropCanvasY?: number) => {
+  const handleProcessDroppedFile = async (file: File, dropCanvasX?: number, dropCanvasY?: number) => {
+    if (dropCanvasX === undefined) {
+      handlePrepareFilesForPlacement([file]);
+      return;
+    }
+
+    const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
     const isVideo = file.type.startsWith("video/");
-    const isImg = file.type.startsWith("image/");
+    const isImg = file.type.startsWith("image/") || isSvg;
     if (!isImg && !isVideo) return;
 
+    if (isSvg) {
+      // Process SVG at drop coordinates
+      let svgText = "";
+      try {
+        svgText = await file.text();
+      } catch {
+        svgText = await new Promise<string>((res) => {
+          const r = new FileReader();
+          r.onload = (ev) => res((ev.target?.result as string) || "");
+          r.readAsText(file);
+        });
+      }
+
+      let vbWidth = 91;
+      let vbHeight = 91;
+      let vbString = "0 0 91 91";
+      const svgElements: Array<{ d?: string; fill?: string; stroke?: string; strokeWidth?: number; rawHtml?: string }> = [];
+
+      try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(svgText, "image/svg+xml");
+        const svgEl = doc.querySelector("svg");
+        if (svgEl) {
+          const vb = svgEl.getAttribute("viewBox");
+          if (vb) {
+            vbString = vb;
+            const parts = vb.trim().split(/[\s,]+/).map(Number);
+            if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+              vbWidth = Math.round(parts[2]);
+              vbHeight = Math.round(parts[3]);
+            }
+          } else {
+            const wAttr = parseFloat(svgEl.getAttribute("width") || "0");
+            const hAttr = parseFloat(svgEl.getAttribute("height") || "0");
+            if (wAttr > 0 && hAttr > 0) {
+              vbWidth = Math.round(wAttr);
+              vbHeight = Math.round(hAttr);
+              vbString = `0 0 ${vbWidth} ${vbHeight}`;
+            }
+          }
+
+          const els = svgEl.querySelectorAll("path, polygon, polyline, circle, ellipse, rect");
+          els.forEach((el) => {
+            const fill = el.getAttribute("fill") || (el as SVGElement).style.fill || (el.getAttribute("stroke") ? "transparent" : "#000000");
+            const stroke = el.getAttribute("stroke") || (el as SVGElement).style.stroke || undefined;
+            const strokeW = parseFloat(el.getAttribute("stroke-width") || (el as SVGElement).style.strokeWidth || "1") || undefined;
+            const d = el.getAttribute("d") || "";
+            svgElements.push({
+              d,
+              fill: fill === "none" ? "transparent" : fill,
+              stroke: stroke === "none" ? undefined : stroke,
+              strokeWidth: strokeW,
+              rawHtml: el.outerHTML,
+            });
+          });
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+
+      const frameId = `frame-svg-${Date.now()}`;
+      const cleanTitle = file.name.replace(/\.svg$/i, "");
+      const parentSvgFrame: CanvasItem = {
+        id: frameId,
+        title: cleanTitle,
+        type: "frame",
+        mediaType: "frame",
+        x: dropCanvasX,
+        y: dropCanvasY,
+        width: vbWidth,
+        height: vbHeight,
+        color: "transparent",
+        svgRaw: svgText,
+        svgViewBox: vbString,
+        aspect: "free",
+        clipContent: false,
+      };
+
+      const childVectors: CanvasItem[] = (svgElements.length > 0)
+        ? svgElements.map((el, idx) => ({
+            id: `vector-${Date.now()}-${idx}`,
+            title: "Vector",
+            type: "shape",
+            mediaType: "vector",
+            frameId,
+            color: el.fill || "#000000",
+            strokeColor: el.stroke,
+            strokeWidth: el.strokeWidth,
+            pathData: el.d,
+            svgRaw: el.rawHtml,
+            x: dropCanvasX,
+            y: dropCanvasY,
+            width: vbWidth,
+            height: vbHeight,
+          }))
+        : [
+            {
+              id: `vector-${Date.now()}-0`,
+              title: "Vector",
+              type: "shape",
+              mediaType: "vector",
+              frameId,
+              color: "#000000",
+              svgRaw: svgText,
+              x: dropCanvasX,
+              y: dropCanvasY,
+              width: vbWidth,
+              height: vbHeight,
+            },
+          ];
+
+      updateItemsWithTracking([parentSvgFrame, ...childVectors, ...items]);
+      setSelectedId(parentSvgFrame.id);
+      setSelectedIds(new Set([parentSvgFrame.id]));
+      return;
+    }
+
+    // PNG / JPEG / Video
     const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
     const reader = new FileReader();
 
     reader.onload = (ev) => {
       const result = ev.target?.result as string;
-
-      const center = getViewportCenter(460, 460);
-      const placeX = dropCanvasX ?? center.x;
-      const placeY = dropCanvasY ?? center.y;
 
       if (isImg) {
         const img = new Image();
@@ -4676,6 +5174,9 @@ export default function CanvasWorkspace({
             else detectedAspect = `${nw}:${nh}`;
           }
 
+          const targetW = Math.min(nw || 480, 800);
+          const targetH = Math.round(targetW * ((nh || 360) / (nw || 480)));
+
           const newItem: CanvasItem = {
             id: `media-${Date.now()}`,
             title: cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
@@ -4684,8 +5185,10 @@ export default function CanvasWorkspace({
             image: result,
             aspect: detectedAspect,
             clientName: "Selected Work",
-            x: placeX,
-            y: placeY,
+            x: dropCanvasX,
+            y: dropCanvasY,
+            width: targetW,
+            height: targetH,
             isVideo: false,
           };
           updateItemsWithTracking([newItem, ...items]);
@@ -4701,8 +5204,8 @@ export default function CanvasWorkspace({
           image: result,
           aspect: "16:9",
           clientName: "Selected Work",
-          x: placeX,
-          y: placeY,
+          x: dropCanvasX,
+          y: dropCanvasY,
           isVideo: true,
         };
         updateItemsWithTracking([newItem, ...items]);
@@ -7727,9 +8230,10 @@ export default function CanvasWorkspace({
     const isLocked = lockedItemIds.has(it.id);
     const isHidden = hiddenItemIds.has(it.id);
     const isText = it.type === "text" || it.mediaType === "text";
-    const isShape = (it.type === "shape" || it.mediaType === "shape" || it.mediaType === "rectangle" || it.mediaType === "ellipse") && !it.image;
+    const isVector = it.mediaType === "vector" || it.type === "vector";
+    const isShape = (it.type === "shape" || it.mediaType === "shape" || it.mediaType === "rectangle" || it.mediaType === "ellipse") && !it.image && !isVector;
     const isEllipse = it.mediaType === "ellipse";
-    const isImage = !isText && (Boolean(it.image) || it.type === "media" || it.mediaType === "image" || it.mediaType === "upload" || it.mediaType === "youtube" || it.mediaType === "gdrive" || !isShape);
+    const isImage = !isText && !isVector && (Boolean(it.image) || it.type === "media" || it.mediaType === "image" || it.mediaType === "upload" || it.mediaType === "youtube" || it.mediaType === "gdrive" || !isShape);
 
     const paddingLeft = depth === 0 ? "pl-2" : depth === 1 ? "pl-5" : "pl-8";
 
@@ -7804,9 +8308,23 @@ export default function CanvasWorkspace({
           <div className="absolute -bottom-0.5 left-1 right-1 h-0.5 bg-[#0c8ce9] z-30 rounded-full shadow-[0_0_8px_#0c8ce9] pointer-events-none" />
         )}
         <div className="flex items-center gap-2 truncate flex-1 min-w-0 pr-1">
-          {/* Item Type Icon (T for text, Figma Image Icon for images, Circle for ellipse, Outline Rectangle for shapes) */}
+          {/* Item Type Icon (T for text, Figma Image Icon for images, Vector pen for vector, Circle for ellipse, Outline Rectangle for shapes) */}
           {isText ? (
             <span className={`font-serif font-bold text-xs w-3.5 text-center shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-700" : "text-neutral-300"}`}>T</span>
+          ) : isVector ? (
+            <svg
+              className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-600" : "text-neutral-400"}`}
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.25"
+            >
+              <path
+                d="M3 13L6.5 9.5M12.5 3.5L9 7M12.5 3.5C13.5 4.5 13 6 11.5 7.5L8 11L5 11L5 8L8.5 4.5C10 3 11.5 2.5 12.5 3.5Z"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           ) : isImage ? (
             <FigmaImageIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-600" : "text-neutral-400"}`} />
           ) : isEllipse ? (
@@ -7898,10 +8416,12 @@ export default function CanvasWorkspace({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*,video/*"
+        multiple
+        accept="image/*,.svg,video/*"
         onChange={(e) => {
           if (e.target.files && e.target.files.length > 0) {
-            handleProcessDroppedFile(e.target.files[0]);
+            handlePrepareFilesForPlacement(e.target.files);
+            e.target.value = "";
           }
         }}
         className="hidden"
@@ -8902,48 +9422,107 @@ export default function CanvasWorkspace({
                       : "hover:ring-1 hover:ring-white/40 shadow-xl"
                   }`}
                 >
-                  {/* Figma Top Frame Title (Matches Screenshot Image 1 & 2 Frame 2147263084 / bran coffee) */}
-                  <div className="absolute -top-7 left-0 flex items-center gap-1.5 pointer-events-auto">
-                    {isSelected ? (
-                      <div className={`flex items-center px-1.5 py-0.5 rounded-[2px] border border-[#0c8ce9] shadow-xs ${
-                        isLight ? "bg-white text-slate-900 shadow-slate-200" : "bg-[#1e1e1e]/90 text-white"
-                      }`}>
-                        <input
-                          type="text"
-                          value={item.title}
-                          onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === "Escape") {
-                              (e.target as HTMLElement).blur();
-                            }
+                  {/* Figma Top Frame Title & Code Button */}
+                  <div className="absolute -top-7 left-0 right-0 flex items-center justify-between pointer-events-auto">
+                    <div className="flex items-center gap-1.5">
+                      {isSelected ? (
+                        <div className={`flex items-center px-1.5 py-0.5 rounded-[2px] border border-[#0c8ce9] shadow-xs ${
+                          isLight ? "bg-white text-slate-900 shadow-slate-200" : "bg-[#1e1e1e]/90 text-white"
+                        }`}>
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === "Escape") {
+                                (e.target as HTMLElement).blur();
+                              }
+                            }}
+                            style={{
+                              width: `${Math.max(64, (item.title || "Frame").length * 8 + 14)}px`,
+                            }}
+                            className={`bg-transparent text-[12px] font-sans font-medium outline-none border-none p-0 m-0 leading-none select-text cursor-text canvas-item-input ${
+                              isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-neutral-500"
+                            }`}
+                            placeholder="Nama Frame..."
+                          />
+                        </div>
+                      ) : (
+                        <span
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedId(item.id);
+                            setSelectedIds(new Set([item.id]));
                           }}
-                          style={{
-                            width: `${Math.max(64, (item.title || "Frame").length * 8 + 14)}px`,
-                          }}
-                          className={`bg-transparent text-[12px] font-sans font-medium outline-none border-none p-0 m-0 leading-none select-text cursor-text canvas-item-input ${
-                            isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-neutral-500"
+                          className={`text-[12px] font-sans font-medium select-none truncate max-w-[280px] cursor-pointer ${
+                            isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
                           }`}
-                          placeholder="Nama Frame..."
-                        />
-                      </div>
-                    ) : (
-                      <span
+                        >
+                          {item.title}
+                        </span>
+                      )}
+                      {isLocked && <HiLockClosed className="w-3 h-3 text-amber-400" />}
+                    </div>
+
+                    {/* SVG Code button </> (Matches Screenshot 3) */}
+                    {item.svgRaw && (
+                      <button
+                        type="button"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedId(item.id);
-                          setSelectedIds(new Set([item.id]));
+                          setSvgCodeModal({ isOpen: true, itemId: item.id, svgCode: item.svgRaw || "" });
                         }}
-                        className={`text-[12px] font-sans font-medium select-none truncate max-w-[280px] cursor-pointer ${
-                          isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                        className={`px-1.5 py-0.5 rounded text-[11px] font-mono font-bold border transition-colors shadow-xs cursor-pointer flex items-center gap-1 select-none ${
+                          isLight
+                            ? "bg-sky-50 text-sky-700 border-sky-300 hover:bg-sky-100"
+                            : "bg-[#0c8ce9]/20 hover:bg-[#0c8ce9] text-cyan-300 hover:text-white border-[#0c8ce9]/40"
                         }`}
+                        title={tr("Lihat & Edit Kode SVG", "Inspect & Edit SVG Code", "Caliak & Edit Kode SVG")}
                       >
-                        {item.title}
-                      </span>
+                        {"</>"}
+                      </button>
                     )}
-                    {isLocked && <HiLockClosed className="w-3 h-3 text-amber-400" />}
                   </div>
+
+                  {/* SVG Vector Graphic Rendering */}
+                  {item.svgRaw && (
+                    <div className="w-full h-full relative overflow-visible pointer-events-auto flex items-center justify-center p-0.5">
+                      <svg
+                        viewBox={item.svgViewBox || `0 0 ${frameWidth} ${frameHeight}`}
+                        className="w-full h-full overflow-visible"
+                        style={{ width: "100%", height: "100%" }}
+                      >
+                        {items.filter((c) => c.frameId === item.id && c.mediaType === "vector").length > 0 ? (
+                          items
+                            .filter((c) => c.frameId === item.id && c.mediaType === "vector")
+                            .map((vec) => {
+                              if (hiddenItemIds.has(vec.id)) return null;
+                              const isVecSel = selectedId === vec.id || selectedIds.has(vec.id);
+                              return (
+                                <path
+                                  key={vec.id}
+                                  d={vec.pathData || ""}
+                                  fill={vec.color || "currentColor"}
+                                  stroke={isVecSel ? "#0c8ce9" : vec.strokeColor || "none"}
+                                  strokeWidth={isVecSel ? (vec.strokeWidth ? vec.strokeWidth + 1.5 : 2) : vec.strokeWidth || 0}
+                                  opacity={vec.opacity !== undefined ? vec.opacity / 100 : 1}
+                                  className="transition-colors pointer-events-auto cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedId(vec.id);
+                                    setSelectedIds(new Set([vec.id]));
+                                  }}
+                                />
+                              );
+                            })
+                        ) : (
+                          <g dangerouslySetInnerHTML={{ __html: item.svgRaw.replace(/^<svg[^>]*>|<\/svg>$/gi, "") }} />
+                        )}
+                      </svg>
+                    </div>
+                  )}
 
                   {/* Corner & Edge Resize Handles & Dimension Badge when Selected or Resizing */}
                   {(isSelected || resizingItemId === item.id) && (
@@ -9848,22 +10427,30 @@ export default function CanvasWorkspace({
           )}
         </div>
 
-        {/* 3. SHAPE TOOL (With Submenu: Rectangle R, Ellipse O, Place Media Ctrl+Shift+K) */}
+        {/* 3. SHAPE & IMAGE TOOL (With Submenu: Rectangle R, Ellipse O, Place Media Ctrl+Shift+K) */}
         <div className="relative flex items-center shrink-0">
           <button
             type="button"
             onClick={() => {
-              setActiveTool(activeTool === "shape" ? "select" : "shape");
-              setActiveSubmenu(null);
+              if (pendingPlacement || activeTool === "image_place") {
+                handleCancelPendingPlacement();
+              } else {
+                setActiveTool(activeTool === "shape" ? "select" : "shape");
+                setActiveSubmenu(null);
+              }
             }}
-            title="Rectangle (R)"
+            title={pendingPlacement ? "Image Placement Active (Esc to cancel)" : "Rectangle (R)"}
             className={`h-8 sm:h-9 px-2 sm:px-2.5 rounded-l-xl flex items-center justify-center transition-colors cursor-pointer ${
-              activeTool === "shape"
+              activeTool === "shape" || activeTool === "image_place" || pendingPlacement
                 ? "bg-[#0c8ce9] text-white shadow-sm"
                 : "text-neutral-300 hover:text-white hover:bg-white/10"
             }`}
           >
-            <HiSquare2Stack className="w-4 h-4" />
+            {pendingPlacement || activeTool === "image_place" ? (
+              <HiPhoto className="w-4 h-4" />
+            ) : (
+              <HiSquare2Stack className="w-4 h-4" />
+            )}
           </button>
           <button
             type="button"
@@ -9871,9 +10458,9 @@ export default function CanvasWorkspace({
               e.stopPropagation();
               setActiveSubmenu(activeSubmenu === "shape" ? null : "shape");
             }}
-            title="Shapes Menu"
+            title="Shapes & Media Menu"
             className={`h-8 sm:h-9 px-1 sm:px-1.5 rounded-r-xl flex items-center justify-center transition-colors cursor-pointer ${
-              activeTool === "shape"
+              activeTool === "shape" || activeTool === "image_place" || pendingPlacement
                 ? "bg-[#0c8ce9] text-white"
                 : "text-neutral-400 hover:text-white hover:bg-white/10"
             }`}
@@ -10004,6 +10591,132 @@ export default function CanvasWorkspace({
       </nav>
 
       
+
+      {/* ── Figma Floating Image & SVG Placement Cursor Badge (Matches Screenshots 2 & 5) ── */}
+      {pendingPlacement && mouseScreenPos && (
+        <div
+          style={{
+            left: `${mouseScreenPos.x + 14}px`,
+            top: `${mouseScreenPos.y + 4}px`,
+          }}
+          className="fixed z-[9999] pointer-events-none select-none transition-none will-change-transform"
+        >
+          {pendingPlacement.isSvg ? (
+            <div className="px-2.5 py-1 bg-white text-slate-800 border border-slate-300 rounded shadow-md text-[11px] font-sans font-bold tracking-wide flex items-center justify-center">
+              SVG
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded border border-white/40 shadow-xl overflow-hidden bg-neutral-900 flex items-center justify-center p-0.5">
+              <img
+                src={pendingPlacement.dataUrl}
+                alt="Preview"
+                className="w-full h-full object-cover rounded-xs"
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Figma Floating Placement Bar (Matches Screenshot 1) ── */}
+      {pendingPlacement && (
+        <div className="fixed bottom-16 sm:bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#1e1e1e]/98 text-white border border-white/15 backdrop-blur-xl shadow-2xl animate-in fade-in slide-in-from-bottom-2">
+          <span className="text-xs font-medium text-neutral-200">
+            {tr("Click or drag to place", "Klik atau seret untuk menaruh", "Klik atau seret untuak manaruah")}
+            {pendingPlacementQueue.length > 1 ? ` (${pendingPlacementQueue.length})` : ""}
+          </span>
+          {pendingPlacementQueue.length > 1 && (
+            <button
+              type="button"
+              onClick={handlePlaceAllPending}
+              className="px-2.5 py-1 rounded-md bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors cursor-pointer"
+            >
+              {tr("Place all", "Taruh semua", "Taruh kasadonyo")}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleCancelPendingPlacement}
+            className="w-5 h-5 rounded-full hover:bg-white/10 flex items-center justify-center text-neutral-400 hover:text-white text-xs transition-colors cursor-pointer ml-1"
+            title="Cancel (Esc)"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
+      {/* ── SVG Code Inspect & Edit Modal ── */}
+      {svgCodeModal && svgCodeModal.isOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-[#14161d] border border-white/15 p-5 shadow-2xl flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-150 max-h-[85vh]">
+            <div className="flex items-center justify-between pb-3 border-b border-white/10">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-0.5 rounded bg-[#0c8ce9] text-white font-mono text-xs font-bold">
+                  {"</>"}
+                </span>
+                <h3 className="font-bold text-sm text-white font-mono">
+                  {tr("SVG Vector Code Editor", "Editor Kode Vektor SVG", "Editor Kode Vektor SVG")}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSvgCodeModal(null)}
+                className="text-neutral-400 hover:text-white p-1 cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-neutral-400 font-sans">
+              {tr(
+                "Edit markup SVG secara langsung. Path vektor dan render layer akan langsung terupdate.",
+                "Edit SVG markup directly. Vector paths and layer rendering update in real-time.",
+                "Edit markup SVG sacaro langsuang. Path vektor jo render layer langsuang ta-update."
+              )}
+            </p>
+
+            <textarea
+              value={svgCodeModal.svgCode}
+              onChange={(e) => setSvgCodeModal({ ...svgCodeModal, svgCode: e.target.value })}
+              rows={12}
+              className="w-full p-3 rounded-xl bg-black/60 border border-white/15 text-emerald-400 font-mono text-xs focus:outline-none focus:border-[#0c8ce9] select-text resize-y leading-relaxed"
+              spellCheck={false}
+            />
+
+            <div className="flex items-center justify-between pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(svgCodeModal.svgCode);
+                  showToast(tr("Kode SVG berhasil disalin!", "SVG code copied to clipboard!", "Kode SVG barasil disalin!"));
+                }}
+                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-mono transition-colors cursor-pointer"
+              >
+                {tr("Salin Kode SVG", "Copy SVG Code", "Salin Kode SVG")}
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSvgCodeModal(null)}
+                  className="px-3 py-1.5 rounded-lg text-neutral-400 hover:text-white text-xs transition-colors cursor-pointer"
+                >
+                  {tr("Batal", "Cancel", "Batal")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleApplySvgCodeChanges(svgCodeModal.itemId, svgCodeModal.svgCode);
+                    setSvgCodeModal(null);
+                  }}
+                  className="px-4 py-1.5 rounded-lg bg-[#0c8ce9] hover:bg-[#007cd6] text-white text-xs font-semibold shadow-md transition-colors cursor-pointer"
+                >
+                  {tr("Terapkan & Simpan", "Apply & Save", "Terapkan & Simpan")}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Floating Return-to-Overview Pill when an Image is Fitted / Full View ── */}
       {fittedItemId && (
@@ -10721,6 +11434,14 @@ export default function CanvasWorkspace({
             </button>
             {renderRightInspector()}
           </div>
+        </div>
+      )}
+
+      {/* Canvas Toast Notification */}
+      {canvasToast && (
+        <div className="fixed top-5 left-1/2 -translate-x-1/2 z-[110] px-4 py-2 rounded-2xl bg-teal-500 text-black font-semibold text-xs shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top duration-150">
+          <HiCheckCircle className="w-4 h-4 text-black" />
+          <span>{canvasToast}</span>
         </div>
       )}
 
