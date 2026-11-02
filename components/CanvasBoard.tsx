@@ -1258,7 +1258,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   return undefined;
                 }
 
-                const radius = parentFrame.cornerRadius !== undefined ? `${parentFrame.cornerRadius}px` : "16px";
+                const radius = parentFrame.cornerRadius !== undefined ? `${parentFrame.cornerRadius}px` : "0px";
                 return `inset(${Math.round(clipTop)}px ${Math.round(clipRight)}px ${Math.round(clipBottom)}px ${Math.round(clipLeft)}px round ${radius})`;
               };
 
@@ -1387,7 +1387,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       width: `${frameWidth}px`,
                       height: `${frameHeight}px`,
                       backgroundColor: frameBg,
-                      borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "16px",
+                      borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                       zIndex: 5,
                     }}
                     className={`absolute shadow-xl border ${isLight ? "border-slate-300" : "border-white/10"}`}

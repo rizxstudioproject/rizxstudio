@@ -1912,6 +1912,7 @@ export default function CanvasWorkspace({
               height: h,
               aspect: "free",
               color: "#FFFFFF",
+              cornerRadius: 0,
               clipContent: true,
             };
           }
@@ -1941,6 +1942,7 @@ export default function CanvasWorkspace({
         width: w,
         height: h,
         color: item.color || "#FFFFFF",
+        cornerRadius: 0,
         clipContent: true,
       };
 
@@ -2133,7 +2135,7 @@ export default function CanvasWorkspace({
         return undefined;
       }
 
-      const radius = parentFrame.cornerRadius !== undefined ? `${parentFrame.cornerRadius}px` : "12px";
+      const radius = parentFrame.cornerRadius !== undefined ? `${parentFrame.cornerRadius}px` : "0px";
       return `inset(${Math.round(clipTop)}px ${Math.round(clipRight)}px ${Math.round(clipBottom)}px ${Math.round(clipLeft)}px round ${radius})`;
     },
     [items, getParentFrameId]
@@ -2625,6 +2627,7 @@ export default function CanvasWorkspace({
       width: frameW,
       height: frameH,
       color: "#FFFFFF",
+      cornerRadius: 0,
       clipContent: true,
     };
 
@@ -2662,16 +2665,16 @@ export default function CanvasWorkspace({
       (c) => c.id !== targetId && (c.frameId === targetId || getParentFrameId(c) === targetId)
     );
 
+    // 1. Group, Frame, or Section with children: dissolve the container and release all children
     if (childItems.length > 0) {
       const childIds = new Set(childItems.map((c) => c.id));
+      const parentFrameId = it.frameId; // If container was itself inside another frame
+      // In Figma: Ungrouping dissolves the container itself, leaving children on the canvas
       const nextItems = items
-        .filter((item) => (isGroup ? item.id !== targetId : true))
+        .filter((item) => item.id !== targetId)
         .map((item) => {
           if (childIds.has(item.id)) {
-            return { ...item, frameId: undefined };
-          }
-          if (item.id === targetId && !isGroup) {
-            return { ...item, type: "media", mediaType: item.image ? "image" : "shape", aspect: "original" };
+            return { ...item, frameId: parentFrameId };
           }
           return item;
         });
@@ -2679,39 +2682,42 @@ export default function CanvasWorkspace({
       updateItemsWithTracking(nextItems);
       setSelectedId(childItems[0]?.id || null);
       setSelectedIds(childIds);
-    } else if (it.frameId) {
-      // Release individual item from its parent frame
+      return;
+    }
+
+    // 2. Individual item nested inside a parent frame/group: release it from its parent
+    if (it.frameId) {
       const nextItems = items.map((item) =>
         item.id === targetId ? { ...item, frameId: undefined } : item
       );
       updateItemsWithTracking(nextItems);
       setSelectedId(targetId);
       setSelectedIds(new Set([targetId]));
-    } else if (isGroup) {
-      // Dissolve empty group
+      return;
+    }
+
+    // 3. Empty group: dissolve empty group
+    if (isGroup) {
       const nextItems = items.filter((item) => item.id !== targetId);
       updateItemsWithTracking(nextItems);
       setSelectedId(null);
       setSelectedIds(new Set());
-    } else if (isFrame || (it.aspect && it.aspect !== "original")) {
-      // Reset frame / deliverable back to unconstrained original aspect
-      const nextItems = items.map((item) =>
-        item.id === targetId
-          ? { ...item, type: "media", mediaType: item.image ? "image" : "shape", aspect: "original" }
-          : item
-      );
-      updateItemsWithTracking(nextItems);
-      setSelectedId(targetId);
-      setSelectedIds(new Set([targetId]));
-    } else if (it.clientName) {
-      // Detach from client folder group
+      return;
+    }
+
+    // 4. Client folder attachment: detach
+    if (it.clientName) {
       const nextItems = items.map((item) =>
         item.id === targetId ? { ...item, clientName: undefined, clientId: undefined } : item
       );
       updateItemsWithTracking(nextItems);
       setSelectedId(targetId);
       setSelectedIds(new Set([targetId]));
+      return;
     }
+
+    // 5. Standalone Frame with no children:
+    // In Figma, ungrouping an empty frame does nothing - it should NEVER turn into an image!
   }, [contextMenu?.item, selectedItem, selectedId, items, getParentFrameId, updateItemsWithTracking]);
 
   // Delete one or multiple items with immediate persistence to local storage and database
@@ -3200,6 +3206,7 @@ export default function CanvasWorkspace({
           width: Math.round(shapeW),
           height: Math.round(shapeH),
           color: "#FFFFFF",
+          cornerRadius: 0,
         };
         updateItemsWithTracking([...items, newFrame]);
         setSelectedId(newFrame.id);
@@ -4208,6 +4215,7 @@ export default function CanvasWorkspace({
       width: w,
       height: h,
       color: "#0c8ce9",
+      cornerRadius: 0,
     };
     updateItemsWithTracking([...items, newFrame]);
     setSelectedId(newFrame.id);
@@ -4244,6 +4252,7 @@ export default function CanvasWorkspace({
       width: w,
       height: h,
       color: "#0c8ce9",
+      cornerRadius: 0,
     };
     updateItemsWithTracking([...items, newFrame]);
     setSelectedId(newFrame.id);
@@ -4277,6 +4286,7 @@ export default function CanvasWorkspace({
       width: preset.width,
       height: preset.height,
       color: "#0c8ce9",
+      cornerRadius: 0,
     };
     updateItemsWithTracking([...items, newFrame]);
     setSelectedId(newFrame.id);
@@ -8515,13 +8525,13 @@ export default function CanvasWorkspace({
                     height: `${frameHeight}px`,
                     backgroundColor: frameBg,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
-                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                     boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.35)",
                     filter: getEffectFilter(item),
                     zIndex: isChildOfFrame ? 30 + index : 5 + index,
                     touchAction: "none",
                   }}
-                  className={`absolute rounded-xl flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
+                  className={`absolute flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
                     draggingItemId === item.id ? "!transition-none will-change-transform" : ""
                   } ${
                     isSelected
@@ -9952,23 +9962,38 @@ export default function CanvasWorkspace({
             }`}>Ctrl+Alt+G</span>
           </button>
 
-          <button
-            type="button"
-            onClick={() => {
-              handleUngroup(contextMenu.item);
-              setContextMenu(null);
-            }}
-            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left ${
-              isLight
-                ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white"
-                : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
-            }`}
-          >
-            <span>Ungroup</span>
-            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
-              isLight ? "text-slate-400" : "text-[#8e8e8e]"
-            }`}>Ctrl+⌫</span>
-          </button>
+          {(() => {
+            const it = contextMenu.item;
+            const isGroup = it?.type === "group";
+            const hasChildren = it ? items.some((c) => c.id !== it.id && (c.frameId === it.id || getParentFrameId(c) === it.id)) : false;
+            const isNested = Boolean(it?.frameId);
+            const canUngroup = isGroup || hasChildren || isNested;
+
+            return (
+              <button
+                type="button"
+                disabled={!canUngroup}
+                onClick={() => {
+                  if (canUngroup) {
+                    handleUngroup(contextMenu.item);
+                    setContextMenu(null);
+                  }
+                }}
+                className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+                  !canUngroup
+                    ? "opacity-30 cursor-not-allowed text-neutral-500"
+                    : isLight
+                    ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                    : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                }`}
+              >
+                <span>Ungroup</span>
+                <span className={`text-[11px] font-mono ${
+                  !canUngroup ? "text-neutral-600" : isLight ? "text-slate-400 group-hover:text-white/90" : "text-[#8e8e8e] group-hover:text-white/90"
+                }`}>Ctrl+⌫</span>
+              </button>
+            );
+          })()}
 
           <button
             type="button"
