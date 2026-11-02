@@ -860,6 +860,29 @@ export default function CanvasWorkspace({
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
   const [isMobileInspectorOpen, setIsMobileInspectorOpen] = useState<boolean>(false);
   const [isEffectPopoverOpen, setIsEffectPopoverOpen] = useState<boolean>(false);
+  const [isFontSizeDropdownOpen, setIsFontSizeDropdownOpen] = useState<boolean>(false);
+  const fontSizeDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Close font size dropdown on outside click or escape
+  useEffect(() => {
+    if (!isFontSizeDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (fontSizeDropdownRef.current && !fontSizeDropdownRef.current.contains(e.target as Node)) {
+        setIsFontSizeDropdownOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsFontSizeDropdownOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handleClickOutside);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isFontSizeDropdownOpen]);
 
   // Computes CSS boxShadow from element's effect properties (Figma Drop Shadow & Inner Shadow)
   const getEffectBoxShadow = useCallback((item: CanvasItem) => {
@@ -5715,14 +5738,53 @@ export default function CanvasWorkspace({
                   </select>
                   <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-2 pointer-events-none" />
                 </div>
-                <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
-                  <input
-                    type="number"
-                    value={selectedItem?.fontSize || 129}
-                    onChange={(e) => updateSelectedItem({ fontSize: Number(e.target.value) || 16 })}
-                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
-                  />
-                  <HiChevronDown className="w-3 h-3 text-neutral-400 shrink-0" />
+                <div className="relative" ref={fontSizeDropdownRef}>
+                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                    <input
+                      type="number"
+                      value={selectedItem?.fontSize || 48}
+                      onChange={(e) => updateSelectedItem({ fontSize: Number(e.target.value) || 16 })}
+                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setIsFontSizeDropdownOpen((prev) => !prev)}
+                      className="p-0.5 hover:bg-white/10 rounded cursor-pointer transition-colors text-neutral-400 hover:text-white shrink-0"
+                      title="Pilih ukuran font"
+                    >
+                      <HiChevronDown className={`w-3.5 h-3.5 transition-transform duration-100 ${isFontSizeDropdownOpen ? "rotate-180 text-white" : ""}`} />
+                    </button>
+                  </div>
+
+                  {/* Figma-style Font Size Dropdown Menu (Matches Screenshot media_1793596112749_064977fc.png) */}
+                  {isFontSizeDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-1.5 z-50 w-[84px] max-h-[290px] overflow-y-auto p-1 bg-[#222222]/98 border border-white/10 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.65)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-75 flex flex-col gap-0.5 select-none overscroll-contain">
+                      {[10, 11, 12, 13, 14, 15, 16, 20, 24, 32, 36, 40, 48, 64, 96, 128].map((size) => {
+                        const isSelected = (selectedItem?.fontSize || 48) === size;
+                        return (
+                          <button
+                            key={size}
+                            type="button"
+                            onClick={() => {
+                              updateSelectedItem({ fontSize: size });
+                              setIsFontSizeDropdownOpen(false);
+                            }}
+                            className={`w-full px-1.5 py-1 text-xs rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
+                              isSelected
+                                ? "bg-[#0c8ce9] text-white font-medium"
+                                : "text-neutral-200 hover:bg-white/10 hover:text-white"
+                            }`}
+                          >
+                            <span className="w-3.5 flex items-center justify-center">
+                              {isSelected && <HiCheck className="w-3.5 h-3.5 text-white" />}
+                            </span>
+                            <span className="flex-1 text-center font-mono font-medium">{size}</span>
+                            <span className="w-3.5" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
