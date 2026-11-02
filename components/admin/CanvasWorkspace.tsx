@@ -1552,6 +1552,19 @@ export default function CanvasWorkspace({
     return Array.from(set);
   }, [items, selectedIds]);
 
+  // Helper to determine if a hex color is light or dark
+  const isColorLight = useCallback((hex?: string) => {
+    if (!hex) return false;
+    let clean = hex.replace("#", "").trim();
+    if (clean.length === 3) clean = clean.split("").map((c) => c + c).join("");
+    if (clean.length !== 6) return false;
+    const r = parseInt(clean.substring(0, 2), 16);
+    const g = parseInt(clean.substring(2, 4), 16);
+    const b = parseInt(clean.substring(4, 6), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 128;
+  }, []);
+
   // ── Figma Color Picker Utilities & State (Matches Screenshot media_1793528907470_542d3124.png) ──────────────
   const hexToHsv = useCallback((hex: string) => {
     let cleaned = hex.replace("#", "").trim();
@@ -2386,69 +2399,6 @@ export default function CanvasWorkspace({
       return candidates[0].id;
     },
     [items, isFrameItem]
-  );
-
-  // Helper to compute CSS clip-path inset when an item is nested inside a frame with clipContent enabled
-  const getItemClipPath = useCallback(
-    (item: CanvasItem) => {
-      const parentFrameId = item.frameId || getParentFrameId(item);
-      if (!parentFrameId) return undefined;
-
-      const parentFrame = items.find((f) => f.id === parentFrameId);
-      if (!parentFrame) return undefined;
-
-      // In Figma, Groups and Sections NEVER clip content!
-      if (parentFrame.type === "group" || parentFrame.type === "section" || parentFrame.mediaType === "section") {
-        return undefined;
-      }
-
-      // In Figma, clipContent defaults to true unless explicitly disabled (clipContent === false)
-      if (parentFrame.clipContent === false) return undefined;
-
-      const fLeft = parentFrame.x || 0;
-      const fTop = parentFrame.y || 0;
-      const fWidth = parentFrame.width || (parentFrame.aspect === "16:9" ? 720 : 480);
-      const fHeight = parentFrame.height || (parentFrame.aspect === "16:9" ? 405 : 600);
-      const fRight = fLeft + fWidth;
-      const fBottom = fTop + fHeight;
-
-      const itLeft = item.x || 0;
-      const itTop = item.y || 0;
-      let itWidth = item.width || 440;
-      let itHeight = item.height || 550;
-
-      if (
-        item.type === "media" ||
-        item.mediaType === "image" ||
-        item.mediaType === "youtube" ||
-        item.mediaType === "gdrive" ||
-        item.mediaType === "upload"
-      ) {
-        if (!item.height) {
-          if (item.aspect === "16:9") itHeight = Math.round(itWidth * (9 / 16));
-          else if (item.aspect === "1:1") itHeight = itWidth;
-          else if (item.aspect === "9:16") itHeight = Math.round(itWidth * (16 / 9));
-          else if (item.aspect === "4:5" || !item.aspect || item.aspect === "original")
-            itHeight = Math.round(itWidth * (5 / 4));
-        }
-      }
-
-      const itRight = itLeft + itWidth;
-      const itBottom = itTop + itHeight;
-
-      const clipTop = Math.max(0, fTop - itTop);
-      const clipRight = Math.max(0, itRight - fRight);
-      const clipBottom = Math.max(0, itBottom - fBottom);
-      const clipLeft = Math.max(0, fLeft - itLeft);
-
-      if (clipTop === 0 && clipRight === 0 && clipBottom === 0 && clipLeft === 0) {
-        return undefined;
-      }
-
-      const radius = parentFrame.cornerRadius !== undefined ? `${parentFrame.cornerRadius}px` : "0px";
-      return `inset(${Math.round(clipTop)}px ${Math.round(clipRight)}px ${Math.round(clipBottom)}px ${Math.round(clipLeft)}px round ${radius})`;
-    },
-    [items, getParentFrameId]
   );
 
   // ── Drag & Drop Layer Reordering Engine (Left Sidebar Layers Panel) ──
@@ -4503,14 +4453,26 @@ export default function CanvasWorkspace({
               if (it.frameId !== targetFrame.id) {
                 hasChangesNested = true;
               }
+              const isTargetLight = isColorLight(targetFrame.color || "#FFFFFF");
+              let nextColor = it.color;
+              // If text was default white and is dragged into a white/light frame, automatically change to dark so it stays readable!
+              if ((it.type === "text" || it.mediaType === "text") && (!it.color || it.color.toUpperCase() === "#FFFFFF") && isTargetLight) {
+                nextColor = "#18181b";
+                hasChangesNested = true;
+              }
               return {
                 ...it,
                 frameId: targetFrame.id,
+                color: nextColor,
               };
             } else if (!targetFrame && it.frameId) {
               // Completely moved outside frame (no overlap with any frame)
               hasChangesNested = true;
-              return { ...it, frameId: undefined };
+              let nextColor = it.color;
+              if ((it.type === "text" || it.mediaType === "text") && it.color === "#18181b") {
+                nextColor = "#FFFFFF";
+              }
+              return { ...it, frameId: undefined, color: nextColor };
             }
             return it;
           });
@@ -5225,6 +5187,10 @@ export default function CanvasWorkspace({
       return true;
     });
 
+    const parentFrame = frameId ? items.find((it) => it.id === frameId) : null;
+    const isFrameLight = parentFrame ? isColorLight(parentFrame.color || "#FFFFFF") : false;
+    const defaultTextColor = isFrameLight ? "#18181b" : "#FFFFFF";
+
     const newText: CanvasItem = {
       id: `text-${Date.now()}`,
       title: "",
@@ -5240,7 +5206,7 @@ export default function CanvasWorkspace({
       lineHeight: "100%",
       letterSpacing: "-3%",
       textAlign: "left",
-      color: "#FFFFFF",
+      color: defaultTextColor,
       frameId: frameId,
     };
 
@@ -9307,10 +9273,17 @@ export default function CanvasWorkspace({
               const isEllipse = item.mediaType === "ellipse";
               const shapeBg = item.color || "#D9D9D9";
               const radius = isEllipse ? "9999px" : item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px";
-              const shapeClipPath = getItemClipPath(item);
-              const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
+              const parentFrameId = item.frameId || getParentFrameId(item);
+              const parentFrame = parentFrameId ? items.find((f) => f.id === parentFrameId) : null;
+              const isChildOfFrame = Boolean(parentFrame);
+              const shouldClip = isChildOfFrame && parentFrame && parentFrame.clipContent !== false && parentFrame.type !== "group" && parentFrame.type !== "section";
+              const fX = parentFrame?.x || 0;
+              const fY = parentFrame?.y || 0;
+              const fW = parentFrame?.width || (parentFrame?.aspect === "16:9" ? 720 : 480);
+              const fH = parentFrame?.height || (parentFrame?.aspect === "16:9" ? 405 : 600);
+              const fRadius = parentFrame?.cornerRadius || 0;
 
-              return (
+              const shapeElement = (
                 <div
                   key={item.id}
                   onClick={(e) => handleItemClick(e, item, e.currentTarget)}
@@ -9331,7 +9304,10 @@ export default function CanvasWorkspace({
                     handleItemTouchEnd(e, item, e.currentTarget);
                   }}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                    position: "absolute",
+                    transform: shouldClip
+                      ? `translate3d(${x - fX}px, ${y - fY}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`
+                      : `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                     width: `${shapeWidth}px`,
                     height: `${shapeHeight}px`,
                     backgroundColor: shapeBg,
@@ -9340,10 +9316,10 @@ export default function CanvasWorkspace({
                     boxShadow: getEffectBoxShadow(item),
                     filter: getEffectFilter(item),
                     zIndex: isChildOfFrame ? 30 + index : 10 + index,
-                    clipPath: shapeClipPath ? shapeClipPath : undefined,
+                    pointerEvents: "auto",
                     touchAction: "none",
                   }}
-                  className={`absolute flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
+                  className={`flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
                     draggingItemId === item.id ? "!transition-none will-change-transform shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]" : ""
                   } ${
                     isSelected
@@ -9405,6 +9381,24 @@ export default function CanvasWorkspace({
                   )}
                 </div>
               );
+
+              return shouldClip ? (
+                <div
+                  key={`clip-${item.id}`}
+                  style={{
+                    position: "absolute",
+                    transform: `translate3d(${fX}px, ${fY}px, 0)`,
+                    width: `${fW}px`,
+                    height: `${fH}px`,
+                    overflow: "hidden",
+                    borderRadius: `${fRadius}px`,
+                    pointerEvents: "none",
+                    zIndex: 30 + index,
+                  }}
+                >
+                  {shapeElement}
+                </div>
+              ) : shapeElement;
             }
 
             // 2. FOLDER CLIENT (Folder Card directly on Canvas)
@@ -9481,8 +9475,16 @@ export default function CanvasWorkspace({
             // 3. FIGMA TYPOGRAPHY TEXT (Matches Screenshots media_1793529043296_e1253314.png & media_1793529058616_42d79f3a.png)
             if (item.type === "text" || item.mediaType === "text") {
               const isEditing = editingTextId === item.id;
-              const textClipPath = getItemClipPath(item);
-              const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
+              const parentFrameId = item.frameId || getParentFrameId(item);
+              const parentFrame = parentFrameId ? items.find((f) => f.id === parentFrameId) : null;
+              const isChildOfFrame = Boolean(parentFrame);
+              const shouldClip = isChildOfFrame && parentFrame && parentFrame.clipContent !== false && parentFrame.type !== "group" && parentFrame.type !== "section";
+              const fX = parentFrame?.x || 0;
+              const fY = parentFrame?.y || 0;
+              const fW = parentFrame?.width || (parentFrame?.aspect === "16:9" ? 720 : 480);
+              const fH = parentFrame?.height || (parentFrame?.aspect === "16:9" ? 405 : 600);
+              const fRadius = parentFrame?.cornerRadius || 0;
+
               const textFontFamily = getCssFontFamily(item.fontFamily || "Noto Serif");
               const textFontWeight = getCssFontWeight(item.fontWeight || "Regular");
               const textFontSize = item.fontSize || 129;
@@ -9501,7 +9503,7 @@ export default function CanvasWorkspace({
               const estimatedW = Math.round(isAutoWidth ? Math.max(28, longestLineLen * textFontSize * 0.58 + 10) : (item.width || 320));
               const estimatedH = Math.round(isFixed && item.height ? item.height : Math.max(textFontSize * 1.15, textLines.length * textFontSize * 1.2 + 8));
 
-              return (
+              const textElement = (
                 <div
                   key={item.id}
                   onClick={(e) => {
@@ -9535,16 +9537,19 @@ export default function CanvasWorkspace({
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                    position: "absolute",
+                    transform: shouldClip
+                      ? `translate3d(${x - fX}px, ${y - fY}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`
+                      : `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                     opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                     width: isAutoWidth ? "max-content" : item.width ? `${item.width}px` : "320px",
                     height: isFixed && item.height ? `${item.height}px` : "auto",
                     filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
                     zIndex: isChildOfFrame ? 30 + index : 10 + index,
-                    clipPath: textClipPath ? textClipPath : undefined,
+                    pointerEvents: "auto",
                     touchAction: "none",
                   }}
-                  className={`absolute group transition-shadow ${
+                  className={`group transition-shadow ${
                     isEditing ? "cursor-text select-text" : "cursor-move select-none"
                   } ${
                     isSelected
@@ -9717,6 +9722,24 @@ export default function CanvasWorkspace({
                   </div>
                 </div>
               );
+
+              return shouldClip ? (
+                <div
+                  key={`clip-${item.id}`}
+                  style={{
+                    position: "absolute",
+                    transform: `translate3d(${fX}px, ${fY}px, 0)`,
+                    width: `${fW}px`,
+                    height: `${fH}px`,
+                    overflow: "hidden",
+                    borderRadius: `${fRadius}px`,
+                    pointerEvents: "none",
+                    zIndex: 30 + index,
+                  }}
+                >
+                  {textElement}
+                </div>
+              ) : textElement;
             }
 
             // 3.45 FIGMA GROUP (Matches Figma: Invisible container wrapping grouped children, dashed selection box and dimensions)

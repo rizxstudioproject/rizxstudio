@@ -1316,14 +1316,28 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
               // 3. FIGMA TYPOGRAPHY TEXT (Clean transparent background matching Canvas Studio)
               if (item.type === "text" || item.mediaType === "text") {
+                const parentFrameId = item.frameId;
+                const parentFrame = parentFrameId ? activeCanvasItems.find((f) => f.id === parentFrameId) : null;
+                const isChildOfFrame = Boolean(parentFrame);
+                const shouldClip = isChildOfFrame && parentFrame && parentFrame.clipContent !== false && parentFrame.type !== "group" && parentFrame.type !== "section";
+                const fX = parentFrame?.x || 0;
+                const fY = parentFrame?.y || 0;
+                const fW = parentFrame?.width || (parentFrame?.aspect === "16:9" ? 720 : 480);
+                const fH = parentFrame?.height || (parentFrame?.aspect === "16:9" ? 405 : 600);
+                const fRadius = parentFrame?.cornerRadius || 0;
+
                 const textColor = item.color || (isLight ? "#0f172a" : "#FFFFFF");
                 const textFontSize = item.fontSize || 48;
                 const rawText = item.content !== undefined && item.content !== "" ? item.content : item.title || "";
-                return (
+
+                const textElement = (
                   <div
                     key={item.id}
                     style={{
-                      transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                      position: "absolute",
+                      transform: shouldClip
+                        ? `translate3d(${x - fX}px, ${y - fY}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`
+                        : `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                       width: item.textAutoResize === "auto_width" ? "max-content" : item.width ? `${item.width}px` : "auto",
                       height: item.textAutoResize === "fixed" && item.height ? `${item.height}px` : "auto",
                       opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
@@ -1335,13 +1349,32 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       textAlign: (item.textAlign as any) || "left",
                       whiteSpace: item.textAutoResize === "auto_width" ? "pre" : "pre-wrap",
                       wordBreak: item.textAutoResize === "auto_width" ? "normal" : "break-word",
-                      zIndex: 10,
+                      zIndex: isChildOfFrame ? 30 + index : 10,
+                      pointerEvents: "auto",
                     }}
-                    className="absolute select-none pointer-events-none"
+                    className="select-none pointer-events-none"
                   >
                     {rawText}
                   </div>
                 );
+
+                return shouldClip ? (
+                  <div
+                    key={`clip-${item.id}`}
+                    style={{
+                      position: "absolute",
+                      transform: `translate3d(${fX}px, ${fY}px, 0)`,
+                      width: `${fW}px`,
+                      height: `${fH}px`,
+                      overflow: "hidden",
+                      borderRadius: `${fRadius}px`,
+                      pointerEvents: "none",
+                      zIndex: 30 + index,
+                    }}
+                  >
+                    {textElement}
+                  </div>
+                ) : textElement;
               }
 
               // 3.5 FIGMA ARTBOARD FRAME (Pure Canvas Artboard matching CanvasWorkspace)
