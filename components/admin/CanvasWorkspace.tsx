@@ -1761,6 +1761,7 @@ export default function CanvasWorkspace({
   const [modalLinkUrl, setModalLinkUrl] = useState("");
   const [modalTitle, setModalTitle] = useState("");
   const [modalAspect, setModalAspect] = useState("original");
+  const [modalMediaType, setModalMediaType] = useState<"image" | "video">("image");
 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -5756,6 +5757,36 @@ export default function CanvasWorkspace({
     };
   }, [items, updateCanvasItems]);
 
+  // Global paste handler: automatically detect pasted Google Drive or YouTube links
+  useEffect(() => {
+    const handleWindowPaste = (e: ClipboardEvent) => {
+      const activeEl = document.activeElement as HTMLElement | null;
+      if (
+        activeEl?.tagName === "INPUT" ||
+        activeEl?.tagName === "TEXTAREA" ||
+        activeEl?.isContentEditable
+      ) {
+        return;
+      }
+
+      const text = e.clipboardData?.getData("text/plain")?.trim();
+      if (!text) return;
+
+      const ytId = extractYouTubeId(text);
+      const driveId = extractGoogleDriveFileId(text);
+
+      if (ytId || driveId) {
+        e.preventDefault();
+        setModalLinkUrl(text);
+        setModalMediaType(ytId ? "video" : "image");
+        setIsLinkModalOpen(true);
+      }
+    };
+
+    window.addEventListener("paste", handleWindowPaste);
+    return () => window.removeEventListener("paste", handleWindowPaste);
+  }, []);
+
   // Add Media from Modal Link
   const handleAddMediaFromLink = () => {
     if (!modalLinkUrl.trim()) return;
@@ -5764,28 +5795,45 @@ export default function CanvasWorkspace({
     const driveId = extractGoogleDriveFileId(modalLinkUrl);
 
     let imgPreview = modalLinkUrl;
-    let isVideo = false;
+    let isVideo = modalMediaType === "video" || Boolean(ytId);
 
     if (ytId) {
       imgPreview = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
       isVideo = true;
     } else if (driveId) {
-      imgPreview = `https://drive.google.com/thumbnail?id=${driveId}&sz=w1200`;
-      isVideo = true;
+      imgPreview = `https://lh3.googleusercontent.com/d/${driveId}`;
     }
 
-    const center = getViewportCenter(440, 400);
+    let cardW = 480;
+    let cardH = 360;
+    if (modalAspect === "1:1") {
+      cardW = 440;
+      cardH = 440;
+    } else if (modalAspect === "16:9") {
+      cardW = 560;
+      cardH = 315;
+    } else if (modalAspect === "9:16") {
+      cardW = 320;
+      cardH = 568;
+    } else if (modalAspect === "4:5") {
+      cardW = 440;
+      cardH = 550;
+    }
+
+    const center = getViewportCenter(cardW, cardH);
 
     const newItem: CanvasItem = {
       id: `media-${Date.now()}`,
-      title: modalTitle.trim() || (ytId ? "YouTube Video" : "Digital Asset"),
+      title: modalTitle.trim() || (ytId ? "YouTube Video" : driveId ? "Google Drive Asset" : "Digital Asset"),
       type: "media",
       mediaType: ytId ? "youtube" : driveId ? "gdrive" : isVideo ? "upload" : "image",
-      image: imgPreview,
+      image: normalizeMediaUrl(imgPreview),
       aspect: modalAspect,
       clientName: "Selected Work",
       x: center.x,
       y: center.y,
+      width: cardW,
+      height: cardH,
       isVideo,
       youtubeUrl: ytId ? modalLinkUrl : undefined,
       videoId: ytId || undefined,
@@ -5795,9 +5843,11 @@ export default function CanvasWorkspace({
 
     updateItemsWithTracking([newItem, ...items]);
     setSelectedId(newItem.id);
+    setSelectedIds(new Set([newItem.id]));
     setIsLinkModalOpen(false);
     setModalLinkUrl("");
     setModalTitle("");
+    setModalMediaType("image");
   };
 
   // Fullscreen Mode Toggle & Listeners
@@ -10915,6 +10965,27 @@ export default function CanvasWorkspace({
                   isLight ? "text-slate-400" : "text-[#8e8e8e]"
                 }`}>Ctrl+Shift+K</span>
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLinkModalOpen(true);
+                  setActiveSubmenu(null);
+                }}
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group whitespace-nowrap ${
+                  isLight
+                    ? "hover:bg-[#0c8ce9] hover:text-white text-slate-700"
+                    : "hover:bg-[#0c8ce9] hover:text-white text-[#e6e6e6]"
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <HiLink className="w-4 h-4 shrink-0 text-teal-400 group-hover:text-white" />
+                  <span>Google Drive / YouTube...</span>
+                </div>
+                <span className={`text-[11px] font-mono shrink-0 ml-4 group-hover:text-white/90 ${
+                  isLight ? "text-slate-400" : "text-[#8e8e8e]"
+                }`}>Link</span>
+              </button>
             </div>
           )}
         </div>
@@ -11731,15 +11802,57 @@ export default function CanvasWorkspace({
             {/* Link URL Input */}
             <div>
               <label className="block text-xs font-semibold text-neutral-300 mb-1">
-                Link YouTube atau Google Drive
+                Link Google Drive atau YouTube
               </label>
               <input
                 type="text"
                 value={modalLinkUrl}
-                onChange={(e) => setModalLinkUrl(e.target.value)}
-                placeholder="https://youtube.com/watch?v=... atau link Drive"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setModalLinkUrl(val);
+                  if (val.includes("youtube.com") || val.includes("youtu.be")) {
+                    setModalMediaType("video");
+                  }
+                }}
+                placeholder="https://drive.google.com/file/d/... atau https://youtube.com/watch?v=..."
+                className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400 font-mono"
               />
+              <p className="text-[11px] text-neutral-400 mt-1">
+                Mendukung link share Google Drive (gambar/video) dan YouTube link secara langsung.
+              </p>
+            </div>
+
+            {/* Media Type Selection */}
+            <div>
+              <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
+                Tipe Konten
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setModalMediaType("image")}
+                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    modalMediaType === "image"
+                      ? "bg-teal-500/20 border-teal-400 text-teal-300 shadow-sm"
+                      : "bg-white/5 border-white/10 text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  <HiPhoto className="w-4 h-4" />
+                  <span>Gambar / Foto</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalMediaType("video")}
+                  className={`py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    modalMediaType === "video"
+                      ? "bg-teal-500/20 border-teal-400 text-teal-300 shadow-sm"
+                      : "bg-white/5 border-white/10 text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  <HiFilm className="w-4 h-4" />
+                  <span>Video Player</span>
+                </button>
+              </div>
             </div>
 
             {/* Judul Text */}
