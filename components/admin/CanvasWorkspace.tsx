@@ -6776,18 +6776,24 @@ export default function CanvasWorkspace({
             : "bg-[#222222]/95 border-white/10 text-white shadow-[0_12px_32px_rgba(0,0,0,0.7)]"
         }`}
       >
-        {/* Studio Monogram / Canvas Icon (Matches Admin Dashboard RiGridFill / /navbar-logo.png) */}
+        {/* Studio Monogram / Canvas Icon (Matches Admin Dashboard /navbar-logo.png) */}
         <button
           type="button"
           onClick={() => setIsPillMenuOpen((prev) => !prev)}
           title="Rizx Studio Canvas Menu"
-          className={`w-7 h-7 rounded-lg border flex items-center justify-center p-1 transition-all cursor-pointer ${
+          className={`w-7 h-7 rounded-lg border flex items-center justify-center p-1.5 transition-all cursor-pointer overflow-hidden ${
             isLight
-              ? "bg-slate-100 border-slate-200 text-slate-900 hover:bg-slate-200 shadow-xs"
-              : "bg-neutral-900 border-white/10 text-cyan-400 hover:bg-neutral-800 shadow-md shadow-black/40"
+              ? "bg-slate-100 border-slate-200 hover:bg-slate-200 shadow-xs"
+              : "bg-neutral-900 border-white/10 hover:bg-neutral-800 shadow-md shadow-black/40"
           }`}
         >
-          <RiGridFill className="w-4 h-4 shrink-0" />
+          <img
+            src="/navbar-logo.png"
+            alt="Rizx Canvas Studio"
+            className={`w-full h-full object-contain ${
+              isLight ? "brightness-0 opacity-85" : "brightness-0 invert opacity-95"
+            }`}
+          />
         </button>
 
         {/* Title: Portfolio (with subtle dropdown caret) */}
@@ -6873,7 +6879,15 @@ export default function CanvasWorkspace({
             }`}
           >
             <div className="flex items-center gap-2">
-              <RiGridFill className={`w-3.5 h-3.5 ${isLight ? "text-cyan-600" : "text-cyan-400"}`} />
+              <div className="w-4 h-4 flex items-center justify-center shrink-0 overflow-hidden">
+                <img
+                  src="/navbar-logo.png"
+                  alt="Rizx Canvas"
+                  className={`w-full h-full object-contain ${
+                    isLight ? "brightness-0 opacity-85" : "brightness-0 invert opacity-95"
+                  }`}
+                />
+              </div>
               <span className={`font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Rizx Canvas Studio</span>
             </div>
             <span
@@ -7703,7 +7717,9 @@ export default function CanvasWorkspace({
                   } ${
                     isSelected
                       ? "border-2 border-[#0c8ce9] shadow-[0_20px_60px_rgba(12,140,233,0.3)]"
-                      : "border border-white/10 hover:border-white/25 shadow-lg"
+                      : isLight
+                        ? "border border-slate-300/80 hover:border-slate-400 shadow-md"
+                        : "border border-white/10 hover:border-white/25 shadow-lg"
                   }`}
                 >
                   {/* Figma Top-Left Section Floating Pill Badge (Matches User Screenshot 2 & 3 [Section 6] [</>]) */}
@@ -7711,18 +7727,24 @@ export default function CanvasWorkspace({
                     <div
                       className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg shadow-md transition-colors ${
                         isSelected
-                          ? "bg-[#2c2c2c] border border-[#0c8ce9] text-white"
-                          : "bg-[#2c2c2c]/95 border border-white/10 text-neutral-200 hover:text-white"
+                          ? isLight
+                            ? "bg-white border border-[#0c8ce9] text-slate-900 shadow-slate-200"
+                            : "bg-[#2c2c2c] border border-[#0c8ce9] text-white"
+                          : isLight
+                            ? "bg-white/95 border border-slate-300 text-slate-700 hover:text-slate-900 shadow-xs"
+                            : "bg-[#2c2c2c]/95 border border-white/10 text-neutral-200 hover:text-white"
                       }`}
                     >
-                      <FigmaSectionIcon className="w-3.5 h-3.5 shrink-0 text-neutral-300" />
+                      <FigmaSectionIcon className={`w-3.5 h-3.5 shrink-0 ${isLight ? "text-slate-600" : "text-neutral-300"}`} />
                       <input
                         type="text"
                         value={item.title}
                         onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
                         onMouseDown={(e) => e.stopPropagation()}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-transparent text-xs font-sans font-medium text-white focus:outline-none w-auto max-w-[200px]"
+                        className={`bg-transparent text-xs font-sans font-medium focus:outline-none w-auto max-w-[200px] canvas-item-input ${
+                          isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-neutral-500"
+                        }`}
                       />
                     </div>
 
@@ -7734,7 +7756,11 @@ export default function CanvasWorkspace({
                         setShowDevMode((prev) => !prev);
                       }}
                       title="Ready for Dev (Figma Dev Mode)"
-                      className="px-2 py-1 rounded-lg bg-[#2c2c2c]/95 border border-white/10 text-neutral-300 hover:text-white hover:bg-white/10 text-xs font-mono font-bold shadow-md flex items-center justify-center cursor-pointer transition-colors"
+                      className={`px-2 py-1 rounded-lg border text-xs font-mono font-bold shadow-md flex items-center justify-center cursor-pointer transition-colors ${
+                        isLight
+                          ? "bg-white/95 border-slate-300 text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                          : "bg-[#2c2c2c]/95 border-white/10 text-neutral-300 hover:text-white hover:bg-white/10"
+                      }`}
                     >
                       &lt;/&gt;
                     </button>
@@ -8231,7 +8257,7 @@ export default function CanvasWorkspace({
                         pointerEvents: isEditing ? "auto" : "none",
                         userSelect: isEditing ? "text" : "none",
                       }}
-                      className={`absolute inset-0 w-full h-full bg-transparent border-none outline-none resize-none m-0 leading-tight block ${
+                      className={`canvas-text-textarea absolute inset-0 w-full h-full bg-transparent border-none outline-none resize-none m-0 leading-tight block ${
                         isEditing ? "pointer-events-auto select-text cursor-text" : "pointer-events-none select-none cursor-move"
                       }`}
                     />
@@ -8345,7 +8371,9 @@ export default function CanvasWorkspace({
                   {/* Figma Top Frame Title (Matches Screenshot Image 1 & 2 Frame 2147263084 / bran coffee) */}
                   <div className="absolute -top-7 left-0 flex items-center gap-1.5 pointer-events-auto">
                     {isSelected ? (
-                      <div className="flex items-center px-1.5 py-0.5 rounded-[2px] bg-[#1e1e1e]/90 border border-[#0c8ce9] shadow-xs">
+                      <div className={`flex items-center px-1.5 py-0.5 rounded-[2px] border border-[#0c8ce9] shadow-xs ${
+                        isLight ? "bg-white text-slate-900 shadow-slate-200" : "bg-[#1e1e1e]/90 text-white"
+                      }`}>
                         <input
                           type="text"
                           value={item.title}
@@ -8360,7 +8388,9 @@ export default function CanvasWorkspace({
                           style={{
                             width: `${Math.max(64, (item.title || "Frame").length * 8 + 14)}px`,
                           }}
-                          className="bg-transparent text-[12px] font-sans font-medium text-white outline-none border-none p-0 m-0 leading-none select-text cursor-text"
+                          className={`bg-transparent text-[12px] font-sans font-medium outline-none border-none p-0 m-0 leading-none select-text cursor-text canvas-item-input ${
+                            isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-neutral-500"
+                          }`}
                           placeholder="Nama Frame..."
                         />
                       </div>
@@ -8371,7 +8401,9 @@ export default function CanvasWorkspace({
                           setSelectedId(item.id);
                           setSelectedIds(new Set([item.id]));
                         }}
-                        className="text-[12px] font-sans font-medium text-neutral-400 hover:text-white select-none truncate max-w-[280px] cursor-pointer"
+                        className={`text-[12px] font-sans font-medium select-none truncate max-w-[280px] cursor-pointer ${
+                          isLight ? "text-slate-600 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                        }`}
                       >
                         {item.title}
                       </span>
@@ -8553,28 +8585,36 @@ export default function CanvasWorkspace({
                 {/* Card Content Wrapper */}
                 <div className="flex flex-col w-full h-full">
                 {/* Header Label (Editable Title & Actions) */}
-                <div className="flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl bg-black/80 border border-white/10 backdrop-blur-md text-[11px] font-mono text-neutral-300">
+                <div className={`flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl border backdrop-blur-md text-[11px] font-mono ${
+                  isLight
+                    ? "bg-white/95 border-slate-300 text-slate-700 shadow-sm"
+                    : "bg-black/80 border-white/10 text-neutral-300"
+                }`}>
                   <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
-                    <span className="w-2 h-2 rounded-full bg-teal-400 shrink-0" />
+                    <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0" />
                     <input
                       type="text"
                       value={item.title}
                       onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
-                      className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-teal-400 text-white font-bold truncate focus:outline-none w-full"
+                      className={`bg-transparent border-b border-transparent focus:border-teal-500 font-bold truncate focus:outline-none w-full canvas-item-input ${
+                        isLight ? "text-slate-900 hover:border-slate-300" : "text-white hover:border-white/20"
+                      }`}
                     />
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0">
                     {isLocked && (
-                      <span className="p-0.5 text-amber-400" title="Layer Terkunci">
+                      <span className="p-0.5 text-amber-500" title="Layer Terkunci">
                         <HiLockClosed className="w-3.5 h-3.5" />
                       </span>
                     )}
-                    <span className="px-1.5 py-0.5 rounded bg-white/10 text-[9px] text-teal-300 font-bold border border-white/10">
+                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                      isLight ? "bg-slate-100 text-teal-700 border-slate-200" : "bg-white/10 text-teal-300 border-white/10"
+                    }`}>
                       {item.aspect === "original" ? "ORIGINAL" : item.aspect}
                     </span>
                     {item.isVideo && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-[9px] font-bold border border-emerald-500/30 uppercase">
+                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-500 text-[9px] font-bold border border-emerald-500/30 uppercase">
                         VIDEO
                       </span>
                     )}
@@ -8584,7 +8624,7 @@ export default function CanvasWorkspace({
                         e.stopPropagation();
                         handleDeleteItem(item.id);
                       }}
-                      className="text-neutral-500 hover:text-red-400 p-1 rounded transition-colors"
+                      className="text-neutral-400 hover:text-red-500 p-1 rounded transition-colors"
                       title="Hapus Media"
                     >
                       <HiTrash className="w-3.5 h-3.5" />

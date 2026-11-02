@@ -1297,35 +1297,32 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                 );
               }
 
-              // 3. TEXT NOTE
+              // 3. FIGMA TYPOGRAPHY TEXT (Clean transparent background matching Canvas Studio)
               if (item.type === "text" || item.mediaType === "text") {
-                const textColor = item.color || "#00A389";
+                const textColor = item.color || (isLight ? "#0f172a" : "#FFFFFF");
+                const textFontSize = item.fontSize || 48;
+                const rawText = item.content !== undefined && item.content !== "" ? item.content : item.title || "";
                 return (
                   <div
                     key={item.id}
                     style={{
-                      transform: `translate3d(${x}px, ${y}px, 0)`,
-                      maxWidth: "460px",
+                      transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                      width: item.textAutoResize === "auto_width" ? "max-content" : item.width ? `${item.width}px` : "auto",
+                      height: item.textAutoResize === "fixed" && item.height ? `${item.height}px` : "auto",
+                      opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                      fontFamily: item.fontFamily ? `"${item.fontFamily}", system-ui, sans-serif` : "inherit",
+                      fontSize: `${textFontSize}px`,
+                      lineHeight: item.lineHeight || "100%",
+                      letterSpacing: item.letterSpacing || "-3%",
+                      color: textColor,
+                      textAlign: (item.textAlign as any) || "left",
+                      whiteSpace: item.textAutoResize === "auto_width" ? "pre" : "pre-wrap",
+                      wordBreak: item.textAutoResize === "auto_width" ? "normal" : "break-word",
+                      zIndex: 10,
                     }}
-                    className={`absolute p-3.5 rounded-xl border backdrop-blur-md ${
-                      isLight
-                        ? "bg-white/95 border-slate-300 text-slate-800 shadow-xl shadow-slate-200/50"
-                        : "bg-black/60 border-white/10 text-white"
-                    }`}
+                    className="absolute select-none pointer-events-none"
                   >
-                    <h3
-                      className="text-base sm:text-lg font-black tracking-tight"
-                      style={{ color: textColor }}
-                    >
-                      {item.title}
-                    </h3>
-                    {item.content && (
-                      <p className={`text-xs font-sans mt-1 leading-relaxed whitespace-pre-wrap ${
-                        isLight ? "text-slate-600" : "text-neutral-300"
-                      }`}>
-                        {item.content}
-                      </p>
-                    )}
+                    {rawText}
                   </div>
                 );
               }

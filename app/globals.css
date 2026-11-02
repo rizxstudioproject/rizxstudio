@@ -554,31 +554,31 @@ html.light .mobile-admin-app .bg-neutral-900 {
   border-color: #e2e8f0 !important;
 }
 
-html[data-theme='light'] #admin-dashboard input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-html[data-theme='light'] #admin-dashboard textarea,
+html[data-theme='light'] #admin-dashboard input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(.canvas-item-input),
+html[data-theme='light'] #admin-dashboard textarea:not(.canvas-text-textarea),
 html[data-theme='light'] #admin-dashboard select,
-html.light #admin-dashboard input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-html.light #admin-dashboard textarea,
+html.light #admin-dashboard input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(.canvas-item-input),
+html.light #admin-dashboard textarea:not(.canvas-text-textarea),
 html.light #admin-dashboard select,
-html[data-theme='light'] .mobile-admin-app input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-html[data-theme='light'] .mobile-admin-app textarea,
+html[data-theme='light'] .mobile-admin-app input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(.canvas-item-input),
+html[data-theme='light'] .mobile-admin-app textarea:not(.canvas-text-textarea),
 html[data-theme='light'] .mobile-admin-app select,
-html.light .mobile-admin-app input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]),
-html.light .mobile-admin-app textarea,
+html.light .mobile-admin-app input:not([type="color"]):not([type="range"]):not([type="checkbox"]):not([type="radio"]):not(.canvas-item-input),
+html.light .mobile-admin-app textarea:not(.canvas-text-textarea),
 html.light .mobile-admin-app select {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
   color: #0f172a !important;
 }
 
-html[data-theme='light'] #admin-dashboard input::placeholder,
-html[data-theme='light'] #admin-dashboard textarea::placeholder,
-html.light #admin-dashboard input::placeholder,
-html.light #admin-dashboard textarea::placeholder,
-html[data-theme='light'] .mobile-admin-app input::placeholder,
-html[data-theme='light'] .mobile-admin-app textarea::placeholder,
-html.light .mobile-admin-app input::placeholder,
-html.light .mobile-admin-app textarea::placeholder {
+html[data-theme='light'] #admin-dashboard input:not(.canvas-item-input)::placeholder,
+html[data-theme='light'] #admin-dashboard textarea:not(.canvas-text-textarea)::placeholder,
+html.light #admin-dashboard input:not(.canvas-item-input)::placeholder,
+html.light #admin-dashboard textarea:not(.canvas-text-textarea)::placeholder,
+html[data-theme='light'] .mobile-admin-app input:not(.canvas-item-input)::placeholder,
+html[data-theme='light'] .mobile-admin-app textarea:not(.canvas-text-textarea)::placeholder,
+html.light .mobile-admin-app input:not(.canvas-item-input)::placeholder,
+html.light .mobile-admin-app textarea:not(.canvas-text-textarea)::placeholder {
   color: #94a3b8 !important;
 }
 
@@ -996,32 +996,52 @@ html.light #admin-dashboard p {
 }
 
 /* 10. Form Inputs, Selects & Textareas in Admin Dashboard */
-html[data-theme='light'] #admin-dashboard input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-html[data-theme='light'] #admin-dashboard textarea,
+html[data-theme='light'] #admin-dashboard input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.canvas-item-input),
+html[data-theme='light'] #admin-dashboard textarea:not(.canvas-text-textarea),
 html[data-theme='light'] #admin-dashboard select,
-html.light #admin-dashboard input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
-html.light #admin-dashboard textarea,
+html.light #admin-dashboard input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.canvas-item-input),
+html.light #admin-dashboard textarea:not(.canvas-text-textarea),
 html.light #admin-dashboard select {
   background-color: #ffffff !important;
   color: #0f172a !important;
   border-color: #cbd5e1 !important;
 }
 
-html[data-theme='light'] #admin-dashboard input:focus,
-html[data-theme='light'] #admin-dashboard textarea:focus,
+html[data-theme='light'] #admin-dashboard input:not(.canvas-item-input):focus,
+html[data-theme='light'] #admin-dashboard textarea:not(.canvas-text-textarea):focus,
 html[data-theme='light'] #admin-dashboard select:focus,
-html.light #admin-dashboard input:focus,
-html.light #admin-dashboard textarea:focus,
+html.light #admin-dashboard input:not(.canvas-item-input):focus,
+html.light #admin-dashboard textarea:not(.canvas-text-textarea):focus,
 html.light #admin-dashboard select:focus {
   border-color: #16b09f !important;
   box-shadow: 0 0 0 1px #16b09f !important;
 }
 
-html[data-theme='light'] #admin-dashboard input::placeholder,
-html[data-theme='light'] #admin-dashboard textarea::placeholder,
-html.light #admin-dashboard input::placeholder,
-html.light #admin-dashboard textarea::placeholder {
+html[data-theme='light'] #admin-dashboard input:not(.canvas-item-input)::placeholder,
+html[data-theme='light'] #admin-dashboard textarea:not(.canvas-text-textarea)::placeholder,
+html.light #admin-dashboard input:not(.canvas-item-input)::placeholder,
+html.light #admin-dashboard textarea:not(.canvas-text-textarea)::placeholder {
   color: #94a3b8 !important;
+}
+
+/* 10.1 Rizx Canvas Interactive Elements - Preserve Transparent Backgrounds & Figma Styling */
+html[data-theme='light'] #admin-dashboard textarea.canvas-text-textarea,
+html.light #admin-dashboard textarea.canvas-text-textarea,
+#admin-dashboard textarea.canvas-text-textarea,
+.canvas-text-textarea {
+  background-color: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='light'] #admin-dashboard input.canvas-item-input,
+html.light #admin-dashboard input.canvas-item-input,
+#admin-dashboard input.canvas-item-input,
+.canvas-item-input {
+  background-color: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 html[data-theme='light'] #admin-dashboard select option,
