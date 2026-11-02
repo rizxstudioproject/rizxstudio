@@ -2268,7 +2268,13 @@ export default function CanvasWorkspace({
         const fH = f.height || (f.aspect === "16:9" ? 405 : 600);
         const fX = f.x || 0;
         const fY = f.y || 0;
-        return itX >= fX && itX <= fX + fW && itY >= fY && itY <= fY + fH;
+        const itW = it.width || 440;
+        const itH = it.height || 550;
+        const cX = itX + itW / 2;
+        const cY = itY + itH / 2;
+        const centerInside = cX >= fX && cX <= fX + fW && cY >= fY && cY <= fY + fH;
+        const cornerInside = itX >= fX && itX <= fX + fW && itY >= fY && itY <= fY + fH;
+        return centerInside || cornerInside;
       });
 
       if (candidates.length === 0) return undefined;
@@ -3501,6 +3507,16 @@ export default function CanvasWorkspace({
       const targetW = Math.min(target.naturalWidth || 480, 800);
       const targetH = Math.round(targetW * ((target.naturalHeight || 360) / (target.naturalWidth || 480)));
 
+      // Check if placed inside an existing Frame
+      const containingFrame = items.find((f) => {
+        if (!isFrameItem(f) || f.type === "group" || f.type === "section") return false;
+        const fX = f.x || 0;
+        const fY = f.y || 0;
+        const fW = f.width || 480;
+        const fH = f.height || 600;
+        return canvasX >= fX && canvasX <= fX + fW && canvasY >= fY && canvasY <= fY + fH;
+      });
+
       const newItem: CanvasItem = {
         id: `media-${Date.now()}`,
         title: target.name.charAt(0).toUpperCase() + target.name.slice(1),
@@ -3514,6 +3530,7 @@ export default function CanvasWorkspace({
         width: targetW,
         height: targetH,
         isVideo,
+        frameId: containingFrame ? containingFrame.id : undefined,
       };
 
       updateItemsWithTracking([newItem, ...items]);
@@ -3747,8 +3764,9 @@ export default function CanvasWorkspace({
           shapeY = start.canvasY;
         }
         const frameTitle = `Frame ${Math.floor(Date.now() / 1000)}`;
+        const newFrameId = `frame-${Date.now()}`;
         const newFrame: CanvasItem = {
-          id: `frame-${Date.now()}`,
+          id: newFrameId,
           title: frameTitle,
           type: "frame",
           mediaType: "frame",
@@ -3759,8 +3777,29 @@ export default function CanvasWorkspace({
           height: Math.round(shapeH),
           color: "#FFFFFF",
           cornerRadius: 0,
+          clipContent: true,
         };
-        updateItemsWithTracking([...items, newFrame]);
+
+        // Automatically nest any items whose center or corner is inside this newly drawn Frame
+        const updatedItems = items.map((it) => {
+          if (it.id === newFrameId || isFrameItem(it)) return it;
+          const itX = it.x || 0;
+          const itY = it.y || 0;
+          const itW = it.width || 440;
+          const itH = it.height || 550;
+          const cX = itX + itW / 2;
+          const cY = itY + itH / 2;
+          if (
+            (cX >= shapeX && cX <= shapeX + shapeW && cY >= shapeY && cY <= shapeY + shapeH) ||
+            (itX >= shapeX && itX <= shapeX + shapeW && itY >= shapeY && itY <= shapeY + shapeH)
+          ) {
+            return { ...it, frameId: newFrameId };
+          }
+          return it;
+        });
+
+        // In Figma, a newly drawn Frame goes UNDER its newly enclosed children!
+        updateItemsWithTracking([newFrame, ...updatedItems]);
         setSelectedId(newFrame.id);
         setSelectedIds(new Set([newFrame.id]));
       } else if (shapeType === "section") {
@@ -9411,7 +9450,7 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                     boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.35)",
                     filter: getEffectFilter(item),
-                    zIndex: isChildOfFrame ? 30 + index : 5 + index,
+                    zIndex: isChildOfFrame ? 7 : 5,
                     touchAction: "none",
                   }}
                   className={`absolute flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
@@ -9616,51 +9655,186 @@ export default function CanvasWorkspace({
               if (wNum && hNum && wNum > 0) defaultRatio = hNum / wNum;
             }
             const currentHeight = item.height || Math.round(currentWidth * defaultRatio);
-            const clipPathStyle = getItemClipPath(item);
-            const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
+            const parentFrameId = item.frameId || getParentFrameId(item);
+            const parentFrame = parentFrameId ? items.find((f) => f.id === parentFrameId) : null;
+            const isChildOfFrame = Boolean(parentFrame);
+            const shouldClip = isChildOfFrame && parentFrame && parentFrame.clipContent !== false && parentFrame.type !== "group" && parentFrame.type !== "section";
+            const fX = parentFrame?.x || 0;
+            const fY = parentFrame?.y || 0;
+            const fW = parentFrame?.width || (parentFrame?.aspect === "16:9" ? 720 : 480);
+            const fH = parentFrame?.height || (parentFrame?.aspect === "16:9" ? 405 : 600);
+            const fRadius = parentFrame?.cornerRadius || 0;
 
             return (
-              <div
-                key={item.id}
-                onClick={(e) => handleItemClick(e, item, e.currentTarget)}
-                onMouseDown={(e) => handleItemMouseDown(e, item)}
-                onTouchStart={(e) => handleItemTouchStart(e, item)}
-                onContextMenu={(e) => handleItemContextMenu(e, item)}
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  if (hasItemMovedDuringDragRef.current) return;
-                  fitItemToScreen(item, e.currentTarget);
-                }}
-                onTouchEnd={(e) => {
-                  handleItemTouchEnd(e, item, e.currentTarget);
-                }}
-                style={{
-                  transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
-                  width: `${currentWidth}px`,
-                  height: `${currentHeight}px`,
-                  opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
-                  borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
-                  boxShadow: isChildOfFrame ? undefined : getEffectBoxShadow(item),
-                  filter: getEffectFilter(item),
-                  zIndex: isChildOfFrame ? 30 + index : 10 + index,
-                  clipPath: clipPathStyle ? clipPathStyle : undefined,
-                  touchAction: "none",
-                }}
-                className={`group absolute select-none cursor-grab active:cursor-grabbing ${
-                  draggingItemId === item.id
-                    ? "!transition-none will-change-transform cursor-grabbing shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]"
-                    : "transition-colors duration-150"
-                } ${
-                  isSelected
-                    ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
-                    : isChildOfFrame
-                    ? ""
-                    : "hover:ring-1 hover:ring-white/40"
-                }`}
-              >
-                {/* Figma Selection Frame Handles & Dimension Badge */}
+              <React.Fragment key={item.id}>
+                {shouldClip ? (
+                  /* 1. Unrotated Frame Clipping Wrapper - perfectly clips rotated children */
+                  <div
+                    style={{
+                      position: "absolute",
+                      transform: `translate3d(${fX}px, ${fY}px, 0)`,
+                      width: `${fW}px`,
+                      height: `${fH}px`,
+                      overflow: "hidden",
+                      borderRadius: `${fRadius}px`,
+                      pointerEvents: "none",
+                      zIndex: 20 + index,
+                    }}
+                  >
+                    <div
+                      onClick={(e) => handleItemClick(e, item, e.currentTarget)}
+                      onMouseDown={(e) => handleItemMouseDown(e, item)}
+                      onTouchStart={(e) => handleItemTouchStart(e, item)}
+                      onContextMenu={(e) => handleItemContextMenu(e, item)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        if (hasItemMovedDuringDragRef.current) return;
+                        fitItemToScreen(item, e.currentTarget);
+                      }}
+                      onTouchEnd={(e) => {
+                        handleItemTouchEnd(e, item, e.currentTarget);
+                      }}
+                      style={{
+                        position: "absolute",
+                        transform: `translate3d(${x - fX}px, ${y - fY}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                        width: `${currentWidth}px`,
+                        height: `${currentHeight}px`,
+                        opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                        borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
+                        boxShadow: getEffectBoxShadow(item),
+                        filter: getEffectFilter(item),
+                        pointerEvents: "auto",
+                        touchAction: "none",
+                      }}
+                      className={`group select-none cursor-grab active:cursor-grabbing ${
+                        draggingItemId === item.id
+                          ? "!transition-none will-change-transform cursor-grabbing shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]"
+                          : "transition-colors duration-150"
+                      }`}
+                    >
+                      <div
+                        className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto"
+                        style={{
+                          borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
+                        }}
+                      >
+                        {item.isVideo && item.image ? (
+                          <video
+                            src={item.image}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover pointer-events-none select-none"
+                          />
+                        ) : item.image ? (
+                          <img
+                            src={item.image}
+                            alt={item.title || "Image"}
+                            draggable={false}
+                            decoding="sync"
+                            loading="eager"
+                            className="w-full h-full object-cover pointer-events-none select-none"
+                            style={{
+                              imageRendering: "-webkit-optimize-contrast",
+                              WebkitBackfaceVisibility: "hidden",
+                              transform: "translateZ(0)",
+                            }}
+                          />
+                        ) : (
+                          <div className="text-neutral-600 text-xs font-mono">No Media</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Normal Unclipped Item */
+                  <div
+                    onClick={(e) => handleItemClick(e, item, e.currentTarget)}
+                    onMouseDown={(e) => handleItemMouseDown(e, item)}
+                    onTouchStart={(e) => handleItemTouchStart(e, item)}
+                    onContextMenu={(e) => handleItemContextMenu(e, item)}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      if (hasItemMovedDuringDragRef.current) return;
+                      fitItemToScreen(item, e.currentTarget);
+                    }}
+                    onTouchEnd={(e) => {
+                      handleItemTouchEnd(e, item, e.currentTarget);
+                    }}
+                    style={{
+                      transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                      width: `${currentWidth}px`,
+                      height: `${currentHeight}px`,
+                      opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                      borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
+                      boxShadow: isChildOfFrame ? undefined : getEffectBoxShadow(item),
+                      filter: getEffectFilter(item),
+                      zIndex: isChildOfFrame ? 20 + index : 10 + index,
+                      touchAction: "none",
+                    }}
+                    className={`group absolute select-none cursor-grab active:cursor-grabbing ${
+                      draggingItemId === item.id
+                        ? "!transition-none will-change-transform cursor-grabbing shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]"
+                        : "transition-colors duration-150"
+                    } ${
+                      isSelected
+                        ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
+                        : isChildOfFrame
+                        ? ""
+                        : "hover:ring-1 hover:ring-white/40"
+                    }`}
+                  >
+                    <div
+                      className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto"
+                      style={{
+                        borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
+                      }}
+                    >
+                      {item.isVideo && item.image ? (
+                        <video
+                          src={item.image}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          className="w-full h-full object-cover pointer-events-none select-none"
+                        />
+                      ) : item.image ? (
+                        <img
+                          src={item.image}
+                          alt={item.title || "Image"}
+                          draggable={false}
+                          decoding="sync"
+                          loading="eager"
+                          className="w-full h-full object-cover pointer-events-none select-none"
+                          style={{
+                            imageRendering: "-webkit-optimize-contrast",
+                            WebkitBackfaceVisibility: "hidden",
+                            transform: "translateZ(0)",
+                          }}
+                        />
+                      ) : (
+                        <div className="text-neutral-600 text-xs font-mono">No Media</div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Figma Selection Handles & Dimension Badge (ALWAYS at global canvas coords, unclipped!) */}
                 {isSelected && (
-                  <>
+                  <div
+                    style={{
+                      position: "absolute",
+                      transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                      width: `${currentWidth}px`,
+                      height: `${currentHeight}px`,
+                      pointerEvents: "none",
+                      zIndex: 60,
+                    }}
+                  >
+                    <div className="absolute inset-0 ring-2 ring-[#0c8ce9] pointer-events-none" />
+
                     {/* 4 Corner Resize Handles */}
                     <div
                       onMouseDown={(e) => handleResizeMouseDown(e, item, "nw")}
@@ -9705,44 +9879,9 @@ export default function CanvasWorkspace({
                     <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40">
                       {Math.round(currentWidth)} × {Math.round(currentHeight)}
                     </div>
-                  </>
+                  </div>
                 )}
-
-                {/* Pure Media Element - Borderless, Frame-free, Text-free, 100% Image */}
-                <div
-                  className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto"
-                  style={{
-                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
-                  }}
-                >
-                  {item.isVideo && item.image ? (
-                    <video
-                      src={item.image}
-                      autoPlay
-                      loop
-                      muted
-                      playsInline
-                      className="w-full h-full object-cover pointer-events-none select-none"
-                    />
-                  ) : item.image ? (
-                    <img
-                      src={item.image}
-                      alt={item.title || "Image"}
-                      draggable={false}
-                      decoding="sync"
-                      loading="eager"
-                      className="w-full h-full object-cover pointer-events-none select-none"
-                      style={{
-                        imageRendering: "-webkit-optimize-contrast",
-                        WebkitBackfaceVisibility: "hidden",
-                        transform: "translateZ(0)",
-                      }}
-                    />
-                  ) : (
-                    <div className="text-neutral-600 text-xs font-mono">No Media</div>
-                  )}
-                </div>
-              </div>
+              </React.Fragment>
             );
           })}
 
