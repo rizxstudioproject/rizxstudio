@@ -8677,16 +8677,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
 
                 {/* 1. PROJECT DESCRIPTION */}
-                <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 space-y-1.5">
+                <div className={`p-3 rounded-xl space-y-1.5 border ${
+                  isLight
+                    ? "bg-cyan-50/70 border-cyan-200"
+                    : "bg-cyan-950/20 border-cyan-500/20"
+                }`}>
                   <div className="flex items-center justify-between">
-                    <label className={`block text-xs font-mono font-bold text-cyan-300 uppercase tracking-wide`}>
+                    <label className={`block text-xs font-mono font-bold uppercase tracking-wide ${
+                      isLight ? "text-cyan-800" : "text-cyan-300"
+                    }`}>
                       PROJECT DESCRIPTION
                     </label>
-                    <span className="text-[10px] font-mono text-cyan-400">
+                    <span className={`text-[10px] font-mono ${isLight ? "text-cyan-700 font-semibold" : "text-cyan-400"}`}>
                       {newFolderProjectDesc.length} / 1000
                     </span>
                   </div>
-                  <p className="text-[11px] text-neutral-400 leading-snug">
+                  <p className={`text-[11px] leading-snug ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                     {tx(
                       "💡 Ditampilkan tepat di bawah judul karya pada preview modal.",
                       "💡 Displayed right below work title on preview modal."
@@ -8703,23 +8709,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     )}
                     className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
                       isLight
-                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-cyan-500"
-                        : "bg-neutral-950 border-cyan-500/30 text-white focus:border-cyan-400"
+                        ? "bg-white border-cyan-200 text-slate-800 placeholder-slate-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 shadow-xs"
+                        : "bg-neutral-950 border-cyan-500/30 text-white placeholder-neutral-500 focus:border-cyan-400"
                     }`}
                   />
                 </div>
 
                 {/* 2. BRAND PROFILE & CONTEXT */}
-                <div className="p-3 rounded-xl bg-emerald-950/20 border border-[#16b09f]/25 space-y-1.5">
+                <div className={`p-3 rounded-xl space-y-1.5 border ${
+                  isLight
+                    ? "bg-teal-50/70 border-teal-200"
+                    : "bg-emerald-950/20 border-[#16b09f]/25"
+                }`}>
                   <div className="flex items-center justify-between">
-                    <label className={`block text-xs font-mono font-bold text-[#16b09f] uppercase tracking-wide`}>
+                    <label className={`block text-xs font-mono font-bold uppercase tracking-wide ${
+                      isLight ? "text-teal-800" : "text-[#16b09f]"
+                    }`}>
                       BRAND PROFILE & CONTEXT
                     </label>
-                    <span className="text-[10px] font-mono text-[#16b09f]">
+                    <span className={`text-[10px] font-mono ${isLight ? "text-teal-700 font-semibold" : "text-[#16b09f]"}`}>
                       {newFolderDescription.length} / 1000
                     </span>
                   </div>
-                  <p className="text-[11px] text-neutral-400 leading-snug">
+                  <p className={`text-[11px] leading-snug ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                     {tx(
                       "💡 Ditampilkan di box 'BRAND PROFILE & CONTEXT' di bagian bawah modal (profil identitas brand klien).",
                       "💡 Displayed in the 'BRAND PROFILE & CONTEXT' box at the bottom of the modal (client brand identity)."
@@ -8736,8 +8748,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     )}
                     className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
                       isLight
-                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
-                        : "bg-neutral-950 border-[#16b09f]/30 text-white focus:border-[#16b09f]"
+                        ? "bg-white border-teal-200 text-slate-800 placeholder-slate-400 focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] shadow-xs"
+                        : "bg-neutral-950 border-[#16b09f]/30 text-white placeholder-neutral-500 focus:border-[#16b09f]"
                     }`}
                   />
                 </div>
@@ -8888,16 +8900,22 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </div>
 
                 {/* 1. PROJECT DESCRIPTION */}
-                <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/20 space-y-1.5">
+                <div className={`p-3 rounded-xl space-y-1.5 border ${
+                  isLight
+                    ? "bg-cyan-50/70 border-cyan-200"
+                    : "bg-cyan-950/20 border-cyan-500/20"
+                }`}>
                   <div className="flex items-center justify-between">
-                    <label className={`block text-xs font-mono font-bold text-cyan-300 uppercase tracking-wide`}>
+                    <label className={`block text-xs font-mono font-bold uppercase tracking-wide ${
+                      isLight ? "text-cyan-800" : "text-cyan-300"
+                    }`}>
                       PROJECT DESCRIPTION
                     </label>
-                    <span className="text-[10px] font-mono text-cyan-400">
+                    <span className={`text-[10px] font-mono ${isLight ? "text-cyan-700 font-semibold" : "text-cyan-400"}`}>
                       {editFolderProjectDesc.length} / 1000
                     </span>
                   </div>
-                  <p className="text-[11px] text-neutral-400 leading-snug">
+                  <p className={`text-[11px] leading-snug ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                     {tx(
                       "💡 Ditampilkan tepat di bawah judul karya pada preview modal.",
                       "💡 Displayed right below work title on preview modal."
@@ -8914,23 +8932,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     )}
                     className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
                       isLight
-                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-cyan-500"
-                        : "bg-neutral-950 border-cyan-500/30 text-white focus:border-cyan-400"
+                        ? "bg-white border-cyan-200 text-slate-800 placeholder-slate-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 shadow-xs"
+                        : "bg-neutral-950 border-cyan-500/30 text-white placeholder-neutral-500 focus:border-cyan-400"
                     }`}
                   />
                 </div>
 
                 {/* 2. BRAND PROFILE & CONTEXT */}
-                <div className="p-3 rounded-xl bg-emerald-950/20 border border-[#16b09f]/25 space-y-1.5">
+                <div className={`p-3 rounded-xl space-y-1.5 border ${
+                  isLight
+                    ? "bg-teal-50/70 border-teal-200"
+                    : "bg-emerald-950/20 border-[#16b09f]/25"
+                }`}>
                   <div className="flex items-center justify-between">
-                    <label className={`block text-xs font-mono font-bold text-[#16b09f] uppercase tracking-wide`}>
+                    <label className={`block text-xs font-mono font-bold uppercase tracking-wide ${
+                      isLight ? "text-teal-800" : "text-[#16b09f]"
+                    }`}>
                       BRAND PROFILE & CONTEXT
                     </label>
-                    <span className="text-[10px] font-mono text-[#16b09f]">
+                    <span className={`text-[10px] font-mono ${isLight ? "text-teal-700 font-semibold" : "text-[#16b09f]"}`}>
                       {editFolderDescription.length} / 1000
                     </span>
                   </div>
-                  <p className="text-[11px] text-neutral-400 leading-snug">
+                  <p className={`text-[11px] leading-snug ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                     {tx(
                       "💡 Ditampilkan di box 'BRAND PROFILE & CONTEXT' di bagian bawah modal (profil identitas brand klien).",
                       "💡 Displayed in the 'BRAND PROFILE & CONTEXT' box at the bottom of the modal (client brand identity)."
@@ -8947,8 +8971,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     )}
                     className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
                       isLight
-                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
-                        : "bg-neutral-950 border-[#16b09f]/30 text-white focus:border-[#16b09f]"
+                        ? "bg-white border-teal-200 text-slate-800 placeholder-slate-400 focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] shadow-xs"
+                        : "bg-neutral-950 border-[#16b09f]/30 text-white placeholder-neutral-500 focus:border-[#16b09f]"
                     }`}
                   />
                 </div>

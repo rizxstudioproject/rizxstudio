@@ -701,18 +701,24 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
   const row2Count = useMemo(() => clLogos.filter((l) => l.row === 2).length, [clLogos]);
 
   return (
-    <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-[#0d0f13]">
+    <div className={`flex-1 flex flex-col md:flex-row overflow-hidden transition-colors ${
+      isLight ? "bg-slate-50 text-slate-900" : "bg-[#0d0f13] text-white"
+    }`}>
       {/* ========================================================
           MIDDLE COLUMN: CLIENTS PANEL (~300px)
          ======================================================== */}
       <aside
-        className={`w-full md:w-[300px] shrink-0 bg-[#090b0e] border-r border-white/5 flex flex-col h-full overflow-hidden select-none ${
+        className={`w-full md:w-[300px] shrink-0 border-r flex flex-col h-full overflow-hidden select-none transition-colors ${
           mobileActiveView === "detail" ? "hidden md:flex" : "flex"
+        } ${
+          isLight ? "bg-white border-slate-200" : "bg-[#090b0e] border-white/5"
         }`}
       >
         {/* Workspace Subview Switcher: Folders vs Marquee Logos */}
-        <div className="p-3 pb-2 border-b border-white/5 space-y-2.5">
-          <div className="flex items-center gap-1 p-0.5 rounded-xl bg-neutral-900 border border-white/10">
+        <div className={`p-3 pb-2 border-b space-y-2.5 ${isLight ? "border-slate-200" : "border-white/5"}`}>
+          <div className={`flex items-center gap-1 p-0.5 rounded-xl border ${
+            isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900 border-white/10"
+          }`}>
             <button
               type="button"
               onClick={() => {
@@ -722,6 +728,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 workspaceView === "folders"
                   ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/20"
+                  : isLight
+                  ? "text-slate-600 hover:text-slate-900"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -731,6 +739,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
                   workspaceView === "folders"
                     ? "bg-black/20 text-black font-bold"
+                    : isLight
+                    ? "bg-slate-200 text-slate-700"
                     : "bg-white/10 text-neutral-300"
                 }`}
               >
@@ -746,6 +756,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 workspaceView === "logos"
                   ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/20"
+                  : isLight
+                  ? "text-slate-600 hover:text-slate-900"
                   : "text-neutral-400 hover:text-white"
               }`}
             >
@@ -755,6 +767,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono ${
                   workspaceView === "logos"
                     ? "bg-black/20 text-black font-bold"
+                    : isLight
+                    ? "bg-slate-200 text-slate-700"
                     : "bg-white/10 text-neutral-300"
                 }`}
               >
@@ -768,10 +782,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white tracking-tight">
+                  <h2 className={`text-base font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                     {tr("Client Folders", "Daftar Klien", "Daftar Klien")}
                   </h2>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className={`text-[11px] ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                     {tr("Client folders & portfolios", "Folder karya & portofolio", "Folder karya & portofolio")}
                   </p>
                 </div>
@@ -785,13 +799,19 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               </div>
 
               {/* Filter Tabs: All, Recent, Favorites */}
-              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-neutral-900 border border-white/5">
+              <div className={`flex items-center gap-1 p-0.5 rounded-lg border ${
+                isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900 border-white/5"
+              }`}>
                 <button
                   type="button"
                   onClick={() => setFilterTab("all")}
                   className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
                     filterTab === "all"
-                      ? "bg-[#16b09f]/15 text-[#16b09f] font-semibold"
+                      ? isLight
+                        ? "bg-white text-[#16b09f] font-semibold shadow-xs"
+                        : "bg-[#16b09f]/15 text-[#16b09f] font-semibold"
+                      : isLight
+                      ? "text-slate-600 hover:text-slate-900"
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
@@ -802,7 +822,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onClick={() => setFilterTab("recent")}
                   className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
                     filterTab === "recent"
-                      ? "bg-[#16b09f]/15 text-[#16b09f] font-semibold"
+                      ? isLight
+                        ? "bg-white text-[#16b09f] font-semibold shadow-xs"
+                        : "bg-[#16b09f]/15 text-[#16b09f] font-semibold"
+                      : isLight
+                      ? "text-slate-600 hover:text-slate-900"
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
@@ -813,7 +837,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onClick={() => setFilterTab("favorites")}
                   className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
                     filterTab === "favorites"
-                      ? "bg-[#16b09f]/15 text-[#16b09f] font-semibold"
+                      ? isLight
+                        ? "bg-white text-[#16b09f] font-semibold shadow-xs"
+                        : "bg-[#16b09f]/15 text-[#16b09f] font-semibold"
+                      : isLight
+                      ? "text-slate-600 hover:text-slate-900"
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
@@ -823,13 +851,17 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
               {/* Search Input */}
               <div className="relative">
-                <HiMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+                <HiMagnifyingGlass className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 ${isLight ? "text-slate-400" : "text-neutral-500"}`} />
                 <input
                   type="text"
                   value={clientSearch}
                   onChange={(e) => setClientSearch(e.target.value)}
                   placeholder={tr("Search clients...", "Cari folder klien...", "Cari folder klien...")}
-                  className="w-full bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors"
+                  className={`w-full rounded-lg pl-8 pr-3 py-1.5 text-xs outline-none transition-colors border ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#16b09f]"
+                      : "bg-[#12151a] border-white/5 text-white placeholder-neutral-500 focus:border-[#16b09f]/60"
+                  }`}
                 />
               </div>
             </div>
@@ -837,10 +869,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-bold text-white tracking-tight">
+                  <h2 className={`text-base font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
                     {tr("Client Logos", "Logo Klien Marquee", "Logo Mitra Marquee")}
                   </h2>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className={`text-[11px] ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                     {tr("Partner brands on website", "Brand partner running di web", "Brand mitra running di web")}
                   </p>
                 </div>
@@ -850,13 +882,19 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               </div>
 
               {/* Row Filter Tabs: All, Row 1, Row 2 */}
-              <div className="flex items-center gap-1 p-0.5 rounded-lg bg-neutral-900 border border-white/5">
+              <div className={`flex items-center gap-1 p-0.5 rounded-lg border ${
+                isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-900 border-white/5"
+              }`}>
                 <button
                   type="button"
                   onClick={() => setLogoRowTab("all")}
                   className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
                     logoRowTab === "all"
-                      ? "bg-[#16b09f]/15 text-[#16b09f] font-semibold"
+                      ? isLight
+                        ? "bg-white text-[#16b09f] font-semibold shadow-xs"
+                        : "bg-[#16b09f]/15 text-[#16b09f] font-semibold"
+                      : isLight
+                      ? "text-slate-600 hover:text-slate-900"
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
@@ -867,7 +905,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onClick={() => setLogoRowTab("row1")}
                   className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
                     logoRowTab === "row1"
-                      ? "bg-cyan-500/20 text-cyan-300 font-semibold"
+                      ? isLight
+                        ? "bg-white text-cyan-700 font-semibold shadow-xs"
+                        : "bg-cyan-500/20 text-cyan-300 font-semibold"
+                      : isLight
+                      ? "text-slate-600 hover:text-slate-900"
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
@@ -878,7 +920,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   onClick={() => setLogoRowTab("row2")}
                   className={`flex-1 py-1 rounded-md text-[11px] font-medium transition-all text-center cursor-pointer ${
                     logoRowTab === "row2"
-                      ? "bg-emerald-500/20 text-emerald-300 font-semibold"
+                      ? isLight
+                        ? "bg-white text-emerald-700 font-semibold shadow-xs"
+                        : "bg-emerald-500/20 text-emerald-300 font-semibold"
+                      : isLight
+                      ? "text-slate-600 hover:text-slate-900"
                       : "text-neutral-400 hover:text-white"
                   }`}
                 >
@@ -910,13 +956,19 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     }}
                     className={`group flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-[#151a21] border border-[#16b09f]/30 shadow-sm"
+                        ? isLight
+                          ? "bg-teal-50 border border-teal-300 shadow-xs"
+                          : "bg-[#151a21] border border-[#16b09f]/30 shadow-sm"
+                        : isLight
+                        ? "hover:bg-slate-100 border border-transparent"
                         : "hover:bg-white/[0.04] border border-transparent"
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       {/* Square Thumbnail */}
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-neutral-800 border border-white/10 shrink-0 flex items-center justify-center p-0.5">
+                      <div className={`w-10 h-10 rounded-lg overflow-hidden border shrink-0 flex items-center justify-center p-0.5 ${
+                        isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-800 border-white/10"
+                      }`}>
                         {thumbImage ? (
                           <img
                             src={thumbImage}
@@ -924,7 +976,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                             className={`w-full h-full ${client.logo && thumbImage === client.logo ? "object-contain" : "object-cover"} group-hover:scale-105 transition-transform`}
                           />
                         ) : (
-                          <span className="text-xs font-bold text-neutral-300">
+                          <span className={`text-xs font-bold ${isLight ? "text-slate-600" : "text-neutral-300"}`}>
                             {client.clientName.slice(0, 2).toUpperCase()}
                           </span>
                         )}
@@ -934,12 +986,18 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       <div className="min-w-0">
                         <p
                           className={`text-xs font-semibold truncate ${
-                            isSelected ? "text-white" : "text-neutral-200 group-hover:text-white"
+                            isSelected
+                              ? isLight
+                                ? "text-teal-900"
+                                : "text-white"
+                              : isLight
+                              ? "text-slate-800 group-hover:text-teal-700"
+                              : "text-neutral-200 group-hover:text-white"
                           }`}
                         >
                           {client.clientName}
                         </p>
-                        <p className="text-[11px] text-neutral-400 font-sans">
+                        <p className={`text-[11px] font-sans ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                           {worksCount} {worksCount === 1 ? "work" : "works"}
                         </p>
                       </div>
@@ -1134,14 +1192,18 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           </div>
 
           {/* Header Explainer Banner */}
-          <div className="p-4 sm:p-6 rounded-2xl bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border border-white/10 backdrop-blur-md">
+          <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+            isLight
+              ? "bg-gradient-to-r from-slate-100 via-white to-slate-100 border-slate-200 shadow-sm"
+              : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+          }`}>
             <span className="text-[11px] font-mono tracking-widest text-[#16b09f] uppercase font-semibold block mb-1">
               SECTION CONTROL: LOGO KLIEN (MARQUEE)
             </span>
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+            <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
               {tr("Client Logos & Marquee Editor", "Editor Logo Klien & Subtitle Marquee", "Editor Logo Klien & Subtitle Marquee")}
             </h2>
-            <p className="text-xs sm:text-sm text-neutral-400 mt-1.5 max-w-3xl leading-relaxed">
+            <p className={`text-xs sm:text-sm mt-1.5 max-w-3xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
               {tr(
                 "Manage title subtitle and partner brand logos scrolling in the public website marquee. Add new logos, rename, switch rows, or delete.",
                 "Kelola tulisan judul serta logo-logo brand partner yang berjalan di marquee logo website publik. Anda bisa menambah logo baru, mengganti nama, memindahkan baris, atau menghapus logo.",
@@ -1151,8 +1213,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           </div>
 
           {/* Subtitle Form */}
-          <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
+            isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
+          }`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
               <HiTag className="w-4 h-4 text-[#16b09f]" />
               <span>{tr("Marquee Subtitle / Section Title", "Tulisan Subtitle / Judul Marquee", "Tulisan Subtitle / Judul Marquee")}</span>
             </h3>
@@ -1162,9 +1226,13 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 value={clSubtitle}
                 onChange={(e) => setClSubtitle?.(e.target.value)}
                 placeholder="SELECTED CLIENTS & CREATIVE COLLABORATIONS"
-                className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                className={`w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-colors border ${
+                  isLight
+                    ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#16b09f]"
+                    : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                }`}
               />
-              <p className="text-[11px] text-neutral-500 font-mono">
+              <p className={`text-[11px] font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
                 {tr(
                   "This text appears above the partner logos marquee on the public website.",
                   "Teks ini tampil di atas marquee logo di website publik.",
@@ -1175,14 +1243,16 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           </div>
 
           {/* Form Tambah Logo Klien Baru */}
-          <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+          <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
+            isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
+          }`}>
+            <h3 className={`text-sm font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
               <HiPlus className="w-4 h-4 text-[#16b09f]" />
               <span>{tr("Add New Client Logo to Marquee", "Tambah Logo Klien Baru ke Marquee", "Tambah Logo Klien Baru ka Marquee")}</span>
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-semibold text-neutral-300">
+                <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                   {tr("Client / Brand Name", "Nama Klien / Brand", "Namo Klien / Brand")}
                 </label>
                 <input
@@ -1190,18 +1260,26 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   value={newLogoName}
                   onChange={(e) => setNewLogoName?.(e.target.value)}
                   placeholder={tr("e.g. Apple, Google, Nike", "Contoh: Apple, Google, Nike", "Contoh: Apple, Google, Nike")}
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  className={`w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-colors border ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#16b09f]"
+                      : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                  }`}
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-mono font-semibold text-neutral-300">
+                <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                   {tr("Marquee Row Position", "Posisi Baris Marquee", "Posisi Barih Marquee")}
                 </label>
                 <select
                   value={newLogoRow}
                   onChange={(e) => setNewLogoRow?.(parseInt(e.target.value) as 1 | 2)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                  className={`w-full px-4 py-2.5 rounded-xl text-sm outline-none transition-colors border cursor-pointer ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-[#16b09f]"
+                      : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                  }`}
                 >
                   <option value={1}>{tr("Row 1 (Scroll Left)", "Baris 1 (Scroll ke Kiri)", "Barih 1 (Scroll ka Kida)")}</option>
                   <option value={2}>{tr("Row 2 (Scroll Right)", "Baris 2 (Scroll ke Kanan)", "Barih 2 (Scroll ka Kanan)")}</option>
@@ -1210,7 +1288,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-mono font-semibold text-neutral-300">
+                  <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                     {tr("Logo File (SVG / PNG / WebP)", "File Logo (SVG / PNG / WebP)", "File Logo (SVG / PNG / WebP)")}
                   </label>
                   <span className="text-[10px] font-mono text-[#16b09f] bg-[#16b09f]/10 border border-[#16b09f]/30 px-2 py-0.5 rounded-full font-semibold">
@@ -1224,9 +1302,17 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     onChange={(e) => setNewLogoFile?.(normalizeMediaUrl(e.target.value))}
                     onBlur={() => setNewLogoFile?.(normalizeMediaUrl(newLogoFile))}
                     placeholder={tr("Paste link Google Drive atau URL online...", "Paste link Google Drive atau URL online...", "Paste link Google Drive atau URL online...")}
-                    className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs font-mono focus:outline-none focus:border-[#16b09f]"
+                    className={`flex-1 px-3.5 py-2.5 rounded-xl text-xs font-mono outline-none transition-colors border ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#16b09f]"
+                        : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
+                    }`}
                   />
-                  <label className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-neutral-200 text-xs font-semibold cursor-pointer border border-white/15 transition-colors shrink-0">
+                  <label className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer border transition-colors shrink-0 ${
+                    isLight
+                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                      : "bg-neutral-900 hover:bg-neutral-800 text-neutral-200 border-white/15"
+                  }`}>
                     <HiPhoto className="w-4 h-4 text-[#16b09f]" />
                     <span className="truncate">
                       {newLogoFile
@@ -1272,9 +1358,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     />
                   </label>
                 </div>
-                <p className="text-[11px] text-neutral-400 font-mono leading-relaxed mt-1">
+                <p className={`text-[11px] font-mono leading-relaxed mt-1 ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                   📌 <strong>{tr("Frame Display Size:", "Ukuran Frame Tampil:", "Ukuran Frame Tampil:")}</strong>{" "}
-                  <span className="text-white font-semibold">160 × 56 pixel</span> ({tr("logo height:", "tinggi logo:", "tinggi logo:")} 28px).
+                  <span className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>160 × 56 pixel</span> ({tr("logo height:", "tinggi logo:", "tinggi logo:")} 28px).
                   <br />
                   ✨ <strong>{tr("Recommended File Size:", "Ukuran File Disarankan:", "Ukuran File Disarankan:")}</strong>{" "}
                   <span className="text-[#16b09f] font-semibold">200 × 60 px</span> {tr("to", "s/d", "s/d")}{" "}
@@ -1285,7 +1371,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
             {newLogoFile && (
               <div className="flex items-center gap-4 pt-2">
-                <div className="p-2 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center">
+                <div className={`p-2 rounded-xl border flex items-center justify-center ${
+                  isLight ? "bg-slate-100 border-slate-200" : "bg-white/[0.04] border-white/10"
+                }`}>
                   <img
                     src={normalizeMediaUrl(newLogoFile)}
                     alt="Preview"
@@ -1295,7 +1383,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
                       else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
                     }}
-                    className="h-8 max-w-[120px] object-contain invert brightness-0"
+                    className={`h-8 max-w-[120px] object-contain ${isLight ? "brightness-0 opacity-80" : "invert brightness-0"}`}
                   />
                 </div>
                 <button
@@ -1312,15 +1400,19 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           {/* List Logos: Baris 1 & Baris 2 */}
           <div className="space-y-6">
             {/* Row 1 */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
+              isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
+            }`}>
+              <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
+                <h3 className={`text-sm font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
                   <span>
                     {tr("Row 1 — Scroll Left Animation", "Baris 1 — Scroll Bergerak ke Kiri", "Barih 1 — Scroll Bagarak ka Kida")}
                   </span>
                 </h3>
-                <span className="text-xs font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full">
+                <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
+                  isLight ? "text-cyan-800 bg-cyan-100 border border-cyan-200" : "text-cyan-400 bg-cyan-500/10"
+                }`}>
                   {row1Count} Logo
                 </span>
               </div>
@@ -1331,9 +1423,15 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   .map((logo) => (
                     <div
                       key={logo.id}
-                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 flex flex-col items-center justify-between gap-2.5 group relative hover:border-[#16b09f]/30 transition-colors"
+                      className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-colors ${
+                        isLight
+                          ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
+                          : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
+                      }`}
                     >
-                      <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
+                      <div className={`h-10 w-full flex items-center justify-center transition-opacity ${
+                        isLight ? "brightness-0 opacity-80 group-hover:opacity-100" : "invert brightness-0 opacity-70 group-hover:opacity-100"
+                      }`}>
                         <img
                           src={normalizeMediaUrl(logo.file)}
                           alt={logo.name}
@@ -1361,9 +1459,15 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                             onSaveClientLogos?.();
                           }
                         }}
-                        className="w-full text-center px-1.5 py-1 rounded bg-neutral-900 border border-white/10 text-white text-[11px] font-mono focus:outline-none focus:border-[#16b09f]"
+                        className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border ${
+                          isLight
+                            ? "bg-white border-slate-200 text-slate-800"
+                            : "bg-neutral-900 border-white/10 text-white"
+                        }`}
                       />
-                      <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
+                      <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
+                        isLight ? "border-slate-200" : "border-white/5"
+                      }`}>
                         <button
                           type="button"
                           title={tr("Move to Row 2", "Pindah ke Baris 2", "Pindah ka Barih 2")}
@@ -1373,7 +1477,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                             );
                             showToast(tr(`Logo "${logo.name}" moved to Row 2.`, `Logo "${logo.name}" dipindah ke Baris 2.`, `Logo "${logo.name}" dipindah ka Barih 2.`));
                           }}
-                          className="text-[10px] font-mono text-neutral-400 hover:text-cyan-400 transition-colors cursor-pointer"
+                          className={`text-[10px] font-mono transition-colors cursor-pointer ${
+                            isLight ? "text-slate-500 hover:text-cyan-600" : "text-neutral-400 hover:text-cyan-400"
+                          }`}
                         >
                           ↓ {tr("Row 2", "Baris 2", "Barih 2")}
                         </button>
@@ -1381,7 +1487,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           type="button"
                           title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
                           onClick={() => onDeleteClientLogo?.(logo.id)}
-                          className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                          className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
                         >
                           <HiTrash className="w-3.5 h-3.5" />
                         </button>
@@ -1392,15 +1498,19 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             </div>
 
             {/* Row 2 */}
-            <div className="p-5 sm:p-7 rounded-2xl bg-[#0e0f14] border border-white/10 space-y-4">
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+            <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
+              isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
+            }`}>
+              <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
+                <h3 className={`text-sm font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   <span>
                     {tr("Row 2 — Scroll Right Animation", "Baris 2 — Scroll Bergerak ke Kanan", "Barih 2 — Scroll Bagarak ka Kanan")}
                   </span>
                 </h3>
-                <span className="text-xs font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
+                  isLight ? "text-emerald-800 bg-emerald-100 border border-emerald-200" : "text-emerald-400 bg-emerald-500/10"
+                }`}>
                   {row2Count} Logo
                 </span>
               </div>
@@ -1411,9 +1521,15 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   .map((logo) => (
                     <div
                       key={logo.id}
-                      className="p-3 rounded-xl bg-neutral-950 border border-white/10 flex flex-col items-center justify-between gap-2.5 group relative hover:border-[#16b09f]/30 transition-colors"
+                      className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-colors ${
+                        isLight
+                          ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
+                          : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
+                      }`}
                     >
-                      <div className="h-10 w-full flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity invert brightness-0">
+                      <div className={`h-10 w-full flex items-center justify-center transition-opacity ${
+                        isLight ? "brightness-0 opacity-80 group-hover:opacity-100" : "invert brightness-0 opacity-70 group-hover:opacity-100"
+                      }`}>
                         <img
                           src={normalizeMediaUrl(logo.file)}
                           alt={logo.name}
@@ -1441,9 +1557,15 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                             onSaveClientLogos?.();
                           }
                         }}
-                        className="w-full text-center px-1.5 py-1 rounded bg-neutral-900 border border-white/10 text-white text-[11px] font-mono focus:outline-none focus:border-[#16b09f]"
+                        className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border ${
+                          isLight
+                            ? "bg-white border-slate-200 text-slate-800"
+                            : "bg-neutral-900 border-white/10 text-white"
+                        }`}
                       />
-                      <div className="flex items-center gap-1.5 w-full justify-between pt-1 border-t border-white/5">
+                      <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
+                        isLight ? "border-slate-200" : "border-white/5"
+                      }`}>
                         <button
                           type="button"
                           title={tr("Move to Row 1", "Pindah ke Baris 1", "Pindah ka Barih 1")}
@@ -1453,7 +1575,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                             );
                             showToast(tr(`Logo "${logo.name}" moved to Row 1.`, `Logo "${logo.name}" dipindah ke Baris 1.`, `Logo "${logo.name}" dipindah ka Barih 1.`));
                           }}
-                          className="text-[10px] font-mono text-neutral-400 hover:text-emerald-400 transition-colors cursor-pointer"
+                          className={`text-[10px] font-mono transition-colors cursor-pointer ${
+                            isLight ? "text-slate-500 hover:text-emerald-600" : "text-neutral-400 hover:text-emerald-400"
+                          }`}
                         >
                           ↑ {tr("Row 1", "Baris 1", "Barih 1")}
                         </button>
@@ -1461,7 +1585,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           type="button"
                           title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
                           onClick={() => onDeleteClientLogo?.(logo.id)}
-                          className="p-1 rounded text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer"
+                          className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
                         >
                           <HiTrash className="w-3.5 h-3.5" />
                         </button>
@@ -1470,8 +1594,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   ))}
               </div>
             </div>
-
-                      </div>
+          </div>
         </main>
       ) : selectedClient ? (
         <main
@@ -1495,14 +1618,16 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           </div>
 
           {/* Breadcrumb */}
-          <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-400">
+          <div className={`hidden sm:flex items-center gap-2 text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
             <span>{tr("Clients", "Klien", "Klien")}</span>
             <span>/</span>
-            <span className="text-white font-medium">{selectedClient.clientName}</span>
+            <span className={`font-medium ${isLight ? "text-slate-900" : "text-white"}`}>{selectedClient.clientName}</span>
           </div>
 
           {/* Client Header Card */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
+          <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b ${
+            isLight ? "border-slate-200" : "border-white/5"
+          }`}>
             <div className="flex items-center gap-3.5">
               {/* Rounded Square Avatar [KD] with Click / Double Click to Upload Brand Profile Picture */}
               <div
@@ -1513,7 +1638,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   "Click to change brand profile / logo",
                   "Klik untuak ganti foto profil / logo brand"
                 )}
-                className="relative group w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#161a22] border-2 border-white/10 hover:border-[#16b09f]/60 flex items-center justify-center font-bold text-white text-base shadow-inner shrink-0 cursor-pointer overflow-hidden transition-all select-none p-1.5"
+                className={`relative group w-12 h-12 sm:w-14 sm:h-14 rounded-2xl border-2 flex items-center justify-center font-bold text-base shadow-inner shrink-0 cursor-pointer overflow-hidden transition-all select-none p-1.5 ${
+                  isLight
+                    ? "bg-white border-slate-200 hover:border-[#16b09f] text-slate-800"
+                    : "bg-[#161a22] border-white/10 hover:border-[#16b09f]/60 text-white"
+                }`}
               >
                 {selectedClient.logo ? (
                   <img
@@ -1522,7 +1651,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     className="w-full h-full object-contain rounded-xl transition-transform group-hover:scale-105"
                   />
                 ) : (
-                  <span className="font-mono text-base tracking-wider text-neutral-200 group-hover:text-white">
+                  <span className={`font-mono text-base tracking-wider ${isLight ? "text-slate-700" : "text-neutral-200 group-hover:text-white"}`}>
                     {clientInitials}
                   </span>
                 )}
@@ -1552,7 +1681,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <div className="flex items-center gap-2">
                   <h1
                     onDoubleClick={() => onOpenEditFolder(selectedClient)}
-                    className="text-2xl font-bold text-white tracking-tight cursor-pointer hover:text-cyan-400 transition-colors"
+                    className={`text-2xl font-bold tracking-tight cursor-pointer hover:text-cyan-600 transition-colors ${
+                      isLight ? "text-slate-900" : "text-white"
+                    }`}
                     title={tr("Klik 2x untuk ganti nama folder", "Double-click to rename folder", "Klik 2x untuak ganti namo folder")}
                   >
                     {selectedClient.clientName}
@@ -1560,17 +1691,23 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   <button
                     type="button"
                     onClick={() => onOpenEditFolder(selectedClient)}
-                    className="p-1 rounded-lg text-neutral-400 hover:text-cyan-400 hover:bg-white/10 transition-colors cursor-pointer"
+                    className={`p-1 rounded-lg transition-colors cursor-pointer ${
+                      isLight ? "text-slate-400 hover:text-cyan-600 hover:bg-slate-100" : "text-neutral-400 hover:text-cyan-400 hover:bg-white/10"
+                    }`}
                     title={tr("Rename folder / edit brand name", "Ganti nama folder / edit brand", "Ganti namo folder / edit brand")}
                   >
                     <HiPencilSquare className="w-4 h-4" />
                   </button>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border ${
+                    isLight
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                      : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
+                  }`}>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Active
                   </span>
                 </div>
-                <p className="text-xs text-neutral-400 mt-1">
+                <p className={`text-xs mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   {selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`} • {selectedClient.works?.length || 0} {selectedClient.works?.length === 1 ? "work" : "works"}
                 </p>
               </div>
@@ -1580,13 +1717,17 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           {/* Portfolio Information & Cover Preview Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             {/* Left: Portfolio Information Form */}
-            <div className="lg:col-span-7 p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-4">
-              <div className="pb-2 border-b border-white/5 flex items-center justify-between">
+            <div className={`lg:col-span-7 p-5 rounded-2xl border space-y-4 ${
+              isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#111419] border-white/5"
+            }`}>
+              <div className={`pb-2 border-b flex items-center justify-between ${
+                isLight ? "border-slate-200" : "border-white/5"
+              }`}>
                 <div>
-                  <h3 className="text-sm font-semibold text-white">
+                  <h3 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
                     {tr("Portfolio Information", "Informasi Portofolio", "Informasi Portofolio")}
                   </h3>
-                  <p className="text-[11px] text-neutral-400">
+                  <p className={`text-[11px] ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                     {tr("Category, headline & brand profile context", "Kategori, headline & profil brand", "Kategori, headline & profil brand")}
                   </p>
                 </div>
@@ -1601,7 +1742,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                 <div>
-                  <label className="block text-[11px] text-neutral-400 font-medium mb-1">
+                  <label className={`block text-[11px] font-medium mb-1 ${isLight ? "text-slate-700" : "text-neutral-400"}`}>
                     {tr("Category", "Kategori", "Kategori")}
                   </label>
                   <input
@@ -1625,12 +1766,16 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       }
                     }}
                     placeholder={tr("e.g. Digital Campaign", "Contoh: Digital Campaign", "Contoh: Digital Campaign")}
-                    className="w-full bg-[#161a22] border border-white/5 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors"
+                    className={`w-full rounded-xl px-3 py-2 text-xs outline-none transition-colors border ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#16b09f]"
+                        : "bg-[#161a22] border-white/5 text-white placeholder-neutral-500 focus:border-[#16b09f]/60"
+                    }`}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] text-neutral-400 font-medium mb-1">
+                  <label className={`block text-[11px] font-medium mb-1 ${isLight ? "text-slate-700" : "text-neutral-400"}`}>
                     {tr("Main Headline", "Headline Utama", "Judul Utamo")}
                   </label>
                   <input
@@ -1649,28 +1794,42 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       }
                     }}
                     placeholder="PROFESSIONAL EXPERIENCE"
-                    className="w-full bg-[#161a22] border border-white/5 rounded-xl px-3 py-2 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors"
+                    className={`w-full rounded-xl px-3 py-2 text-xs outline-none transition-colors border ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#16b09f]"
+                        : "bg-[#161a22] border-white/5 text-white placeholder-neutral-500 focus:border-[#16b09f]/60"
+                    }`}
                   />
                 </div>
               </div>
 
               {/* Panel 1: PROJECT DESCRIPTION */}
-              <div className="p-3.5 rounded-xl bg-[#161a22]/70 border border-cyan-500/25 space-y-2">
+              <div className={`p-3.5 rounded-xl space-y-2 border ${
+                isLight
+                  ? "bg-cyan-50/70 border-cyan-200 shadow-xs"
+                  : "bg-[#161a22]/70 border-cyan-500/25"
+              }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-cyan-400" />
-                    <label className="text-xs font-mono font-bold text-cyan-300 uppercase tracking-wide">
+                    <span className="w-2 h-2 rounded-full bg-cyan-500" />
+                    <label className={`text-xs font-mono font-bold uppercase tracking-wide ${
+                      isLight ? "text-cyan-800" : "text-cyan-300"
+                    }`}>
                       PROJECT DESCRIPTION
                     </label>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-cyan-500/15 text-cyan-300 border border-cyan-500/30">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                      isLight
+                        ? "bg-cyan-100 text-cyan-800 border-cyan-300"
+                        : "bg-cyan-500/15 text-cyan-300 border-cyan-500/30"
+                    }`}>
                       {tr("Overview Karya", "Project Overview", "Overview Karya")}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-cyan-400/80">
+                  <span className={`text-[10px] font-mono ${isLight ? "text-cyan-700 font-semibold" : "text-cyan-400/80"}`}>
                     {projectDescInput.length} / 1000
                   </span>
                 </div>
-                <p className="text-[11px] text-neutral-400 leading-snug">
+                <p className={`text-[11px] leading-snug ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                   {tr(
                     "💡 Ditampilkan tepat di bawah judul karya pada preview modal (tujuan visual, ringkasan kampanye, atau konteks proyek).",
                     "💡 Displayed right below work title on preview modal (visual goal, campaign summary, or project context).",
@@ -1715,27 +1874,41 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     `Example: Integrated visual campaign for ${selectedClient.clientName}, blending layout design, art direction, and digital promotional assets...`,
                     `Contoh: Kampanye visual tapadu untuak ${selectedClient.clientName}...`
                   )}
-                  className="w-full bg-[#0e1015] border border-cyan-500/20 focus:border-cyan-400 rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none transition-colors leading-relaxed resize-none cursor-text"
+                  className={`w-full rounded-xl p-3 text-xs outline-none transition-colors leading-relaxed resize-none cursor-text border ${
+                    isLight
+                      ? "bg-white border-cyan-200 text-slate-800 placeholder-slate-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 shadow-xs"
+                      : "bg-[#0e1015] border-cyan-500/20 text-white placeholder-neutral-500 focus:border-cyan-400"
+                  }`}
                 />
               </div>
 
               {/* Panel 2: BRAND PROFILE & CONTEXT */}
-              <div className="p-3.5 rounded-xl bg-[#161a22]/70 border border-[#16b09f]/25 space-y-2">
+              <div className={`p-3.5 rounded-xl space-y-2 border ${
+                isLight
+                  ? "bg-teal-50/70 border-teal-200 shadow-xs"
+                  : "bg-[#161a22]/70 border-[#16b09f]/25"
+              }`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#16b09f]" />
-                    <label className="text-xs font-mono font-bold text-[#16b09f] uppercase tracking-wide">
+                    <label className={`text-xs font-mono font-bold uppercase tracking-wide ${
+                      isLight ? "text-teal-800" : "text-[#16b09f]"
+                    }`}>
                       BRAND PROFILE & CONTEXT
                     </label>
-                    <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#16b09f]/15 text-[#16b09f] border border-[#16b09f]/30">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                      isLight
+                        ? "bg-teal-100 text-teal-800 border-teal-300"
+                        : "bg-[#16b09f]/15 text-[#16b09f] border-[#16b09f]/30"
+                    }`}>
                       {tr("Profil Klien", "Client Brand Context", "Profil Klien")}
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-[#16b09f]/80">
+                  <span className={`text-[10px] font-mono ${isLight ? "text-teal-700 font-semibold" : "text-[#16b09f]/80"}`}>
                     {descriptionInput.length} / 1000
                   </span>
                 </div>
-                <p className="text-[11px] text-neutral-400 leading-snug">
+                <p className={`text-[11px] leading-snug ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                   {tr(
                     "💡 Ditampilkan di box 'BRAND PROFILE & CONTEXT' di bagian paling bawah kartu case study (identitas & latar belakang brand klien).",
                     "💡 Displayed in the 'BRAND PROFILE & CONTEXT' box at the bottom of the case study card (company identity & background).",
@@ -1780,15 +1953,21 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     `Example: ${selectedClient.clientName} is an industry-leading brand known for its forward-thinking visual identity...`,
                     `Contoh: ${selectedClient.clientName} adolah brand takamuko...`
                   )}
-                  className="w-full bg-[#0e1015] border border-[#16b09f]/20 focus:border-[#16b09f] rounded-xl p-3 text-xs text-white placeholder-neutral-500 outline-none transition-colors leading-relaxed resize-none cursor-text"
+                  className={`w-full rounded-xl p-3 text-xs outline-none transition-colors leading-relaxed resize-none cursor-text border ${
+                    isLight
+                      ? "bg-white border-teal-200 text-slate-800 placeholder-slate-400 focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] shadow-xs"
+                      : "bg-[#0e1015] border-[#16b09f]/20 text-white placeholder-neutral-500 focus:border-[#16b09f]"
+                  }`}
                 />
               </div>
             </div>
 
             {/* Right: Cover Card with Double Click to Replace */}
-            <div className="lg:col-span-5 p-5 rounded-2xl bg-[#111419] border border-white/5 flex flex-col justify-between space-y-3">
-              <div className="pb-2 border-b border-white/5">
-                <h3 className="text-sm font-semibold text-white">
+            <div className={`lg:col-span-5 p-5 rounded-2xl border flex flex-col justify-between space-y-3 ${
+              isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#111419] border-white/5"
+            }`}>
+              <div className={`pb-2 border-b ${isLight ? "border-slate-200" : "border-white/5"}`}>
+                <h3 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
                   {tr("Cover Image", "Gambar Sampul", "Gambar Muko")}
                 </h3>
                 <input
@@ -1808,7 +1987,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   "Double-click to replace cover image",
                   "Klik 2x untuak mangganti gambar sampul"
                 )}
-                className="relative aspect-[16/10] w-full rounded-xl overflow-hidden bg-black border border-white/5 shadow-md cursor-pointer group select-none hover:border-[#16b09f]/50 transition-all"
+                className={`relative aspect-[16/10] w-full rounded-xl overflow-hidden border shadow-md cursor-pointer group select-none hover:border-[#16b09f]/50 transition-all ${
+                  isLight ? "bg-slate-100 border-slate-200" : "bg-black border-white/5"
+                }`}
               >
                 <img
                   src={coverImageUrl}
@@ -1840,18 +2021,26 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           </div>
 
           {/* Software & AI Tools Section */}
-          <div className="p-5 rounded-2xl bg-[#111419] border border-white/5 space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-white/5">
+          <div className={`p-5 rounded-2xl border space-y-4 ${
+            isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#111419] border-white/5"
+          }`}>
+            <div className={`flex items-center justify-between pb-2 border-b ${
+              isLight ? "border-slate-200" : "border-white/5"
+            }`}>
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">Software & AI tools</h3>
-                <span className="text-xs text-neutral-400 font-mono">
+                <h3 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>Software & AI tools</h3>
+                <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   {selectedTools.length} selected
                 </span>
               </div>
               <button
                 type="button"
                 onClick={openManageTools}
-                className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-semibold text-neutral-300 hover:text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
+                className={`px-2.5 py-1 rounded-lg text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                    : "bg-white/5 hover:bg-white/10 text-neutral-300 hover:text-white border border-white/10"
+                }`}
               >
                 <span>{tr("Manage", "Kelola", "Kalola")}</span>
               </button>
@@ -1859,7 +2048,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
             {/* Design Tools Row */}
             <div className="space-y-1.5">
-              <span className="text-[11px] text-neutral-400 font-medium block">Design</span>
+              <span className={`text-[11px] font-medium block ${isLight ? "text-slate-600" : "text-neutral-400"}`}>Design</span>
               <div className="flex flex-wrap gap-2">
                 {designTools.map((tool) => {
                   const isChecked = selectedTools.some(
@@ -1872,7 +2061,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       onClick={() => toggleTool(tool)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                         isChecked
-                          ? "bg-[#16b09f]/20 text-[#16b09f] border border-[#16b09f]/50 font-semibold shadow-sm"
+                          ? isLight
+                            ? "bg-teal-50 text-teal-800 border border-teal-300 font-semibold shadow-xs"
+                            : "bg-[#16b09f]/20 text-[#16b09f] border border-[#16b09f]/50 font-semibold shadow-sm"
+                          : isLight
+                          ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
                           : "bg-white/[0.03] hover:bg-white/[0.07] text-neutral-400 hover:text-white border border-white/5"
                       }`}
                     >
@@ -1887,7 +2080,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
             {/* AI Tools Row */}
             <div className="space-y-1.5">
-              <span className="text-[11px] text-neutral-400 font-medium block">AI</span>
+              <span className={`text-[11px] font-medium block ${isLight ? "text-slate-600" : "text-neutral-400"}`}>AI</span>
               <div className="flex flex-wrap gap-2">
                 {aiTools.map((tool) => {
                   const isChecked = selectedTools.some(
@@ -1900,7 +2093,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       onClick={() => toggleTool(tool)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                         isChecked
-                          ? "bg-[#16b09f]/20 text-[#16b09f] border border-[#16b09f]/50 font-semibold shadow-sm"
+                          ? isLight
+                            ? "bg-teal-50 text-teal-800 border border-teal-300 font-semibold shadow-xs"
+                            : "bg-[#16b09f]/20 text-[#16b09f] border border-[#16b09f]/50 font-semibold shadow-sm"
+                          : isLight
+                          ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200"
                           : "bg-white/[0.03] hover:bg-white/[0.07] text-neutral-400 hover:text-white border border-white/5"
                       }`}
                     >
@@ -1919,8 +2116,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             {/* Assets Header Bar */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-white">{tr("Assets", "Aset", "Aset")}</h3>
-                <span className="text-xs text-neutral-400 font-mono">
+                <h3 className={`text-sm font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>{tr("Assets", "Aset", "Aset")}</h3>
+                <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   {selectedClient.works?.length || 0} {tr("items", "item", "item")}
                 </span>
               </div>
@@ -1928,32 +2125,48 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               {/* Assets Toolbar: Search, Sort, View Mode */}
               <div className="flex items-center gap-2">
                 <div className="relative">
-                  <HiMagnifyingGlass className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-neutral-500" />
+                  <HiMagnifyingGlass className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 ${isLight ? "text-slate-400" : "text-neutral-500"}`} />
                   <input
                     type="text"
                     value={assetSearch}
                     onChange={(e) => setAssetSearch(e.target.value)}
                     placeholder={tr("Search assets...", "Cari aset...", "Cari aset...")}
-                    className="bg-[#12151a] border border-white/5 rounded-lg pl-8 pr-3 py-1 text-xs text-white placeholder-neutral-500 outline-none focus:border-[#16b09f]/60 transition-colors w-40 sm:w-48"
+                    className={`border rounded-lg pl-8 pr-3 py-1 text-xs outline-none transition-colors w-40 sm:w-48 ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#16b09f]"
+                        : "bg-[#12151a] border-white/5 text-white placeholder-neutral-500 focus:border-[#16b09f]/60"
+                    }`}
                   />
                 </div>
 
                 <select
                   value={assetSort}
                   onChange={(e) => setAssetSort(e.target.value as any)}
-                  className="bg-[#12151a] border border-white/5 rounded-lg px-2.5 py-1 text-xs text-neutral-300 outline-none focus:border-[#16b09f]/60 cursor-pointer"
+                  className={`border rounded-lg px-2.5 py-1 text-xs outline-none cursor-pointer ${
+                    isLight
+                      ? "bg-slate-50 border-slate-200 text-slate-800 focus:bg-white focus:border-[#16b09f]"
+                      : "bg-[#12151a] border-white/5 text-neutral-300 focus:border-[#16b09f]/60"
+                  }`}
                 >
                   <option value="newest">{tr("Newest first", "Terbaru", "Paliang baru")}</option>
                   <option value="oldest">{tr("Oldest first", "Terlama", "Paliang lamo")}</option>
                   <option value="title">{tr("Alphabetical", "Abjad A-Z", "Abjad A-Z")}</option>
                 </select>
 
-                <div className="flex items-center p-0.5 rounded-lg bg-[#12151a] border border-white/5">
+                <div className={`flex items-center p-0.5 rounded-lg border ${
+                  isLight ? "bg-slate-100 border-slate-200" : "bg-[#12151a] border-white/5"
+                }`}>
                   <button
                     type="button"
                     onClick={() => setAssetViewMode("grid")}
                     className={`p-1 rounded-md transition-colors cursor-pointer ${
-                      assetViewMode === "grid" ? "bg-white/10 text-white" : "text-neutral-500 hover:text-white"
+                      assetViewMode === "grid"
+                        ? isLight
+                          ? "bg-white text-slate-900 shadow-xs"
+                          : "bg-white/10 text-white"
+                        : isLight
+                        ? "text-slate-400 hover:text-slate-900"
+                        : "text-neutral-500 hover:text-white"
                     }`}
                   >
                     <HiSquares2X2 className="w-3.5 h-3.5" />
@@ -1962,7 +2175,13 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     type="button"
                     onClick={() => setAssetViewMode("list")}
                     className={`p-1 rounded-md transition-colors cursor-pointer ${
-                      assetViewMode === "list" ? "bg-white/10 text-white" : "text-neutral-500 hover:text-white"
+                      assetViewMode === "list"
+                        ? isLight
+                          ? "bg-white text-slate-900 shadow-xs"
+                          : "bg-white/10 text-white"
+                        : isLight
+                        ? "text-slate-400 hover:text-slate-900"
+                        : "text-neutral-500 hover:text-white"
                     }`}
                   >
                     <HiBars3BottomLeft className="w-3.5 h-3.5" />
@@ -1977,10 +2196,14 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 return (
                   <div
                     key={work.id}
-                    className="group relative rounded-xl bg-[#111419] border border-white/5 hover:border-white/20 transition-all overflow-hidden flex flex-col justify-between"
+                    className={`group relative rounded-xl border transition-all overflow-hidden flex flex-col justify-between ${
+                      isLight
+                        ? "bg-white border-slate-200 hover:border-slate-300 shadow-sm"
+                        : "bg-[#111419] border-white/5 hover:border-white/20"
+                    }`}
                   >
                     {/* Thumbnail */}
-                    <div className="relative aspect-[16/10] w-full bg-black overflow-hidden">
+                    <div className="relative aspect-[16/10] w-full bg-slate-900 overflow-hidden">
                       <img
                         src={work.image}
                         alt={work.title}
@@ -2010,10 +2233,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
                     {/* Metadata Footer */}
                     <div className="p-2.5">
-                      <h4 className="text-xs font-semibold text-white truncate">
+                      <h4 className={`text-xs font-semibold truncate ${isLight ? "text-slate-900" : "text-white"}`}>
                         {work.title}
                       </h4>
-                      <p className="text-[10px] text-neutral-400 mt-0.5 truncate flex items-center gap-1.5">
+                      <p className={`text-[10px] mt-0.5 truncate flex items-center gap-1.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                         <span>{work.year || "2026"} · {work.aspect || "4:5"}</span>
                         {Boolean(
                           work.isVideo ||
@@ -2024,7 +2247,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           (work.title && /video|motion|reel|animation/i.test(work.title)) ||
                           (work.gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test(work.gdriveUrl))
                         ) && (
-                          <span className="px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[9px] font-mono font-bold leading-none">
+                          <span className={`px-1 py-0.2 rounded border text-[9px] font-mono font-bold leading-none ${
+                            isLight
+                              ? "bg-emerald-50 text-emerald-700 border-emerald-300"
+                              : "bg-emerald-500/20 text-emerald-300 border-emerald-500/40"
+                          }`}>
                             🎬 VIDEO
                           </span>
                         )}
@@ -2038,9 +2265,17 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <button
                 type="button"
                 onClick={() => onOpenUploadWork(selectedTools)}
-                className="aspect-[16/10] sm:aspect-auto sm:min-h-[140px] rounded-xl border border-dashed border-white/15 hover:border-[#16b09f] bg-white/[0.01] hover:bg-[#16b09f]/5 flex flex-col items-center justify-center gap-2 text-neutral-400 hover:text-white transition-all cursor-pointer group"
+                className={`aspect-[16/10] sm:aspect-auto sm:min-h-[140px] rounded-xl border border-dashed flex flex-col items-center justify-center gap-2 transition-all cursor-pointer group ${
+                  isLight
+                    ? "border-slate-300 hover:border-[#16b09f] bg-white hover:bg-[#16b09f]/5 text-slate-500 hover:text-slate-900 shadow-xs"
+                    : "border-white/15 hover:border-[#16b09f] bg-white/[0.01] hover:bg-[#16b09f]/5 text-neutral-400 hover:text-white"
+                }`}
               >
-                <div className="w-8 h-8 rounded-full bg-white/5 group-hover:bg-[#16b09f] group-hover:text-black flex items-center justify-center transition-colors">
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
+                  isLight
+                    ? "bg-slate-100 group-hover:bg-[#16b09f] group-hover:text-black text-slate-600"
+                    : "bg-white/5 group-hover:bg-[#16b09f] group-hover:text-black"
+                }`}>
                   <HiPlus className="w-4 h-4 stroke-[2.5]" />
                 </div>
                 <span className="text-xs font-medium">{tr("Add images", "Tambah gambar", "Tambah gambar")}</span>
