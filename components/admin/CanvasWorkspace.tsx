@@ -5209,6 +5209,38 @@ export default function CanvasWorkspace({
     const itemX = selectedItem?.x !== undefined ? selectedItem.x : 0;
     const itemY = selectedItem?.y !== undefined ? selectedItem.y : 0;
 
+    // Theme adaptive styles for Inspector
+    const sectionTitleCls = `text-[11px] font-semibold ${isLight ? "text-slate-900" : "text-neutral-300"}`;
+    const labelTitleCls = `text-[10px] font-medium select-none ${isLight ? "text-slate-500" : "text-neutral-400"}`;
+    const scrubLabelCls = `font-mono select-none cursor-ew-resize transition-colors ${
+      isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+    }`;
+    const inputBoxCls = `flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${
+      isLight
+        ? "bg-slate-100 border border-slate-200 focus-within:border-[#0c8ce9] focus-within:bg-white"
+        : "bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]"
+    }`;
+    const inputTextCls = `w-full bg-transparent font-mono focus:outline-none text-xs ${
+      isLight ? "text-slate-900 placeholder:text-slate-400" : "text-white placeholder:text-neutral-500"
+    }`;
+    const unitTextCls = `text-[10px] font-mono ${isLight ? "text-slate-400" : "text-neutral-500"}`;
+    const selectBoxCls = `w-full px-2.5 py-1.5 rounded-lg text-xs appearance-none cursor-pointer transition-colors ${
+      isLight
+        ? "bg-slate-100 text-slate-900 border border-slate-200 focus:border-[#0c8ce9] focus:bg-white"
+        : "bg-[#2c2c2c] text-white border border-transparent focus:border-[#0c8ce9]"
+    }`;
+    const rowCardCls = `flex items-center justify-between p-1.5 rounded-lg text-xs transition-colors ${
+      isLight ? "bg-slate-100 border border-slate-200 text-slate-800" : "bg-[#2c2c2c] text-white"
+    }`;
+    const plusBtnCls = `cursor-pointer p-0.5 rounded transition-colors ${
+      isLight ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200/60" : "text-neutral-400 hover:text-white hover:bg-white/10"
+    }`;
+    const segmentedBarCls = `flex items-center p-0.5 rounded-lg ${
+      isLight ? "bg-slate-100 border border-slate-200 text-slate-700" : "bg-[#2c2c2c] text-neutral-300"
+    }`;
+    const segmentedBtnActiveCls = isLight ? "bg-white text-slate-900 font-medium shadow-xs" : "bg-white/20 text-white font-medium shadow-xs";
+    const segmentedBtnInactiveCls = isLight ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200/60" : "text-neutral-400 hover:text-white hover:bg-white/5";
+
     return (
       <aside
         aria-label="Figma Design Inspector"
@@ -5219,13 +5251,15 @@ export default function CanvasWorkspace({
         }`}
       >
         {/* Header: Design + Zoom Indicator */}
-        <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between shrink-0 text-xs">
-          <span className="font-semibold text-white">Design</span>
+        <div className={`px-3 py-2 border-b flex items-center justify-between shrink-0 text-xs ${isLight ? "border-slate-200" : "border-white/10"}`}>
+          <span className={`font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>Design</span>
 
           <button
             type="button"
             onClick={zoomToFitAll}
-            className="flex items-center gap-1 text-[11px] font-mono text-neutral-400 hover:text-white transition-colors cursor-pointer"
+            className={`flex items-center gap-1 text-[11px] font-mono transition-colors cursor-pointer ${
+              isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+            }`}
             title="Zoom percentage (click to fit)"
           >
             <span>{Math.round(zoom * 100)}%</span>
@@ -5235,15 +5269,15 @@ export default function CanvasWorkspace({
 
         {activeTool === "frame" || showFramePresetsPicker ? (
           /* ── Frame Presets Inspector View (Matches Screenshot media_1793530390332_97f50010.png) ── */
-          <div className="flex-1 overflow-y-auto no-scrollbar flex flex-col divide-y divide-white/5 text-xs font-sans">
+          <div className={`flex-1 overflow-y-auto no-scrollbar flex flex-col text-xs font-sans divide-y ${isLight ? "divide-slate-200" : "divide-white/5"}`}>
             {/* Header: Frame */}
-            <div className="px-4 pt-3.5 pb-2.5 flex items-center justify-between text-xs font-semibold text-white tracking-wide shrink-0">
+            <div className={`px-4 pt-3.5 pb-2.5 flex items-center justify-between text-xs font-semibold tracking-wide shrink-0 ${isLight ? "text-slate-900" : "text-white"}`}>
               <span className="text-[13px] font-bold">Frame</span>
               {showFramePresetsPicker && (
                 <button
                   type="button"
                   onClick={() => setShowFramePresetsPicker(false)}
-                  className="text-neutral-400 hover:text-white text-xs font-normal cursor-pointer"
+                  className={`text-xs font-normal cursor-pointer transition-colors ${isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"}`}
                 >
                   Done
                 </button>
@@ -5251,7 +5285,7 @@ export default function CanvasWorkspace({
             </div>
 
             {/* Accordion Categories List */}
-            <div className="flex-1 overflow-y-auto no-scrollbar py-1 divide-y divide-white/5">
+            <div className={`flex-1 overflow-y-auto no-scrollbar py-1 divide-y ${isLight ? "divide-slate-200" : "divide-white/5"}`}>
               {FRAME_PRESET_CATEGORIES.map((cat) => {
                 const isExpanded = !!expandedPresetCategories[cat.id];
                 return (
@@ -5259,26 +5293,34 @@ export default function CanvasWorkspace({
                     <button
                       type="button"
                       onClick={() => togglePresetCategory(cat.id)}
-                      className="w-full px-4 py-2 flex items-center gap-2 text-neutral-300 hover:text-white hover:bg-white/5 transition-colors cursor-pointer text-left font-medium"
+                      className={`w-full px-4 py-2 flex items-center gap-2 transition-colors cursor-pointer text-left font-medium ${
+                        isLight
+                          ? "text-slate-700 hover:text-slate-900 hover:bg-slate-100"
+                          : "text-neutral-300 hover:text-white hover:bg-white/5"
+                      }`}
                     >
-                      <span className="text-[9px] text-neutral-400 w-2.5 inline-block text-center shrink-0">
+                      <span className={`text-[9px] w-2.5 inline-block text-center shrink-0 ${isLight ? "text-slate-400" : "text-neutral-400"}`}>
                         {isExpanded ? "▾" : "▸"}
                       </span>
                       <span>{cat.title}</span>
                     </button>
 
                     {isExpanded && (
-                      <div className="py-0.5 bg-black/15">
+                      <div className={`py-0.5 ${isLight ? "bg-slate-50" : "bg-black/15"}`}>
                         {cat.items.map((item) => (
                           <button
                             key={item.id}
                             type="button"
                             onClick={() => handleApplyFigmaFramePreset(item)}
-                            className="w-full flex items-center justify-between pl-7 pr-4 py-1.5 text-xs text-neutral-300 hover:text-white hover:bg-[#0c8ce9]/20 transition-colors cursor-pointer group text-left"
+                            className={`w-full flex items-center justify-between pl-7 pr-4 py-1.5 text-xs transition-colors cursor-pointer group text-left ${
+                              isLight
+                                ? "text-slate-700 hover:text-slate-900 hover:bg-[#0c8ce9]/10"
+                                : "text-neutral-300 hover:text-white hover:bg-[#0c8ce9]/20"
+                            }`}
                             title={`${item.name} (${item.width} × ${item.height})`}
                           >
-                            <span className="truncate pr-2 group-hover:text-white">{item.name}</span>
-                            <span className="text-[11px] font-mono text-neutral-500 group-hover:text-neutral-300 shrink-0">
+                            <span className="truncate pr-2">{item.name}</span>
+                            <span className={`text-[11px] font-mono shrink-0 ${isLight ? "text-slate-400 group-hover:text-slate-600" : "text-neutral-500 group-hover:text-neutral-300"}`}>
                               {item.width}×{item.height}
                             </span>
                           </button>
@@ -5293,10 +5335,10 @@ export default function CanvasWorkspace({
         ) : (
           <>
         {/* Sub-header: Element Category Header & Top Tools (Image 1) */}
-        <div className="px-3 py-2 border-b border-white/10 flex items-center justify-between text-xs shrink-0">
-          <div className="flex items-center gap-1 font-semibold text-white">
+        <div className={`px-3 py-2 border-b flex items-center justify-between text-xs shrink-0 ${isLight ? "border-slate-200" : "border-white/10"}`}>
+          <div className={`flex items-center gap-1 font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
             {selectedItem && (selectedItem.type === "section" || selectedItem.mediaType === "section") && (
-              <FigmaSectionIcon className="w-3.5 h-3.5 text-neutral-300 mr-0.5" />
+              <FigmaSectionIcon className={`w-3.5 h-3.5 mr-0.5 ${isLight ? "text-slate-600" : "text-neutral-300"}`} />
             )}
             <span>
               {selectedItem
@@ -5313,27 +5355,31 @@ export default function CanvasWorkspace({
                   : "Media"
                 : "Canvas Page"}
             </span>
-            <HiChevronDown className="w-3 h-3 text-neutral-400" />
+            <HiChevronDown className={`w-3 h-3 ${isLight ? "text-slate-400" : "text-neutral-400"}`} />
           </div>
         </div>
 
         {/* ── Scrollable Inspector Sections ───────────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto divide-y divide-white/10 text-xs">
+        <div className={`flex-1 overflow-y-auto divide-y text-xs ${isLight ? "divide-slate-200" : "divide-white/10"}`}>
           {/* 1. POSITION SECTION (Image 1) */}
           <div className="p-3 space-y-2.5">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Position</span>
+            <div className="flex items-center justify-between">
+              <span className={sectionTitleCls}>Position</span>
             </div>
 
             {/* Alignment Row (7 buttons) */}
             <div className="flex flex-col gap-1.5">
-              <span className="text-[10px] text-neutral-400 font-medium">Alignment</span>
-              <div className="relative flex items-center justify-between p-1 rounded-lg bg-[#2c2c2c]/80 border border-white/5 text-neutral-300">
+              <span className={labelTitleCls}>Alignment</span>
+              <div className={`relative flex items-center justify-between p-1 rounded-lg ${
+                isLight ? "bg-slate-100 border border-slate-200 text-slate-700" : "bg-[#2c2c2c]/80 border border-white/5 text-neutral-300"
+              }`}>
                 <button
                   type="button"
                   onClick={() => handleAlign("left")}
                   title="Align Left (Alt+A)"
-                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    isLight ? "hover:bg-slate-200 hover:text-slate-900" : "hover:bg-white/15 hover:text-white"
+                  }`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M2 1h1.5v14H2V1zm3 3h8v3H5V4zm0 5h6v3H5V9z" />
@@ -5343,7 +5389,9 @@ export default function CanvasWorkspace({
                   type="button"
                   onClick={() => handleAlign("hcenter")}
                   title="Align Horizontal Centers (Alt+H)"
-                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    isLight ? "hover:bg-slate-200 hover:text-slate-900" : "hover:bg-white/15 hover:text-white"
+                  }`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M7.25 1h1.5v3H13v3H8.75v2H11v3H8.75v3h-1.5v-3H5V9h2.25V7H3V4h4.25V1z" />
@@ -5353,7 +5401,9 @@ export default function CanvasWorkspace({
                   type="button"
                   onClick={() => handleAlign("right")}
                   title="Align Right (Alt+D)"
-                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    isLight ? "hover:bg-slate-200 hover:text-slate-900" : "hover:bg-white/15 hover:text-white"
+                  }`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M14 1h-1.5v14H14V1zm-3 3H3v3h8V4zm0 5H5v3h6V9z" />
@@ -5363,7 +5413,9 @@ export default function CanvasWorkspace({
                   type="button"
                   onClick={() => handleAlign("top")}
                   title="Align Top (Alt+W)"
-                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    isLight ? "hover:bg-slate-200 hover:text-slate-900" : "hover:bg-white/15 hover:text-white"
+                  }`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M1 2v1.5h14V2H1zm3 3v8h3V5H4zm5 0v6h3V5H9z" />
@@ -5373,7 +5425,9 @@ export default function CanvasWorkspace({
                   type="button"
                   onClick={() => handleAlign("vcenter")}
                   title="Align Vertical Centers (Alt+V)"
-                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    isLight ? "hover:bg-slate-200 hover:text-slate-900" : "hover:bg-white/15 hover:text-white"
+                  }`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M1 7.25v1.5h3V13h3V8.75h2V11h3V8.75h3v-1.5h-3V5H9v2.25H7V3H4v4.25H1z" />
@@ -5383,7 +5437,9 @@ export default function CanvasWorkspace({
                   type="button"
                   onClick={() => handleAlign("bottom")}
                   title="Align Bottom (Alt+S)"
-                  className="p-1 rounded hover:bg-white/15 hover:text-white transition-colors cursor-pointer"
+                  className={`p-1 rounded transition-colors cursor-pointer ${
+                    isLight ? "hover:bg-slate-200 hover:text-slate-900" : "hover:bg-white/15 hover:text-white"
+                  }`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                     <path d="M1 14v-1.5h14V14H1zm3-3V3h3v8H4zm5 0V5h3v6H9z" />
@@ -5394,7 +5450,7 @@ export default function CanvasWorkspace({
                   onClick={() => setIsAlignMenuOpen((prev) => !prev)}
                   title="More actions"
                   className={`figma-align-trigger p-1 rounded transition-colors cursor-pointer ${
-                    isAlignMenuOpen ? "bg-[#0c8ce9] text-white" : "hover:bg-white/15 hover:text-white"
+                    isAlignMenuOpen ? "bg-[#0c8ce9] text-white" : isLight ? "hover:bg-slate-200 hover:text-slate-900" : "hover:bg-white/15 hover:text-white"
                   }`}
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
@@ -5412,7 +5468,11 @@ export default function CanvasWorkspace({
 
                 {/* More actions dropdown popup (Matches Figma Screenshot media_1793548295530_893b43a6.png) */}
                 {isAlignMenuOpen && (
-                  <div className="figma-align-menu absolute top-full right-0 mt-1.5 w-64 rounded-xl bg-[#1e1e1e]/98 border border-white/15 p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans text-neutral-200 flex flex-col gap-0.5 backdrop-blur-2xl">
+                  <div className={`figma-align-menu absolute top-full right-0 mt-1.5 w-64 rounded-xl p-1 z-50 text-xs font-sans flex flex-col gap-0.5 backdrop-blur-2xl ${
+                    isLight
+                      ? "bg-white/98 border border-slate-200 shadow-2xl text-slate-800"
+                      : "bg-[#1e1e1e]/98 border border-white/15 shadow-[0_15px_40px_rgba(0,0,0,0.8)] text-neutral-200"
+                  }`}>
                     <button
                       type="button"
                       onClick={() => {
@@ -5482,23 +5542,25 @@ export default function CanvasWorkspace({
 
             {/* Figma Multi-Selection Spacing & Tidy Controls (Matches Screenshot media_1793556469713_33b26971.jpg) */}
             {selectedIds.size >= 2 && (
-              <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-[#222222]/90 border border-white/10">
-                <div className="flex items-center justify-between text-[11px] text-neutral-400 font-medium">
-                  <span className="flex items-center gap-1.5 text-neutral-300">
+              <div className={`flex flex-col gap-1.5 p-2 rounded-xl border ${
+                isLight ? "bg-slate-50 border-slate-200" : "bg-[#222222]/90 border-white/10"
+              }`}>
+                <div className="flex items-center justify-between text-[11px] font-medium">
+                  <span className={`flex items-center gap-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                     <span className="w-2 h-2 rounded-full bg-[#ff2a85]" />
                     Smart Selection Spacing
                   </span>
                   <button
                     type="button"
                     onClick={() => handleAlign("tidyup")}
-                    className="text-[#0c8ce9] hover:underline cursor-pointer flex items-center gap-1 text-[11px]"
+                    className="text-[#0c8ce9] hover:underline cursor-pointer flex items-center gap-1 text-[11px] font-medium"
                   >
                     Tidy Up
                   </button>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85]"
+                    className={inputBoxCls}
                     title="Horizontal Spacing (gap between columns)"
                   >
                     <span className="text-[#ff2a85] font-mono select-none font-bold text-xs">↔</span>
@@ -5506,12 +5568,12 @@ export default function CanvasWorkspace({
                       type="number"
                       value={smartSelectionGrid?.gapX !== undefined ? smartSelectionGrid.gapX : 40}
                       onChange={(e) => handleUpdateSpacing(Number(e.target.value) || 0, undefined)}
-                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                      className={inputTextCls}
                     />
-                    <span className="text-[10px] text-neutral-500">px</span>
+                    <span className={unitTextCls}>px</span>
                   </div>
                   <div
-                    className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85]"
+                    className={inputBoxCls}
                     title="Vertical Spacing (gap between rows)"
                   >
                     <span className="text-[#ff2a85] font-mono select-none font-bold text-xs">↕</span>
@@ -5519,9 +5581,9 @@ export default function CanvasWorkspace({
                       type="number"
                       value={smartSelectionGrid?.gapY !== undefined ? smartSelectionGrid.gapY : 40}
                       onChange={(e) => handleUpdateSpacing(undefined, Number(e.target.value) || 0)}
-                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                      className={inputTextCls}
                     />
-                    <span className="text-[10px] text-neutral-500">px</span>
+                    <span className={unitTextCls}>px</span>
                   </div>
                 </div>
               </div>
@@ -5529,7 +5591,7 @@ export default function CanvasWorkspace({
 
             {/* Position Coordinates (X, Y) */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+              <div className={inputBoxCls}>
                 <span
                   onMouseDown={(e) =>
                     handleStartScrub(e, {
@@ -5537,7 +5599,7 @@ export default function CanvasWorkspace({
                       setValue: (v) => updateSelectedItem({ x: v }),
                     })
                   }
-                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  className={scrubLabelCls}
                   title="Geser kiri/kanan untuk mengubah X"
                 >
                   X
@@ -5547,10 +5609,10 @@ export default function CanvasWorkspace({
                   value={selectedItem ? itemX : ""}
                   placeholder="Mixed"
                   onChange={(e) => updateSelectedItem({ x: Number(e.target.value) || 0 })}
-                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  className={inputTextCls}
                 />
               </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+              <div className={inputBoxCls}>
                 <span
                   onMouseDown={(e) =>
                     handleStartScrub(e, {
@@ -5558,7 +5620,7 @@ export default function CanvasWorkspace({
                       setValue: (v) => updateSelectedItem({ y: v }),
                     })
                   }
-                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  className={scrubLabelCls}
                   title="Geser kiri/kanan untuk mengubah Y"
                 >
                   Y
@@ -5568,14 +5630,14 @@ export default function CanvasWorkspace({
                   value={selectedItem ? itemY : ""}
                   placeholder="Mixed"
                   onChange={(e) => updateSelectedItem({ y: Number(e.target.value) || 0 })}
-                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  className={inputTextCls}
                 />
               </div>
             </div>
 
             {/* Rotation & Flip */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+              <div className={inputBoxCls}>
                 <span
                   onMouseDown={(e) =>
                     handleStartScrub(e, {
@@ -5583,7 +5645,7 @@ export default function CanvasWorkspace({
                       setValue: (v) => updateSelectedItem({ rotation: v % 360 }),
                     })
                   }
-                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  className={scrubLabelCls}
                   title="Geser kiri/kanan untuk memutar sudut"
                 >
                   ∠
@@ -5592,15 +5654,17 @@ export default function CanvasWorkspace({
                   type="number"
                   value={selectedItem ? itemRotation : 0}
                   onChange={(e) => updateSelectedItem({ rotation: Number(e.target.value) || 0 })}
-                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  className={inputTextCls}
                 />
-                <span className="text-[10px] text-neutral-500">°</span>
+                <span className={unitTextCls}>°</span>
               </div>
-              <div className="flex items-center justify-around rounded-lg bg-[#2c2c2c] p-1 text-neutral-400">
+              <div className={`flex items-center justify-around rounded-lg p-1 ${
+                isLight ? "bg-slate-100 border border-slate-200 text-slate-600" : "bg-[#2c2c2c] text-neutral-400"
+              }`}>
                 <button
                   type="button"
                   onClick={() => updateSelectedItem({ rotation: ((selectedItem?.rotation || 0) + 90) % 360 })}
-                  className="p-1 hover:text-white transition-colors cursor-pointer"
+                  className={`p-1 transition-colors cursor-pointer rounded ${isLight ? "hover:text-slate-900 hover:bg-slate-200/60" : "hover:text-white"}`}
                   title="Rotate 90°"
                 >
                   <HiArrowPath className="w-3.5 h-3.5" />
@@ -5608,7 +5672,7 @@ export default function CanvasWorkspace({
                 <button
                   type="button"
                   onClick={() => updateSelectedItem({ rotation: (selectedItem?.rotation || 0) === 180 ? 0 : 180 })}
-                  className="p-1 hover:text-white transition-colors cursor-pointer"
+                  className={`p-1 transition-colors cursor-pointer rounded ${isLight ? "hover:text-slate-900 hover:bg-slate-200/60" : "hover:text-white"}`}
                   title="Flip Horizontal / 180°"
                 >
                   <HiArrowsPointingOut className="w-3.5 h-3.5" />
@@ -5619,15 +5683,15 @@ export default function CanvasWorkspace({
 
           {/* 2. LAYOUT SECTION (Dimensions, Flow, Spacing - Image 1) */}
           <div className="p-3 space-y-2.5">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Layout</span>
+            <div className="flex items-center justify-between">
+              <span className={sectionTitleCls}>Layout</span>
             </div>
 
             {/* Resizing Segmented Controls for Text (Matches Screenshots media_1793534610601_7930294d.png & media_1793534696719_3f2570c9.png) */}
             {(isTextSelected || selectedItem?.type === "text" || selectedItem?.mediaType === "text") && (
-              <div className="space-y-1.5 pb-1 border-b border-white/5">
-                <span className="text-[10px] text-neutral-400">Resizing</span>
-                <div className="flex items-center p-0.5 rounded-lg bg-[#2c2c2c] text-neutral-300 w-full">
+              <div className={`space-y-1.5 pb-1 border-b ${isLight ? "border-slate-200" : "border-white/5"}`}>
+                <span className={labelTitleCls}>Resizing</span>
+                <div className={segmentedBarCls}>
                   {/* Auto width: |→ */}
                   <button
                     type="button"
@@ -5635,8 +5699,8 @@ export default function CanvasWorkspace({
                     title="Auto width"
                     className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer group relative ${
                       (selectedItem?.textAutoResize || "auto_width") === "auto_width"
-                        ? "bg-white/20 text-white font-medium shadow-xs"
-                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                        ? segmentedBtnActiveCls
+                        : segmentedBtnInactiveCls
                     }`}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
@@ -5652,8 +5716,8 @@ export default function CanvasWorkspace({
                     title="Auto height"
                     className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer group relative ${
                       selectedItem?.textAutoResize === "auto_height"
-                        ? "bg-white/20 text-white font-medium shadow-xs"
-                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                        ? segmentedBtnActiveCls
+                        : segmentedBtnInactiveCls
                     }`}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
@@ -5672,8 +5736,8 @@ export default function CanvasWorkspace({
                     title="Fixed size"
                     className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer group relative ${
                       selectedItem?.textAutoResize === "fixed"
-                        ? "bg-white/20 text-white font-medium shadow-xs"
-                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                        ? segmentedBtnActiveCls
+                        : segmentedBtnInactiveCls
                     }`}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
@@ -5689,7 +5753,7 @@ export default function CanvasWorkspace({
 
             {/* Dimensions (W, H) */}
             <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+              <div className={inputBoxCls}>
                 <span
                   onMouseDown={(e) =>
                     handleStartScrub(e, {
@@ -5699,13 +5763,13 @@ export default function CanvasWorkspace({
                       max: 5000,
                     })
                   }
-                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  className={scrubLabelCls}
                   title="Geser kiri/kanan untuk mengubah lebar (W)"
                 >
                   W
                 </span>
                 {(isTextSelected || selectedItem?.type === "text") && (selectedItem?.textAutoResize || "auto_width") === "auto_width" ? (
-                  <span className="w-full text-neutral-400 font-mono text-xs select-none">Auto</span>
+                  <span className={`w-full font-mono text-xs select-none ${isLight ? "text-slate-400" : "text-neutral-400"}`}>Auto</span>
                 ) : (
                   <input
                     type="number"
@@ -5718,11 +5782,11 @@ export default function CanvasWorkspace({
                         updateSelectedItem({ width: val });
                       }
                     }}
-                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    className={inputTextCls}
                   />
                 )}
               </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+              <div className={inputBoxCls}>
                 <span
                   onMouseDown={(e) =>
                     handleStartScrub(e, {
@@ -5732,19 +5796,19 @@ export default function CanvasWorkspace({
                       max: 5000,
                     })
                   }
-                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  className={scrubLabelCls}
                   title="Geser kiri/kanan untuk mengubah tinggi (H)"
                 >
                   H
                 </span>
                 {(isTextSelected || selectedItem?.type === "text") && (selectedItem?.textAutoResize || "auto_width") !== "fixed" ? (
-                  <span className="w-full text-neutral-400 font-mono text-xs select-none">Auto</span>
+                  <span className={`w-full font-mono text-xs select-none ${isLight ? "text-slate-400" : "text-neutral-400"}`}>Auto</span>
                 ) : (
                   <input
                     type="number"
                     value={selectedItem ? itemHeight : 1350}
                     onChange={(e) => updateSelectedItem({ height: Number(e.target.value) || 100 })}
-                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    className={inputTextCls}
                   />
                 )}
               </div>
@@ -5753,10 +5817,14 @@ export default function CanvasWorkspace({
             {/* Spacing (Horizontal Spacing ||| and Vertical Spacing 吕) - Matches Screenshot 4 */}
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85] transition-colors"
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${
+                  isLight
+                    ? "bg-slate-100 border border-slate-200 focus-within:border-[#ff2a85] focus-within:bg-white"
+                    : "bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85]"
+                }`}
                 title="Horizontal spacing between items (|||)"
               >
-                <svg className="w-3.5 h-3.5 text-neutral-400 shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                <svg className={`w-3.5 h-3.5 shrink-0 ${isLight ? "text-slate-500" : "text-neutral-400"}`} viewBox="0 0 16 16" fill="currentColor">
                   <rect x="2" y="2" width="2" height="12" rx="0.5" />
                   <rect x="7" y="2" width="2" height="12" rx="0.5" />
                   <rect x="12" y="2" width="2" height="12" rx="0.5" />
@@ -5772,14 +5840,18 @@ export default function CanvasWorkspace({
                       updateSelectedItem({ gapX: val });
                     }
                   }}
-                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  className={inputTextCls}
                 />
               </div>
               <div
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85] transition-colors"
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-colors ${
+                  isLight
+                    ? "bg-slate-100 border border-slate-200 focus-within:border-[#ff2a85] focus-within:bg-white"
+                    : "bg-[#2c2c2c] border border-transparent focus-within:border-[#ff2a85]"
+                }`}
                 title="Vertical spacing between items (吕)"
               >
-                <svg className="w-3.5 h-3.5 text-neutral-400 shrink-0" viewBox="0 0 16 16" fill="currentColor">
+                <svg className={`w-3.5 h-3.5 shrink-0 ${isLight ? "text-slate-500" : "text-neutral-400"}`} viewBox="0 0 16 16" fill="currentColor">
                   <rect x="2" y="2" width="12" height="4.5" rx="0.5" />
                   <rect x="2" y="9.5" width="12" height="4.5" rx="0.5" />
                 </svg>
@@ -5794,19 +5866,19 @@ export default function CanvasWorkspace({
                       updateSelectedItem({ gapY: val });
                     }
                   }}
-                  className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                  className={inputTextCls}
                 />
               </div>
             </div>
 
             {/* Clip content Checkbox (Only for Frames) */}
             {selectedItem && (selectedItem.type === "frame" || selectedItem.mediaType === "frame") && !selectedItem.image && (
-              <label className="flex items-center gap-2 cursor-pointer pt-1 text-neutral-300 text-[11px]">
+              <label className={`flex items-center gap-2 cursor-pointer pt-1 text-[11px] ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
                 <input
                   type="checkbox"
                   checked={selectedItem?.clipContent !== false}
                   onChange={(e) => updateSelectedItem({ clipContent: e.target.checked })}
-                  className="rounded bg-[#2c2c2c] border-white/20 text-[#0c8ce9] focus:ring-0"
+                  className={`rounded ${isLight ? "bg-white border-slate-300 text-[#0c8ce9]" : "bg-[#2c2c2c] border-white/20 text-[#0c8ce9]"} focus:ring-0`}
                 />
                 <span>Clip content</span>
               </label>
@@ -5815,8 +5887,8 @@ export default function CanvasWorkspace({
 
           {/* 3. APPEARANCE SECTION (Image 1) */}
           <div className="p-3 space-y-2.5">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Appearance</span>
+            <div className="flex items-center justify-between">
+              <span className={sectionTitleCls}>Appearance</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -5831,12 +5903,14 @@ export default function CanvasWorkspace({
                       max: 100,
                     })
                   }
-                  className="text-[10px] text-neutral-400 cursor-ew-resize hover:text-white select-none transition-colors"
+                  className={`text-[10px] cursor-ew-resize select-none transition-colors ${
+                    isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                  }`}
                   title="Geser kiri/kanan untuk mengubah opacity"
                 >
                   Opacity
                 </span>
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9] relative group">
+                <div className={`${inputBoxCls} relative group`}>
                   <span
                     onMouseDown={(e) =>
                       handleStartScrub(e, {
@@ -5846,7 +5920,9 @@ export default function CanvasWorkspace({
                         max: 100,
                       })
                     }
-                    className="text-neutral-400 text-xs cursor-ew-resize hover:text-white select-none transition-colors"
+                    className={`text-xs cursor-ew-resize select-none transition-colors ${
+                      isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                    }`}
                     title="Geser kiri/kanan untuk mengubah opacity"
                   >
                     ▦
@@ -5857,9 +5933,9 @@ export default function CanvasWorkspace({
                     max={100}
                     value={itemOpacity}
                     onChange={(e) => updateSelectedItem({ opacity: Math.min(100, Math.max(0, Number(e.target.value))) })}
-                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    className={inputTextCls}
                   />
-                  <span className="text-[10px] text-neutral-500">%</span>
+                  <span className={unitTextCls}>%</span>
                 </div>
               </div>
 
@@ -5874,12 +5950,14 @@ export default function CanvasWorkspace({
                       max: 300,
                     })
                   }
-                  className="text-[10px] text-neutral-400 cursor-ew-resize hover:text-white select-none transition-colors"
+                  className={`text-[10px] cursor-ew-resize select-none transition-colors ${
+                    isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                  }`}
                   title="Geser kiri/kanan untuk mengubah corner radius"
                 >
                   Corner radius
                 </span>
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9] relative group">
+                <div className={`${inputBoxCls} relative group`}>
                   <span
                     onMouseDown={(e) =>
                       handleStartScrub(e, {
@@ -5889,7 +5967,9 @@ export default function CanvasWorkspace({
                         max: 300,
                       })
                     }
-                    className="text-neutral-400 text-xs cursor-ew-resize hover:text-white select-none transition-colors"
+                    className={`text-xs cursor-ew-resize select-none transition-colors ${
+                      isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                    }`}
                     title="Geser kiri/kanan untuk mengubah corner radius"
                   >
                     ⛶
@@ -5900,7 +5980,7 @@ export default function CanvasWorkspace({
                     max={120}
                     value={itemRadius}
                     onChange={(e) => updateSelectedItem({ cornerRadius: Math.max(0, Number(e.target.value)) })}
-                    className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                    className={inputTextCls}
                   />
                 </div>
               </div>
@@ -5910,8 +5990,8 @@ export default function CanvasWorkspace({
           {/* 4. TYPOGRAPHY SECTION (Matches Screenshot media_1793529077648_43ff02b0.png) */}
           {(isTextSelected || activeTool === "text" || selectedItem?.type === "text" || selectedItem?.content !== undefined) && (
             <div className="p-3 space-y-2.5">
-              <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-                <span>Typography</span>
+              <div className="flex items-center justify-between">
+                <span className={sectionTitleCls}>Typography</span>
               </div>
 
               {/* Font Family Dropdown */}
@@ -5919,7 +5999,7 @@ export default function CanvasWorkspace({
                 <select
                   value={selectedItem?.fontFamily || "Noto Serif"}
                   onChange={(e) => updateSelectedItem({ fontFamily: e.target.value })}
-                  className="w-full px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] text-white border border-transparent focus:border-[#0c8ce9] text-xs font-serif appearance-none cursor-pointer"
+                  className={`${selectBoxCls} font-serif`}
                 >
                   <option value="Noto Serif">Noto Serif</option>
                   <option value="Cinzel">Cinzel (Luxury Serif)</option>
@@ -5930,7 +6010,7 @@ export default function CanvasWorkspace({
                   <option value="Playfair Display">Playfair Display</option>
                   <option value="Courier New">Courier New (Mono)</option>
                 </select>
-                <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2.5 top-2.5 pointer-events-none" />
+                <HiChevronDown className={`w-3.5 h-3.5 absolute right-2.5 top-2.5 pointer-events-none ${isLight ? "text-slate-400" : "text-neutral-400"}`} />
               </div>
 
               {/* Font Weight & Size */}
@@ -5939,7 +6019,7 @@ export default function CanvasWorkspace({
                   <select
                     value={selectedItem?.fontWeight || "Regular"}
                     onChange={(e) => updateSelectedItem({ fontWeight: e.target.value })}
-                    className="w-full px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] text-white border border-transparent focus:border-[#0c8ce9] text-xs appearance-none cursor-pointer"
+                    className={selectBoxCls}
                   >
                     <option value="Regular">Regular</option>
                     <option value="Medium">Medium</option>
@@ -5947,7 +6027,7 @@ export default function CanvasWorkspace({
                     <option value="Bold">Bold</option>
                     <option value="Black">Black</option>
                   </select>
-                  <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-2 pointer-events-none" />
+                  <HiChevronDown className={`w-3.5 h-3.5 absolute right-2 top-2 pointer-events-none ${isLight ? "text-slate-400" : "text-neutral-400"}`} />
                 </div>
                 <div className="relative group" ref={fontSizeDropdownRef}>
                   {/* Figma-style Left Edge Scrubber for Font Size with Center Anchor (Matches User Request & Screenshot media_1793596159306_72d4d5d9.jpg) */}
@@ -5975,29 +6055,39 @@ export default function CanvasWorkspace({
                     className="absolute -left-2 top-0 bottom-0 w-4 cursor-ew-resize z-20 flex items-center justify-center select-none"
                     title="Geser kiri/kanan untuk mengubah ukuran font (Center Anchor)"
                   >
-                    <div className="w-[3px] h-3.5 rounded-full bg-neutral-600/30 group-hover:bg-[#0c8ce9] transition-colors" />
+                    <div className={`w-[3px] h-3.5 rounded-full transition-colors ${isLight ? "bg-slate-300 group-hover:bg-[#0c8ce9]" : "bg-neutral-600/30 group-hover:bg-[#0c8ce9]"}`} />
                   </div>
 
-                  <div className="flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                  <div className={`flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg transition-colors ${
+                    isLight
+                      ? "bg-slate-100 border border-slate-200 focus-within:border-[#0c8ce9] focus-within:bg-white"
+                      : "bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]"
+                  }`}>
                     <input
                       type="number"
                       value={selectedItem?.fontSize || 48}
                       onChange={(e) => updateTextFontSizeCentered(Number(e.target.value) || 16)}
-                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                      className={inputTextCls}
                     />
                     <button
                       type="button"
                       onClick={() => setIsFontSizeDropdownOpen((prev) => !prev)}
-                      className="p-0.5 hover:bg-white/10 rounded cursor-pointer transition-colors text-neutral-400 hover:text-white shrink-0"
+                      className={`p-0.5 rounded cursor-pointer transition-colors shrink-0 ${
+                        isLight ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200" : "text-neutral-400 hover:text-white hover:bg-white/10"
+                      }`}
                       title="Pilih ukuran font"
                     >
-                      <HiChevronDown className={`w-3.5 h-3.5 transition-transform duration-100 ${isFontSizeDropdownOpen ? "rotate-180 text-white" : ""}`} />
+                      <HiChevronDown className={`w-3.5 h-3.5 transition-transform duration-100 ${isFontSizeDropdownOpen ? "rotate-180 text-[#0c8ce9]" : ""}`} />
                     </button>
                   </div>
 
                   {/* Figma-style Font Size Dropdown Menu (Matches Screenshot media_1793596112749_064977fc.png) */}
                   {isFontSizeDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-1.5 z-50 w-[84px] max-h-[290px] overflow-y-auto p-1 bg-[#222222]/98 border border-white/10 rounded-xl shadow-[0_15px_35px_rgba(0,0,0,0.65)] backdrop-blur-xl animate-in fade-in zoom-in-95 duration-75 flex flex-col gap-0.5 select-none overscroll-contain">
+                    <div className={`absolute right-0 top-full mt-1.5 z-50 w-[84px] max-h-[290px] overflow-y-auto p-1 rounded-xl backdrop-blur-xl animate-in fade-in zoom-in-95 duration-75 flex flex-col gap-0.5 select-none overscroll-contain ${
+                      isLight
+                        ? "bg-white/98 border border-slate-200 shadow-xl"
+                        : "bg-[#222222]/98 border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.65)]"
+                    }`}>
                       {[10, 11, 12, 13, 14, 15, 16, 20, 24, 32, 36, 40, 48, 64, 96, 128].map((size) => {
                         const isSelected = (selectedItem?.fontSize || 48) === size;
                         return (
@@ -6011,6 +6101,8 @@ export default function CanvasWorkspace({
                             className={`w-full px-1.5 py-1 text-xs rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
                               isSelected
                                 ? "bg-[#0c8ce9] text-white font-medium"
+                                : isLight
+                                ? "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                 : "text-neutral-200 hover:bg-white/10 hover:text-white"
                             }`}
                           >
@@ -6030,26 +6122,26 @@ export default function CanvasWorkspace({
               {/* Line height & Letter spacing */}
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="space-y-1">
-                  <span className="text-[10px] text-neutral-400">Line height</span>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent">
-                    <span className="text-neutral-400 text-xs">A</span>
+                  <span className={labelTitleCls}>Line height</span>
+                  <div className={inputBoxCls}>
+                    <span className={`text-xs ${isLight ? "text-slate-400" : "text-neutral-400"}`}>A</span>
                     <input
                       type="text"
                       value={selectedItem?.lineHeight || "100%"}
                       onChange={(e) => updateSelectedItem({ lineHeight: e.target.value })}
-                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                      className={inputTextCls}
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] text-neutral-400">Letter spacing</span>
-                  <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent">
-                    <span className="text-neutral-400 text-xs">|A|</span>
+                  <span className={labelTitleCls}>Letter spacing</span>
+                  <div className={inputBoxCls}>
+                    <span className={`text-xs ${isLight ? "text-slate-400" : "text-neutral-400"}`}>|A|</span>
                     <input
                       type="text"
                       value={selectedItem?.letterSpacing || "-3%"}
                       onChange={(e) => updateSelectedItem({ letterSpacing: e.target.value })}
-                      className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
+                      className={inputTextCls}
                     />
                   </div>
                 </div>
@@ -6057,16 +6149,16 @@ export default function CanvasWorkspace({
 
               {/* Text Resizing Controls (Matches Screenshot media_1793534610601_7930294d.png & media_1793534696719_3f2570c9.png) */}
               <div className="space-y-1">
-                <span className="text-[10px] text-neutral-400">Resizing</span>
-                <div className="flex items-center p-0.5 rounded-lg bg-[#2c2c2c] text-neutral-300 w-full">
+                <span className={labelTitleCls}>Resizing</span>
+                <div className={segmentedBarCls}>
                   <button
                     type="button"
                     onClick={() => updateSelectedItem({ textAutoResize: "auto_width" })}
                     title="Auto width"
                     className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer ${
                       (selectedItem?.textAutoResize || "auto_width") === "auto_width"
-                        ? "bg-white/20 text-white font-medium shadow-xs"
-                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                        ? segmentedBtnActiveCls
+                        : segmentedBtnInactiveCls
                     }`}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
@@ -6080,8 +6172,8 @@ export default function CanvasWorkspace({
                     title="Auto height"
                     className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer ${
                       selectedItem?.textAutoResize === "auto_height"
-                        ? "bg-white/20 text-white font-medium shadow-xs"
-                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                        ? segmentedBtnActiveCls
+                        : segmentedBtnInactiveCls
                     }`}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
@@ -6098,8 +6190,8 @@ export default function CanvasWorkspace({
                     title="Fixed size"
                     className={`flex-1 py-1.5 px-2 rounded flex items-center justify-center transition-colors cursor-pointer ${
                       selectedItem?.textAutoResize === "fixed"
-                        ? "bg-white/20 text-white font-medium shadow-xs"
-                        : "text-neutral-400 hover:text-white hover:bg-white/5"
+                        ? segmentedBtnActiveCls
+                        : segmentedBtnInactiveCls
                     }`}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor">
@@ -6114,13 +6206,13 @@ export default function CanvasWorkspace({
 
               {/* Text Alignments */}
               <div className="space-y-1">
-                <span className="text-[10px] text-neutral-400">Alignment</span>
+                <span className={labelTitleCls}>Alignment</span>
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center p-0.5 rounded-lg bg-[#2c2c2c] text-neutral-300">
+                  <div className={segmentedBarCls}>
                     <button
                       type="button"
                       onClick={() => updateSelectedItem({ textAlign: "left" })}
-                      className={`p-1 rounded ${selectedItem?.textAlign === "left" ? "bg-white/20 text-white" : "hover:text-white"}`}
+                      className={`p-1 rounded transition-colors ${selectedItem?.textAlign === "left" ? segmentedBtnActiveCls : segmentedBtnInactiveCls}`}
                       title="Align Left"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
@@ -6130,7 +6222,7 @@ export default function CanvasWorkspace({
                     <button
                       type="button"
                       onClick={() => updateSelectedItem({ textAlign: "center" })}
-                      className={`p-1 rounded ${selectedItem?.textAlign === "center" ? "bg-white/20 text-white" : "hover:text-white"}`}
+                      className={`p-1 rounded transition-colors ${selectedItem?.textAlign === "center" ? segmentedBtnActiveCls : segmentedBtnInactiveCls}`}
                       title="Align Center"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
@@ -6140,7 +6232,7 @@ export default function CanvasWorkspace({
                     <button
                       type="button"
                       onClick={() => updateSelectedItem({ textAlign: "right" })}
-                      className={`p-1 rounded ${selectedItem?.textAlign === "right" ? "bg-white/20 text-white" : "hover:text-white"}`}
+                      className={`p-1 rounded transition-colors ${selectedItem?.textAlign === "right" ? segmentedBtnActiveCls : segmentedBtnInactiveCls}`}
                       title="Align Right"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
@@ -6149,39 +6241,39 @@ export default function CanvasWorkspace({
                     </button>
                   </div>
 
-                  <div className="flex items-center p-0.5 rounded-lg bg-[#2c2c2c] text-neutral-300">
-                    <button type="button" className="p-1 rounded hover:text-white" title="Align Top">
+                  <div className={segmentedBarCls}>
+                    <button type="button" className={`p-1 rounded transition-colors ${segmentedBtnInactiveCls}`} title="Align Top">
                       <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M2 2h12v1.5H2V2zm6 3l3 3H9v6H7V8H5l3-3z" />
                       </svg>
                     </button>
-                    <button type="button" className="p-1 rounded bg-white/20 text-white" title="Align Middle">
+                    <button type="button" className={`p-1 rounded transition-colors ${segmentedBtnActiveCls}`} title="Align Middle">
                       <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M2 7.25h12v1.5H2V7.25zm6-5l2.5 2.5H9v2H7v-2H5.5L8 2.25zm0 11.5L5.5 11.25H7v-2h2v2h1.5L8 13.75z" />
                       </svg>
                     </button>
-                    <button type="button" className="p-1 rounded hover:text-white" title="Align Bottom">
+                    <button type="button" className={`p-1 rounded transition-colors ${segmentedBtnInactiveCls}`} title="Align Bottom">
                       <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
                         <path d="M2 12.5h12V14H2v-1.5zm6-3l-3-3h2V2h2v4.5h2l-3 3z" />
                       </svg>
                     </button>
                   </div>
 
-                  <button type="button" className="p-1 text-neutral-400 hover:text-white">
+                  <button type="button" className={`p-1 transition-colors ${isLight ? "text-slate-400 hover:text-slate-900" : "text-neutral-400 hover:text-white"}`}>
                     <HiAdjustmentsHorizontal className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
               {/* Frame Container Selector (Figma Nested Frame) */}
-              <div className="pt-2 border-t border-white/10 space-y-1">
-                <div className="flex items-center justify-between text-[10px] text-neutral-400">
-                  <span>Frame Container</span>
+              <div className={`pt-2 border-t space-y-1 ${isLight ? "border-slate-200" : "border-white/10"}`}>
+                <div className="flex items-center justify-between text-[10px]">
+                  <span className={labelTitleCls}>Frame Container</span>
                   {selectedItem?.frameId && (
                     <button
                       type="button"
                       onClick={() => updateSelectedItem({ frameId: undefined })}
-                      className="text-[10px] text-red-400 hover:text-red-300 cursor-pointer"
+                      className="text-[10px] text-red-500 hover:text-red-600 cursor-pointer"
                     >
                       Detach
                     </button>
@@ -6205,7 +6297,7 @@ export default function CanvasWorkspace({
                       }
                       updateSelectedItem({ frameId: undefined });
                     }}
-                    className="w-full px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] text-white border border-transparent focus:border-[#0c8ce9] text-xs appearance-none cursor-pointer"
+                    className={selectBoxCls}
                   >
                     <option value="">(None - Canvas Root)</option>
                     {items
@@ -6216,7 +6308,7 @@ export default function CanvasWorkspace({
                         </option>
                       ))}
                   </select>
-                  <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2.5 top-2.5 pointer-events-none" />
+                  <HiChevronDown className={`w-3.5 h-3.5 absolute right-2.5 top-2.5 pointer-events-none ${isLight ? "text-slate-400" : "text-neutral-400"}`} />
                 </div>
               </div>
             </div>
@@ -6224,12 +6316,12 @@ export default function CanvasWorkspace({
 
           {/* 5. FILL SECTION (Matches Screenshot 1 & 2) */}
           <div className="p-3 space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Fill</span>
+            <div className="flex items-center justify-between">
+              <span className={sectionTitleCls}>Fill</span>
               <button
                 type="button"
                 onClick={() => updateSelectedItem({ color: "#00A389" })}
-                className="text-neutral-400 hover:text-white cursor-pointer"
+                className={plusBtnCls}
                 title="Add Fill"
               >
                 <HiPlus className="w-3.5 h-3.5" />
@@ -6237,7 +6329,7 @@ export default function CanvasWorkspace({
             </div>
 
             {/* Color Swatch & Hex input */}
-            <div className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-[#2c2c2c]">
+            <div className={rowCardCls}>
               <div className="flex items-center gap-2 flex-1 min-w-0">
                 <button
                   type="button"
@@ -6246,29 +6338,31 @@ export default function CanvasWorkspace({
                   title="Open Figma Color Picker"
                 >
                   <span
-                    className="w-4 h-4 rounded-xs border border-white/20 inline-block shadow-sm group-hover:scale-110 transition-transform"
+                    className={`w-4 h-4 rounded-xs border inline-block shadow-sm group-hover:scale-110 transition-transform ${isLight ? "border-slate-300" : "border-white/20"}`}
                     style={{ backgroundColor: itemColor }}
                   />
                 </button>
                 <button
                   type="button"
                   onClick={() => openColorPicker("fill", itemColor)}
-                  className="text-left font-mono text-xs uppercase text-white hover:text-[#0c8ce9] transition-colors focus:outline-none cursor-pointer"
+                  className={`text-left font-mono text-xs uppercase transition-colors focus:outline-none cursor-pointer ${
+                    isLight ? "text-slate-900 hover:text-[#0c8ce9]" : "text-white hover:text-[#0c8ce9]"
+                  }`}
                   title="Click to edit color"
                 >
                   {itemColor.replace("#", "")}
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 text-xs text-neutral-400">
-                <span className="font-mono text-neutral-300">{itemOpacity}%</span>
-                <button type="button" className="hover:text-white cursor-pointer">
+              <div className={`flex items-center gap-2 text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                <span className={`font-mono ${isLight ? "text-slate-700" : "text-neutral-300"}`}>{itemOpacity}%</span>
+                <button type="button" className={`cursor-pointer ${isLight ? "hover:text-slate-900" : "hover:text-white"}`}>
                   <HiEye className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => updateSelectedItem({ color: undefined })}
-                  className="hover:text-red-400 cursor-pointer"
+                  className="hover:text-red-500 cursor-pointer"
                   title="Remove Fill"
                 >
                   <HiMinus className="w-3.5 h-3.5" />
@@ -6279,37 +6373,39 @@ export default function CanvasWorkspace({
 
           {/* 6. STROKE SECTION (Matches Screenshot 1 & 2) */}
           <div className="p-3 space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Stroke</span>
+            <div className="flex items-center justify-between">
+              <span className={sectionTitleCls}>Stroke</span>
               <button
                 type="button"
                 onClick={() => updateSelectedItem({ strokeColor: "#ffffff", strokeWidth: 1 })}
-                className="text-neutral-400 hover:text-white cursor-pointer"
+                className={plusBtnCls}
               >
                 <HiPlus className="w-3.5 h-3.5" />
               </button>
             </div>
             {selectedItem?.strokeColor && (
-              <div className="flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] text-xs">
+              <div className={rowCardCls}>
                 <div
                   onClick={() => openColorPicker("stroke", selectedItem.strokeColor)}
                   className="flex items-center gap-2 cursor-pointer group"
                   title="Change Stroke Color"
                 >
                   <span
-                    className="w-3.5 h-3.5 rounded-xs border border-white/30 group-hover:scale-110 transition-transform"
+                    className={`w-3.5 h-3.5 rounded-xs border group-hover:scale-110 transition-transform ${isLight ? "border-slate-300" : "border-white/30"}`}
                     style={{ backgroundColor: selectedItem.strokeColor }}
                   />
-                  <span className="font-mono text-neutral-200 group-hover:text-white uppercase">{selectedItem.strokeColor.replace("#", "")}</span>
+                  <span className={`font-mono uppercase transition-colors ${isLight ? "text-slate-800 group-hover:text-[#0c8ce9]" : "text-neutral-200 group-hover:text-white"}`}>
+                    {selectedItem.strokeColor.replace("#", "")}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1 text-neutral-400">
+                <div className={`flex items-center gap-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                   <input
                     type="number"
                     min={1}
                     max={10}
                     value={selectedItem.strokeWidth || 1}
                     onChange={(e) => updateSelectedItem({ strokeWidth: Number(e.target.value) || 1 })}
-                    className="w-8 bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                    className={`w-8 bg-transparent font-mono text-xs text-right focus:outline-none ${isLight ? "text-slate-900" : "text-white"}`}
                   />
                   <span>px</span>
                 </div>
@@ -6319,8 +6415,8 @@ export default function CanvasWorkspace({
 
           {/* 7. EFFECTS SECTION (Matches Screenshots media_1793533049501_ef649907.png & media_1793533075434_40d113b1.png) */}
           <div className="p-3 space-y-2 relative">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Effects</span>
+            <div className="flex items-center justify-between">
+              <span className={sectionTitleCls}>Effects</span>
               <button
                 type="button"
                 onClick={() => {
@@ -6336,7 +6432,7 @@ export default function CanvasWorkspace({
                   });
                   setIsEffectPopoverOpen(true);
                 }}
-                className="text-neutral-400 hover:text-white cursor-pointer p-0.5 rounded hover:bg-white/10"
+                className={plusBtnCls}
                 title="Add effect"
               >
                 <HiPlus className="w-3.5 h-3.5" />
@@ -6349,7 +6445,11 @@ export default function CanvasWorkspace({
                 <div
                   className={`flex items-center justify-between p-1.5 rounded-lg text-xs transition-colors select-none ${
                     isEffectPopoverOpen
-                      ? "bg-[#1c2c3e] border border-[#0c8ce9]/50 shadow-sm"
+                      ? isLight
+                        ? "bg-cyan-50 border border-cyan-400 text-cyan-900 shadow-xs"
+                        : "bg-[#1c2c3e] border border-[#0c8ce9]/50 shadow-sm"
+                      : isLight
+                      ? "bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800"
                       : "bg-[#2c2c2c] hover:bg-[#343434]"
                   } ${selectedItem.effectHidden ? "opacity-50" : "opacity-100"}`}
                 >
@@ -6359,7 +6459,9 @@ export default function CanvasWorkspace({
                     onClick={() => setIsEffectPopoverOpen((prev) => !prev)}
                     title="Click to edit effect settings"
                   >
-                    <span className="w-4 h-4 rounded-[3px] border border-white/30 flex items-center justify-center text-[9px] text-[#0c8ce9] shadow-sm bg-black/40 shrink-0">
+                    <span className={`w-4 h-4 rounded-[3px] flex items-center justify-center text-[9px] text-[#0c8ce9] shadow-xs shrink-0 ${
+                      isLight ? "border border-slate-300 bg-white" : "border border-white/30 bg-black/40"
+                    }`}>
                       ▢
                     </span>
                     <span className="text-[#0c8ce9] font-medium truncate">
@@ -6376,7 +6478,7 @@ export default function CanvasWorkspace({
                   </div>
 
                   {/* Right Actions: View/Hide (Eye) & Remove (Minus) - Matches Screenshot Image 2 */}
-                  <div className="flex items-center gap-1 shrink-0 text-neutral-400">
+                  <div className={`flex items-center gap-1 shrink-0 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                     {/* View / Hide (Eye) */}
                     <button
                       type="button"
@@ -6384,13 +6486,13 @@ export default function CanvasWorkspace({
                         e.stopPropagation();
                         updateSelectedItem({ effectHidden: !selectedItem.effectHidden });
                       }}
-                      className="p-1 hover:text-white rounded hover:bg-white/10 cursor-pointer transition-colors"
+                      className={`p-1 rounded cursor-pointer transition-colors ${isLight ? "hover:bg-slate-200 hover:text-slate-900" : "hover:bg-white/10 hover:text-white"}`}
                       title={selectedItem.effectHidden ? "Show effect" : "Hide effect"}
                     >
                       {selectedItem.effectHidden ? (
-                        <HiEyeSlash className="w-3.5 h-3.5 text-neutral-500" />
+                        <HiEyeSlash className={`w-3.5 h-3.5 ${isLight ? "text-slate-400" : "text-neutral-500"}`} />
                       ) : (
-                        <HiEye className="w-3.5 h-3.5 text-neutral-300 hover:text-white" />
+                        <HiEye className={`w-3.5 h-3.5 ${isLight ? "text-slate-700 hover:text-slate-900" : "text-neutral-300 hover:text-white"}`} />
                       )}
                     </button>
 
@@ -6402,38 +6504,44 @@ export default function CanvasWorkspace({
                         updateSelectedItem({ effects: undefined, effectHidden: undefined });
                         setIsEffectPopoverOpen(false);
                       }}
-                      className="p-1 hover:text-red-400 rounded hover:bg-white/10 cursor-pointer transition-colors"
+                      className={`p-1 rounded cursor-pointer transition-colors ${isLight ? "hover:bg-slate-200 hover:text-red-500" : "hover:bg-white/10 hover:text-red-400"}`}
                       title="Remove effect"
                     >
-                      <HiMinus className="w-3.5 h-3.5 text-neutral-400 hover:text-red-400" />
+                      <HiMinus className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
 
                 {/* Drop Shadow Settings Popover (Matches Screenshot Image 1 media_1793533049501_ef649907.png) */}
                 {isEffectPopoverOpen && (
-                  <div className="relative mt-2 sm:absolute sm:right-full sm:top-0 sm:mr-3 sm:mt-0 w-full sm:w-[250px] p-3 rounded-2xl bg-[#1e1e1e]/98 border border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-2xl z-50 text-xs font-sans space-y-3 animate-in fade-in zoom-in-95 duration-100">
+                  <div className={`relative mt-2 sm:absolute sm:right-full sm:top-0 sm:mr-3 sm:mt-0 w-full sm:w-[250px] p-3 rounded-2xl border backdrop-blur-2xl z-50 text-xs font-sans space-y-3 animate-in fade-in zoom-in-95 duration-100 ${
+                    isLight
+                      ? "bg-white/98 border-slate-200 shadow-2xl text-slate-800"
+                      : "bg-[#1e1e1e]/98 border-white/15 shadow-[0_20px_50px_rgba(0,0,0,0.85)] text-neutral-300"
+                  }`}>
                     {/* Popover Header */}
-                    <div className="flex items-center justify-between pb-1.5 border-b border-white/10">
+                    <div className={`flex items-center justify-between pb-1.5 border-b ${isLight ? "border-slate-200" : "border-white/10"}`}>
                       <div className="flex items-center gap-1.5">
-                        <span className="w-3.5 h-3.5 rounded-[2px] border border-white/40 flex items-center justify-center text-[8px] text-[#0c8ce9] shadow-sm bg-black/40">
+                        <span className={`w-3.5 h-3.5 rounded-[2px] flex items-center justify-center text-[8px] text-[#0c8ce9] shadow-xs ${
+                          isLight ? "border border-slate-300 bg-white" : "border border-white/40 bg-black/40"
+                        }`}>
                           ▢
                         </span>
                         <select
                           value={selectedItem.effects || "drop-shadow"}
                           onChange={(e) => updateSelectedItem({ effects: e.target.value })}
-                          className="bg-transparent text-white font-medium focus:outline-none cursor-pointer pr-1 text-xs"
+                          className={`bg-transparent font-medium focus:outline-none cursor-pointer pr-1 text-xs ${isLight ? "text-slate-900" : "text-white"}`}
                         >
-                          <option value="drop-shadow" className="bg-[#1e1e1e] text-white">Drop shadow</option>
-                          <option value="inner-shadow" className="bg-[#1e1e1e] text-white">Inner shadow</option>
-                          <option value="layer-blur" className="bg-[#1e1e1e] text-white">Layer blur</option>
-                          <option value="background-blur" className="bg-[#1e1e1e] text-white">Background blur</option>
+                          <option value="drop-shadow" className={isLight ? "bg-white text-slate-900" : "bg-[#1e1e1e] text-white"}>Drop shadow</option>
+                          <option value="inner-shadow" className={isLight ? "bg-white text-slate-900" : "bg-[#1e1e1e] text-white"}>Inner shadow</option>
+                          <option value="layer-blur" className={isLight ? "bg-white text-slate-900" : "bg-[#1e1e1e] text-white"}>Layer blur</option>
+                          <option value="background-blur" className={isLight ? "bg-white text-slate-900" : "bg-[#1e1e1e] text-white"}>Background blur</option>
                         </select>
                       </div>
                       <button
                         type="button"
                         onClick={() => setIsEffectPopoverOpen(false)}
-                        className="text-neutral-400 hover:text-white cursor-pointer p-0.5 rounded hover:bg-white/10"
+                        className={`cursor-pointer p-0.5 rounded transition-colors ${isLight ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200" : "text-neutral-400 hover:text-white hover:bg-white/10"}`}
                         title="Tutup Pengaturan"
                       >
                         <HiXMark className="w-3.5 h-3.5" />
@@ -6441,67 +6549,77 @@ export default function CanvasWorkspace({
                     </div>
 
                     {/* Row 1: Position X & Y */}
-                    <div className="flex items-center justify-between text-neutral-400">
+                    <div className={`flex items-center justify-between ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                       <span className="text-[11px] font-medium">Position</span>
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 bg-[#161616] border border-white/10 rounded-lg px-2 py-1 w-[72px]">
-                          <span className="text-[10px] text-neutral-500 font-mono">X</span>
+                        <div className={`flex items-center gap-1 border rounded-lg px-2 py-1 w-[72px] ${
+                          isLight ? "bg-slate-100 border-slate-200 text-slate-900" : "bg-[#161616] border-white/10 text-white"
+                        }`}>
+                          <span className={`text-[10px] font-mono ${isLight ? "text-slate-400" : "text-neutral-500"}`}>X</span>
                           <input
                             type="number"
                             value={selectedItem.shadowX !== undefined ? selectedItem.shadowX : 0}
                             onChange={(e) => updateSelectedItem({ shadowX: Number(e.target.value) })}
-                            className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                            className="w-full bg-transparent font-mono text-xs text-right focus:outline-none"
                           />
                         </div>
-                        <div className="flex items-center gap-1 bg-[#161616] border border-white/10 rounded-lg px-2 py-1 w-[72px]">
-                          <span className="text-[10px] text-neutral-500 font-mono">Y</span>
+                        <div className={`flex items-center gap-1 border rounded-lg px-2 py-1 w-[72px] ${
+                          isLight ? "bg-slate-100 border-slate-200 text-slate-900" : "bg-[#161616] border-white/10 text-white"
+                        }`}>
+                          <span className={`text-[10px] font-mono ${isLight ? "text-slate-400" : "text-neutral-500"}`}>Y</span>
                           <input
                             type="number"
                             value={selectedItem.shadowY !== undefined ? selectedItem.shadowY : 4}
                             onChange={(e) => updateSelectedItem({ shadowY: Number(e.target.value) })}
-                            className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                            className="w-full bg-transparent font-mono text-xs text-right focus:outline-none"
                           />
                         </div>
                       </div>
                     </div>
 
                     {/* Row 2: Blur */}
-                    <div className="flex items-center justify-between text-neutral-400">
+                    <div className={`flex items-center justify-between ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                       <span className="text-[11px] font-medium">Blur</span>
-                      <div className="flex items-center gap-1.5 bg-[#161616] border border-white/10 rounded-lg px-2 py-1 w-[152px]">
-                        <span className="text-xs text-neutral-500 select-none">⠿</span>
+                      <div className={`flex items-center gap-1.5 border rounded-lg px-2 py-1 w-[152px] ${
+                        isLight ? "bg-slate-100 border-slate-200 text-slate-900" : "bg-[#161616] border-white/10 text-white"
+                      }`}>
+                        <span className={`text-xs select-none ${isLight ? "text-slate-400" : "text-neutral-500"}`}>⠿</span>
                         <input
                           type="number"
                           min="0"
                           value={selectedItem.shadowBlur !== undefined ? selectedItem.shadowBlur : 4}
                           onChange={(e) => updateSelectedItem({ shadowBlur: Math.max(0, Number(e.target.value)) })}
-                          className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                          className="w-full bg-transparent font-mono text-xs text-right focus:outline-none"
                         />
                       </div>
                     </div>
 
                     {/* Row 3: Spread */}
-                    <div className="flex items-center justify-between text-neutral-400">
+                    <div className={`flex items-center justify-between ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                       <span className="text-[11px] font-medium">Spread</span>
-                      <div className="flex items-center gap-1.5 bg-[#161616] border border-white/10 rounded-lg px-2 py-1 w-[152px]">
-                        <span className="text-xs text-neutral-500 select-none">☼</span>
+                      <div className={`flex items-center gap-1.5 border rounded-lg px-2 py-1 w-[152px] ${
+                        isLight ? "bg-slate-100 border-slate-200 text-slate-900" : "bg-[#161616] border-white/10 text-white"
+                      }`}>
+                        <span className={`text-xs select-none ${isLight ? "text-slate-400" : "text-neutral-500"}`}>☼</span>
                         <input
                           type="number"
                           value={selectedItem.shadowSpread !== undefined ? selectedItem.shadowSpread : 0}
                           onChange={(e) => updateSelectedItem({ shadowSpread: Number(e.target.value) })}
-                          className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                          className="w-full bg-transparent font-mono text-xs text-right focus:outline-none"
                         />
                       </div>
                     </div>
 
                     {/* Row 4: Color & Opacity */}
-                    <div className="flex items-center justify-between text-neutral-400">
+                    <div className={`flex items-center justify-between ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                       <span className="text-[11px] font-medium">Color</span>
                       <div className="flex items-center gap-1.5">
-                        <div className="flex items-center gap-1.5 bg-[#161616] border border-white/10 rounded-lg px-2 py-1">
+                        <div className={`flex items-center gap-1.5 border rounded-lg px-2 py-1 ${
+                          isLight ? "bg-slate-100 border-slate-200 text-slate-900" : "bg-[#161616] border-white/10 text-white"
+                        }`}>
                           <span
                             onClick={() => openColorPicker("fill", selectedItem.shadowColor || "#000000")}
-                            className="w-4 h-4 rounded-[2px] border border-white/20 shrink-0 shadow-sm cursor-pointer hover:scale-110 transition-transform"
+                            className={`w-4 h-4 rounded-[2px] border shrink-0 shadow-xs cursor-pointer hover:scale-110 transition-transform ${isLight ? "border-slate-300" : "border-white/20"}`}
                             style={{ backgroundColor: selectedItem.shadowColor || "#000000" }}
                             title="Pilih warna shadow"
                           />
@@ -6514,19 +6632,21 @@ export default function CanvasWorkspace({
                                 updateSelectedItem({ shadowColor: `#${val}` });
                               }
                             }}
-                            className="w-14 bg-transparent text-white font-mono text-xs focus:outline-none uppercase"
+                            className="w-14 bg-transparent font-mono text-xs focus:outline-none uppercase"
                           />
                         </div>
-                        <div className="flex items-center gap-0.5 bg-[#161616] border border-white/10 rounded-lg px-1.5 py-1 w-14">
+                        <div className={`flex items-center gap-0.5 border rounded-lg px-1.5 py-1 w-14 ${
+                          isLight ? "bg-slate-100 border-slate-200 text-slate-900" : "bg-[#161616] border-white/10 text-white"
+                        }`}>
                           <input
                             type="number"
                             min="0"
                             max="100"
                             value={selectedItem.shadowOpacity !== undefined ? selectedItem.shadowOpacity : 25}
                             onChange={(e) => updateSelectedItem({ shadowOpacity: Math.min(100, Math.max(0, Number(e.target.value))) })}
-                            className="w-full bg-transparent text-white font-mono text-xs text-right focus:outline-none"
+                            className="w-full bg-transparent font-mono text-xs text-right focus:outline-none"
                           />
-                          <span className="text-[10px] text-neutral-500 font-mono">%</span>
+                          <span className={`text-[10px] font-mono ${isLight ? "text-slate-400" : "text-neutral-500"}`}>%</span>
                         </div>
                       </div>
                     </div>
@@ -6538,8 +6658,8 @@ export default function CanvasWorkspace({
 
           {/* 8. SELECTION COLORS (Matches Screenshot 2) */}
           <div className="p-3 space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Selection colors</span>
+            <div className="flex items-center justify-between">
+              <span className={sectionTitleCls}>Selection colors</span>
             </div>
 
             {/* List of Swatches matching Screenshot 2 */}
@@ -6551,19 +6671,23 @@ export default function CanvasWorkspace({
                     updateSelectedItem({ color: colorHex });
                     openColorPicker("fill", colorHex);
                   }}
-                  className="flex items-center justify-between p-1.5 rounded-lg bg-[#2c2c2c] hover:bg-[#343434] transition-colors cursor-pointer group"
+                  className={`flex items-center justify-between p-1.5 rounded-lg transition-colors cursor-pointer group ${
+                    isLight
+                      ? "bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800"
+                      : "bg-[#2c2c2c] hover:bg-[#343434] text-white"
+                  }`}
                   title="Select color and open picker"
                 >
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-4 h-4 rounded-xs border border-white/20 shrink-0 shadow-sm group-hover:scale-110 transition-transform"
+                      className={`w-4 h-4 rounded-xs border shrink-0 shadow-xs group-hover:scale-110 transition-transform ${isLight ? "border-slate-300" : "border-white/20"}`}
                       style={{ backgroundColor: colorHex }}
                     />
-                    <span className="font-mono text-xs text-white uppercase group-hover:text-[#0c8ce9] transition-colors">
+                    <span className={`font-mono text-xs uppercase transition-colors ${isLight ? "text-slate-800 group-hover:text-[#0c8ce9]" : "text-white group-hover:text-[#0c8ce9]"}`}>
                       {colorHex.replace("#", "")}
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono text-neutral-400 group-hover:text-white">100 %</span>
+                  <span className={`text-[11px] font-mono ${isLight ? "text-slate-500 group-hover:text-slate-900" : "text-neutral-400 group-hover:text-white"}`}>100 %</span>
                 </div>
               ))}
             </div>
@@ -6571,25 +6695,29 @@ export default function CanvasWorkspace({
 
           {/* 10. EXPORT SECTION (Matches Screenshot 2) */}
           <div className="p-3 space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-neutral-300">
-              <span>Export</span>
+            <div className="flex items-center justify-between">
+              <span className={sectionTitleCls}>Export</span>
               <button
                 type="button"
                 onClick={() => handleExportSelection("png")}
-                className="text-neutral-400 hover:text-white cursor-pointer"
+                className={plusBtnCls}
                 title="Quick Export"
               >
                 <HiPlus className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-4 gap-1 text-[10px] font-mono">
+            <div className="grid grid-cols-4 gap-1.5 text-[11px] font-mono">
               {["PNG", "JPG", "SVG", "PDF"].map((fmt) => (
                 <button
                   key={fmt}
                   type="button"
                   onClick={() => handleExportSelection(fmt.toLowerCase())}
-                  className="py-1 rounded bg-[#2c2c2c] hover:bg-white/10 text-neutral-300 hover:text-white text-center cursor-pointer transition-colors"
+                  className={`py-1.5 rounded-lg font-semibold text-center cursor-pointer transition-all ${
+                    isLight
+                      ? "bg-slate-100 border border-slate-200 hover:bg-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-xs"
+                      : "bg-[#2c2c2c] hover:bg-white/10 text-neutral-300 hover:text-white"
+                  }`}
                 >
                   {fmt}
                 </button>
@@ -6601,11 +6729,15 @@ export default function CanvasWorkspace({
         )}
 
         {/* ── Floating Help Question Button (?) (Matches Screenshot 1 & 2) ───── */}
-        <div className="p-3 flex items-center justify-end border-t border-white/10 bg-[#1e1e1e]/90">
+        <div className={`p-3 flex items-center justify-end border-t ${isLight ? "border-slate-200 bg-white" : "border-white/10 bg-[#1e1e1e]/90"}`}>
           <button
             type="button"
             onClick={() => setShowHelpModal(true)}
-            className="w-7 h-7 rounded-full bg-[#2c2c2c] hover:bg-white/20 text-neutral-300 hover:text-white flex items-center justify-center font-bold text-xs shadow-lg transition-all cursor-pointer"
+            className={`w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs transition-all cursor-pointer ${
+              isLight
+                ? "bg-slate-100 border border-slate-300 hover:bg-slate-200 text-slate-700 hover:text-slate-900 shadow-sm"
+                : "bg-[#2c2c2c] hover:bg-white/20 text-neutral-300 hover:text-white shadow-lg"
+            }`}
             title="Help & Shortcuts (?)"
           >
             ?
@@ -6662,14 +6794,22 @@ export default function CanvasWorkspace({
         <button
           type="button"
           onClick={() => setIsPillMenuOpen((prev) => !prev)}
-          className="flex items-center gap-1 font-bold text-xs sm:text-sm text-white hover:text-cyan-300 transition-colors cursor-pointer"
+          className={`flex items-center gap-1 font-bold text-xs sm:text-sm transition-colors cursor-pointer ${
+            isLight ? "text-slate-800 hover:text-cyan-600" : "text-white hover:text-cyan-300"
+          }`}
         >
           <span>Portfolio</span>
-          <HiChevronDown className="w-3 h-3 text-neutral-400" />
+          <HiChevronDown className={`w-3 h-3 ${isLight ? "text-slate-400" : "text-neutral-400"}`} />
         </button>
 
         {/* Plan Badge: Free */}
-        <span className="px-2 py-0.5 rounded-full bg-[#182635] text-[#38bdf8] font-mono text-[10px] font-bold border border-[#38bdf8]/25 tracking-wide">
+        <span
+          className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold tracking-wide border ${
+            isLight
+              ? "bg-cyan-50 text-cyan-700 border-cyan-200"
+              : "bg-[#182635] text-[#38bdf8] border-[#38bdf8]/25"
+          }`}
+        >
           Free
         </span>
 
@@ -6686,7 +6826,11 @@ export default function CanvasWorkspace({
             title={isUiExpanded ? "Tutup Menu Sebelah Kiri (Ctrl+Shift+\\)" : "Buka Menu Sebelah Kiri (Ctrl+Shift+\\)"}
             className={`p-1.5 rounded-lg transition-colors cursor-pointer flex items-center justify-center ${
               isUiExpanded
-                ? "text-neutral-300 hover:text-white hover:bg-white/10"
+                ? isLight
+                  ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                  : "text-neutral-300 hover:text-white hover:bg-white/10"
+                : isLight
+                ? "text-cyan-700 bg-cyan-100/70 hover:bg-cyan-100"
                 : "text-[#38bdf8] bg-white/10 hover:bg-white/20"
             }`}
           >
@@ -6698,11 +6842,17 @@ export default function CanvasWorkspace({
 
           {/* Popover / Tooltip: Expand UI / Collapse UI Ctrl+Shift+\ */}
           {showExpandTooltip && (
-            <div className="absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl bg-[#1e1e1e] border border-white/15 text-white text-[11px] font-mono shadow-2xl flex items-center gap-3 whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-100 pointer-events-none">
-              <span className="font-semibold text-neutral-200">
+            <div
+              className={`absolute top-full mt-2.5 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-xl border text-[11px] font-mono shadow-2xl flex items-center gap-3 whitespace-nowrap z-50 animate-in fade-in zoom-in-95 duration-100 pointer-events-none ${
+                isLight
+                  ? "bg-white border-slate-200 text-slate-800 shadow-slate-300/60"
+                  : "bg-[#1e1e1e] border-white/15 text-white"
+              }`}
+            >
+              <span className={`font-semibold ${isLight ? "text-slate-800" : "text-neutral-200"}`}>
                 {isUiExpanded ? "Tutup Layers (Ctrl+Shift+\\)" : "Buka Layers (Ctrl+Shift+\\)"}
               </span>
-              <span className="text-neutral-400 text-[10px]">Ctrl+Shift+\</span>
+              <span className={`text-[10px] ${isLight ? "text-slate-400" : "text-neutral-400"}`}>Ctrl+Shift+\</span>
             </div>
           )}
         </div>
@@ -6710,13 +6860,29 @@ export default function CanvasWorkspace({
 
       {/* Dropdown Menu on clicking Logo or Portfolio */}
       {isPillMenuOpen && (
-        <div className="absolute top-full mt-2 left-0 w-64 rounded-2xl bg-[#181a20]/95 backdrop-blur-2xl border border-white/15 p-2 shadow-2xl z-50 text-xs font-mono text-neutral-300 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-100">
-          <div className="px-2 py-1.5 text-[11px] text-neutral-400 border-b border-white/10 flex items-center justify-between">
+        <div
+          className={`absolute top-full mt-2 left-0 w-64 rounded-2xl backdrop-blur-2xl border p-2 shadow-2xl z-50 text-xs font-mono flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-100 ${
+            isLight
+              ? "bg-white/98 border-slate-200 text-slate-700 shadow-slate-300/60"
+              : "bg-[#181a20]/95 border-white/15 text-neutral-300"
+          }`}
+        >
+          <div
+            className={`px-2 py-1.5 text-[11px] border-b flex items-center justify-between ${
+              isLight ? "text-slate-500 border-slate-200" : "text-neutral-400 border-white/10"
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <RiGridFill className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="font-bold text-white">Rizx Canvas Studio</span>
+              <RiGridFill className={`w-3.5 h-3.5 ${isLight ? "text-cyan-600" : "text-cyan-400"}`} />
+              <span className={`font-bold ${isLight ? "text-slate-900" : "text-white"}`}>Rizx Canvas Studio</span>
             </div>
-            <span className="text-[10px] text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded">v2.4</span>
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded ${
+                isLight ? "text-teal-700 bg-teal-50 border border-teal-200" : "text-teal-400 bg-teal-500/10"
+              }`}
+            >
+              v2.4
+            </span>
           </div>
 
           <button
@@ -6725,7 +6891,11 @@ export default function CanvasWorkspace({
               setIsUiExpanded((prev) => !prev);
               setIsPillMenuOpen(false);
             }}
-            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer text-left ${
+              isLight
+                ? "hover:bg-slate-100 text-slate-700 hover:text-slate-900"
+                : "hover:bg-white/10 text-neutral-200 hover:text-white"
+            }`}
           >
             <span className="flex items-center gap-2">
               <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -6734,10 +6904,10 @@ export default function CanvasWorkspace({
               </svg>
               {isUiExpanded ? "Tutup Menu Kiri" : "Buka Menu Kiri"}
             </span>
-            <span className="text-[10px] text-neutral-500">Ctrl+Shift+\</span>
+            <span className={`text-[10px] ${isLight ? "text-slate-400" : "text-neutral-500"}`}>Ctrl+Shift+\</span>
           </button>
 
-          <div className="w-full h-[1px] bg-white/10 my-1" />
+          <div className={`w-full h-[1px] my-1 ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
 
           <button
             type="button"
@@ -6949,7 +7119,7 @@ export default function CanvasWorkspace({
           }}
           className={`relative w-full ${paddingLeft} pr-2 py-1.5 rounded-md flex items-center justify-between transition-colors cursor-grab active:cursor-grabbing group text-left ${
             isSel
-              ? "bg-[#2d3748] text-white font-medium shadow-xs"
+              ? "bg-[#0c8ce9] text-white font-medium shadow-xs"
               : isLight
               ? "text-slate-700 hover:bg-slate-100"
               : "text-neutral-200 hover:bg-white/5 hover:text-white"
@@ -6976,7 +7146,9 @@ export default function CanvasWorkspace({
                   e.stopPropagation();
                   toggleFrameExpanded(frame.id);
                 }}
-                className="p-0.5 text-neutral-400 hover:text-white rounded cursor-pointer shrink-0"
+                className={`p-0.5 rounded cursor-pointer shrink-0 transition-colors ${
+                  isSel ? "text-white/80 hover:text-white" : isLight ? "text-slate-400 hover:text-slate-800" : "text-neutral-400 hover:text-white"
+                }`}
                 title={isExpanded ? "Collapse" : "Expand"}
               >
                 <HiChevronRight
@@ -6991,15 +7163,15 @@ export default function CanvasWorkspace({
 
             {/* Icon: Figma Group Icon vs Figma Section Icon vs Frame Hashtag (#) */}
             {frame.type === "group" ? (
-              <FigmaGroupIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
+              <FigmaGroupIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-600" : "text-neutral-300"}`} />
             ) : isSection ? (
-              <FigmaSectionIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
+              <FigmaSectionIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-600" : "text-neutral-300"}`} />
             ) : (
-              <HiHashtag className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
+              <HiHashtag className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-600" : "text-neutral-300"}`} />
             )}
 
             {/* Frame / Section Title */}
-            <span className="truncate text-xs font-sans tracking-tight font-medium">
+            <span className={`truncate text-xs font-sans tracking-tight font-medium ${isSel ? "text-white font-medium" : isLight ? "text-slate-800" : "text-neutral-200"}`}>
               {frame.title}
             </span>
           </div>
@@ -7012,6 +7184,8 @@ export default function CanvasWorkspace({
               className={`p-1 rounded transition-opacity cursor-pointer ${
                 isLocked
                   ? "opacity-100 text-amber-400"
+                  : isLight
+                  ? "opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-800"
                   : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
               }`}
               title={isLocked ? "Buka Kunci" : frame.type === "group" ? "Kunci Group" : isSection ? "Kunci Section" : "Kunci Frame"}
@@ -7025,6 +7199,8 @@ export default function CanvasWorkspace({
               className={`p-1 rounded transition-opacity cursor-pointer ${
                 isHidden
                   ? "opacity-100 text-rose-400"
+                  : isLight
+                  ? "opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-800"
                   : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
               }`}
               title={isHidden ? "Tampilkan" : "Sembunyikan"}
@@ -7048,7 +7224,7 @@ export default function CanvasWorkspace({
 
         {/* Nested Children Inside This Frame (Matches Screenshot media_1793529302513_bd071dc3.png) */}
         {isExpanded && children.length > 0 && (
-          <div className="space-y-0.5 pl-3 border-l border-white/10 ml-3">
+          <div className={`space-y-0.5 pl-3 border-l ml-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
             {[...children].reverse().map((child) => {
               if (isFrameItem(child)) {
                 return renderFrameLayer(child, depth + 1);
@@ -7132,7 +7308,7 @@ export default function CanvasWorkspace({
         }}
         className={`relative w-full ${paddingLeft} pr-2 py-1 rounded-md flex items-center justify-between transition-colors cursor-grab active:cursor-grabbing group text-left ${
           isSel
-            ? "bg-[#2d3748] text-white font-medium shadow-xs"
+            ? "bg-[#0c8ce9] text-white font-medium shadow-xs"
             : isLight
             ? "text-slate-700 hover:bg-slate-100"
             : "text-neutral-300 hover:bg-white/8 hover:text-white"
@@ -7149,12 +7325,12 @@ export default function CanvasWorkspace({
         <div className="flex items-center gap-2 truncate flex-1 min-w-0 pr-1">
           {/* Item Type Icon (T for text, Figma Image Icon for images, Circle for ellipse, Outline Rectangle for shapes) */}
           {isText ? (
-            <span className="font-serif font-bold text-xs text-neutral-300 w-3.5 text-center shrink-0">T</span>
+            <span className={`font-serif font-bold text-xs w-3.5 text-center shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-700" : "text-neutral-300"}`}>T</span>
           ) : isImage ? (
-            <FigmaImageIcon className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+            <FigmaImageIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-600" : "text-neutral-400"}`} />
           ) : isEllipse ? (
             <svg
-              className="w-3.5 h-3.5 text-neutral-400 shrink-0"
+              className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-600" : "text-neutral-400"}`}
               viewBox="0 0 16 16"
               fill="none"
               stroke="currentColor"
@@ -7164,7 +7340,7 @@ export default function CanvasWorkspace({
             </svg>
           ) : (
             <svg
-              className="w-3.5 h-3.5 text-neutral-400 shrink-0"
+              className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : isLight ? "text-slate-600" : "text-neutral-400"}`}
               viewBox="0 0 16 16"
               fill="none"
               stroke="currentColor"
@@ -7173,7 +7349,7 @@ export default function CanvasWorkspace({
               <rect x="2.5" y="3.5" width="11" height="9" rx="1.5" />
             </svg>
           )}
-          <span className="truncate text-xs font-sans tracking-tight">
+          <span className={`truncate text-xs font-sans tracking-tight ${isSel ? "text-white font-medium" : isLight ? "text-slate-800" : "text-neutral-200"}`}>
             {isText && it.content ? (it.content.slice(0, 32) || it.title) : it.title}
           </span>
         </div>
@@ -7186,6 +7362,8 @@ export default function CanvasWorkspace({
             className={`p-1 rounded transition-opacity cursor-pointer ${
               isLocked
                 ? "opacity-100 text-amber-400"
+                : isLight
+                ? "opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-800"
                 : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
             }`}
             title={isLocked ? "Buka Kunci Layer" : "Kunci Layer"}
@@ -7199,6 +7377,8 @@ export default function CanvasWorkspace({
             className={`p-1 rounded transition-opacity cursor-pointer ${
               isHidden
                 ? "opacity-100 text-rose-400"
+                : isLight
+                ? "opacity-0 group-hover:opacity-100 text-slate-400 hover:text-slate-800"
                 : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
             }`}
             title={isHidden ? "Tampilkan Layer" : "Sembunyikan Layer"}
@@ -7282,10 +7462,10 @@ export default function CanvasWorkspace({
                 }`}
               >
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold tracking-tight font-sans text-neutral-100">
+                  <span className={`text-xs font-bold tracking-tight font-sans ${isLight ? "text-slate-900" : "text-neutral-100"}`}>
                     Layers
                   </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-white/10 text-neutral-400">
+                  <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-semibold ${isLight ? "bg-slate-200 text-slate-600" : "bg-white/10 text-neutral-400"}`}>
                     {items.length}
                   </span>
                 </div>
@@ -7294,7 +7474,9 @@ export default function CanvasWorkspace({
                     type="button"
                     onClick={toggleExpandAll}
                     title="Expand / Collapse Semua Layer"
-                    className="p-1 hover:text-white rounded hover:bg-white/10 text-neutral-400 transition-colors cursor-pointer"
+                    className={`p-1 rounded transition-colors cursor-pointer ${
+                      isLight ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200" : "text-neutral-400 hover:text-white hover:bg-white/10"
+                    }`}
                   >
                     <HiBars3BottomLeft className="w-4 h-4" />
                   </button>
@@ -7303,7 +7485,9 @@ export default function CanvasWorkspace({
                     type="button"
                     onClick={() => setIsUiExpanded(false)}
                     title="Tutup Menu Sebelah Kiri (Ctrl+Shift+\)"
-                    className="p-1 hover:text-white rounded hover:bg-white/10 text-neutral-400 hover:text-[#38bdf8] transition-colors cursor-pointer"
+                    className={`p-1 rounded transition-colors cursor-pointer ${
+                      isLight ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200" : "text-neutral-400 hover:text-white hover:bg-white/10"
+                    }`}
                   >
                     <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
                       <rect x="2" y="2.5" width="12" height="11" rx="2" />
@@ -7401,6 +7585,8 @@ export default function CanvasWorkspace({
               className={`p-1.5 sm:p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors md:hidden ${
                 isUiExpanded
                   ? "bg-[#0c8ce9] border-[#0c8ce9] text-white"
+                  : isLight
+                  ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-slate-100 shadow-slate-300/40"
                   : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
               }`}
               title="Daftar Layers"
@@ -7410,7 +7596,11 @@ export default function CanvasWorkspace({
             <button
               type="button"
               onClick={toggleFullscreen}
-              className="p-1.5 sm:p-2 rounded-xl bg-[#1e1e1e]/90 backdrop-blur-md border border-white/10 text-white hover:bg-white/20 text-xs shadow-lg cursor-pointer hidden sm:flex items-center justify-center"
+              className={`p-1.5 sm:p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer hidden sm:flex items-center justify-center transition-colors ${
+                isLight
+                  ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-slate-100 shadow-slate-300/40"
+                  : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
+              }`}
               title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
             >
               {isFullscreen ? <HiArrowsPointingIn className="w-4 h-4" /> : <HiArrowsPointingOut className="w-4 h-4" />}
@@ -7426,7 +7616,9 @@ export default function CanvasWorkspace({
               }}
               className={`p-1.5 sm:p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors ${
                 isRightSidebarOpen || isMobileInspectorOpen
-                  ? "bg-[#0c8ce9] border-[#0c8ce9] text-white"
+                  ? "bg-[#0c8ce9] border-[#0c8ce9] text-white shadow-[#0c8ce9]/25"
+                  : isLight
+                  ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-slate-100 shadow-slate-300/40"
                   : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
               }`}
               title="Design Inspector (Right Menu)"
