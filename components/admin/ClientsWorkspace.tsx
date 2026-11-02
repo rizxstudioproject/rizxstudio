@@ -2271,13 +2271,15 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       <p className={`text-[10px] mt-0.5 truncate flex items-center gap-1.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
                         <span>{work.year || "2026"} · {work.aspect || "4:5"}</span>
                         {Boolean(
-                          work.isVideo ||
-                          work.mediaType === "video" ||
-                          work.gdriveUrl ||
-                          work.gdriveId ||
-                          (work.type && /video|motion|reel|animation/i.test(work.type)) ||
-                          (work.title && /video|motion|reel|animation/i.test(work.title)) ||
-                          (work.gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test(work.gdriveUrl))
+                          (work.isVideo === true ||
+                           work.mediaType === "video" ||
+                           work.mediaType === "youtube" ||
+                           work.mediaType === "gdrive_video" ||
+                           Boolean(work.videoId) ||
+                           Boolean(work.youtubeUrl) ||
+                           (work.gdriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test(work.gdriveUrl))) &&
+                          work.mediaType !== "image" &&
+                          work.isVideo !== false
                         ) && (
                           <span className={`px-1 py-0.2 rounded border text-[9px] font-mono font-bold leading-none ${
                             isLight

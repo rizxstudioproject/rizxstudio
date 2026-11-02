@@ -1814,11 +1814,15 @@ export default function Projects() {
                     <div className="stage4-work-badge absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono text-neutral-200 border border-white/10 flex items-center gap-1.5">
                       <span>{work.aspect}</span>
                       {Boolean(
-                        (work as any).isVideo ||
-                        (work as any).mediaType === "video" ||
-                        (work.type && /video|motion|reel|animation/i.test(work.type)) ||
-                        (work.title && /video|motion|reel|animation/i.test(work.title)) ||
-                        ((work as any).gdriveUrl && /\.(mp4|mov|webm|mkv)/i.test((work as any).gdriveUrl))
+                        ((work as any).isVideo === true ||
+                         (work as any).mediaType === "video" ||
+                         (work as any).mediaType === "youtube" ||
+                         (work as any).mediaType === "gdrive_video" ||
+                         Boolean((work as any).videoId) ||
+                         Boolean((work as any).youtubeUrl) ||
+                         ((work as any).gdriveUrl && /\.(mp4|mov|webm|mkv|avi|m4v)/i.test((work as any).gdriveUrl))) &&
+                        (work as any).mediaType !== "image" &&
+                        (work as any).isVideo !== false
                       ) && (
                         <span className="px-1 py-0.5 rounded bg-emerald-500 text-black text-[8px] font-bold tracking-wider uppercase leading-none">
                           VIDEO
