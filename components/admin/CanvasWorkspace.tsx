@@ -1232,6 +1232,19 @@ export default function CanvasWorkspace({
     setHasChanges(true);
   }, [selectedId]);
 
+  // Center-anchored font size updates so text scales symmetrically around its center point
+  const updateTextFontSizeCentered = useCallback((newSize: number, baseItem?: CanvasItem | null) => {
+    const item = baseItem || selectedItem;
+    if (!item) return;
+    const oldDim = getItemDimensions(item);
+    const centerX = (item.x || 0) + oldDim.width / 2;
+    const centerY = (item.y || 0) + oldDim.height / 2;
+    const newDim = getItemDimensions({ ...item, fontSize: newSize });
+    const newX = (item.textAutoResize === "fixed") ? (item.x || 0) : Math.round(centerX - newDim.width / 2);
+    const newY = Math.round(centerY - newDim.height / 2);
+    updateSelectedItem({ fontSize: newSize, x: newX, y: newY });
+  }, [selectedItem, updateSelectedItem]);
+
   // Figma-style Value Scrubber (Drag left/right on input icons, labels, or edges to adjust values)
   const handleStartScrub = useCallback((
     e: React.MouseEvent,
@@ -5936,18 +5949,30 @@ export default function CanvasWorkspace({
                   <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-2 pointer-events-none" />
                 </div>
                 <div className="relative group" ref={fontSizeDropdownRef}>
-                  {/* Figma-style Left Edge Scrubber for Font Size (Matches User Screenshot media_1793596159306_72d4d5d9.jpg) */}
+                  {/* Figma-style Left Edge Scrubber for Font Size with Center Anchor (Matches User Request & Screenshot media_1793596159306_72d4d5d9.jpg) */}
                   <div
-                    onMouseDown={(e) =>
+                    onMouseDown={(e) => {
+                      const baseItem = selectedItem;
+                      if (!baseItem) return;
+                      const startDim = getItemDimensions(baseItem);
+                      const centerX = (baseItem.x || 0) + startDim.width / 2;
+                      const centerY = (baseItem.y || 0) + startDim.height / 2;
+                      const initialFontSize = baseItem.fontSize || 48;
+
                       handleStartScrub(e, {
-                        getValue: () => (selectedItem?.fontSize || 48),
-                        setValue: (v) => updateSelectedItem({ fontSize: v }),
-                        min: 8,
-                        max: 256,
-                      })
-                    }
-                    className="absolute -left-1.5 top-0 bottom-0 w-3.5 cursor-ew-resize z-20 flex items-center justify-center select-none"
-                    title="Geser kiri/kanan untuk mengubah ukuran font"
+                        getValue: () => initialFontSize,
+                        setValue: (newSize) => {
+                          const newDim = getItemDimensions({ ...baseItem, fontSize: newSize });
+                          const newX = (baseItem.textAutoResize === "fixed") ? (baseItem.x || 0) : Math.round(centerX - newDim.width / 2);
+                          const newY = Math.round(centerY - newDim.height / 2);
+                          updateSelectedItem({ fontSize: newSize, x: newX, y: newY });
+                        },
+                        min: 6,
+                        max: 500,
+                      });
+                    }}
+                    className="absolute -left-2 top-0 bottom-0 w-4 cursor-ew-resize z-20 flex items-center justify-center select-none"
+                    title="Geser kiri/kanan untuk mengubah ukuran font (Center Anchor)"
                   >
                     <div className="w-[3px] h-3.5 rounded-full bg-neutral-600/30 group-hover:bg-[#0c8ce9] transition-colors" />
                   </div>
@@ -5956,7 +5981,7 @@ export default function CanvasWorkspace({
                     <input
                       type="number"
                       value={selectedItem?.fontSize || 48}
-                      onChange={(e) => updateSelectedItem({ fontSize: Number(e.target.value) || 16 })}
+                      onChange={(e) => updateTextFontSizeCentered(Number(e.target.value) || 16)}
                       className="w-full bg-transparent text-white font-mono focus:outline-none text-xs"
                     />
                     <button
@@ -5979,7 +6004,7 @@ export default function CanvasWorkspace({
                             key={size}
                             type="button"
                             onClick={() => {
-                              updateSelectedItem({ fontSize: size });
+                              updateTextFontSizeCentered(size);
                               setIsFontSizeDropdownOpen(false);
                             }}
                             className={`w-full px-1.5 py-1 text-xs rounded-lg flex items-center justify-between cursor-pointer transition-colors ${
