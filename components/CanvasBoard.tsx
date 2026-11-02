@@ -1199,33 +1199,6 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         {/* Canvas Elements: Either Freeform Figma-style coordinates or Flex-wrap Grid */}
         {hasFreeformLayout ? (
           <div className="relative w-[5000px] h-[4000px] select-none">
-            {(!canvasItems || canvasItems.length === 0) ? (
-              <div
-                style={{
-                  transform: "translate3d(320px, 240px, 0)",
-                }}
-                className={`absolute p-8 rounded-2xl border border-dashed flex flex-col items-center justify-center text-center max-w-sm pointer-events-none select-none backdrop-blur-md ${
-                  isLight
-                    ? "bg-white/70 border-slate-300 text-slate-700 shadow-sm"
-                    : "bg-[#13151b]/70 border-white/15 text-neutral-300"
-                }`}
-              >
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 text-2xl ${
-                  isLight ? "bg-teal-50 text-teal-600 border border-teal-200" : "bg-teal-500/10 text-teal-400"
-                }`}>
-                  ✦
-                </div>
-                <h4 className={`text-base font-bold mb-1 ${isLight ? "text-slate-900" : "text-white"}`}>
-                  {tr("Canvas Masih Kosong", "Canvas is Empty")}
-                </h4>
-                <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                  {tr(
-                    "Belum ada elemen di canvas studio. Tambahkan karya atau frame melalui Dashboard Admin > Rizx Canvas.",
-                    "No elements on the canvas studio yet. Add works or frames via Admin Dashboard > Rizx Canvas."
-                  )}
-                </p>
-              </div>
-            ) : null}
             {(() => {
               const getItemClipPath = (item: CanvasItem) => {
                 if (!item.frameId) return undefined;
