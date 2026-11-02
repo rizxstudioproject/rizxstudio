@@ -51,7 +51,7 @@ import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService"
 import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
-import AspectRatioPicker, { RatioWireframeIcon, AspectPreset } from "./AspectRatioPicker";
+import type { AspectPreset } from "./AspectRatioPicker";
 
 interface CanvasWorkspaceProps {
   onOpenCanvasPreview?: () => void;
@@ -5803,21 +5803,12 @@ export default function CanvasWorkspace({
       imgPreview = `https://lh3.googleusercontent.com/d/${driveId}`;
     }
 
-    let cardW = 480;
-    let cardH = 360;
-    const effectiveAspect = ytId && (modalAspect === "4:5" || !modalAspect) ? "16:9" : (modalAspect || "16:9");
-    if (effectiveAspect === "1:1") {
-      cardW = 440;
-      cardH = 440;
-    } else if (effectiveAspect === "16:9") {
+    const effectiveAspect = ytId || modalMediaType === "video" ? "16:9" : "4:5";
+    let cardW = 440;
+    let cardH = 550;
+    if (effectiveAspect === "16:9") {
       cardW = 560;
       cardH = 315;
-    } else if (effectiveAspect === "9:16") {
-      cardW = 320;
-      cardH = 568;
-    } else if (effectiveAspect === "4:5") {
-      cardW = 440;
-      cardH = 550;
     }
 
     const center = getViewportCenter(cardW, cardH);
@@ -12099,18 +12090,6 @@ export default function CanvasWorkspace({
               />
             </div>
 
-            {/* Aspect Ratio */}
-            <div>
-              <label className="block text-xs font-semibold text-neutral-300 mb-1.5">
-                Aspect Ratio Frame
-              </label>
-              <AspectRatioPicker
-                value={modalAspect}
-                onChange={(ratio) => setModalAspect(ratio)}
-                maxHeight="160px"
-              />
-            </div>
-
             {/* Actions */}
             <div className="flex items-center gap-2 pt-2">
               <button
@@ -12126,7 +12105,7 @@ export default function CanvasWorkspace({
                 disabled={!modalLinkUrl.trim()}
                 className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-black text-xs font-bold transition-colors shadow-lg shadow-teal-500/20 cursor-pointer"
               >
-                + Tambah ke Canvas
+                Add to Canvas
               </button>
             </div>
           </div>
