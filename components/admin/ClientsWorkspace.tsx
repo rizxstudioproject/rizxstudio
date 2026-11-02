@@ -198,8 +198,6 @@ export default function ClientsWorkspace({
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    // Reset immediately so selecting the exact same file again will always fire onChange
-    e.target.value = "";
     if (!file || !selectedClient) return;
 
     const isSvg =
@@ -234,6 +232,7 @@ export default function ClientsWorkspace({
         dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, "data:image/svg+xml;base64,");
       }
 
+      // 1. Instant local update for 0ms visual feedback on the very first try
       if (onUpdateClientFolder) {
         onUpdateClientFolder(selectedClient.id, { logo: dataUrl });
         showToast(
@@ -244,6 +243,21 @@ export default function ClientsWorkspace({
           )
         );
       }
+
+      // 2. Upload to Cloud Storage CDN if available for permanent URL
+      try {
+        const fd = new FormData();
+        fd.append("file", file);
+        fd.append("folder", "clients/logos");
+        fetch("/api/admin/media-upload", { method: "POST", body: fd })
+          .then((res) => res.json())
+          .then((data) => {
+            if (data.url && onUpdateClientFolder) {
+              onUpdateClientFolder(selectedClient.id, { logo: data.url });
+            }
+          })
+          .catch(() => {});
+      } catch (_) {}
     };
     reader.onerror = () => {
       showToast(
@@ -1717,10 +1731,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             isLight ? "border-slate-200" : "border-white/5"
           }`}>
             <div className="flex items-center gap-3.5">
-              {/* Rounded Square Avatar [KD] with Click / Double Click to Upload Brand Profile Picture */}
-              <div
-                onClick={() => avatarInputRef.current?.click()}
-                onDoubleClick={() => avatarInputRef.current?.click()}
+              {/* Rounded Square Avatar [KD] with Click to Upload Brand Profile Picture */}
+              <label
+                htmlFor={`avatar-input-${selectedClient.id}`}
                 title={tr(
                   "Klik untuk ganti foto profil / logo brand",
                   "Click to change brand profile / logo",
@@ -1736,16 +1749,16 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   <img
                     src={selectedClient.logo}
                     alt={selectedClient.clientName}
-                    className="w-full h-full object-contain rounded-xl transition-transform group-hover:scale-105"
+                    className="w-full h-full object-contain rounded-xl transition-transform group-hover:scale-105 pointer-events-none"
                   />
                 ) : (
-                  <span className={`font-mono text-base tracking-wider ${isLight ? "text-slate-700" : "text-neutral-200 group-hover:text-white"}`}>
+                  <span className={`font-mono text-base tracking-wider pointer-events-none ${isLight ? "text-slate-700" : "text-neutral-200 group-hover:text-white"}`}>
                     {clientInitials}
                   </span>
                 )}
 
                 {/* Hover overlay hint */}
-                <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 text-center backdrop-blur-[2px]">
+                <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 text-center backdrop-blur-[2px] pointer-events-none">
                   <HiCamera className="w-4 h-4 text-[#16b09f] mb-0.5" />
                   <span className="text-[9px] font-mono font-semibold text-white leading-tight">
                     {tr("Ganti Logo", "Change Logo", "Ganti Logo")}
@@ -1754,16 +1767,21 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     {tr("Upload", "Upload", "Upload")}
                   </span>
                 </div>
-              </div>
 
-              {/* Hidden File Input for Avatar / PP */}
-              <input
-                ref={avatarInputRef}
-                type="file"
-                accept="image/*,.svg,image/svg+xml,image/png,image/jpeg,image/webp"
-                onChange={handleAvatarUpload}
-                className="hidden"
-              />
+                {/* Native Accessible File Input inside Label */}
+                <input
+                  id={`avatar-input-${selectedClient.id}`}
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*,.svg,image/svg+xml,image/png,image/jpeg,image/webp"
+                  onClick={(e) => {
+                    // Reset value on click so selecting the exact same file fires onChange every time
+                    (e.target as HTMLInputElement).value = "";
+                  }}
+                  onChange={handleAvatarUpload}
+                  className="sr-only"
+                />
+              </label>
 
               <div>
                 <div className="flex items-center gap-2">

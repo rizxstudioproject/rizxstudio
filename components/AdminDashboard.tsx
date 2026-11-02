@@ -3584,6 +3584,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               if (updates.tools && updates.tools.length > 0) {
                 setUploadToolsInput(updates.tools.join(", "));
               }
+            } else {
+              updateClientFolder(id, updates);
             }
           }}
           onReplaceCoverImage={handleReplaceCoverImage}
@@ -3739,6 +3741,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   if (updates.tools && updates.tools.length > 0) {
                     setUploadToolsInput(updates.tools.join(", "));
                   }
+                } else {
+                  updateClientFolder(id, updates);
                 }
               }}
               onReplaceCoverImage={handleReplaceCoverImage}

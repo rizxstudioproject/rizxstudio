@@ -1925,7 +1925,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   // Edit / Rename an existing client folder or update logo & profile
   const updateClientFolder = useCallback(
     async (clientId: string, updates: Partial<ClientItem>) => {
-      const updatedClients = clients.map((c) => {
+      const currentList = clientsRef.current.length > 0 ? clientsRef.current : clients;
+      const updatedClients = currentList.map((c) => {
         if (c.id === clientId) {
           const newName = updates.clientName !== undefined ? updates.clientName.trim() : c.clientName;
           const newCategory =
