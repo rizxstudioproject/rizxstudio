@@ -1048,25 +1048,45 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <div
                   key={logo.id}
                   onClick={() => setMobileActiveView("detail")}
-                  className="group flex items-center justify-between p-2 rounded-xl bg-neutral-900/60 hover:bg-neutral-900 border border-white/5 hover:border-white/15 transition-all cursor-pointer"
+                  className={`group flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
+                    isLight
+                      ? "bg-white hover:bg-slate-50 border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
+                      : "bg-neutral-900/60 hover:bg-neutral-900 border-white/5 hover:border-white/15"
+                  }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="w-9 h-7 rounded bg-neutral-950 border border-white/10 flex items-center justify-center p-1 shrink-0 invert brightness-0">
+                    <div className={`w-9 h-7 rounded border flex items-center justify-center p-1 shrink-0 ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200/80"
+                        : "bg-white border-white/20 shadow-xs"
+                    }`}>
                       <img
-                        src={logo.file}
+                        src={normalizeMediaUrl(logo.file)}
                         alt={logo.name}
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          const fbs = getMediaFallbackUrls(logo.file);
+                          if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                          else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                        }}
                         className="max-h-5 max-w-full object-contain"
                       />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-medium text-white truncate">
+                      <p className={`text-xs font-medium truncate ${
+                        isLight ? "text-slate-900" : "text-white"
+                      }`}>
                         {logo.name}
                       </p>
                       <span
                         className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-semibold ${
                           logo.row === 1
-                            ? "bg-cyan-500/15 text-cyan-400"
-                            : "bg-emerald-500/15 text-emerald-400"
+                            ? isLight
+                              ? "bg-cyan-100 text-cyan-800 border border-cyan-200"
+                              : "bg-cyan-500/15 text-cyan-400"
+                            : isLight
+                              ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
+                              : "bg-emerald-500/15 text-emerald-400"
                         }`}
                       >
                         {logo.row === 1
@@ -1083,7 +1103,11 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       e.stopPropagation();
                       onDeleteClientLogo?.(logo.id);
                     }}
-                    className="p-1.5 rounded-lg text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                    className={`p-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100 ${
+                      isLight
+                        ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                        : "text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10"
+                    }`}
                   >
                     <HiTrash className="w-3.5 h-3.5" />
                   </button>
@@ -1091,7 +1115,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               ))}
 
               {filteredLogos.length === 0 && (
-                <div className="p-8 text-center text-xs text-neutral-500">
+                <div className={`p-8 text-center text-xs ${isLight ? "text-slate-400" : "text-neutral-500"}`}>
                   {tr("No logos found matching filter.", "Tidak ada logo yang cocok.", "Indak ado logo nan cocok.")}
                 </div>
               )}
@@ -1100,7 +1124,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
         </div>
 
         {/* Footer */}
-        <div className="p-3 border-t border-white/5 text-center">
+        <div className={`p-3 border-t text-center ${isLight ? "border-slate-200" : "border-white/5"}`}>
           {workspaceView === "folders" ? (
             <button
               type="button"
@@ -1108,7 +1132,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 setFilterTab("all");
                 setClientSearch("");
               }}
-              className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
+              className={`text-[11px] font-medium transition-colors cursor-pointer ${
+                isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+              }`}
             >
               {tr(`View all ${validClientsCount} clients`, `Lihat semua ${validClientsCount} klien`, `Caliak kasadonyo ${validClientsCount} klien`)}
             </button>
@@ -1128,7 +1154,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   setLogoRowTab("all");
                   setLogoSearch("");
                 }}
-                className="text-[11px] text-neutral-400 hover:text-white font-medium transition-colors cursor-pointer"
+                className={`text-[11px] font-medium transition-colors cursor-pointer ${
+                  isLight ? "text-slate-500 hover:text-slate-900" : "text-neutral-400 hover:text-white"
+                }`}
               >
                 {tr(`View all ${clLogos.length} logos`, `Lihat semua ${clLogos.length} logo`, `Caliak kasadonyo ${clLogos.length} logo`)}
               </button>
@@ -1372,7 +1400,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
             {newLogoFile && (
               <div className="flex items-center gap-4 pt-2">
                 <div className={`p-2 rounded-xl border flex items-center justify-center ${
-                  isLight ? "bg-slate-100 border-slate-200" : "bg-white/[0.04] border-white/10"
+                  isLight ? "bg-slate-100 border-slate-200" : "bg-white border-white/20 shadow-xs"
                 }`}>
                   <img
                     src={normalizeMediaUrl(newLogoFile)}
@@ -1383,7 +1411,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
                       else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
                     }}
-                    className={`h-8 max-w-[120px] object-contain ${isLight ? "brightness-0 opacity-80" : "invert brightness-0"}`}
+                    className="h-8 max-w-[120px] object-contain"
                   />
                 </div>
                 <button
@@ -1429,8 +1457,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
                       }`}
                     >
-                      <div className={`h-10 w-full flex items-center justify-center transition-opacity ${
-                        isLight ? "brightness-0 opacity-80 group-hover:opacity-100" : "invert brightness-0 opacity-70 group-hover:opacity-100"
+                      <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all ${
+                        isLight
+                          ? "bg-white border-slate-200/80 shadow-xs"
+                          : "bg-white border-white/20 shadow-xs"
                       }`}>
                         <img
                           src={normalizeMediaUrl(logo.file)}
@@ -1441,7 +1471,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                             if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
                             else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
                           }}
-                          className="max-h-7 max-w-full object-contain"
+                          className="max-h-8 max-w-full object-contain"
                         />
                       </div>
                       <input
@@ -1527,8 +1557,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
                       }`}
                     >
-                      <div className={`h-10 w-full flex items-center justify-center transition-opacity ${
-                        isLight ? "brightness-0 opacity-80 group-hover:opacity-100" : "invert brightness-0 opacity-70 group-hover:opacity-100"
+                      <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all ${
+                        isLight
+                          ? "bg-white border-slate-200/80 shadow-xs"
+                          : "bg-white border-white/20 shadow-xs"
                       }`}>
                         <img
                           src={normalizeMediaUrl(logo.file)}
@@ -1539,7 +1571,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                             if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
                             else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
                           }}
-                          className="max-h-7 max-w-full object-contain"
+                          className="max-h-8 max-w-full object-contain"
                         />
                       </div>
                       <input
