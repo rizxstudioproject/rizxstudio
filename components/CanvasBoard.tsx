@@ -1650,55 +1650,19 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                     handleSheetTouchEnd(e, e.currentTarget, sheet.id);
                   }}
                   style={{ width: "460px" }}
-                  className={`canvas-sheet-item group relative flex flex-col rounded-2xl transition-all duration-300 cursor-pointer ${
+                  className={`canvas-sheet-item group relative flex flex-col transition-all duration-300 cursor-pointer ${
                     isSelected
                       ? isLight
                         ? "ring-2 ring-teal-500 shadow-[0_20px_60px_rgba(20,184,166,0.3)] scale-[1.01]"
                         : "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
                       : isLight
-                      ? "hover:ring-1 hover:ring-slate-300 shadow-xl"
-                      : "hover:ring-1 hover:ring-white/40 shadow-2xl"
+                      ? "shadow-xl"
+                      : "shadow-2xl"
                   }`}
                 >
-                  {/* Figma Frame Top Label */}
-                  <div className={`flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg border backdrop-blur-md text-[11px] font-mono ${
-                    isLight
-                      ? "bg-white/95 border-slate-300 text-slate-800 shadow-xs"
-                      : "bg-black/60 border-white/10 text-neutral-300"
-                  }`}>
-                    <div className="flex items-center gap-1.5 truncate pr-2">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${isLight ? "bg-teal-500" : "bg-cyan-400"}`} />
-                      <span className={`font-bold truncate ${isLight ? "text-slate-900" : "text-white"}`}>{sheet.clientName}</span>
-                      <span className={isLight ? "text-slate-400" : "text-neutral-500"}>/</span>
-                      <span className={`truncate opacity-80 ${isLight ? "text-slate-700" : "text-neutral-200"}`}>{sheet.title}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
-                        isLight
-                          ? "bg-slate-100 text-teal-700 border-slate-300"
-                          : "bg-white/10 text-cyan-300 border-white/10"
-                      }`}>
-                        {sheet.aspect === "original" ? "ORIGINAL" : sheet.aspect}
-                      </span>
-                      {sheet.isVideo && (
-                        <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border uppercase ${
-                          isLight
-                            ? "bg-emerald-50 text-emerald-700 border-emerald-300"
-                            : "bg-emerald-500/20 text-emerald-400 border-emerald-500/30"
-                        }`}>
-                          VIDEO
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Sheet Visual Container */}
+                  {/* Sheet Visual Container - Clean & unadorned matching Admin Canvas */}
                   <div
-                    className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden border flex items-center justify-center ${
-                      isLight
-                        ? "bg-white border-slate-300 shadow-xl shadow-slate-200/50"
-                        : "bg-neutral-950 border-white/15 shadow-2xl"
-                    }`}
+                    className={`relative ${sheetWidthClass} overflow-hidden flex items-center justify-center`}
                     style={sheetStyle}
                   >
                     {/* Visual Artwork - 100% Original Resolution & Razor-Sharp when Zoomed */}
@@ -1740,31 +1704,6 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                       }}
                       draggable={false}
                     />
-
-                    {/* Corner Accent */}
-                    <div className={`absolute top-2 right-2 z-10 px-2 py-0.5 rounded-md backdrop-blur-md text-[10px] font-mono border opacity-0 group-hover:opacity-100 transition-opacity ${
-                      isLight
-                        ? "bg-white/90 border-slate-300 text-slate-700 shadow-xs"
-                        : "bg-black/75 border-white/10 text-neutral-300"
-                    }`}>
-                      #{index + 1}
-                    </div>
-
-                    {/* Bottom Vignette with Deliverable Info */}
-                    <div className={`absolute inset-x-0 bottom-0 z-10 p-3 flex flex-col justify-end ${
-                      isLight
-                        ? "bg-gradient-to-t from-slate-900/85 via-slate-900/40 to-transparent"
-                        : "bg-gradient-to-t from-black/90 via-black/40 to-transparent"
-                    }`}>
-                      <h5 className="text-xs sm:text-sm font-bold text-white truncate drop-shadow-md">
-                        {sheet.title}
-                      </h5>
-                      <p className={`text-[10px] font-mono truncate mt-0.5 ${
-                        isLight ? "text-teal-300" : "text-cyan-400/90"
-                      }`}>
-                        {sheet.type || "Digital Asset"} · {sheet.year}
-                      </p>
-                    </div>
                   </div>
 
                   {/* Selection Corners (shown when clicked / focused) */}
