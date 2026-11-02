@@ -9,9 +9,11 @@ import {
   HiArrowPath,
   HiShieldCheck,
   HiQuestionMarkCircle,
+  HiPlay,
 } from "react-icons/hi2";
+import { SiYoutube } from "react-icons/si";
 import { RiFullscreenFill, RiFullscreenExitFill, RiGridFill } from "react-icons/ri";
-import { usePortfolioData, CanvasItem } from "@/context/PortfolioDataContext";
+import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
@@ -27,6 +29,9 @@ interface CanvasSheetItem {
   clientId: string;
   year?: string;
   isVideo?: boolean;
+  videoId?: string;
+  youtubeUrl?: string;
+  mediaType?: string;
   tools?: string[];
 }
 
@@ -81,6 +86,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     title: string;
     aspect: string;
   } | null>(null);
+
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const boardContentRef = useRef<HTMLDivElement>(null);
@@ -148,6 +155,9 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         year: item.year || "2026",
         isVideo: Boolean(item.isVideo || item.videoId || item.mediaType === "youtube" || item.mediaType === "gdrive"),
         tools: item.tools || ["digital", "visual"],
+        videoId: item.videoId || (item.youtubeUrl ? extractYouTubeId(item.youtubeUrl) : (item.image ? extractYouTubeId(item.image) : undefined)),
+        youtubeUrl: item.youtubeUrl,
+        mediaType: item.mediaType,
       }));
     }
 
@@ -168,6 +178,9 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             year: w.year || "2026",
             isVideo: Boolean(w.isVideo || w.videoId || w.mediaType === "video"),
             tools: w.tools || c.tools || [],
+            videoId: w.videoId,
+            youtubeUrl: w.youtubeUrl,
+            mediaType: w.videoId ? "youtube" : w.mediaType,
           });
         }
       });
@@ -1530,30 +1543,117 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                             borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                           }}
                         >
-                          {item.isVideo && imgSrc ? (
-                            <video
-                              src={imgSrc}
-                              autoPlay
-                              loop
-                              muted
-                              playsInline
-                              className="w-full h-full object-cover pointer-events-none select-none"
-                            />
-                          ) : imgSrc ? (
-                            <img
-                              src={imgSrc}
-                              alt={item.title || "Image"}
-                              draggable={false}
-                              decoding="sync"
-                              loading="eager"
-                              className="w-full h-full object-cover pointer-events-none select-none"
-                              style={{
-                                imageRendering: "-webkit-optimize-contrast",
-                                WebkitBackfaceVisibility: "hidden",
-                                transform: "translateZ(0)",
-                              }}
-                            />
-                          ) : null}
+                          {(() => {
+                            const ytVideoId = item.videoId || (item.youtubeUrl ? extractYouTubeId(item.youtubeUrl) : (item.image ? extractYouTubeId(item.image) : ""));
+                            const isYouTube = item.mediaType === "youtube" || Boolean(ytVideoId);
+                            const isHtml5Video = item.isVideo && !isYouTube && (
+                              item.mediaType === "upload" ||
+                              Boolean(imgSrc?.match(/\.(mp4|webm|mov|ogg)(\?|$)/i)) ||
+                              Boolean(imgSrc?.startsWith("data:video/")) ||
+                              Boolean(imgSrc?.startsWith("blob:"))
+                            );
+
+                            if (isYouTube && ytVideoId) {
+                              if (playingVideoId === item.id) {
+                                return (
+                                  <div className="relative w-full h-full bg-black">
+                                    <iframe
+                                      src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1`}
+                                      title={item.title || "YouTube Video"}
+                                      className="w-full h-full border-0 pointer-events-auto"
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                      allowFullScreen
+                                    />
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPlayingVideoId(null);
+                                      }}
+                                      title="Tutup Pemutar Video"
+                                      className="absolute top-2.5 right-2.5 z-30 p-1.5 rounded-full bg-black/85 hover:bg-red-600 text-white backdrop-blur-md transition-all shadow-xl cursor-pointer pointer-events-auto border border-white/20 active:scale-95"
+                                    >
+                                      <HiXMark className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                );
+                              }
+
+                              const ytThumb = imgSrc || `https://img.youtube.com/vi/${ytVideoId}/maxresdefault.jpg`;
+                              return (
+                                <div className="relative w-full h-full bg-black flex items-center justify-center group/yt select-none">
+                                  <img
+                                    src={ytThumb}
+                                    alt={item.title || "YouTube Video"}
+                                    draggable={false}
+                                    decoding="sync"
+                                    loading="eager"
+                                    onError={(e) => {
+                                      const target = e.currentTarget;
+                                      if (!target.dataset.hasFallback) {
+                                        target.dataset.hasFallback = "true";
+                                        target.src = `https://img.youtube.com/vi/${ytVideoId}/hqdefault.jpg`;
+                                      }
+                                    }}
+                                    className="w-full h-full object-cover pointer-events-none select-none"
+                                    style={{
+                                      imageRendering: "-webkit-optimize-contrast",
+                                      WebkitBackfaceVisibility: "hidden",
+                                      transform: "translateZ(0)",
+                                    }}
+                                  />
+                                  <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-[11px] text-white font-medium shadow-md pointer-events-none">
+                                    <SiYoutube className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                    <span className="truncate max-w-[140px] font-mono text-[11px]">YouTube</span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPlayingVideoId(item.id);
+                                    }}
+                                    title="Putar Video YouTube"
+                                    className="absolute z-10 w-16 h-11 rounded-xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-[0_8px_30px_rgba(239,68,68,0.55)] hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer pointer-events-auto"
+                                  >
+                                    <HiPlay className="w-7 h-7 ml-0.5 text-white drop-shadow-md" />
+                                  </button>
+                                </div>
+                              );
+                            }
+
+                            if (isHtml5Video && imgSrc) {
+                              return (
+                                <video
+                                  src={imgSrc}
+                                  autoPlay
+                                  loop
+                                  muted
+                                  playsInline
+                                  className="w-full h-full object-cover pointer-events-none select-none"
+                                />
+                              );
+                            }
+
+                            if (imgSrc) {
+                              return (
+                                <img
+                                  src={imgSrc}
+                                  alt={item.title || "Image"}
+                                  draggable={false}
+                                  decoding="sync"
+                                  loading="eager"
+                                  className="w-full h-full object-cover pointer-events-none select-none"
+                                  style={{
+                                    imageRendering: "-webkit-optimize-contrast",
+                                    WebkitBackfaceVisibility: "hidden",
+                                    transform: "translateZ(0)",
+                                  }}
+                                />
+                              );
+                            }
+
+                            return null;
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -1594,30 +1694,117 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                           borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                         }}
                       >
-                        {item.isVideo && imgSrc ? (
-                          <video
-                            src={imgSrc}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="w-full h-full object-cover pointer-events-none select-none"
-                          />
-                        ) : imgSrc ? (
-                          <img
-                            src={imgSrc}
-                            alt={item.title || "Image"}
-                            draggable={false}
-                            decoding="sync"
-                            loading="eager"
-                            className="w-full h-full object-cover pointer-events-none select-none"
-                            style={{
-                              imageRendering: "-webkit-optimize-contrast",
-                              WebkitBackfaceVisibility: "hidden",
-                              transform: "translateZ(0)",
-                            }}
-                          />
-                        ) : null}
+                        {(() => {
+                          const ytVideoId = item.videoId || (item.youtubeUrl ? extractYouTubeId(item.youtubeUrl) : (item.image ? extractYouTubeId(item.image) : ""));
+                          const isYouTube = item.mediaType === "youtube" || Boolean(ytVideoId);
+                          const isHtml5Video = item.isVideo && !isYouTube && (
+                            item.mediaType === "upload" ||
+                            Boolean(imgSrc?.match(/\.(mp4|webm|mov|ogg)(\?|$)/i)) ||
+                            Boolean(imgSrc?.startsWith("data:video/")) ||
+                            Boolean(imgSrc?.startsWith("blob:"))
+                          );
+
+                          if (isYouTube && ytVideoId) {
+                            if (playingVideoId === item.id) {
+                              return (
+                                <div className="relative w-full h-full bg-black">
+                                  <iframe
+                                    src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1`}
+                                    title={item.title || "YouTube Video"}
+                                    className="w-full h-full border-0 pointer-events-auto"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPlayingVideoId(null);
+                                    }}
+                                    title="Tutup Pemutar Video"
+                                    className="absolute top-2.5 right-2.5 z-30 p-1.5 rounded-full bg-black/85 hover:bg-red-600 text-white backdrop-blur-md transition-all shadow-xl cursor-pointer pointer-events-auto border border-white/20 active:scale-95"
+                                  >
+                                    <HiXMark className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              );
+                            }
+
+                            const ytThumb = imgSrc || `https://img.youtube.com/vi/${ytVideoId}/maxresdefault.jpg`;
+                            return (
+                              <div className="relative w-full h-full bg-black flex items-center justify-center group/yt select-none">
+                                <img
+                                  src={ytThumb}
+                                  alt={item.title || "YouTube Video"}
+                                  draggable={false}
+                                  decoding="sync"
+                                  loading="eager"
+                                  onError={(e) => {
+                                    const target = e.currentTarget;
+                                    if (!target.dataset.hasFallback) {
+                                      target.dataset.hasFallback = "true";
+                                      target.src = `https://img.youtube.com/vi/${ytVideoId}/hqdefault.jpg`;
+                                    }
+                                  }}
+                                  className="w-full h-full object-cover pointer-events-none select-none"
+                                  style={{
+                                    imageRendering: "-webkit-optimize-contrast",
+                                    WebkitBackfaceVisibility: "hidden",
+                                    transform: "translateZ(0)",
+                                  }}
+                                />
+                                <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-[11px] text-white font-medium shadow-md pointer-events-none">
+                                  <SiYoutube className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                  <span className="truncate max-w-[140px] font-mono text-[11px]">YouTube</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPlayingVideoId(item.id);
+                                  }}
+                                  title="Putar Video YouTube"
+                                  className="absolute z-10 w-16 h-11 rounded-xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-[0_8px_30px_rgba(239,68,68,0.55)] hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer pointer-events-auto"
+                                >
+                                  <HiPlay className="w-7 h-7 ml-0.5 text-white drop-shadow-md" />
+                                </button>
+                              </div>
+                            );
+                          }
+
+                          if (isHtml5Video && imgSrc) {
+                            return (
+                              <video
+                                src={imgSrc}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover pointer-events-none select-none"
+                              />
+                            );
+                          }
+
+                          if (imgSrc) {
+                            return (
+                              <img
+                                src={imgSrc}
+                                alt={item.title || "Image"}
+                                draggable={false}
+                                decoding="sync"
+                                loading="eager"
+                                className="w-full h-full object-cover pointer-events-none select-none"
+                                style={{
+                                  imageRendering: "-webkit-optimize-contrast",
+                                  WebkitBackfaceVisibility: "hidden",
+                                  transform: "translateZ(0)",
+                                }}
+                              />
+                            );
+                          }
+
+                          return null;
+                        })()}
                       </div>
                     </div>
                   )}
@@ -1698,45 +1885,119 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                     className={`relative ${sheetWidthClass} overflow-hidden flex items-center justify-center`}
                     style={sheetStyle}
                   >
-                    {/* Visual Artwork - 100% Original Resolution & Razor-Sharp when Zoomed */}
-                    <img
-                      src={sheet.image}
-                      alt={sheet.title}
-                      draggable={false}
-                      decoding="sync"
-                      loading="eager"
-                      className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
-                      style={{
-                        imageRendering: "-webkit-optimize-contrast",
-                        WebkitBackfaceVisibility: "hidden",
-                        transform: "translateZ(0)",
-                      }}
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
+                    {(() => {
+                      const ytId = sheet.videoId || (sheet.youtubeUrl ? extractYouTubeId(sheet.youtubeUrl) : (sheet.image ? extractYouTubeId(sheet.image) : ""));
+                      const isYouTube = sheet.mediaType === "youtube" || Boolean(ytId);
 
-                    {/* Anti-theft Transparent Shield Layer (Interception Layer) */}
-                    <div
-                      className="absolute inset-0 z-20 pointer-events-auto cursor-grab"
-                      onContextMenu={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                      }}
-                      onDoubleClick={(e) => {
-                        e.stopPropagation();
-                        const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
-                        if (selectedSheetId === sheet.id) {
-                          fitSheetToScreen(card, sheet.id);
-                        } else {
-                          setSelectedSheetId(sheet.id);
+                      if (isYouTube && ytId) {
+                        if (playingVideoId === sheet.id) {
+                          return (
+                            <div className="relative w-full h-full bg-black">
+                              <iframe
+                                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1`}
+                                title={sheet.title}
+                                className="w-full h-full border-0 pointer-events-auto"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                allowFullScreen
+                              />
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPlayingVideoId(null);
+                                }}
+                                title="Tutup Pemutar Video"
+                                className="absolute top-2.5 right-2.5 z-30 p-1.5 rounded-full bg-black/85 hover:bg-red-600 text-white backdrop-blur-md transition-all shadow-xl cursor-pointer pointer-events-auto border border-white/20 active:scale-95"
+                              >
+                                <HiXMark className="w-4 h-4" />
+                              </button>
+                            </div>
+                          );
                         }
-                      }}
-                      onTouchEnd={(e) => {
-                        const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
-                        handleSheetTouchEnd(e, card, sheet.id);
-                      }}
-                      draggable={false}
-                    />
+
+                        const ytThumb = sheet.image || `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+                        return (
+                          <div className="relative w-full h-full bg-black flex items-center justify-center group/yt select-none">
+                            <img
+                              src={ytThumb}
+                              alt={sheet.title}
+                              draggable={false}
+                              decoding="sync"
+                              loading="eager"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                if (!target.dataset.hasFallback) {
+                                  target.dataset.hasFallback = "true";
+                                  target.src = `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+                                }
+                              }}
+                              className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
+                              style={{
+                                imageRendering: "-webkit-optimize-contrast",
+                                WebkitBackfaceVisibility: "hidden",
+                                transform: "translateZ(0)",
+                              }}
+                            />
+                            <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-[11px] text-white font-medium shadow-md pointer-events-none">
+                              <SiYoutube className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                              <span className="truncate max-w-[140px] font-mono text-[11px]">YouTube</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setPlayingVideoId(sheet.id);
+                              }}
+                              title="Putar Video YouTube"
+                              className="absolute z-10 w-16 h-11 rounded-xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-[0_8px_30px_rgba(239,68,68,0.55)] hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer pointer-events-auto"
+                            >
+                              <HiPlay className="w-7 h-7 ml-0.5 text-white drop-shadow-md" />
+                            </button>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <>
+                          <img
+                            src={sheet.image}
+                            alt={sheet.title}
+                            draggable={false}
+                            decoding="sync"
+                            loading="eager"
+                            className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
+                            style={{
+                              imageRendering: "-webkit-optimize-contrast",
+                              WebkitBackfaceVisibility: "hidden",
+                              transform: "translateZ(0)",
+                            }}
+                            onContextMenu={(e) => e.preventDefault()}
+                          />
+                          <div
+                            className="absolute inset-0 z-20 pointer-events-auto cursor-grab"
+                            onContextMenu={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return false;
+                            }}
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
+                              if (selectedSheetId === sheet.id) {
+                                fitSheetToScreen(card, sheet.id);
+                              } else {
+                                setSelectedSheetId(sheet.id);
+                              }
+                            }}
+                            onTouchEnd={(e) => {
+                              const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
+                              handleSheetTouchEnd(e, card, sheet.id);
+                            }}
+                            draggable={false}
+                          />
+                        </>
+                      );
+                    })()}
                   </div>
 
                   {/* Selection Corners (shown when clicked / focused) */}

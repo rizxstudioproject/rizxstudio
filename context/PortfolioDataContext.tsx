@@ -561,8 +561,8 @@ export function extractYouTubeId(urlOrId: string): string {
     return trimmed;
   }
 
-  // Matches youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID, youtube.com/shorts/ID
-  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/\s]{11})/i;
+  // Matches youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID, youtube.com/shorts/ID, youtube.com/live/ID, img.youtube.com/vi/ID, i.ytimg.com/vi/ID
+  const regExp = /(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|vi|live)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/|ytimg\.com\/vi\/)([^"&?\/\s]{11})/i;
   const match = trimmed.match(regExp);
   return match && match[1] ? match[1] : "";
 }

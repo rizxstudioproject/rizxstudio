@@ -621,6 +621,7 @@ export default function CanvasWorkspace({
   const [showMeasureTool, setShowMeasureTool] = useState(false);
   const [showDevMode, setShowDevMode] = useState(false);
   const [isSpacePressed, setIsSpacePressed] = useState(false);
+  const [previewingVideoId, setPreviewingVideoId] = useState<string | null>(null);
 
   // Studio UI Layout State (Figma-style Collapsible Panels & Pill)
   const [windowWidth, setWindowWidth] = useState<number>(() => {
@@ -5774,6 +5775,9 @@ export default function CanvasWorkspace({
         e.preventDefault();
         setModalLinkUrl(text);
         setModalMediaType(ytId ? "video" : "image");
+        if (ytId) {
+          setModalAspect("16:9");
+        }
         setIsLinkModalOpen(true);
       }
     };
@@ -5801,16 +5805,17 @@ export default function CanvasWorkspace({
 
     let cardW = 480;
     let cardH = 360;
-    if (modalAspect === "1:1") {
+    const effectiveAspect = ytId && (modalAspect === "4:5" || !modalAspect) ? "16:9" : (modalAspect || "16:9");
+    if (effectiveAspect === "1:1") {
       cardW = 440;
       cardH = 440;
-    } else if (modalAspect === "16:9") {
+    } else if (effectiveAspect === "16:9") {
       cardW = 560;
       cardH = 315;
-    } else if (modalAspect === "9:16") {
+    } else if (effectiveAspect === "9:16") {
       cardW = 320;
       cardH = 568;
-    } else if (modalAspect === "4:5") {
+    } else if (effectiveAspect === "4:5") {
       cardW = 440;
       cardH = 550;
     }
@@ -5823,7 +5828,7 @@ export default function CanvasWorkspace({
       type: "media",
       mediaType: ytId ? "youtube" : driveId ? "gdrive" : isVideo ? "upload" : "image",
       image: normalizeMediaUrl(imgPreview),
-      aspect: modalAspect,
+      aspect: effectiveAspect,
       clientName: "Selected Work",
       x: center.x,
       y: center.y,
@@ -10106,32 +10111,118 @@ export default function CanvasWorkspace({
                           borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                         }}
                       >
-                        {item.isVideo && item.image ? (
-                          <video
-                            src={item.image}
-                            autoPlay
-                            loop
-                            muted
-                            playsInline
-                            className="w-full h-full object-cover pointer-events-none select-none"
-                          />
-                        ) : item.image ? (
-                          <img
-                            src={item.image}
-                            alt={item.title || "Image"}
-                            draggable={false}
-                            decoding="sync"
-                            loading="eager"
-                            className="w-full h-full object-cover pointer-events-none select-none"
-                            style={{
-                              imageRendering: "-webkit-optimize-contrast",
-                              WebkitBackfaceVisibility: "hidden",
-                              transform: "translateZ(0)",
-                            }}
-                          />
-                        ) : (
-                          <div className="text-neutral-600 text-xs font-mono">No Media</div>
-                        )}
+                        {(() => {
+                          const ytVideoId = item.videoId || (item.youtubeUrl ? extractYouTubeId(item.youtubeUrl) : (item.image ? extractYouTubeId(item.image) : ""));
+                          const isYouTube = item.mediaType === "youtube" || Boolean(ytVideoId);
+                          const isHtml5Video = item.isVideo && !isYouTube && (
+                            item.mediaType === "upload" ||
+                            Boolean(item.image?.match(/\.(mp4|webm|mov|ogg)(\?|$)/i)) ||
+                            Boolean(item.image?.startsWith("data:video/")) ||
+                            Boolean(item.image?.startsWith("blob:"))
+                          );
+
+                          if (isYouTube && ytVideoId) {
+                            if (previewingVideoId === item.id) {
+                              return (
+                                <div className="relative w-full h-full bg-black">
+                                  <iframe
+                                    src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1`}
+                                    title={item.title || "YouTube Video"}
+                                    className="w-full h-full border-0 pointer-events-auto"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPreviewingVideoId(null);
+                                    }}
+                                    title="Tutup Preview Video"
+                                    className="absolute top-2.5 right-2.5 z-30 px-2.5 py-1 rounded-lg bg-black/85 hover:bg-red-600 text-[11px] font-sans font-semibold text-white backdrop-blur-md transition-all shadow-xl flex items-center gap-1.5 cursor-pointer pointer-events-auto border border-white/20 active:scale-95"
+                                  >
+                                    <HiXMark className="w-3.5 h-3.5" />
+                                    <span>Stop Preview</span>
+                                  </button>
+                                </div>
+                              );
+                            }
+
+                            const ytThumb = item.image || `https://img.youtube.com/vi/${ytVideoId}/maxresdefault.jpg`;
+                            return (
+                              <div className="relative w-full h-full bg-black flex items-center justify-center group/yt select-none">
+                                <img
+                                  src={ytThumb}
+                                  alt={item.title || "YouTube Video"}
+                                  draggable={false}
+                                  decoding="sync"
+                                  loading="eager"
+                                  onError={(e) => {
+                                    const target = e.currentTarget;
+                                    if (!target.dataset.hasFallback) {
+                                      target.dataset.hasFallback = "true";
+                                      target.src = `https://img.youtube.com/vi/${ytVideoId}/hqdefault.jpg`;
+                                    }
+                                  }}
+                                  className="w-full h-full object-cover pointer-events-none select-none"
+                                  style={{
+                                    imageRendering: "-webkit-optimize-contrast",
+                                    WebkitBackfaceVisibility: "hidden",
+                                    transform: "translateZ(0)",
+                                  }}
+                                />
+                                <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-[11px] text-white font-medium shadow-md pointer-events-none">
+                                  <SiYoutube className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                  <span className="truncate max-w-[140px] font-mono text-[11px]">YouTube</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPreviewingVideoId(item.id);
+                                  }}
+                                  title="Putar Video YouTube (Preview)"
+                                  className="absolute z-10 w-16 h-11 rounded-xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-[0_8px_30px_rgba(239,68,68,0.55)] hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer pointer-events-auto"
+                                >
+                                  <HiPlay className="w-7 h-7 ml-0.5 text-white drop-shadow-md" />
+                                </button>
+                              </div>
+                            );
+                          }
+
+                          if (isHtml5Video && item.image) {
+                            return (
+                              <video
+                                src={item.image}
+                                autoPlay
+                                loop
+                                muted
+                                playsInline
+                                className="w-full h-full object-cover pointer-events-none select-none"
+                              />
+                            );
+                          }
+
+                          if (item.image) {
+                            return (
+                              <img
+                                src={item.image}
+                                alt={item.title || "Image"}
+                                draggable={false}
+                                decoding="sync"
+                                loading="eager"
+                                className="w-full h-full object-cover pointer-events-none select-none"
+                                style={{
+                                  imageRendering: "-webkit-optimize-contrast",
+                                  WebkitBackfaceVisibility: "hidden",
+                                  transform: "translateZ(0)",
+                                }}
+                              />
+                            );
+                          }
+
+                          return <div className="text-neutral-600 text-xs font-mono">No Media</div>;
+                        })()}
                       </div>
                     </div>
                   </div>
@@ -10184,32 +10275,118 @@ export default function CanvasWorkspace({
                         borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                       }}
                     >
-                      {item.isVideo && item.image ? (
-                        <video
-                          src={item.image}
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          className="w-full h-full object-cover pointer-events-none select-none"
-                        />
-                      ) : item.image ? (
-                        <img
-                          src={item.image}
-                          alt={item.title || "Image"}
-                          draggable={false}
-                          decoding="sync"
-                          loading="eager"
-                          className="w-full h-full object-cover pointer-events-none select-none"
-                          style={{
-                            imageRendering: "-webkit-optimize-contrast",
-                            WebkitBackfaceVisibility: "hidden",
-                            transform: "translateZ(0)",
-                          }}
-                        />
-                      ) : (
-                        <div className="text-neutral-600 text-xs font-mono">No Media</div>
-                      )}
+                      {(() => {
+                        const ytVideoId = item.videoId || (item.youtubeUrl ? extractYouTubeId(item.youtubeUrl) : (item.image ? extractYouTubeId(item.image) : ""));
+                        const isYouTube = item.mediaType === "youtube" || Boolean(ytVideoId);
+                        const isHtml5Video = item.isVideo && !isYouTube && (
+                          item.mediaType === "upload" ||
+                          Boolean(item.image?.match(/\.(mp4|webm|mov|ogg)(\?|$)/i)) ||
+                          Boolean(item.image?.startsWith("data:video/")) ||
+                          Boolean(item.image?.startsWith("blob:"))
+                        );
+
+                        if (isYouTube && ytVideoId) {
+                          if (previewingVideoId === item.id) {
+                            return (
+                              <div className="relative w-full h-full bg-black">
+                                <iframe
+                                  src={`https://www.youtube.com/embed/${ytVideoId}?autoplay=1&rel=0&modestbranding=1`}
+                                  title={item.title || "YouTube Video"}
+                                  className="w-full h-full border-0 pointer-events-auto"
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                  allowFullScreen
+                                />
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setPreviewingVideoId(null);
+                                  }}
+                                  title="Tutup Preview Video"
+                                  className="absolute top-2.5 right-2.5 z-30 px-2.5 py-1 rounded-lg bg-black/85 hover:bg-red-600 text-[11px] font-sans font-semibold text-white backdrop-blur-md transition-all shadow-xl flex items-center gap-1.5 cursor-pointer pointer-events-auto border border-white/20 active:scale-95"
+                                >
+                                  <HiXMark className="w-3.5 h-3.5" />
+                                  <span>Stop Preview</span>
+                                </button>
+                              </div>
+                            );
+                          }
+
+                          const ytThumb = item.image || `https://img.youtube.com/vi/${ytVideoId}/maxresdefault.jpg`;
+                          return (
+                            <div className="relative w-full h-full bg-black flex items-center justify-center group/yt select-none">
+                              <img
+                                src={ytThumb}
+                                alt={item.title || "YouTube Video"}
+                                draggable={false}
+                                decoding="sync"
+                                loading="eager"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  if (!target.dataset.hasFallback) {
+                                    target.dataset.hasFallback = "true";
+                                    target.src = `https://img.youtube.com/vi/${ytVideoId}/hqdefault.jpg`;
+                                  }
+                                }}
+                                className="w-full h-full object-cover pointer-events-none select-none"
+                                style={{
+                                  imageRendering: "-webkit-optimize-contrast",
+                                  WebkitBackfaceVisibility: "hidden",
+                                  transform: "translateZ(0)",
+                                }}
+                              />
+                              <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-black/80 backdrop-blur-md border border-white/10 flex items-center gap-1.5 text-[11px] text-white font-medium shadow-md pointer-events-none">
+                                <SiYoutube className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                <span className="truncate max-w-[140px] font-mono text-[11px]">YouTube</span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setPreviewingVideoId(item.id);
+                                }}
+                                title="Putar Video YouTube (Preview)"
+                                className="absolute z-10 w-16 h-11 rounded-xl bg-red-600 hover:bg-red-500 text-white flex items-center justify-center shadow-[0_8px_30px_rgba(239,68,68,0.55)] hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer pointer-events-auto"
+                              >
+                                <HiPlay className="w-7 h-7 ml-0.5 text-white drop-shadow-md" />
+                              </button>
+                            </div>
+                          );
+                        }
+
+                        if (isHtml5Video && item.image) {
+                          return (
+                            <video
+                              src={item.image}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover pointer-events-none select-none"
+                            />
+                          );
+                        }
+
+                        if (item.image) {
+                          return (
+                            <img
+                              src={item.image}
+                              alt={item.title || "Image"}
+                              draggable={false}
+                              decoding="sync"
+                              loading="eager"
+                              className="w-full h-full object-cover pointer-events-none select-none"
+                              style={{
+                                imageRendering: "-webkit-optimize-contrast",
+                                WebkitBackfaceVisibility: "hidden",
+                                transform: "translateZ(0)",
+                              }}
+                            />
+                          );
+                        }
+
+                        return <div className="text-neutral-600 text-xs font-mono">No Media</div>;
+                      })()}
                     </div>
                   </div>
                 )}
@@ -11864,6 +12041,7 @@ export default function CanvasWorkspace({
                   setModalLinkUrl(val);
                   if (val.includes("youtube.com") || val.includes("youtu.be")) {
                     setModalMediaType("video");
+                    setModalAspect("16:9");
                   }
                 }}
                 placeholder="https://drive.google.com/file/d/... atau https://youtube.com/watch?v=..."
