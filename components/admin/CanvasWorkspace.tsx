@@ -1333,15 +1333,16 @@ export default function CanvasWorkspace({
   );
 
   const updateSelectedItem = useCallback((updater: Partial<CanvasItem>) => {
-    if (!selectedId) return;
+    const idsToUpdate = selectedIds.size > 0 ? selectedIds : (selectedId ? new Set([selectedId]) : null);
+    if (!idsToUpdate || idsToUpdate.size === 0) return;
     setItems((prev) => {
       pushHistorySnapshot(prev);
-      const next = prev.map((it) => (it.id === selectedId ? { ...it, ...updater } : it));
+      const next = prev.map((it) => (idsToUpdate.has(it.id) ? { ...it, ...updater } : it));
       itemsRef.current = next;
       triggerAutoSave(next);
       return next;
     });
-  }, [selectedId, pushHistorySnapshot, triggerAutoSave]);
+  }, [selectedId, selectedIds, pushHistorySnapshot, triggerAutoSave]);
 
   // Center-anchored font size updates so text scales symmetrically around its center point
   const updateTextFontSizeCentered = useCallback((newSize: number, baseItem?: CanvasItem | null) => {
@@ -1412,17 +1413,64 @@ export default function CanvasWorkspace({
     setTimeout(() => setShowShareToast(false), 3000);
   }, []);
 
-  // Selection Colors (Matches Image 2)
+  // Selection Colors: Dynamically extracted strictly from canvas layers (Figma-style)
   const selectionColors = useMemo(() => {
+    if (items.length === 0) return [];
+
     const set = new Set<string>();
-    items.forEach((it) => {
-      if (it.color) set.add(it.color.toUpperCase());
+
+    // If specific items are selected, extract colors from the selection (and nested children)
+    // If no items are selected (inspecting canvas page), extract colors from all layers on canvas
+    const targetItems = selectedIds.size > 0
+      ? items.filter((it) => selectedIds.has(it.id) || (it.frameId && selectedIds.has(it.frameId)))
+      : items;
+
+    const normalizeHex = (raw?: string | null): string | null => {
+      if (!raw || typeof raw !== "string") return null;
+      const s = raw.trim();
+      if (!s || s === "transparent") return null;
+      if (s.startsWith("#")) {
+        let h = s.toUpperCase();
+        if (h.length === 4) {
+          h = `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
+        }
+        return h.length >= 7 ? h.slice(0, 7) : h;
+      }
+      if (s.startsWith("rgb")) {
+        const m = s.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+        if (m) {
+          const r = Math.min(255, Math.max(0, parseInt(m[1], 10))).toString(16).padStart(2, "0");
+          const g = Math.min(255, Math.max(0, parseInt(m[2], 10))).toString(16).padStart(2, "0");
+          const b = Math.min(255, Math.max(0, parseInt(m[3], 10))).toString(16).padStart(2, "0");
+          return `#${r}${g}${b}`.toUpperCase();
+        }
+      }
+      if (/^[0-9A-Fa-f]{6}$/.test(s)) {
+        return `#${s.toUpperCase()}`;
+      }
+      return null;
+    };
+
+    targetItems.forEach((it) => {
+      // 1. Fill color
+      const fill = normalizeHex(it.color);
+      if (fill) set.add(fill);
+
+      // 2. Stroke color (if stroke is enabled or width > 0)
+      if (it.strokeColor && (it.strokeWidth === undefined || it.strokeWidth > 0)) {
+        const stroke = normalizeHex(it.strokeColor);
+        if (stroke) set.add(stroke);
+      }
+
+      // 3. Shadow color (if effects are enabled)
+      if (it.effects && !it.effectHidden && it.shadowColor) {
+        const shadow = normalizeHex(it.shadowColor);
+        if (shadow) set.add(shadow);
+      }
     });
-    // Add iconic Figma preset colors matching screenshot 2
-    const defaultColors = ["#E5BF00", "#F9FAEF", "#FDD835", "#000000", "#5B502B", "#00A389", "#0C8CE9", "#FFFFFF"];
-    defaultColors.forEach((c) => set.add(c));
+
     return Array.from(set);
-  }, [items]);
+  }, [items, selectedIds]);
 
   // ── Figma Color Picker Utilities & State (Matches Screenshot media_1793528907470_542d3124.png) ──────────────
   const hexToHsv = useCallback((hex: string) => {
@@ -6952,42 +7000,44 @@ export default function CanvasWorkspace({
             )}
           </div>
 
-          {/* 8. SELECTION COLORS (Matches Screenshot 2) */}
-          <div className="p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className={sectionTitleCls}>Selection colors</span>
-            </div>
+          {/* 8. SELECTION COLORS (Matches Figma: follows what is on the layers) */}
+          {selectionColors.length > 0 && (
+            <div className="p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className={sectionTitleCls}>Selection colors</span>
+              </div>
 
-            {/* List of Swatches matching Screenshot 2 */}
-            <div className="space-y-1">
-              {selectionColors.map((colorHex, idx) => (
-                <div
-                  key={`${colorHex}-${idx}`}
-                  onClick={() => {
-                    updateSelectedItem({ color: colorHex });
-                    openColorPicker("fill", colorHex);
-                  }}
-                  className={`flex items-center justify-between p-1.5 rounded-lg transition-colors cursor-pointer group ${
-                    isLight
-                      ? "bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800"
-                      : "bg-[#2c2c2c] hover:bg-[#343434] text-white"
-                  }`}
-                  title="Select color and open picker"
-                >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`w-4 h-4 rounded-xs border shrink-0 shadow-xs group-hover:scale-110 transition-transform ${isLight ? "border-slate-300" : "border-white/20"}`}
-                      style={{ backgroundColor: colorHex }}
-                    />
-                    <span className={`font-mono text-xs uppercase transition-colors ${isLight ? "text-slate-800 group-hover:text-[#0c8ce9]" : "text-white group-hover:text-[#0c8ce9]"}`}>
-                      {colorHex.replace("#", "")}
-                    </span>
+              {/* List of Swatches matching current layer selection */}
+              <div className="space-y-1">
+                {selectionColors.map((colorHex, idx) => (
+                  <div
+                    key={`${colorHex}-${idx}`}
+                    onClick={() => {
+                      updateSelectedItem({ color: colorHex });
+                      openColorPicker("fill", colorHex);
+                    }}
+                    className={`flex items-center justify-between p-1.5 rounded-lg transition-colors cursor-pointer group ${
+                      isLight
+                        ? "bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800"
+                        : "bg-[#2c2c2c] hover:bg-[#343434] text-white"
+                    }`}
+                    title="Select color and open picker"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-4 h-4 rounded-xs border shrink-0 shadow-xs group-hover:scale-110 transition-transform ${isLight ? "border-slate-300" : "border-white/20"}`}
+                        style={{ backgroundColor: colorHex }}
+                      />
+                      <span className={`font-mono text-xs uppercase transition-colors ${isLight ? "text-slate-800 group-hover:text-[#0c8ce9]" : "text-white group-hover:text-[#0c8ce9]"}`}>
+                        {colorHex.replace("#", "")}
+                      </span>
+                    </div>
+                    <span className={`text-[11px] font-mono ${isLight ? "text-slate-500 group-hover:text-slate-900" : "text-neutral-400 group-hover:text-white"}`}>100 %</span>
                   </div>
-                  <span className={`text-[11px] font-mono ${isLight ? "text-slate-500 group-hover:text-slate-900" : "text-neutral-400 group-hover:text-white"}`}>100 %</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 10. EXPORT SECTION (Matches Screenshot 2) */}
           <div className="p-3 space-y-2">
