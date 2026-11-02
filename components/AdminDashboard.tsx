@@ -2578,6 +2578,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           window.dispatchEvent(new CustomEvent("app:trigger-settings-save"));
         }
         break;
+      case "canvas":
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("app:trigger-canvas-save"));
+        }
+        showToast(tx("Canvas berhasil disimpan & disinkronkan ke web!", "Canvas saved and synced to web!"));
+        break;
       default:
         showToast(tx("Perubahan berhasil disimpan & disinkronkan ke web!", "Changes saved and synced to web!"));
     }
@@ -2602,6 +2608,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       case "theme":
         resetMotionTheme();
         showToast(tx("Pengaturan berhasil dikembalikan ke default!", "Settings successfully reset to default!"));
+        break;
+      case "canvas":
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("app:trigger-canvas-reset"));
+        }
         break;
       case "settings":
         handleFullReset();

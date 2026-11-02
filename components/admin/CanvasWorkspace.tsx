@@ -4801,8 +4801,9 @@ export default function CanvasWorkspace({
   const handleSaveChanges = async () => {
     setIsSaving(true);
     try {
-      await updateCanvasItems(items);
-      initialItemsRef.current = JSON.parse(JSON.stringify(items));
+      const itemsToSave = itemsRef.current || items;
+      await updateCanvasItems(itemsToSave);
+      initialItemsRef.current = JSON.parse(JSON.stringify(itemsToSave));
       setHasChanges(false);
       if (typeof window !== "undefined") {
         localStorage.setItem("rizx_canvas_seeded", "true");
@@ -4815,6 +4816,21 @@ export default function CanvasWorkspace({
       setIsSaving(false);
     }
   };
+
+  useEffect(() => {
+    const handleTriggerSave = async () => {
+      await handleSaveChanges();
+    };
+    const handleTriggerReset = () => {
+      handleCancelChanges();
+    };
+    window.addEventListener("app:trigger-canvas-save", handleTriggerSave);
+    window.addEventListener("app:trigger-canvas-reset", handleTriggerReset);
+    return () => {
+      window.removeEventListener("app:trigger-canvas-save", handleTriggerSave);
+      window.removeEventListener("app:trigger-canvas-reset", handleTriggerReset);
+    };
+  }, [items, updateCanvasItems]);
 
   // Add Media from Modal Link
   const handleAddMediaFromLink = () => {

@@ -1018,6 +1018,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           }));
           setCanvasItems(loadedCanvas);
           canvasItemsRef.current = loadedCanvas;
+          if (typeof window !== "undefined") {
+            localStorage.setItem("rizx_canvas_seeded", "true");
+          }
         }
       }
 
@@ -1239,6 +1242,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 }));
                 setCanvasItems(loadedCanvas);
                 canvasItemsRef.current = loadedCanvas;
+                if (typeof window !== "undefined") {
+                  localStorage.setItem("rizx_canvas_seeded", "true");
+                }
               }
             } catch (_) {}
           }

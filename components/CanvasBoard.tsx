@@ -84,20 +84,27 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const boardContentRef = useRef<HTMLDivElement>(null);
 
-  const hasFreeformLayout = useMemo(() => {
-    const validMedia = (canvasItems || []).filter(
-      (item) => item.type !== "section" && item.mediaType !== "section" && item.type !== "text" && item.mediaType !== "text" && (item.image || item.videoId)
+  const isCanvasCustomized = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return (
+      localStorage.getItem("rizx_canvas_seeded") === "true" ||
+      Boolean(localStorage.getItem("rizx_portfolio_custom_data_v1")?.includes('"canvasItems"'))
     );
-    return validMedia.length > 0 && validMedia.some((item) => item.x !== undefined && item.y !== undefined);
   }, [canvasItems]);
+
+  const hasFreeformLayout = useMemo(() => {
+    if (canvasItems && canvasItems.length > 0) return true;
+    if (isCanvasCustomized) return true;
+    return false;
+  }, [canvasItems, isCanvasCustomized]);
 
   // Gather all works across client vaults into Canvas reference sheets
   const sheets: CanvasSheetItem[] = useMemo(() => {
-    const validCanvasMedia = (canvasItems || []).filter(
-      (item) => item.type !== "section" && item.mediaType !== "section" && item.type !== "text" && item.mediaType !== "text" && (item.image || item.videoId)
-    );
+    if (isCanvasCustomized || (canvasItems && canvasItems.length > 0)) {
+      const validCanvasMedia = (canvasItems || []).filter(
+        (item) => item.type !== "section" && item.mediaType !== "section" && item.type !== "text" && item.mediaType !== "text" && (item.image || item.videoId)
+      );
 
-    if (validCanvasMedia.length > 0) {
       return validCanvasMedia.map((item) => ({
         id: item.id,
         title: item.title,
@@ -114,7 +121,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
     const list: CanvasSheetItem[] = [];
 
-    // 1. Gather all client deliverables
+    // Fallback ONLY when canvas was NEVER initialized or customized
     (clients || []).forEach((c) => {
       (c.works || []).forEach((w: any) => {
         if (w.image || w.gdriveUrl || w.videoId) {
@@ -134,7 +141,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       });
     });
 
-    // 2. If client works are few, append hero showcases
+    // If client works are few, append hero showcases
     if (list.length < 4 && heroWorks?.deckCards) {
       heroWorks.deckCards.forEach((c: any, idx: number) => {
         list.push({
@@ -153,7 +160,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     }
 
     return list;
-  }, [clients, heroWorks]);
+  }, [canvasItems, clients, heroWorks, isCanvasCustomized]);
 
   // Board layout 2D multi-column width calculation
   const gridCols = Math.min(4, Math.max(2, Math.ceil(Math.sqrt(sheets.length || 6))));
@@ -169,7 +176,17 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     const { clientWidth, clientHeight } = containerRef.current;
     if (clientWidth === 0 || clientHeight === 0) return;
 
-    if (hasFreeformLayout && canvasItems && canvasItems.length > 0) {
+    if (hasFreeformLayout) {
+      if (!canvasItems || canvasItems.length === 0) {
+        setZoom(0.8);
+        setPan({
+          x: Math.round(clientWidth / 2 - 480 * 0.8),
+          y: Math.round(clientHeight / 2 - 320 * 0.8),
+        });
+        setFittedSheetId(null);
+        return;
+      }
+
       let minX = Infinity;
       let minY = Infinity;
       let maxX = -Infinity;
@@ -1021,7 +1038,10 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
               <p className={`text-[10px] font-mono hidden sm:block ${
                 isLight ? "text-slate-500" : "text-neutral-400"
               }`}>
-                {sheets.length} {tr("Lembaran Karya Tersedia", "Portfolio Sheets")} · {tr("Zoom & Pan Bebas", "Free Zoom & Pan")}
+                {hasFreeformLayout
+                  ? `${canvasItems?.length || 0} ${tr("Elemen Canvas", "Canvas Elements")}`
+                  : `${sheets.length} ${tr("Lembaran Karya Tersedia", "Portfolio Sheets")}`
+                } · {tr("Zoom & Pan Bebas", "Free Zoom & Pan")}
               </p>
             </div>
           </div>
@@ -1179,6 +1199,33 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         {/* Canvas Elements: Either Freeform Figma-style coordinates or Flex-wrap Grid */}
         {hasFreeformLayout ? (
           <div className="relative w-[5000px] h-[4000px] select-none">
+            {(!canvasItems || canvasItems.length === 0) ? (
+              <div
+                style={{
+                  transform: "translate3d(320px, 240px, 0)",
+                }}
+                className={`absolute p-8 rounded-2xl border border-dashed flex flex-col items-center justify-center text-center max-w-sm pointer-events-none select-none backdrop-blur-md ${
+                  isLight
+                    ? "bg-white/70 border-slate-300 text-slate-700 shadow-sm"
+                    : "bg-[#13151b]/70 border-white/15 text-neutral-300"
+                }`}
+              >
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center mb-3 text-2xl ${
+                  isLight ? "bg-teal-50 text-teal-600 border border-teal-200" : "bg-teal-500/10 text-teal-400"
+                }`}>
+                  ✦
+                </div>
+                <h4 className={`text-base font-bold mb-1 ${isLight ? "text-slate-900" : "text-white"}`}>
+                  {tr("Canvas Masih Kosong", "Canvas is Empty")}
+                </h4>
+                <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                  {tr(
+                    "Belum ada elemen di canvas studio. Tambahkan karya atau frame melalui Dashboard Admin > Rizx Canvas.",
+                    "No elements on the canvas studio yet. Add works or frames via Admin Dashboard > Rizx Canvas."
+                  )}
+                </p>
+              </div>
+            ) : null}
             {(() => {
               const getItemClipPath = (item: CanvasItem) => {
                 if (!item.frameId) return undefined;
