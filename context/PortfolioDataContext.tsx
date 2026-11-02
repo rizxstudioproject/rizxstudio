@@ -1085,6 +1085,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               dbItems.some((di) => Boolean(di.image) && !prev.find((pi) => pi.id === di.id)?.image)
             ) {
               canvasItemsRef.current = dbItems;
+              // If any item contains local base64 data, trigger auto-upload to Supabase CDN!
+              if (dbItems.some((di) => di.image && di.image.startsWith("data:"))) {
+                setTimeout(() => {
+                  updateCanvasItems(dbItems);
+                }, 100);
+              }
               return dbItems;
             }
             return prev;
@@ -2331,18 +2337,78 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       // 1. IndexedDB: Primary bulletproof storage (bypasses 5MB browser quota for large media)
       await saveCanvasItemsToDB(normalized);
 
-      // 2. LocalStorage: Save to dedicated canvas key
+      // 2. LocalStorage: Save to dedicated canvas key (sanitized from heavy base64 strings to avoid QuotaExceededError)
       if (typeof window !== "undefined") {
         localStorage.setItem("rizx_canvas_seeded", "true");
         try {
-          localStorage.setItem("rizx_canvas_sheets", JSON.stringify(normalized));
+          const storageSafe = normalized.map((item) => ({
+            ...item,
+            image: item.image?.startsWith("data:") ? "" : item.image,
+          }));
+          localStorage.setItem("rizx_canvas_sheets", JSON.stringify(storageSafe));
         } catch (storageErr) {
           console.warn("LocalStorage quota reached for canvas, IndexedDB holds full high-capacity backup:", storageErr);
         }
       }
 
-      // 3. Supabase Cloud Sync
-      if (isSupabaseConfigured && supabase) {
+      // 3. Supabase Cloud Sync & Auto CDN Migration for base64 images
+      const hasBase64 = normalized.some((it) => it.image && it.image.startsWith("data:"));
+
+      if (hasBase64) {
+        // Upload base64 media to Supabase CDN in background and sync permanent CDN link
+        (async () => {
+          try {
+            let changed = false;
+            const migrated = await Promise.all(
+              normalized.map(async (item) => {
+                if (item.image && item.image.startsWith("data:")) {
+                  try {
+                    const res = await fetch("/api/admin/media-upload", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        base64: item.image,
+                        folder: "works/canvas",
+                        filename: item.title || "canvas_asset",
+                      }),
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.url) {
+                      changed = true;
+                      return { ...item, image: data.url };
+                    }
+                  } catch (e) {
+                    console.warn("Base64 auto-migration error for canvas item:", item.id, e);
+                  }
+                }
+                return item;
+              })
+            );
+
+            if (changed) {
+              setCanvasItems(migrated);
+              canvasItemsRef.current = migrated;
+              await saveCanvasItemsToDB(migrated);
+              if (typeof window !== "undefined") {
+                try {
+                  localStorage.setItem("rizx_canvas_sheets", JSON.stringify(migrated));
+                } catch {}
+              }
+              if (isSupabaseConfigured && supabase) {
+                await supabase.from("client_descriptions").upsert({
+                  client_id: "site-canvas-sheets",
+                  client_name: "Canvas Board Sheets",
+                  category: "Canvas Config",
+                  description: JSON.stringify(migrated),
+                  updated_at: new Date().toISOString(),
+                }, { onConflict: "client_id" });
+              }
+            }
+          } catch (migrationErr) {
+            console.warn("Auto-migration of base64 canvas items failed:", migrationErr);
+          }
+        })();
+      } else if (isSupabaseConfigured && supabase) {
         try {
           await supabase.from("client_descriptions").upsert({
             client_id: "site-canvas-sheets",

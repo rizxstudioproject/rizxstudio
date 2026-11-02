@@ -3539,6 +3539,30 @@ export default function CanvasWorkspace({
     }
   };
 
+  // Upload dropped/placed device media to Supabase CDN so it is permanently accessible across web/mobile
+  const uploadCanvasMediaToStorage = useCallback(async (file: File, itemId: string) => {
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("folder", "works/canvas");
+      const res = await fetch("/api/admin/media-upload", {
+        method: "POST",
+        body: fd,
+      });
+      const data = await res.json();
+      if (res.ok && data.url) {
+        setItems((prev) => {
+          const next = prev.map((it) => (it.id === itemId ? { ...it, image: data.url } : it));
+          itemsRef.current = next;
+          updateCanvasItems(next);
+          return next;
+        });
+      }
+    } catch (err) {
+      console.warn("Storage upload notice:", err);
+    }
+  }, [updateCanvasItems]);
+
   const handlePlacePendingItem = (canvasX: number, canvasY: number, itemToPlace?: (typeof pendingPlacementQueue)[0]) => {
     const target = itemToPlace || pendingPlacementQueue[0];
     if (!target) return;
@@ -3635,6 +3659,9 @@ export default function CanvasWorkspace({
       updateItemsWithTracking([newItem, ...items]);
       setSelectedId(newItem.id);
       setSelectedIds(new Set([newItem.id]));
+      if (target.file && !target.isSvg) {
+        uploadCanvasMediaToStorage(target.file, newItem.id);
+      }
     }
 
     if (!itemToPlace) {
@@ -5394,6 +5421,7 @@ export default function CanvasWorkspace({
           };
           updateItemsWithTracking([newItem, ...items]);
           setSelectedId(newItem.id);
+          uploadCanvasMediaToStorage(file, newItem.id);
         };
         img.src = result;
       } else {
@@ -5411,6 +5439,7 @@ export default function CanvasWorkspace({
         };
         updateItemsWithTracking([newItem, ...items]);
         setSelectedId(newItem.id);
+        uploadCanvasMediaToStorage(file, newItem.id);
       }
     };
 
