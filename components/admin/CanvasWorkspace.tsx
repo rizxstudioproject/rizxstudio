@@ -45,7 +45,7 @@ import {
   HiQueueList,
 } from "react-icons/hi2";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
-import { RiGridFill } from "react-icons/ri";
+import { RiGridFill, RiArrowGoBackLine, RiArrowGoForwardLine } from "react-icons/ri";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
@@ -785,14 +785,118 @@ export default function CanvasWorkspace({
 
   // Canvas items state
   const [items, setItems] = useState<CanvasItem[]>([]);
+  const itemsRef = useRef<CanvasItem[]>(items);
+  itemsRef.current = items;
   const initialItemsRef = useRef<CanvasItem[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  // History Engine (Undo / Redo Figma-style)
+  const undoStackRef = useRef<CanvasItem[][]>([]);
+  const redoStackRef = useRef<CanvasItem[][]>([]);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+  const lastHistoryPushTimeRef = useRef<number>(0);
+  const dragStartSnapshotRef = useRef<CanvasItem[] | null>(null);
+  const resizeStartSnapshotRef = useRef<CanvasItem[] | null>(null);
+  const textEditStartSnapshotRef = useRef<CanvasItem[] | null>(null);
+
+  // Auto-Save Engine (Figma-style continuous sync)
+  const [saveStatus, setSaveStatus] = useState<"saved" | "saving">("saved");
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  const triggerAutoSave = useCallback(
+    (targetItems?: CanvasItem[], immediate = false) => {
+      const listToSave = targetItems || itemsRef.current;
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+        autoSaveTimerRef.current = null;
+      }
+
+      setSaveStatus("saving");
+
+      const performSave = async () => {
+        try {
+          await updateCanvasItems(listToSave);
+          initialItemsRef.current = JSON.parse(JSON.stringify(listToSave));
+          if (typeof window !== "undefined") {
+            localStorage.setItem("rizx_canvas_seeded", "true");
+          }
+          setSaveStatus("saved");
+          setHasChanges(false);
+        } catch (err) {
+          console.warn("Canvas auto-save notice:", err);
+          setSaveStatus("saved");
+        }
+      };
+
+      if (immediate) {
+        performSave();
+      } else {
+        autoSaveTimerRef.current = setTimeout(performSave, 600);
+      }
+    },
+    [updateCanvasItems]
+  );
+
+  // History Engine (Figma-style Undo / Redo)
+  const pushHistorySnapshot = useCallback((prevItems: CanvasItem[], force = false) => {
+    const now = Date.now();
+    if (!force && now - lastHistoryPushTimeRef.current < 350) {
+      return;
+    }
+    lastHistoryPushTimeRef.current = now;
+    const snapshot = JSON.parse(JSON.stringify(prevItems));
+    undoStackRef.current.push(snapshot);
+    if (undoStackRef.current.length > 50) {
+      undoStackRef.current.shift();
+    }
+    redoStackRef.current = [];
+    setCanUndo(true);
+    setCanRedo(false);
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    if (undoStackRef.current.length === 0) return;
+    const previousState = undoStackRef.current.pop();
+    if (!previousState) return;
+
+    redoStackRef.current.push(JSON.parse(JSON.stringify(itemsRef.current)));
+    if (redoStackRef.current.length > 50) {
+      redoStackRef.current.shift();
+    }
+
+    setCanUndo(undoStackRef.current.length > 0);
+    setCanRedo(true);
+
+    setItems(previousState);
+    itemsRef.current = previousState;
+    triggerAutoSave(previousState);
+  }, [triggerAutoSave]);
+
+  const handleRedo = useCallback(() => {
+    if (redoStackRef.current.length === 0) return;
+    const nextState = redoStackRef.current.pop();
+    if (!nextState) return;
+
+    undoStackRef.current.push(JSON.parse(JSON.stringify(itemsRef.current)));
+    if (undoStackRef.current.length > 50) {
+      undoStackRef.current.shift();
+    }
+
+    setCanUndo(true);
+    setCanRedo(redoStackRef.current.length > 0);
+
+    setItems(nextState);
+    itemsRef.current = nextState;
+    triggerAutoSave(nextState);
+  }, [triggerAutoSave]);
+
   const handleResizeMouseDown = useCallback((e: React.MouseEvent, item: CanvasItem, handle: string) => {
     e.stopPropagation();
     e.preventDefault();
+    resizeStartSnapshotRef.current = JSON.parse(JSON.stringify(itemsRef.current));
     setSelectedId(item.id);
     setSelectedIds(new Set([item.id]));
     setResizingItemId(item.id);
@@ -989,6 +1093,7 @@ export default function CanvasWorkspace({
       e.stopPropagation();
       e.preventDefault();
       if (!multiSelectionBounds) return;
+      resizeStartSnapshotRef.current = JSON.parse(JSON.stringify(itemsRef.current));
 
       const initialMap = new Map<string, { x: number; y: number; width: number; height: number; fontSize?: number }>();
       items.forEach((it) => {
@@ -1229,11 +1334,14 @@ export default function CanvasWorkspace({
 
   const updateSelectedItem = useCallback((updater: Partial<CanvasItem>) => {
     if (!selectedId) return;
-    setItems((prev) =>
-      prev.map((it) => (it.id === selectedId ? { ...it, ...updater } : it))
-    );
-    setHasChanges(true);
-  }, [selectedId]);
+    setItems((prev) => {
+      pushHistorySnapshot(prev);
+      const next = prev.map((it) => (it.id === selectedId ? { ...it, ...updater } : it));
+      itemsRef.current = next;
+      triggerAutoSave(next);
+      return next;
+    });
+  }, [selectedId, pushHistorySnapshot, triggerAutoSave]);
 
   // Center-anchored font size updates so text scales symmetrically around its center point
   const updateTextFontSizeCentered = useCallback((newSize: number, baseItem?: CanvasItem | null) => {
@@ -1752,6 +1860,8 @@ export default function CanvasWorkspace({
       const target = prev.find((i) => i.id === id);
       if (!target) return prev;
 
+      pushHistorySnapshot(prev, true);
+
       const targetIds = selectedIds.has(id) && selectedIds.size > 1 ? selectedIds : new Set([id]);
       const allMovingIds = new Set(targetIds);
       prev.forEach((it) => {
@@ -1777,7 +1887,8 @@ export default function CanvasWorkspace({
           }
           return it;
         });
-        updateCanvasItems(next);
+        itemsRef.current = next;
+        triggerAutoSave(next, true);
         return next;
       }
 
@@ -1785,12 +1896,11 @@ export default function CanvasWorkspace({
       const staying = prev.filter((it) => !allMovingIds.has(it.id));
       const moving = prev.filter((it) => allMovingIds.has(it.id));
       const next = [...staying, ...moving];
-      updateCanvasItems(next);
+      itemsRef.current = next;
+      triggerAutoSave(next, true);
       return next;
     });
-    setHasChanges(true);
-    setSaveSuccess(false);
-  }, [selectedId, selectedIds, updateCanvasItems]);
+  }, [selectedId, selectedIds, pushHistorySnapshot, triggerAutoSave]);
 
   const handleSendToBack = useCallback((targetId?: string) => {
     const id = targetId || selectedId || (selectedIds.size > 0 ? Array.from(selectedIds)[0] : null);
@@ -1799,6 +1909,8 @@ export default function CanvasWorkspace({
     setItems((prev) => {
       const target = prev.find((i) => i.id === id);
       if (!target) return prev;
+
+      pushHistorySnapshot(prev, true);
 
       const targetIds = selectedIds.has(id) && selectedIds.size > 1 ? selectedIds : new Set([id]);
       const allMovingIds = new Set(targetIds);
@@ -1824,7 +1936,8 @@ export default function CanvasWorkspace({
           }
           return it;
         });
-        updateCanvasItems(next);
+        itemsRef.current = next;
+        triggerAutoSave(next, true);
         return next;
       }
 
@@ -1832,12 +1945,11 @@ export default function CanvasWorkspace({
       const staying = prev.filter((it) => !allMovingIds.has(it.id));
       const moving = prev.filter((it) => allMovingIds.has(it.id));
       const next = [...moving, ...staying];
-      updateCanvasItems(next);
+      itemsRef.current = next;
+      triggerAutoSave(next, true);
       return next;
     });
-    setHasChanges(true);
-    setSaveSuccess(false);
-  }, [selectedId, selectedIds, updateCanvasItems]);
+  }, [selectedId, selectedIds, pushHistorySnapshot, triggerAutoSave]);
 
   const handleBringForward = useCallback((targetId?: string) => {
     const id = targetId || selectedId || (selectedIds.size > 0 ? Array.from(selectedIds)[0] : null);
@@ -1846,16 +1958,16 @@ export default function CanvasWorkspace({
     setItems((prev) => {
       const idx = prev.findIndex((i) => i.id === id);
       if (idx === -1 || idx === prev.length - 1) return prev;
+      pushHistorySnapshot(prev, true);
       const next = [...prev];
       const temp = next[idx];
       next[idx] = next[idx + 1];
       next[idx + 1] = temp;
-      updateCanvasItems(next);
+      itemsRef.current = next;
+      triggerAutoSave(next, true);
       return next;
     });
-    setHasChanges(true);
-    setSaveSuccess(false);
-  }, [selectedId, selectedIds, updateCanvasItems]);
+  }, [selectedId, selectedIds, pushHistorySnapshot, triggerAutoSave]);
 
   const handleSendBackward = useCallback((targetId?: string) => {
     const id = targetId || selectedId || (selectedIds.size > 0 ? Array.from(selectedIds)[0] : null);
@@ -1864,16 +1976,16 @@ export default function CanvasWorkspace({
     setItems((prev) => {
       const idx = prev.findIndex((i) => i.id === id);
       if (idx <= 0) return prev;
+      pushHistorySnapshot(prev, true);
       const next = [...prev];
       const temp = next[idx];
       next[idx] = next[idx - 1];
       next[idx - 1] = temp;
-      updateCanvasItems(next);
+      itemsRef.current = next;
+      triggerAutoSave(next, true);
       return next;
     });
-    setHasChanges(true);
-    setSaveSuccess(false);
-  }, [selectedId, selectedIds, updateCanvasItems]);
+  }, [selectedId, selectedIds, pushHistorySnapshot, triggerAutoSave]);
 
   const handleConvertFrameOrSection = useCallback((item: CanvasItem) => {
     const isFrame = (item.mediaType === "frame" || item.type === "frame") && !item.image;
@@ -1994,27 +2106,34 @@ export default function CanvasWorkspace({
   }, []);
 
   const handleFlipHorizontal = useCallback((itemId: string) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, flipX: !i.flipX } : i))
-    );
-    setHasChanges(true);
-    setSaveSuccess(false);
-  }, []);
+    setItems((prev) => {
+      pushHistorySnapshot(prev, true);
+      const next = prev.map((i) => (i.id === itemId ? { ...i, flipX: !i.flipX } : i));
+      itemsRef.current = next;
+      triggerAutoSave(next, true);
+      return next;
+    });
+  }, [pushHistorySnapshot, triggerAutoSave]);
 
   const handleFlipVertical = useCallback((itemId: string) => {
-    setItems((prev) =>
-      prev.map((i) => (i.id === itemId ? { ...i, flipY: !i.flipY } : i))
-    );
-    setHasChanges(true);
-    setSaveSuccess(false);
-  }, []);
+    setItems((prev) => {
+      pushHistorySnapshot(prev, true);
+      const next = prev.map((i) => (i.id === itemId ? { ...i, flipY: !i.flipY } : i));
+      itemsRef.current = next;
+      triggerAutoSave(next, true);
+      return next;
+    });
+  }, [pushHistorySnapshot, triggerAutoSave]);
 
-  // Update items helper with tracking
-  const updateItemsWithTracking = useCallback((newItems: CanvasItem[]) => {
+  // Update items helper with tracking, history & auto-save
+  const updateItemsWithTracking = useCallback((newItems: CanvasItem[], recordHistory = true) => {
+    if (recordHistory && itemsRef.current) {
+      pushHistorySnapshot(itemsRef.current, true);
+    }
     setItems(newItems);
-    setHasChanges(true);
-    setSaveSuccess(false);
-  }, []);
+    itemsRef.current = newItems;
+    triggerAutoSave(newItems);
+  }, [pushHistorySnapshot, triggerAutoSave]);
 
   // Auto-persist unsaved canvas items on tab switch / unmount so newly added frames and elements are never lost
   const hasChangesRef = useRef(hasChanges);
@@ -2022,7 +2141,10 @@ export default function CanvasWorkspace({
 
   useEffect(() => {
     return () => {
-      if (hasChangesRef.current && itemsRef.current) {
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
+      }
+      if (itemsRef.current) {
         updateCanvasItems(itemsRef.current).catch(() => {});
       }
     };
@@ -2154,6 +2276,8 @@ export default function CanvasWorkspace({
         // Prevent nesting a parent inside its own child
         if (targetItem.frameId === dragId) return prev;
 
+        pushHistorySnapshot(prev, true);
+
         // Group together dragItem and any of its children
         const dragItemAndChildren = prev.filter((it) => it.id === dragId || it.frameId === dragId);
         const remaining = prev.filter((it) => it.id !== dragId && it.frameId !== dragId);
@@ -2169,7 +2293,8 @@ export default function CanvasWorkspace({
             ...dragItemAndChildren.filter((it) => it.id !== dragId),
             ...remaining.slice(targetIdx + 1),
           ];
-          updateCanvasItems(next);
+          itemsRef.current = next;
+          triggerAutoSave(next, true);
           return next;
         }
 
@@ -2188,14 +2313,12 @@ export default function CanvasWorkspace({
           ...dragItemAndChildren.filter((it) => it.id !== dragId),
           ...remaining.slice(insertIdx),
         ];
-        updateCanvasItems(next);
+        itemsRef.current = next;
+        triggerAutoSave(next, true);
         return next;
       });
-
-      setHasChanges(true);
-      setSaveSuccess(false);
     },
-    [isFrameItem, updateCanvasItems]
+    [isFrameItem, pushHistorySnapshot, triggerAutoSave]
   );
 
   const handleMoveLayerToTop = useCallback(
@@ -2203,6 +2326,7 @@ export default function CanvasWorkspace({
       setItems((prev) => {
         const dragItem = prev.find((it) => it.id === dragId);
         if (!dragItem) return prev;
+        pushHistorySnapshot(prev, true);
         const dragItemAndChildren = prev.filter((it) => it.id === dragId || it.frameId === dragId);
         const remaining = prev.filter((it) => it.id !== dragId && it.frameId !== dragId);
         const updatedDragItem = { ...dragItem, frameId: undefined };
@@ -2211,13 +2335,12 @@ export default function CanvasWorkspace({
           updatedDragItem,
           ...dragItemAndChildren.filter((it) => it.id !== dragId),
         ];
-        updateCanvasItems(next);
+        itemsRef.current = next;
+        triggerAutoSave(next, true);
         return next;
       });
-      setHasChanges(true);
-      setSaveSuccess(false);
     },
-    [updateCanvasItems]
+    [pushHistorySnapshot, triggerAutoSave]
   );
 
   const handleMoveLayerToBottom = useCallback(
@@ -2225,6 +2348,7 @@ export default function CanvasWorkspace({
       setItems((prev) => {
         const dragItem = prev.find((it) => it.id === dragId);
         if (!dragItem) return prev;
+        pushHistorySnapshot(prev, true);
         const dragItemAndChildren = prev.filter((it) => it.id === dragId || it.frameId === dragId);
         const remaining = prev.filter((it) => it.id !== dragId && it.frameId !== dragId);
         const updatedDragItem = { ...dragItem, frameId: undefined };
@@ -2233,13 +2357,12 @@ export default function CanvasWorkspace({
           ...dragItemAndChildren.filter((it) => it.id !== dragId),
           ...remaining,
         ];
-        updateCanvasItems(next);
+        itemsRef.current = next;
+        triggerAutoSave(next, true);
         return next;
       });
-      setHasChanges(true);
-      setSaveSuccess(false);
     },
-    [updateCanvasItems]
+    [pushHistorySnapshot, triggerAutoSave]
   );
 
   // ── Figma Professional Alignment Engine (Left, HCenter, Right, Top, VCenter, Bottom, Distribute, Tidy Up) ──
@@ -2724,12 +2847,13 @@ export default function CanvasWorkspace({
   const handleDeleteItems = useCallback((ids: string[] | Set<string>) => {
     const idSet = new Set(ids);
     setItems((prev) => {
+      pushHistorySnapshot(prev, true);
       const updated = prev.filter(
         (it) => !idSet.has(it.id) && (!it.frameId || !idSet.has(it.frameId))
       );
       itemsRef.current = updated;
       initialItemsRef.current = JSON.parse(JSON.stringify(updated));
-      updateCanvasItems(updated).catch(() => {});
+      triggerAutoSave(updated, true);
       return updated;
     });
     setSelectedIds((prev) => {
@@ -2739,7 +2863,7 @@ export default function CanvasWorkspace({
     setSelectedId((prev) => (prev && idSet.has(prev) ? null : prev));
     setEditingTextId((prev) => (prev && idSet.has(prev) ? null : prev));
     setHasChanges(false);
-  }, [updateCanvasItems]);
+  }, [pushHistorySnapshot, triggerAutoSave]);
 
   const handleDeleteItem = useCallback((id: string) => {
     handleDeleteItems([id]);
@@ -2749,6 +2873,22 @@ export default function CanvasWorkspace({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      // Figma Undo & Redo (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
+      if ((e.ctrlKey || e.metaKey) && (e.key === "z" || e.key === "Z")) {
+        e.preventDefault();
+        if (e.shiftKey) {
+          handleRedo();
+        } else {
+          handleUndo();
+        }
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && (e.key === "y" || e.key === "Y")) {
+        e.preventDefault();
+        handleRedo();
+        return;
+      }
 
       // Select All elements (Ctrl+A or Cmd+A)
       if ((e.ctrlKey || e.metaKey) && (e.key === "a" || e.key === "A")) {
@@ -2926,7 +3066,7 @@ export default function CanvasWorkspace({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isSpacePressed, selectedId, selectedIds, handleBringToFront, handleSendToBack, handleDeleteItems]);
+  }, [isSpacePressed, selectedId, selectedIds, handleBringToFront, handleSendToBack, handleDeleteItems, handleUndo, handleRedo]);
 
   // Close context menu on outside click or Escape
   useEffect(() => {
@@ -3645,12 +3785,15 @@ export default function CanvasWorkspace({
         cancelAnimationFrame(dragRafRef.current);
         dragRafRef.current = null;
       }
-      if (resizingItemId) {
+      if (resizingItemId || isMultiResizing) {
+        if (resizeStartSnapshotRef.current) {
+          pushHistorySnapshot(resizeStartSnapshotRef.current, true);
+          triggerAutoSave(itemsRef.current, true);
+          resizeStartSnapshotRef.current = null;
+        }
         setResizingItemId(null);
         setResizeHandle(null);
         resizeStartRef.current = null;
-      }
-      if (isMultiResizing) {
         setIsMultiResizing(false);
         multiResizeStartRef.current = null;
       }
@@ -3748,6 +3891,12 @@ export default function CanvasWorkspace({
           }
           return next;
         });
+      }
+
+      if (hasItemMovedDuringDragRef.current && dragStartSnapshotRef.current) {
+        pushHistorySnapshot(dragStartSnapshotRef.current, true);
+        triggerAutoSave(itemsRef.current, true);
+        dragStartSnapshotRef.current = null;
       }
 
       dragItemInitialPositionsRef.current = null;
@@ -3915,6 +4064,7 @@ export default function CanvasWorkspace({
     if (lockedItemIds.has(activeItem.id)) return; // Locked items cannot be dragged
 
     hasItemMovedDuringDragRef.current = false;
+    dragStartSnapshotRef.current = JSON.parse(JSON.stringify(itemsRef.current));
     setDraggingItemId(activeItem.id);
     const itemCanvasX = (e.clientX - pan.x) / zoom;
     const itemCanvasY = (e.clientY - pan.y) / zoom;
@@ -4556,7 +4706,6 @@ export default function CanvasWorkspace({
     wasPinch: false,
   });
 
-  const itemsRef = useRef(items);
   itemsRef.current = items;
 
   // Zoom to Fit All Elements (Figma Shift+1: fits and centers canvas items directly on screen)
@@ -6966,6 +7115,72 @@ export default function CanvasWorkspace({
           Free
         </span>
 
+        {/* Undo & Redo Quick Buttons (Figma-style) */}
+        <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded-lg border ${
+          isLight ? "bg-slate-100 border-slate-200" : "bg-black/25 border-white/5"
+        }`}>
+          <button
+            type="button"
+            onClick={handleUndo}
+            disabled={!canUndo}
+            title="Undo (Ctrl+Z)"
+            aria-label="Undo"
+            className={`p-1 rounded-md transition-colors flex items-center justify-center ${
+              !canUndo
+                ? "opacity-25 cursor-not-allowed text-neutral-500"
+                : isLight
+                ? "text-slate-700 hover:text-slate-900 hover:bg-slate-200 cursor-pointer"
+                : "text-neutral-300 hover:text-white hover:bg-white/10 cursor-pointer"
+            }`}
+          >
+            <RiArrowGoBackLine className="w-3.5 h-3.5" />
+          </button>
+          <button
+            type="button"
+            onClick={handleRedo}
+            disabled={!canRedo}
+            title="Redo (Ctrl+Y / Ctrl+Shift+Z)"
+            aria-label="Redo"
+            className={`p-1 rounded-md transition-colors flex items-center justify-center ${
+              !canRedo
+                ? "opacity-25 cursor-not-allowed text-neutral-500"
+                : isLight
+                ? "text-slate-700 hover:text-slate-900 hover:bg-slate-200 cursor-pointer"
+                : "text-neutral-300 hover:text-white hover:bg-white/10 cursor-pointer"
+            }`}
+          >
+            <RiArrowGoForwardLine className="w-3.5 h-3.5" />
+          </button>
+        </div>
+
+        {/* Auto-Save Status Badge */}
+        <div
+          title={saveStatus === "saving" ? "Menyimpan otomatis ke Cloud..." : "Auto-save aktif: Semua perubahan tersimpan otomatis"}
+          className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono select-none border transition-colors ${
+            saveStatus === "saving"
+              ? isLight
+                ? "bg-amber-50 text-amber-700 border-amber-200"
+                : "bg-amber-500/10 text-amber-300 border-amber-500/20"
+              : isLight
+              ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+              : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+          }`}
+        >
+          {saveStatus === "saving" ? (
+            <>
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
+              <span>Saving...</span>
+            </>
+          ) : (
+            <>
+              <HiCheck className="w-3 h-3 text-emerald-400 shrink-0" />
+              <span className="hidden sm:inline">Saved</span>
+            </>
+          )}
+        </div>
+
+        <div className={`w-[1px] h-3.5 mx-0.5 ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
+
         {/* Sidebar / UI Toggle Icon [◫] (Matches User Screenshot media_1793558036658_5e46c976.png) */}
         <div className="relative">
           <button
@@ -7066,6 +7281,50 @@ export default function CanvasWorkspace({
               {isUiExpanded ? "Tutup Menu Kiri" : "Buka Menu Kiri"}
             </span>
             <span className={`text-[10px] ${isLight ? "text-slate-400" : "text-neutral-500"}`}>Ctrl+Shift+\</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={!canUndo}
+            onClick={() => {
+              handleUndo();
+              setIsPillMenuOpen(false);
+            }}
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-colors text-left ${
+              !canUndo
+                ? "opacity-30 cursor-not-allowed text-neutral-500"
+                : isLight
+                ? "hover:bg-slate-100 text-slate-700 hover:text-slate-900 cursor-pointer"
+                : "hover:bg-white/10 text-neutral-200 hover:text-white cursor-pointer"
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <RiArrowGoBackLine className="w-3.5 h-3.5 text-blue-400" />
+              Undo
+            </span>
+            <span className={`text-[10px] ${isLight ? "text-slate-400" : "text-neutral-500"}`}>Ctrl+Z</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={!canRedo}
+            onClick={() => {
+              handleRedo();
+              setIsPillMenuOpen(false);
+            }}
+            className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg transition-colors text-left ${
+              !canRedo
+                ? "opacity-30 cursor-not-allowed text-neutral-500"
+                : isLight
+                ? "hover:bg-slate-100 text-slate-700 hover:text-slate-900 cursor-pointer"
+                : "hover:bg-white/10 text-neutral-200 hover:text-white cursor-pointer"
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <RiArrowGoForwardLine className="w-3.5 h-3.5 text-blue-400" />
+              Redo
+            </span>
+            <span className={`text-[10px] ${isLight ? "text-slate-400" : "text-neutral-500"}`}>Ctrl+Y</span>
           </button>
 
           <div className={`w-full h-[1px] my-1 ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
@@ -8381,18 +8640,27 @@ export default function CanvasWorkspace({
                       }}
                       value={rawText}
                       readOnly={!isEditing}
+                      onFocus={() => {
+                        textEditStartSnapshotRef.current = JSON.parse(JSON.stringify(itemsRef.current));
+                      }}
                       onChange={(e) => {
                         const val = e.target.value;
-                        setItems((prev) =>
-                          prev.map((it) => (it.id === item.id ? { ...it, content: val, title: val || "Text" } : it))
-                        );
-                        setHasChanges(true);
+                        setItems((prev) => {
+                          const next = prev.map((it) => (it.id === item.id ? { ...it, content: val, title: val || "Text" } : it));
+                          itemsRef.current = next;
+                          triggerAutoSave(next);
+                          return next;
+                        });
                       }}
                       onBlur={(e) => {
                         setEditingTextId(null);
                         const val = e.target.value.trim();
                         if (!val) {
                           handleDeleteItem(item.id);
+                        } else if (textEditStartSnapshotRef.current) {
+                          pushHistorySnapshot(textEditStartSnapshotRef.current, true);
+                          triggerAutoSave(itemsRef.current, true);
+                          textEditStartSnapshotRef.current = null;
                         }
                       }}
                       onKeyDown={(e) => {
@@ -9693,6 +9961,55 @@ export default function CanvasWorkspace({
               : "bg-[#222222]/98 border-white/10 text-[#e6e6e6] shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
           }`}
         >
+          {/* Section 0: History (Undo/Redo) */}
+          <button
+            type="button"
+            onClick={() => {
+              handleUndo();
+              setContextMenu(null);
+            }}
+            disabled={!canUndo}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !canUndo
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>Undo</span>
+            <span className={`text-[11px] font-mono ${
+              !canUndo ? (isLight ? "text-slate-300" : "text-neutral-500") : isLight ? "text-slate-400 group-hover:text-white/90" : "text-[#8e8e8e] group-hover:text-white/90"
+            }`}>Ctrl+Z</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              handleRedo();
+              setContextMenu(null);
+            }}
+            disabled={!canRedo}
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+              !canRedo
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+            }`}
+          >
+            <span>Redo</span>
+            <span className={`text-[11px] font-mono ${
+              !canRedo ? (isLight ? "text-slate-300" : "text-neutral-500") : isLight ? "text-slate-400 group-hover:text-white/90" : "text-[#8e8e8e] group-hover:text-white/90"
+            }`}>Ctrl+Y</span>
+          </button>
+
+          <div className={`h-[1px] my-1 mx-1.5 ${isLight ? "bg-slate-200/80" : "bg-white/[0.08]"}`} />
+
           {/* Section 1: Clipboard & Actions */}
           <button
             type="button"
@@ -10309,6 +10626,9 @@ export default function CanvasWorkspace({
               <div className="flex justify-between"><span>Zoom In / Out</span><span className="text-white">+ / -</span></div>
               <div className="flex justify-between"><span>Zoom to Fit</span><span className="text-white">Shift+1</span></div>
               <div className="flex justify-between"><span>Expand / Collapse UI</span><span className="text-white">Ctrl+Shift+\</span></div>
+              <div className="flex justify-between"><span>Undo</span><span className="text-white">Ctrl+Z</span></div>
+              <div className="flex justify-between"><span>Redo</span><span className="text-white">Ctrl+Y / Ctrl+Shift+Z</span></div>
+              <div className="flex justify-between"><span>Auto-Save</span><span className="text-emerald-400 font-semibold">Continuous (Active)</span></div>
             </div>
           </div>
         </div>
