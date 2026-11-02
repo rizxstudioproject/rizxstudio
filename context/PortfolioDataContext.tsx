@@ -801,6 +801,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             logo: c.logo || "",
             color: c.color || "",
             description: c.description || "",
+            brandProfile: c.brandProfile || c.description || "",
+            projectDescription: c.projectDescription || "",
             tools: c.tools || [],
             works: c.works || [],
             itemsCount: c.works ? c.works.length : c.itemsCount,
@@ -824,6 +826,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             const targetClients = newClients || clientsRef.current;
             const strippedClients = targetClients.map((c) => ({
               ...c,
+              description: c.description || "",
+              brandProfile: c.brandProfile || c.description || "",
+              projectDescription: c.projectDescription || "",
               works: (c.works || []).map((w: any) => ({
                 ...w,
                 image: w.image?.startsWith("data:image/") ? "" : w.image,
@@ -905,6 +910,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               clientName: saved.clientName || defaultClient.clientName,
               category: saved.category || defaultClient.category,
               description: saved.description !== undefined ? saved.description : defaultClient.description,
+              brandProfile: saved.brandProfile !== undefined ? saved.brandProfile : (saved.description || (defaultClient as any).brandProfile || ""),
+              projectDescription: saved.projectDescription !== undefined ? saved.projectDescription : ((defaultClient as any).projectDescription || ""),
               tools: Array.isArray(saved.tools) ? saved.tools : (defaultClient as any).tools,
               works: Array.isArray(saved.works) && saved.works.length > 0 ? saved.works : defaultClient.works,
               itemsCount: Array.isArray(saved.works) && saved.works.length > 0 ? saved.works.length : defaultClient.itemsCount,
@@ -926,6 +933,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             color: c.color || "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
             itemsCount: Array.isArray(c.works) ? c.works.length : 0,
             description: c.description || "",
+            brandProfile: c.brandProfile || c.description || "",
+            projectDescription: c.projectDescription || "",
             tools: Array.isArray(c.tools) ? c.tools : [],
             works: Array.isArray(c.works) ? c.works : [],
             isCustom: true,
@@ -1288,6 +1297,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
           const parseRowData = (row: any, fallbackClient?: any) => {
             let text = "";
+            let brandProfile = fallbackClient?.brandProfile || fallbackClient?.description || "";
+            let projectDescription = fallbackClient?.projectDescription || "";
             let tools: string[] = fallbackClient?.tools || [];
             let works: any[] = fallbackClient?.works || [];
             let isCustom = fallbackClient?.isCustom || false;
@@ -1297,23 +1308,29 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               if (typeof row.description === "string" && row.description.startsWith("{")) {
                 try {
                   const parsed = safeJsonParseMedia(row.description);
-                  text = parsed.text !== undefined ? parsed.text : row.description;
+                  text = parsed.text !== undefined ? parsed.text : (parsed.brandProfile || row.description);
+                  brandProfile = parsed.brandProfile !== undefined ? parsed.brandProfile : text;
+                  projectDescription = parsed.projectDescription !== undefined ? parsed.projectDescription : (parsed.project_description || "");
                   if (Array.isArray(parsed.tools) && parsed.tools.length > 0) tools = parsed.tools;
                   if (Array.isArray(parsed.works) && parsed.works.length > 0) works = parsed.works;
                   if (parsed.isCustom !== undefined) isCustom = parsed.isCustom;
                   if (parsed.logo !== undefined) logo = parsed.logo;
                 } catch (_) {
                   text = row.description;
+                  brandProfile = row.description;
                 }
               } else {
                 text = row.description;
+                brandProfile = row.description;
               }
             }
+            if (row.project_description) projectDescription = row.project_description;
+            if (row.projectDescription) projectDescription = row.projectDescription;
             if (Array.isArray(row.tools) && row.tools.length > 0) tools = row.tools;
             if (Array.isArray(row.works) && row.works.length > 0) works = row.works;
             if (row.logo) logo = row.logo;
 
-            return { text, tools, works, isCustom, logo };
+            return { text, brandProfile, projectDescription, tools, works, isCustom, logo };
           };
 
           const mergedDefaults = defaultClients.map((d) => {
@@ -1325,6 +1342,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               clientName: match.client_name || d.clientName,
               category: match.category || d.category,
               description: parsed.text,
+              brandProfile: parsed.brandProfile,
+              projectDescription: parsed.projectDescription || (d as any).projectDescription || "",
               tools: parsed.tools,
               works: parsed.works,
               itemsCount: parsed.works.length,
@@ -1344,6 +1363,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                 color: "from-[#16b09f]/20 via-neutral-900/40 to-neutral-900",
                 itemsCount: parsed.works.length,
                 description: parsed.text,
+                brandProfile: parsed.brandProfile,
+                projectDescription: parsed.projectDescription || "",
                 tools: parsed.tools,
                 works: parsed.works,
                 isCustom: true,
@@ -1680,6 +1701,8 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     try {
       const descPayload = JSON.stringify({
         text: clientItem.description || "",
+        brandProfile: clientItem.brandProfile || clientItem.description || "",
+        projectDescription: clientItem.projectDescription || "",
         tools: clientItem.tools || [],
         works: clientItem.works || [],
         isCustom: Boolean(clientItem.isCustom),

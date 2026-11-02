@@ -255,20 +255,30 @@ export default function ClientsWorkspace({
   // Track last synced client ID so external data refreshes do NOT overwrite in-progress edits
   const lastSyncedClientIdRef = useRef<string | null>(null);
 
-  // Sync inputs only when the selected client ID genuinely switches
+  // Sync inputs when the selected client ID switches or when client data hydrates from cloud/storage
   React.useEffect(() => {
-    if (selectedClient && selectedClient.id !== lastSyncedClientIdRef.current) {
-      lastSyncedClientIdRef.current = selectedClient.id;
-      setCategoryInput(selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`);
-      setProjectDescInput(selectedClient.projectDescription || "");
-      setDescriptionInput(selectedClient.brandProfile || selectedClient.description || "");
-      setSelectedTools(
-        selectedClient.tools && selectedClient.tools.length > 0
-          ? selectedClient.tools
-          : ["Figma", "Photoshop", "Magnific AI"]
-      );
+    if (selectedClient) {
+      if (selectedClient.id !== lastSyncedClientIdRef.current) {
+        lastSyncedClientIdRef.current = selectedClient.id;
+        setCategoryInput(selectedClient.category || `Digital Campaign - ${selectedClient.clientName}`);
+        setProjectDescInput(selectedClient.projectDescription || "");
+        setDescriptionInput(selectedClient.brandProfile || selectedClient.description || "");
+        setSelectedTools(
+          selectedClient.tools && selectedClient.tools.length > 0
+            ? selectedClient.tools
+            : ["Figma", "Photoshop", "Magnific AI"]
+        );
+      } else {
+        // Hydrate if inputs were empty initially but arrived later from cloud/local storage
+        if (!projectDescInput && selectedClient.projectDescription) {
+          setProjectDescInput(selectedClient.projectDescription);
+        }
+        if (!descriptionInput && (selectedClient.brandProfile || selectedClient.description)) {
+          setDescriptionInput(selectedClient.brandProfile || selectedClient.description || "");
+        }
+      }
     }
-  }, [selectedClient?.id]);
+  }, [selectedClient?.id, selectedClient?.projectDescription, selectedClient?.brandProfile, selectedClient?.description]);
 
   // Filter clients for the middle column
   const filteredClients = useMemo(() => {
@@ -1874,8 +1884,12 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   value={projectDescInput}
                   onChange={(e) => setProjectDescInput(e.target.value)}
                   onBlur={() => {
-                    if (selectedClient && onUpdateClientFolder && projectDescInput !== (selectedClient.projectDescription || "")) {
-                      onUpdateClientFolder(selectedClient.id, { projectDescription: projectDescInput.trim() });
+                    if (selectedClient && projectDescInput !== (selectedClient.projectDescription || "")) {
+                      const trimmed = projectDescInput.trim();
+                      if (onUpdateClientFolder) {
+                        onUpdateClientFolder(selectedClient.id, { projectDescription: trimmed });
+                      }
+                      onSaveClientDescription(selectedClient.id, descriptionInput, selectedTools, trimmed);
                     }
                   }}
                   onPaste={(e) => {
@@ -1893,9 +1907,13 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                         maxLength: 1000,
                         isTextarea: true,
                         onSave: (val) => {
-                          setProjectDescInput(val);
-                          if (selectedClient && onUpdateClientFolder) {
-                            onUpdateClientFolder(selectedClient.id, { projectDescription: val.trim() });
+                          const trimmed = val.trim();
+                          setProjectDescInput(trimmed);
+                          if (selectedClient) {
+                            if (onUpdateClientFolder) {
+                              onUpdateClientFolder(selectedClient.id, { projectDescription: trimmed });
+                            }
+                            onSaveClientDescription(selectedClient.id, descriptionInput, selectedTools, trimmed);
                           }
                         },
                       });

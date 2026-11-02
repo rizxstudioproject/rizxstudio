@@ -3572,10 +3572,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             const c = clients.find((item) => item.id === id);
             if (c) {
               updateClientFolder(id, {
+                ...updates,
                 clientName: updates.clientName || c.clientName,
                 category: updates.category !== undefined ? updates.category : c.category,
                 logo: updates.logo !== undefined ? updates.logo : (c.logo || ""),
                 description: updates.description !== undefined ? updates.description : c.description,
+                brandProfile: updates.brandProfile !== undefined ? updates.brandProfile : (updates.description !== undefined ? updates.description : c.brandProfile),
+                projectDescription: updates.projectDescription !== undefined ? updates.projectDescription : c.projectDescription,
                 tools: updates.tools !== undefined ? updates.tools : c.tools,
               });
               if (updates.tools && updates.tools.length > 0) {
@@ -3724,10 +3727,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 const c = clients.find((item) => item.id === id);
                 if (c) {
                   updateClientFolder(id, {
+                    ...updates,
                     clientName: updates.clientName || c.clientName,
                     category: updates.category !== undefined ? updates.category : c.category,
                     logo: updates.logo !== undefined ? updates.logo : (c.logo || ""),
                     description: updates.description !== undefined ? updates.description : c.description,
+                    brandProfile: updates.brandProfile !== undefined ? updates.brandProfile : (updates.description !== undefined ? updates.description : c.brandProfile),
+                    projectDescription: updates.projectDescription !== undefined ? updates.projectDescription : c.projectDescription,
                     tools: updates.tools !== undefined ? updates.tools : c.tools,
                   });
                   if (updates.tools && updates.tools.length > 0) {
