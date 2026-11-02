@@ -8256,17 +8256,52 @@ export default function CanvasWorkspace({
                     </button>
                   </div>
 
-                  {/* Corner Handles when selected */}
-                  {isSelected && (
+                  {/* Corner & Edge Resize Handles & Dimension Badge when Selected or Resizing */}
+                  {(isSelected || resizingItemId === item.id) && (
                     <>
-                      <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-                      <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-                      <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-                      <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+                      {/* 4 Corner Resize Handles */}
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "nw")}
+                        className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "ne")}
+                        className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "sw")}
+                        className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
+                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                      />
+
+                      {/* 4 Edge Resize Handles */}
+                      {activeTool !== "scale" && (
+                        <>
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
+                            className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
+                            className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
+                            className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                            className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                          />
+                        </>
+                      )}
 
                       {/* Dimension Badge at Bottom (Matches User Screenshot 2 & 3) */}
-                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-xs font-mono font-medium shadow-lg whitespace-nowrap">
-                        {Math.round(secWidth)} × {Math.round(secHeight)}
+                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
+                        {Math.round(item.width || secWidth)} × {Math.round(item.height || secHeight)}
                       </div>
                     </>
                   )}
