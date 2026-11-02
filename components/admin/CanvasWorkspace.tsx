@@ -729,6 +729,11 @@ export default function CanvasWorkspace({
     distances: DistanceGuide[];
   }>({ lines: [], distances: [] });
 
+  // Drag & drop layer reordering in Layers Tree (Left Sidebar)
+  const [draggingLayerId, setDraggingLayerId] = useState<string | null>(null);
+  const [dragOverLayerId, setDragOverLayerId] = useState<string | null>(null);
+  const [dropPosition, setDropPosition] = useState<"before" | "after" | "inside" | null>(null);
+
   // Interactive Frame & Section Drawing Tool (Figma Style)
   const [isDrawingShape, setIsDrawingShape] = useState<boolean>(false);
   const [drawingShapeBox, setDrawingShapeBox] = useState<{
@@ -1574,25 +1579,136 @@ export default function CanvasWorkspace({
     setSaveSuccess(false);
   }, []);
 
-  const handleBringToFront = useCallback((itemId: string) => {
-    setItems((prev) => {
-      const target = prev.find((i) => i.id === itemId);
-      if (!target) return prev;
-      return [...prev.filter((i) => i.id !== itemId), target];
-    });
-    setHasChanges(true);
-    setSaveSuccess(false);
-  }, []);
+  const handleBringToFront = useCallback((targetId?: string) => {
+    const id = targetId || selectedId || (selectedIds.size > 0 ? Array.from(selectedIds)[0] : null);
+    if (!id) return;
 
-  const handleSendToBack = useCallback((itemId: string) => {
     setItems((prev) => {
-      const target = prev.find((i) => i.id === itemId);
+      const target = prev.find((i) => i.id === id);
       if (!target) return prev;
-      return [target, ...prev.filter((i) => i.id !== itemId)];
+
+      const targetIds = selectedIds.has(id) && selectedIds.size > 1 ? selectedIds : new Set([id]);
+      const allMovingIds = new Set(targetIds);
+      prev.forEach((it) => {
+        if (it.frameId && targetIds.has(it.frameId)) {
+          allMovingIds.add(it.id);
+        }
+      });
+
+      // If target is inside a frame, bring it to front of that frame's children
+      if (target.frameId) {
+        const frameId = target.frameId;
+        const frameChildren = prev.filter((it) => it.frameId === frameId);
+        const otherChildren = frameChildren.filter((it) => !allMovingIds.has(it.id));
+        const movingChildren = frameChildren.filter((it) => allMovingIds.has(it.id));
+        const newFrameChildren = [...otherChildren, ...movingChildren];
+
+        let childIdx = 0;
+        const next = prev.map((it) => {
+          if (it.frameId === frameId) {
+            const replacement = newFrameChildren[childIdx];
+            childIdx++;
+            return replacement;
+          }
+          return it;
+        });
+        updateCanvasItems(next);
+        return next;
+      }
+
+      // Root level: move all selected items & children to end of items array (topmost visual layer)
+      const staying = prev.filter((it) => !allMovingIds.has(it.id));
+      const moving = prev.filter((it) => allMovingIds.has(it.id));
+      const next = [...staying, ...moving];
+      updateCanvasItems(next);
+      return next;
     });
     setHasChanges(true);
     setSaveSuccess(false);
-  }, []);
+  }, [selectedId, selectedIds, updateCanvasItems]);
+
+  const handleSendToBack = useCallback((targetId?: string) => {
+    const id = targetId || selectedId || (selectedIds.size > 0 ? Array.from(selectedIds)[0] : null);
+    if (!id) return;
+
+    setItems((prev) => {
+      const target = prev.find((i) => i.id === id);
+      if (!target) return prev;
+
+      const targetIds = selectedIds.has(id) && selectedIds.size > 1 ? selectedIds : new Set([id]);
+      const allMovingIds = new Set(targetIds);
+      prev.forEach((it) => {
+        if (it.frameId && targetIds.has(it.frameId)) {
+          allMovingIds.add(it.id);
+        }
+      });
+
+      if (target.frameId) {
+        const frameId = target.frameId;
+        const frameChildren = prev.filter((it) => it.frameId === frameId);
+        const otherChildren = frameChildren.filter((it) => !allMovingIds.has(it.id));
+        const movingChildren = frameChildren.filter((it) => allMovingIds.has(it.id));
+        const newFrameChildren = [...movingChildren, ...otherChildren];
+
+        let childIdx = 0;
+        const next = prev.map((it) => {
+          if (it.frameId === frameId) {
+            const replacement = newFrameChildren[childIdx];
+            childIdx++;
+            return replacement;
+          }
+          return it;
+        });
+        updateCanvasItems(next);
+        return next;
+      }
+
+      // Root level: move all selected items & children to beginning of items array (bottommost visual layer)
+      const staying = prev.filter((it) => !allMovingIds.has(it.id));
+      const moving = prev.filter((it) => allMovingIds.has(it.id));
+      const next = [...moving, ...staying];
+      updateCanvasItems(next);
+      return next;
+    });
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, [selectedId, selectedIds, updateCanvasItems]);
+
+  const handleBringForward = useCallback((targetId?: string) => {
+    const id = targetId || selectedId || (selectedIds.size > 0 ? Array.from(selectedIds)[0] : null);
+    if (!id) return;
+
+    setItems((prev) => {
+      const idx = prev.findIndex((i) => i.id === id);
+      if (idx === -1 || idx === prev.length - 1) return prev;
+      const next = [...prev];
+      const temp = next[idx];
+      next[idx] = next[idx + 1];
+      next[idx + 1] = temp;
+      updateCanvasItems(next);
+      return next;
+    });
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, [selectedId, selectedIds, updateCanvasItems]);
+
+  const handleSendBackward = useCallback((targetId?: string) => {
+    const id = targetId || selectedId || (selectedIds.size > 0 ? Array.from(selectedIds)[0] : null);
+    if (!id) return;
+
+    setItems((prev) => {
+      const idx = prev.findIndex((i) => i.id === id);
+      if (idx <= 0) return prev;
+      const next = [...prev];
+      const temp = next[idx];
+      next[idx] = next[idx - 1];
+      next[idx - 1] = temp;
+      updateCanvasItems(next);
+      return next;
+    });
+    setHasChanges(true);
+    setSaveSuccess(false);
+  }, [selectedId, selectedIds, updateCanvasItems]);
 
   const handleConvertSection = useCallback((item: CanvasItem) => {
     const isSec = item.type === "section" || item.mediaType === "section";
@@ -1771,6 +1887,107 @@ export default function CanvasWorkspace({
       return `inset(${Math.round(clipTop)}px ${Math.round(clipRight)}px ${Math.round(clipBottom)}px ${Math.round(clipLeft)}px round ${radius})`;
     },
     [items, getParentFrameId]
+  );
+
+  // ── Drag & Drop Layer Reordering Engine (Left Sidebar Layers Panel) ──
+  const handleReorderLayer = useCallback(
+    (dragId: string, targetId: string, pos: "before" | "after" | "inside") => {
+      if (dragId === targetId) return;
+
+      setItems((prev) => {
+        const dragItem = prev.find((it) => it.id === dragId);
+        const targetItem = prev.find((it) => it.id === targetId);
+        if (!dragItem || !targetItem) return prev;
+
+        // Prevent nesting a parent inside its own child
+        if (targetItem.frameId === dragId) return prev;
+
+        // Group together dragItem and any of its children
+        const dragItemAndChildren = prev.filter((it) => it.id === dragId || it.frameId === dragId);
+        const remaining = prev.filter((it) => it.id !== dragId && it.frameId !== dragId);
+
+        if (pos === "inside" && isFrameItem(targetItem)) {
+          const updatedDragItem = { ...dragItem, frameId: targetItem.id };
+          const targetIdx = remaining.findIndex((it) => it.id === targetId);
+          if (targetIdx === -1) return prev;
+
+          const next = [
+            ...remaining.slice(0, targetIdx + 1),
+            updatedDragItem,
+            ...dragItemAndChildren.filter((it) => it.id !== dragId),
+            ...remaining.slice(targetIdx + 1),
+          ];
+          updateCanvasItems(next);
+          return next;
+        }
+
+        const targetIdx = remaining.findIndex((it) => it.id === targetId);
+        if (targetIdx === -1) return prev;
+
+        // In the Layers list (which is reversed):
+        // "before" in list = visual above target = higher z-index = AFTER target in items array
+        // "after" in list = visual below target = lower z-index = BEFORE target in items array
+        const updatedDragItem = { ...dragItem, frameId: targetItem.frameId };
+        const insertIdx = pos === "before" ? targetIdx + 1 : targetIdx;
+
+        const next = [
+          ...remaining.slice(0, insertIdx),
+          updatedDragItem,
+          ...dragItemAndChildren.filter((it) => it.id !== dragId),
+          ...remaining.slice(insertIdx),
+        ];
+        updateCanvasItems(next);
+        return next;
+      });
+
+      setHasChanges(true);
+      setSaveSuccess(false);
+    },
+    [isFrameItem, updateCanvasItems]
+  );
+
+  const handleMoveLayerToTop = useCallback(
+    (dragId: string) => {
+      setItems((prev) => {
+        const dragItem = prev.find((it) => it.id === dragId);
+        if (!dragItem) return prev;
+        const dragItemAndChildren = prev.filter((it) => it.id === dragId || it.frameId === dragId);
+        const remaining = prev.filter((it) => it.id !== dragId && it.frameId !== dragId);
+        const updatedDragItem = { ...dragItem, frameId: undefined };
+        const next = [
+          ...remaining,
+          updatedDragItem,
+          ...dragItemAndChildren.filter((it) => it.id !== dragId),
+        ];
+        updateCanvasItems(next);
+        return next;
+      });
+      setHasChanges(true);
+      setSaveSuccess(false);
+    },
+    [updateCanvasItems]
+  );
+
+  const handleMoveLayerToBottom = useCallback(
+    (dragId: string) => {
+      setItems((prev) => {
+        const dragItem = prev.find((it) => it.id === dragId);
+        if (!dragItem) return prev;
+        const dragItemAndChildren = prev.filter((it) => it.id === dragId || it.frameId === dragId);
+        const remaining = prev.filter((it) => it.id !== dragId && it.frameId !== dragId);
+        const updatedDragItem = { ...dragItem, frameId: undefined };
+        const next = [
+          updatedDragItem,
+          ...dragItemAndChildren.filter((it) => it.id !== dragId),
+          ...remaining,
+        ];
+        updateCanvasItems(next);
+        return next;
+      });
+      setHasChanges(true);
+      setSaveSuccess(false);
+    },
+    [updateCanvasItems]
   );
 
   // ── Figma Professional Alignment Engine (Left, HCenter, Right, Top, VCenter, Bottom, Distribute, Tidy Up) ──
@@ -2324,13 +2541,14 @@ export default function CanvasWorkspace({
         const target = items.find((i) => i.id === selectedId);
         if (target) handlePasteToReplace(target);
       }
-      if (e.key === "]" && selectedId) {
+      const activeId = selectedId || (selectedIds.size > 0 ? Array.from(selectedIds)[0] : null);
+      if ((e.key === "]" || e.code === "BracketRight") && activeId) {
         e.preventDefault();
-        handleBringToFront(selectedId);
+        handleBringToFront(activeId);
       }
-      if (e.key === "[" && selectedId) {
+      if ((e.key === "[" || e.code === "BracketLeft") && activeId) {
         e.preventDefault();
-        handleSendToBack(selectedId);
+        handleSendToBack(activeId);
       }
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "h" || e.key === "H") && selectedId) {
         e.preventDefault();
@@ -2414,7 +2632,7 @@ export default function CanvasWorkspace({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isSpacePressed, selectedId]);
+  }, [isSpacePressed, selectedId, selectedIds, handleBringToFront, handleSendToBack]);
 
   // Close context menu on outside click or Escape
   useEffect(() => {
@@ -6161,20 +6379,80 @@ export default function CanvasWorkspace({
       <div key={`frame-layer-${frame.id}`} className="space-y-0.5">
         {/* Frame / Section Item Row */}
         <div
+          draggable={true}
+          onDragStart={(e) => {
+            e.stopPropagation();
+            e.dataTransfer.setData("text/plain", frame.id);
+            e.dataTransfer.effectAllowed = "move";
+            setDraggingLayerId(frame.id);
+          }}
+          onDragEnd={() => {
+            setDraggingLayerId(null);
+            setDragOverLayerId(null);
+            setDropPosition(null);
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!draggingLayerId || draggingLayerId === frame.id) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            const offsetY = e.clientY - rect.top;
+            const ratio = offsetY / rect.height;
+
+            if (ratio >= 0.25 && ratio <= 0.75) {
+              setDragOverLayerId(frame.id);
+              setDropPosition("inside");
+            } else if (ratio < 0.25) {
+              setDragOverLayerId(frame.id);
+              setDropPosition("before");
+            } else {
+              setDragOverLayerId(frame.id);
+              setDropPosition("after");
+            }
+          }}
+          onDragLeave={() => {
+            if (dragOverLayerId === frame.id) {
+              setDragOverLayerId(null);
+              setDropPosition(null);
+            }
+          }}
+          onDrop={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const droppedId = e.dataTransfer.getData("text/plain") || draggingLayerId;
+            if (droppedId && droppedId !== frame.id && dropPosition) {
+              handleReorderLayer(droppedId, frame.id, dropPosition);
+            }
+            setDraggingLayerId(null);
+            setDragOverLayerId(null);
+            setDropPosition(null);
+          }}
           onClick={(e) => handleSelectLayer(frame, e)}
           onContextMenu={(e) => handleItemContextMenu(e, frame)}
           onDoubleClick={(e) => {
             e.stopPropagation();
             fitItemToScreen(frame);
           }}
-          className={`w-full ${paddingLeft} pr-2 py-1.5 rounded-md flex items-center justify-between transition-colors cursor-pointer group text-left ${
+          className={`relative w-full ${paddingLeft} pr-2 py-1.5 rounded-md flex items-center justify-between transition-colors cursor-grab active:cursor-grabbing group text-left ${
             isSel
               ? "bg-[#2d3748] text-white font-medium shadow-xs"
               : isLight
               ? "text-slate-700 hover:bg-slate-100"
               : "text-neutral-200 hover:bg-white/5 hover:text-white"
-          } ${isHidden ? "opacity-40" : ""}`}
+          } ${isHidden ? "opacity-40" : ""} ${
+            draggingLayerId === frame.id ? "opacity-30 bg-white/5" : ""
+          } ${
+            dragOverLayerId === frame.id && dropPosition === "inside"
+              ? "ring-2 ring-[#0c8ce9] bg-[#0c8ce9]/20"
+              : ""
+          }`}
         >
+          {dragOverLayerId === frame.id && dropPosition === "before" && (
+            <div className="absolute -top-0.5 left-1 right-1 h-0.5 bg-[#0c8ce9] z-30 rounded-full shadow-[0_0_8px_#0c8ce9] pointer-events-none" />
+          )}
+          {dragOverLayerId === frame.id && dropPosition === "after" && (
+            <div className="absolute -bottom-0.5 left-1 right-1 h-0.5 bg-[#0c8ce9] z-30 rounded-full shadow-[0_0_8px_#0c8ce9] pointer-events-none" />
+          )}
           <div className="flex items-center gap-1.5 truncate flex-1 min-w-0 pr-1">
             {/* Expand / Collapse Chevron (Only shown when frame/section actually has nested children) */}
             {children.length > 0 ? (
@@ -6255,7 +6533,7 @@ export default function CanvasWorkspace({
         {/* Nested Children Inside This Frame (Matches Screenshot media_1793529302513_bd071dc3.png) */}
         {isExpanded && children.length > 0 && (
           <div className="space-y-0.5 pl-3 border-l border-white/10 ml-3">
-            {children.map((child) => {
+            {[...children].reverse().map((child) => {
               if (isFrameItem(child)) {
                 return renderFrameLayer(child, depth + 1);
               }
@@ -6282,20 +6560,73 @@ export default function CanvasWorkspace({
     return (
       <div
         key={it.id}
+        draggable={true}
+        onDragStart={(e) => {
+          e.stopPropagation();
+          e.dataTransfer.setData("text/plain", it.id);
+          e.dataTransfer.effectAllowed = "move";
+          setDraggingLayerId(it.id);
+        }}
+        onDragEnd={() => {
+          setDraggingLayerId(null);
+          setDragOverLayerId(null);
+          setDropPosition(null);
+        }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          if (!draggingLayerId || draggingLayerId === it.id) return;
+          const rect = e.currentTarget.getBoundingClientRect();
+          const offsetY = e.clientY - rect.top;
+          const ratio = offsetY / rect.height;
+
+          if (ratio < 0.5) {
+            setDragOverLayerId(it.id);
+            setDropPosition("before");
+          } else {
+            setDragOverLayerId(it.id);
+            setDropPosition("after");
+          }
+        }}
+        onDragLeave={() => {
+          if (dragOverLayerId === it.id) {
+            setDragOverLayerId(null);
+            setDropPosition(null);
+          }
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const droppedId = e.dataTransfer.getData("text/plain") || draggingLayerId;
+          if (droppedId && droppedId !== it.id && dropPosition) {
+            handleReorderLayer(droppedId, it.id, dropPosition);
+          }
+          setDraggingLayerId(null);
+          setDragOverLayerId(null);
+          setDropPosition(null);
+        }}
         onClick={(e) => handleSelectLayer(it, e)}
         onContextMenu={(e) => handleItemContextMenu(e, it)}
         onDoubleClick={(e) => {
           e.stopPropagation();
           fitItemToScreen(it);
         }}
-        className={`w-full ${paddingLeft} pr-2 py-1 rounded-md flex items-center justify-between transition-colors cursor-pointer group text-left ${
+        className={`relative w-full ${paddingLeft} pr-2 py-1 rounded-md flex items-center justify-between transition-colors cursor-grab active:cursor-grabbing group text-left ${
           isSel
             ? "bg-[#2d3748] text-white font-medium shadow-xs"
             : isLight
             ? "text-slate-700 hover:bg-slate-100"
             : "text-neutral-300 hover:bg-white/8 hover:text-white"
-        } ${isHidden ? "opacity-40" : ""}`}
+        } ${isHidden ? "opacity-40" : ""} ${
+          draggingLayerId === it.id ? "opacity-30 bg-white/5" : ""
+        }`}
       >
+        {dragOverLayerId === it.id && dropPosition === "before" && (
+          <div className="absolute -top-0.5 left-1 right-1 h-0.5 bg-[#0c8ce9] z-30 rounded-full shadow-[0_0_8px_#0c8ce9] pointer-events-none" />
+        )}
+        {dragOverLayerId === it.id && dropPosition === "after" && (
+          <div className="absolute -bottom-0.5 left-1 right-1 h-0.5 bg-[#0c8ce9] z-30 rounded-full shadow-[0_0_8px_#0c8ce9] pointer-events-none" />
+        )}
         <div className="flex items-center gap-2 truncate flex-1 min-w-0 pr-1">
           {/* Item Type Icon (T for text, Outline Rectangle for shapes/media) */}
           {isText ? (
@@ -6461,7 +6792,38 @@ export default function CanvasWorkspace({
                     Belum ada layer di canvas.
                   </div>
                 ) : (
-                  rootItems.map((rootIt) => renderLayerRow(rootIt, 0))
+                  <>
+                    {[...rootItems].reverse().map((rootIt) => renderLayerRow(rootIt, 0))}
+                    {/* Bottom Drop Zone to move a layer to the very bottom of the stack */}
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (draggingLayerId) {
+                          setDragOverLayerId("__bottom__");
+                          setDropPosition("after");
+                        }
+                      }}
+                      onDragLeave={() => {
+                        if (dragOverLayerId === "__bottom__") {
+                          setDragOverLayerId(null);
+                          setDropPosition(null);
+                        }
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const droppedId = e.dataTransfer.getData("text/plain") || draggingLayerId;
+                        if (droppedId) {
+                          handleMoveLayerToBottom(droppedId);
+                        }
+                        setDraggingLayerId(null);
+                        setDragOverLayerId(null);
+                        setDropPosition(null);
+                      }}
+                      className={`min-h-[28px] mt-1 rounded-md transition-colors flex items-center justify-center ${
+                        dragOverLayerId === "__bottom__" ? "border-t-2 border-[#0c8ce9] bg-[#0c8ce9]/10" : ""
+                      }`}
+                    />
+                  </>
                 )}
               </div>
             </aside>
@@ -6578,7 +6940,7 @@ export default function CanvasWorkspace({
             touchAction: "none",
           }}
         >
-          {items.map((item) => {
+          {items.map((item, index) => {
             if (hiddenItemIds.has(item.id)) return null;
             const isSelected = activeTool !== "hand" && (selectedId === item.id || selectedIds.has(item.id));
             const isLocked = lockedItemIds.has(item.id);
@@ -6613,7 +6975,7 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "16px",
                     boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.4)",
                     filter: getEffectFilter(item),
-                    zIndex: isSelected ? 3 : 1,
+                    zIndex: isSelected ? 8 : 1,
                     touchAction: "none",
                   }}
                   className={`absolute rounded-2xl select-none cursor-grab active:cursor-grabbing transition-colors ${
@@ -6703,6 +7065,7 @@ export default function CanvasWorkspace({
                     borderColor: item.color && item.color !== "transparent" ? item.color : "#0c8ce9",
                     boxShadow: getEffectBoxShadow(item),
                     filter: getEffectFilter(item),
+                    zIndex: isSelected ? 50 : 10 + index,
                     touchAction: "none",
                   }}
                   className={`absolute rounded-xl border-2 border-solid border-[#0c8ce9]/60 p-4 flex flex-col justify-between ${
@@ -6792,7 +7155,7 @@ export default function CanvasWorkspace({
                     borderRadius: radius,
                     boxShadow: getEffectBoxShadow(item),
                     filter: getEffectFilter(item),
-                    zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
+                    zIndex: isSelected ? 100 : isChildOfFrame ? 30 + index : 10 + index,
                     clipPath: shapeClipPath ? shapeClipPath : undefined,
                     touchAction: "none",
                   }}
@@ -6875,6 +7238,7 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                     boxShadow: getEffectBoxShadow(item),
                     filter: getEffectFilter(item),
+                    zIndex: isSelected ? 50 : 10 + index,
                     touchAction: "none",
                   }}
                   className={`absolute rounded-2xl bg-[#111318]/95 border backdrop-blur-xl p-3.5 shadow-xl flex flex-col gap-2.5 cursor-grab active:cursor-grabbing ${
@@ -6980,15 +7344,15 @@ export default function CanvasWorkspace({
                     width: isAutoWidth ? "max-content" : item.width ? `${item.width}px` : "320px",
                     height: isFixed && item.height ? `${item.height}px` : "auto",
                     filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
-                    zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
+                    zIndex: isSelected ? 100 : isChildOfFrame ? 30 + index : 10 + index,
                     clipPath: textClipPath ? textClipPath : undefined,
                     touchAction: "none",
                   }}
-                  className={`absolute group transition-shadow z-30 ${
+                  className={`absolute group transition-shadow ${
                     isEditing ? "cursor-text select-text" : "cursor-move select-none"
                   } ${
                     isSelected
-                      ? "ring-1 ring-[#0c8ce9] z-40"
+                      ? "ring-1 ring-[#0c8ce9]"
                       : "hover:ring-1 hover:ring-[#0c8ce9]/50"
                   }`}
                 >
@@ -7152,7 +7516,7 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                     boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.35)",
                     filter: getEffectFilter(item),
-                    zIndex: isSelected ? 8 : 4,
+                    zIndex: isSelected ? 50 : 5 + index,
                     touchAction: "none",
                   }}
                   className={`absolute rounded-xl flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
@@ -7303,7 +7667,7 @@ export default function CanvasWorkspace({
                   borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                   boxShadow: getEffectBoxShadow(item),
                   filter: getEffectFilter(item),
-                  zIndex: isSelected ? 40 : isChildOfFrame ? 25 : 10,
+                  zIndex: isSelected ? 100 : isChildOfFrame ? 30 + index : 10 + index,
                   clipPath: clipPathStyle ? clipPathStyle : undefined,
                   touchAction: "none",
                 }}
