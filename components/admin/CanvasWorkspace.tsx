@@ -1840,6 +1840,11 @@ export default function CanvasWorkspace({
       const parentFrame = items.find((f) => f.id === parentFrameId);
       if (!parentFrame) return undefined;
 
+      // In Figma, Groups and Sections NEVER clip content!
+      if (parentFrame.type === "group" || parentFrame.type === "section" || parentFrame.mediaType === "section") {
+        return undefined;
+      }
+
       // In Figma, clipContent defaults to true unless explicitly disabled (clipContent === false)
       if (parentFrame.clipContent === false) return undefined;
 
@@ -2291,21 +2296,19 @@ export default function CanvasWorkspace({
     let maxY = -Infinity;
 
     selectedList.forEach((it) => {
-      const x = it.x || 0;
-      const y = it.y || 0;
-      const w = it.width || 440;
-      const h = it.height || 550;
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x + w);
-      maxY = Math.max(maxY, y + h);
+      const b = getItemBounds(it);
+      minX = Math.min(minX, b.left);
+      minY = Math.min(minY, b.top);
+      maxX = Math.max(maxX, b.right);
+      maxY = Math.max(maxY, b.bottom);
     });
 
-    const padding = 20;
-    const groupX = Math.max(0, Math.round(minX - padding));
-    const groupY = Math.max(0, Math.round(minY - padding));
-    const groupW = Math.round(maxX - minX + padding * 2);
-    const groupH = Math.round(maxY - minY + padding * 2);
+    if (minX === Infinity) return;
+
+    const groupX = Math.round(minX);
+    const groupY = Math.round(minY);
+    const groupW = Math.max(1, Math.round(maxX - minX));
+    const groupH = Math.max(1, Math.round(maxY - minY));
 
     const groupId = `group-${Date.now()}`;
     const newGroup: CanvasItem = {
@@ -2320,6 +2323,7 @@ export default function CanvasWorkspace({
       color: "transparent",
       strokeColor: "#0c8ce9",
       strokeWidth: 1,
+      clipContent: false,
     };
 
     const targetIds = new Set(selectedList.map((i) => i.id));
@@ -2348,21 +2352,20 @@ export default function CanvasWorkspace({
     let maxY = -Infinity;
 
     selectedList.forEach((it) => {
-      const x = it.x || 0;
-      const y = it.y || 0;
-      const w = it.width || 440;
-      const h = it.height || 550;
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x + w);
-      maxY = Math.max(maxY, y + h);
+      const b = getItemBounds(it);
+      minX = Math.min(minX, b.left);
+      minY = Math.min(minY, b.top);
+      maxX = Math.max(maxX, b.right);
+      maxY = Math.max(maxY, b.bottom);
     });
 
+    if (minX === Infinity) return;
+
     const padding = 20;
-    const frameX = Math.max(0, Math.round(minX - padding));
-    const frameY = Math.max(0, Math.round(minY - padding));
-    const frameW = Math.round(maxX - minX + padding * 2);
-    const frameH = Math.round(maxY - minY + padding * 2);
+    const frameX = Math.round(minX - padding);
+    const frameY = Math.round(minY - padding);
+    const frameW = Math.max(1, Math.round(maxX - minX + padding * 2));
+    const frameH = Math.max(1, Math.round(maxY - minY + padding * 2));
 
     const frameId = `frame-${Date.now()}`;
     const newFrame: CanvasItem = {
@@ -2376,6 +2379,7 @@ export default function CanvasWorkspace({
       width: frameW,
       height: frameH,
       color: "#0c8ce9",
+      clipContent: true,
     };
 
     const targetIds = new Set(selectedList.map((i) => i.id));
@@ -2388,6 +2392,7 @@ export default function CanvasWorkspace({
 
     updateItemsWithTracking([...updated, newFrame]);
     setSelectedId(frameId);
+    setSelectedIds(new Set([frameId]));
     setSelectedIds(new Set([frameId]));
   }, [items, selectedId, selectedIds, contextMenu?.item, updateItemsWithTracking]);
 
@@ -3439,61 +3444,68 @@ export default function CanvasWorkspace({
       return;
     }
 
-    const isMultiKey = e.shiftKey || e.metaKey || e.ctrlKey;
+    const isMultiKey = e.shiftKey || (e.metaKey && !e.ctrlKey);
+    // In Figma, clicking an item that belongs to a group selects the parent group first, unless group is already selected or Ctrl/Cmd is held for deep select
+    const parentFrameId = item.frameId || getParentFrameId(item);
+    const parentGroup = parentFrameId ? items.find((f) => f.id === parentFrameId && f.type === "group") : null;
+    const activeItem = (parentGroup && !isMultiKey && !e.ctrlKey && !e.metaKey && selectedId !== parentGroup.id && !selectedIds.has(item.id))
+      ? parentGroup
+      : item;
+
     let targetSelectedIds: Set<string>;
 
     if (isMultiKey) {
-      if (selectedIds.has(item.id)) {
-        targetSelectedIds = new Set(Array.from(selectedIds).filter((id) => id !== item.id));
+      if (selectedIds.has(activeItem.id)) {
+        targetSelectedIds = new Set(Array.from(selectedIds).filter((id) => id !== activeItem.id));
         setSelectedIds(targetSelectedIds);
         const remaining = Array.from(targetSelectedIds);
         setSelectedId(remaining.length > 0 ? remaining[remaining.length - 1] : null);
         return;
       } else {
-        targetSelectedIds = new Set([...Array.from(selectedIds), item.id]);
+        targetSelectedIds = new Set([...Array.from(selectedIds), activeItem.id]);
         setSelectedIds(targetSelectedIds);
-        setSelectedId(item.id);
+        setSelectedId(activeItem.id);
       }
     } else {
       // Normal click without Shift/Ctrl/Cmd:
       // If clicking an item that is already part of a multi-selection group, keep the group to drag together
       // If clicking any other item, clear previous selection and select ONLY this single item!
-      if (selectedIds.has(item.id) && selectedIds.size > 1) {
+      if (selectedIds.has(activeItem.id) && selectedIds.size > 1) {
         targetSelectedIds = selectedIds;
-        setSelectedId(item.id);
+        setSelectedId(activeItem.id);
       } else {
-        targetSelectedIds = new Set([item.id]);
+        targetSelectedIds = new Set([activeItem.id]);
         setSelectedIds(targetSelectedIds);
-        setSelectedId(item.id);
+        setSelectedId(activeItem.id);
       }
     }
 
-    if (lockedItemIds.has(item.id)) return; // Locked items cannot be dragged
+    if (lockedItemIds.has(activeItem.id)) return; // Locked items cannot be dragged
 
     hasItemMovedDuringDragRef.current = false;
-    setDraggingItemId(item.id);
+    setDraggingItemId(activeItem.id);
     const itemCanvasX = (e.clientX - pan.x) / zoom;
     const itemCanvasY = (e.clientY - pan.y) / zoom;
     setDragItemOffset({
-      x: itemCanvasX - (item.x || 0),
-      y: itemCanvasY - (item.y || 0),
+      x: itemCanvasX - (activeItem.x || 0),
+      y: itemCanvasY - (activeItem.y || 0),
     });
 
-    const isFrame = isFrameItem(item);
-    const itemW = item.width || (item.aspect === "16:9" ? 720 : 480);
-    const itemH = item.height || (item.aspect === "16:9" ? 405 : 600);
-    const itemX = item.x || 0;
-    const itemY = item.y || 0;
+    const isFrame = isFrameItem(activeItem);
+    const itemW = activeItem.width || (activeItem.aspect === "16:9" ? 720 : 480);
+    const itemH = activeItem.height || (activeItem.aspect === "16:9" ? 405 : 600);
+    const itemX = activeItem.x || 0;
+    const itemY = activeItem.y || 0;
 
     const initMap = new Map<string, { x: number; y: number }>();
     items.forEach((it) => {
       if (targetSelectedIds.has(it.id)) {
         initMap.set(it.id, { x: it.x || 0, y: it.y || 0 });
-      } else if (isFrame && targetSelectedIds.has(item.id)) {
+      } else if (isFrame && targetSelectedIds.has(activeItem.id)) {
         // Child text or elements nested inside this frame move together with the frame
         const itX = it.x || 0;
         const itY = it.y || 0;
-        const isChild = it.frameId === item.id || (
+        const isChild = it.frameId === activeItem.id || (
           itX >= itemX && itX <= itemX + itemW &&
           itY >= itemY && itY <= itemY + itemH
         );
@@ -4068,7 +4080,7 @@ export default function CanvasWorkspace({
 
   // Delete an Item
   const handleDeleteItem = (id: string) => {
-    const updated = items.filter((it) => it.id !== id);
+    const updated = items.filter((it) => it.id !== id && it.frameId !== id);
     updateItemsWithTracking(updated);
     if (selectedId === id) setSelectedId(null);
     if (editingTextId === id) setEditingTextId(null);
@@ -4479,26 +4491,17 @@ export default function CanvasWorkspace({
 
     setSelectedId(item.id);
     setSelectedIds(new Set([item.id]));
-    if (item.x !== undefined && item.y !== undefined) {
-      if (isScreenMobile) {
-        if (canvasContainerRef.current) {
-          const { clientWidth, clientHeight } = canvasContainerRef.current;
-          const w = item.width || 380;
-          const h = item.height || 480;
-          setPan({
-            x: Math.round(clientWidth / 2 - (item.x + w / 2) * zoom),
-            y: Math.round(clientHeight / 2 - (item.y + h / 2) * zoom),
-          });
-        }
-        setIsUiExpanded(false); // Close mobile layers drawer so user sees selected item on canvas
-      } else {
+    if (isScreenMobile) {
+      if (item.x !== undefined && item.y !== undefined && canvasContainerRef.current) {
+        const { clientWidth, clientHeight } = canvasContainerRef.current;
+        const w = item.width || 380;
+        const h = item.height || 480;
         setPan({
-          x: -(item.x) * zoom + 240,
-          y: -(item.y) * zoom + 200,
+          x: Math.round(clientWidth / 2 - (item.x + w / 2) * zoom),
+          y: Math.round(clientHeight / 2 - (item.y + h / 2) * zoom),
         });
       }
-    } else if (isScreenMobile) {
-      setIsUiExpanded(false);
+      setIsUiExpanded(false); // Close mobile layers drawer so user sees selected item on canvas
     }
   };
 
@@ -7038,10 +7041,37 @@ export default function CanvasWorkspace({
               );
             }
 
-            // 1.1 GROUP FRAME (Figma Style Group Boundary)
+            // 1.1 FIGMA GROUP (Dynamic bounding box wrapping children, transparent container)
             if (item.type === "group") {
-              const secWidth = item.width || 1200;
-              const secHeight = item.height || 600;
+              const children = items.filter(
+                (it) => it.id !== item.id && (it.frameId === item.id || getParentFrameId(it) === item.id)
+              );
+              let gX = item.x || 0;
+              let gY = item.y || 0;
+              let gW = item.width || 400;
+              let gH = item.height || 300;
+
+              if (children.length > 0) {
+                let cMinX = Infinity;
+                let cMinY = Infinity;
+                let cMaxX = -Infinity;
+                let cMaxY = -Infinity;
+
+                children.forEach((c) => {
+                  const b = getItemBounds(c);
+                  cMinX = Math.min(cMinX, b.left);
+                  cMinY = Math.min(cMinY, b.top);
+                  cMaxX = Math.max(cMaxX, b.right);
+                  cMaxY = Math.max(cMaxY, b.bottom);
+                });
+
+                if (cMinX !== Infinity) {
+                  gX = cMinX;
+                  gY = cMinY;
+                  gW = Math.max(1, cMaxX - cMinX);
+                  gH = Math.max(1, cMaxY - cMinY);
+                }
+              }
 
               return (
                 <div
@@ -7053,70 +7083,56 @@ export default function CanvasWorkspace({
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     if (hasItemMovedDuringDragRef.current) return;
-                    fitItemToScreen(item, e.currentTarget);
+                    if (children.length > 0) {
+                      setSelectedId(children[0].id);
+                      setSelectedIds(new Set([children[0].id]));
+                    }
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
-                    transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
-                    width: `${item.width || secWidth}px`,
-                    height: `${item.height || secHeight}px`,
-                    opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
-                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "12px",
-                    borderColor: item.color && item.color !== "transparent" ? item.color : "#0c8ce9",
-                    boxShadow: getEffectBoxShadow(item),
-                    filter: getEffectFilter(item),
-                    zIndex: isSelected ? 50 : 10 + index,
+                    transform: `translate3d(${gX}px, ${gY}px, 0)`,
+                    width: `${gW}px`,
+                    height: `${gH}px`,
+                    zIndex: isSelected ? 45 : 9,
                     touchAction: "none",
                   }}
-                  className={`absolute rounded-xl border-2 border-solid border-[#0c8ce9]/60 p-4 flex flex-col justify-between ${
-                    draggingItemId === item.id ? "!transition-none will-change-transform z-30" : "transition-colors duration-150"
+                  className={`absolute pointer-events-auto select-none transition-colors ${
+                    draggingItemId === item.id
+                      ? "!transition-none will-change-transform z-50 cursor-grabbing"
+                      : "cursor-grab active:cursor-grabbing"
                   } ${
                     isSelected
-                      ? "border-[#0c8ce9] bg-[#0c8ce9]/[0.05] ring-2 ring-[#0c8ce9]/40"
-                      : "border-white/15 bg-white/[0.015] hover:border-white/30"
+                      ? "ring-1 ring-[#0c8ce9] shadow-[0_0_0_1px_#0c8ce9]"
+                      : "hover:ring-1 hover:ring-[#0c8ce9]/40 border-transparent bg-transparent"
                   }`}
                 >
-                  <div className="flex items-center justify-between pointer-events-auto">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-[#0c8ce9]" />
-                      <input
-                        type="text"
-                        value={item.title}
-                        onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
-                        className="bg-transparent border-b border-transparent hover:border-white/20 focus:border-[#0c8ce9] text-sm font-bold text-white font-mono focus:outline-none px-1 py-0.5 rounded"
+                  {/* Figma Group Selection Handles & Dimension Badge */}
+                  {isSelected && (
+                    <>
+                      {/* 4 Corner Handles */}
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "nw")}
+                        className="absolute -top-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
                       />
-                      <span className="text-[10px] font-mono text-neutral-500 uppercase">GROUP</span>
-                    </div>
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "ne")}
+                        className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "sw")}
+                        className="absolute -bottom-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                      />
+                      <div
+                        onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
+                        className="absolute -bottom-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                      />
 
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleUngroup(item);
-                        }}
-                        className="px-2 py-0.5 rounded bg-white/10 hover:bg-[#0c8ce9] text-white text-[11px] font-sans transition-colors cursor-pointer"
-                        title="Ungroup (Ctrl+Shift+G / Ctrl+⌫)"
-                      >
-                        Ungroup
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteItem(item.id);
-                        }}
-                        className="p-1.5 rounded-lg text-neutral-500 hover:text-red-400 hover:bg-white/10 transition-colors cursor-pointer"
-                        title="Hapus"
-                      >
-                        <HiTrash className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className="text-right text-[11px] font-mono text-neutral-500 select-none">
-                    {Math.round(secWidth)} × {Math.round(secHeight)}
-                  </div>
+                      {/* Dimension Badge at Bottom (e.g. 233 × 66) */}
+                      <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
+                        {Math.round(gW)} × {Math.round(gH)}
+                      </div>
+                    </>
+                  )}
                 </div>
               );
             }
