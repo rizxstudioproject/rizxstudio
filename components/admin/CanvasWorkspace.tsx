@@ -7249,12 +7249,12 @@ export default function CanvasWorkspace({
                     transform: `translate3d(${gX}px, ${gY}px, 0)`,
                     width: `${gW}px`,
                     height: `${gH}px`,
-                    zIndex: isSelected ? 45 : 9,
+                    zIndex: 10 + index,
                     touchAction: "none",
                   }}
                   className={`absolute pointer-events-auto select-none transition-colors ${
                     draggingItemId === item.id
-                      ? "!transition-none will-change-transform z-50 cursor-grabbing"
+                      ? "!transition-none will-change-transform cursor-grabbing"
                       : "cursor-grab active:cursor-grabbing"
                   } ${
                     isSelected
@@ -7327,12 +7327,12 @@ export default function CanvasWorkspace({
                     borderRadius: radius,
                     boxShadow: getEffectBoxShadow(item),
                     filter: getEffectFilter(item),
-                    zIndex: isSelected ? 100 : isChildOfFrame ? 30 + index : 10 + index,
+                    zIndex: isChildOfFrame ? 30 + index : 10 + index,
                     clipPath: shapeClipPath ? shapeClipPath : undefined,
                     touchAction: "none",
                   }}
                   className={`absolute flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
-                    draggingItemId === item.id ? "!transition-none will-change-transform z-50 shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]" : ""
+                    draggingItemId === item.id ? "!transition-none will-change-transform shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]" : ""
                   } ${
                     isSelected
                       ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
@@ -7520,7 +7520,7 @@ export default function CanvasWorkspace({
                     width: isAutoWidth ? "max-content" : item.width ? `${item.width}px` : "320px",
                     height: isFixed && item.height ? `${item.height}px` : "auto",
                     filter: item.effects === "drop-shadow" && !item.effectHidden ? `drop-shadow(${item.shadowX || 0}px ${item.shadowY !== undefined ? item.shadowY : 4}px ${item.shadowBlur !== undefined ? item.shadowBlur : 4}px rgba(0,0,0,${(item.shadowOpacity !== undefined ? item.shadowOpacity : 25)/100}))` : getEffectFilter(item),
-                    zIndex: isSelected ? 100 : isChildOfFrame ? 30 + index : 10 + index,
+                    zIndex: isChildOfFrame ? 30 + index : 10 + index,
                     clipPath: textClipPath ? textClipPath : undefined,
                     touchAction: "none",
                   }}
@@ -7692,6 +7692,7 @@ export default function CanvasWorkspace({
               const frameWidth = item.width || 440;
               const frameHeight = item.height || 550;
               const frameBg = item.color || "#FFFFFF";
+              const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
 
               return (
                 <div
@@ -7715,11 +7716,11 @@ export default function CanvasWorkspace({
                     borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                     boxShadow: getEffectBoxShadow(item) || "0 10px 40px rgba(0,0,0,0.35)",
                     filter: getEffectFilter(item),
-                    zIndex: isSelected ? 50 : 5 + index,
+                    zIndex: isChildOfFrame ? 30 + index : 5 + index,
                     touchAction: "none",
                   }}
                   className={`absolute rounded-xl flex flex-col select-none cursor-grab active:cursor-grabbing transition-colors ${
-                    draggingItemId === item.id ? "!transition-none will-change-transform z-30" : ""
+                    draggingItemId === item.id ? "!transition-none will-change-transform" : ""
                   } ${
                     isSelected
                       ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
@@ -7870,13 +7871,13 @@ export default function CanvasWorkspace({
                   borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
                   boxShadow: getEffectBoxShadow(item),
                   filter: getEffectFilter(item),
-                  zIndex: isSelected ? 100 : isChildOfFrame ? 30 + index : 10 + index,
+                  zIndex: isChildOfFrame ? 30 + index : 10 + index,
                   clipPath: clipPathStyle ? clipPathStyle : undefined,
                   touchAction: "none",
                 }}
                 className={`group absolute rounded-2xl flex flex-col select-none cursor-grab active:cursor-grabbing ${
                   draggingItemId === item.id
-                    ? "!transition-none will-change-transform z-50 cursor-grabbing shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]"
+                    ? "!transition-none will-change-transform cursor-grabbing shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]"
                     : "transition-colors duration-150"
                 } ${
                   isSelected
