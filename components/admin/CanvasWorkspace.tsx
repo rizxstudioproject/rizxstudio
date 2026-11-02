@@ -4597,12 +4597,28 @@ export default function CanvasWorkspace({
     const isMultiKey = e.shiftKey || (e.metaKey && !e.ctrlKey);
     const isDeepSelect = (e.ctrlKey || e.metaKey) && !e.shiftKey;
 
-    // In Figma, clicking an item that belongs to a group selects the parent group as a single unit, unless Ctrl/Cmd is held for deep select
-    const parentFrameId = item.frameId || getParentFrameId(item);
-    const parentGroup = parentFrameId ? items.find((f) => f.id === parentFrameId && f.type === "group") : null;
-    const activeItem = (parentGroup && !isMultiKey && !isDeepSelect)
-      ? parentGroup
-      : item;
+    // ── Figma Container Selection Hierarchy ──────────────────────────────────
+    // If the clicked item is inside a Frame, Section, or Group:
+    const parentContainerId = item.frameId || getParentFrameId(item);
+    const parentContainer = parentContainerId ? items.find((f) => f.id === parentContainerId) : null;
+
+    let activeItem = item;
+
+    if (parentContainer && !isMultiKey && !isDeepSelect) {
+      if (parentContainer.type === "group") {
+        // Groups always select as a single unified entity
+        activeItem = parentContainer;
+      } else if (isFrameItem(parentContainer)) {
+        // Frame / Section Container:
+        // Rule: If this child item is NOT already selected, the click selects/keeps the parent Frame!
+        // This ensures clicking anywhere on the Frame (even over an image or child inside it) selects the Frame,
+        // and does NOT accidentally switch or jump to the child image!
+        const isSelfSelected = selectedId === item.id || selectedIds.has(item.id);
+        if (!isSelfSelected) {
+          activeItem = parentContainer;
+        }
+      }
+    }
 
     let targetSelectedIds: Set<string>;
 
@@ -4656,7 +4672,7 @@ export default function CanvasWorkspace({
     // Ensure the group container AND ALL its children move together in complete lockstep!
     const associatedGroup = activeItem.type === "group"
       ? activeItem
-      : (!isDeepSelect && parentGroup ? parentGroup : null);
+      : (!isDeepSelect && parentContainer?.type === "group" ? parentContainer : null);
 
     if (associatedGroup) {
       initMap.set(associatedGroup.id, { x: associatedGroup.x || 0, y: associatedGroup.y || 0 });
@@ -8928,7 +8944,12 @@ export default function CanvasWorkspace({
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     if (hasItemMovedDuringDragRef.current) return;
-                    fitItemToScreen(item, e.currentTarget);
+                    if (selectedId === item.id) {
+                      fitItemToScreen(item, e.currentTarget);
+                    } else {
+                      setSelectedId(item.id);
+                      setSelectedIds(new Set([item.id]));
+                    }
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
@@ -9171,7 +9192,12 @@ export default function CanvasWorkspace({
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     if (hasItemMovedDuringDragRef.current) return;
-                    fitItemToScreen(item, e.currentTarget);
+                    if (selectedId === item.id) {
+                      fitItemToScreen(item, e.currentTarget);
+                    } else {
+                      setSelectedId(item.id);
+                      setSelectedIds(new Set([item.id]));
+                    }
                   }}
                   onTouchEnd={(e) => {
                     handleItemTouchEnd(e, item, e.currentTarget);
@@ -9265,7 +9291,12 @@ export default function CanvasWorkspace({
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     if (hasItemMovedDuringDragRef.current) return;
-                    fitItemToScreen(item, e.currentTarget);
+                    if (selectedId === item.id) {
+                      fitItemToScreen(item, e.currentTarget);
+                    } else {
+                      setSelectedId(item.id);
+                      setSelectedIds(new Set([item.id]));
+                    }
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
@@ -9631,7 +9662,12 @@ export default function CanvasWorkspace({
                   onDoubleClick={(e) => {
                     e.stopPropagation();
                     if (hasItemMovedDuringDragRef.current) return;
-                    fitItemToScreen(item, e.currentTarget);
+                    if (selectedId === item.id) {
+                      fitItemToScreen(item, e.currentTarget);
+                    } else {
+                      setSelectedId(item.id);
+                      setSelectedIds(new Set([item.id]));
+                    }
                   }}
                   onContextMenu={(e) => handleItemContextMenu(e, item)}
                   style={{
@@ -9885,7 +9921,12 @@ export default function CanvasWorkspace({
                       onDoubleClick={(e) => {
                         e.stopPropagation();
                         if (hasItemMovedDuringDragRef.current) return;
-                        fitItemToScreen(item, e.currentTarget);
+                        if (selectedId === item.id) {
+                          fitItemToScreen(item, e.currentTarget);
+                        } else {
+                          setSelectedId(item.id);
+                          setSelectedIds(new Set([item.id]));
+                        }
                       }}
                       onTouchEnd={(e) => {
                         handleItemTouchEnd(e, item, e.currentTarget);
@@ -9953,7 +9994,12 @@ export default function CanvasWorkspace({
                     onDoubleClick={(e) => {
                       e.stopPropagation();
                       if (hasItemMovedDuringDragRef.current) return;
-                      fitItemToScreen(item, e.currentTarget);
+                      if (selectedId === item.id) {
+                        fitItemToScreen(item, e.currentTarget);
+                      } else {
+                        setSelectedId(item.id);
+                        setSelectedIds(new Set([item.id]));
+                      }
                     }}
                     onTouchEnd={(e) => {
                       handleItemTouchEnd(e, item, e.currentTarget);
