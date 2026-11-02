@@ -779,6 +779,7 @@ export default function CanvasWorkspace({
     startH: number;
     handle: string;
     startFontSize?: number;
+    isGroup?: boolean;
     initialChildren?: Map<string, { x: number; y: number; width: number; height: number; fontSize?: number }>;
   } | null>(null);
 
@@ -825,6 +826,7 @@ export default function CanvasWorkspace({
       startH: itH,
       handle,
       startFontSize: item.fontSize || 129,
+      isGroup: item.type === "group",
       initialChildren: childMap,
     };
   }, [items]);
@@ -1873,28 +1875,78 @@ export default function CanvasWorkspace({
         });
       }
 
-      // 2. If it's a Section, Shape, Rectangle, or other layer, convert it to a Frame
+      // 2. If it's a Section, convert it to a Frame
+      if (item.type === "section" || item.mediaType === "section") {
+        const frameCount = prev.filter((i) => (i.mediaType === "frame" || i.type === "frame") && !i.image && i.type !== "group").length + 1;
+        return prev.map((i) => {
+          if (i.id === item.id) {
+            const w = i.width || 1200;
+            const h = i.height || 600;
+            return {
+              ...i,
+              type: "media" as const,
+              mediaType: "frame" as const,
+              title: i.title.startsWith("Section") ? `Frame ${frameCount}` : i.title,
+              width: w,
+              height: h,
+              aspect: "free",
+              color: "#FFFFFF",
+              clipContent: true,
+            };
+          }
+          return i;
+        });
+      }
+
+      // 3. If it's an Image / Video / Deliverable Card / Shape / Text:
+      // In Figma: Convert to frame wraps the image inside a new Frame of the exact matching size!
+      const dim = getItemDimensions(item);
+      const w = item.width || dim.width;
+      const h = item.height || dim.height;
+      const itemX = item.x || 0;
+      const itemY = item.y || 0;
+
+      const frameId = `frame-${Date.now()}`;
       const frameCount = prev.filter((i) => (i.mediaType === "frame" || i.type === "frame") && !i.image && i.type !== "group").length + 1;
-      return prev.map((i) => {
-        if (i.id === item.id) {
-          const w = i.width || (i.aspect === "16:9" ? 720 : 440);
-          const h = i.height || (i.aspect === "16:9" ? 405 : 550);
-          return {
-            ...i,
-            type: "media" as const,
-            mediaType: "frame" as const,
-            title: (i.title.startsWith("Rectangle") || i.title.startsWith("Section") || i.title.startsWith("Shape"))
-              ? `Frame ${frameCount}`
-              : i.title,
-            width: w,
-            height: h,
-            aspect: `${w}:${h}`,
-            color: i.color || "#FFFFFF",
-            clipContent: i.clipContent ?? true,
-          };
-        }
-        return i;
-      });
+
+      const newFrame: CanvasItem = {
+        id: frameId,
+        title: `Frame ${frameCount}`,
+        type: "media",
+        mediaType: "frame",
+        aspect: "free",
+        x: itemX,
+        y: itemY,
+        width: w,
+        height: h,
+        color: item.color || "#FFFFFF",
+        clipContent: true,
+      };
+
+      const updatedItem: CanvasItem = {
+        ...item,
+        frameId,
+        x: itemX,
+        y: itemY,
+        width: w,
+        height: h,
+        aspect: "free",
+      };
+
+      const itemIdx = prev.findIndex((i) => i.id === item.id);
+      const next = [...prev];
+      if (itemIdx >= 0) {
+        next.splice(itemIdx, 1, newFrame, updatedItem);
+      } else {
+        next.push(newFrame, updatedItem);
+      }
+
+      setTimeout(() => {
+        setSelectedId(frameId);
+        setSelectedIds(new Set([frameId]));
+      }, 0);
+
+      return next;
     });
     setHasChanges(true);
     setSaveSuccess(false);
@@ -2533,24 +2585,25 @@ export default function CanvasWorkspace({
 
     if (minX === Infinity) return;
 
-    const padding = 20;
+    const padding = selectedList.length === 1 ? 0 : 20;
     const frameX = Math.round(minX - padding);
     const frameY = Math.round(minY - padding);
     const frameW = Math.max(1, Math.round(maxX - minX + padding * 2));
     const frameH = Math.max(1, Math.round(maxY - minY + padding * 2));
 
     const frameId = `frame-${Date.now()}`;
+    const frameCount = items.filter((i) => (i.mediaType === "frame" || i.type === "frame") && !i.image && i.type !== "group").length + 1;
     const newFrame: CanvasItem = {
       id: frameId,
-      title: `Frame ${items.filter((i) => i.mediaType === "frame" && i.type !== "group").length + 1}`,
+      title: `Frame ${frameCount}`,
       type: "media",
       mediaType: "frame",
-      aspect: `${frameW}:${frameH}`,
+      aspect: "free",
       x: frameX,
       y: frameY,
       width: frameW,
       height: frameH,
-      color: "#0c8ce9",
+      color: "#FFFFFF",
       clipContent: true,
     };
 
@@ -2562,9 +2615,16 @@ export default function CanvasWorkspace({
       return it;
     });
 
-    updateItemsWithTracking([...updated, newFrame]);
+    const firstIdx = items.findIndex((it) => targetIds.has(it.id));
+    const nextItems = [...updated];
+    if (firstIdx >= 0) {
+      nextItems.splice(firstIdx, 0, newFrame);
+    } else {
+      nextItems.unshift(newFrame);
+    }
+
+    updateItemsWithTracking(nextItems);
     setSelectedId(frameId);
-    setSelectedIds(new Set([frameId]));
     setSelectedIds(new Set([frameId]));
   }, [items, selectedId, selectedIds, contextMenu?.item, updateItemsWithTracking]);
 
@@ -3376,7 +3436,10 @@ export default function CanvasWorkspace({
             }
 
             // If it is a child of the resizing container (Group/Frame)
-            if (initialChildren && initialChildren.has(it.id)) {
+            // In Figma: only scale children if resizing a Group, or if using the Scale tool ("K").
+            // Resizing a Frame with Move/Select tool freely crops/resizes the Frame viewport without stretching children.
+            const shouldScaleChildren = Boolean(resizeStartRef.current?.isGroup || activeTool === "scale");
+            if (shouldScaleChildren && initialChildren && initialChildren.has(it.id)) {
               const cInit = initialChildren.get(it.id)!;
               const relX = (cInit.x - startX) / (startW || 1);
               const relY = (cInit.y - startY) / (startH || 1);
@@ -8509,22 +8572,24 @@ export default function CanvasWorkspace({
                 style={{
                   transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                   width: `${item.width || cardWidth}px`,
-                  height: item.height ? `${item.height}px` : undefined,
+                  height: isChildOfFrame ? `${currentHeight}px` : item.height ? `${item.height}px` : undefined,
                   opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                   borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
-                  boxShadow: getEffectBoxShadow(item),
+                  boxShadow: isChildOfFrame ? undefined : getEffectBoxShadow(item),
                   filter: getEffectFilter(item),
                   zIndex: isChildOfFrame ? 30 + index : 10 + index,
                   clipPath: clipPathStyle ? clipPathStyle : undefined,
                   touchAction: "none",
                 }}
-                className={`group absolute rounded-2xl flex flex-col select-none cursor-grab active:cursor-grabbing ${
+                className={`group absolute ${isChildOfFrame ? "rounded-none" : "rounded-2xl"} flex flex-col select-none cursor-grab active:cursor-grabbing ${
                   draggingItemId === item.id
                     ? "!transition-none will-change-transform cursor-grabbing shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]"
                     : "transition-colors duration-150"
                 } ${
                   isSelected
                     ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
+                    : isChildOfFrame
+                    ? ""
                     : "hover:ring-1 hover:ring-white/40 shadow-2xl"
                 }`}
               >
@@ -8580,60 +8645,66 @@ export default function CanvasWorkspace({
 
                 {/* Card Content Wrapper */}
                 <div className="flex flex-col w-full h-full">
-                {/* Header Label (Editable Title & Actions) */}
-                <div className={`flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl border backdrop-blur-md text-[11px] font-mono ${
-                  isLight
-                    ? "bg-white/95 border-slate-300 text-slate-700 shadow-sm"
-                    : "bg-black/80 border-white/10 text-neutral-300"
-                }`}>
-                  <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
-                    <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0" />
-                    <input
-                      type="text"
-                      value={item.title}
-                      onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
-                      className={`bg-transparent border-b border-transparent focus:border-teal-500 font-bold truncate focus:outline-none w-full canvas-item-input ${
-                        isLight ? "text-slate-900 hover:border-slate-300" : "text-white hover:border-white/20"
-                      }`}
-                    />
-                  </div>
+                {/* Header Label (Editable Title & Actions) - only for standalone cards */}
+                {!isChildOfFrame && (
+                  <div className={`flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl border backdrop-blur-md text-[11px] font-mono ${
+                    isLight
+                      ? "bg-white/95 border-slate-300 text-slate-700 shadow-sm"
+                      : "bg-black/80 border-white/10 text-neutral-300"
+                  }`}>
+                    <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
+                      <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0" />
+                      <input
+                        type="text"
+                        value={item.title}
+                        onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
+                        className={`bg-transparent border-b border-transparent focus:border-teal-500 font-bold truncate focus:outline-none w-full canvas-item-input ${
+                          isLight ? "text-slate-900 hover:border-slate-300" : "text-white hover:border-white/20"
+                        }`}
+                      />
+                    </div>
 
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {isLocked && (
-                      <span className="p-0.5 text-amber-500" title="Layer Terkunci">
-                        <HiLockClosed className="w-3.5 h-3.5" />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {isLocked && (
+                        <span className="p-0.5 text-amber-500" title="Layer Terkunci">
+                          <HiLockClosed className="w-3.5 h-3.5" />
+                        </span>
+                      )}
+                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
+                        isLight ? "bg-slate-100 text-teal-700 border-slate-200" : "bg-white/10 text-teal-300 border-white/10"
+                      }`}>
+                        {item.aspect === "original" ? "ORIGINAL" : item.aspect}
                       </span>
-                    )}
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
-                      isLight ? "bg-slate-100 text-teal-700 border-slate-200" : "bg-white/10 text-teal-300 border-white/10"
-                    }`}>
-                      {item.aspect === "original" ? "ORIGINAL" : item.aspect}
-                    </span>
-                    {item.isVideo && (
-                      <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-500 text-[9px] font-bold border border-emerald-500/30 uppercase">
-                        VIDEO
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteItem(item.id);
-                      }}
-                      className="text-neutral-400 hover:text-red-500 p-1 rounded transition-colors"
-                      title="Hapus Media"
-                    >
-                      <HiTrash className="w-3.5 h-3.5" />
-                    </button>
+                      {item.isVideo && (
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-500 text-[9px] font-bold border border-emerald-500/30 uppercase">
+                          VIDEO
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteItem(item.id);
+                        }}
+                        className="text-neutral-400 hover:text-red-500 p-1 rounded transition-colors"
+                        title="Hapus Media"
+                      >
+                        <HiTrash className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Media Container - High-DPI Sharp Rendering */}
                 <div
-                  className="relative w-full rounded-2xl overflow-hidden bg-neutral-950 border border-white/15 shadow-2xl flex items-center justify-center cursor-pointer"
+                  className={`relative w-full overflow-hidden flex items-center justify-center cursor-pointer ${
+                    isChildOfFrame
+                      ? "h-full rounded-none border-none shadow-none bg-transparent"
+                      : "rounded-2xl bg-neutral-950 border border-white/15 shadow-2xl"
+                  }`}
                   style={{
-                    aspectRatio: cardAspect,
-                    minHeight: item.aspect === "original" ? "320px" : undefined,
+                    aspectRatio: isChildOfFrame ? undefined : cardAspect,
+                    minHeight: !isChildOfFrame && item.aspect === "original" ? "320px" : undefined,
                   }}
                   onDoubleClick={(e) => {
                     e.stopPropagation();
@@ -8657,7 +8728,7 @@ export default function CanvasWorkspace({
                       draggable={false}
                       decoding="sync"
                       loading="eager"
-                      className="w-full h-full object-contain pointer-events-none select-none"
+                      className={`w-full h-full ${isChildOfFrame ? "object-cover" : "object-contain"} pointer-events-none select-none`}
                       style={{
                         imageRendering: "-webkit-optimize-contrast",
                         WebkitBackfaceVisibility: "hidden",
@@ -8669,7 +8740,7 @@ export default function CanvasWorkspace({
                   )}
 
                   {/* Corner Drag Indicator */}
-                  {isSelected && (
+                  {isSelected && !isChildOfFrame && (
                     <>
                       <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
                       <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
