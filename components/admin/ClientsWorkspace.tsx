@@ -19,6 +19,9 @@ import {
   RiArrowLeftFill as HiArrowLeft,
   RiImageFill as HiPhoto,
   RiCameraFill as HiCamera,
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
+  RiDraggable,
 } from "react-icons/ri";
 import {
   SiFigma,
@@ -187,6 +190,8 @@ export default function ClientsWorkspace({
   const [assetSearch, setAssetSearch] = useState("");
   const [assetSort, setAssetSort] = useState<"newest" | "oldest" | "title">("newest");
   const [assetViewMode, setAssetViewMode] = useState<"grid" | "list">("grid");
+  const [draggedWorkId, setDraggedWorkId] = useState<string | null>(null);
+  const [dragOverWorkId, setDragOverWorkId] = useState<string | null>(null);
 
   const coverFileInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -402,6 +407,47 @@ export default function ClientsWorkspace({
     }
     return list;
   }, [selectedClient?.works, assetSearch, assetSort]);
+
+  // Reorder asset works position (drag & drop or shift buttons)
+  const handleReorderWork = (fromId: string, toId: string) => {
+    if (!selectedClient || !selectedClient.works || fromId === toId) return;
+    const currentWorks = [...selectedClient.works];
+    const fromIndex = currentWorks.findIndex((w) => w.id === fromId);
+    const toIndex = currentWorks.findIndex((w) => w.id === toId);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const [moved] = currentWorks.splice(fromIndex, 1);
+    currentWorks.splice(toIndex, 0, moved);
+
+    if (onUpdateClientFolder) {
+      onUpdateClientFolder(selectedClient.id, {
+        works: currentWorks,
+        itemsCount: currentWorks.length,
+      });
+    }
+    showToast(tr("Posisi aset berhasil dipindahkan!", "Asset position moved successfully!", "Posisi aset barasil dipindahkan!"));
+  };
+
+  const handleShiftWork = (workId: string, direction: "prev" | "next") => {
+    if (!selectedClient || !selectedClient.works) return;
+    const currentWorks = [...selectedClient.works];
+    const index = currentWorks.findIndex((w) => w.id === workId);
+    if (index === -1) return;
+
+    const targetIndex = direction === "prev" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentWorks.length) return;
+
+    const [moved] = currentWorks.splice(index, 1);
+    currentWorks.splice(targetIndex, 0, moved);
+
+    if (onUpdateClientFolder) {
+      onUpdateClientFolder(selectedClient.id, {
+        works: currentWorks,
+        itemsCount: currentWorks.length,
+      });
+    }
+    showToast(tr("Posisi aset berhasil dipindahkan!", "Asset position moved successfully!", "Posisi aset barasil dipindahkan!"));
+  };
 
 // Dynamic Tool Monogram & Palette Generator for any custom entered tools
 function getToolMonogram(name: string): string {
@@ -2242,41 +2288,135 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
             {/* Assets Grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {filteredWorks.map((work) => {
+              {filteredWorks.map((work, idx) => {
+                const isFirst = idx === 0;
+                const isLast = idx === filteredWorks.length - 1;
+                const isDraggingThis = draggedWorkId === work.id;
+                const isDragOverThis = dragOverWorkId === work.id;
+
                 return (
                   <div
                     key={work.id}
-                    className={`group relative rounded-xl border transition-all overflow-hidden flex flex-col justify-between ${
-                      isLight
-                        ? "bg-white border-slate-200 hover:border-slate-300 shadow-sm"
+                    draggable={true}
+                    onDragStart={(e) => {
+                      setDraggedWorkId(work.id);
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", work.id);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (dragOverWorkId !== work.id) {
+                        setDragOverWorkId(work.id);
+                      }
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverWorkId === work.id) {
+                        setDragOverWorkId(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setDragOverWorkId(null);
+                      const droppedId = e.dataTransfer.getData("text/plain") || draggedWorkId;
+                      if (droppedId && droppedId !== work.id) {
+                        handleReorderWork(droppedId, work.id);
+                      }
+                      setDraggedWorkId(null);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedWorkId(null);
+                      setDragOverWorkId(null);
+                    }}
+                    className={`group relative rounded-xl border transition-all overflow-hidden flex flex-col justify-between cursor-grab active:cursor-grabbing select-none ${
+                      isDraggingThis
+                        ? "opacity-35 scale-95 border-dashed border-cyan-500 ring-2 ring-cyan-500/40"
+                        : isDragOverThis
+                        ? "ring-2 ring-cyan-500 border-cyan-500 bg-cyan-500/10 scale-[1.02] shadow-lg shadow-cyan-500/20"
+                        : isLight
+                        ? "bg-white border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md"
                         : "bg-[#111419] border-white/5 hover:border-white/20"
                     }`}
                   >
+                    {/* Position badge / Drag Handle on Top-Left */}
+                    <div
+                      className="absolute top-2 left-2 z-20 px-1.5 py-0.5 rounded-md bg-black/65 text-white/90 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 text-[10px] font-mono backdrop-blur-xs pointer-events-none"
+                      title={tr("Tahan & geser untuk mengubah posisi", "Drag & drop to reorder", "Tahan & geser untuak maubah posisi")}
+                    >
+                      <RiDraggable className="w-3.5 h-3.5" />
+                      <span>{idx + 1}</span>
+                    </div>
+
                     {/* Thumbnail */}
                     <div className="relative aspect-[16/10] w-full bg-slate-900 overflow-hidden">
                       <img
                         src={work.image}
                         alt={work.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        draggable={false}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
                       />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 z-10">
+                        {/* Move Left / Prev Button */}
+                        <button
+                          type="button"
+                          disabled={isFirst}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShiftWork(work.id, "prev");
+                          }}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer ${
+                            isFirst
+                              ? "bg-white/10 text-white/30 cursor-not-allowed"
+                              : "bg-slate-800/90 hover:bg-slate-700 text-white border border-white/20"
+                          }`}
+                          title={tr("Pindah ke kiri / posisi sebelumnya", "Move left / previous", "Pindah ka kida")}
+                        >
+                          <RiArrowLeftSLine className="w-4 h-4" />
+                        </button>
+
                         {/* Edit Case Study Pencil */}
                         <button
                           type="button"
-                          onClick={() => onOpenEditWork(work)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenEditWork(work);
+                          }}
                           className="w-8 h-8 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer"
                           title={tr("Edit case study", "Edit studi kasus", "Edit studi kasus")}
                         >
                           <HiPencilSquare className="w-4 h-4" />
                         </button>
+
                         {/* Delete Trash */}
                         <button
                           type="button"
-                          onClick={() => onDeleteWork(selectedClient.id, work.id, work.title)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteWork(selectedClient.id, work.id, work.title);
+                          }}
                           className="w-8 h-8 rounded-full bg-rose-600 hover:bg-rose-500 text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer"
                           title={tr("Delete image", "Hapus gambar", "Hapuih gambar")}
                         >
                           <HiTrash className="w-4 h-4" />
+                        </button>
+
+                        {/* Move Right / Next Button */}
+                        <button
+                          type="button"
+                          disabled={isLast}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleShiftWork(work.id, "next");
+                          }}
+                          className={`w-7 h-7 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 cursor-pointer ${
+                            isLast
+                              ? "bg-white/10 text-white/30 cursor-not-allowed"
+                              : "bg-slate-800/90 hover:bg-slate-700 text-white border border-white/20"
+                          }`}
+                          title={tr("Pindah ke kanan / posisi berikutnya", "Move right / next", "Pindah ka suok")}
+                        >
+                          <RiArrowRightSLine className="w-4 h-4" />
                         </button>
                       </div>
                     </div>

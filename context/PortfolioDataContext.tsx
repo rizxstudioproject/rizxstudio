@@ -1855,6 +1855,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       });
 
       setClients(updatedClients);
+      clientsRef.current = updatedClients;
       persistState(stage3, updatedClients);
 
       const clientObj = updatedClients.find((c) => c.id === clientId);
@@ -1881,6 +1882,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       });
 
       setClients(updatedClients);
+      clientsRef.current = updatedClients;
       persistState(stage3, updatedClients);
 
       const clientObj = updatedClients.find((c) => c.id === clientId);
@@ -1912,6 +1914,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
       const updatedClients = [...clients, newClient];
       setClients(updatedClients);
+      clientsRef.current = updatedClients;
       persistState(stage3, updatedClients);
 
       syncClientToCloud(newClient);
@@ -1950,6 +1953,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       });
 
       setClients(updatedClients);
+      clientsRef.current = updatedClients;
       persistState(stage3, updatedClients);
 
       const clientObj = updatedClients.find((c) => c.id === clientId);
@@ -1965,6 +1969,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     async (clientId: string) => {
       const updatedClients = clients.filter((c) => c.id !== clientId);
       setClients(updatedClients);
+      clientsRef.current = updatedClients;
       persistState(stage3, updatedClients);
 
       if (isSupabaseConfigured && supabase) {
