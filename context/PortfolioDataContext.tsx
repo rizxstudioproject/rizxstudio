@@ -1453,10 +1453,11 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               { event: "*", schema: "public", table: "client_descriptions" },
               (payload: any) => {
                 const clientId = payload?.new?.client_id || payload?.old?.client_id;
-                // Avoid refetching entire portfolio dataset if the change belongs to theme, seo, crm, etc.
+                // Avoid refetching entire portfolio dataset if the change belongs to canvas, theme, seo, crm, etc.
                 if (
                   clientId &&
-                  (clientId === "site-theme-motion-config" ||
+                  (clientId === "site-canvas-sheets" ||
+                    clientId === "site-theme-motion-config" ||
                     clientId === "site-seo-settings" ||
                     clientId === "site-crm-leads" ||
                     clientId === "site-social-profiles" ||
@@ -1464,6 +1465,22 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                     clientId.startsWith("order_") ||
                     clientId.startsWith("quote_"))
                 ) {
+                  if (clientId === "site-canvas-sheets") {
+                    try {
+                      const desc = payload?.new?.description;
+                      if (desc) {
+                        const parsed = safeJsonParseMedia(desc);
+                        if (Array.isArray(parsed)) {
+                          const loaded = parsed.map((item: any) => ({
+                            ...item,
+                            image: normalizeMediaUrl(item.image),
+                          }));
+                          setCanvasItems(loaded);
+                          canvasItemsRef.current = loaded;
+                        }
+                      }
+                    } catch (_) {}
+                  }
                   return;
                 }
                 fetchCloudData();
@@ -2180,8 +2197,10 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       canvasItemsRef.current = normalized;
       if (typeof window !== "undefined") {
         localStorage.setItem("rizx_canvas_seeded", "true");
+        try {
+          localStorage.setItem("rizx_canvas_sheets", JSON.stringify(normalized));
+        } catch (_) {}
       }
-      persistState(stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, heroBanner, normalized);
 
       if (isSupabaseConfigured && supabase) {
         try {
@@ -2197,7 +2216,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         }
       }
     },
-    [stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, heroBanner, persistState]
+    [isSupabaseConfigured]
   );
 
   // Add Item to Canvas

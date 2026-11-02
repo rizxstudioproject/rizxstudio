@@ -1698,10 +1698,13 @@ export default function CanvasWorkspace({
     };
   }, [pan, zoom]);
 
+  const hasInitializedCanvasRef = useRef(false);
+
   // Initialize items from context or layout initial client works
   useEffect(() => {
-    // If the user has unsaved changes in progress, don't overwrite!
-    if (hasChangesRef.current) return;
+    // Only run initialization on first mount so live canvas state is never overwritten during auto-save
+    if (hasInitializedCanvasRef.current) return;
+    hasInitializedCanvasRef.current = true;
 
     // Check if canvas has already been seeded / saved in localStorage or context
     const isSeeded = typeof window !== "undefined" && (
