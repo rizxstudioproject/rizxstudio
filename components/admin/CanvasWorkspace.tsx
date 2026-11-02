@@ -9733,9 +9733,13 @@ export default function CanvasWorkspace({
             <HiChevronDown className="w-3 h-3" />
           </button>
 
-          {/* Frame Submenu Dropdown (Image 2) */}
+          {/* Frame Submenu Dropdown */}
           {activeSubmenu === "frame" && (
-            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[170px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className={`figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[200px] rounded-xl p-1 backdrop-blur-2xl border z-50 text-xs font-sans shadow-2xl animate-in fade-in zoom-in-95 duration-100 ${
+              isLight
+                ? "bg-white/98 border-slate-200 text-slate-800 shadow-[0_16px_40px_rgba(0,0,0,0.12)]"
+                : "bg-[#222222]/98 border-white/15 text-[#e6e6e6] shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
+            }`}>
               <button
                 type="button"
                 onClick={() => {
@@ -9745,20 +9749,21 @@ export default function CanvasWorkspace({
                   if (isScreenMobile) setIsMobileInspectorOpen(true);
                   setActiveSubmenu(null);
                 }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group whitespace-nowrap ${
                   activeTool === "frame"
                     ? "bg-[#0c8ce9] text-white font-medium"
-                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                    : isLight
+                    ? "hover:bg-[#0c8ce9] hover:text-white text-slate-700"
+                    : "hover:bg-[#0c8ce9] hover:text-white text-[#e6e6e6]"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "frame" && <HiCheck className="w-3.5 h-3.5" />}
-                  </span>
-                  <HiHashtag className="w-4 h-4" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <HiHashtag className="w-4 h-4 shrink-0" />
                   <span>Frame</span>
                 </div>
-                <span className="text-[11px] font-mono opacity-60">F</span>
+                <span className={`text-[11px] font-mono shrink-0 ml-4 group-hover:text-white/90 ${
+                  activeTool === "frame" ? "text-white/90" : isLight ? "text-slate-400" : "text-[#8e8e8e]"
+                }`}>F</span>
               </button>
 
               <button
@@ -9768,26 +9773,27 @@ export default function CanvasWorkspace({
                   setActiveTool("section");
                   setActiveSubmenu(null);
                 }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group whitespace-nowrap ${
                   activeTool === "section"
                     ? "bg-[#0c8ce9] text-white font-medium"
-                    : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                    : isLight
+                    ? "hover:bg-[#0c8ce9] hover:text-white text-slate-700"
+                    : "hover:bg-[#0c8ce9] hover:text-white text-[#e6e6e6]"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "section" && <HiCheck className="w-3.5 h-3.5" />}
-                  </span>
-                  <FigmaSectionIcon className="w-4 h-4" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <FigmaSectionIcon className="w-4 h-4 shrink-0" />
                   <span>Section</span>
                 </div>
-                <span className="text-[11px] font-mono opacity-60">Shift+S</span>
+                <span className={`text-[11px] font-mono shrink-0 ml-4 group-hover:text-white/90 ${
+                  activeTool === "section" ? "text-white/90" : isLight ? "text-slate-400" : "text-[#8e8e8e]"
+                }`}>Shift+S</span>
               </button>
             </div>
           )}
         </div>
 
-        {/* 3. SHAPE TOOL (With Submenu: Rectangle R, Ellipse O, Folder Alt+F, Place Media Ctrl+Shift+K) */}
+        {/* 3. SHAPE TOOL (With Submenu: Rectangle R, Ellipse O, Place Media Ctrl+Shift+K) */}
         <div className="relative flex items-center shrink-0">
           <button
             type="button"
@@ -9820,27 +9826,34 @@ export default function CanvasWorkspace({
             <HiChevronDown className="w-3 h-3" />
           </button>
 
-          {/* Shape Submenu Dropdown */}
+          {/* Shape Submenu Dropdown (Matches Figma reference image) */}
           {activeSubmenu === "shape" && (
-            <div className="figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[200px] bg-[#222222]/98 border border-white/15 backdrop-blur-2xl rounded-xl p-1 shadow-[0_15px_40px_rgba(0,0,0,0.8)] z-50 text-xs font-sans">
+            <div className={`figma-toolbar-submenu absolute bottom-full mb-2 left-0 min-w-[230px] rounded-xl p-1 backdrop-blur-2xl border z-50 text-xs font-sans shadow-2xl animate-in fade-in zoom-in-95 duration-100 ${
+              isLight
+                ? "bg-white/98 border-slate-200 text-slate-800 shadow-[0_16px_40px_rgba(0,0,0,0.12)]"
+                : "bg-[#222222]/98 border-white/15 text-[#e6e6e6] shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
+            }`}>
               <button
                 type="button"
                 onClick={() => {
                   setActiveTool("shape");
                   setActiveSubmenu(null);
                 }}
-                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer ${
-                  activeTool === "shape" ? "bg-[#0c8ce9] text-white" : "hover:bg-white/10 text-neutral-200 hover:text-white"
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group whitespace-nowrap ${
+                  activeTool === "shape"
+                    ? "bg-[#0c8ce9] text-white font-medium"
+                    : isLight
+                    ? "hover:bg-[#0c8ce9] hover:text-white text-slate-700"
+                    : "hover:bg-[#0c8ce9] hover:text-white text-[#e6e6e6]"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5 flex items-center justify-center">
-                    {activeTool === "shape" && <HiCheck className="w-3.5 h-3.5" />}
-                  </span>
-                  <HiSquare2Stack className="w-4 h-4" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <HiSquare2Stack className="w-4 h-4 shrink-0" />
                   <span>Rectangle</span>
                 </div>
-                <span className="text-[11px] font-mono opacity-60">R</span>
+                <span className={`text-[11px] font-mono shrink-0 ml-4 group-hover:text-white/90 ${
+                  activeTool === "shape" ? "text-white/90" : isLight ? "text-slate-400" : "text-[#8e8e8e]"
+                }`}>R</span>
               </button>
 
               <button
@@ -9849,17 +9862,24 @@ export default function CanvasWorkspace({
                   handleAddShape("ellipse");
                   setActiveSubmenu(null);
                 }}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group whitespace-nowrap ${
+                  isLight
+                    ? "hover:bg-[#0c8ce9] hover:text-white text-slate-700"
+                    : "hover:bg-[#0c8ce9] hover:text-white text-[#e6e6e6]"
+                }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5" />
-                  <span className="w-3.5 h-3.5 rounded-full border border-current inline-block shrink-0" />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className="w-4 h-4 flex items-center justify-center shrink-0">
+                    <span className="w-3.5 h-3.5 rounded-full border border-current inline-block" />
+                  </span>
                   <span>Ellipse</span>
                 </div>
-                <span className="text-[11px] font-mono opacity-60">O</span>
+                <span className={`text-[11px] font-mono shrink-0 ml-4 group-hover:text-white/90 ${
+                  isLight ? "text-slate-400" : "text-[#8e8e8e]"
+                }`}>O</span>
               </button>
 
-              <div className="h-[1px] bg-white/10 my-1" />
+              <div className={`h-[1px] my-1 mx-1 ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
 
               <button
                 type="button"
@@ -9867,14 +9887,19 @@ export default function CanvasWorkspace({
                   fileInputRef.current?.click();
                   setActiveSubmenu(null);
                 }}
-                className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer hover:bg-white/10 text-neutral-200 hover:text-white"
+                className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-left transition-colors cursor-pointer group whitespace-nowrap ${
+                  isLight
+                    ? "hover:bg-[#0c8ce9] hover:text-white text-slate-700"
+                    : "hover:bg-[#0c8ce9] hover:text-white text-[#e6e6e6]"
+                }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="w-3.5 h-3.5" />
-                  <HiPhoto className="w-4 h-4 text-cyan-400" />
-                  <span>Place Image / Video...</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <HiPhoto className="w-4 h-4 shrink-0 text-cyan-400 group-hover:text-white" />
+                  <span>Image/video...</span>
                 </div>
-                <span className="text-[11px] font-mono opacity-60">Ctrl+Shift+K</span>
+                <span className={`text-[11px] font-mono shrink-0 ml-4 group-hover:text-white/90 ${
+                  isLight ? "text-slate-400" : "text-[#8e8e8e]"
+                }`}>Ctrl+Shift+K</span>
               </button>
             </div>
           )}
