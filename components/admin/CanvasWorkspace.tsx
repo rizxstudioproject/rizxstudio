@@ -9504,7 +9504,11 @@ export default function CanvasWorkspace({
             top: `${contextMenu.y}px`,
             zIndex: 99999,
           }}
-          className="w-[245px] py-1.5 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-xl select-none animate-in fade-in zoom-in-95 duration-100 text-[12.5px] font-sans text-[#e6e6e6] max-h-[calc(100vh-28px)] overflow-y-auto overscroll-contain"
+          className={`w-[245px] py-1.5 px-1 rounded-xl border select-none animate-in fade-in zoom-in-95 duration-100 text-[12.5px] font-sans max-h-[calc(100vh-28px)] overflow-y-auto overscroll-contain backdrop-blur-xl ${
+            isLight
+              ? "bg-white/95 border-slate-200/90 text-slate-800 shadow-[0_16px_40px_rgba(0,0,0,0.12),0_2px_8px_rgba(0,0,0,0.06)]"
+              : "bg-[#222222]/98 border-white/10 text-[#e6e6e6] shadow-[0_20px_50px_rgba(0,0,0,0.85)]"
+          }`}
         >
           {/* Section 1: Clipboard & Actions */}
           <button
@@ -9513,10 +9517,16 @@ export default function CanvasWorkspace({
               handleCopy(contextMenu.item || undefined);
               setContextMenu(null);
             }}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left ${
+              isLight
+                ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white"
+                : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+            }`}
           >
             <span>Copy</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+C</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+C</span>
           </button>
 
           <button
@@ -9525,10 +9535,16 @@ export default function CanvasWorkspace({
               handlePaste({ x: contextMenu.canvasX, y: contextMenu.canvasY });
               setContextMenu(null);
             }}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left ${
+              isLight
+                ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white"
+                : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+            }`}
           >
             <span>Paste here</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+V</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+V</span>
           </button>
 
           <button
@@ -9540,12 +9556,18 @@ export default function CanvasWorkspace({
             disabled={!contextMenu.item || !copiedItemRef.current}
             className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
               !contextMenu.item || !copiedItemRef.current
-                ? "text-neutral-500 cursor-not-allowed"
-                : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
             }`}
           >
             <span>Paste to replace</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Shift+R</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+Shift+R</span>
           </button>
 
           {/* Copy/Paste as Submenu */}
@@ -9554,13 +9576,23 @@ export default function CanvasWorkspace({
             onMouseEnter={() => setContextSubmenu("copy_as")}
             onMouseLeave={() => setContextSubmenu(null)}
           >
-            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
+            <div className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group ${
+              isLight
+                ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white"
+                : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+            }`}>
               <span>Copy/Paste as</span>
-              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
+              <HiChevronRight className={`w-3.5 h-3.5 group-hover:text-white ${
+                isLight ? "text-slate-400" : "text-[#8e8e8e]"
+              }`} />
             </div>
 
             {contextSubmenu === "copy_as" && (
-              <div className={`absolute top-0 w-[180px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75 ${
+              <div className={`absolute top-0 w-[180px] py-1 px-1 rounded-xl border backdrop-blur-xl z-50 animate-in fade-in duration-75 ${
+                isLight
+                  ? "bg-white/95 border-slate-200/90 text-slate-800 shadow-[0_16px_40px_rgba(0,0,0,0.12)]"
+                  : "bg-[#222222]/98 border-white/10 text-[#e6e6e6] shadow-2xl"
+              } ${
                 typeof window !== "undefined" && contextMenu.x + 245 + 190 > window.innerWidth ? "right-full mr-1" : "left-full ml-1"
               }`}>
                 <button
@@ -9570,7 +9602,9 @@ export default function CanvasWorkspace({
                     alert("Data elemen disalin!");
                     setContextMenu(null);
                   }}
-                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                  className={`w-full text-left px-3 py-1.5 text-[12px] rounded-md cursor-pointer transition-colors ${
+                    isLight ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white" : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+                  }`}
                 >
                   Copy as PNG
                 </button>
@@ -9583,7 +9617,9 @@ export default function CanvasWorkspace({
                     alert("SVG / Frame snippet disalin!");
                     setContextMenu(null);
                   }}
-                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                  className={`w-full text-left px-3 py-1.5 text-[12px] rounded-md cursor-pointer transition-colors ${
+                    isLight ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white" : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+                  }`}
                 >
                   Copy as SVG
                 </button>
@@ -9596,7 +9632,9 @@ export default function CanvasWorkspace({
                     alert("CSS styles disalin!");
                     setContextMenu(null);
                   }}
-                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                  className={`w-full text-left px-3 py-1.5 text-[12px] rounded-md cursor-pointer transition-colors ${
+                    isLight ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white" : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+                  }`}
                 >
                   Copy as CSS
                 </button>
@@ -9607,7 +9645,9 @@ export default function CanvasWorkspace({
                     alert("Link canvas disalin!");
                     setContextMenu(null);
                   }}
-                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
+                  className={`w-full text-left px-3 py-1.5 text-[12px] rounded-md cursor-pointer transition-colors ${
+                    isLight ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white" : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+                  }`}
                 >
                   Copy link
                 </button>
@@ -9615,7 +9655,7 @@ export default function CanvasWorkspace({
             )}
           </div>
 
-          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+          <div className={`h-[1px] my-1 mx-1.5 ${isLight ? "bg-slate-200/80" : "bg-white/[0.08]"}`} />
 
           {/* Section 2: Ordering */}
           <button
@@ -9626,11 +9666,19 @@ export default function CanvasWorkspace({
             }}
             disabled={!contextMenu.item}
             className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
-              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+              !contextMenu.item
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
             }`}
           >
             <span>Bring to front</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">]</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>]</span>
           </button>
 
           <button
@@ -9641,14 +9689,22 @@ export default function CanvasWorkspace({
             }}
             disabled={!contextMenu.item}
             className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
-              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+              !contextMenu.item
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
             }`}
           >
             <span>Send to back</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">[</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>[</span>
           </button>
 
-          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+          <div className={`h-[1px] my-1 mx-1.5 ${isLight ? "bg-slate-200/80" : "bg-white/[0.08]"}`} />
 
           {/* Section 3: Grouping & Structure */}
           {(() => {
@@ -9662,14 +9718,24 @@ export default function CanvasWorkspace({
                 }}
                 disabled={!contextMenu.item}
                 className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
-                  !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  !contextMenu.item
+                    ? isLight
+                      ? "text-slate-300 cursor-not-allowed"
+                      : "text-neutral-500 cursor-not-allowed"
+                    : isLight
+                      ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                      : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
                 }`}
               >
                 <div className="flex items-center gap-2">
                   {isFrame ? (
-                    <FigmaSectionIcon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+                    <FigmaSectionIcon className={`w-3.5 h-3.5 group-hover:text-white ${
+                      isLight ? "text-slate-500" : "text-neutral-400"
+                    }`} />
                   ) : (
-                    <HiHashtag className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+                    <HiHashtag className={`w-3.5 h-3.5 group-hover:text-white ${
+                      isLight ? "text-slate-500" : "text-neutral-400"
+                    }`} />
                   )}
                   <span>{isFrame ? "Convert to section" : "Convert to frame"}</span>
                 </div>
@@ -9683,10 +9749,16 @@ export default function CanvasWorkspace({
               handleGroupSelection();
               setContextMenu(null);
             }}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left ${
+              isLight
+                ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white"
+                : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+            }`}
           >
             <span>Group selection</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+G</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+G</span>
           </button>
 
           <button
@@ -9695,10 +9767,16 @@ export default function CanvasWorkspace({
               handleFrameSelection();
               setContextMenu(null);
             }}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left ${
+              isLight
+                ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white"
+                : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+            }`}
           >
             <span>Frame selection</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Alt+G</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+Alt+G</span>
           </button>
 
           <button
@@ -9707,10 +9785,16 @@ export default function CanvasWorkspace({
               handleUngroup(contextMenu.item);
               setContextMenu(null);
             }}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left ${
+              isLight
+                ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white"
+                : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+            }`}
           >
             <span>Ungroup</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+⌫</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+⌫</span>
           </button>
 
           <button
@@ -9729,13 +9813,19 @@ export default function CanvasWorkspace({
               }
               setContextMenu(null);
             }}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
+            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left ${
+              isLight
+                ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white"
+                : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white"
+            }`}
           >
             <span>Rename</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+R</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+R</span>
           </button>
 
-          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+          <div className={`h-[1px] my-1 mx-1.5 ${isLight ? "bg-slate-200/80" : "bg-white/[0.08]"}`} />
 
           {/* Section 5: Visibility & Lock */}
           <button
@@ -9746,11 +9836,19 @@ export default function CanvasWorkspace({
             }}
             disabled={!contextMenu.item}
             className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
-              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+              !contextMenu.item
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
             }`}
           >
             <span>{contextMenu.item && hiddenItemIds.has(contextMenu.item.id) ? "Show" : "Hide"}</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Shift+H</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+Shift+H</span>
           </button>
 
           <button
@@ -9761,14 +9859,22 @@ export default function CanvasWorkspace({
             }}
             disabled={!contextMenu.item}
             className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
-              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+              !contextMenu.item
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
             }`}
           >
             <span>{contextMenu.item && lockedItemIds.has(contextMenu.item.id) ? "Unlock" : "Lock"}</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Ctrl+Shift+L</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Ctrl+Shift+L</span>
           </button>
 
-          <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+          <div className={`h-[1px] my-1 mx-1.5 ${isLight ? "bg-slate-200/80" : "bg-white/[0.08]"}`} />
 
           {/* Section 6: Transformations & Delete */}
           <button
@@ -9779,11 +9885,19 @@ export default function CanvasWorkspace({
             }}
             disabled={!contextMenu.item}
             className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
-              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+              !contextMenu.item
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
             }`}
           >
             <span>Flip horizontal</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Shift+H</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Shift+H</span>
           </button>
 
           <button
@@ -9794,26 +9908,40 @@ export default function CanvasWorkspace({
             }}
             disabled={!contextMenu.item}
             className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
-              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+              !contextMenu.item
+                ? isLight
+                  ? "text-slate-300 cursor-not-allowed"
+                  : "text-neutral-500 cursor-not-allowed"
+                : isLight
+                  ? "text-slate-700 hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                  : "text-[#e6e6e6] hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
             }`}
           >
             <span>Flip vertical</span>
-            <span className="text-[11px] text-[#8e8e8e] group-hover:text-white/90 font-mono">Shift+V</span>
+            <span className={`text-[11px] font-mono group-hover:text-white/90 ${
+              isLight ? "text-slate-400" : "text-[#8e8e8e]"
+            }`}>Shift+V</span>
           </button>
 
           {contextMenu.item && (
             <>
-              <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
+              <div className={`h-[1px] my-1 mx-1.5 ${isLight ? "bg-slate-200/80" : "bg-white/[0.08]"}`} />
               <button
                 type="button"
                 onClick={() => {
                   if (contextMenu.item) handleDeleteItem(contextMenu.item.id);
                   setContextMenu(null);
                 }}
-                className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] text-red-400 hover:bg-red-500 hover:text-white rounded-md transition-colors cursor-pointer group text-left font-medium"
+                className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left font-medium ${
+                  isLight
+                    ? "text-rose-600 hover:bg-rose-500 hover:text-white"
+                    : "text-red-400 hover:bg-red-500 hover:text-white"
+                }`}
               >
                 <span>Delete</span>
-                <span className="text-[11px] text-red-400/80 group-hover:text-white font-mono">Del</span>
+                <span className={`text-[11px] font-mono group-hover:text-white ${
+                  isLight ? "text-rose-400" : "text-red-400/80"
+                }`}>Del</span>
               </button>
             </>
           )}
