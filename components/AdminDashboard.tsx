@@ -2689,7 +2689,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const getMobileTabTitle = (tab: AdminSidebarTab) => {
     switch (tab) {
       case "hero-banner":
-        return tx("Banner Utama (Scrolly)", "Hero Banner (Scrolly)", "Banner Utamo (Scrolly)");
+        return tx("Banner Utama", "Hero Banner", "Banner Utamo");
       case "hero-works":
         return tx("Hero & Karya Unggulan", "Hero & Selected Works", "Hero & Karya Tapiliah");
       case "flagship":
@@ -2713,7 +2713,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       case "storage":
         return tx("Penyimpanan & Kapasitas", "Storage & Analytics", "Panyimpanan & Kapasitas");
       case "runner":
-        return tx("Media Reels (Portofolio Berjalan)", "Media Reels (Running Portfolio)", "Media Reels (Portofolio Baguliah)");
+        return tx("Media Reels", "Media Reels", "Media Reels");
       case "about":
         return tx("Tentang Saya (About Me)", "About Me", "Tantang Ambo");
       case "settings":
@@ -4024,7 +4024,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSparkles className="w-4 h-4" />
-                <span>{tx("Hero Banner (Scrolly)", "Hero Banner (Scrolly)")}</span>
+                <span>{tx("Hero Banner", "Hero Banner")}</span>
               </button>
 
               <button
@@ -4039,7 +4039,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiVideoCamera className="w-4 h-4" />
-                <span>{tx("Media Showcase (Stage 3)", "Media Showcase (Stage 3)")}</span>
+                <span>{tx("Media Showcase", "Media Showcase")}</span>
               </button>
 
               <button
@@ -4054,7 +4054,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSquares2X2 className="w-4 h-4" />
-                <span>{tx("Media Reels (Portofolio Berjalan 4:5)", "Media Reels (Running Portfolio 4:5)")}</span>
+                <span>{tx("Media Reels", "Media Reels")}</span>
               </button>
             </div>
             {/* Header Explainer */}
@@ -6087,7 +6087,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSparkles className="w-4 h-4" />
-                <span>{tx("Hero Banner (Scrolly)", "Hero Banner (Scrolly)")}</span>
+                <span>{tx("Hero Banner", "Hero Banner")}</span>
               </button>
 
               <button
@@ -6102,7 +6102,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiVideoCamera className="w-4 h-4" />
-                <span>{tx("Media Showcase (Stage 3)", "Media Showcase (Stage 3)")}</span>
+                <span>{tx("Media Showcase", "Media Showcase")}</span>
               </button>
 
               <button
@@ -6117,7 +6117,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSquares2X2 className="w-4 h-4" />
-                <span>{tx("Media Reels (Portofolio Berjalan 4:5)", "Media Reels (Running Portfolio 4:5)")}</span>
+                <span>{tx("Media Reels", "Media Reels")}</span>
               </button>
             </div>
             {/* Header Explainer */}
@@ -7119,7 +7119,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSparkles className="w-4 h-4" />
-                <span>{tx("Hero Banner (Scrolly)", "Hero Banner (Scrolly)")}</span>
+                <span>{tx("Hero Banner", "Hero Banner")}</span>
               </button>
 
               <button
@@ -7134,7 +7134,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiVideoCamera className="w-4 h-4" />
-                <span>{tx("Media Showcase (Stage 3)", "Media Showcase (Stage 3)")}</span>
+                <span>{tx("Media Showcase", "Media Showcase")}</span>
               </button>
 
               <button
@@ -7149,7 +7149,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <HiSquares2X2 className="w-4 h-4" />
-                <span>{tx("Media Reels (Portofolio Berjalan 4:5)", "Media Reels (Running Portfolio 4:5)")}</span>
+                <span>{tx("Media Reels", "Media Reels")}</span>
               </button>
             </div>
             {/* Section Explainer Banner */}
@@ -9515,8 +9515,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   },
                   {
                     id: "hero-banner" as AdminSidebarTab,
-                    label: tx("Hero Banner (Scrolly)", "Banner Utama (Scrolly)", "Banner Utamo (Scrolly)"),
-                    sub: tx("Hero Banner & animasi scrolly", "Hero banner & scrolly motion", "Hero Banner & animasi scrolly"),
+                    label: tx("Hero Banner", "Banner Utama", "Banner Utamo"),
+                    sub: tx("Hero Banner & animasi", "Hero banner & motion", "Hero Banner & animasi"),
                     icon: HiSparkles,
                   },
                   {
@@ -9527,13 +9527,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   },
                   {
                     id: "flagship" as AdminSidebarTab,
-                    label: tx("Media Showcase (Stage 3)", "Pameran Media (Stage 3)", "Pameran Media (Stage 3)"),
-                    sub: tx("Stage 3 video & reels", "Stage 3 video & reels showcase"),
+                    label: tx("Media Showcase", "Pameran Media", "Pameran Media"),
+                    sub: tx("Video & reels showcase", "Video & reels showcase"),
                     icon: HiVideoCamera,
                   },
                   {
                     id: "runner" as AdminSidebarTab,
-                    label: tx("Running Portfolio (4:5)", "Portofolio Berjalan (4:5)", "Portofolio Baguliah (4:5)"),
+                    label: tx("Media Reels", "Media Reels", "Media Reels"),
                     sub: tx("Karya poster vertikal marquee", "Vertical marquee poster cards", "Karya poster tagak marquee"),
                     icon: HiSquares2X2,
                   },
