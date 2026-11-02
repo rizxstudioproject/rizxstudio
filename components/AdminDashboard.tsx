@@ -467,7 +467,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [newRunnerCategory, setNewRunnerCategory] = useState("");
   const [newRunnerImage, setNewRunnerImage] = useState("");
   const [newRunnerRow, setNewRunnerRow] = useState<1 | 2>(1);
+  const [runnerUploadSource, setRunnerUploadSource] = useState<"file" | "gdrive" | "youtube">("file");
+  const [runnerGDriveUrl, setRunnerGDriveUrl] = useState("");
+  const [runnerYouTubeUrl, setRunnerYouTubeUrl] = useState("");
   const [editingRunnerItem, setEditingRunnerItem] = useState<PortfolioRunnerItem | null>(null);
+  const [editingRunnerUploadSource, setEditingRunnerUploadSource] = useState<"file" | "gdrive" | "youtube">("file");
+  const [editingRunnerGDriveUrl, setEditingRunnerGDriveUrl] = useState("");
+  const [editingRunnerYouTubeUrl, setEditingRunnerYouTubeUrl] = useState("");
   const [runnerFilterRow, setRunnerFilterRow] = useState<"all" | 1 | 2>("all");
 
   useEffect(() => {
@@ -1032,8 +1038,28 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   };
 
   const handleAddRunnerItem = () => {
-    if (!newRunnerImage) {
-      showToast("Peringatan: Silakan pilih gambar karya terlebih dahulu.");
+    let finalImage = newRunnerImage.trim();
+
+    if (runnerUploadSource === "gdrive") {
+      const gId = extractGoogleDriveFileId(runnerGDriveUrl) || extractGoogleDriveId(runnerGDriveUrl);
+      if (gId) {
+        finalImage = `https://lh3.googleusercontent.com/d/${gId}`;
+      } else if (!finalImage) {
+        showToast("Peringatan: Silakan masukkan link Google Drive yang valid.");
+        return;
+      }
+    } else if (runnerUploadSource === "youtube") {
+      const yId = extractYouTubeId(runnerYouTubeUrl);
+      if (yId) {
+        finalImage = `https://img.youtube.com/vi/${yId}/maxresdefault.jpg`;
+      } else if (!finalImage) {
+        showToast("Peringatan: Silakan masukkan link video YouTube yang valid.");
+        return;
+      }
+    }
+
+    if (!finalImage) {
+      showToast("Peringatan: Silakan pilih atau masukkan media karya terlebih dahulu.");
       return;
     }
     if (!newRunnerTitle.trim()) {
@@ -1044,14 +1070,35 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       id: `pr-${Date.now()}`,
       title: newRunnerTitle.trim(),
       category: newRunnerCategory.trim() || "Creative Work",
-      image: newRunnerImage,
+      image: finalImage,
       row: newRunnerRow,
+      link: runnerUploadSource === "youtube" ? runnerYouTubeUrl.trim() : runnerUploadSource === "gdrive" ? runnerGDriveUrl.trim() : undefined,
     };
     setRunnerItems((prev) => [newItem, ...prev]);
     setNewRunnerTitle("");
     setNewRunnerCategory("");
     setNewRunnerImage("");
+    setRunnerGDriveUrl("");
+    setRunnerYouTubeUrl("");
+    setRunnerUploadSource("file");
     showToast(`Karya "${newItem.title}" ditambahkan ke Baris ${newRunnerRow}! Klik 'Simpan Perubahan' untuk menerapkan.`);
+  };
+
+  const handleStartEditRunnerItem = (item: PortfolioRunnerItem) => {
+    setEditingRunnerItem({ ...item });
+    if (item.link?.includes("youtube.com") || item.link?.includes("youtu.be") || item.image?.includes("img.youtube.com")) {
+      setEditingRunnerUploadSource("youtube");
+      setEditingRunnerYouTubeUrl(item.link || "");
+      setEditingRunnerGDriveUrl("");
+    } else if (item.link?.includes("drive.google.com") || item.image?.includes("googleusercontent.com/d/")) {
+      setEditingRunnerUploadSource("gdrive");
+      setEditingRunnerGDriveUrl(item.link || "");
+      setEditingRunnerYouTubeUrl("");
+    } else {
+      setEditingRunnerUploadSource("file");
+      setEditingRunnerGDriveUrl("");
+      setEditingRunnerYouTubeUrl("");
+    }
   };
 
   const handleDeleteRunnerItem = (id: string) => {
@@ -1085,8 +1132,24 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       showToast("Peringatan: Judul karya tidak boleh kosong.");
       return;
     }
+    let finalImage = editingRunnerItem.image;
+    let finalLink = editingRunnerItem.link;
+    if (editingRunnerUploadSource === "gdrive") {
+      const gId = extractGoogleDriveFileId(editingRunnerGDriveUrl) || extractGoogleDriveId(editingRunnerGDriveUrl);
+      if (gId) {
+        finalImage = `https://lh3.googleusercontent.com/d/${gId}`;
+        finalLink = editingRunnerGDriveUrl.trim();
+      }
+    } else if (editingRunnerUploadSource === "youtube") {
+      const yId = extractYouTubeId(editingRunnerYouTubeUrl);
+      if (yId) {
+        finalImage = `https://img.youtube.com/vi/${yId}/maxresdefault.jpg`;
+        finalLink = editingRunnerYouTubeUrl.trim();
+      }
+    }
+
     setRunnerItems((prev) =>
-      prev.map((i) => (i.id === editingRunnerItem.id ? editingRunnerItem : i))
+      prev.map((i) => (i.id === editingRunnerItem.id ? { ...editingRunnerItem, image: finalImage, link: finalLink } : i))
     );
     setEditingRunnerItem(null);
     showToast("Karya berhasil diperbarui! Klik 'Simpan Perubahan' untuk menerapkan.");
@@ -6336,32 +6399,156 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </select>
                   </div>
 
-                  {/* Image input: URL or File */}
-                  <div className="space-y-2">
-                    <label className="text-xs font-mono font-semibold text-neutral-300">
-                      {tx("Pilih Gambar (Rasio 4:5 Disarankan)", "Select Image (4:5 Ratio Recommended)")} *
-                    </label>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <input
-                        type="text"
-                        value={newRunnerImage}
-                        onChange={(e) => setNewRunnerImage(e.target.value)}
-                        placeholder="https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20EV2_B.jpg atau URL online"
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
-                      />
-                      <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
-                        <HiArrowUpTray className="w-4 h-4 text-[#16b09f]" />
-                        <span>{tx("Upload File", "Upload File")}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) =>
-                            handleGenericImageFile(e, (dataUrl) => setNewRunnerImage(dataUrl))
-                          }
-                        />
+                  {/* Source Selection Tabs: Device, Google Drive, YouTube */}
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-mono font-semibold text-neutral-300">
+                        {tx("Sumber Media (Rasio 4:5 Disarankan)", "Media Source (4:5 Ratio Recommended)")} *
                       </label>
+                      {runnerUploadSource === "gdrive" && (extractGoogleDriveFileId(runnerGDriveUrl) || extractGoogleDriveId(runnerGDriveUrl)) && (
+                        <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                          ✓ GDrive ID: {extractGoogleDriveFileId(runnerGDriveUrl) || extractGoogleDriveId(runnerGDriveUrl)}
+                        </span>
+                      )}
+                      {runnerUploadSource === "youtube" && extractYouTubeId(runnerYouTubeUrl) && (
+                        <span className="text-[10px] font-mono text-red-400 font-bold">
+                          ✓ YouTube ID: {extractYouTubeId(runnerYouTubeUrl)}
+                        </span>
+                      )}
                     </div>
+
+                    <div className="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-black/40 border border-white/10">
+                      <button
+                        type="button"
+                        onClick={() => setRunnerUploadSource("file")}
+                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                          runnerUploadSource === "file"
+                            ? "bg-white/15 text-cyan-400 font-bold shadow-xs border border-white/20"
+                            : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        <HiPhoto className="w-4 h-4 shrink-0" />
+                        <span className="truncate">{tx("Device", "Device")}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setRunnerUploadSource("gdrive")}
+                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                          runnerUploadSource === "gdrive"
+                            ? "bg-emerald-500/20 text-emerald-300 font-bold shadow-xs border border-emerald-500/30"
+                            : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        <RiDriveFill className="w-4 h-4 shrink-0 text-emerald-400" />
+                        <span className="truncate">{tx("Google Drive", "Google Drive")}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setRunnerUploadSource("youtube")}
+                        className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                          runnerUploadSource === "youtube"
+                            ? "bg-red-500/25 border-red-500 text-red-400 font-bold shadow-xs border"
+                            : "text-neutral-400 hover:text-white"
+                        }`}
+                      >
+                        <RiYoutubeFill className="w-4 h-4 shrink-0 text-red-500" />
+                        <span className="truncate">{tx("YouTube", "YouTube")}</span>
+                      </button>
+                    </div>
+
+                    {/* Tab 1: Device File / Image URL */}
+                    {runnerUploadSource === "file" && (
+                      <div className="space-y-1.5">
+                        <div className="flex flex-col sm:flex-row gap-2">
+                          <input
+                            type="text"
+                            value={newRunnerImage}
+                            onChange={(e) => setNewRunnerImage(e.target.value)}
+                            placeholder="https://... URL gambar atau klik Upload File dari device"
+                            className="flex-1 px-4 py-2.5 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-[#16b09f]"
+                          />
+                          <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
+                            <HiArrowUpTray className="w-4 h-4 text-[#16b09f]" />
+                            <span>{tx("Upload File", "Upload File")}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="hidden"
+                              onChange={(e) =>
+                                handleGenericImageFile(e, (dataUrl) => setNewRunnerImage(dataUrl))
+                              }
+                            />
+                          </label>
+                        </div>
+                        <p className="text-[10px] font-mono text-neutral-400">
+                          {tx("Pilih file gambar langsung dari HP/komputer atau masukkan link URL gambar.", "Pick an image file from device or enter an image URL.")}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Tab 2: Google Drive Link */}
+                    {runnerUploadSource === "gdrive" && (
+                      <div className="space-y-1.5">
+                        <div className="relative">
+                          <input
+                            type="url"
+                            value={runnerGDriveUrl}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setRunnerGDriveUrl(val);
+                              const gId = extractGoogleDriveFileId(val) || extractGoogleDriveId(val);
+                              if (gId) {
+                                setNewRunnerImage(`https://lh3.googleusercontent.com/d/${gId}`);
+                              } else if (!val.trim()) {
+                                setNewRunnerImage("");
+                              }
+                            }}
+                            placeholder="https://drive.google.com/file/d/1a2b3c4d5e.../view?usp=sharing"
+                            className="w-full px-4 py-2.5 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-emerald-500"
+                          />
+                          <RiDriveFill className="w-4 h-4 text-emerald-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                        <p className="text-[10px] font-mono text-neutral-400">
+                          {tx(
+                            "Link Google Drive publik/sharing otomatis dikonversi menjadi gambar beresolusi tinggi langsung.",
+                            "Public Google Drive link automatically loads as high-resolution image directly."
+                          )}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Tab 3: YouTube Video Link */}
+                    {runnerUploadSource === "youtube" && (
+                      <div className="space-y-1.5">
+                        <div className="relative">
+                          <input
+                            type="url"
+                            value={runnerYouTubeUrl}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setRunnerYouTubeUrl(val);
+                              const yId = extractYouTubeId(val);
+                              if (yId) {
+                                setNewRunnerImage(`https://img.youtube.com/vi/${yId}/maxresdefault.jpg`);
+                              } else if (!val.trim()) {
+                                setNewRunnerImage("");
+                              }
+                            }}
+                            placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/... atau shorts"
+                            className="w-full px-4 py-2.5 pl-10 rounded-xl bg-neutral-950 border border-white/15 text-white text-sm focus:outline-none focus:border-red-500"
+                          />
+                          <RiYoutubeFill className="w-4 h-4 text-red-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        </div>
+                        <p className="text-[10px] font-mono text-neutral-400">
+                          {tx(
+                            "Thumbnail HD video YouTube otomatis dimuat sebagai cover kartu dan video dapat diputar saat diklik.",
+                            "YouTube HD thumbnail loads automatically as card cover and links directly to the video."
+                          )}
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <button
@@ -6381,11 +6568,30 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </span>
                   <div className="relative w-36 sm:w-44 aspect-[4/5] rounded-2xl overflow-hidden border border-white/15 bg-neutral-950 shadow-2xl">
                     {newRunnerImage ? (
-                      <img
-                        src={newRunnerImage}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
+                      <div className="relative w-full h-full">
+                        <img
+                          src={newRunnerImage}
+                          alt="Preview"
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            if (newRunnerImage.includes("maxresdefault.jpg")) {
+                              (e.currentTarget as HTMLImageElement).src = newRunnerImage.replace("maxresdefault.jpg", "hqdefault.jpg");
+                            }
+                          }}
+                        />
+                        {runnerUploadSource === "youtube" && (
+                          <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-red-600/90 text-white text-[9px] font-mono flex items-center gap-1 shadow">
+                            <RiYoutubeFill className="w-3 h-3" />
+                            <span>YouTube</span>
+                          </span>
+                        )}
+                        {runnerUploadSource === "gdrive" && (
+                          <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded bg-emerald-600/90 text-white text-[9px] font-mono flex items-center gap-1 shadow">
+                            <RiDriveFill className="w-3 h-3" />
+                            <span>GDrive</span>
+                          </span>
+                        )}
+                      </div>
                     ) : (
                       <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center text-neutral-600 bg-neutral-900/60">
                         <HiPhoto className="w-8 h-8 mb-1.5 opacity-40" />
@@ -6512,7 +6718,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           <div className="absolute top-2 right-2 flex items-center gap-1 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                             <button
                               type="button"
-                              onClick={() => setEditingRunnerItem({ ...item })}
+                              onClick={() => handleStartEditRunnerItem(item)}
                               title="Edit Karya"
                               className="w-7 h-7 rounded-lg bg-black/80 hover:bg-black text-white flex items-center justify-center border border-white/20 transition-all cursor-pointer"
                             >
@@ -6551,7 +6757,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           </button>
                           <button
                             type="button"
-                            onClick={() => setEditingRunnerItem({ ...item })}
+                            onClick={() => handleStartEditRunnerItem(item)}
                             className="text-[#16b09f] hover:underline cursor-pointer"
                           >
                             Edit
@@ -6653,45 +6859,190 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       </select>
                     </div>
 
-                    {/* Image URL / Upload */}
-                    <div className="space-y-2">
-                      <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
-                        {tx("Gambar Karya (Rasio 4:5)", "Image (4:5 Ratio)")}
-                      </label>
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <input
-                          type="text"
-                          value={editingRunnerItem.image}
-                          onChange={(e) =>
-                            setEditingRunnerItem({ ...editingRunnerItem, image: e.target.value })
-                          }
-                          className={`flex-1 px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
-                            isLight
-                              ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
-                              : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
-                          }`}
-                        />
-                        <label className={`px-4 py-2.5 rounded-xl border text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0 ${
-                          isLight
-                            ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800"
-                            : "bg-white/10 hover:bg-white/15 border-white/15 text-white"
-                        }`}>
-                          <HiArrowUpTray className={`w-4 h-4 ${isLight ? "text-teal-600" : "text-[#16b09f]"}`} />
-                          <span>Upload File</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) =>
-                              handleGenericImageFile(e, (dataUrl) =>
-                                setEditingRunnerItem((prev) =>
-                                  prev ? { ...prev, image: dataUrl } : null
-                                )
-                              )
-                            }
-                          />
+                    {/* Source Selection Tabs for Editing */}
+                    <div className="space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <label className={`text-xs font-mono font-semibold ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                          {tx("Sumber Media Karya (Rasio 4:5)", "Media Source (4:5 Ratio)")}
                         </label>
+                        {editingRunnerUploadSource === "gdrive" && (extractGoogleDriveFileId(editingRunnerGDriveUrl) || extractGoogleDriveId(editingRunnerGDriveUrl)) && (
+                          <span className="text-[10px] font-mono text-emerald-400 font-bold">
+                            ✓ GDrive ID: {extractGoogleDriveFileId(editingRunnerGDriveUrl) || extractGoogleDriveId(editingRunnerGDriveUrl)}
+                          </span>
+                        )}
+                        {editingRunnerUploadSource === "youtube" && extractYouTubeId(editingRunnerYouTubeUrl) && (
+                          <span className="text-[10px] font-mono text-red-400 font-bold">
+                            ✓ YouTube ID: {extractYouTubeId(editingRunnerYouTubeUrl)}
+                          </span>
+                        )}
                       </div>
+
+                      <div className={`grid grid-cols-3 gap-1.5 p-1 rounded-xl border ${
+                        isLight ? "bg-slate-100/80 border-slate-200" : "bg-black/40 border-white/10"
+                      }`}>
+                        <button
+                          type="button"
+                          onClick={() => setEditingRunnerUploadSource("file")}
+                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                            editingRunnerUploadSource === "file"
+                              ? isLight
+                                ? "bg-white text-teal-800 font-bold shadow-xs border border-slate-200"
+                                : "bg-white/15 text-cyan-400 font-bold shadow-xs border border-white/20"
+                              : isLight
+                              ? "text-slate-600 hover:text-slate-900"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <HiPhoto className="w-4 h-4 shrink-0" />
+                          <span className="truncate">{tx("Device", "Device")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditingRunnerUploadSource("gdrive")}
+                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                            editingRunnerUploadSource === "gdrive"
+                              ? isLight
+                                ? "bg-white text-emerald-800 font-bold shadow-xs border border-slate-200"
+                                : "bg-emerald-500/20 text-emerald-300 font-bold shadow-xs border border-emerald-500/30"
+                              : isLight
+                              ? "text-slate-600 hover:text-slate-900"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <RiDriveFill className="w-4 h-4 shrink-0 text-emerald-400" />
+                          <span className="truncate">{tx("Google Drive", "Google Drive")}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setEditingRunnerUploadSource("youtube")}
+                          className={`flex items-center justify-center gap-1.5 py-2 px-2 rounded-lg text-xs font-mono font-medium transition-all ${
+                            editingRunnerUploadSource === "youtube"
+                              ? "bg-red-500/25 border-red-500 text-red-400 font-bold shadow-xs border"
+                              : isLight
+                              ? "text-slate-600 hover:text-slate-900"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <RiYoutubeFill className="w-4 h-4 shrink-0 text-red-500" />
+                          <span className="truncate">{tx("YouTube", "YouTube")}</span>
+                        </button>
+                      </div>
+
+                      {/* Tab 1: Device File / Image URL */}
+                      {editingRunnerUploadSource === "file" && (
+                        <div className="space-y-1.5">
+                          <div className="flex flex-col sm:flex-row gap-2">
+                            <input
+                              type="text"
+                              value={editingRunnerItem.image}
+                              onChange={(e) =>
+                                setEditingRunnerItem({ ...editingRunnerItem, image: e.target.value })
+                              }
+                              placeholder="https://... URL gambar atau klik Upload File dari device"
+                              className={`flex-1 px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                                isLight
+                                  ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                                  : "bg-neutral-900 border-white/15 text-white focus:border-[#16b09f]"
+                              }`}
+                            />
+                            <label className={`px-4 py-2.5 rounded-xl border text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0 ${
+                              isLight
+                                ? "bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-800"
+                                : "bg-white/10 hover:bg-white/15 border-white/15 text-white"
+                            }`}>
+                              <HiArrowUpTray className={`w-4 h-4 ${isLight ? "text-teal-600" : "text-[#16b09f]"}`} />
+                              <span>Upload File</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) =>
+                                  handleGenericImageFile(e, (dataUrl) =>
+                                    setEditingRunnerItem((prev) =>
+                                      prev ? { ...prev, image: dataUrl } : null
+                                    )
+                                  )
+                                }
+                              />
+                            </label>
+                          </div>
+                          <p className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                            {tx("Pilih file gambar langsung dari HP/komputer atau masukkan link URL gambar.", "Pick an image file from device or enter an image URL.")}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Tab 2: Google Drive Link */}
+                      {editingRunnerUploadSource === "gdrive" && (
+                        <div className="space-y-1.5">
+                          <div className="relative">
+                            <input
+                              type="url"
+                              value={editingRunnerGDriveUrl}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setEditingRunnerGDriveUrl(val);
+                                const gId = extractGoogleDriveFileId(val) || extractGoogleDriveId(val);
+                                if (gId) {
+                                  setEditingRunnerItem((prev) =>
+                                    prev ? { ...prev, image: `https://lh3.googleusercontent.com/d/${gId}` } : null
+                                  );
+                                }
+                              }}
+                              placeholder="https://drive.google.com/file/d/1a2b3c4d5e.../view?usp=sharing"
+                              className={`w-full px-4 py-2.5 pl-10 rounded-xl border text-sm focus:outline-none transition-all ${
+                                isLight
+                                  ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-emerald-500"
+                                  : "bg-neutral-900 border-white/15 text-white focus:border-emerald-500"
+                              }`}
+                            />
+                            <RiDriveFill className="w-4 h-4 text-emerald-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          </div>
+                          <p className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                            {tx(
+                              "Link Google Drive publik/sharing otomatis dikonversi menjadi gambar beresolusi tinggi langsung.",
+                              "Public Google Drive link automatically loads as high-resolution image directly."
+                            )}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Tab 3: YouTube Video Link */}
+                      {editingRunnerUploadSource === "youtube" && (
+                        <div className="space-y-1.5">
+                          <div className="relative">
+                            <input
+                              type="url"
+                              value={editingRunnerYouTubeUrl}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setEditingRunnerYouTubeUrl(val);
+                                const yId = extractYouTubeId(val);
+                                if (yId) {
+                                  setEditingRunnerItem((prev) =>
+                                    prev ? { ...prev, image: `https://img.youtube.com/vi/${yId}/maxresdefault.jpg` } : null
+                                  );
+                                }
+                              }}
+                              placeholder="https://www.youtube.com/watch?v=... atau https://youtu.be/... atau shorts"
+                              className={`w-full px-4 py-2.5 pl-10 rounded-xl border text-sm focus:outline-none transition-all ${
+                                isLight
+                                  ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-red-500"
+                                  : "bg-neutral-900 border-white/15 text-white focus:border-red-500"
+                              }`}
+                            />
+                            <RiYoutubeFill className="w-4 h-4 text-red-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          </div>
+                          <p className={`text-[10px] font-mono ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                            {tx(
+                              "Thumbnail HD video YouTube otomatis dimuat sebagai cover kartu dan video dapat diputar saat diklik.",
+                              "YouTube HD thumbnail loads automatically as card cover and links directly to the video."
+                            )}
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Preview 4:5 in modal */}

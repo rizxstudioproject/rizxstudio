@@ -78,5 +78,15 @@ export function getMediaFallbackUrls(url: string): string[] {
       `https://drive.google.com/uc?id=${fileId}`,
     ];
   }
+  const ytMatch = trimmed.match(/img\.youtube\.com\/vi\/([^/]+)/);
+  if (ytMatch && ytMatch[1]) {
+    const yId = ytMatch[1];
+    return [
+      `https://img.youtube.com/vi/${yId}/maxresdefault.jpg`,
+      `https://img.youtube.com/vi/${yId}/hqdefault.jpg`,
+      `https://img.youtube.com/vi/${yId}/mqdefault.jpg`,
+      `https://img.youtube.com/vi/${yId}/default.jpg`,
+    ];
+  }
   return [trimmed];
 }
