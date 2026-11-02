@@ -755,10 +755,9 @@ export default function AdminTopBar({
             <button
               type="button"
               onClick={onSaveChanges}
-              className="hidden md:flex items-center gap-1.5 px-4 py-1.5 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#16b09f]/25 cursor-pointer active:scale-95"
+              className="hidden md:flex items-center px-4 py-1.5 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs transition-all shadow-md shadow-[#16b09f]/25 cursor-pointer active:scale-95"
               title={tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}
             >
-              <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
               <span>{tr("Save Changes", "Simpan Perubahan", "Simpan Parubahan")}</span>
             </button>
           )}

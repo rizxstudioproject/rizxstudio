@@ -750,9 +750,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <button
                   type="button"
                   onClick={onOpenAddFolder}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#16b09f]/20 cursor-pointer"
+                  className="flex items-center px-3 py-1.5 rounded-lg bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#16b09f]/20 cursor-pointer"
                 >
-                  <HiPlus className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>{tr("New folder", "Folder Baru", "Folder Baru")}</span>
                 </button>
               </div>
@@ -1538,9 +1537,8 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 <button
                   type="button"
                   onClick={handleSaveInfo}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#16b09f]/20 cursor-pointer"
+                  className="flex items-center px-3.5 py-1.5 rounded-lg bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs transition-all active:scale-95 shadow-md shadow-[#16b09f]/20 cursor-pointer"
                 >
-                  <HiCheck className="w-3.5 h-3.5 stroke-[2.5]" />
                   <span>{tr("Save Info", "Simpan Info", "Simpan Info")}</span>
                 </button>
               </div>

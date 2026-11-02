@@ -7026,10 +7026,7 @@ export default function CanvasWorkspace({
             }}
             className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500 text-teal-300 hover:text-black font-bold transition-colors cursor-pointer text-left"
           >
-            <span className="flex items-center gap-2">
-              <HiCheckCircle className="w-3.5 h-3.5" />
-              Save Changes
-            </span>
+            <span>Save Changes</span>
             <span className="text-[10px]">Ctrl+S</span>
           </button>
         </div>
