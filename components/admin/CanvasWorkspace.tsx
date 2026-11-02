@@ -2714,10 +2714,44 @@ export default function CanvasWorkspace({
     }
   }, [contextMenu?.item, selectedItem, selectedId, items, getParentFrameId, updateItemsWithTracking]);
 
+  // Delete one or multiple items with immediate persistence to local storage and database
+  const handleDeleteItems = useCallback((ids: string[] | Set<string>) => {
+    const idSet = new Set(ids);
+    setItems((prev) => {
+      const updated = prev.filter(
+        (it) => !idSet.has(it.id) && (!it.frameId || !idSet.has(it.frameId))
+      );
+      itemsRef.current = updated;
+      initialItemsRef.current = JSON.parse(JSON.stringify(updated));
+      updateCanvasItems(updated).catch(() => {});
+      return updated;
+    });
+    setSelectedIds((prev) => {
+      const next = new Set(Array.from(prev).filter((id) => !idSet.has(id)));
+      return next;
+    });
+    setSelectedId((prev) => (prev && idSet.has(prev) ? null : prev));
+    setEditingTextId((prev) => (prev && idSet.has(prev) ? null : prev));
+    setHasChanges(false);
+  }, [updateCanvasItems]);
+
+  const handleDeleteItem = useCallback((id: string) => {
+    handleDeleteItems([id]);
+  }, [handleDeleteItems]);
+
   // Keyboard Shortcuts (Space for Pan, Delete to Remove)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      // Select All elements (Ctrl+A or Cmd+A)
+      if ((e.ctrlKey || e.metaKey) && (e.key === "a" || e.key === "A")) {
+        e.preventDefault();
+        const allIds = new Set(itemsRef.current.map((it) => it.id));
+        setSelectedIds(allIds);
+        if (allIds.size > 0) setSelectedId(Array.from(allIds)[0]);
+        return;
+      }
 
       // Toggle UI Panels (Ctrl+Shift+\ or Ctrl+\)
       if ((e.ctrlKey || e.metaKey) && (e.key === "\\" || e.code === "Backslash")) {
@@ -2779,13 +2813,7 @@ export default function CanvasWorkspace({
         const idsToDelete = new Set(selectedIds);
         if (selectedId) idsToDelete.add(selectedId);
         if (idsToDelete.size > 0) {
-          const updated = items.filter(
-            (it) => !idsToDelete.has(it.id) && (!it.frameId || !idsToDelete.has(it.frameId))
-          );
-          updateItemsWithTracking(updated);
-          setSelectedIds(new Set());
-          setSelectedId(null);
-          if (editingTextId && idsToDelete.has(editingTextId)) setEditingTextId(null);
+          handleDeleteItems(idsToDelete);
         }
       }
       // Figma shortcuts
@@ -2892,7 +2920,7 @@ export default function CanvasWorkspace({
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [isSpacePressed, selectedId, selectedIds, handleBringToFront, handleSendToBack]);
+  }, [isSpacePressed, selectedId, selectedIds, handleBringToFront, handleSendToBack, handleDeleteItems]);
 
   // Close context menu on outside click or Escape
   useEffect(() => {
@@ -4492,22 +4520,6 @@ export default function CanvasWorkspace({
     }
   };
 
-  // Delete an Item
-  const handleDeleteItem = (id: string) => {
-    const updated = items.filter((it) => it.id !== id && it.frameId !== id);
-    updateItemsWithTracking(updated);
-    if (selectedId === id) setSelectedId(null);
-    setSelectedIds((prev) => {
-      if (prev.has(id)) {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      }
-      return prev;
-    });
-    if (editingTextId === id) setEditingTextId(null);
-  };
-
   // Update item inline text/title
   const handleUpdateItemTitle = (id: string, newTitle: string) => {
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, title: newTitle } : it)));
@@ -4895,6 +4907,21 @@ export default function CanvasWorkspace({
   };
 
   const handleSelectLayer = (item: CanvasItem, e?: React.MouseEvent) => {
+    // Shift+Click range selection (like in Figma / Windows Explorer)
+    if (e?.shiftKey && selectedId && selectedId !== item.id) {
+      const allIds = items.map((i) => i.id);
+      const idx1 = allIds.indexOf(selectedId);
+      const idx2 = allIds.indexOf(item.id);
+      if (idx1 !== -1 && idx2 !== -1) {
+        const start = Math.min(idx1, idx2);
+        const end = Math.max(idx1, idx2);
+        const rangeIds = new Set(allIds.slice(start, end + 1));
+        setSelectedIds(rangeIds);
+        setSelectedId(item.id);
+        return;
+      }
+    }
+
     const isMulti = Boolean(e && (e.shiftKey || e.metaKey || e.ctrlKey));
 
     if (isMulti) {
@@ -7575,6 +7602,31 @@ export default function CanvasWorkspace({
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
+                  {/* Delete Selected / Clear All Layers Button */}
+                  {selectedIds.size > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteItems(selectedIds)}
+                      className="px-2 py-0.5 rounded text-[10px] font-sans font-bold bg-rose-500 hover:bg-rose-600 text-white transition-all cursor-pointer flex items-center gap-1 shadow-sm"
+                      title={`Hapus ${selectedIds.size} layer terpilih (Del / Backspace)`}
+                    >
+                      <HiTrash className="w-3 h-3" />
+                      <span>Hapus ({selectedIds.size})</span>
+                    </button>
+                  ) : items.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm("Hapus semua layer di canvas?")) {
+                          handleDeleteItems(items.map((i) => i.id));
+                        }
+                      }}
+                      className="p-1 rounded text-neutral-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                      title="Hapus Semua Layer"
+                    >
+                      <HiTrash className="w-3.5 h-3.5" />
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     onClick={toggleExpandAll}
