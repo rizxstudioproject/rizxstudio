@@ -212,6 +212,15 @@ export const FigmaGroupIcon = ({ className = "w-4 h-4" }: { className?: string }
   </svg>
 );
 
+// Figma-style Image Layer Icon: matching media_1793599250042_7394355e.png & media_1793599258390_5f8b1dc6.png
+export const FigmaImageIcon = ({ className = "w-3.5 h-3.5" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.25">
+    <rect x="2" y="2" width="12" height="12" rx="2" />
+    <circle cx="10.25" cy="5.75" r="1" fill="currentColor" stroke="none" />
+    <path d="M3.5 11.5l3.25-3.5 2.25 2.25 1.75-1.75 1.75 1.75" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 export const getCssFontWeight = (weight?: string | number): number => {
   if (typeof weight === "number") return weight;
   if (!weight) return 400;
@@ -7030,6 +7039,9 @@ export default function CanvasWorkspace({
     const isLocked = lockedItemIds.has(it.id);
     const isHidden = hiddenItemIds.has(it.id);
     const isText = it.type === "text" || it.mediaType === "text";
+    const isShape = (it.type === "shape" || it.mediaType === "shape" || it.mediaType === "rectangle" || it.mediaType === "ellipse") && !it.image;
+    const isEllipse = it.mediaType === "ellipse";
+    const isImage = !isText && (Boolean(it.image) || it.type === "media" || it.mediaType === "image" || it.mediaType === "upload" || it.mediaType === "youtube" || it.mediaType === "gdrive" || !isShape);
 
     const paddingLeft = depth === 0 ? "pl-2" : depth === 1 ? "pl-5" : "pl-8";
 
@@ -7104,18 +7116,30 @@ export default function CanvasWorkspace({
           <div className="absolute -bottom-0.5 left-1 right-1 h-0.5 bg-[#0c8ce9] z-30 rounded-full shadow-[0_0_8px_#0c8ce9] pointer-events-none" />
         )}
         <div className="flex items-center gap-2 truncate flex-1 min-w-0 pr-1">
-          {/* Item Type Icon (T for text, Outline Rectangle for shapes/media) */}
+          {/* Item Type Icon (T for text, Figma Image Icon for images, Circle for ellipse, Outline Rectangle for shapes) */}
           {isText ? (
             <span className="font-serif font-bold text-xs text-neutral-300 w-3.5 text-center shrink-0">T</span>
+          ) : isImage ? (
+            <FigmaImageIcon className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+          ) : isEllipse ? (
+            <svg
+              className="w-3.5 h-3.5 text-neutral-400 shrink-0"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.25"
+            >
+              <circle cx="8" cy="8" r="5" />
+            </svg>
           ) : (
             <svg
               className="w-3.5 h-3.5 text-neutral-400 shrink-0"
               viewBox="0 0 16 16"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="1.25"
             >
-              <rect x="2" y="3.5" width="12" height="9" rx="2" />
+              <rect x="2.5" y="3.5" width="11" height="9" rx="1.5" />
             </svg>
           )}
           <span className="truncate text-xs font-sans tracking-tight">
