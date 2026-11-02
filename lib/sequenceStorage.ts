@@ -119,3 +119,41 @@ export async function clearStage3ImageFromDB(): Promise<void> {
     console.warn("Could not clear stage3 image from IndexedDB:", err);
   }
 }
+
+/**
+ * High-capacity IndexedDB persistence for Canvas Board items.
+ * Easily stores hundreds of MBs of full-resolution images, frames, SVGs and videos
+ * without being constrained by browser localStorage 5MB quota limits.
+ */
+export async function saveCanvasItemsToDB(items: any[]): Promise<void> {
+  try {
+    if (!items) return;
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readwrite");
+      const store = tx.objectStore(STORE_NAME);
+      store.put(items, "canvas_board_items");
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch (err) {
+    console.warn("Could not save canvas items to IndexedDB:", err);
+  }
+}
+
+export async function getCanvasItemsFromDB(): Promise<any[] | null> {
+  try {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE_NAME, "readonly");
+      const store = tx.objectStore(STORE_NAME);
+      const req = store.get("canvas_board_items");
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => reject(req.error);
+    });
+  } catch (err) {
+    console.warn("Could not retrieve canvas items from IndexedDB:", err);
+    return null;
+  }
+}
+

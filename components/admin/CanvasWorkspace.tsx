@@ -48,6 +48,7 @@ import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { RiGridFill, RiArrowGoBackLine, RiArrowGoForwardLine } from "react-icons/ri";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
+import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import AspectRatioPicker, { RatioWireframeIcon, AspectPreset } from "./AspectRatioPicker";
@@ -1779,38 +1780,67 @@ export default function CanvasWorkspace({
 
   const hasInitializedCanvasRef = useRef(false);
 
-  // Initialize items from context or layout initial client works
+  // Initialize items from context, localStorage, or IndexedDB
   useEffect(() => {
     // Only run initialization on first mount so live canvas state is never overwritten during auto-save
     if (hasInitializedCanvasRef.current) return;
     hasInitializedCanvasRef.current = true;
 
-    // Check if canvas has already been seeded / saved in localStorage or context
+    // Check if canvas has already been seeded / saved in localStorage, context, or IndexedDB
     const isSeeded = typeof window !== "undefined" && (
       localStorage.getItem("rizx_canvas_seeded") === "true" ||
+      Boolean(localStorage.getItem("rizx_canvas_sheets")) ||
       Boolean(localStorage.getItem("rizx_portfolio_custom_data_v1")?.includes('"canvasItems"'))
     );
 
-    // If canvas has been seeded/saved previously, strictly respect canvasItems state (even if empty)
-    if (isSeeded) {
-      const cleanedItems = (canvasItems || []).filter(
-        (i) => !i.id.startsWith("folder-") && i.type !== "folder"
-      );
+    // Retrieve synchronous local storage items if available
+    let localItems: CanvasItem[] | null = null;
+    if (typeof window !== "undefined") {
+      try {
+        const storedSheets = localStorage.getItem("rizx_canvas_sheets");
+        if (storedSheets) {
+          const parsed = JSON.parse(storedSheets);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            localItems = parsed;
+          }
+        }
+        if (!localItems) {
+          const storedGlobal = localStorage.getItem("rizx_portfolio_custom_data_v1");
+          if (storedGlobal) {
+            const parsed = JSON.parse(storedGlobal);
+            if (parsed && Array.isArray(parsed.canvasItems) && parsed.canvasItems.length > 0) {
+              localItems = parsed.canvasItems;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+
+    const availableItems = (canvasItems && canvasItems.length > 0) ? canvasItems : localItems;
+
+    if (availableItems && availableItems.length > 0) {
+      const cleanedItems = availableItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
       setItems(cleanedItems);
       initialItemsRef.current = JSON.parse(JSON.stringify(cleanedItems));
       setHasChanges(false);
       return;
     }
 
-    if (canvasItems && canvasItems.length > 0) {
-      // Clean legacy auto-generated folder headers if any
-      const cleanedItems = canvasItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
-      setItems(cleanedItems);
-      initialItemsRef.current = JSON.parse(JSON.stringify(cleanedItems));
-      setHasChanges(false);
-      if (typeof window !== "undefined") {
-        localStorage.setItem("rizx_canvas_seeded", "true");
+    // Check IndexedDB asynchronously in case localStorage quota was exceeded previously
+    getCanvasItemsFromDB().then((dbItems) => {
+      if (Array.isArray(dbItems) && dbItems.length > 0) {
+        const cleaned = dbItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
+        setItems(cleaned);
+        initialItemsRef.current = JSON.parse(JSON.stringify(cleaned));
+        setHasChanges(false);
       }
+    });
+
+    // If canvas has been seeded/saved previously, strictly respect state (even if empty)
+    if (isSeeded) {
+      setItems([]);
+      initialItemsRef.current = [];
+      setHasChanges(false);
       return;
     }
 
@@ -1878,6 +1908,25 @@ export default function CanvasWorkspace({
       localStorage.setItem("rizx_canvas_seeded", "true");
     }
   }, [canvasItems, clients]);
+
+  // Keep live items in sync if canvasItems loads or restores from IndexedDB or Supabase Cloud
+  useEffect(() => {
+    if (!canvasItems || canvasItems.length === 0) return;
+    setItems((prev) => {
+      // If user hasn't made unsaved manual changes:
+      // hydrate if current items is empty or missing media that canvasItems has
+      const isEmpty = prev.length === 0;
+      const hasMissingImages = canvasItems.some(
+        (ci) => Boolean(ci.image) && !prev.find((pi) => pi.id === ci.id)?.image
+      );
+      if (!hasChanges && (isEmpty || hasMissingImages)) {
+        const cleaned = canvasItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
+        initialItemsRef.current = JSON.parse(JSON.stringify(cleaned));
+        return cleaned;
+      }
+      return prev;
+    });
+  }, [canvasItems, hasChanges]);
 
   // Context Menu & Figma Action Handlers
   const handleItemContextMenu = useCallback((e: React.MouseEvent, item: CanvasItem) => {

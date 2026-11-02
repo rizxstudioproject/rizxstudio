@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import { antigravityData } from "@/data/projectsData";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { saveStage3ImageToDB, getStage3ImageFromDB, clearStage3ImageFromDB } from "@/lib/sequenceStorage";
+import { saveStage3ImageToDB, getStage3ImageFromDB, clearStage3ImageFromDB, saveCanvasItemsToDB, getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { getAdminCredentials, mergeAdminUserLists, clearActiveAdminUser } from "@/lib/adminAuth";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 
@@ -672,10 +672,20 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [canvasItems, setCanvasItems] = useState<CanvasItem[]>(() => {
     if (typeof window !== "undefined") {
       try {
+        const sheetStored = localStorage.getItem("rizx_canvas_sheets");
+        if (sheetStored) {
+          const parsed = safeJsonParseMedia(sheetStored);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.map((item: any) => ({
+              ...item,
+              image: normalizeMediaUrl(item.image),
+            }));
+          }
+        }
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = safeJsonParseMedia(stored);
-          if (parsed && Array.isArray(parsed.canvasItems)) {
+          if (parsed && Array.isArray(parsed.canvasItems) && parsed.canvasItems.length > 0) {
             return parsed.canvasItems.map((item: any) => ({
               ...item,
               image: normalizeMediaUrl(item.image),
@@ -1045,6 +1055,42 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           }
         }
       }
+
+      // Check "rizx_canvas_sheets" local storage (primary canvas key)
+      if (typeof window !== "undefined") {
+        try {
+          const sheetStored = localStorage.getItem("rizx_canvas_sheets");
+          if (sheetStored) {
+            const parsedSheets = safeJsonParseMedia(sheetStored);
+            if (Array.isArray(parsedSheets) && parsedSheets.length > 0) {
+              const loadedSheets = parsedSheets.map((item: any) => ({
+                ...item,
+                image: normalizeMediaUrl(item.image),
+              }));
+              setCanvasItems(loadedSheets);
+              canvasItemsRef.current = loadedSheets;
+              localStorage.setItem("rizx_canvas_seeded", "true");
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Check IndexedDB backup for Canvas items (bypasses 5MB localStorage limits for full-resolution media)
+      getCanvasItemsFromDB().then((dbItems) => {
+        if (Array.isArray(dbItems) && dbItems.length > 0) {
+          setCanvasItems((prev) => {
+            if (
+              !prev ||
+              prev.length === 0 ||
+              dbItems.some((di) => Boolean(di.image) && !prev.find((pi) => pi.id === di.id)?.image)
+            ) {
+              canvasItemsRef.current = dbItems;
+              return dbItems;
+            }
+            return prev;
+          });
+        }
+      });
 
       // Check IndexedDB backup for Stage 3 custom image ONLY IF not already loaded/configured from localStorage
       const hasLocalStorageData = localStorage.getItem(STORAGE_KEY) !== null;
@@ -2281,13 +2327,21 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       }));
       setCanvasItems(normalized);
       canvasItemsRef.current = normalized;
+
+      // 1. IndexedDB: Primary bulletproof storage (bypasses 5MB browser quota for large media)
+      await saveCanvasItemsToDB(normalized);
+
+      // 2. LocalStorage: Save to dedicated canvas key
       if (typeof window !== "undefined") {
         localStorage.setItem("rizx_canvas_seeded", "true");
         try {
           localStorage.setItem("rizx_canvas_sheets", JSON.stringify(normalized));
-        } catch (_) {}
+        } catch (storageErr) {
+          console.warn("LocalStorage quota reached for canvas, IndexedDB holds full high-capacity backup:", storageErr);
+        }
       }
 
+      // 3. Supabase Cloud Sync
       if (isSupabaseConfigured && supabase) {
         try {
           await supabase.from("client_descriptions").upsert({
