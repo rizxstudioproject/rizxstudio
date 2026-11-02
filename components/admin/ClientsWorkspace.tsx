@@ -318,10 +318,11 @@ export default function ClientsWorkspace({
       ) {
         return false;
       }
+      const query = (searchQuery || clientSearch || "").toLowerCase().trim();
       const matchSearch =
-        !clientSearch ||
-        c.clientName.toLowerCase().includes(clientSearch.toLowerCase()) ||
-        (c.category && c.category.toLowerCase().includes(clientSearch.toLowerCase()));
+        !query ||
+        c.clientName.toLowerCase().includes(query) ||
+        (c.category && c.category.toLowerCase().includes(query));
 
       if (!matchSearch) return false;
 
@@ -335,7 +336,7 @@ export default function ClientsWorkspace({
       }
       return true;
     });
-  }, [clients, clientSearch, filterTab, favorites]);
+  }, [clients, searchQuery, clientSearch, filterTab, favorites]);
 
   // Count metrics for tabs (strictly genuine clients only)
   const validClientsCount = useMemo(() => {
@@ -956,22 +957,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 >
                   {tr("Favorites", "Favorit", "Kaoetamoan")} {favoriteCount}
                 </button>
-              </div>
-
-              {/* Search Input */}
-              <div className="relative">
-                <HiMagnifyingGlass className={`absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 ${isLight ? "text-slate-400" : "text-neutral-500"}`} />
-                <input
-                  type="text"
-                  value={clientSearch}
-                  onChange={(e) => setClientSearch(e.target.value)}
-                  placeholder={tr("Search clients...", "Cari folder klien...", "Cari folder klien...")}
-                  className={`w-full rounded-lg pl-8 pr-3 py-1.5 text-xs outline-none transition-colors border ${
-                    isLight
-                      ? "bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#16b09f]"
-                      : "bg-[#12151a] border-white/5 text-white placeholder-neutral-500 focus:border-[#16b09f]/60"
-                  }`}
-                />
               </div>
             </div>
           ) : (
