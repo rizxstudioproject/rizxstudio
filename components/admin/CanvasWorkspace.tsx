@@ -2983,7 +2983,8 @@ export default function CanvasWorkspace({
       }
       if (e.key === "s" || e.key === "S") {
         if (e.shiftKey) {
-          handleAddSection();
+          setActiveTool("section");
+          setActiveSubmenu(null);
         } else {
           handleAddSlice();
         }
@@ -3401,8 +3402,8 @@ export default function CanvasWorkspace({
         setSelectedIds(new Set([newFrame.id]));
       } else if (shapeType === "section") {
         if (dragDist < 20) {
-          shapeW = 1200;
-          shapeH = 600;
+          shapeW = 800;
+          shapeH = 500;
           shapeX = start.canvasX;
           shapeY = start.canvasY;
         }
@@ -3417,7 +3418,8 @@ export default function CanvasWorkspace({
           y: Math.round(shapeY),
           width: Math.round(shapeW),
           height: Math.round(shapeH),
-          color: "rgba(52, 54, 60, 0.88)",
+          color: "rgba(50, 52, 58, 0.88)",
+          cornerRadius: 0,
         };
 
         // Automatically nest any frames/items that are inside this newly drawn Section
@@ -4031,6 +4033,11 @@ export default function CanvasWorkspace({
 
   // Start dragging an individual canvas item with mouse
   const handleItemMouseDown = (e: React.MouseEvent, item: CanvasItem) => {
+    // If Frame, Section, or Shape tool is active: let canvas handle drawing/placing anywhere
+    if (activeTool === "frame" || activeTool === "section" || activeTool === "shape") {
+      return;
+    }
+
     // If Text tool is active and clicked on a frame or section: insert text directly inside that frame!
     if (activeTool === "text" && item.type !== "text" && item.mediaType !== "text") {
       e.stopPropagation();
@@ -4381,20 +4388,24 @@ export default function CanvasWorkspace({
 
   // Add Tools Directly on Canvas (Centered to current viewport)
   const handleAddSection = () => {
-    const center = getViewportCenter(1100, 600);
+    const secCount = items.filter((i) => i.type === "section" || i.mediaType === "section").length + 1;
+    const center = getViewportCenter(800, 500);
     const newSection: CanvasItem = {
       id: `section-${Date.now()}`,
-      title: "New Section Frame",
+      title: `Section ${secCount}`,
       type: "section",
       mediaType: "section",
       x: center.x,
       y: center.y,
-      width: 1100,
-      height: 600,
-      color: "#00A389",
+      width: 800,
+      height: 500,
+      color: "rgba(50, 52, 58, 0.88)",
+      cornerRadius: 0,
     };
     updateItemsWithTracking([...items, newSection]);
     setSelectedId(newSection.id);
+    setSelectedIds(new Set([newSection.id]));
+    setActiveTool("select");
   };
 
   const handleAddFrame = (aspect = "4:5") => {
@@ -7397,7 +7408,7 @@ export default function CanvasWorkspace({
           <button
             type="button"
             onClick={() => {
-              handleAddSection();
+              setActiveTool("section");
               setIsPillMenuOpen(false);
             }}
             className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
@@ -9504,11 +9515,11 @@ export default function CanvasWorkspace({
           />
         )}
 
-        {/* Interactive Frame, Section & Shape Drawing Preview Box (Matches Screenshot Image 1) */}
+        {/* Interactive Frame, Section & Shape Drawing Preview Box (Matches Screenshot Image 1 & 3) */}
         {drawingShapeBox && (
           <div
             className={`absolute pointer-events-none border-2 border-[#0c8ce9] z-50 shadow-xl ${
-              drawingShapeBox.type === "shape" ? "bg-[#D9D9D9]" : "bg-white/[0.04]"
+              drawingShapeBox.type === "shape" ? "bg-[#D9D9D9]/30" : "bg-white/[0.04]"
             }`}
             style={{
               left: `${Math.min(drawingShapeBox.startX, drawingShapeBox.currentX)}px`,
@@ -9517,21 +9528,32 @@ export default function CanvasWorkspace({
               height: `${Math.max(2, Math.abs(drawingShapeBox.currentY - drawingShapeBox.startY))}px`,
             }}
           >
-            {/* Top Frame Label (Only for Frame & Section) */}
+            {/* Diagonal dashed line for Section creation (Matches User Screenshot Image 3 media_1793645971244_1a23cd15.png) */}
+            {drawingShapeBox.type === "section" && (
+              <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                <line x1="0" y1="0" x2="100%" y2="100%" stroke="#0c8ce9" strokeWidth="1.5" strokeDasharray="4 4" />
+              </svg>
+            )}
+
+            {/* Top Frame/Section Label (Matches Screenshot Image 3) */}
             {drawingShapeBox.type !== "shape" && (
-              <div className="absolute -top-6 left-0 text-[12px] font-sans font-medium text-neutral-400 select-none whitespace-nowrap">
-                {drawingShapeBox.type === "section" ? "New Section" : `Frame ${Math.floor(Date.now() / 1000)}`}
+              <div className="absolute -top-7 left-0 select-none whitespace-nowrap">
+                <span className="px-2 py-0.5 rounded bg-[#2e2e2e] text-white text-[11px] font-sans font-medium shadow-sm">
+                  {drawingShapeBox.type === "section"
+                    ? `Section ${items.filter((i) => i.type === "section" || i.mediaType === "section").length + 1}`
+                    : `Frame ${Math.floor(Date.now() / 1000)}`}
+                </span>
               </div>
             )}
 
-            {/* 4 Corner Handles (Matches Screenshot Image 1) */}
-            <div className="absolute -top-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-            <div className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-            <div className="absolute -bottom-1.5 -left-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
-            <div className="absolute -bottom-1.5 -right-1.5 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px]" />
+            {/* 4 Corner Handles (Matches Screenshot Image 3) */}
+            <div className="absolute -top-1 -left-1 w-2.5 h-2.5 bg-white border border-[#0c8ce9] rounded-[1px]" />
+            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white border border-[#0c8ce9] rounded-[1px]" />
+            <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white border border-[#0c8ce9] rounded-[1px]" />
+            <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-white border border-[#0c8ce9] rounded-[1px]" />
 
-            {/* Figma Dimension Badge Centered at Bottom (Matches Screenshots 4 & 5: 1972 × 1388) */}
-            <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none">
+            {/* Figma Dimension Badge Centered at Bottom (Matches Screenshot Image 3: 1054 × 1054) */}
+            <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none">
               {Math.round(Math.abs(drawingShapeBox.currentX - drawingShapeBox.startX) / (zoomRef.current || zoom))} ×{" "}
               {Math.round(Math.abs(drawingShapeBox.currentY - drawingShapeBox.startY) / (zoomRef.current || zoom))}
             </div>
@@ -9769,7 +9791,6 @@ export default function CanvasWorkspace({
               <button
                 type="button"
                 onClick={() => {
-                  handleAddSection();
                   setActiveTool("section");
                   setActiveSubmenu(null);
                 }}
