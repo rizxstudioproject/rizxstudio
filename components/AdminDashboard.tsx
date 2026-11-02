@@ -759,13 +759,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     // Reset input value so selecting the same file again triggers change event
     e.target.value = "";
 
+    const isSvg =
+      file.type === "image/svg+xml" ||
+      file.type.includes("svg") ||
+      file.name.toLowerCase().endsWith(".svg");
+
     const reader = new FileReader();
     reader.onload = (event) => {
-      const rawDataUrl = event.target?.result as string;
+      let rawDataUrl = event.target?.result as string;
       if (!rawDataUrl) return;
 
-      // Keep SVGs untouched
-      if (file.type === "image/svg+xml") {
+      // Keep SVGs untouched and ensure standard image/svg+xml MIME
+      if (isSvg) {
+        if (!rawDataUrl.startsWith("data:image/svg+xml") && rawDataUrl.startsWith("data:")) {
+          rawDataUrl = rawDataUrl.replace(/^data:[^;]*;base64,/, "data:image/svg+xml;base64,");
+        }
         callback(rawDataUrl);
         return;
       }
@@ -794,6 +802,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       };
       img.onerror = () => callback(rawDataUrl);
       img.src = rawDataUrl;
+    };
+    reader.onerror = () => {
+      showToast(tx("Gagal membaca file gambar.", "Failed to read image file."));
     };
     reader.readAsDataURL(file);
   };

@@ -193,9 +193,22 @@ export default function ClientsWorkspace({
 
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+    // Reset immediately so selecting the exact same file again will always fire onChange
+    e.target.value = "";
     if (!file || !selectedClient) return;
 
-    if (!file.type.startsWith("image/")) {
+    const isSvg =
+      file.type === "image/svg+xml" ||
+      file.type.includes("svg") ||
+      file.name.toLowerCase().endsWith(".svg");
+
+    const isValidImage =
+      file.type.startsWith("image/") ||
+      file.type === "application/xml" ||
+      file.type === "text/xml" ||
+      isSvg;
+
+    if (!isValidImage) {
       showToast(
         tr(
           "Harap pilih file gambar yang valid (PNG, JPG, SVG, WebP).",
@@ -208,20 +221,35 @@ export default function ClientsWorkspace({
 
     const reader = new FileReader();
     reader.onload = () => {
-      const dataUrl = reader.result as string;
-      if (dataUrl && onUpdateClientFolder) {
+      let dataUrl = reader.result as string;
+      if (!dataUrl) return;
+
+      // Ensure SVG data URL always has the standard image/svg+xml MIME for reliable rendering
+      if (isSvg && !dataUrl.startsWith("data:image/svg+xml") && dataUrl.startsWith("data:")) {
+        dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, "data:image/svg+xml;base64,");
+      }
+
+      if (onUpdateClientFolder) {
         onUpdateClientFolder(selectedClient.id, { logo: dataUrl });
         showToast(
           tr(
-            `Foto profil brand "${selectedClient.clientName}" berhasil diperbarui!`,
-            `Brand profile picture for "${selectedClient.clientName}" updated!`,
-            `Foto profil brand "${selectedClient.clientName}" barasil dipabarui!`
+            `Foto profil / logo brand "${selectedClient.clientName}" berhasil diperbarui!`,
+            `Brand profile / logo for "${selectedClient.clientName}" updated!`,
+            `Foto profil / logo brand "${selectedClient.clientName}" barasil dipabarui!`
           )
         );
       }
     };
+    reader.onerror = () => {
+      showToast(
+        tr(
+          "Gagal membaca file gambar.",
+          "Failed to read image file.",
+          "Gagal mambaco file gambar."
+        )
+      );
+    };
     reader.readAsDataURL(file);
-    e.target.value = "";
   };
 
   // Track last synced client ID so external data refreshes do NOT overwrite in-progress edits
@@ -888,12 +916,12 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
                       {/* Square Thumbnail */}
-                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-neutral-800 border border-white/10 shrink-0 flex items-center justify-center">
+                      <div className="w-10 h-10 rounded-lg overflow-hidden bg-neutral-800 border border-white/10 shrink-0 flex items-center justify-center p-0.5">
                         {thumbImage ? (
                           <img
                             src={thumbImage}
                             alt={client.clientName}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            className={`w-full h-full ${client.logo && thumbImage === client.logo ? "object-contain" : "object-cover"} group-hover:scale-105 transition-transform`}
                           />
                         ) : (
                           <span className="text-xs font-bold text-neutral-300">
@@ -1207,12 +1235,39 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                     </span>
                     <input
                       type="file"
-                      accept="image/*,.svg"
+                      accept="image/*,.svg,image/svg+xml"
                       className="hidden"
                       onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (!file) return;
+
+                        const isSvg =
+                          file.type === "image/svg+xml" ||
+                          file.type.includes("svg") ||
+                          file.name.toLowerCase().endsWith(".svg");
+
                         if (onGenericImageFile) {
-                          onGenericImageFile(e, (dataUrl) => setNewLogoFile?.(dataUrl));
+                          onGenericImageFile(e, (dataUrl) => {
+                            let finalUrl = dataUrl;
+                            if (isSvg && !finalUrl.startsWith("data:image/svg+xml") && finalUrl.startsWith("data:")) {
+                              finalUrl = finalUrl.replace(/^data:[^;]*;base64,/, "data:image/svg+xml;base64,");
+                            }
+                            setNewLogoFile?.(finalUrl);
+                          });
+                          return;
                         }
+
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          let dataUrl = ev.target?.result as string;
+                          if (!dataUrl) return;
+                          if (isSvg && !dataUrl.startsWith("data:image/svg+xml") && dataUrl.startsWith("data:")) {
+                            dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, "data:image/svg+xml;base64,");
+                          }
+                          setNewLogoFile?.(dataUrl);
+                        };
+                        reader.readAsDataURL(file);
                       }}
                     />
                   </label>
@@ -1449,21 +1504,22 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           {/* Client Header Card */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/5">
             <div className="flex items-center gap-3.5">
-              {/* Rounded Square Avatar [KD] with Double Click to Upload / Edit Brand Profile Picture */}
+              {/* Rounded Square Avatar [KD] with Click / Double Click to Upload Brand Profile Picture */}
               <div
+                onClick={() => avatarInputRef.current?.click()}
                 onDoubleClick={() => avatarInputRef.current?.click()}
                 title={tr(
-                  "Klik 2x untuk ganti foto profil / logo brand",
-                  "Double-click to change brand profile / logo",
-                  "Klik 2x untuak ganti foto profil / logo brand"
+                  "Klik untuk ganti foto profil / logo brand",
+                  "Click to change brand profile / logo",
+                  "Klik untuak ganti foto profil / logo brand"
                 )}
-                className="relative group w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#161a22] border-2 border-white/10 hover:border-[#16b09f]/60 flex items-center justify-center font-bold text-white text-base shadow-inner shrink-0 cursor-pointer overflow-hidden transition-all select-none"
+                className="relative group w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[#161a22] border-2 border-white/10 hover:border-[#16b09f]/60 flex items-center justify-center font-bold text-white text-base shadow-inner shrink-0 cursor-pointer overflow-hidden transition-all select-none p-1.5"
               >
                 {selectedClient.logo ? (
                   <img
                     src={selectedClient.logo}
                     alt={selectedClient.clientName}
-                    className="w-full h-full object-cover rounded-2xl transition-transform group-hover:scale-105"
+                    className="w-full h-full object-contain rounded-xl transition-transform group-hover:scale-105"
                   />
                 ) : (
                   <span className="font-mono text-base tracking-wider text-neutral-200 group-hover:text-white">
@@ -1471,14 +1527,14 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   </span>
                 )}
 
-                {/* Hover overlay hint for double click */}
+                {/* Hover overlay hint */}
                 <div className="absolute inset-0 bg-black/75 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-1 text-center backdrop-blur-[2px]">
                   <HiCamera className="w-4 h-4 text-[#16b09f] mb-0.5" />
                   <span className="text-[9px] font-mono font-semibold text-white leading-tight">
-                    {tr("Klik 2x", "2x Click", "Klik 2x")}
+                    {tr("Ganti Logo", "Change Logo", "Ganti Logo")}
                   </span>
                   <span className="text-[8px] text-neutral-300 leading-tight">
-                    {tr("Ganti PP", "Change PP", "Ganti PP")}
+                    {tr("Upload", "Upload", "Upload")}
                   </span>
                 </div>
               </div>
@@ -1487,7 +1543,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <input
                 ref={avatarInputRef}
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                accept="image/*,.svg,image/svg+xml,image/png,image/jpeg,image/webp"
                 onChange={handleAvatarUpload}
                 className="hidden"
               />
