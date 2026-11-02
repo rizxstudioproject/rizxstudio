@@ -7573,7 +7573,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       className="flex items-center justify-center gap-1.5 py-2.5 px-5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer"
                     >
                       <HiTrash className="w-4 h-4" />
-                      <span>{tx("Hapus Video/Media Showcase", "Delete Video/Media Showcase", "Hapuih Video/Media Showcase")}</span>
+                      <span>{tx("Hapus Media Showcase", "Delete Media Showcase", "Hapuih Media Showcase")}</span>
                     </button>
                   </div>
                 </form>
