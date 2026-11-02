@@ -128,6 +128,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     addClientFolder,
     updateClientFolder,
     deleteClientFolder,
+    reorderClientFolders,
     resetPortfolioData,
     setIsAdminMode,
     adminLogout,
@@ -3588,6 +3589,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               updateClientFolder(id, updates);
             }
           }}
+          onReorderClients={reorderClientFolders}
           onReplaceCoverImage={handleReplaceCoverImage}
           showToast={showToast}
           clSubtitle={clSubtitle}
@@ -3745,6 +3747,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   updateClientFolder(id, updates);
                 }
               }}
+              onReorderClients={reorderClientFolders}
               onReplaceCoverImage={handleReplaceCoverImage}
               onViewWebsite={() => {
                 if (typeof window !== "undefined") {

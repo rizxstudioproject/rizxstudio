@@ -521,6 +521,7 @@ interface PortfolioDataContextType {
   addClientFolder: (folder: { clientName: string; category: string; description?: string; brandProfile?: string; projectDescription?: string; tools?: string[] }) => void;
   updateClientFolder: (clientId: string, updates: Partial<ClientItem>) => void;
   deleteClientFolder: (clientId: string) => void;
+  reorderClientFolders: (newOrderClients: ClientItem[]) => Promise<void>;
   updateAboutData: (newData: Partial<AboutData>) => void;
   updateHeroWorksData: (newData: Partial<HeroWorksData>) => void;
   updateClientLogosData: (newData: Partial<ClientLogosData>) => void;
@@ -941,6 +942,15 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           }));
 
           const finalInitialClients = [...(mergedClients as ClientItem[]), ...customClientItems].filter((c) => !isSystemConfigId(c.id));
+          const savedIds = cleanSavedClients.map((c: any) => c.id);
+          finalInitialClients.sort((a, b) => {
+            const idxA = savedIds.indexOf(a.id);
+            const idxB = savedIds.indexOf(b.id);
+            if (idxA === -1 && idxB === -1) return 0;
+            if (idxA === -1) return 1;
+            if (idxB === -1) return -1;
+            return idxA - idxB;
+          });
           setClients(finalInitialClients);
           clientsRef.current = finalInitialClients;
         }
@@ -1375,6 +1385,25 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
             ...(mergedDefaults as ClientItem[]),
             ...cloudCustoms,
           ].filter((c) => !isSystemConfigId(c.id));
+
+          // Apply custom client folders order from Supabase if configured
+          const orderRow = clientRows.find((r) => r.client_id === "site-client-folders-order");
+          if (orderRow && orderRow.description) {
+            try {
+              const orderedIds: string[] = JSON.parse(orderRow.description);
+              if (Array.isArray(orderedIds) && orderedIds.length > 0) {
+                finalClients.sort((a, b) => {
+                  const idxA = orderedIds.indexOf(a.id);
+                  const idxB = orderedIds.indexOf(b.id);
+                  if (idxA === -1 && idxB === -1) return 0;
+                  if (idxA === -1) return 1;
+                  if (idxB === -1) return -1;
+                  return idxA - idxB;
+                });
+              }
+            } catch (_) {}
+          }
+
           setClients(finalClients);
           clientsRef.current = finalClients;
           try {
@@ -1984,6 +2013,31 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     [stage3, clients, persistState]
   );
 
+  // Reorder all client folders in the sidebar & sync globally across website
+  const reorderClientFolders = useCallback(
+    async (newOrderClients: ClientItem[]) => {
+      setClients(newOrderClients);
+      clientsRef.current = newOrderClients;
+      persistState(stage3Ref.current, newOrderClients);
+
+      if (isSupabaseConfigured && supabase) {
+        try {
+          const orderedIds = newOrderClients.map((c) => c.id);
+          await supabase.from("client_descriptions").upsert({
+            client_id: "site-client-folders-order",
+            client_name: "Client Folders Order",
+            category: "Site Config",
+            description: JSON.stringify(orderedIds),
+            updated_at: new Date().toISOString(),
+          }, { onConflict: "client_id" });
+        } catch (err) {
+          console.warn("Supabase client folders order sync notice:", err);
+        }
+      }
+    },
+    [isSupabaseConfigured, persistState]
+  );
+
   // Update About Me Section Content
   const updateAboutData = useCallback(
     async (newData: Partial<AboutData>) => {
@@ -2537,6 +2591,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         addClientFolder,
         updateClientFolder,
         deleteClientFolder,
+        reorderClientFolders,
         updateAboutData,
         updateHeroWorksData,
         updateClientLogosData,

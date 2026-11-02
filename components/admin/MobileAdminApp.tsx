@@ -90,6 +90,7 @@ interface MobileAdminAppProps {
   onDeleteWork?: (clientId: string, workId: string, workTitle: string) => void;
   onSaveClientDescription?: (clientId: string, desc: string, tools: string[], projectDesc?: string) => void;
   onUpdateClientFolder?: (clientId: string, updates: Partial<ClientItem>) => void;
+  onReorderClients?: (newClients: ClientItem[]) => void;
   onReplaceCoverImage?: (clientId: string, file: File) => void;
   showToast?: (msg: string) => void;
   clSubtitle?: string;
@@ -130,6 +131,7 @@ export default function MobileAdminApp({
   onDeleteWork,
   onSaveClientDescription,
   onUpdateClientFolder,
+  onReorderClients,
   onReplaceCoverImage,
   showToast,
   clSubtitle,
@@ -1285,6 +1287,7 @@ export default function MobileAdminApp({
                 onDeleteWork={onDeleteWork || (() => {})}
                 onSaveClientDescription={onSaveClientDescription || (() => {})}
                 onUpdateClientFolder={onUpdateClientFolder}
+                onReorderClients={onReorderClients}
                 onReplaceCoverImage={onReplaceCoverImage}
                 onViewWebsite={() => {
                   if (typeof window !== "undefined") {

@@ -21,6 +21,8 @@ import {
   RiCameraFill as HiCamera,
   RiArrowLeftSLine,
   RiArrowRightSLine,
+  RiArrowUpSLine,
+  RiArrowDownSLine,
   RiDraggable,
 } from "react-icons/ri";
 import {
@@ -47,6 +49,7 @@ interface ClientsWorkspaceProps {
   onDeleteWork: (clientId: string, workId: string, workTitle: string) => void;
   onSaveClientDescription: (clientId: string, desc: string, tools: string[], projectDesc?: string) => void;
   onUpdateClientFolder?: (clientId: string, updates: Partial<ClientItem>) => void;
+  onReorderClients?: (newClients: ClientItem[]) => void;
   onReplaceCoverImage?: (clientId: string, file: File) => void;
   onViewWebsite?: () => void;
   showToast: (msg: string) => void;
@@ -84,6 +87,7 @@ export default function ClientsWorkspace({
   onDeleteWork,
   onSaveClientDescription,
   onUpdateClientFolder,
+  onReorderClients,
   onReplaceCoverImage,
   onViewWebsite,
   showToast,
@@ -192,6 +196,10 @@ export default function ClientsWorkspace({
   const [assetViewMode, setAssetViewMode] = useState<"grid" | "list">("grid");
   const [draggedWorkId, setDraggedWorkId] = useState<string | null>(null);
   const [dragOverWorkId, setDragOverWorkId] = useState<string | null>(null);
+
+  // Client folders reorder drag & drop state
+  const [draggedClientId, setDraggedClientId] = useState<string | null>(null);
+  const [dragOverClientId, setDragOverClientId] = useState<string | null>(null);
 
   const coverFileInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -461,6 +469,37 @@ export default function ClientsWorkspace({
       });
     }
     showToast(tr("Posisi aset berhasil dipindahkan!", "Asset position moved successfully!", "Posisi aset barasil dipindahkan!"));
+  };
+
+  // Reorder client folders position (drag & drop or shift buttons)
+  const handleReorderClient = (fromId: string, toId: string) => {
+    if (fromId === toId || !onReorderClients) return;
+    const currentClients = [...clients];
+    const fromIndex = currentClients.findIndex((c) => c.id === fromId);
+    const toIndex = currentClients.findIndex((c) => c.id === toId);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const [moved] = currentClients.splice(fromIndex, 1);
+    currentClients.splice(toIndex, 0, moved);
+
+    onReorderClients(currentClients);
+    showToast(tr("Urutan folder klien berhasil diubah & disinkronkan ke web!", "Client folders reordered & synced to website!", "Urutan folder klien barasil diubah & disinkronkan!"));
+  };
+
+  const handleShiftClient = (clientId: string, direction: "up" | "down") => {
+    if (!onReorderClients) return;
+    const currentClients = [...clients];
+    const index = currentClients.findIndex((c) => c.id === clientId);
+    if (index === -1) return;
+
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentClients.length) return;
+
+    const [moved] = currentClients.splice(index, 1);
+    currentClients.splice(targetIndex, 0, moved);
+
+    onReorderClients(currentClients);
+    showToast(tr("Urutan folder klien berhasil diubah & disinkronkan ke web!", "Client folders reordered & synced to website!", "Urutan folder klien barasil diubah & disinkronkan!"));
   };
 
 // Dynamic Tool Monogram & Palette Generator for any custom entered tools
@@ -1017,15 +1056,59 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 const worksCount = client.works?.length || 0;
                 const thumbImage = client.logo || client.works?.[0]?.image;
 
+                const clientIdx = clients.findIndex((c) => c.id === client.id);
+                const isFirst = clientIdx <= 0;
+                const isLast = clientIdx === -1 || clientIdx >= clients.length - 1;
+                const isDraggingThis = draggedClientId === client.id;
+                const isDragOverThis = dragOverClientId === client.id;
+
                 return (
                   <div
                     key={client.id}
+                    draggable={true}
+                    onDragStart={(e) => {
+                      setDraggedClientId(client.id);
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", client.id);
+                    }}
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (dragOverClientId !== client.id) {
+                        setDragOverClientId(client.id);
+                      }
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverClientId === client.id) {
+                        setDragOverClientId(null);
+                      }
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      const sourceId = e.dataTransfer.getData("text/plain") || draggedClientId;
+                      if (sourceId && sourceId !== client.id) {
+                        handleReorderClient(sourceId, client.id);
+                      }
+                      setDraggedClientId(null);
+                      setDragOverClientId(null);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedClientId(null);
+                      setDragOverClientId(null);
+                    }}
                     onClick={() => {
                       onSelectClient(client.id);
                       setMobileActiveView("detail");
                     }}
-                    className={`group flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer ${
-                      isSelected
+                    className={`group relative flex items-center justify-between p-2 rounded-xl transition-all cursor-pointer select-none ${
+                      isDraggingThis
+                        ? "opacity-35 scale-[0.98] border-dashed border-cyan-500"
+                        : isDragOverThis
+                        ? isLight
+                          ? "border-cyan-500 bg-cyan-50 shadow-md ring-2 ring-cyan-400"
+                          : "border-cyan-500 bg-cyan-500/10 shadow-md ring-2 ring-cyan-500/40"
+                        : isSelected
                         ? isLight
                           ? "bg-teal-50 border border-teal-300 shadow-xs"
                           : "bg-[#151a21] border border-[#16b09f]/30 shadow-sm"
@@ -1034,7 +1117,15 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                         : "hover:bg-white/[0.04] border border-transparent"
                     }`}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      {/* Drag handle */}
+                      <div
+                        className="opacity-0 group-hover:opacity-60 hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-neutral-400 shrink-0"
+                        title={tr("Tahan & geser untuk mengubah urutan", "Drag to reorder folder", "Tahan & gesea untuak maubah urutan")}
+                      >
+                        <RiDraggable className="w-3.5 h-3.5" />
+                      </div>
+
                       {/* Square Thumbnail */}
                       <div className={`w-10 h-10 rounded-lg overflow-hidden border shrink-0 flex items-center justify-center p-0.5 ${
                         isLight ? "bg-slate-100 border-slate-200" : "bg-neutral-800 border-white/10"
@@ -1073,7 +1164,47 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 shrink-0">
+                    <div className="flex items-center gap-0.5 shrink-0">
+                      {/* Shift Up Button */}
+                      <button
+                        type="button"
+                        disabled={isFirst}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShiftClient(client.id, "up");
+                        }}
+                        className={`p-1 rounded-md transition-all cursor-pointer opacity-0 group-hover:opacity-100 ${
+                          isFirst
+                            ? "text-neutral-600/30 cursor-not-allowed"
+                            : isLight
+                            ? "text-slate-500 hover:text-cyan-700 hover:bg-slate-200"
+                            : "text-neutral-500 hover:text-cyan-400 hover:bg-white/10"
+                        }`}
+                        title={tr("Geser ke atas", "Move up", "Gesea ka ateh")}
+                      >
+                        <RiArrowUpSLine className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Shift Down Button */}
+                      <button
+                        type="button"
+                        disabled={isLast}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleShiftClient(client.id, "down");
+                        }}
+                        className={`p-1 rounded-md transition-all cursor-pointer opacity-0 group-hover:opacity-100 ${
+                          isLast
+                            ? "text-neutral-600/30 cursor-not-allowed"
+                            : isLight
+                            ? "text-slate-500 hover:text-cyan-700 hover:bg-slate-200"
+                            : "text-neutral-500 hover:text-cyan-400 hover:bg-white/10"
+                        }`}
+                        title={tr("Geser ke bawah", "Move down", "Gesea ka bawah")}
+                      >
+                        <RiArrowDownSLine className="w-3.5 h-3.5" />
+                      </button>
+
                       {/* Quick Rename Folder Button */}
                       <button
                         type="button"
@@ -1081,7 +1212,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           e.stopPropagation();
                           onOpenEditFolder(client);
                         }}
-                        className="p-1.5 rounded-lg text-neutral-500 hover:text-cyan-400 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        className="p-1 rounded-md text-neutral-500 hover:text-cyan-400 hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         title={tr("Rename folder", "Ganti nama folder", "Ganti namo folder")}
                       >
                         <HiPencilSquare className="w-3.5 h-3.5" />
@@ -1091,7 +1222,7 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       <button
                         type="button"
                         onClick={(e) => toggleFavorite(client.id, e)}
-                        className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                        className={`p-1 rounded-md transition-colors cursor-pointer ${
                           isFav
                             ? "text-[#16b09f] hover:text-[#119889]"
                             : "text-neutral-600 hover:text-neutral-300 opacity-0 group-hover:opacity-100"
