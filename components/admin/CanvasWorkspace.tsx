@@ -60,6 +60,9 @@ interface CanvasWorkspaceProps {
 
 type CanvasTool = "select" | "hand" | "scale" | "frame" | "section" | "slice" | "shape" | "pen" | "pencil" | "text" | "folder" | "media" | "comment" | "image_place";
 
+// Rotate cursor matching Figma / Canva rotation indicator
+const ROTATE_CURSOR = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none'%3E%3Cpath d='M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46A7.93 7.93 0 0020 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74A7.93 7.93 0 004 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z' fill='%23000' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E") 12 12, crosshair`;
+
 // ── Figma Frame Presets Definition (Matches Screenshot media_1793530390332_97f50010.png) ─────────────
 export interface FramePresetItem {
   id: string;
@@ -783,6 +786,17 @@ export default function CanvasWorkspace({
     initialChildren?: Map<string, { x: number; y: number; width: number; height: number; fontSize?: number }>;
   } | null>(null);
 
+  // Interactive Element Rotation Engine (Dedicated Handle + 4 Corner Hit Zones - Matches User Image 1 & 2)
+  const [rotatingItemId, setRotatingItemId] = useState<string | null>(null);
+  const [liveRotationAngle, setLiveRotationAngle] = useState<number | null>(null);
+  const rotateStartRef = useRef<{
+    centerX: number;
+    centerY: number;
+    startMouseAngle: number;
+    initialItemRotation: number;
+    item: CanvasItem;
+  } | null>(null);
+
   // Canvas items state
   const [items, setItems] = useState<CanvasItem[]>([]);
   const itemsRef = useRef<CanvasItem[]>(items);
@@ -934,6 +948,41 @@ export default function CanvasWorkspace({
       initialChildren: childMap,
     };
   }, [items]);
+
+  const handleRotateMouseDown = useCallback((e: React.MouseEvent, item: CanvasItem) => {
+    e.stopPropagation();
+    e.preventDefault();
+    resizeStartSnapshotRef.current = JSON.parse(JSON.stringify(itemsRef.current));
+    setSelectedId(item.id);
+    setSelectedIds(new Set([item.id]));
+    setRotatingItemId(item.id);
+
+    const dim = getItemDimensions(item);
+    const itW = item.width || dim.width;
+    const itH = item.height || dim.height;
+    const itX = item.x || 0;
+    const itY = item.y || 0;
+
+    const centerX = itX + itW / 2;
+    const centerY = itY + itH / 2;
+
+    const curPan = panRef.current || pan;
+    const curZoom = zoomRef.current || zoom;
+    const canvasMouseX = (e.clientX - curPan.x) / curZoom;
+    const canvasMouseY = (e.clientY - curPan.y) / curZoom;
+
+    const startMouseAngle = Math.atan2(canvasMouseY - centerY, canvasMouseX - centerX) * (180 / Math.PI);
+    const initialItemRotation = item.rotation || 0;
+
+    rotateStartRef.current = {
+      centerX,
+      centerY,
+      startMouseAngle,
+      initialItemRotation,
+      item,
+    };
+    setLiveRotationAngle(Math.round(initialItemRotation));
+  }, [pan, zoom]);
 
   const dragItemInitialPositionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
 
@@ -3862,7 +3911,7 @@ export default function CanvasWorkspace({
 
   // High-performance 0ms-latency window mouse tracking for pan, drag, and marquee selection
   useEffect(() => {
-    if (!isPanning && !draggingItemId && !isMarqueeSelecting && !isDrawingShape && !resizingItemId && !isMultiResizing) return;
+    if (!isPanning && !draggingItemId && !isMarqueeSelecting && !isDrawingShape && !resizingItemId && !isMultiResizing && !rotatingItemId) return;
 
     const onWindowMove = (e: MouseEvent) => {
       if (isPanning) {
@@ -4124,6 +4173,37 @@ export default function CanvasWorkspace({
           })
         );
         setHasChanges(true);
+      } else if (rotatingItemId && rotateStartRef.current) {
+        const { centerX, centerY, startMouseAngle, initialItemRotation } = rotateStartRef.current;
+        const curPan = panRef.current || pan;
+        const curZoom = zoomRef.current || zoom;
+        const curCanvasMouseX = (e.clientX - curPan.x) / curZoom;
+        const curCanvasMouseY = (e.clientY - curPan.y) / curZoom;
+        const curMouseAngle = Math.atan2(curCanvasMouseY - centerY, curCanvasMouseX - centerX) * (180 / Math.PI);
+        const deltaAngle = curMouseAngle - startMouseAngle;
+
+        let rawRotation = (initialItemRotation + deltaAngle) % 360;
+        if (rawRotation < 0) rawRotation += 360;
+
+        let finalRotation = Math.round(rawRotation);
+        if (e.shiftKey) {
+          finalRotation = Math.round(finalRotation / 15) * 15;
+        } else {
+          const snapAngles = [0, 45, 90, 135, 180, 225, 270, 315, 360];
+          for (const snap of snapAngles) {
+            if (Math.abs(finalRotation - snap) <= 2) {
+              finalRotation = snap % 360;
+              break;
+            }
+          }
+        }
+        finalRotation = (finalRotation + 360) % 360;
+
+        setLiveRotationAngle(finalRotation);
+        setItems((prev) =>
+          prev.map((it) => (it.id === rotatingItemId ? { ...it, rotation: finalRotation } : it))
+        );
+        setHasChanges(true);
       } else if (isDrawingShape && drawingShapeStartRef.current) {
         const rect = canvasContainerRef.current?.getBoundingClientRect();
         const curScreenX = rect ? e.clientX - rect.left : e.clientX;
@@ -4258,6 +4338,16 @@ export default function CanvasWorkspace({
         resizeStartRef.current = null;
         setIsMultiResizing(false);
         multiResizeStartRef.current = null;
+      }
+      if (rotatingItemId) {
+        if (resizeStartSnapshotRef.current) {
+          pushHistorySnapshot(resizeStartSnapshotRef.current, true);
+          triggerAutoSave(itemsRef.current, true);
+          resizeStartSnapshotRef.current = null;
+        }
+        setRotatingItemId(null);
+        setLiveRotationAngle(null);
+        rotateStartRef.current = null;
       }
       if (isMarqueeSelecting) {
         setIsMarqueeSelecting(false);
@@ -4395,6 +4485,7 @@ export default function CanvasWorkspace({
     drawingShapeBox,
     resizingItemId,
     isMultiResizing,
+    rotatingItemId,
     panStart,
     pan,
     zoom,
@@ -4419,6 +4510,11 @@ export default function CanvasWorkspace({
       setResizingItemId(null);
       setResizeHandle(null);
       resizeStartRef.current = null;
+    }
+    if (rotatingItemId) {
+      setRotatingItemId(null);
+      setLiveRotationAngle(null);
+      rotateStartRef.current = null;
     }
     if (isMultiResizing) {
       setIsMultiResizing(false);
@@ -8724,7 +8820,92 @@ export default function CanvasWorkspace({
             touchAction: "none",
           }}
         >
-          {items.map((item, index) => {
+          {(() => {
+            const renderRotateControls = (item: CanvasItem) => (
+              <>
+                {/* 1. Dedicated Rotate Handle & Button (Matches Canva & Figma - Unmistakable "Tombol Rotate") */}
+                <div
+                  className="absolute -top-7 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-auto cursor-grab active:cursor-grabbing group/rot z-50 select-none"
+                  onMouseDown={(e) => handleRotateMouseDown(e, item)}
+                  title="Tombol Rotate: Tarik untuk memutar objek (Tahan Shift: kelipatan 15°)"
+                >
+                  <div className="w-[1.5px] h-3 bg-[#0c8ce9]" />
+                  <div className="w-5 h-5 rounded-full bg-white border-2 border-[#0c8ce9] shadow-md flex items-center justify-center text-[#0c8ce9] hover:bg-[#0c8ce9] hover:text-white transition-all transform hover:scale-125">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                      <polyline points="21 3 21 8 16 8" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* 2. 4 Corner Rotation Hit Zones (Matches Figma & User Image 2) */}
+                <div
+                  onMouseDown={(e) => handleRotateMouseDown(e, item)}
+                  style={{ cursor: ROTATE_CURSOR }}
+                  className="absolute -top-5 -left-5 w-6 h-6 z-40 pointer-events-auto flex items-center justify-center group/cz select-none"
+                  title="Putar / Rotate"
+                >
+                  <div className="w-4 h-4 rounded-full bg-black/85 text-white flex items-center justify-center opacity-0 group-hover/cz:opacity-100 transition-opacity shadow-md pointer-events-none">
+                    <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                      <polyline points="21 3 21 8 16 8" />
+                    </svg>
+                  </div>
+                </div>
+                <div
+                  onMouseDown={(e) => handleRotateMouseDown(e, item)}
+                  style={{ cursor: ROTATE_CURSOR }}
+                  className="absolute -top-5 -right-5 w-6 h-6 z-40 pointer-events-auto flex items-center justify-center group/cz select-none"
+                  title="Putar / Rotate"
+                >
+                  <div className="w-4 h-4 rounded-full bg-black/85 text-white flex items-center justify-center opacity-0 group-hover/cz:opacity-100 transition-opacity shadow-md pointer-events-none">
+                    <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                      <polyline points="21 3 21 8 16 8" />
+                    </svg>
+                  </div>
+                </div>
+                <div
+                  onMouseDown={(e) => handleRotateMouseDown(e, item)}
+                  style={{ cursor: ROTATE_CURSOR }}
+                  className="absolute -bottom-5 -left-5 w-6 h-6 z-40 pointer-events-auto flex items-center justify-center group/cz select-none"
+                  title="Putar / Rotate"
+                >
+                  <div className="w-4 h-4 rounded-full bg-black/85 text-white flex items-center justify-center opacity-0 group-hover/cz:opacity-100 transition-opacity shadow-md pointer-events-none">
+                    <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                      <polyline points="21 3 21 8 16 8" />
+                    </svg>
+                  </div>
+                </div>
+                <div
+                  onMouseDown={(e) => handleRotateMouseDown(e, item)}
+                  style={{ cursor: ROTATE_CURSOR }}
+                  className="absolute -bottom-5 -right-5 w-6 h-6 z-40 pointer-events-auto flex items-center justify-center group/cz select-none"
+                  title="Putar / Rotate"
+                >
+                  <div className="w-4 h-4 rounded-full bg-black/85 text-white flex items-center justify-center opacity-0 group-hover/cz:opacity-100 transition-opacity shadow-md pointer-events-none">
+                    <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                      <polyline points="21 3 21 8 16 8" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* 3. Live Rotation Degree Tooltip Badge */}
+                {rotatingItemId === item.id && (
+                  <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-[#0c8ce9] text-white text-[11px] font-mono font-bold shadow-xl whitespace-nowrap pointer-events-none z-50 flex items-center gap-1.5 animate-pulse">
+                    <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                      <polyline points="21 3 21 8 16 8" />
+                    </svg>
+                    <span>{item.rotation || 0}°</span>
+                  </div>
+                )}
+              </>
+            );
+
+            return items.map((item, index) => {
             if (hiddenItemIds.has(item.id)) return null;
             const isSelected = activeTool !== "hand" && (selectedId === item.id || selectedIds.has(item.id));
             const isLocked = lockedItemIds.has(item.id);
@@ -8816,7 +8997,7 @@ export default function CanvasWorkspace({
                   </div>
 
                   {/* Corner & Edge Resize Handles & Dimension Badge when Selected or Resizing */}
-                  {(isSelected || resizingItemId === item.id) && (
+                  {(isSelected || resizingItemId === item.id || rotatingItemId === item.id) && (
                     <>
                       {/* 4 Corner Resize Handles */}
                       <div
@@ -8862,6 +9043,9 @@ export default function CanvasWorkspace({
                       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
                         {Math.round(item.width || secWidth)} × {Math.round(item.height || secHeight)}
                       </div>
+
+                      {/* Rotate Controls */}
+                      {renderRotateControls(item)}
                     </>
                   )}
                 </div>
@@ -8934,7 +9118,7 @@ export default function CanvasWorkspace({
                   }`}
                 >
                   {/* Figma Group Selection Handles & Dimension Badge */}
-                  {isSelected && (
+                  {(isSelected || rotatingItemId === item.id) && (
                     <>
                       {/* 4 Corner Handles */}
                       <div
@@ -8958,6 +9142,9 @@ export default function CanvasWorkspace({
                       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
                         {Math.round(gW)} × {Math.round(gH)}
                       </div>
+
+                      {/* Rotate Controls */}
+                      {renderRotateControls(item)}
                     </>
                   )}
                 </div>
@@ -9011,7 +9198,7 @@ export default function CanvasWorkspace({
                   }`}
                 >
                   {/* Figma Selection Handles & Dimension Badge (Matches Figma Images 4 & 5) */}
-                  {isSelected && (
+                  {(isSelected || resizingItemId === item.id || rotatingItemId === item.id) && (
                     <>
                       {/* 4 Corner Resize Handles */}
                       <div
@@ -9057,6 +9244,9 @@ export default function CanvasWorkspace({
                       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
                         {Math.round(shapeWidth)} × {Math.round(shapeHeight)}
                       </div>
+
+                      {/* Rotate Controls */}
+                      {renderRotateControls(item)}
                     </>
                   )}
                 </div>
@@ -9251,6 +9441,9 @@ export default function CanvasWorkspace({
                       <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
                         {estimatedW} × {estimatedH}
                       </div>
+
+                      {/* Rotate Controls */}
+                      {renderRotateControls(item)}
                     </>
                   )}
 
@@ -9564,7 +9757,7 @@ export default function CanvasWorkspace({
                   )}
 
                   {/* Corner & Edge Resize Handles & Dimension Badge when Selected or Resizing */}
-                  {(isSelected || resizingItemId === item.id) && (
+                  {(isSelected || resizingItemId === item.id || rotatingItemId === item.id) && (
                     <>
                       {/* 4 Corner Resize Handles (Matches Screenshot Image 1 & 2) */}
                       <div
@@ -9610,6 +9803,9 @@ export default function CanvasWorkspace({
                       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
                         {Math.round(frameWidth)} × {Math.round(frameHeight)}
                       </div>
+
+                      {/* Rotate Controls */}
+                      {renderRotateControls(item)}
                     </>
                   )}
                 </div>
@@ -9822,7 +10018,7 @@ export default function CanvasWorkspace({
                 )}
 
                 {/* Figma Selection Handles & Dimension Badge (ALWAYS at global canvas coords, unclipped!) */}
-                {isSelected && (
+                {(isSelected || resizingItemId === item.id || rotatingItemId === item.id) && (
                   <div
                     style={{
                       position: "absolute",
@@ -9879,11 +10075,15 @@ export default function CanvasWorkspace({
                     <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40">
                       {Math.round(currentWidth)} × {Math.round(currentHeight)}
                     </div>
+
+                    {/* Rotate Controls */}
+                    {renderRotateControls(item)}
                   </div>
                 )}
               </React.Fragment>
             );
-          })}
+          });
+        })()}
 
           {/* Combined Multi-Selection Bounding Box & Dimension Badge (Figma Style) */}
           {multiSelectionBounds && activeTool !== "hand" && (
