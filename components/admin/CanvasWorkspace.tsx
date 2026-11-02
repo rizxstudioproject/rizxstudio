@@ -9604,7 +9604,18 @@ export default function CanvasWorkspace({
             }
 
             const currentWidth = item.width || cardWidth;
-            const currentHeight = item.height || (item.aspect === "16:9" ? Math.round(currentWidth * (9 / 16)) : item.aspect === "1:1" ? currentWidth : item.aspect === "9:16" ? Math.round(currentWidth * (16 / 9)) : Math.round(currentWidth * (5 / 4)));
+            let defaultRatio = 5 / 4;
+            if (item.aspect === "16:9") defaultRatio = 9 / 16;
+            else if (item.aspect === "9:16") defaultRatio = 16 / 9;
+            else if (item.aspect === "1:1") defaultRatio = 1;
+            else if (item.aspect === "4:5") defaultRatio = 5 / 4;
+            else if (item.aspect && item.aspect.includes(":")) {
+              const [wStr, hStr] = item.aspect.split(":");
+              const wNum = parseFloat(wStr);
+              const hNum = parseFloat(hStr);
+              if (wNum && hNum && wNum > 0) defaultRatio = hNum / wNum;
+            }
+            const currentHeight = item.height || Math.round(currentWidth * defaultRatio);
             const clipPathStyle = getItemClipPath(item);
             const isChildOfFrame = Boolean(item.frameId || getParentFrameId(item));
 
@@ -9625,17 +9636,17 @@ export default function CanvasWorkspace({
                 }}
                 style={{
                   transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
-                  width: `${item.width || cardWidth}px`,
-                  height: isChildOfFrame ? `${currentHeight}px` : item.height ? `${item.height}px` : undefined,
+                  width: `${currentWidth}px`,
+                  height: `${currentHeight}px`,
                   opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
-                  borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : undefined,
+                  borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                   boxShadow: isChildOfFrame ? undefined : getEffectBoxShadow(item),
                   filter: getEffectFilter(item),
                   zIndex: isChildOfFrame ? 30 + index : 10 + index,
                   clipPath: clipPathStyle ? clipPathStyle : undefined,
                   touchAction: "none",
                 }}
-                className={`group absolute ${isChildOfFrame ? "rounded-none" : "rounded-2xl"} flex flex-col select-none cursor-grab active:cursor-grabbing ${
+                className={`group absolute select-none cursor-grab active:cursor-grabbing ${
                   draggingItemId === item.id
                     ? "!transition-none will-change-transform cursor-grabbing shadow-[0_30px_90px_rgba(0,0,0,0.85)] scale-[1.01]"
                     : "transition-colors duration-150"
@@ -9644,7 +9655,7 @@ export default function CanvasWorkspace({
                     ? "ring-2 ring-[#0c8ce9] shadow-[0_25px_60px_rgba(12,140,233,0.35)]"
                     : isChildOfFrame
                     ? ""
-                    : "hover:ring-1 hover:ring-white/40 shadow-2xl"
+                    : "hover:ring-1 hover:ring-white/40"
                 }`}
               >
                 {/* Figma Selection Frame Handles & Dimension Badge */}
@@ -9697,92 +9708,30 @@ export default function CanvasWorkspace({
                   </>
                 )}
 
-                {/* Card Content Wrapper */}
-                <div className="flex flex-col w-full h-full">
-                {/* Header Label (Editable Title & Actions) - only for standalone cards */}
-                {!isChildOfFrame && (
-                  <div className={`flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-xl border backdrop-blur-md text-[11px] font-mono ${
-                    isLight
-                      ? "bg-white/95 border-slate-300 text-slate-700 shadow-sm"
-                      : "bg-black/80 border-white/10 text-neutral-300"
-                  }`}>
-                    <div className="flex items-center gap-1.5 flex-1 min-w-0 pr-2">
-                      <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0" />
-                      <input
-                        type="text"
-                        value={item.title}
-                        onChange={(e) => handleUpdateItemTitle(item.id, e.target.value)}
-                        className={`bg-transparent border-b border-transparent focus:border-teal-500 font-bold truncate focus:outline-none w-full canvas-item-input ${
-                          isLight ? "text-slate-900 hover:border-slate-300" : "text-white hover:border-white/20"
-                        }`}
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      {isLocked && (
-                        <span className="p-0.5 text-amber-500" title="Layer Terkunci">
-                          <HiLockClosed className="w-3.5 h-3.5" />
-                        </span>
-                      )}
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${
-                        isLight ? "bg-slate-100 text-teal-700 border-slate-200" : "bg-white/10 text-teal-300 border-white/10"
-                      }`}>
-                        {item.aspect === "original" ? "ORIGINAL" : item.aspect}
-                      </span>
-                      {item.isVideo && (
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-500 text-[9px] font-bold border border-emerald-500/30 uppercase">
-                          VIDEO
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteItem(item.id);
-                        }}
-                        className="text-neutral-400 hover:text-red-500 p-1 rounded transition-colors"
-                        title="Hapus Media"
-                      >
-                        <HiTrash className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* Media Container - High-DPI Sharp Rendering */}
+                {/* Pure Media Element - Borderless, Frame-free, Text-free, 100% Image */}
                 <div
-                  className={`relative w-full overflow-hidden flex items-center justify-center cursor-pointer ${
-                    isChildOfFrame
-                      ? "h-full rounded-none border-none shadow-none bg-transparent"
-                      : "rounded-2xl bg-neutral-950 border border-white/15 shadow-2xl"
-                  }`}
+                  className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto"
                   style={{
-                    aspectRatio: isChildOfFrame ? undefined : cardAspect,
-                    minHeight: !isChildOfFrame && item.aspect === "original" ? "320px" : undefined,
-                  }}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    const card = e.currentTarget.parentElement as HTMLElement;
-                    if (selectedId === item.id || selectedIds.has(item.id)) {
-                      fitItemToScreen(item, card);
-                    } else {
-                      setSelectedId(item.id);
-                      setSelectedIds(new Set([item.id]));
-                    }
-                  }}
-                  onTouchEnd={(e) => {
-                    const card = e.currentTarget.parentElement as HTMLElement;
-                    handleItemTouchEnd(e, item, card);
+                    borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                   }}
                 >
-                  {item.image ? (
+                  {item.isVideo && item.image ? (
+                    <video
+                      src={item.image}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      className="w-full h-full object-cover pointer-events-none select-none"
+                    />
+                  ) : item.image ? (
                     <img
                       src={item.image}
-                      alt={item.title}
+                      alt={item.title || "Image"}
                       draggable={false}
                       decoding="sync"
                       loading="eager"
-                      className={`w-full h-full ${isChildOfFrame ? "object-cover" : "object-contain"} pointer-events-none select-none`}
+                      className="w-full h-full object-cover pointer-events-none select-none"
                       style={{
                         imageRendering: "-webkit-optimize-contrast",
                         WebkitBackfaceVisibility: "hidden",
@@ -9792,17 +9741,6 @@ export default function CanvasWorkspace({
                   ) : (
                     <div className="text-neutral-600 text-xs font-mono">No Media</div>
                   )}
-
-                  {/* Corner Drag Indicator */}
-                  {isSelected && !isChildOfFrame && (
-                    <>
-                      <div className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
-                      <div className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
-                      <div className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
-                      <div className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-teal-400 border border-black rounded-xs pointer-events-none" />
-                    </>
-                  )}
-                </div>
                 </div>
               </div>
             );
