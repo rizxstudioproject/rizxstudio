@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { FaInstagram, FaLinkedinIn, FaWhatsapp } from "react-icons/fa6";
-import { HiBars3, HiXMark, HiArrowUp, HiFolder, HiPaintBrush, HiChevronDown } from "react-icons/hi2";
-import { RiSunFill, RiMoonFill } from "react-icons/ri";
+import { HiBars3, HiXMark, HiArrowUp, HiFolder, HiChevronDown } from "react-icons/hi2";
+import { RiSunFill, RiMoonFill, RiGridFill } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { usePortfolioData } from "@/context/PortfolioDataContext";
@@ -364,7 +364,7 @@ export default function Navbar() {
                           : "hover:bg-white/10 text-neutral-200 hover:text-white"
                       }`}
                     >
-                      <HiPaintBrush className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900" : "text-white"}`} />
+                      <RiGridFill className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900 group-hover:text-cyan-600" : "text-white group-hover:text-cyan-400"}`} />
                       <span>Rizx Canvas</span>
                     </button>
 
@@ -613,7 +613,7 @@ export default function Navbar() {
                       : "hover:bg-white/10 text-neutral-200 hover:text-white"
                   }`}
                 >
-                  <HiPaintBrush className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900" : "text-white"}`} />
+                  <RiGridFill className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900 group-hover:text-cyan-600" : "text-white group-hover:text-cyan-400"}`} />
                   <span>Rizx Canvas</span>
                 </button>
 

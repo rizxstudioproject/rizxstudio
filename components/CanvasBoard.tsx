@@ -10,7 +10,7 @@ import {
   HiShieldCheck,
   HiQuestionMarkCircle,
 } from "react-icons/hi2";
-import { RiFullscreenFill, RiFullscreenExitFill } from "react-icons/ri";
+import { RiFullscreenFill, RiFullscreenExitFill, RiGridFill } from "react-icons/ri";
 import { usePortfolioData, CanvasItem } from "@/context/PortfolioDataContext";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
@@ -996,8 +996,12 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
               ? "bg-white/95 border-slate-300 text-slate-900 shadow-xl shadow-slate-200/60"
               : "bg-[#13151b]/90 border-white/10 text-white shadow-2xl"
           }`}>
-            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-cyan-400 to-[#16b09f] flex items-center justify-center text-black font-black text-xs shadow-md">
-              <span className="font-mono text-[11px] font-black">R</span>
+            <div className={`w-7 h-7 rounded-lg border flex items-center justify-center p-1 shrink-0 ${
+              isLight
+                ? "bg-slate-100 border-slate-200 text-slate-900 shadow-xs"
+                : "bg-neutral-900 border-white/10 text-cyan-400 shadow-md shadow-black/40"
+            }`}>
+              <RiGridFill className="w-4 h-4 shrink-0" />
             </div>
             <div>
               <div className="flex items-center gap-2">

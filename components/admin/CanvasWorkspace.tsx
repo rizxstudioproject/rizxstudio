@@ -45,6 +45,7 @@ import {
   HiQueueList,
 } from "react-icons/hi2";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
+import { RiGridFill } from "react-icons/ri";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import { useLang } from "@/context/LanguageContext";
@@ -6643,16 +6644,18 @@ export default function CanvasWorkspace({
             : "bg-[#222222]/95 border-white/10 text-white shadow-[0_12px_32px_rgba(0,0,0,0.7)]"
         }`}
       >
-        {/* Studio Monogram Logo */}
+        {/* Studio Monogram / Canvas Icon (Matches Admin Dashboard RiGridFill / /navbar-logo.png) */}
         <button
           type="button"
           onClick={() => setIsPillMenuOpen((prev) => !prev)}
           title="Rizx Studio Canvas Menu"
-          className="w-6 h-6 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+          className={`w-7 h-7 rounded-lg border flex items-center justify-center p-1 transition-all cursor-pointer ${
+            isLight
+              ? "bg-slate-100 border-slate-200 text-slate-900 hover:bg-slate-200 shadow-xs"
+              : "bg-neutral-900 border-white/10 text-cyan-400 hover:bg-neutral-800 shadow-md shadow-black/40"
+          }`}
         >
-          <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-          </svg>
+          <RiGridFill className="w-4 h-4 shrink-0" />
         </button>
 
         {/* Title: Portfolio (with subtle dropdown caret) */}
@@ -6709,7 +6712,10 @@ export default function CanvasWorkspace({
       {isPillMenuOpen && (
         <div className="absolute top-full mt-2 left-0 w-64 rounded-2xl bg-[#181a20]/95 backdrop-blur-2xl border border-white/15 p-2 shadow-2xl z-50 text-xs font-mono text-neutral-300 flex flex-col gap-1 animate-in fade-in zoom-in-95 duration-100">
           <div className="px-2 py-1.5 text-[11px] text-neutral-400 border-b border-white/10 flex items-center justify-between">
-            <span className="font-bold text-white">Rizx Canvas Studio</span>
+            <div className="flex items-center gap-2">
+              <RiGridFill className="w-3.5 h-3.5 text-cyan-400" />
+              <span className="font-bold text-white">Rizx Canvas Studio</span>
+            </div>
             <span className="text-[10px] text-teal-400 bg-teal-500/10 px-1.5 py-0.5 rounded">v2.4</span>
           </div>
 
