@@ -8005,11 +8005,7 @@ export default function CanvasWorkspace({
                 onContextMenu={handleCanvasContextMenu}
                 className="flex-1 overflow-y-auto p-2 space-y-1 font-mono text-xs no-scrollbar"
               >
-                {rootItems.length === 0 ? (
-                  <div className="text-center py-8 text-neutral-500 text-xs font-sans">
-                    Belum ada layer di canvas.
-                  </div>
-                ) : (
+                {rootItems.length > 0 && (
                   <>
                     {[...rootItems].reverse().map((rootIt) => renderLayerRow(rootIt, 0))}
                     {/* Bottom Drop Zone to move a layer to the very bottom of the stack */}
