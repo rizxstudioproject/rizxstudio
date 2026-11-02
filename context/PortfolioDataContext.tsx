@@ -665,7 +665,23 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const [portfolioIntro, setPortfolioIntro] = useState<PortfolioIntroData>(defaultPortfolioIntroData);
   const [portfolioRunner, setPortfolioRunner] = useState<PortfolioRunnerData>(defaultPortfolioRunnerData);
   const [heroBanner, setHeroBanner] = useState<HeroBannerData>(defaultHeroBannerData);
-  const [canvasItems, setCanvasItems] = useState<CanvasItem[]>([]);
+  const [canvasItems, setCanvasItems] = useState<CanvasItem[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = safeJsonParseMedia(stored);
+          if (parsed && Array.isArray(parsed.canvasItems)) {
+            return parsed.canvasItems.map((item: any) => ({
+              ...item,
+              image: normalizeMediaUrl(item.image),
+            }));
+          }
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
   const [trashItems, setTrashItems] = useState<TrashItem[]>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -767,7 +783,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         const targetPortfolioIntro = newPortfolioIntro || portfolioIntroRef.current;
         const targetPortfolioRunner = newPortfolioRunner || portfolioRunnerRef.current;
         const targetHeroBanner = newHeroBanner || heroBannerRef.current;
-        const targetCanvasItems = newCanvasItems || canvasItemsRef.current;
+        const targetCanvasItems = newCanvasItems !== undefined ? newCanvasItems : canvasItemsRef.current;
 
         const payload = {
           stage3: targetStage3,
@@ -2156,6 +2172,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       }));
       setCanvasItems(normalized);
       canvasItemsRef.current = normalized;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("rizx_canvas_seeded", "true");
+      }
       persistState(stage3, clients, about, heroWorks, clientLogos, portfolioIntro, portfolioRunner, heroBanner, normalized);
 
       if (isSupabaseConfigured && supabase) {
@@ -2203,6 +2222,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   const resetPortfolioData = useCallback(async () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("rizx_canvas_seeded");
     } catch (e) {
       console.warn(e);
     }

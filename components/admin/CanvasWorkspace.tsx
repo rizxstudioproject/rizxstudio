@@ -1544,28 +1544,46 @@ export default function CanvasWorkspace({
 
   // Initialize items from context or layout initial client works
   useEffect(() => {
+    // If the user has unsaved changes in progress, don't overwrite!
+    if (hasChangesRef.current) return;
+
+    // Check if canvas has already been seeded / saved in localStorage or context
+    const isSeeded = typeof window !== "undefined" && (
+      localStorage.getItem("rizx_canvas_seeded") === "true" ||
+      Boolean(localStorage.getItem("rizx_portfolio_custom_data_v1")?.includes('"canvasItems"'))
+    );
+
+    // If canvas has been seeded/saved previously, strictly respect canvasItems state (even if empty)
+    if (isSeeded) {
+      const cleanedItems = (canvasItems || []).filter(
+        (i) => !i.id.startsWith("folder-") && i.type !== "folder"
+      );
+      setItems(cleanedItems);
+      initialItemsRef.current = JSON.parse(JSON.stringify(cleanedItems));
+      setHasChanges(false);
+      return;
+    }
+
     if (canvasItems && canvasItems.length > 0) {
       // Clean legacy auto-generated folder headers if any
       const cleanedItems = canvasItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
-      const hasMedia = cleanedItems.some(
-        (it) => it.type !== "frame" && it.type !== "section" && (it.image || it.videoId)
-      );
-      if (hasMedia || cleanedItems.length > 1) {
-        setItems(cleanedItems);
-        initialItemsRef.current = JSON.parse(JSON.stringify(cleanedItems));
-        setHasChanges(false);
-        return;
+      setItems(cleanedItems);
+      initialItemsRef.current = JSON.parse(JSON.stringify(cleanedItems));
+      setHasChanges(false);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("rizx_canvas_seeded", "true");
       }
+      return;
     }
 
-    // Default: Seed initial layout with presentation frame and all client deliverables
+    // Default: Seed initial layout with presentation frame and all client deliverables ONLY ONCE on brand new empty environment
     const initialList: CanvasItem[] = [];
 
     // 1. Initial Presentation Frame
     initialList.push({
       id: "frame-presentation-1",
       title: "Digital Campaign Showcase",
-      type: "frame",
+      type: "media",
       mediaType: "frame",
       x: 40,
       y: 40,
@@ -1618,6 +1636,9 @@ export default function CanvasWorkspace({
     setItems(initialList);
     initialItemsRef.current = JSON.parse(JSON.stringify(initialList));
     setHasChanges(false);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("rizx_canvas_seeded", "true");
+    }
   }, [canvasItems, clients]);
 
   // Context Menu & Figma Action Handlers
@@ -1999,7 +2020,7 @@ export default function CanvasWorkspace({
 
   useEffect(() => {
     return () => {
-      if (hasChangesRef.current && itemsRef.current.length > 0) {
+      if (hasChangesRef.current && itemsRef.current) {
         updateCanvasItems(itemsRef.current).catch(() => {});
       }
     };
@@ -2755,14 +2776,16 @@ export default function CanvasWorkspace({
       }
       if ((e.key === "Delete" || e.key === "Backspace") && (selectedId || selectedIds.size > 0)) {
         e.preventDefault();
-        if (selectedIds.size > 1) {
-          const idsToDelete = new Set(selectedIds);
-          const updated = items.filter((it) => !idsToDelete.has(it.id));
+        const idsToDelete = new Set(selectedIds);
+        if (selectedId) idsToDelete.add(selectedId);
+        if (idsToDelete.size > 0) {
+          const updated = items.filter(
+            (it) => !idsToDelete.has(it.id) && (!it.frameId || !idsToDelete.has(it.frameId))
+          );
           updateItemsWithTracking(updated);
           setSelectedIds(new Set());
           setSelectedId(null);
-        } else if (selectedId) {
-          handleDeleteItem(selectedId);
+          if (editingTextId && idsToDelete.has(editingTextId)) setEditingTextId(null);
         }
       }
       // Figma shortcuts
@@ -4474,6 +4497,14 @@ export default function CanvasWorkspace({
     const updated = items.filter((it) => it.id !== id && it.frameId !== id);
     updateItemsWithTracking(updated);
     if (selectedId === id) setSelectedId(null);
+    setSelectedIds((prev) => {
+      if (prev.has(id)) {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      }
+      return prev;
+    });
     if (editingTextId === id) setEditingTextId(null);
   };
 
@@ -4761,6 +4792,9 @@ export default function CanvasWorkspace({
       await updateCanvasItems(items);
       initialItemsRef.current = JSON.parse(JSON.stringify(items));
       setHasChanges(false);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("rizx_canvas_seeded", "true");
+      }
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3500);
     } catch (_) {
@@ -10000,7 +10034,19 @@ export default function CanvasWorkspace({
               <button
                 type="button"
                 onClick={() => {
-                  if (contextMenu.item) handleDeleteItem(contextMenu.item.id);
+                  if (contextMenu.item) {
+                    if (selectedIds.has(contextMenu.item.id) && selectedIds.size > 1) {
+                      const idsToDelete = new Set(selectedIds);
+                      const updated = items.filter(
+                        (it) => !idsToDelete.has(it.id) && (!it.frameId || !idsToDelete.has(it.frameId))
+                      );
+                      updateItemsWithTracking(updated);
+                      setSelectedIds(new Set());
+                      setSelectedId(null);
+                    } else {
+                      handleDeleteItem(contextMenu.item.id);
+                    }
+                  }
                   setContextMenu(null);
                 }}
                 className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left font-medium ${
