@@ -1216,6 +1216,51 @@ export default function CanvasWorkspace({
     setHasChanges(true);
   }, [selectedId]);
 
+  // Figma-style Value Scrubber (Drag left/right on input icons, labels, or edges to adjust values)
+  const handleStartScrub = useCallback((
+    e: React.MouseEvent,
+    config: {
+      getValue: () => number;
+      setValue: (val: number) => void;
+      min?: number;
+      max?: number;
+      sensitivity?: number;
+    }
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startX = e.clientX;
+    const startVal = config.getValue();
+    const min = config.min !== undefined ? config.min : -Infinity;
+    const max = config.max !== undefined ? config.max : Infinity;
+    const sensitivity = config.sensitivity || 1;
+
+    const originalCursor = document.body.style.cursor;
+    const originalUserSelect = document.body.style.userSelect;
+    document.body.style.cursor = "ew-resize";
+    document.body.style.userSelect = "none";
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      moveEvent.preventDefault();
+      const deltaX = moveEvent.clientX - startX;
+      const multiplier = moveEvent.shiftKey ? 5 : 1;
+      const change = Math.round(deltaX * sensitivity * multiplier);
+      const newVal = Math.max(min, Math.min(max, startVal + change));
+      config.setValue(newVal);
+    };
+
+    const onMouseUp = () => {
+      document.body.style.cursor = originalCursor;
+      document.body.style.userSelect = originalUserSelect;
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  }, []);
+
   const handleShareCanvas = useCallback(async () => {
     const url = typeof window !== "undefined" ? `${window.location.origin}/canvas` : "/canvas";
     try {
@@ -5430,7 +5475,18 @@ export default function CanvasWorkspace({
             {/* Position Coordinates (X, Y) */}
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
-                <span className="font-mono text-neutral-400 select-none">X</span>
+                <span
+                  onMouseDown={(e) =>
+                    handleStartScrub(e, {
+                      getValue: () => (selectedItem ? itemX : 0),
+                      setValue: (v) => updateSelectedItem({ x: v }),
+                    })
+                  }
+                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  title="Geser kiri/kanan untuk mengubah X"
+                >
+                  X
+                </span>
                 <input
                   type="number"
                   value={selectedItem ? itemX : ""}
@@ -5440,7 +5496,18 @@ export default function CanvasWorkspace({
                 />
               </div>
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
-                <span className="font-mono text-neutral-400 select-none">Y</span>
+                <span
+                  onMouseDown={(e) =>
+                    handleStartScrub(e, {
+                      getValue: () => (selectedItem ? itemY : 0),
+                      setValue: (v) => updateSelectedItem({ y: v }),
+                    })
+                  }
+                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  title="Geser kiri/kanan untuk mengubah Y"
+                >
+                  Y
+                </span>
                 <input
                   type="number"
                   value={selectedItem ? itemY : ""}
@@ -5454,7 +5521,18 @@ export default function CanvasWorkspace({
             {/* Rotation & Flip */}
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
-                <span className="font-mono text-neutral-400 select-none">∠</span>
+                <span
+                  onMouseDown={(e) =>
+                    handleStartScrub(e, {
+                      getValue: () => (selectedItem ? itemRotation : 0),
+                      setValue: (v) => updateSelectedItem({ rotation: v % 360 }),
+                    })
+                  }
+                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  title="Geser kiri/kanan untuk memutar sudut"
+                >
+                  ∠
+                </span>
                 <input
                   type="number"
                   value={selectedItem ? itemRotation : 0}
@@ -5557,7 +5635,20 @@ export default function CanvasWorkspace({
             {/* Dimensions (W, H) */}
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
-                <span className="font-mono text-neutral-400 select-none">W</span>
+                <span
+                  onMouseDown={(e) =>
+                    handleStartScrub(e, {
+                      getValue: () => (selectedItem ? itemWidth : 1080),
+                      setValue: (v) => updateSelectedItem({ width: v }),
+                      min: 10,
+                      max: 5000,
+                    })
+                  }
+                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  title="Geser kiri/kanan untuk mengubah lebar (W)"
+                >
+                  W
+                </span>
                 {(isTextSelected || selectedItem?.type === "text") && (selectedItem?.textAutoResize || "auto_width") === "auto_width" ? (
                   <span className="w-full text-neutral-400 font-mono text-xs select-none">Auto</span>
                 ) : (
@@ -5577,7 +5668,20 @@ export default function CanvasWorkspace({
                 )}
               </div>
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
-                <span className="font-mono text-neutral-400 select-none">H</span>
+                <span
+                  onMouseDown={(e) =>
+                    handleStartScrub(e, {
+                      getValue: () => (selectedItem ? itemHeight : 1350),
+                      setValue: (v) => updateSelectedItem({ height: v }),
+                      min: 10,
+                      max: 5000,
+                    })
+                  }
+                  className="font-mono text-neutral-400 select-none cursor-ew-resize hover:text-white transition-colors"
+                  title="Geser kiri/kanan untuk mengubah tinggi (H)"
+                >
+                  H
+                </span>
                 {(isTextSelected || selectedItem?.type === "text") && (selectedItem?.textAutoResize || "auto_width") !== "fixed" ? (
                   <span className="w-full text-neutral-400 font-mono text-xs select-none">Auto</span>
                 ) : (
@@ -5663,9 +5767,35 @@ export default function CanvasWorkspace({
             <div className="grid grid-cols-2 gap-2 text-xs">
               {/* Opacity */}
               <div className="space-y-1">
-                <span className="text-[10px] text-neutral-400">Opacity</span>
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
-                  <span className="text-neutral-400 text-xs">▦</span>
+                <span
+                  onMouseDown={(e) =>
+                    handleStartScrub(e, {
+                      getValue: () => (selectedItem?.opacity !== undefined ? selectedItem.opacity : 100),
+                      setValue: (v) => updateSelectedItem({ opacity: v }),
+                      min: 0,
+                      max: 100,
+                    })
+                  }
+                  className="text-[10px] text-neutral-400 cursor-ew-resize hover:text-white select-none transition-colors"
+                  title="Geser kiri/kanan untuk mengubah opacity"
+                >
+                  Opacity
+                </span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9] relative group">
+                  <span
+                    onMouseDown={(e) =>
+                      handleStartScrub(e, {
+                        getValue: () => (selectedItem?.opacity !== undefined ? selectedItem.opacity : 100),
+                        setValue: (v) => updateSelectedItem({ opacity: v }),
+                        min: 0,
+                        max: 100,
+                      })
+                    }
+                    className="text-neutral-400 text-xs cursor-ew-resize hover:text-white select-none transition-colors"
+                    title="Geser kiri/kanan untuk mengubah opacity"
+                  >
+                    ▦
+                  </span>
                   <input
                     type="number"
                     min={0}
@@ -5680,9 +5810,35 @@ export default function CanvasWorkspace({
 
               {/* Corner radius */}
               <div className="space-y-1">
-                <span className="text-[10px] text-neutral-400">Corner radius</span>
-                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
-                  <span className="text-neutral-400 text-xs">⛶</span>
+                <span
+                  onMouseDown={(e) =>
+                    handleStartScrub(e, {
+                      getValue: () => (selectedItem?.cornerRadius !== undefined ? selectedItem.cornerRadius : 0),
+                      setValue: (v) => updateSelectedItem({ cornerRadius: v }),
+                      min: 0,
+                      max: 300,
+                    })
+                  }
+                  className="text-[10px] text-neutral-400 cursor-ew-resize hover:text-white select-none transition-colors"
+                  title="Geser kiri/kanan untuk mengubah corner radius"
+                >
+                  Corner radius
+                </span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9] relative group">
+                  <span
+                    onMouseDown={(e) =>
+                      handleStartScrub(e, {
+                        getValue: () => (selectedItem?.cornerRadius !== undefined ? selectedItem.cornerRadius : 0),
+                        setValue: (v) => updateSelectedItem({ cornerRadius: v }),
+                        min: 0,
+                        max: 300,
+                      })
+                    }
+                    className="text-neutral-400 text-xs cursor-ew-resize hover:text-white select-none transition-colors"
+                    title="Geser kiri/kanan untuk mengubah corner radius"
+                  >
+                    ⛶
+                  </span>
                   <input
                     type="number"
                     min={0}
@@ -5738,8 +5894,24 @@ export default function CanvasWorkspace({
                   </select>
                   <HiChevronDown className="w-3.5 h-3.5 text-neutral-400 absolute right-2 top-2 pointer-events-none" />
                 </div>
-                <div className="relative" ref={fontSizeDropdownRef}>
-                  <div className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
+                <div className="relative group" ref={fontSizeDropdownRef}>
+                  {/* Figma-style Left Edge Scrubber for Font Size (Matches User Screenshot media_1793596159306_72d4d5d9.jpg) */}
+                  <div
+                    onMouseDown={(e) =>
+                      handleStartScrub(e, {
+                        getValue: () => (selectedItem?.fontSize || 48),
+                        setValue: (v) => updateSelectedItem({ fontSize: v }),
+                        min: 8,
+                        max: 256,
+                      })
+                    }
+                    className="absolute -left-1.5 top-0 bottom-0 w-3.5 cursor-ew-resize z-20 flex items-center justify-center select-none"
+                    title="Geser kiri/kanan untuk mengubah ukuran font"
+                  >
+                    <div className="w-[3px] h-3.5 rounded-full bg-neutral-600/30 group-hover:bg-[#0c8ce9] transition-colors" />
+                  </div>
+
+                  <div className="flex items-center gap-1 pl-2.5 pr-1 py-1 rounded-lg bg-[#2c2c2c] border border-transparent focus-within:border-[#0c8ce9]">
                     <input
                       type="number"
                       value={selectedItem?.fontSize || 48}
