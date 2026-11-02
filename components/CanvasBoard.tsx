@@ -13,6 +13,7 @@ import {
 import { RiFullscreenFill, RiFullscreenExitFill, RiGridFill } from "react-icons/ri";
 import { usePortfolioData, CanvasItem } from "@/context/PortfolioDataContext";
 import { normalizeMediaUrl } from "@/lib/mediaService";
+import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 
@@ -84,24 +85,55 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const boardContentRef = useRef<HTMLDivElement>(null);
 
+  // Synchronized canvas state matching CanvasWorkspace
+  const [boardCanvasItems, setBoardCanvasItems] = useState<CanvasItem[]>(() => {
+    if (canvasItems && canvasItems.length > 0) return canvasItems;
+    if (typeof window !== "undefined") {
+      try {
+        const storedSheets = localStorage.getItem("rizx_canvas_sheets");
+        if (storedSheets) {
+          const parsed = JSON.parse(storedSheets);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (_) {}
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    if (canvasItems && canvasItems.length > 0) {
+      setBoardCanvasItems(canvasItems);
+      return;
+    }
+    // High-capacity IndexedDB fallback
+    getCanvasItemsFromDB().then((dbItems) => {
+      if (Array.isArray(dbItems) && dbItems.length > 0) {
+        setBoardCanvasItems(dbItems);
+      }
+    });
+  }, [canvasItems]);
+
+  const activeCanvasItems = boardCanvasItems.length > 0 ? boardCanvasItems : (canvasItems || []);
+
   const isCanvasCustomized = useMemo(() => {
     if (typeof window === "undefined") return false;
     return (
       localStorage.getItem("rizx_canvas_seeded") === "true" ||
+      Boolean(localStorage.getItem("rizx_canvas_sheets")) ||
       Boolean(localStorage.getItem("rizx_portfolio_custom_data_v1")?.includes('"canvasItems"'))
     );
-  }, [canvasItems]);
+  }, [activeCanvasItems]);
 
   const hasFreeformLayout = useMemo(() => {
-    if (canvasItems && canvasItems.length > 0) return true;
+    if (activeCanvasItems && activeCanvasItems.length > 0) return true;
     if (isCanvasCustomized) return true;
     return false;
-  }, [canvasItems, isCanvasCustomized]);
+  }, [activeCanvasItems, isCanvasCustomized]);
 
   // Gather all works across client vaults into Canvas reference sheets
   const sheets: CanvasSheetItem[] = useMemo(() => {
-    if (isCanvasCustomized || (canvasItems && canvasItems.length > 0)) {
-      const validCanvasMedia = (canvasItems || []).filter(
+    if (isCanvasCustomized || (activeCanvasItems && activeCanvasItems.length > 0)) {
+      const validCanvasMedia = (activeCanvasItems || []).filter(
         (item) => item.type !== "section" && item.mediaType !== "section" && item.type !== "text" && item.mediaType !== "text" && (item.image || item.videoId)
       );
 
@@ -177,7 +209,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     if (clientWidth === 0 || clientHeight === 0) return;
 
     if (hasFreeformLayout) {
-      if (!canvasItems || canvasItems.length === 0) {
+      if (!activeCanvasItems || activeCanvasItems.length === 0) {
         setZoom(0.8);
         setPan({
           x: Math.round(clientWidth / 2 - 480 * 0.8),
@@ -192,7 +224,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       let maxX = -Infinity;
       let maxY = -Infinity;
 
-      canvasItems.forEach((it) => {
+      activeCanvasItems.forEach((it) => {
         const x = it.x || 0;
         const y = it.y || 0;
         let w = it.width || 440;
@@ -243,7 +275,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       y: Math.max(70, (clientHeight - gridBoardHeight * fitScale) / 2),
     });
     setFittedSheetId(null);
-  }, [hasFreeformLayout, canvasItems, gridBoardWidth, gridBoardHeight]);
+  }, [hasFreeformLayout, activeCanvasItems, gridBoardWidth, gridBoardHeight]);
 
   // Fit specific sheet image automatically to screen on double-click / double-tap (Stays until single-tap)
   const fitSheetToScreen = useCallback(
@@ -1200,42 +1232,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         {hasFreeformLayout ? (
           <div className="relative w-[5000px] h-[4000px] select-none">
             {(() => {
-              const getItemClipPath = (item: CanvasItem) => {
-                if (!item.frameId) return undefined;
-                const parentFrame = (canvasItems || []).find((f) => f.id === item.frameId);
-                if (!parentFrame) return undefined;
-                if (parentFrame.clipContent === false) return undefined;
-
-                const fLeft = parentFrame.x || 0;
-                const fTop = parentFrame.y || 0;
-                const fWidth = parentFrame.width || 440;
-                const fHeight = parentFrame.height || 550;
-                const fRight = fLeft + fWidth;
-                const fBottom = fTop + fHeight;
-
-                const itLeft = item.x || 0;
-                const itTop = item.y || 0;
-                let itWidth = item.width || 440;
-                let itHeight = item.height || 550;
-                if (item.aspect === "16:9") itHeight = Math.round(itWidth * (9 / 16));
-                else if (item.aspect === "1:1") itHeight = itWidth;
-                else if (item.aspect === "9:16") itHeight = Math.round(itWidth * (16 / 9));
-                else if (item.aspect === "4:5" || !item.aspect || item.aspect === "original") itHeight = Math.round(itWidth * (5 / 4));
-
-                const clipTop = Math.max(0, fTop - itTop);
-                const clipRight = Math.max(0, (itLeft + itWidth) - fRight);
-                const clipBottom = Math.max(0, (itTop + itHeight) - fBottom);
-                const clipLeft = Math.max(0, fLeft - itLeft);
-
-                if (clipTop === 0 && clipRight === 0 && clipBottom === 0 && clipLeft === 0) {
-                  return undefined;
-                }
-
-                const radius = parentFrame.cornerRadius !== undefined ? `${parentFrame.cornerRadius}px` : "0px";
-                return `inset(${Math.round(clipTop)}px ${Math.round(clipRight)}px ${Math.round(clipBottom)}px ${Math.round(clipLeft)}px round ${radius})`;
-              };
-
-              return (canvasItems || []).map((item, index) => {
+              return (activeCanvasItems || []).map((item, index) => {
                 const x = item.x ?? 80;
                 const y = item.y ?? 80;
                 const isSelected = selectedSheetId === item.id;
@@ -1347,8 +1344,8 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                 );
               }
 
-              // 3.5 FIGMA ARTBOARD FRAME
-              if ((item.type === "frame" || item.mediaType === "frame") && !item.image) {
+              // 3.5 FIGMA ARTBOARD FRAME (Pure Canvas Artboard matching CanvasWorkspace)
+              if ((item.type === "frame" || item.mediaType === "frame") && item.type !== "group" && !item.image) {
                 const frameWidth = item.width || 440;
                 const frameHeight = item.height || 550;
                 const frameBg = item.color || (isLight ? "#FFFFFF" : "#18181b");
@@ -1356,10 +1353,11 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   <div
                     key={item.id}
                     style={{
-                      transform: `translate3d(${x}px, ${y}px, 0)`,
+                      transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                       width: `${frameWidth}px`,
                       height: `${frameHeight}px`,
                       backgroundColor: frameBg,
+                      opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                       borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
                       zIndex: 5,
                     }}
@@ -1383,145 +1381,214 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                   <div
                     key={item.id}
                     style={{
-                      transform: `translate3d(${x}px, ${y}px, 0)`,
+                      transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
                       width: `${shapeWidth}px`,
                       height: `${shapeHeight}px`,
                       backgroundColor: shapeBg,
                       opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
                       borderRadius: radius,
                       zIndex: item.frameId ? 25 : 10,
-                      clipPath: getItemClipPath(item),
                     }}
                     className="absolute shadow-sm"
                   />
                 );
               }
 
-              // 4. MEDIA SHEET
-              const imgSrc = normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : ""));
-              let sheetWidthClass = "w-[440px] sm:w-[540px]";
-              let sheetStyle: React.CSSProperties = { aspectRatio: "4 / 5" };
+              // 4. MEDIA ARTBOARD (Gambar & Video) - 100% Original Resolution, Dimensions & Rotation
+              let cardWidth = 440;
+              let cardAspect = "4 / 5";
+
               if (item.aspect === "16:9") {
-                sheetWidthClass = "w-[560px] sm:w-[720px]";
-                sheetStyle = { aspectRatio: "16 / 9" };
+                cardWidth = 560;
+                cardAspect = "16 / 9";
               } else if (item.aspect === "9:16") {
-                sheetWidthClass = "w-[320px] sm:w-[380px]";
-                sheetStyle = { aspectRatio: "9 / 16" };
+                cardWidth = 320;
+                cardAspect = "9 / 16";
               } else if (item.aspect === "1:1") {
-                sheetWidthClass = "w-[440px] sm:w-[540px]";
-                sheetStyle = { aspectRatio: "1 / 1" };
-              } else if (item.aspect === "4:5") {
-                sheetWidthClass = "w-[440px] sm:w-[540px]";
-                sheetStyle = { aspectRatio: "4 / 5" };
+                cardWidth = 440;
+                cardAspect = "1 / 1";
               } else if (item.aspect && item.aspect.includes(":")) {
                 const [wStr, hStr] = item.aspect.split(":");
                 const wNum = parseFloat(wStr);
                 const hNum = parseFloat(hStr);
                 if (wNum && hNum) {
-                  sheetStyle = { aspectRatio: `${wNum} / ${hNum}` };
-                  sheetWidthClass = wNum > hNum ? "w-[560px] sm:w-[720px]" : "w-[440px] sm:w-[540px]";
+                  cardAspect = `${wNum} / ${hNum}`;
+                  cardWidth = wNum > hNum ? 560 : 440;
                 }
+              } else if (item.aspect === "original") {
+                cardAspect = "auto";
+                cardWidth = 460;
               }
 
-              return (
-                <div
-                  key={item.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSheetTap(e.currentTarget, item.id, e);
-                  }}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    if (selectedSheetId === item.id) {
-                      fitSheetToScreen(e.currentTarget, item.id);
-                    } else {
-                      setSelectedSheetId(item.id);
-                    }
-                  }}
-                  onTouchEnd={(e) => {
-                    handleSheetTouchEnd(e, e.currentTarget, item.id);
-                  }}
-                  style={{
-                    transform: `translate3d(${x}px, ${y}px, 0)`,
-                    zIndex: isSelected ? 40 : item.frameId ? 25 : 10,
-                    clipPath: getItemClipPath(item),
-                  }}
-                  className={`canvas-sheet-item absolute group flex flex-col rounded-2xl transition-all duration-200 cursor-pointer ${
-                    isSelected
-                      ? isLight
-                        ? "ring-2 ring-teal-500 shadow-[0_20px_60px_rgba(20,184,166,0.3)] scale-[1.01]"
-                        : "ring-2 ring-cyan-400 shadow-[0_20px_60px_rgba(22,176,159,0.35)] scale-[1.01]"
-                      : isLight
-                      ? "hover:ring-1 hover:ring-slate-300 shadow-xl"
-                      : "hover:ring-1 hover:ring-white/40 shadow-2xl"
-                  }`}
-                >
-                  <div className={`flex items-center justify-between px-3 py-1.5 mb-1.5 rounded-lg border backdrop-blur-md text-[11px] font-mono ${
-                    isLight
-                      ? "bg-white/95 border-slate-300 text-slate-800 shadow-xs"
-                      : "bg-black/60 border-white/10 text-neutral-300"
-                  }`}>
-                    <div className="flex items-center gap-1.5 truncate pr-2">
-                      <span className={`w-2 h-2 rounded-full shrink-0 ${isLight ? "bg-teal-500" : "bg-cyan-400"}`} />
-                      <span className={`font-bold truncate ${isLight ? "text-slate-900" : "text-white"}`}>{item.clientName || "Selected Work"}</span>
-                      <span className={isLight ? "text-slate-400" : "text-neutral-500"}>/</span>
-                      <span className={`truncate opacity-80 ${isLight ? "text-slate-700" : "text-neutral-200"}`}>{item.title}</span>
-                    </div>
-                    <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border shrink-0 ${
-                      isLight
-                        ? "bg-slate-100 text-teal-700 border-slate-300"
-                        : "bg-white/10 text-cyan-300 border-white/10"
-                    }`}>
-                      {item.aspect === "original" ? "ORIGINAL" : item.aspect || "4:5"}
-                    </span>
-                  </div>
+              const currentWidth = item.width || cardWidth;
+              let defaultRatio = 5 / 4;
+              if (item.aspect === "16:9") defaultRatio = 9 / 16;
+              else if (item.aspect === "9:16") defaultRatio = 16 / 9;
+              else if (item.aspect === "1:1") defaultRatio = 1;
+              else if (item.aspect === "4:5") defaultRatio = 5 / 4;
+              else if (item.aspect && item.aspect.includes(":")) {
+                const [wStr, hStr] = item.aspect.split(":");
+                const wNum = parseFloat(wStr);
+                const hNum = parseFloat(hStr);
+                if (wNum && hNum && wNum > 0) defaultRatio = hNum / wNum;
+              }
+              const currentHeight = item.height || Math.round(currentWidth * defaultRatio);
 
-                  <div
-                    className={`relative ${sheetWidthClass} rounded-2xl overflow-hidden border flex items-center justify-center ${
-                      isLight
-                        ? "bg-white border-slate-300 shadow-xl shadow-slate-200/50"
-                        : "bg-neutral-950 border-white/15 shadow-2xl"
-                    }`}
-                    style={sheetStyle}
-                  >
-                    <img
-                      src={imgSrc}
-                      alt={item.title}
-                      draggable={false}
-                      decoding="sync"
-                      loading="eager"
-                      className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
-                      style={{
-                        imageRendering: "-webkit-optimize-contrast",
-                        WebkitBackfaceVisibility: "hidden",
-                        transform: "translateZ(0)",
-                      }}
-                      onContextMenu={(e) => e.preventDefault()}
-                    />
+              const parentFrameId = item.frameId;
+              const parentFrame = parentFrameId ? activeCanvasItems.find((f) => f.id === parentFrameId) : null;
+              const isChildOfFrame = Boolean(parentFrame);
+              const shouldClip = isChildOfFrame && parentFrame && parentFrame.clipContent !== false && parentFrame.type !== "group" && parentFrame.type !== "section";
+              const fX = parentFrame?.x || 0;
+              const fY = parentFrame?.y || 0;
+              const fW = parentFrame?.width || (parentFrame?.aspect === "16:9" ? 720 : 480);
+              const fH = parentFrame?.height || (parentFrame?.aspect === "16:9" ? 405 : 600);
+              const fRadius = parentFrame?.cornerRadius || 0;
+
+              const imgSrc = normalizeMediaUrl(item.image || (item.videoId ? `https://img.youtube.com/vi/${item.videoId}/maxresdefault.jpg` : ""));
+
+              return (
+                <React.Fragment key={item.id}>
+                  {shouldClip ? (
+                    /* 1. Unrotated Frame Clipping Wrapper - perfectly clips rotated children matching CanvasWorkspace */
                     <div
-                      className="absolute inset-0 z-20 pointer-events-auto cursor-grab"
-                      onContextMenu={(e) => {
-                        e.preventDefault();
+                      style={{
+                        position: "absolute",
+                        transform: `translate3d(${fX}px, ${fY}px, 0)`,
+                        width: `${fW}px`,
+                        height: `${fH}px`,
+                        overflow: "hidden",
+                        borderRadius: `${fRadius}px`,
+                        pointerEvents: "none",
+                        zIndex: 20 + index,
+                      }}
+                    >
+                      <div
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSheetTap(e.currentTarget, item.id, e);
+                        }}
+                        onDoubleClick={(e) => {
+                          e.stopPropagation();
+                          if (selectedSheetId === item.id) {
+                            fitSheetToScreen(e.currentTarget, item.id);
+                          } else {
+                            setSelectedSheetId(item.id);
+                          }
+                        }}
+                        onTouchEnd={(e) => {
+                          handleSheetTouchEnd(e, e.currentTarget, item.id);
+                        }}
+                        style={{
+                          position: "absolute",
+                          transform: `translate3d(${x - fX}px, ${y - fY}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                          width: `${currentWidth}px`,
+                          height: `${currentHeight}px`,
+                          opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                          borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
+                          pointerEvents: "auto",
+                        }}
+                        className={`group select-none cursor-pointer transition-colors duration-150 ${
+                          isSelected ? "ring-2 ring-cyan-400" : ""
+                        }`}
+                      >
+                        <div
+                          className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto"
+                          style={{
+                            borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
+                          }}
+                        >
+                          {item.isVideo && imgSrc ? (
+                            <video
+                              src={imgSrc}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              className="w-full h-full object-cover pointer-events-none select-none"
+                            />
+                          ) : imgSrc ? (
+                            <img
+                              src={imgSrc}
+                              alt={item.title || "Image"}
+                              draggable={false}
+                              decoding="sync"
+                              loading="eager"
+                              className="w-full h-full object-cover pointer-events-none select-none"
+                              style={{
+                                imageRendering: "-webkit-optimize-contrast",
+                                WebkitBackfaceVisibility: "hidden",
+                                transform: "translateZ(0)",
+                              }}
+                            />
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* 2. Normal Unclipped Item */
+                    <div
+                      key={item.id}
+                      onClick={(e) => {
                         e.stopPropagation();
-                        return false;
+                        handleSheetTap(e.currentTarget, item.id, e);
                       }}
                       onDoubleClick={(e) => {
                         e.stopPropagation();
-                        const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
                         if (selectedSheetId === item.id) {
-                          fitSheetToScreen(card, item.id);
+                          fitSheetToScreen(e.currentTarget, item.id);
                         } else {
                           setSelectedSheetId(item.id);
                         }
                       }}
                       onTouchEnd={(e) => {
-                        const card = (e.currentTarget.closest(".canvas-sheet-item") as HTMLElement) || (e.currentTarget.parentElement?.parentElement as HTMLElement);
-                        handleSheetTouchEnd(e, card, item.id);
+                        handleSheetTouchEnd(e, e.currentTarget, item.id);
                       }}
-                      draggable={false}
-                    />
-                  </div>
-                </div>
+                      style={{
+                        transform: `translate3d(${x}px, ${y}px, 0) rotate(${item.rotation || 0}deg) scaleX(${item.flipX ? -1 : 1}) scaleY(${item.flipY ? -1 : 1})`,
+                        width: `${currentWidth}px`,
+                        height: `${currentHeight}px`,
+                        opacity: item.opacity !== undefined ? item.opacity / 100 : 1,
+                        borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
+                        zIndex: isChildOfFrame ? 20 + index : 10 + index,
+                      }}
+                      className={`group absolute select-none cursor-pointer ${
+                        isSelected ? "ring-2 ring-cyan-400 shadow-2xl" : ""
+                      }`}
+                    >
+                      <div
+                        className="relative w-full h-full overflow-hidden flex items-center justify-center pointer-events-auto"
+                        style={{
+                          borderRadius: item.cornerRadius !== undefined ? `${item.cornerRadius}px` : "0px",
+                        }}
+                      >
+                        {item.isVideo && imgSrc ? (
+                          <video
+                            src={imgSrc}
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            className="w-full h-full object-cover pointer-events-none select-none"
+                          />
+                        ) : imgSrc ? (
+                          <img
+                            src={imgSrc}
+                            alt={item.title || "Image"}
+                            draggable={false}
+                            decoding="sync"
+                            loading="eager"
+                            className="w-full h-full object-cover pointer-events-none select-none"
+                            style={{
+                              imageRendering: "-webkit-optimize-contrast",
+                              WebkitBackfaceVisibility: "hidden",
+                              transform: "translateZ(0)",
+                            }}
+                          />
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
               );
             });
             })()}
