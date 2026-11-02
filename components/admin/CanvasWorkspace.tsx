@@ -5337,9 +5337,6 @@ export default function CanvasWorkspace({
         {/* Sub-header: Element Category Header & Top Tools (Image 1) */}
         <div className={`px-3 py-2 border-b flex items-center justify-between text-xs shrink-0 ${isLight ? "border-slate-200" : "border-white/10"}`}>
           <div className={`flex items-center gap-1 font-semibold ${isLight ? "text-slate-900" : "text-white"}`}>
-            {selectedItem && (selectedItem.type === "section" || selectedItem.mediaType === "section") && (
-              <FigmaSectionIcon className={`w-3.5 h-3.5 mr-0.5 ${isLight ? "text-slate-600" : "text-neutral-300"}`} />
-            )}
             <span>
               {selectedItem
                 ? selectedItem.type === "text" || selectedItem.mediaType === "text"
@@ -7725,7 +7722,7 @@ export default function CanvasWorkspace({
                   {/* Figma Top-Left Section Floating Pill Badge (Matches User Screenshot 2 & 3 [Section 6] [</>]) */}
                   <div className="absolute -top-8 left-0 flex items-center gap-1.5 pointer-events-auto select-none">
                     <div
-                      className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg shadow-md transition-colors ${
+                      className={`flex items-center px-2.5 py-1 rounded-lg shadow-md transition-colors ${
                         isSelected
                           ? isLight
                             ? "bg-white border border-[#0c8ce9] text-slate-900 shadow-slate-200"
@@ -7735,7 +7732,6 @@ export default function CanvasWorkspace({
                             : "bg-[#2c2c2c]/95 border border-white/10 text-neutral-200 hover:text-white"
                       }`}
                     >
-                      <FigmaSectionIcon className={`w-3.5 h-3.5 shrink-0 ${isLight ? "text-slate-600" : "text-neutral-300"}`} />
                       <input
                         type="text"
                         value={item.title}
