@@ -205,6 +205,13 @@ export const FigmaSectionIcon = ({ className = "w-4 h-4" }: { className?: string
   </svg>
 );
 
+// Figma-style Group Icon: dashed square outline matching media_1793599189225_7a90a18a.png
+export const FigmaGroupIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.25">
+    <rect x="2.5" y="2.5" width="11" height="11" rx="1.5" strokeDasharray="2.5 1.75" />
+  </svg>
+);
+
 export const getCssFontWeight = (weight?: string | number): number => {
   if (typeof weight === "number") return weight;
   if (!weight) return 400;
@@ -3522,6 +3529,12 @@ export default function CanvasWorkspace({
           const next = prev.map((it) => {
             if (!draggedIds.includes(it.id)) return it;
 
+            // If item belongs to a Group (type === "group"), DO NOT un-nest it! Groups are deliberate logical groupings!
+            const parentItem = prev.find((p) => p.id === it.frameId);
+            if (parentItem && parentItem.type === "group") {
+              return it;
+            }
+
             const isFrameItself = isFrameItem(it);
             if (isFrameItself) return it;
 
@@ -3535,9 +3548,9 @@ export default function CanvasWorkspace({
             const centerX = dx + itW / 2;
             const centerY = dy + itH / 2;
 
-            // Find frames that contain or overlap this item
+            // Find frames that contain or overlap this item (exclude groups from candidate frames)
             const candidateFrames = prev.filter((f) => {
-              if (f.id === it.id || !isFrameItem(f)) return false;
+              if (f.id === it.id || !isFrameItem(f) || f.type === "group") return false;
 
               const fX = f.x || 0;
               const fY = f.y || 0;
@@ -3718,10 +3731,12 @@ export default function CanvasWorkspace({
     }
 
     const isMultiKey = e.shiftKey || (e.metaKey && !e.ctrlKey);
-    // In Figma, clicking an item that belongs to a group selects the parent group first, unless group is already selected or Ctrl/Cmd is held for deep select
+    const isDeepSelect = (e.ctrlKey || e.metaKey) && !e.shiftKey;
+
+    // In Figma, clicking an item that belongs to a group selects the parent group as a single unit, unless Ctrl/Cmd is held for deep select
     const parentFrameId = item.frameId || getParentFrameId(item);
     const parentGroup = parentFrameId ? items.find((f) => f.id === parentFrameId && f.type === "group") : null;
-    const activeItem = (parentGroup && !isMultiKey && !e.ctrlKey && !e.metaKey && selectedId !== parentGroup.id && !selectedIds.has(item.id))
+    const activeItem = (parentGroup && !isMultiKey && !isDeepSelect)
       ? parentGroup
       : item;
 
@@ -3771,6 +3786,23 @@ export default function CanvasWorkspace({
     const itemY = activeItem.y || 0;
 
     const initMap = new Map<string, { x: number; y: number }>();
+
+    // 1. If activeItem is a group OR belongs to a group (without deep select):
+    // Ensure the group container AND ALL its children move together in complete lockstep!
+    const associatedGroup = activeItem.type === "group"
+      ? activeItem
+      : (!isDeepSelect && parentGroup ? parentGroup : null);
+
+    if (associatedGroup) {
+      initMap.set(associatedGroup.id, { x: associatedGroup.x || 0, y: associatedGroup.y || 0 });
+      items.forEach((it) => {
+        if (it.frameId === associatedGroup.id) {
+          initMap.set(it.id, { x: it.x || 0, y: it.y || 0 });
+        }
+      });
+    }
+
+    // 2. Add all explicitly selected items and frame children
     items.forEach((it) => {
       if (targetSelectedIds.has(it.id)) {
         initMap.set(it.id, { x: it.x || 0, y: it.y || 0 });
@@ -6917,8 +6949,10 @@ export default function CanvasWorkspace({
               <span className="w-4.5 h-4.5 shrink-0" />
             )}
 
-            {/* Icon: Figma Section Icon vs Frame Hashtag (#) */}
-            {isSection ? (
+            {/* Icon: Figma Group Icon vs Figma Section Icon vs Frame Hashtag (#) */}
+            {frame.type === "group" ? (
+              <FigmaGroupIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
+            ) : isSection ? (
               <FigmaSectionIcon className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
             ) : (
               <HiHashtag className={`w-3.5 h-3.5 shrink-0 ${isSel ? "text-white" : "text-neutral-300"}`} />
@@ -6940,7 +6974,7 @@ export default function CanvasWorkspace({
                   ? "opacity-100 text-amber-400"
                   : "opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-white"
               }`}
-              title={isLocked ? "Buka Kunci" : isSection ? "Kunci Section" : "Kunci Frame"}
+              title={isLocked ? "Buka Kunci" : frame.type === "group" ? "Kunci Group" : isSection ? "Kunci Section" : "Kunci Frame"}
             >
               {isLocked ? <HiLockClosed className="w-3.5 h-3.5" /> : <HiLockOpen className="w-3.5 h-3.5" />}
             </button>
@@ -6965,7 +6999,7 @@ export default function CanvasWorkspace({
                 handleDeleteItem(frame.id);
               }}
               className="opacity-0 group-hover:opacity-100 hover:text-red-400 transition-opacity p-1 text-neutral-400 cursor-pointer"
-              title="Hapus Frame"
+              title={frame.type === "group" ? "Hapus Group" : isSection ? "Hapus Section" : "Hapus Frame"}
             >
               <HiTrash className="w-3.5 h-3.5" />
             </button>
@@ -7970,8 +8004,62 @@ export default function CanvasWorkspace({
               );
             }
 
+            // 3.45 FIGMA GROUP (Matches Figma: Invisible container wrapping grouped children, dashed selection box and dimensions)
+            if (item.type === "group") {
+              const children = items.filter((c) => c.frameId === item.id);
+              let gLeft = item.x || 0;
+              let gTop = item.y || 0;
+              let gW = item.width || 100;
+              let gH = item.height || 100;
+
+              if (children.length > 0) {
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                children.forEach((c) => {
+                  const b = getItemBounds(c);
+                  minX = Math.min(minX, b.left);
+                  minY = Math.min(minY, b.top);
+                  maxX = Math.max(maxX, b.right);
+                  maxY = Math.max(maxY, b.bottom);
+                });
+                if (minX !== Infinity) {
+                  gLeft = minX;
+                  gTop = minY;
+                  gW = Math.max(1, maxX - minX);
+                  gH = Math.max(1, maxY - minY);
+                }
+              }
+
+              return (
+                <div
+                  key={item.id}
+                  onClick={(e) => handleItemClick(e, item, e.currentTarget)}
+                  onMouseDown={(e) => handleItemMouseDown(e, item)}
+                  onTouchStart={(e) => handleItemTouchStart(e, item)}
+                  onTouchEnd={(e) => handleItemTouchEnd(e, item, e.currentTarget)}
+                  onContextMenu={(e) => handleItemContextMenu(e, item)}
+                  style={{
+                    transform: `translate3d(${gLeft}px, ${gTop}px, 0)`,
+                    width: `${gW}px`,
+                    height: `${gH}px`,
+                    zIndex: isSelected ? 45 : 2,
+                    pointerEvents: isSelected ? "auto" : "none",
+                  }}
+                  className={`absolute select-none pointer-events-none ${
+                    isSelected ? "ring-1 ring-[#0c8ce9] pointer-events-auto" : ""
+                  }`}
+                >
+                  {/* Figma Group Dimension Badge (Matches User Screenshot media_1793599195082_51ce88b6.png [364 × 137]) */}
+                  {isSelected && (
+                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 px-1.5 py-0.5 rounded-[3px] bg-[#0c8ce9] text-white text-[10px] font-mono whitespace-nowrap shadow-md pointer-events-none">
+                      {Math.round(gW)} × {Math.round(gH)}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             // 3.5 FIGMA ARTBOARD FRAME (Pure Canvas Artboard - Matches Screenshot Image 2)
-            if ((item.mediaType === "frame" || item.type === "frame") && !item.image) {
+            if ((item.mediaType === "frame" || item.type === "frame") && item.type !== "group" && !item.image) {
               const frameWidth = item.width || 440;
               const frameHeight = item.height || 550;
               const frameBg = item.color || "#FFFFFF";
