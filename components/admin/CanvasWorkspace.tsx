@@ -761,7 +761,16 @@ export default function CanvasWorkspace({
     startW: number;
     startH: number;
     handle: string;
+    startFontSize?: number;
+    initialChildren?: Map<string, { x: number; y: number; width: number; height: number; fontSize?: number }>;
   } | null>(null);
+
+  // Canvas items state
+  const [items, setItems] = useState<CanvasItem[]>([]);
+  const initialItemsRef = useRef<CanvasItem[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleResizeMouseDown = useCallback((e: React.MouseEvent, item: CanvasItem, handle: string) => {
     e.stopPropagation();
@@ -770,16 +779,38 @@ export default function CanvasWorkspace({
     setSelectedIds(new Set([item.id]));
     setResizingItemId(item.id);
     setResizeHandle(handle);
+
+    const dim = getItemDimensions(item);
+    const itW = item.width || dim.width;
+    const itH = item.height || dim.height;
+
+    // Collect initial states of children if this is a group or frame
+    const childMap = new Map<string, { x: number; y: number; width: number; height: number; fontSize?: number }>();
+    items.forEach((it) => {
+      if (it.frameId === item.id) {
+        const cDim = getItemDimensions(it);
+        childMap.set(it.id, {
+          x: it.x || 0,
+          y: it.y || 0,
+          width: it.width || cDim.width,
+          height: it.height || cDim.height,
+          fontSize: it.fontSize || 129,
+        });
+      }
+    });
+
     resizeStartRef.current = {
       mouseX: e.clientX,
       mouseY: e.clientY,
       startX: item.x || 0,
       startY: item.y || 0,
-      startW: item.width || 440,
-      startH: item.height || 550,
+      startW: itW,
+      startH: itH,
       handle,
+      startFontSize: item.fontSize || 129,
+      initialChildren: childMap,
     };
-  }, []);
+  }, [items]);
 
   const dragItemInitialPositionsRef = useRef<Map<string, { x: number; y: number }> | null>(null);
 
@@ -802,13 +833,6 @@ export default function CanvasWorkspace({
   const pendingItemDragRef = useRef<{ id: string; x: number; y: number } | null>(null);
   const hasWorkspaceDraggedRef = useRef<boolean>(false);
   const hasItemMovedDuringDragRef = useRef<boolean>(false);
-
-  // Canvas items state
-  const [items, setItems] = useState<CanvasItem[]>([]);
-  const initialItemsRef = useRef<CanvasItem[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
 
   // Right Inspector Sidebar State (Images 1, 2, 3)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(true);
@@ -895,7 +919,7 @@ export default function CanvasWorkspace({
     mouseX: number;
     mouseY: number;
     initialBounds: { x: number; y: number; width: number; height: number };
-    initialItems: Map<string, { x: number; y: number; width: number; height: number }>;
+    initialItems: Map<string, { x: number; y: number; width: number; height: number; fontSize?: number }>;
     handle: "nw" | "ne" | "se" | "sw";
   } | null>(null);
 
@@ -905,7 +929,7 @@ export default function CanvasWorkspace({
       e.preventDefault();
       if (!multiSelectionBounds) return;
 
-      const initialMap = new Map<string, { x: number; y: number; width: number; height: number }>();
+      const initialMap = new Map<string, { x: number; y: number; width: number; height: number; fontSize?: number }>();
       items.forEach((it) => {
         if (selectedIds.has(it.id)) {
           const dim = getItemDimensions(it);
@@ -914,6 +938,7 @@ export default function CanvasWorkspace({
             y: it.y || 0,
             width: dim.width,
             height: dim.height,
+            fontSize: it.fontSize || 129,
           });
         }
       });
@@ -2994,29 +3019,72 @@ export default function CanvasWorkspace({
         const deltaX = (e.clientX - mouseX) / curZoom;
         const deltaY = (e.clientY - mouseY) / curZoom;
 
+        const isLockedAspect = activeTool === "scale" || e.shiftKey;
+
         let newX = initialBounds.x;
         let newY = initialBounds.y;
         let newW = initialBounds.width;
         let newH = initialBounds.height;
 
-        if (handle.includes("e")) {
-          newW = Math.max(50, Math.round(initialBounds.width + deltaX));
-        }
-        if (handle.includes("s")) {
-          newH = Math.max(50, Math.round(initialBounds.height + deltaY));
-        }
-        if (handle.includes("w")) {
-          const rawW = initialBounds.width - deltaX;
-          if (rawW >= 50) {
-            newW = Math.round(rawW);
-            newX = Math.round(initialBounds.x + deltaX);
+        if (isLockedAspect) {
+          let scale = 1;
+          if (handle === "se") {
+            scale = (Math.abs(deltaX) > Math.abs(deltaY))
+              ? (initialBounds.width + deltaX) / initialBounds.width
+              : (initialBounds.height + deltaY) / initialBounds.height;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(20, Math.round(initialBounds.width * scale));
+            newH = Math.max(20, Math.round(initialBounds.height * scale));
+            newX = initialBounds.x;
+            newY = initialBounds.y;
+          } else if (handle === "sw") {
+            scale = (Math.abs(deltaX) > Math.abs(deltaY))
+              ? (initialBounds.width - deltaX) / initialBounds.width
+              : (initialBounds.height + deltaY) / initialBounds.height;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(20, Math.round(initialBounds.width * scale));
+            newH = Math.max(20, Math.round(initialBounds.height * scale));
+            newX = Math.round(initialBounds.x + initialBounds.width - newW);
+            newY = initialBounds.y;
+          } else if (handle === "ne") {
+            scale = (Math.abs(deltaX) > Math.abs(deltaY))
+              ? (initialBounds.width + deltaX) / initialBounds.width
+              : (initialBounds.height - deltaY) / initialBounds.height;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(20, Math.round(initialBounds.width * scale));
+            newH = Math.max(20, Math.round(initialBounds.height * scale));
+            newX = initialBounds.x;
+            newY = Math.round(initialBounds.y + initialBounds.height - newH);
+          } else if (handle === "nw") {
+            scale = (Math.abs(deltaX) > Math.abs(deltaY))
+              ? (initialBounds.width - deltaX) / initialBounds.width
+              : (initialBounds.height - deltaY) / initialBounds.height;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(20, Math.round(initialBounds.width * scale));
+            newH = Math.max(20, Math.round(initialBounds.height * scale));
+            newX = Math.round(initialBounds.x + initialBounds.width - newW);
+            newY = Math.round(initialBounds.y + initialBounds.height - newH);
           }
-        }
-        if (handle.includes("n")) {
-          const rawH = initialBounds.height - deltaY;
-          if (rawH >= 50) {
-            newH = Math.round(rawH);
-            newY = Math.round(initialBounds.y + deltaY);
+        } else {
+          if (handle.includes("e")) {
+            newW = Math.max(50, Math.round(initialBounds.width + deltaX));
+          }
+          if (handle.includes("s")) {
+            newH = Math.max(50, Math.round(initialBounds.height + deltaY));
+          }
+          if (handle.includes("w")) {
+            const rawW = initialBounds.width - deltaX;
+            if (rawW >= 50) {
+              newW = Math.round(rawW);
+              newX = Math.round(initialBounds.x + deltaX);
+            }
+          }
+          if (handle.includes("n")) {
+            const rawH = initialBounds.height - deltaY;
+            if (rawH >= 50) {
+              newH = Math.round(rawH);
+              newY = Math.round(initialBounds.y + deltaY);
+            }
           }
         }
 
@@ -3033,8 +3101,8 @@ export default function CanvasWorkspace({
 
             const updatedX = Math.round(newX + relX * newW);
             const updatedY = Math.round(newY + relY * newH);
-            const updatedW = Math.max(20, Math.round(init.width * scaleX));
-            const updatedH = Math.max(20, Math.round(init.height * scaleY));
+            const updatedW = Math.max(10, Math.round(init.width * scaleX));
+            const updatedH = Math.max(10, Math.round(init.height * scaleY));
 
             return {
               ...it,
@@ -3043,59 +3111,147 @@ export default function CanvasWorkspace({
               width: updatedW,
               height: updatedH,
               aspect: `${updatedW}:${updatedH}`,
+              ...(it.type === "text" || it.mediaType === "text"
+                ? { fontSize: Math.max(8, Math.round((init.fontSize || 129) * scaleX)) }
+                : {}),
             };
           })
         );
         setHasChanges(true);
       } else if (resizingItemId && resizeStartRef.current) {
         // Freeform Element Resizing (Corner & Edge Handles - Matches Screenshot Image 2)
-        const { mouseX, mouseY, startX, startY, startW, startH, handle } = resizeStartRef.current;
+        const { mouseX, mouseY, startX, startY, startW, startH, handle, startFontSize, initialChildren } = resizeStartRef.current;
         const curZoom = zoomRef.current || zoom;
         const deltaX = (e.clientX - mouseX) / curZoom;
         const deltaY = (e.clientY - mouseY) / curZoom;
+
+        const isLockedAspect = activeTool === "scale" || e.shiftKey;
 
         let newX = startX;
         let newY = startY;
         let newW = startW;
         let newH = startH;
 
-        if (handle.includes("e")) {
-          newW = Math.max(50, Math.round(startW + deltaX));
-        }
-        if (handle.includes("s")) {
-          newH = Math.max(50, Math.round(startH + deltaY));
-        }
-        if (handle.includes("w")) {
-          const rawW = startW - deltaX;
-          if (rawW >= 50) {
-            newW = Math.round(rawW);
-            newX = Math.round(startX + deltaX);
+        if (isLockedAspect) {
+          let scale = 1;
+          if (handle === "se") {
+            scale = (Math.abs(deltaX) > Math.abs(deltaY))
+              ? (startW + deltaX) / startW
+              : (startH + deltaY) / startH;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(10, Math.round(startW * scale));
+            newH = Math.max(10, Math.round(startH * scale));
+            newX = startX;
+            newY = startY;
+          } else if (handle === "sw") {
+            scale = (Math.abs(deltaX) > Math.abs(deltaY))
+              ? (startW - deltaX) / startW
+              : (startH + deltaY) / startH;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(10, Math.round(startW * scale));
+            newH = Math.max(10, Math.round(startH * scale));
+            newX = Math.round(startX + startW - newW);
+            newY = startY;
+          } else if (handle === "ne") {
+            scale = (Math.abs(deltaX) > Math.abs(deltaY))
+              ? (startW + deltaX) / startW
+              : (startH - deltaY) / startH;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(10, Math.round(startW * scale));
+            newH = Math.max(10, Math.round(startH * scale));
+            newX = startX;
+            newY = Math.round(startY + startH - newH);
+          } else if (handle === "nw") {
+            scale = (Math.abs(deltaX) > Math.abs(deltaY))
+              ? (startW - deltaX) / startW
+              : (startH - deltaY) / startH;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(10, Math.round(startW * scale));
+            newH = Math.max(10, Math.round(startH * scale));
+            newX = Math.round(startX + startW - newW);
+            newY = Math.round(startY + startH - newH);
+          } else if (handle === "e" || handle === "w") {
+            scale = handle === "e" ? (startW + deltaX) / startW : (startW - deltaX) / startW;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(10, Math.round(startW * scale));
+            newH = Math.max(10, Math.round(startH * scale));
+            if (handle === "w") newX = Math.round(startX + startW - newW);
+          } else if (handle === "s" || handle === "n") {
+            scale = handle === "s" ? (startH + deltaY) / startH : (startH - deltaY) / startH;
+            scale = Math.max(0.05, scale);
+            newW = Math.max(10, Math.round(startW * scale));
+            newH = Math.max(10, Math.round(startH * scale));
+            if (handle === "n") newY = Math.round(startY + startH - newH);
           }
-        }
-        if (handle.includes("n")) {
-          const rawH = startH - deltaY;
-          if (rawH >= 50) {
-            newH = Math.round(rawH);
-            newY = Math.round(startY + deltaY);
+        } else {
+          if (handle.includes("e")) {
+            newW = Math.max(50, Math.round(startW + deltaX));
+          }
+          if (handle.includes("s")) {
+            newH = Math.max(50, Math.round(startH + deltaY));
+          }
+          if (handle.includes("w")) {
+            const rawW = startW - deltaX;
+            if (rawW >= 50) {
+              newW = Math.round(rawW);
+              newX = Math.round(startX + deltaX);
+            }
+          }
+          if (handle.includes("n")) {
+            const rawH = startH - deltaY;
+            if (rawH >= 50) {
+              newH = Math.round(rawH);
+              newY = Math.round(startY + deltaY);
+            }
           }
         }
 
+        const scale = newW / (startW || 1);
+
         setItems((prev) =>
-          prev.map((it) =>
-            it.id === resizingItemId
-              ? {
-                  ...it,
-                  x: newX,
-                  y: newY,
-                  width: newW,
-                  height: newH,
-                  aspect: `${newW}:${newH}`,
-                  ...(it.type === "text" || it.mediaType === "text"
-                    ? { textAutoResize: handle === "e" || handle === "w" ? "auto_height" : "fixed" }
-                    : {}),
-                }
-              : it
-          )
+          prev.map((it) => {
+            if (it.id === resizingItemId) {
+              const baseFontSize = startFontSize || it.fontSize || 129;
+              return {
+                ...it,
+                x: newX,
+                y: newY,
+                width: newW,
+                height: newH,
+                aspect: `${newW}:${newH}`,
+                ...(it.type === "text" || it.mediaType === "text"
+                  ? {
+                      fontSize: activeTool === "scale" ? Math.max(8, Math.round(baseFontSize * scale)) : it.fontSize,
+                      textAutoResize: activeTool === "scale" ? "fixed" : (handle === "e" || handle === "w" ? "auto_height" : "fixed"),
+                    }
+                  : {}),
+              };
+            }
+
+            // If it is a child of the resizing container (Group/Frame)
+            if (initialChildren && initialChildren.has(it.id)) {
+              const cInit = initialChildren.get(it.id)!;
+              const relX = (cInit.x - startX) / (startW || 1);
+              const relY = (cInit.y - startY) / (startH || 1);
+              const updatedX = Math.round(newX + relX * newW);
+              const updatedY = Math.round(newY + relY * newH);
+              const updatedW = Math.max(10, Math.round(cInit.width * scale));
+              const updatedH = Math.max(10, Math.round(cInit.height * scale));
+              return {
+                ...it,
+                x: updatedX,
+                y: updatedY,
+                width: updatedW,
+                height: updatedH,
+                aspect: `${updatedW}:${updatedH}`,
+                ...(it.type === "text" || it.mediaType === "text"
+                  ? { fontSize: Math.max(8, Math.round((cInit.fontSize || 129) * scale)) }
+                  : {}),
+              };
+            }
+
+            return it;
+          })
         );
         setHasChanges(true);
       } else if (isDrawingShape && drawingShapeStartRef.current) {
@@ -7205,22 +7361,26 @@ export default function CanvasWorkspace({
                       />
 
                       {/* 4 Edge Resize Handles */}
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
-                        className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
-                      />
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
-                        className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
-                      />
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
-                        className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
-                      />
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
-                        className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
-                      />
+                      {activeTool !== "scale" && (
+                        <>
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
+                            className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
+                            className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
+                            className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                            className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                          />
+                        </>
+                      )}
 
                       {/* Figma Dimension Badge Centered at Bottom (1972 × 1388 / 2433 × 399) */}
                       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
@@ -7379,19 +7539,42 @@ export default function CanvasWorkspace({
                       <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] pointer-events-none z-50 shadow-xs" />
                       <div className="absolute -bottom-1 -left-1 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] pointer-events-none z-50 shadow-xs" />
                       <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-white border-2 border-[#0c8ce9] rounded-[2px] pointer-events-none z-50 shadow-xs" />
-                      {/* Interactive Drag Handles for Resizing Width and Height */}
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
-                        className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-5 cursor-ew-resize z-50 pointer-events-auto flex items-center justify-center opacity-0 group-hover:opacity-100"
-                        title="Tarik lebar text box (Auto height)"
-                      >
-                        <div className="w-1.5 h-3 bg-white border border-[#0c8ce9] rounded-xs" />
-                      </div>
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
-                        className="absolute -bottom-1.5 -right-1.5 w-3 h-3 cursor-nwse-resize z-50 pointer-events-auto"
-                        title="Tarik ukuran text box (Fixed size)"
-                      />
+                      {activeTool === "scale" ? (
+                        <>
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "nw")}
+                            className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "ne")}
+                            className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "sw")}
+                            className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nesw-resize pointer-events-auto shadow-sm"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
+                            className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-white border-2 border-[#0c8ce9] rounded-[2px] z-50 cursor-nwse-resize pointer-events-auto shadow-sm"
+                          />
+                        </>
+                      ) : (
+                        <>
+                          {/* Interactive Drag Handles for Resizing Width and Height */}
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                            className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-5 cursor-ew-resize z-50 pointer-events-auto flex items-center justify-center opacity-0 group-hover:opacity-100"
+                            title="Tarik lebar text box (Auto height)"
+                          >
+                            <div className="w-1.5 h-3 bg-white border border-[#0c8ce9] rounded-xs" />
+                          </div>
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "se")}
+                            className="absolute -bottom-1.5 -right-1.5 w-3 h-3 cursor-nwse-resize z-50 pointer-events-auto"
+                            title="Tarik ukuran text box (Fixed size)"
+                          />
+                        </>
+                      )}
 
                       {/* Figma Dimension Badge Centered at Bottom (Matches Screenshots 2 & 5: 211 × 58 / 146 × 116) */}
                       <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
@@ -7602,22 +7785,26 @@ export default function CanvasWorkspace({
                       />
 
                       {/* 4 Edge Resize Handles (Matches Screenshot Image 1 & 2) */}
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
-                        className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
-                      />
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
-                        className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
-                      />
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
-                        className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
-                      />
-                      <div
-                        onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
-                        className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
-                      />
+                      {activeTool !== "scale" && (
+                        <>
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
+                            className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
+                            className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
+                            className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                          />
+                          <div
+                            onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                            className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                          />
+                        </>
+                      )}
 
                       {/* Figma Dimension Badge Centered at Bottom (Matches Screenshot Image 1 & 3: 2457 × 1813) */}
                       <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[12px] font-sans font-medium shadow-lg whitespace-nowrap pointer-events-none z-40 select-none">
@@ -7719,22 +7906,26 @@ export default function CanvasWorkspace({
                     />
 
                     {/* 4 Edge Resize Handles */}
-                    <div
-                      onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
-                      className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
-                    />
-                    <div
-                      onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
-                      className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
-                    />
-                    <div
-                      onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
-                      className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
-                    />
-                    <div
-                      onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
-                      className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
-                    />
+                    {activeTool !== "scale" && (
+                      <>
+                        <div
+                          onMouseDown={(e) => handleResizeMouseDown(e, item, "n")}
+                          className="absolute -top-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                        />
+                        <div
+                          onMouseDown={(e) => handleResizeMouseDown(e, item, "s")}
+                          className="absolute -bottom-1.5 left-3 right-3 h-3 cursor-ns-resize z-40 pointer-events-auto"
+                        />
+                        <div
+                          onMouseDown={(e) => handleResizeMouseDown(e, item, "w")}
+                          className="absolute top-3 bottom-3 -left-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                        />
+                        <div
+                          onMouseDown={(e) => handleResizeMouseDown(e, item, "e")}
+                          className="absolute top-3 bottom-3 -right-1.5 w-3 cursor-ew-resize z-40 pointer-events-auto"
+                        />
+                      </>
+                    )}
 
                     {/* Dimension Badge centered at bottom */}
                     <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40">
