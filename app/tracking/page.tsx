@@ -256,7 +256,7 @@ export default function TrackingPage() {
               ) : (
                 <RiSearchLine className="w-4 h-4" />
               )}
-              <span>{loading ? tr("Checking...", "Mengecek...", "Sadang mangecek...") : tr("Track Project Status 🚀", "Lacak Status Proyek 🚀", "Lacak Status Proyek 🚀")}</span>
+              <span>{loading ? tr("Checking...", "Mengecek...", "Sadang mangecek...") : tr("Track Project Status", "Lacak Status Proyek", "Lacak Status Proyek")}</span>
             </button>
           </form>
 
