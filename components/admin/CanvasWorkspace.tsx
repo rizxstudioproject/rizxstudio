@@ -1754,20 +1754,50 @@ export default function CanvasWorkspace({
     setSaveSuccess(false);
   }, [selectedId, selectedIds, updateCanvasItems]);
 
-  const handleConvertSection = useCallback((item: CanvasItem) => {
-    const isSec = item.type === "section" || item.mediaType === "section";
-    setItems((prev) =>
-      prev.map((i) => {
+  const handleConvertFrameOrSection = useCallback((item: CanvasItem) => {
+    const isFrame = (item.mediaType === "frame" || item.type === "frame") && !item.image;
+
+    setItems((prev) => {
+      // 1. If it's already a Frame, convert it to a Section
+      if (isFrame) {
+        const secCount = prev.filter((i) => i.type === "section" || i.mediaType === "section").length + 1;
+        return prev.map((i) => {
+          if (i.id === item.id) {
+            return {
+              ...i,
+              type: "section" as const,
+              mediaType: "section" as const,
+              title: i.title.startsWith("Frame") ? `Section ${secCount}` : i.title,
+              color: i.color || "rgba(50, 52, 58, 0.88)",
+            };
+          }
+          return i;
+        });
+      }
+
+      // 2. If it's a Section, Shape, Rectangle, or other layer, convert it to a Frame
+      const frameCount = prev.filter((i) => (i.mediaType === "frame" || i.type === "frame") && !i.image && i.type !== "group").length + 1;
+      return prev.map((i) => {
         if (i.id === item.id) {
+          const w = i.width || (i.aspect === "16:9" ? 720 : 440);
+          const h = i.height || (i.aspect === "16:9" ? 405 : 550);
           return {
             ...i,
-            type: isSec ? ("media" as const) : ("section" as const),
-            mediaType: isSec ? ("image" as const) : ("section" as const),
+            type: "media" as const,
+            mediaType: "frame" as const,
+            title: (i.title.startsWith("Rectangle") || i.title.startsWith("Section") || i.title.startsWith("Shape"))
+              ? `Frame ${frameCount}`
+              : i.title,
+            width: w,
+            height: h,
+            aspect: `${w}:${h}`,
+            color: i.color || "#FFFFFF",
+            clipContent: i.clipContent ?? true,
           };
         }
         return i;
-      })
-    );
+      });
+    });
     setHasChanges(true);
     setSaveSuccess(false);
   }, []);
@@ -9019,26 +9049,31 @@ export default function CanvasWorkspace({
           <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
 
           {/* Section 3: Grouping & Structure */}
-          <button
-            type="button"
-            onClick={() => {
-              if (contextMenu.item) handleConvertSection(contextMenu.item);
-              setContextMenu(null);
-            }}
-            disabled={!contextMenu.item}
-            className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
-              !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
-            }`}
-          >
-            <div className="flex items-center gap-2">
-              {contextMenu.item?.type === "section" ? (
-                <HiHashtag className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
-              ) : (
-                <FigmaSectionIcon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
-              )}
-              <span>{contextMenu.item?.type === "section" ? "Convert to frame" : "Convert to section"}</span>
-            </div>
-          </button>
+          {(() => {
+            const isFrame = contextMenu.item && (contextMenu.item.mediaType === "frame" || contextMenu.item.type === "frame") && !contextMenu.item.image;
+            return (
+              <button
+                type="button"
+                onClick={() => {
+                  if (contextMenu.item) handleConvertFrameOrSection(contextMenu.item);
+                  setContextMenu(null);
+                }}
+                disabled={!contextMenu.item}
+                className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors text-left ${
+                  !contextMenu.item ? "text-neutral-500 cursor-not-allowed" : "hover:bg-[#0c8ce9] hover:text-white cursor-pointer group"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  {isFrame ? (
+                    <FigmaSectionIcon className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+                  ) : (
+                    <HiHashtag className="w-3.5 h-3.5 text-neutral-400 group-hover:text-white" />
+                  )}
+                  <span>{isFrame ? "Convert to section" : "Convert to frame"}</span>
+                </div>
+              </button>
+            );
+          })()}
 
           <button
             type="button"
