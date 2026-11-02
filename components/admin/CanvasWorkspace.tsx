@@ -834,6 +834,25 @@ export default function CanvasWorkspace({
   const hasWorkspaceDraggedRef = useRef<boolean>(false);
   const hasItemMovedDuringDragRef = useRef<boolean>(false);
 
+  // Keep context menu completely inside viewport so it never cuts off
+  useEffect(() => {
+    if (contextMenu?.isOpen && contextMenuRef.current) {
+      const rect = contextMenuRef.current.getBoundingClientRect();
+      const overflowBottom = rect.bottom - (window.innerHeight - 16);
+      const overflowRight = rect.right - (window.innerWidth - 16);
+      if (overflowBottom > 0 || overflowRight > 0) {
+        setContextMenu((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            x: overflowRight > 0 ? Math.max(16, prev.x - overflowRight) : prev.x,
+            y: overflowBottom > 0 ? Math.max(16, prev.y - overflowBottom) : prev.y,
+          };
+        });
+      }
+    }
+  }, [contextMenu?.isOpen]);
+
   // Right Inspector Sidebar State (Images 1, 2, 3)
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(true);
   const [inspectorTab, setInspectorTab] = useState<"design" | "prototype">("design");
@@ -1509,9 +1528,9 @@ export default function CanvasWorkspace({
     setSelectedIds((prev) => (prev.has(item.id) ? prev : new Set([item.id])));
 
     const menuWidth = 245;
-    const menuHeight = 540;
-    const x = Math.min(e.clientX, window.innerWidth - menuWidth - 12);
-    const y = Math.min(e.clientY, Math.max(12, window.innerHeight - menuHeight - 12));
+    const menuHeight = 440;
+    const x = Math.max(12, Math.min(e.clientX, window.innerWidth - menuWidth - 16));
+    const y = Math.max(12, Math.min(e.clientY, window.innerHeight - menuHeight - 16));
     const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
 
     setContextMenu({
@@ -1531,9 +1550,9 @@ export default function CanvasWorkspace({
     e.preventDefault();
 
     const menuWidth = 245;
-    const menuHeight = 540;
-    const x = Math.min(e.clientX, window.innerWidth - menuWidth - 12);
-    const y = Math.min(e.clientY, Math.max(12, window.innerHeight - menuHeight - 12));
+    const menuHeight = 440;
+    const x = Math.max(12, Math.min(e.clientX, window.innerWidth - menuWidth - 16));
+    const y = Math.max(12, Math.min(e.clientY, window.innerHeight - menuHeight - 16));
     const { x: canvasX, y: canvasY } = getCanvasCoords(e.clientX, e.clientY);
 
     const currentItem = selectedId ? items.find((i) => i.id === selectedId) || null : null;
@@ -8853,7 +8872,7 @@ export default function CanvasWorkspace({
             top: `${contextMenu.y}px`,
             zIndex: 99999,
           }}
-          className="w-[245px] py-1.5 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.8)] backdrop-blur-xl select-none animate-in fade-in zoom-in-95 duration-100 text-[12.5px] font-sans text-[#e6e6e6] max-h-[88vh] overflow-y-auto"
+          className="w-[245px] py-1.5 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.85)] backdrop-blur-xl select-none animate-in fade-in zoom-in-95 duration-100 text-[12.5px] font-sans text-[#e6e6e6] max-h-[calc(100vh-28px)] overflow-y-auto overscroll-contain"
         >
           {/* Section 1: Clipboard & Actions */}
           <button
@@ -8909,7 +8928,9 @@ export default function CanvasWorkspace({
             </div>
 
             {contextSubmenu === "copy_as" && (
-              <div className="absolute left-full top-0 ml-1 w-[180px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
+              <div className={`absolute top-0 w-[180px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75 ${
+                typeof window !== "undefined" && contextMenu.x + 245 + 190 > window.innerWidth ? "right-full mr-1" : "left-full ml-1"
+              }`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -8962,86 +8983,9 @@ export default function CanvasWorkspace({
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              setShowDevMode(true);
-              setContextMenu(null);
-            }}
-            className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group text-left"
-          >
-            <span>Build this with code</span>
-            <span className="text-[10px] text-teal-400 font-mono font-bold">{"</>"}</span>
-          </button>
-
-          {/* Add motion Submenu */}
-          <div
-            className="relative"
-            onMouseEnter={() => setContextSubmenu("motion")}
-            onMouseLeave={() => setContextSubmenu(null)}
-          >
-            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
-              <span>Add motion</span>
-              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
-            </div>
-
-            {contextSubmenu === "motion" && (
-              <div className="absolute left-full top-0 ml-1 w-[160px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
-                {["Fade in", "Scale up", "Slide up", "Spring bounce"].map((mot) => (
-                  <button
-                    key={mot}
-                    type="button"
-                    onClick={() => {
-                      alert(`Motion '${mot}' diterapkan ke elemen!`);
-                      setContextMenu(null);
-                    }}
-                    className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
-                  >
-                    {mot}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
           <div className="h-[1px] bg-white/[0.08] my-1 mx-1.5" />
 
-          {/* Section 2: Ordering & Navigation */}
-          {/* Move to page Submenu */}
-          <div
-            className="relative"
-            onMouseEnter={() => setContextSubmenu("move_page")}
-            onMouseLeave={() => setContextSubmenu(null)}
-          >
-            <div className="w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] hover:bg-[#0c8ce9] hover:text-white rounded-md transition-colors cursor-pointer group">
-              <span>Move to page</span>
-              <HiChevronRight className="w-3.5 h-3.5 text-[#8e8e8e] group-hover:text-white" />
-            </div>
-
-            {contextSubmenu === "move_page" && (
-              <div className="absolute left-full top-0 ml-1 w-[170px] py-1 px-1 rounded-xl bg-[#222222]/98 border border-white/10 shadow-2xl backdrop-blur-xl z-50 animate-in fade-in duration-75">
-                <button
-                  type="button"
-                  onClick={() => setContextMenu(null)}
-                  className="w-full text-left px-3 py-1.5 text-[12px] hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors font-medium flex items-center justify-between"
-                >
-                  <span>Page 1 (Active)</span>
-                  <HiCheck className="w-3.5 h-3.5 text-teal-400" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    alert("Halaman baru dibuat!");
-                    setContextMenu(null);
-                  }}
-                  className="w-full text-left px-3 py-1.5 text-[12px] text-teal-300 hover:bg-[#0c8ce9] hover:text-white rounded-md cursor-pointer transition-colors"
-                >
-                  + Create new page
-                </button>
-              </div>
-            )}
-          </div>
-
+          {/* Section 2: Ordering */}
           <button
             type="button"
             onClick={() => {
