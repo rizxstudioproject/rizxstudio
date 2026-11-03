@@ -1746,27 +1746,6 @@ export default function CanvasWorkspace({
     applyColor(curHex, newAlpha);
   }, [colorHue, colorSat, colorVal, hsvToHex, applyColor]);
 
-  const handleExportSelection = useCallback((format = "png") => {
-    if (!selectedItem) return;
-    if (format === "json") {
-      const blob = new Blob([JSON.stringify(selectedItem, null, 2)], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${selectedItem.title || "canvas-item"}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } else if (selectedItem.image) {
-      const a = document.createElement("a");
-      a.href = selectedItem.image;
-      a.download = `${selectedItem.title || "export"}.${format}`;
-      a.click();
-    } else {
-      setShowShareToast(true);
-      setTimeout(() => setShowShareToast(false), 2000);
-    }
-  }, [selectedItem]);
-
   // Drag & drop file overlay state
   const [isDragOverCanvas, setIsDragOverCanvas] = useState(false);
 
@@ -7796,38 +7775,6 @@ export default function CanvasWorkspace({
               </div>
             </div>
           )}
-
-          {/* 10. EXPORT SECTION (Matches Screenshot 2) */}
-          <div className="p-3 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className={sectionTitleCls}>Export</span>
-              <button
-                type="button"
-                onClick={() => handleExportSelection("png")}
-                className={plusBtnCls}
-                title="Quick Export"
-              >
-                <HiPlus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-4 gap-1.5 text-[11px] font-mono">
-              {["PNG", "JPG", "SVG", "PDF"].map((fmt) => (
-                <button
-                  key={fmt}
-                  type="button"
-                  onClick={() => handleExportSelection(fmt.toLowerCase())}
-                  className={`py-1.5 rounded-lg font-semibold text-center cursor-pointer transition-all ${
-                    isLight
-                      ? "bg-slate-100 border border-slate-200 hover:bg-slate-200 hover:border-slate-300 text-slate-700 hover:text-slate-900 shadow-xs"
-                      : "bg-[#2c2c2c] hover:bg-white/10 text-neutral-300 hover:text-white"
-                  }`}
-                >
-                  {fmt}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
         </>
         )}
