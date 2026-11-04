@@ -9196,13 +9196,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <button
                     type="submit"
                     disabled={!newFolderName.trim()}
-                    className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                    className={`w-full flex items-center justify-center py-3 px-4 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                       isLight
                         ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
                         : "bg-[#16b09f] hover:bg-[#119889] text-black"
                     }`}
                   >
-                    <HiFolderPlus className="w-4 h-4" />
                     <span>{tx("Buat Folder", "Create Folder")}</span>
                   </button>
                 </div>
