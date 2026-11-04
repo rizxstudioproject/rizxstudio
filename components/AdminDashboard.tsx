@@ -967,7 +967,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     showToast("Perubahan dibatalkan — form dikembalikan ke data tersimpan.");
   };
 
-  const handleAddClientLogo = () => {
+  const handleAddClientLogo = async () => {
     if (!newLogoFile) {
       showToast("Peringatan: Silakan pilih file gambar/logo terlebih dahulu.");
       return;
@@ -978,13 +978,20 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       file: newLogoFile,
       row: newLogoRow,
     };
-    setClLogos((prev) => [...prev, newLogo]);
+    const updated = [...clLogos, newLogo];
+    setClLogos(updated);
     setNewLogoName("");
     setNewLogoFile("");
-    showToast(`Logo "${newLogo.name}" ditambahkan ke Baris ${newLogoRow}! Klik 'Simpan Update' untuk mengaktifkan.`);
+
+    // Auto-save immediately to database & localStorage so the logo is permanently saved right away
+    await updateClientLogosData({
+      subtitle: clSubtitle.trim(),
+      logos: updated,
+    });
+    showToast(`Berhasil: Logo "${newLogo.name}" ditambahkan dan disimpan ke Baris ${newLogoRow}!`);
   };
 
-  const handleDeleteClientLogo = (id: string) => {
+  const handleDeleteClientLogo = async (id: string) => {
     const logo = clLogos.find((l) => l.id === id);
     if (logo) {
       moveToTrash({
@@ -996,8 +1003,15 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         payload: { logo },
       });
     }
-    setClLogos((prev) => prev.filter((l) => l.id !== id));
-    showToast(tx("Logo dipindahkan ke Tong Sampah. Klik 'Simpan Update' untuk menerapkan.", "Logo moved to Recycle Bin. Click 'Save Update' to apply."));
+    const updated = clLogos.filter((l) => l.id !== id);
+    setClLogos(updated);
+
+    // Auto-save immediately to database & localStorage
+    await updateClientLogosData({
+      subtitle: clSubtitle.trim(),
+      logos: updated,
+    });
+    showToast(tx(`Logo "${logo?.name || "Client"}" dihapus dan perubahan disimpan.`, `Logo "${logo?.name || "Client"}" deleted and changes saved.`));
   };
 
   // ==========================================

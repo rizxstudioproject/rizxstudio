@@ -125,6 +125,7 @@ export default function ClientsWorkspace({
   const [mobileActiveView, setMobileActiveView] = useState<"list" | "detail">("list");
 
   // Logo panel filter & search
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [logoRowTab, setLogoRowTab] = useState<"all" | "row1" | "row2">("all");
   const [logoSearch, setLogoSearch] = useState("");
   // Middle Column Filter Tab: 'all' | 'recent' | 'favorites'
@@ -1529,7 +1530,9 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                   }`}>
                     <HiPhoto className="w-4 h-4 text-[#16b09f]" />
                     <span className="truncate">
-                      {newLogoFile
+                      {isUploadingLogo
+                        ? tr("Mengupload...", "Uploading...", "Mengupload...")
+                        : newLogoFile
                         ? tr("✓ File Dipilih", "✓ File Dipilih", "✓ File Dipiliah")
                         : tr("Upload File", "Upload File", "Upload File")}
                     </span>
@@ -1539,7 +1542,6 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                       className="hidden"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
-                        e.target.value = "";
                         if (!file) return;
 
                         const isSvg =
@@ -1547,27 +1549,41 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                           file.type.includes("svg") ||
                           file.name.toLowerCase().endsWith(".svg");
 
-                        if (onGenericImageFile) {
-                          onGenericImageFile(e, (dataUrl) => {
-                            let finalUrl = dataUrl;
-                            if (isSvg && !finalUrl.startsWith("data:image/svg+xml") && finalUrl.startsWith("data:")) {
-                              finalUrl = finalUrl.replace(/^data:[^;]*;base64,/, "data:image/svg+xml;base64,");
-                            }
-                            setNewLogoFile?.(finalUrl);
-                          });
-                          return;
-                        }
+                        setIsUploadingLogo(true);
 
+                        // 1. Instant local base64 reader so user gets 0ms visual preview
                         const reader = new FileReader();
                         reader.onload = (ev) => {
                           let dataUrl = ev.target?.result as string;
-                          if (!dataUrl) return;
-                          if (isSvg && !dataUrl.startsWith("data:image/svg+xml") && dataUrl.startsWith("data:")) {
-                            dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, "data:image/svg+xml;base64,");
+                          if (dataUrl) {
+                            if (isSvg && !dataUrl.startsWith("data:image/svg+xml") && dataUrl.startsWith("data:")) {
+                              dataUrl = dataUrl.replace(/^data:[^;]*;base64,/, "data:image/svg+xml;base64,");
+                            }
+                            setNewLogoFile?.(dataUrl);
                           }
-                          setNewLogoFile?.(dataUrl);
+                          setIsUploadingLogo(false);
+                          e.target.value = "";
+                        };
+                        reader.onerror = () => {
+                          setIsUploadingLogo(false);
+                          e.target.value = "";
                         };
                         reader.readAsDataURL(file);
+
+                        // 2. Upload to Cloud Storage CDN in background for permanent high-res URL
+                        try {
+                          const fd = new FormData();
+                          fd.append("file", file);
+                          fd.append("folder", "clients/logos");
+                          fetch("/api/admin/media-upload", { method: "POST", body: fd })
+                            .then((res) => res.json())
+                            .then((data) => {
+                              if (data?.url) {
+                                setNewLogoFile?.(data.url);
+                              }
+                            })
+                            .catch(() => {});
+                        } catch (_) {}
                       }}
                     />
                   </label>
@@ -1583,32 +1599,54 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               </div>
             </div>
 
-            {newLogoFile && (
-              <div className="flex items-center gap-4 pt-2">
-                <div className={`p-2 rounded-xl border flex items-center justify-center ${
-                  isLight ? "bg-slate-100 border-slate-200" : "bg-white border-white/20 shadow-xs"
-                }`}>
-                  <img
-                    src={normalizeMediaUrl(newLogoFile)}
-                    alt="Preview"
-                    onError={(e) => {
-                      const target = e.currentTarget;
-                      const fbs = getMediaFallbackUrls(newLogoFile);
-                      if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
-                      else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
-                    }}
-                    className="h-8 max-w-[120px] object-contain"
-                  />
+            {/* Action Bar & Preview Box */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-white/5">
+              {newLogoFile ? (
+                <div className="flex items-center gap-3">
+                  <span className={`text-xs font-mono font-medium ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                    {tr("Preview Logo:", "Preview Logo:", "Preview Logo:")}
+                  </span>
+                  <div className={`p-2 rounded-xl border flex items-center justify-center max-h-12 ${
+                    isLight ? "bg-slate-100 border-slate-200" : "bg-white border-white/20 shadow-xs"
+                  }`}>
+                    <img
+                      src={normalizeMediaUrl(newLogoFile)}
+                      alt="Preview Logo"
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        const fbs = getMediaFallbackUrls(newLogoFile);
+                        if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                        else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                      }}
+                      className="h-7 max-w-[140px] object-contain"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setNewLogoFile?.("")}
+                    className="text-xs text-rose-400 hover:text-rose-300 underline font-mono cursor-pointer"
+                  >
+                    {tr("Hapus", "Hapus", "Hapuih")}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={onAddClientLogo}
-                  className="px-5 py-2.5 rounded-xl bg-[#16b09f] text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md"
-                >
-                  {tr(`Add to Row ${newLogoRow}`, `Tambahkan ke Baris ${newLogoRow}`, `Tambahkan ka Barih ${newLogoRow}`)}
-                </button>
-              </div>
-            )}
+              ) : (
+                <span className={`text-xs font-mono ${isLight ? "text-slate-500" : "text-neutral-500"}`}>
+                  {tr("Pilih file dari device atau paste link logo untuk menambahkan.", "Pilih file dari device atau paste link logo untuk menambahkan.", "Pilih file dari device atau paste link logo untuk menambahkan.")}
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={onAddClientLogo}
+                disabled={!newLogoFile || isUploadingLogo}
+                className="px-5 py-2.5 rounded-xl bg-[#16b09f] disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md flex items-center gap-2 ml-auto"
+              >
+                <HiPlus className="w-4 h-4" />
+                <span>
+                  {tr(`Tambahkan ke Baris ${newLogoRow}`, `Tambahkan ke Baris ${newLogoRow}`, `Tambahkan ka Barih ${newLogoRow}`)}
+                </span>
+              </button>
+            </div>
           </div>
 
           {/* List Logos: Baris 1 & Baris 2 */}
