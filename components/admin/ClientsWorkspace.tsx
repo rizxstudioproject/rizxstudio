@@ -1639,11 +1639,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
                 type="button"
                 onClick={onAddClientLogo}
                 disabled={!newLogoFile || isUploadingLogo}
-                className="px-5 py-2.5 rounded-xl bg-[#16b09f] disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md flex items-center gap-2 ml-auto"
+                className="px-5 py-2.5 rounded-xl bg-[#16b09f] disabled:opacity-40 disabled:cursor-not-allowed text-black font-bold text-xs hover:bg-[#119889] transition-all cursor-pointer shadow-md flex items-center justify-center ml-auto"
               >
-                <HiPlus className="w-4 h-4" />
                 <span>
-                  {tr(`Tambahkan ke Baris ${newLogoRow}`, `Tambahkan ke Baris ${newLogoRow}`, `Tambahkan ka Barih ${newLogoRow}`)}
+                  Add to Row {newLogoRow}
                 </span>
               </button>
             </div>
