@@ -1014,6 +1014,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     showToast(tx(`Logo "${logo?.name || "Client"}" dihapus dan perubahan disimpan.`, `Logo "${logo?.name || "Client"}" deleted and changes saved.`));
   };
 
+  const handleReorderClientLogos = async (newLogos: ClientLogoItem[]) => {
+    setClLogos(newLogos);
+    await updateClientLogosData({
+      subtitle: clSubtitle.trim(),
+      logos: newLogos,
+    });
+  };
+
   // ==========================================
   // Handlers for Portfolio Runner Marquee (4:5)
   // ==========================================
@@ -3844,6 +3852,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
               setNewLogoFile={setNewLogoFile}
               onAddClientLogo={handleAddClientLogo}
               onDeleteClientLogo={handleDeleteClientLogo}
+              onReorderClientLogos={handleReorderClientLogos}
               onSaveClientLogos={handleSaveClientLogos}
               onCancelClientLogos={handleCancelClientLogos}
               onGenericImageFile={handleGenericImageFile}

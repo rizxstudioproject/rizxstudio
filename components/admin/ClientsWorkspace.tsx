@@ -69,6 +69,7 @@ interface ClientsWorkspaceProps {
   setNewLogoFile?: (val: string) => void;
   onAddClientLogo?: () => void;
   onDeleteClientLogo?: (id: string) => void;
+  onReorderClientLogos?: (newLogos: ClientLogoItem[]) => void;
   onSaveClientLogos?: () => void;
   onCancelClientLogos?: () => void;
   onGenericImageFile?: (e: React.ChangeEvent<HTMLInputElement>, cb: (dataUrl: string) => void) => void;
@@ -103,6 +104,7 @@ export default function ClientsWorkspace({
   setNewLogoFile,
   onAddClientLogo,
   onDeleteClientLogo,
+  onReorderClientLogos,
   onSaveClientLogos,
   onCancelClientLogos,
   onGenericImageFile,
@@ -201,6 +203,10 @@ export default function ClientsWorkspace({
   // Client folders reorder drag & drop state
   const [draggedClientId, setDraggedClientId] = useState<string | null>(null);
   const [dragOverClientId, setDragOverClientId] = useState<string | null>(null);
+
+  // Client logos reorder drag & drop state
+  const [draggedLogoId, setDraggedLogoId] = useState<string | null>(null);
+  const [dragOverLogoId, setDragOverLogoId] = useState<string | null>(null);
 
   const coverFileInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -486,6 +492,56 @@ export default function ClientsWorkspace({
 
     onReorderClients(currentClients);
     showToast(tr("Urutan folder klien berhasil diubah & disinkronkan ke web!", "Client folders reordered & synced to website!", "Urutan folder klien barasil diubah & disinkronkan!"));
+  };
+
+  // Reorder and move client logos with instant DB/cloud & state persistence
+  const applyLogosUpdate = (newLogos: ClientLogoItem[]) => {
+    if (setClLogos) setClLogos(newLogos);
+    if (onReorderClientLogos) {
+      onReorderClientLogos(newLogos);
+    } else if (onSaveClientLogos) {
+      onSaveClientLogos();
+    }
+  };
+
+  const handleReorderLogo = (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const current = [...clLogos];
+    const fromIndex = current.findIndex((l) => l.id === fromId);
+    const toIndex = current.findIndex((l) => l.id === toId);
+    if (fromIndex === -1 || toIndex === -1) return;
+
+    const [moved] = current.splice(fromIndex, 1);
+    current.splice(toIndex, 0, moved);
+
+    applyLogosUpdate(current);
+    showToast(tr("Urutan logo berhasil dipindahkan & disinkronkan!", "Logo order reordered & synced!", "Urutan logo barasil dipindahkan!"));
+  };
+
+  const handleShiftLogo = (logoId: string, direction: "up" | "down", e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const visibleIdx = filteredLogos.findIndex((l) => l.id === logoId);
+    if (visibleIdx === -1) return;
+
+    const targetVisibleIdx = direction === "up" ? visibleIdx - 1 : visibleIdx + 1;
+    if (targetVisibleIdx < 0 || targetVisibleIdx >= filteredLogos.length) return;
+
+    const targetId = filteredLogos[targetVisibleIdx].id;
+    handleReorderLogo(logoId, targetId);
+  };
+
+  const handleToggleLogoRow = (logoId: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const current = clLogos.map((l) => {
+      if (l.id === logoId) {
+        return { ...l, row: (l.row === 1 ? 2 : 1) as 1 | 2 };
+      }
+      return l;
+    });
+    applyLogosUpdate(current);
+    const targetLogo = clLogos.find((l) => l.id === logoId);
+    const nextRow = targetLogo?.row === 1 ? 2 : 1;
+    showToast(tr(`Logo "${targetLogo?.name || "Klien"}" dipindahkan ke Baris ${nextRow}!`, `Logo "${targetLogo?.name || "Client"}" moved to Row ${nextRow}!`, `Logo "${targetLogo?.name || "Klien"}" dipindahkan ka Barih ${nextRow}!`));
   };
 
   const handleShiftClient = (clientId: string, direction: "up" | "down") => {
@@ -1231,75 +1287,158 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           ) : (
             /* Logos List in Middle Column */
             <div className="space-y-1.5">
-              {filteredLogos.map((logo) => (
-                <div
-                  key={logo.id}
-                  onClick={() => setMobileActiveView("detail")}
-                  className={`group flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
-                    isLight
-                      ? "bg-white hover:bg-slate-50 border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
-                      : "bg-neutral-900/60 hover:bg-neutral-900 border-white/5 hover:border-white/15"
-                  }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-9 h-7 rounded border flex items-center justify-center p-1 shrink-0 ${
-                      isLight
-                        ? "bg-slate-50 border-slate-200/80"
-                        : "bg-white border-white/20 shadow-xs"
-                    }`}>
-                      <img
-                        src={normalizeMediaUrl(logo.file)}
-                        alt={logo.name}
-                        onError={(e) => {
-                          const target = e.currentTarget;
-                          const fbs = getMediaFallbackUrls(logo.file);
-                          if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
-                          else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
-                        }}
-                        className="max-h-5 max-w-full object-contain"
-                      />
-                    </div>
-                    <div className="min-w-0">
-                      <p className={`text-xs font-medium truncate ${
-                        isLight ? "text-slate-900" : "text-white"
-                      }`}>
-                        {logo.name}
-                      </p>
-                      <span
-                        className={`text-[9px] font-mono px-1.5 py-0.2 rounded font-semibold ${
-                          logo.row === 1
-                            ? isLight
-                              ? "bg-cyan-100 text-cyan-800 border border-cyan-200"
-                              : "bg-cyan-500/15 text-cyan-400"
-                            : isLight
-                              ? "bg-emerald-100 text-emerald-800 border border-emerald-200"
-                              : "bg-emerald-500/15 text-emerald-400"
-                        }`}
-                      >
-                        {logo.row === 1
-                          ? tr("Row 1 (Left)", "Baris 1 (Kiri)", "Barih 1 (Kida)")
-                          : tr("Row 2 (Right)", "Baris 2 (Kanan)", "Barih 2 (Kanan)")}
-                      </span>
-                    </div>
-                  </div>
+              {filteredLogos.map((logo, index) => {
+                const isDragging = draggedLogoId === logo.id;
+                const isDragOver = dragOverLogoId === logo.id;
 
-                  <button
-                    type="button"
-                    title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteClientLogo?.(logo.id);
+                return (
+                  <div
+                    key={logo.id}
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", logo.id);
+                      setDraggedLogoId(logo.id);
                     }}
-                    className={`p-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100 ${
-                      isLight
-                        ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                        : "text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.dataTransfer.dropEffect = "move";
+                      if (dragOverLogoId !== logo.id) setDragOverLogoId(logo.id);
+                    }}
+                    onDragLeave={() => {
+                      if (dragOverLogoId === logo.id) setDragOverLogoId(null);
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
+                      if (fromId) handleReorderLogo(fromId, logo.id);
+                      setDraggedLogoId(null);
+                      setDragOverLogoId(null);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedLogoId(null);
+                      setDragOverLogoId(null);
+                    }}
+                    onClick={() => setMobileActiveView("detail")}
+                    className={`group flex items-center justify-between p-2 rounded-xl border transition-all cursor-pointer ${
+                      isDragging
+                        ? "opacity-40 scale-[0.98] border-dashed border-[#16b09f]"
+                        : isDragOver
+                        ? "ring-2 ring-[#16b09f] bg-[#16b09f]/10 border-[#16b09f]"
+                        : isLight
+                        ? "bg-white hover:bg-slate-50 border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
+                        : "bg-neutral-900/60 hover:bg-neutral-900 border-white/5 hover:border-white/15"
                     }`}
                   >
-                    <HiTrash className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
+                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                      {/* Drag Handle */}
+                      <div
+                        className="p-1 -ml-1 text-neutral-500 hover:text-white cursor-grab active:cursor-grabbing shrink-0 transition-opacity opacity-40 group-hover:opacity-100"
+                        title={tr("Tahan & Geser untuk mengubah urutan", "Drag to reorder", "Tahan & Geser untuak maubah urutan")}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <RiDraggable className="w-4 h-4" />
+                      </div>
+
+                      {/* Logo Preview */}
+                      <div className={`w-9 h-7 rounded border flex items-center justify-center p-1 shrink-0 ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200/80"
+                          : "bg-white border-white/20 shadow-xs"
+                      }`}>
+                        <img
+                          src={normalizeMediaUrl(logo.file)}
+                          alt={logo.name}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const fbs = getMediaFallbackUrls(logo.file);
+                            if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                            else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                          }}
+                          className="max-h-5 max-w-full object-contain"
+                        />
+                      </div>
+
+                      {/* Logo Name & Clickable Row Badge */}
+                      <div className="min-w-0 flex-1">
+                        <p className={`text-xs font-medium truncate ${
+                          isLight ? "text-slate-900" : "text-white"
+                        }`}>
+                          {logo.name}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={(e) => handleToggleLogoRow(logo.id, e)}
+                          title={tr("Klik untuk ubah baris (Row 1 ⇄ Row 2)", "Click to toggle row (Row 1 ⇄ Row 2)", "Klik untuak tuka barih")}
+                          className={`text-[9px] font-mono px-1.5 py-0.5 rounded font-semibold transition-all hover:scale-105 cursor-pointer inline-flex items-center gap-1 ${
+                            logo.row === 1
+                              ? isLight
+                                ? "bg-cyan-100 text-cyan-800 border border-cyan-200 hover:bg-cyan-200"
+                                : "bg-cyan-500/15 text-cyan-400 hover:bg-cyan-500/30"
+                              : isLight
+                                ? "bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200"
+                                : "bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/30"
+                          }`}
+                        >
+                          {logo.row === 1
+                            ? tr("Row 1 (Left)", "Baris 1 (Kiri)", "Barih 1 (Kida)")
+                            : tr("Row 2 (Right)", "Baris 2 (Kanan)", "Barih 2 (Kanan)")}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Move Up, Down & Delete Actions */}
+                    <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        disabled={index === 0}
+                        onClick={(e) => handleShiftLogo(logo.id, "up", e)}
+                        title={tr("Pindah Ke Atas", "Move Up", "Pindah Ka Ateh")}
+                        className={`p-1 rounded transition-colors ${
+                          index === 0
+                            ? "opacity-20 cursor-not-allowed text-neutral-500"
+                            : isLight
+                            ? "text-slate-400 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+                            : "text-neutral-500 hover:text-white hover:bg-white/10 cursor-pointer"
+                        }`}
+                      >
+                        <RiArrowUpSLine className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={index === filteredLogos.length - 1}
+                        onClick={(e) => handleShiftLogo(logo.id, "down", e)}
+                        title={tr("Pindah Ke Bawah", "Move Down", "Pindah Ka Bawah")}
+                        className={`p-1 rounded transition-colors ${
+                          index === filteredLogos.length - 1
+                            ? "opacity-20 cursor-not-allowed text-neutral-500"
+                            : isLight
+                            ? "text-slate-400 hover:text-slate-900 hover:bg-slate-100 cursor-pointer"
+                            : "text-neutral-500 hover:text-white hover:bg-white/10 cursor-pointer"
+                        }`}
+                      >
+                        <RiArrowDownSLine className="w-3.5 h-3.5" />
+                      </button>
+
+                      <button
+                        type="button"
+                        title={tr("Hapus Logo", "Delete Logo", "Hapuih Logo")}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteClientLogo?.(logo.id);
+                        }}
+                        className={`p-1 rounded transition-colors ${
+                          isLight
+                            ? "text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                            : "text-neutral-500 hover:text-rose-400 hover:bg-rose-500/10"
+                        }`}
+                      >
+                        <HiTrash className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
 
               {filteredLogos.length === 0 && (
                 <div className={`p-8 text-center text-xs ${isLight ? "text-slate-400" : "text-neutral-500"}`}>
@@ -1671,82 +1810,110 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {clLogos
                   .filter((l) => l.row === 1)
-                  .map((logo) => (
-                    <div
-                      key={logo.id}
-                      className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-colors ${
-                        isLight
-                          ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
-                          : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
-                      }`}
-                    >
-                      <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all ${
-                        isLight
-                          ? "bg-white border-slate-200/80 shadow-xs"
-                          : "bg-white border-white/20 shadow-xs"
-                      }`}>
-                        <img
-                          src={normalizeMediaUrl(logo.file)}
-                          alt={logo.name}
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            const fbs = getMediaFallbackUrls(logo.file);
-                            if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
-                            else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
-                          }}
-                          className="max-h-8 max-w-full object-contain"
-                        />
-                      </div>
-                      <input
-                        type="text"
-                        value={logo.name}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setClLogos?.((prev) =>
-                            prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
-                          );
+                  .map((logo) => {
+                    const isDragging = draggedLogoId === logo.id;
+                    const isDragOver = dragOverLogoId === logo.id;
+
+                    return (
+                      <div
+                        key={logo.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData("text/plain", logo.id);
+                          setDraggedLogoId(logo.id);
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.currentTarget.blur();
-                            onSaveClientLogos?.();
-                          }
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                          if (dragOverLogoId !== logo.id) setDragOverLogoId(logo.id);
                         }}
-                        className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border ${
-                          isLight
-                            ? "bg-white border-slate-200 text-slate-800"
-                            : "bg-neutral-900 border-white/10 text-white"
+                        onDragLeave={() => {
+                          if (dragOverLogoId === logo.id) setDragOverLogoId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
+                          if (fromId) handleReorderLogo(fromId, logo.id);
+                          setDraggedLogoId(null);
+                          setDragOverLogoId(null);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedLogoId(null);
+                          setDragOverLogoId(null);
+                        }}
+                        className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-all cursor-grab active:cursor-grabbing ${
+                          isDragging
+                            ? "opacity-40 scale-95 border-dashed border-[#16b09f]"
+                            : isDragOver
+                            ? "ring-2 ring-[#16b09f] border-[#16b09f] bg-[#16b09f]/10 shadow-lg"
+                            : isLight
+                            ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
+                            : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
                         }`}
-                      />
-                      <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
-                        isLight ? "border-slate-200" : "border-white/5"
-                      }`}>
-                        <button
-                          type="button"
-                          title={tr("Move to Row 2", "Pindah ke Baris 2", "Pindah ka Barih 2")}
-                          onClick={() => {
+                      >
+                        <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all relative ${
+                          isLight
+                            ? "bg-white border-slate-200/80 shadow-xs"
+                            : "bg-white border-white/20 shadow-xs"
+                        }`}>
+                          <img
+                            src={normalizeMediaUrl(logo.file)}
+                            alt={logo.name}
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              const fbs = getMediaFallbackUrls(logo.file);
+                              if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                              else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                            }}
+                            className="max-h-8 max-w-full object-contain pointer-events-none"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={logo.name}
+                          onChange={(e) => {
+                            const val = e.target.value;
                             setClLogos?.((prev) =>
-                              prev.map((l) => (l.id === logo.id ? { ...l, row: 2 } : l))
+                              prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
                             );
-                            showToast(tr(`Logo "${logo.name}" moved to Row 2.`, `Logo "${logo.name}" dipindah ke Baris 2.`, `Logo "${logo.name}" dipindah ka Barih 2.`));
                           }}
-                          className={`text-[10px] font-mono transition-colors cursor-pointer ${
-                            isLight ? "text-slate-500 hover:text-cyan-600" : "text-neutral-400 hover:text-cyan-400"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.currentTarget.blur();
+                              onSaveClientLogos?.();
+                            }
+                          }}
+                          className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border ${
+                            isLight
+                              ? "bg-white border-slate-200 text-slate-800"
+                              : "bg-neutral-900 border-white/10 text-white"
                           }`}
-                        >
-                          ↓ {tr("Row 2", "Baris 2", "Barih 2")}
-                        </button>
-                        <button
-                          type="button"
-                          title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
-                          onClick={() => onDeleteClientLogo?.(logo.id)}
-                          className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                        >
-                          <HiTrash className="w-3.5 h-3.5" />
-                        </button>
+                        />
+                        <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
+                          isLight ? "border-slate-200" : "border-white/5"
+                        }`}>
+                          <button
+                            type="button"
+                            title={tr("Pindah ke Baris 2", "Move to Row 2", "Pindah ka Barih 2")}
+                            onClick={(e) => handleToggleLogoRow(logo.id, e)}
+                            className={`text-[10px] font-mono transition-colors cursor-pointer hover:underline ${
+                              isLight ? "text-slate-500 hover:text-cyan-600" : "text-neutral-400 hover:text-cyan-400"
+                            }`}
+                          >
+                            ↓ {tr("Row 2", "Baris 2", "Barih 2")}
+                          </button>
+                          <button
+                            type="button"
+                            title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
+                            onClick={() => onDeleteClientLogo?.(logo.id)}
+                            className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          >
+                            <HiTrash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
 
@@ -1771,82 +1938,110 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
                 {clLogos
                   .filter((l) => l.row === 2)
-                  .map((logo) => (
-                    <div
-                      key={logo.id}
-                      className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-colors ${
-                        isLight
-                          ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
-                          : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
-                      }`}
-                    >
-                      <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all ${
-                        isLight
-                          ? "bg-white border-slate-200/80 shadow-xs"
-                          : "bg-white border-white/20 shadow-xs"
-                      }`}>
-                        <img
-                          src={normalizeMediaUrl(logo.file)}
-                          alt={logo.name}
-                          onError={(e) => {
-                            const target = e.currentTarget;
-                            const fbs = getMediaFallbackUrls(logo.file);
-                            if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
-                            else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
-                          }}
-                          className="max-h-8 max-w-full object-contain"
-                        />
-                      </div>
-                      <input
-                        type="text"
-                        value={logo.name}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setClLogos?.((prev) =>
-                            prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
-                          );
+                  .map((logo) => {
+                    const isDragging = draggedLogoId === logo.id;
+                    const isDragOver = dragOverLogoId === logo.id;
+
+                    return (
+                      <div
+                        key={logo.id}
+                        draggable
+                        onDragStart={(e) => {
+                          e.dataTransfer.setData("text/plain", logo.id);
+                          setDraggedLogoId(logo.id);
                         }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.currentTarget.blur();
-                            onSaveClientLogos?.();
-                          }
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = "move";
+                          if (dragOverLogoId !== logo.id) setDragOverLogoId(logo.id);
                         }}
-                        className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border ${
-                          isLight
-                            ? "bg-white border-slate-200 text-slate-800"
-                            : "bg-neutral-900 border-white/10 text-white"
+                        onDragLeave={() => {
+                          if (dragOverLogoId === logo.id) setDragOverLogoId(null);
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
+                          if (fromId) handleReorderLogo(fromId, logo.id);
+                          setDraggedLogoId(null);
+                          setDragOverLogoId(null);
+                        }}
+                        onDragEnd={() => {
+                          setDraggedLogoId(null);
+                          setDragOverLogoId(null);
+                        }}
+                        className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-all cursor-grab active:cursor-grabbing ${
+                          isDragging
+                            ? "opacity-40 scale-95 border-dashed border-[#16b09f]"
+                            : isDragOver
+                            ? "ring-2 ring-[#16b09f] border-[#16b09f] bg-[#16b09f]/10 shadow-lg"
+                            : isLight
+                            ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
+                            : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
                         }`}
-                      />
-                      <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
-                        isLight ? "border-slate-200" : "border-white/5"
-                      }`}>
-                        <button
-                          type="button"
-                          title={tr("Move to Row 1", "Pindah ke Baris 1", "Pindah ka Barih 1")}
-                          onClick={() => {
+                      >
+                        <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all relative ${
+                          isLight
+                            ? "bg-white border-slate-200/80 shadow-xs"
+                            : "bg-white border-white/20 shadow-xs"
+                        }`}>
+                          <img
+                            src={normalizeMediaUrl(logo.file)}
+                            alt={logo.name}
+                            onError={(e) => {
+                              const target = e.currentTarget;
+                              const fbs = getMediaFallbackUrls(logo.file);
+                              if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                              else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                            }}
+                            className="max-h-8 max-w-full object-contain pointer-events-none"
+                          />
+                        </div>
+                        <input
+                          type="text"
+                          value={logo.name}
+                          onChange={(e) => {
+                            const val = e.target.value;
                             setClLogos?.((prev) =>
-                              prev.map((l) => (l.id === logo.id ? { ...l, row: 1 } : l))
+                              prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
                             );
-                            showToast(tr(`Logo "${logo.name}" moved to Row 1.`, `Logo "${logo.name}" dipindah ke Baris 1.`, `Logo "${logo.name}" dipindah ka Barih 1.`));
                           }}
-                          className={`text-[10px] font-mono transition-colors cursor-pointer ${
-                            isLight ? "text-slate-500 hover:text-emerald-600" : "text-neutral-400 hover:text-emerald-400"
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              e.currentTarget.blur();
+                              onSaveClientLogos?.();
+                            }
+                          }}
+                          className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border ${
+                            isLight
+                              ? "bg-white border-slate-200 text-slate-800"
+                              : "bg-neutral-900 border-white/10 text-white"
                           }`}
-                        >
-                          ↑ {tr("Row 1", "Baris 1", "Barih 1")}
-                        </button>
-                        <button
-                          type="button"
-                          title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
-                          onClick={() => onDeleteClientLogo?.(logo.id)}
-                          className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                        >
-                          <HiTrash className="w-3.5 h-3.5" />
-                        </button>
+                        />
+                        <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
+                          isLight ? "border-slate-200" : "border-white/5"
+                        }`}>
+                          <button
+                            type="button"
+                            title={tr("Pindah ke Baris 1", "Move to Row 1", "Pindah ka Barih 1")}
+                            onClick={(e) => handleToggleLogoRow(logo.id, e)}
+                            className={`text-[10px] font-mono transition-colors cursor-pointer hover:underline ${
+                              isLight ? "text-slate-500 hover:text-emerald-600" : "text-neutral-400 hover:text-emerald-400"
+                            }`}
+                          >
+                            ↑ {tr("Row 1", "Baris 1", "Barih 1")}
+                          </button>
+                          <button
+                            type="button"
+                            title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
+                            onClick={() => onDeleteClientLogo?.(logo.id)}
+                            className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                          >
+                            <HiTrash className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
               </div>
             </div>
           </div>
