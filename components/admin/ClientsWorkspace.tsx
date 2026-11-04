@@ -511,11 +511,45 @@ export default function ClientsWorkspace({
     const toIndex = current.findIndex((l) => l.id === toId);
     if (fromIndex === -1 || toIndex === -1) return;
 
-    const [moved] = current.splice(fromIndex, 1);
-    current.splice(toIndex, 0, moved);
+    const fromLogo = { ...current[fromIndex] };
+    const toLogo = current[toIndex];
+
+    // If dragged into a card in a different row, automatically switch to that row
+    if (fromLogo.row !== toLogo.row) {
+      fromLogo.row = toLogo.row;
+    }
+
+    current.splice(fromIndex, 1);
+    const newToIndex = current.findIndex((l) => l.id === toId);
+    if (newToIndex === -1) {
+      current.push(fromLogo);
+    } else {
+      current.splice(newToIndex, 0, fromLogo);
+    }
 
     applyLogosUpdate(current);
-    showToast(tr("Urutan logo berhasil dipindahkan & disinkronkan!", "Logo order reordered & synced!", "Urutan logo barasil dipindahkan!"));
+    showToast(tr("Posisi logo berhasil dipindahkan & disinkronkan!", "Logo position moved & synced!", "Posisi logo barasil dipindahkan!"));
+  };
+
+  const handleShiftLogoInRow = (
+    logoId: string,
+    rowNum: 1 | 2,
+    direction: "left" | "right",
+    e?: React.MouseEvent
+  ) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+    const rowLogos = clLogos.filter((l) => l.row === rowNum);
+    const indexInRow = rowLogos.findIndex((l) => l.id === logoId);
+    if (indexInRow === -1) return;
+
+    const targetIndexInRow = direction === "left" ? indexInRow - 1 : indexInRow + 1;
+    if (targetIndexInRow < 0 || targetIndexInRow >= rowLogos.length) return;
+
+    const targetLogo = rowLogos[targetIndexInRow];
+    handleReorderLogo(logoId, targetLogo.id);
   };
 
   const handleShiftLogo = (logoId: string, direction: "up" | "down", e?: React.MouseEvent) => {
@@ -864,8 +898,10 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
     });
   }, [clLogos, logoRowTab, logoSearch, searchQuery]);
 
-  const row1Count = useMemo(() => clLogos.filter((l) => l.row === 1).length, [clLogos]);
-  const row2Count = useMemo(() => clLogos.filter((l) => l.row === 2).length, [clLogos]);
+  const row1Logos = useMemo(() => clLogos.filter((l) => l.row === 1), [clLogos]);
+  const row2Logos = useMemo(() => clLogos.filter((l) => l.row === 2), [clLogos]);
+  const row1Count = row1Logos.length;
+  const row2Count = row2Logos.length;
 
   return (
     <div className={`flex-1 flex flex-col md:flex-row overflow-hidden transition-colors ${
@@ -1790,9 +1826,23 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
           {/* List Logos: Baris 1 & Baris 2 */}
           <div className="space-y-6">
             {/* Row 1 */}
-            <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
-              isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
-            }`}>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }}
+              onDrop={(e) => {
+                const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
+                if (!fromId) return;
+                const fromLogo = clLogos.find((l) => l.id === fromId);
+                if (fromLogo && fromLogo.row !== 1) {
+                  handleToggleLogoRow(fromId);
+                }
+              }}
+              className={`p-5 sm:p-7 rounded-2xl border space-y-4 transition-all ${
+                isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
+              }`}
+            >
               <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
                 <h3 className={`text-sm font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                   <span className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
@@ -1808,119 +1858,188 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {clLogos
-                  .filter((l) => l.row === 1)
-                  .map((logo) => {
-                    const isDragging = draggedLogoId === logo.id;
-                    const isDragOver = dragOverLogoId === logo.id;
+                {row1Logos.map((logo, indexInRow) => {
+                  const isDragging = draggedLogoId === logo.id;
+                  const isDragOver = dragOverLogoId === logo.id;
 
-                    return (
-                      <div
-                        key={logo.id}
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData("text/plain", logo.id);
-                          setDraggedLogoId(logo.id);
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.dataTransfer.dropEffect = "move";
-                          if (dragOverLogoId !== logo.id) setDragOverLogoId(logo.id);
-                        }}
-                        onDragLeave={() => {
-                          if (dragOverLogoId === logo.id) setDragOverLogoId(null);
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
-                          if (fromId) handleReorderLogo(fromId, logo.id);
-                          setDraggedLogoId(null);
-                          setDragOverLogoId(null);
-                        }}
-                        onDragEnd={() => {
-                          setDraggedLogoId(null);
-                          setDragOverLogoId(null);
-                        }}
-                        className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-all cursor-grab active:cursor-grabbing ${
-                          isDragging
-                            ? "opacity-40 scale-95 border-dashed border-[#16b09f]"
-                            : isDragOver
-                            ? "ring-2 ring-[#16b09f] border-[#16b09f] bg-[#16b09f]/10 shadow-lg"
-                            : isLight
-                            ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
-                            : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
-                        }`}
-                      >
-                        <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all relative ${
-                          isLight
-                            ? "bg-white border-slate-200/80 shadow-xs"
-                            : "bg-white border-white/20 shadow-xs"
-                        }`}>
-                          <img
-                            src={normalizeMediaUrl(logo.file)}
-                            alt={logo.name}
-                            onError={(e) => {
-                              const target = e.currentTarget;
-                              const fbs = getMediaFallbackUrls(logo.file);
-                              if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
-                              else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
-                            }}
-                            className="max-h-8 max-w-full object-contain pointer-events-none"
-                          />
+                  return (
+                    <div
+                      key={logo.id}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", logo.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        setDraggedLogoId(logo.id);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.dataTransfer.dropEffect = "move";
+                        if (dragOverLogoId !== logo.id) setDragOverLogoId(logo.id);
+                      }}
+                      onDragLeave={(e) => {
+                        e.stopPropagation();
+                        if (dragOverLogoId === logo.id) setDragOverLogoId(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
+                        if (fromId) handleReorderLogo(fromId, logo.id);
+                        setDraggedLogoId(null);
+                        setDragOverLogoId(null);
+                      }}
+                      onDragEnd={() => {
+                        setDraggedLogoId(null);
+                        setDragOverLogoId(null);
+                      }}
+                      className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-all cursor-grab active:cursor-grabbing select-none ${
+                        isDragging
+                          ? "opacity-30 scale-95 border-dashed border-[#16b09f] ring-2 ring-[#16b09f]/30"
+                          : isDragOver
+                          ? "ring-2 ring-[#16b09f] border-[#16b09f] bg-[#16b09f]/15 shadow-xl scale-[1.02]"
+                          : isLight
+                          ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
+                          : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/40 hover:bg-neutral-900/60"
+                      }`}
+                    >
+                      {/* Top Header: Drag handle & Shift Left / Right arrows */}
+                      <div className="flex items-center justify-between w-full px-0.5 text-neutral-400">
+                        <div
+                          className="flex items-center gap-1 text-[10px] font-mono opacity-60 group-hover:opacity-100 cursor-grab active:cursor-grabbing"
+                          title={tr("Tahan & Geser untuk memindahkan posisi", "Drag to reorder", "Tahan & Geser untuak mamindahkan posisi")}
+                        >
+                          <RiDraggable className="w-3.5 h-3.5" />
+                          <span className={isLight ? "text-slate-500 font-bold" : "text-neutral-400 font-bold"}>
+                            #{indexInRow + 1}
+                          </span>
                         </div>
-                        <input
-                          type="text"
-                          value={logo.name}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setClLogos?.((prev) =>
-                              prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
-                            );
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.currentTarget.blur();
-                              onSaveClientLogos?.();
-                            }
-                          }}
-                          className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border ${
-                            isLight
-                              ? "bg-white border-slate-200 text-slate-800"
-                              : "bg-neutral-900 border-white/10 text-white"
-                          }`}
-                        />
-                        <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
-                          isLight ? "border-slate-200" : "border-white/5"
-                        }`}>
+                        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
-                            title={tr("Pindah ke Baris 2", "Move to Row 2", "Pindah ka Barih 2")}
-                            onClick={(e) => handleToggleLogoRow(logo.id, e)}
-                            className={`text-[10px] font-mono transition-colors cursor-pointer hover:underline ${
-                              isLight ? "text-slate-500 hover:text-cyan-600" : "text-neutral-400 hover:text-cyan-400"
+                            disabled={indexInRow === 0}
+                            onClick={(e) => handleShiftLogoInRow(logo.id, 1, "left", e)}
+                            title={tr("Geser ke Kiri (←)", "Move Left (←)", "Gesa ka Kida (←)")}
+                            className={`p-1 rounded transition-colors ${
+                              indexInRow === 0
+                                ? "opacity-20 cursor-not-allowed"
+                                : isLight
+                                ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 cursor-pointer"
+                                : "text-neutral-400 hover:text-white hover:bg-white/10 cursor-pointer"
                             }`}
                           >
-                            ↓ {tr("Row 2", "Baris 2", "Barih 2")}
+                            <RiArrowLeftSLine className="w-3.5 h-3.5" />
                           </button>
                           <button
                             type="button"
-                            title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
-                            onClick={() => onDeleteClientLogo?.(logo.id)}
-                            className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            disabled={indexInRow === row1Logos.length - 1}
+                            onClick={(e) => handleShiftLogoInRow(logo.id, 1, "right", e)}
+                            title={tr("Geser ke Kanan (→)", "Move Right (→)", "Gesa ka Kanan (→)")}
+                            className={`p-1 rounded transition-colors ${
+                              indexInRow === row1Logos.length - 1
+                                ? "opacity-20 cursor-not-allowed"
+                                : isLight
+                                ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 cursor-pointer"
+                                : "text-neutral-400 hover:text-white hover:bg-white/10 cursor-pointer"
+                            }`}
                           >
-                            <HiTrash className="w-3.5 h-3.5" />
+                            <RiArrowRightSLine className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
-                    );
-                  })}
+
+                      {/* Logo Preview */}
+                      <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all relative ${
+                        isLight
+                          ? "bg-white border-slate-200/80 shadow-xs"
+                          : "bg-white border-white/20 shadow-xs"
+                      }`}>
+                        <img
+                          src={normalizeMediaUrl(logo.file)}
+                          alt={logo.name}
+                          draggable={false}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const fbs = getMediaFallbackUrls(logo.file);
+                            if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                            else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                          }}
+                          className="max-h-8 max-w-full object-contain pointer-events-none select-none"
+                        />
+                      </div>
+
+                      {/* Logo Name Input (draggable=false & stopPropagation to prevent interfering with text editing) */}
+                      <input
+                        type="text"
+                        draggable={false}
+                        value={logo.name}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setClLogos?.((prev) =>
+                            prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
+                          );
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                            onSaveClientLogos?.();
+                          }
+                        }}
+                        className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border cursor-text select-text ${
+                          isLight
+                            ? "bg-white border-slate-200 text-slate-800"
+                            : "bg-neutral-900 border-white/10 text-white"
+                        }`}
+                      />
+
+                      {/* Bottom Action Bar: Move to other row & Delete */}
+                      <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
+                        isLight ? "border-slate-200" : "border-white/5"
+                      }`} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          title={tr("Pindah ke Baris 2", "Move to Row 2", "Pindah ka Barih 2")}
+                          onClick={(e) => handleToggleLogoRow(logo.id, e)}
+                          className={`text-[10px] font-mono transition-colors cursor-pointer hover:underline flex items-center gap-1 ${
+                            isLight ? "text-slate-500 hover:text-cyan-600" : "text-neutral-400 hover:text-cyan-400"
+                          }`}
+                        >
+                          ↓ {tr("Row 2", "Baris 2", "Barih 2")}
+                        </button>
+                        <button
+                          type="button"
+                          title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
+                          onClick={() => onDeleteClientLogo?.(logo.id)}
+                          className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        >
+                          <HiTrash className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
             {/* Row 2 */}
-            <div className={`p-5 sm:p-7 rounded-2xl border space-y-4 ${
-              isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
-            }`}>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+              }}
+              onDrop={(e) => {
+                const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
+                if (!fromId) return;
+                const fromLogo = clLogos.find((l) => l.id === fromId);
+                if (fromLogo && fromLogo.row !== 2) {
+                  handleToggleLogoRow(fromId);
+                }
+              }}
+              className={`p-5 sm:p-7 rounded-2xl border space-y-4 transition-all ${
+                isLight ? "bg-white border-slate-200 shadow-sm" : "bg-[#0e0f14] border-white/10"
+              }`}
+            >
               <div className={`flex items-center justify-between border-b pb-3 ${isLight ? "border-slate-200" : "border-white/10"}`}>
                 <h3 className={`text-sm font-bold flex items-center gap-2 ${isLight ? "text-slate-900" : "text-white"}`}>
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -1936,112 +2055,167 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                {clLogos
-                  .filter((l) => l.row === 2)
-                  .map((logo) => {
-                    const isDragging = draggedLogoId === logo.id;
-                    const isDragOver = dragOverLogoId === logo.id;
+                {row2Logos.map((logo, indexInRow) => {
+                  const isDragging = draggedLogoId === logo.id;
+                  const isDragOver = dragOverLogoId === logo.id;
 
-                    return (
-                      <div
-                        key={logo.id}
-                        draggable
-                        onDragStart={(e) => {
-                          e.dataTransfer.setData("text/plain", logo.id);
-                          setDraggedLogoId(logo.id);
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.dataTransfer.dropEffect = "move";
-                          if (dragOverLogoId !== logo.id) setDragOverLogoId(logo.id);
-                        }}
-                        onDragLeave={() => {
-                          if (dragOverLogoId === logo.id) setDragOverLogoId(null);
-                        }}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
-                          if (fromId) handleReorderLogo(fromId, logo.id);
-                          setDraggedLogoId(null);
-                          setDragOverLogoId(null);
-                        }}
-                        onDragEnd={() => {
-                          setDraggedLogoId(null);
-                          setDragOverLogoId(null);
-                        }}
-                        className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-all cursor-grab active:cursor-grabbing ${
-                          isDragging
-                            ? "opacity-40 scale-95 border-dashed border-[#16b09f]"
-                            : isDragOver
-                            ? "ring-2 ring-[#16b09f] border-[#16b09f] bg-[#16b09f]/10 shadow-lg"
-                            : isLight
-                            ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
-                            : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/30"
-                        }`}
-                      >
-                        <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all relative ${
-                          isLight
-                            ? "bg-white border-slate-200/80 shadow-xs"
-                            : "bg-white border-white/20 shadow-xs"
-                        }`}>
-                          <img
-                            src={normalizeMediaUrl(logo.file)}
-                            alt={logo.name}
-                            onError={(e) => {
-                              const target = e.currentTarget;
-                              const fbs = getMediaFallbackUrls(logo.file);
-                              if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
-                              else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
-                            }}
-                            className="max-h-8 max-w-full object-contain pointer-events-none"
-                          />
+                  return (
+                    <div
+                      key={logo.id}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", logo.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        setDraggedLogoId(logo.id);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        e.dataTransfer.dropEffect = "move";
+                        if (dragOverLogoId !== logo.id) setDragOverLogoId(logo.id);
+                      }}
+                      onDragLeave={(e) => {
+                        e.stopPropagation();
+                        if (dragOverLogoId === logo.id) setDragOverLogoId(null);
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const fromId = e.dataTransfer.getData("text/plain") || draggedLogoId;
+                        if (fromId) handleReorderLogo(fromId, logo.id);
+                        setDraggedLogoId(null);
+                        setDragOverLogoId(null);
+                      }}
+                      onDragEnd={() => {
+                        setDraggedLogoId(null);
+                        setDragOverLogoId(null);
+                      }}
+                      className={`p-3 rounded-xl border flex flex-col items-center justify-between gap-2.5 group relative transition-all cursor-grab active:cursor-grabbing select-none ${
+                        isDragging
+                          ? "opacity-30 scale-95 border-dashed border-[#16b09f] ring-2 ring-[#16b09f]/30"
+                          : isDragOver
+                          ? "ring-2 ring-[#16b09f] border-[#16b09f] bg-[#16b09f]/15 shadow-xl scale-[1.02]"
+                          : isLight
+                          ? "bg-slate-50 hover:bg-white border-slate-200 hover:border-[#16b09f]/50 shadow-xs"
+                          : "bg-neutral-950 border-white/10 hover:border-[#16b09f]/40 hover:bg-neutral-900/60"
+                      }`}
+                    >
+                      {/* Top Header: Drag handle & Shift Left / Right arrows */}
+                      <div className="flex items-center justify-between w-full px-0.5 text-neutral-400">
+                        <div
+                          className="flex items-center gap-1 text-[10px] font-mono opacity-60 group-hover:opacity-100 cursor-grab active:cursor-grabbing"
+                          title={tr("Tahan & Geser untuk memindahkan posisi", "Drag to reorder", "Tahan & Geser untuak mamindahkan posisi")}
+                        >
+                          <RiDraggable className="w-3.5 h-3.5" />
+                          <span className={isLight ? "text-slate-500 font-bold" : "text-neutral-400 font-bold"}>
+                            #{indexInRow + 1}
+                          </span>
                         </div>
-                        <input
-                          type="text"
-                          value={logo.name}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setClLogos?.((prev) =>
-                              prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
-                            );
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.currentTarget.blur();
-                              onSaveClientLogos?.();
-                            }
-                          }}
-                          className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border ${
-                            isLight
-                              ? "bg-white border-slate-200 text-slate-800"
-                              : "bg-neutral-900 border-white/10 text-white"
-                          }`}
-                        />
-                        <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
-                          isLight ? "border-slate-200" : "border-white/5"
-                        }`}>
+                        <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
                           <button
                             type="button"
-                            title={tr("Pindah ke Baris 1", "Move to Row 1", "Pindah ka Barih 1")}
-                            onClick={(e) => handleToggleLogoRow(logo.id, e)}
-                            className={`text-[10px] font-mono transition-colors cursor-pointer hover:underline ${
-                              isLight ? "text-slate-500 hover:text-emerald-600" : "text-neutral-400 hover:text-emerald-400"
+                            disabled={indexInRow === 0}
+                            onClick={(e) => handleShiftLogoInRow(logo.id, 2, "left", e)}
+                            title={tr("Geser ke Kiri (←)", "Move Left (←)", "Gesa ka Kida (←)")}
+                            className={`p-1 rounded transition-colors ${
+                              indexInRow === 0
+                                ? "opacity-20 cursor-not-allowed"
+                                : isLight
+                                ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 cursor-pointer"
+                                : "text-neutral-400 hover:text-white hover:bg-white/10 cursor-pointer"
                             }`}
                           >
-                            ↑ {tr("Row 1", "Baris 1", "Barih 1")}
+                            <RiArrowLeftSLine className="w-3.5 h-3.5" />
                           </button>
                           <button
                             type="button"
-                            title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
-                            onClick={() => onDeleteClientLogo?.(logo.id)}
-                            className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                            disabled={indexInRow === row2Logos.length - 1}
+                            onClick={(e) => handleShiftLogoInRow(logo.id, 2, "right", e)}
+                            title={tr("Geser ke Kanan (→)", "Move Right (→)", "Gesa ka Kanan (→)")}
+                            className={`p-1 rounded transition-colors ${
+                              indexInRow === row2Logos.length - 1
+                                ? "opacity-20 cursor-not-allowed"
+                                : isLight
+                                ? "text-slate-500 hover:text-slate-900 hover:bg-slate-200/60 cursor-pointer"
+                                : "text-neutral-400 hover:text-white hover:bg-white/10 cursor-pointer"
+                            }`}
                           >
-                            <HiTrash className="w-3.5 h-3.5" />
+                            <RiArrowRightSLine className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>
-                    );
-                  })}
+
+                      {/* Logo Preview */}
+                      <div className={`h-12 w-full rounded-lg border flex items-center justify-center p-2 transition-all relative ${
+                        isLight
+                          ? "bg-white border-slate-200/80 shadow-xs"
+                          : "bg-white border-white/20 shadow-xs"
+                      }`}>
+                        <img
+                          src={normalizeMediaUrl(logo.file)}
+                          alt={logo.name}
+                          draggable={false}
+                          onError={(e) => {
+                            const target = e.currentTarget;
+                            const fbs = getMediaFallbackUrls(logo.file);
+                            if (fbs[1] && target.src !== fbs[1]) target.src = fbs[1];
+                            else if (fbs[2] && target.src !== fbs[2]) target.src = fbs[2];
+                          }}
+                          className="max-h-8 max-w-full object-contain pointer-events-none select-none"
+                        />
+                      </div>
+
+                      {/* Logo Name Input (draggable=false & stopPropagation to prevent interfering with text editing) */}
+                      <input
+                        type="text"
+                        draggable={false}
+                        value={logo.name}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setClLogos?.((prev) =>
+                            prev.map((l) => (l.id === logo.id ? { ...l, name: val } : l))
+                          );
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                            onSaveClientLogos?.();
+                          }
+                        }}
+                        className={`w-full text-center px-1.5 py-1 rounded text-[11px] font-mono focus:outline-none focus:border-[#16b09f] border cursor-text select-text ${
+                          isLight
+                            ? "bg-white border-slate-200 text-slate-800"
+                            : "bg-neutral-900 border-white/10 text-white"
+                        }`}
+                      />
+
+                      {/* Bottom Action Bar: Move to other row & Delete */}
+                      <div className={`flex items-center gap-1.5 w-full justify-between pt-1 border-t ${
+                        isLight ? "border-slate-200" : "border-white/5"
+                      }`} onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          title={tr("Pindah ke Baris 1", "Move to Row 1", "Pindah ka Barih 1")}
+                          onClick={(e) => handleToggleLogoRow(logo.id, e)}
+                          className={`text-[10px] font-mono transition-colors cursor-pointer hover:underline flex items-center gap-1 ${
+                            isLight ? "text-slate-500 hover:text-emerald-600" : "text-neutral-400 hover:text-emerald-400"
+                          }`}
+                        >
+                          ↑ {tr("Row 1", "Baris 1", "Barih 1")}
+                        </button>
+                        <button
+                          type="button"
+                          title={tr("Delete Logo", "Hapus Logo", "Hapuih Logo")}
+                          onClick={() => onDeleteClientLogo?.(logo.id)}
+                          className="p-1 rounded text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                        >
+                          <HiTrash className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </div>
