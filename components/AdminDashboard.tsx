@@ -1688,6 +1688,67 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [newFolderDescription, setNewFolderDescription] = useState("");
   const [newFolderTools, setNewFolderTools] = useState("Figma, Photoshop, Magnific AI");
 
+  // Add Showreel Video Modal State (Box Popup)
+  const [isAddShowreelOpen, setIsAddShowreelOpen] = useState(false);
+  const [newShowreelTitle, setNewShowreelTitle] = useState("");
+  const [newShowreelCategory, setNewShowreelCategory] = useState("VISUAL CRAFT | DIGITAL | AI");
+  const [newShowreelMediaType, setNewShowreelMediaType] = useState<"youtube" | "gdrive" | "image">("youtube");
+  const [newShowreelUrl, setNewShowreelUrl] = useState("");
+  const [newShowreelImage, setNewShowreelImage] = useState("");
+  const [newShowreelDesc, setNewShowreelDesc] = useState("");
+
+  const handleOpenAddShowreelModal = () => {
+    const nextNum = stage3Cards.length + 1;
+    setNewShowreelTitle(`Showreel 0${nextNum} — Visual & Motion`);
+    setNewShowreelCategory("VISUAL CRAFT | DIGITAL | AI");
+    setNewShowreelMediaType("youtube");
+    setNewShowreelUrl("");
+    setNewShowreelImage("");
+    setNewShowreelDesc("A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge creative digital experiences.");
+    setIsAddShowreelOpen(true);
+  };
+
+  const handleModalSubmitShowreel = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newShowreelTitle.trim()) {
+      showToast(tx("Judul karya showreel wajib diisi.", "Showreel title is required."));
+      return;
+    }
+
+    let computedYtId = "";
+    let computedGdId = "";
+    if (newShowreelMediaType === "youtube") {
+      computedYtId = extractYouTubeId(newShowreelUrl);
+      if (newShowreelUrl.trim() && !computedYtId) {
+        showToast(tx("Format URL YouTube tidak valid.", "Invalid YouTube URL format."));
+        return;
+      }
+    } else if (newShowreelMediaType === "gdrive") {
+      computedGdId = extractGoogleDriveId(newShowreelUrl);
+      if (newShowreelUrl.trim() && !computedGdId) {
+        showToast(tx("Format Link Google Drive tidak valid.", "Invalid Google Drive link format."));
+        return;
+      }
+    }
+
+    const newId = addStage3Card({
+      title: newShowreelTitle.trim(),
+      category: newShowreelCategory.trim() || "VISUAL CRAFT | DIGITAL | AI",
+      description: newShowreelDesc.trim(),
+      mediaType: newShowreelMediaType,
+      youtubeUrl: newShowreelMediaType === "youtube" ? newShowreelUrl.trim() : "",
+      videoId: newShowreelMediaType === "youtube" ? computedYtId : "",
+      gdriveUrl: newShowreelMediaType === "gdrive" ? newShowreelUrl.trim() : "",
+      gdriveId: newShowreelMediaType === "gdrive" ? computedGdId : "",
+      image: newShowreelImage.trim(),
+      isVideoEnabled: newShowreelMediaType !== "image",
+    });
+
+    setActiveStage3CardId(newId);
+    setIsAddShowreelOpen(false);
+    showToast(tx("Video showreel baru berhasil ditambahkan!", "New showreel video added successfully!"));
+  };
+
   // Edit Brand / Folder Name Modal State
   const [editingFolder, setEditingFolder] = useState<ClientItem | null>(null);
   const [editFolderName, setEditFolderName] = useState("");
@@ -7373,11 +7434,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       </div>
                       <button
                         type="button"
-                        onClick={handleAddShowreelCard}
-                        className="px-3.5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139a8b] text-black font-semibold text-xs font-mono flex items-center gap-1.5 transition-all shadow-md shadow-[#16b09f]/20 active:scale-95 cursor-pointer"
+                        onClick={handleOpenAddShowreelModal}
+                        className="px-3.5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139a8b] text-black font-bold text-xs font-mono flex items-center gap-1.5 transition-all shadow-md shadow-[#16b09f]/20 active:scale-95 cursor-pointer"
                       >
                         <HiPlus className="w-3.5 h-3.5" />
-                        <span>{tx("Tambah Showreel", "Add Showreel")}</span>
+                        <span>{tx("Add Video Showreel", "Add Video Showreel")}</span>
                       </button>
                     </div>
 
@@ -9197,6 +9258,285 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   >
                     <HiCheck className="w-4 h-4" />
                     <span>{tx("Simpan Perubahan", "Save Changes", "Simpan Parubahan")}</span>
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL: ADD VIDEO SHOWREEL BARU (BOX POPUP) */}
+      <AnimatePresence>
+        {isAddShowreelOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className={`relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl p-6 sm:p-7 shadow-2xl transition-all ${
+                isLight
+                  ? "bg-white border border-slate-200 text-slate-800"
+                  : "bg-[#0e1015] border border-white/15 text-white"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => setIsAddShowreelOpen(false)}
+                aria-label={tx("Tutup", "Close")}
+                className={`absolute top-4 right-4 p-2 rounded-full transition-all cursor-pointer z-10 flex items-center justify-center ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 shadow-xs"
+                    : "bg-white/10 hover:bg-white/20 text-white border border-white/10"
+                }`}
+              >
+                <HiXMark className={`w-5 h-5 ${isLight ? "text-slate-800" : "text-white"}`} />
+              </button>
+
+              <div className="mb-5">
+                <span className={`text-[10px] font-mono uppercase tracking-widest font-semibold block mb-1 ${
+                  isLight ? "text-teal-700 font-bold" : "text-[#16b09f]"
+                }`}>
+                  SHOWREEL MANAGEMENT
+                </span>
+                <h3 className={`text-xl font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
+                  {tx("Tambah Video Showreel Baru", "Add New Showreel Video")}
+                </h3>
+                <p className={`text-xs mt-1 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                  {tx(
+                    "Video showreel baru akan langsung muncul di bar switcher dan modal lightbox web publik.",
+                    "New showreel will immediately appear in the switcher bar and public lightbox modal."
+                  )}
+                </p>
+              </div>
+
+              <form onSubmit={handleModalSubmitShowreel} className="space-y-4">
+                {/* Judul Karya / Video */}
+                <div>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    {tx("Judul Video / Karya Showreel", "Showreel Title / Video Name")} <span className={isLight ? "text-teal-600 font-bold" : "text-cyan-400"}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={newShowreelTitle}
+                    onChange={(e) => setNewShowreelTitle(e.target.value)}
+                    placeholder={tx("Contoh: Showreel 2026 — Visual Craft & 3D Motion", "Example: Showreel 2026 — Visual Craft & 3D Motion")}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500 focus:ring-1 focus:ring-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f]"
+                    }`}
+                    autoFocus
+                  />
+                </div>
+
+                {/* Kategori / Tag */}
+                <div>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    {tx("Kategori / Tag Showreel", "Category / Tag")}
+                  </label>
+                  <input
+                    type="text"
+                    value={newShowreelCategory}
+                    onChange={(e) => setNewShowreelCategory(e.target.value)}
+                    placeholder="Contoh: VISUAL CRAFT | DIGITAL | AI"
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm font-mono focus:outline-none transition-all ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                        : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                    }`}
+                  />
+                </div>
+
+                {/* Tipe Media Selector */}
+                <div>
+                  <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                    {tx("Tipe Media Showcase", "Showcase Media Type")}
+                  </label>
+                  <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setNewShowreelMediaType("youtube")}
+                      className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        newShowreelMediaType === "youtube"
+                          ? "bg-red-600 text-white shadow-md shadow-red-600/30"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <RiYoutubeFill className="w-4 h-4 shrink-0" />
+                      <span>YouTube</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewShowreelMediaType("gdrive")}
+                      className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        newShowreelMediaType === "gdrive"
+                          ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <RiDriveFill className="w-4 h-4 shrink-0" />
+                      <span>Google Drive</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewShowreelMediaType("image")}
+                      className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                        newShowreelMediaType === "image"
+                          ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30 font-bold"
+                          : "text-neutral-400 hover:text-white"
+                      }`}
+                    >
+                      <HiPhoto className="w-4 h-4 shrink-0" />
+                      <span>{tx("Gambar", "Image")}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Media URL Input */}
+                {newShowreelMediaType === "youtube" && (
+                  <div>
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      {tx("Link URL Video YouTube", "YouTube Video URL")} <span className="text-cyan-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newShowreelUrl}
+                      onChange={(e) => setNewShowreelUrl(e.target.value)}
+                      placeholder="https://youtu.be/... atau https://www.youtube.com/watch?v=..."
+                      className={`w-full px-4 py-2.5 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                          : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                      }`}
+                    />
+                    {extractYouTubeId(newShowreelUrl) && (
+                      <p className="text-[11px] font-mono text-cyan-400 mt-1">
+                        ✓ ID YouTube: {extractYouTubeId(newShowreelUrl)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {newShowreelMediaType === "gdrive" && (
+                  <div>
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      {tx("Link Share Google Drive", "Google Drive Share Link")} <span className="text-cyan-400">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newShowreelUrl}
+                      onChange={(e) => setNewShowreelUrl(e.target.value)}
+                      placeholder="https://drive.google.com/file/d/.../view"
+                      className={`w-full px-4 py-2.5 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-900 focus:bg-white focus:border-teal-500"
+                          : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                      }`}
+                    />
+                    {extractGoogleDriveId(newShowreelUrl) && (
+                      <p className="text-[11px] font-mono text-cyan-400 mt-1">
+                        ✓ ID Google Drive: {extractGoogleDriveId(newShowreelUrl)}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {newShowreelMediaType === "image" && (
+                  <div className="space-y-2">
+                    <label className={`block text-xs font-mono font-medium mb-1.5 ${isLight ? "text-slate-700" : "text-neutral-300"}`}>
+                      {tx("Gambar Showcase Statis", "Showcase Static Image")} <span className="text-[#16b09f]">*</span>
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newShowreelImage.startsWith("data:") ? `[${tx("Gambar Terupload", "Uploaded Image")}]` : newShowreelImage}
+                        onChange={(e) => setNewShowreelImage(e.target.value)}
+                        placeholder="https://... URL gambar atau upload"
+                        className={`flex-1 px-3.5 py-2.5 rounded-xl border text-xs font-mono focus:outline-none transition-all ${
+                          isLight
+                            ? "bg-slate-50 border-slate-200 text-slate-900 focus:border-teal-500"
+                            : "bg-neutral-950 border-white/15 text-white focus:border-[#16b09f]"
+                        }`}
+                      />
+                      <label className="px-3.5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-mono font-medium border border-white/15 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all">
+                        <HiArrowUpTray className="w-3.5 h-3.5 text-[#16b09f]" />
+                        <span>Upload</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleGenericImageFile(e, (dataUrl) => {
+                              setNewShowreelImage(dataUrl);
+                            })
+                          }
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* PROJECT DESCRIPTION */}
+                <div className={`p-3 rounded-xl space-y-1.5 border ${
+                  isLight
+                    ? "bg-cyan-50/70 border-cyan-200"
+                    : "bg-cyan-950/20 border-cyan-500/20"
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <label className={`block text-xs font-mono font-bold uppercase tracking-wide ${
+                      isLight ? "text-cyan-800" : "text-cyan-300"
+                    }`}>
+                      PROJECT DESCRIPTION / NARASI LIGHTBOX
+                    </label>
+                    <span className={`text-[10px] font-mono ${isLight ? "text-cyan-700 font-semibold" : "text-cyan-400"}`}>
+                      {newShowreelDesc.length} / 1000
+                    </span>
+                  </div>
+                  <p className={`text-[11px] leading-snug ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                    {tx(
+                      "💡 Ditampilkan di dalam modal lightbox saat video diputar oleh penonton.",
+                      "💡 Displayed inside the lightbox modal when the video is played."
+                    )}
+                  </p>
+                  <textarea
+                    rows={3}
+                    maxLength={1000}
+                    value={newShowreelDesc}
+                    onChange={(e) => setNewShowreelDesc(e.target.value)}
+                    placeholder={tx(
+                      "Tuliskan narasi cinematic, konsep showreel, atau ringkasan karya visual ini...",
+                      "Write cinematic narrative, showreel concept, or summary of this visual work..."
+                    )}
+                    className={`w-full px-3 py-2 rounded-xl border text-xs leading-relaxed focus:outline-none transition-all resize-none ${
+                      isLight
+                        ? "bg-white border-cyan-200 text-slate-800 placeholder-slate-400 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 shadow-xs"
+                        : "bg-neutral-950 border-cyan-500/30 text-white placeholder-neutral-500 focus:border-cyan-400"
+                    }`}
+                  />
+                </div>
+
+                <div className="pt-2 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddShowreelOpen(false)}
+                    className="flex-1 py-3 px-4 rounded-xl border border-white/10 hover:bg-white/5 text-neutral-300 font-semibold text-xs font-mono transition-all cursor-pointer"
+                  >
+                    {tx("Batal", "Cancel")}
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={!newShowreelTitle.trim()}
+                    className={`flex-[2] flex items-center justify-center py-3 px-4 rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isLight
+                        ? "bg-[#14AF9E] hover:bg-[#119586] text-white shadow-teal-500/20"
+                        : "bg-[#16b09f] hover:bg-[#119889] text-black"
+                    }`}
+                  >
+                    <span>{tx("Tambahkan Video Showreel", "Add Showreel Video")}</span>
                   </button>
                 </div>
               </form>
