@@ -104,7 +104,8 @@ export function normalizeMediaUrl(url: string): string {
   const trimmed = url.trim();
   const fileId = extractGoogleDriveFileId(trimmed);
   if (fileId) {
-    return `https://lh3.googleusercontent.com/d/${fileId}`;
+    // '=s0' forces Google's CDN to deliver the 100% full original resolution instead of the default 512px downscaled thumbnail
+    return `https://lh3.googleusercontent.com/d/${fileId}=s0`;
   }
   const ytId = extractYouTubeId(trimmed);
   if (ytId) {
@@ -122,8 +123,10 @@ export function getMediaFallbackUrls(url: string): string[] {
   const fileId = extractGoogleDriveFileId(trimmed);
   if (fileId) {
     return [
+      `https://lh3.googleusercontent.com/d/${fileId}=s0`,
+      `https://drive.google.com/thumbnail?id=${fileId}&sz=w3840`,
+      `https://lh3.googleusercontent.com/d/${fileId}=w3840`,
       `https://lh3.googleusercontent.com/d/${fileId}`,
-      `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`,
       `https://drive.google.com/uc?export=view&id=${fileId}`,
       `https://drive.google.com/uc?id=${fileId}`,
     ];

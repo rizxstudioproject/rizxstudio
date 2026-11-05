@@ -1942,7 +1942,14 @@ export default function CanvasWorkspace({
         (ci) => Boolean(ci.image) && !prev.find((pi) => pi.id === ci.id)?.image
       );
       if (!hasChanges && (isEmpty || hasMissingImages)) {
-        const cleaned = canvasItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
+        const cleaned = canvasItems
+          .filter((i) => !i.id.startsWith("folder-") && i.type !== "folder")
+          .map((i) => {
+            if (i.image && i.image.includes("lh3.googleusercontent.com/d/") && !i.image.includes("=")) {
+              return { ...i, image: `${i.image}=s0` };
+            }
+            return i;
+          });
         initialItemsRef.current = JSON.parse(JSON.stringify(cleaned));
         return cleaned;
       }
@@ -5919,7 +5926,8 @@ export default function CanvasWorkspace({
       imgPreview = `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
       isVideo = true;
     } else if (driveId) {
-      imgPreview = `https://lh3.googleusercontent.com/d/${driveId}`;
+      // '=s0' ensures Google CDN serves 100% full original resolution instead of default 512px downscaled thumbnail
+      imgPreview = `https://lh3.googleusercontent.com/d/${driveId}=s0`;
     }
 
     setIsAddingMedia(true);
@@ -10413,9 +10421,15 @@ export default function CanvasWorkspace({
                           }
 
                           if (item.image) {
+                            let highResSrc = item.image;
+                            if (highResSrc.includes("lh3.googleusercontent.com/d/") && !highResSrc.includes("=")) {
+                              highResSrc = `${highResSrc}=s0`;
+                            } else if (highResSrc.includes("drive.google.com/thumbnail") && !highResSrc.includes("sz=")) {
+                              highResSrc = `${highResSrc}&sz=w3840`;
+                            }
                             return (
                               <img
-                                src={item.image}
+                                src={highResSrc}
                                 alt={item.title || "Image"}
                                 draggable={false}
                                 decoding="sync"
@@ -10426,9 +10440,16 @@ export default function CanvasWorkspace({
                                     handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
                                   }
                                 }}
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  const dId = extractGoogleDriveFileId(target.src);
+                                  if (dId && !target.dataset.triedFallback) {
+                                    target.dataset.triedFallback = "true";
+                                    target.src = `https://drive.google.com/thumbnail?id=${dId}&sz=w3840`;
+                                  }
+                                }}
                                 className="w-full h-full object-cover pointer-events-none select-none"
                                 style={{
-                                  imageRendering: "-webkit-optimize-contrast",
                                   WebkitBackfaceVisibility: "hidden",
                                   transform: "translateZ(0)",
                                 }}
@@ -10593,9 +10614,15 @@ export default function CanvasWorkspace({
                         }
 
                         if (item.image) {
+                          let highResSrc = item.image;
+                          if (highResSrc.includes("lh3.googleusercontent.com/d/") && !highResSrc.includes("=")) {
+                            highResSrc = `${highResSrc}=s0`;
+                          } else if (highResSrc.includes("drive.google.com/thumbnail") && !highResSrc.includes("sz=")) {
+                            highResSrc = `${highResSrc}&sz=w3840`;
+                          }
                           return (
                             <img
-                              src={item.image}
+                              src={highResSrc}
                               alt={item.title || "Image"}
                               draggable={false}
                               decoding="sync"
@@ -10606,9 +10633,16 @@ export default function CanvasWorkspace({
                                   handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
                                 }
                               }}
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                const dId = extractGoogleDriveFileId(target.src);
+                                if (dId && !target.dataset.triedFallback) {
+                                  target.dataset.triedFallback = "true";
+                                  target.src = `https://drive.google.com/thumbnail?id=${dId}&sz=w3840`;
+                                }
+                              }}
                               className="w-full h-full object-cover pointer-events-none select-none"
                               style={{
-                                imageRendering: "-webkit-optimize-contrast",
                                 WebkitBackfaceVisibility: "hidden",
                                 transform: "translateZ(0)",
                               }}

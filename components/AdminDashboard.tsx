@@ -1071,7 +1071,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     if (runnerUploadSource === "gdrive") {
       const gId = extractGoogleDriveFileId(runnerGDriveUrl) || extractGoogleDriveId(runnerGDriveUrl);
       if (gId) {
-        finalImage = `https://lh3.googleusercontent.com/d/${gId}`;
+        finalImage = `https://lh3.googleusercontent.com/d/${gId}=s0`;
       } else if (!finalImage) {
         showToast("Peringatan: Silakan masukkan link Google Drive yang valid.");
         return;
@@ -1165,7 +1165,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     if (editingRunnerUploadSource === "gdrive") {
       const gId = extractGoogleDriveFileId(editingRunnerGDriveUrl) || extractGoogleDriveId(editingRunnerGDriveUrl);
       if (gId) {
-        finalImage = `https://lh3.googleusercontent.com/d/${gId}`;
+        finalImage = `https://lh3.googleusercontent.com/d/${gId}=s0`;
         finalLink = editingRunnerGDriveUrl.trim();
       }
     } else if (editingRunnerUploadSource === "youtube") {
@@ -1838,7 +1838,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           id: fileId,
           fileId: fileId,
           url: line,
-          directUrl: `https://lh3.googleusercontent.com/d/${fileId}`,
+          directUrl: `https://lh3.googleusercontent.com/d/${fileId}=s0`,
         });
       }
     }
@@ -2019,7 +2019,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     if (isYt && ytId) {
       computedImage = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
     } else if (!isYt && hasGDrive && parsedFileId) {
-      computedImage = `https://lh3.googleusercontent.com/d/${parsedFileId}`;
+      computedImage = `https://lh3.googleusercontent.com/d/${parsedFileId}=s0`;
     }
 
     const updatedWork = {
@@ -6656,7 +6656,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               setRunnerGDriveUrl(val);
                               const gId = extractGoogleDriveFileId(val) || extractGoogleDriveId(val);
                               if (gId) {
-                                setNewRunnerImage(`https://lh3.googleusercontent.com/d/${gId}`);
+                                setNewRunnerImage(`https://lh3.googleusercontent.com/d/${gId}=s0`);
                               } else if (!val.trim()) {
                                 setNewRunnerImage("");
                               }
@@ -7142,7 +7142,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 const gId = extractGoogleDriveFileId(val) || extractGoogleDriveId(val);
                                 if (gId) {
                                   setEditingRunnerItem((prev) =>
-                                    prev ? { ...prev, image: `https://lh3.googleusercontent.com/d/${gId}` } : null
+                                    prev ? { ...prev, image: `https://lh3.googleusercontent.com/d/${gId}=s0` } : null
                                   );
                                 }
                               }}

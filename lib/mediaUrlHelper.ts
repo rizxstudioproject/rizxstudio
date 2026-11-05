@@ -95,8 +95,8 @@ export function parseMediaUrl(url: string): ParsedMediaUrl {
     return {
       type: "gdrive",
       originalUrl: trimmed,
-      // Google's direct CDN image display:
-      resolvedThumbnailUrl: `https://lh3.googleusercontent.com/d/${driveId}`,
+      // Google's direct CDN image display with '=s0' for full uncompressed resolution
+      resolvedThumbnailUrl: `https://lh3.googleusercontent.com/d/${driveId}=s0`,
       driveId,
     };
   }
