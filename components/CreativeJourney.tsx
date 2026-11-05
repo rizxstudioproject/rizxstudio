@@ -85,49 +85,73 @@ export default function CreativeJourney() {
   return (
     <section id="creative-journey" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6 sm:mb-8 text-center sm:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-        <div>
-          <span className={`text-xs font-mono uppercase tracking-[0.25em] block mb-2 font-semibold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
-            {displayTag}
-          </span>
-          <h2 className={`text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-            {displayHeadline}
-          </h2>
-        </div>
+      <div className="mb-6 sm:mb-8 text-center sm:text-left">
+        <span className={`text-xs font-mono uppercase tracking-[0.25em] block mb-2 font-semibold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
+          {displayTag}
+        </span>
+        <h2 className={`text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+          {displayHeadline}
+        </h2>
+      </div>
 
-        {/* Multi-Showreel Switcher Pills (Top Header) */}
-        {cards.length > 1 && (
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none shrink-0">
+      {/* Dossier / Folder Tabs Header (Integrated with Card Top Edge) */}
+      {cards.length > 0 && (
+        <div className="relative flex items-end justify-between px-3 sm:px-8 z-20 -mb-[1px]">
+          {/* Folder Tab Ears */}
+          <div className="flex items-end gap-1.5 overflow-x-auto scrollbar-none max-w-full pt-2">
             {cards.map((c, idx) => {
               const isActive = idx === safeIdx;
               return (
                 <button
                   key={c.id || idx}
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setActiveCardIndex(idx);
                   }}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+                  className={`group relative px-5 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-mono transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 select-none ${
                     isActive
-                      ? "bg-[#16b09f] text-black font-semibold shadow-lg shadow-[#16b09f]/30 scale-[1.03]"
+                      ? "text-black z-30 font-bold"
                       : isLight
-                      ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
-                      : "bg-white/10 text-neutral-300 hover:bg-white/20 hover:text-white"
+                      ? "text-slate-600 hover:text-slate-900 z-10 font-medium"
+                      : "text-neutral-400 hover:text-white z-10 font-medium"
                   }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-black" : "bg-neutral-400"}`} />
-                  <span className="max-w-[160px] truncate">{c.title || `Showreel ${idx + 1}`}</span>
+                  {/* Folder Tab Shape Background */}
+                  <div
+                    className={`absolute inset-0 transition-all duration-200 ${
+                      isActive
+                        ? "bg-[#16b09f] shadow-[0_-6px_22px_rgba(22,176,159,0.4)]"
+                        : isLight
+                        ? "bg-slate-200 hover:bg-slate-300 border-t border-x border-slate-300"
+                        : "bg-[#181a20] hover:bg-[#22252c] border-t border-x border-white/10"
+                    }`}
+                    style={{
+                      clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 100%, 0% 100%)",
+                      borderTopLeftRadius: "8px",
+                      borderTopRightRadius: "8px",
+                    }}
+                  />
+                  <span className="relative z-10 truncate max-w-[150px] sm:max-w-[240px]">
+                    {c.title || `Showreel 0${idx + 1}`}
+                  </span>
                 </button>
               );
             })}
           </div>
-        )}
-      </div>
 
-      {/* Large Showcase Card */}
+          {/* Teal Folder Border Accent Line Extending to Right */}
+          <div className="hidden sm:block flex-1 h-[2px] bg-gradient-to-r from-[#16b09f] via-[#16b09f]/60 to-[#16b09f]/10 self-end mb-0 ml-2 rounded-full" />
+        </div>
+      )}
+
+      {/* Large Showcase Card (Unified with Folder Tabs) */}
       <div
         onClick={() => setIsModalOpen(true)}
-        className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-neutral-900 group cursor-pointer"
+        className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-neutral-900 group cursor-pointer"
+        style={{
+          borderTopColor: "#16b09f",
+        }}
       >
         {/* Background Media: YouTube, Google Drive, or Static Image */}
         <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
@@ -317,9 +341,9 @@ export default function CreativeJourney() {
                 ? "bg-white border-slate-200"
                 : "bg-neutral-950 border-white/10"
             }`}>
-              {/* Showreel Switcher Tabs in Modal */}
+              {/* Showreel Switcher Folder Tabs in Modal */}
               {cards.length > 1 && (
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none mb-2">
+                <div className="flex items-end gap-1 overflow-x-auto pb-0 scrollbar-none mb-3 border-b border-white/10">
                   {cards.map((c, idx) => {
                     const isActive = idx === safeIdx;
                     return (
@@ -327,16 +351,31 @@ export default function CreativeJourney() {
                         key={c.id || idx}
                         type="button"
                         onClick={() => setActiveCardIndex(idx)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+                        className={`group relative px-4 sm:px-6 py-2 text-xs font-mono transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 select-none ${
                           isActive
-                            ? "bg-[#16b09f] text-black font-semibold shadow"
+                            ? "text-black font-bold z-20"
                             : isLight
-                            ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                            : "bg-white/10 text-neutral-300 hover:bg-white/20"
+                            ? "text-slate-600 hover:text-slate-900 z-10 font-medium"
+                            : "text-neutral-400 hover:text-white z-10 font-medium"
                         }`}
                       >
-                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-black" : "bg-neutral-500"}`} />
-                        <span className="max-w-[150px] truncate">{c.title || `Showreel ${idx + 1}`}</span>
+                        <div
+                          className={`absolute inset-0 transition-all duration-200 ${
+                            isActive
+                              ? "bg-[#16b09f] shadow-[0_-4px_16px_rgba(22,176,159,0.3)]"
+                              : isLight
+                              ? "bg-slate-100 hover:bg-slate-200 border-t border-x border-slate-300"
+                              : "bg-[#191c23] hover:bg-[#232732] border-t border-x border-white/10"
+                          }`}
+                          style={{
+                            clipPath: "polygon(8px 0%, calc(100% - 8px) 0%, 100% 100%, 0% 100%)",
+                            borderTopLeftRadius: "6px",
+                            borderTopRightRadius: "6px",
+                          }}
+                        />
+                        <span className="relative z-10 truncate max-w-[140px] sm:max-w-[200px]">
+                          {c.title || `Showreel 0${idx + 1}`}
+                        </span>
                       </button>
                     );
                   })}

@@ -7847,28 +7847,44 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </h3>
                   </div>
 
-                  {/* Multi-Showreel Tab Selector in Preview */}
-                  {stage3Cards.length > 1 && (
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-none">
-                      {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
-                        const cardId = card.id || `card-${idx}`;
-                        const isActive = cardId === activeStage3CardId;
-                        return (
-                          <button
-                            key={cardId}
-                            type="button"
-                            onClick={() => setActiveStage3CardId(cardId)}
-                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-                              isActive
-                                ? "bg-[#16b09f] text-black font-semibold shadow"
-                                : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
-                            }`}
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                            <span className="max-w-[100px] truncate">{card.title || `Showreel ${idx + 1}`}</span>
-                          </button>
-                        );
-                      })}
+                  {/* Folder Tab Selector in Preview (Attached to Card Top) */}
+                  {stage3Cards.length > 0 && (
+                    <div className="relative flex items-end justify-between px-2 z-20 -mb-[1px]">
+                      <div className="flex items-end gap-1 overflow-x-auto scrollbar-none max-w-full">
+                        {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
+                          const cardId = card.id || `card-${idx}`;
+                          const isActive = cardId === activeStage3CardId;
+                          return (
+                            <button
+                              key={cardId}
+                              type="button"
+                              onClick={() => setActiveStage3CardId(cardId)}
+                              className={`group relative px-3.5 py-1.5 text-[10px] font-mono transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 select-none ${
+                                isActive
+                                  ? "text-black z-30 font-bold"
+                                  : "text-neutral-400 hover:text-white z-10"
+                              }`}
+                            >
+                              <div
+                                className={`absolute inset-0 transition-all duration-200 ${
+                                  isActive
+                                    ? "bg-[#16b09f] shadow-[0_-4px_14px_rgba(22,176,159,0.35)]"
+                                    : "bg-[#181a20] hover:bg-[#22252c] border-t border-x border-white/10"
+                                }`}
+                                style={{
+                                  clipPath: "polygon(6px 0%, calc(100% - 6px) 0%, 100% 100%, 0% 100%)",
+                                  borderTopLeftRadius: "6px",
+                                  borderTopRightRadius: "6px",
+                                }}
+                              />
+                              <span className="relative z-10 truncate max-w-[110px]">
+                                {card.title || `Showreel ${idx + 1}`}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className="flex-1 h-[2px] bg-gradient-to-r from-[#16b09f] to-transparent self-end mb-0 ml-1 rounded-full" />
                     </div>
                   )}
 
