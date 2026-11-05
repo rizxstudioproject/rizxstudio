@@ -7847,10 +7847,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </h3>
                   </div>
 
-                  {/* Folder Tab Selector in Preview (Attached to Card Top) */}
+                  {/* Folder Tab Selector in Preview (Attached to Card Top, Overlapping) */}
                   {stage3Cards.length > 0 && (
-                    <div className="relative flex items-end justify-between px-2 z-20 -mb-[1px]">
-                      <div className="flex items-end gap-1 overflow-x-auto scrollbar-none max-w-full">
+                    <div className="relative px-1 z-20">
+                      <div className="relative flex items-end max-w-full overflow-x-auto scrollbar-none pt-1 z-10">
                         {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
                           const cardId = card.id || `card-${idx}`;
                           const isActive = cardId === activeStage3CardId;
@@ -7859,32 +7859,48 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               key={cardId}
                               type="button"
                               onClick={() => setActiveStage3CardId(cardId)}
-                              className={`group relative px-3.5 py-1.5 text-[10px] font-mono transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 select-none ${
+                              className={`group relative h-7 sm:h-8 px-4 sm:px-5 text-[10px] font-sans transition-all duration-300 cursor-pointer flex items-center justify-center shrink-0 select-none ${
+                                idx > 0 ? "-ml-2.5 sm:-ml-3" : ""
+                              } ${
                                 isActive
-                                  ? "text-black z-30 font-bold"
-                                  : "text-neutral-400 hover:text-white z-10"
+                                  ? "z-30 text-black font-extrabold"
+                                  : "z-10 text-neutral-400 hover:text-white font-medium"
                               }`}
+                              style={{
+                                filter: isActive
+                                  ? "drop-shadow(0 -3px 8px rgba(22,176,159,0.35)) drop-shadow(2px 0 4px rgba(0,0,0,0.6))"
+                                  : "none",
+                              }}
                             >
-                              <div
-                                className={`absolute inset-0 transition-all duration-200 ${
-                                  isActive
-                                    ? "bg-[#16b09f] shadow-[0_-4px_14px_rgba(22,176,159,0.35)]"
-                                    : "bg-[#181a20] hover:bg-[#22252c] border-t border-x border-white/10"
+                              <svg
+                                className={`absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 ${
+                                  isActive ? "text-[#16b09f]" : "text-[#15181e] hover:text-[#1f232b]"
                                 }`}
-                                style={{
-                                  clipPath: "polygon(6px 0%, calc(100% - 6px) 0%, 100% 100%, 0% 100%)",
-                                  borderTopLeftRadius: "6px",
-                                  borderTopRightRadius: "6px",
-                                }}
-                              />
-                              <span className="relative z-10 truncate max-w-[110px]">
+                                viewBox="0 0 100 40"
+                                preserveAspectRatio="none"
+                              >
+                                <path
+                                  d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40 Z"
+                                  fill="currentColor"
+                                />
+                                {!isActive && (
+                                  <path
+                                    d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.14)"
+                                    strokeWidth="1.2"
+                                    vectorEffect="non-scaling-stroke"
+                                  />
+                                )}
+                              </svg>
+                              <span className="relative z-10 truncate max-w-[100px] font-semibold">
                                 {card.title || `Showreel ${idx + 1}`}
                               </span>
                             </button>
                           );
                         })}
                       </div>
-                      <div className="flex-1 h-[2px] bg-gradient-to-r from-[#16b09f] to-transparent self-end mb-0 ml-1 rounded-full" />
+                      <div className="h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 shadow-[0_0_8px_rgba(22,176,159,0.4)]" />
                     </div>
                   )}
 

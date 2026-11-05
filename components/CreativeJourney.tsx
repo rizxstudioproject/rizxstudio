@@ -94,11 +94,11 @@ export default function CreativeJourney() {
         </h2>
       </div>
 
-      {/* Dossier / Folder Tabs Header (Integrated with Card Top Edge) */}
+      {/* Dossier / Folder Tabs Header (Berhimpitan & Overlapping) */}
       {cards.length > 0 && (
-        <div className="relative flex items-end justify-between px-3 sm:px-8 z-20 -mb-[1px]">
-          {/* Folder Tab Ears */}
-          <div className="flex items-end gap-1.5 overflow-x-auto scrollbar-none max-w-full pt-2">
+        <div className="relative px-3 sm:px-8 z-20">
+          {/* Overlapping Folder Tabs */}
+          <div className="relative flex items-end max-w-full overflow-x-auto scrollbar-none pt-2 z-10">
             {cards.map((c, idx) => {
               const isActive = idx === safeIdx;
               return (
@@ -109,30 +109,47 @@ export default function CreativeJourney() {
                     e.stopPropagation();
                     setActiveCardIndex(idx);
                   }}
-                  className={`group relative px-5 sm:px-8 py-2.5 sm:py-3 text-xs sm:text-sm font-mono transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 select-none ${
+                  className={`group relative h-9 sm:h-11 px-6 sm:px-9 text-xs sm:text-sm font-sans transition-all duration-300 cursor-pointer flex items-center justify-center shrink-0 select-none ${
+                    idx > 0 ? "-ml-3 sm:-ml-5" : ""
+                  } ${
                     isActive
-                      ? "text-black z-30 font-bold"
-                      : isLight
-                      ? "text-slate-600 hover:text-slate-900 z-10 font-medium"
-                      : "text-neutral-400 hover:text-white z-10 font-medium"
+                      ? "z-30 text-black font-extrabold"
+                      : "z-10 text-neutral-400 hover:text-white font-medium"
                   }`}
+                  style={{
+                    filter: isActive
+                      ? "drop-shadow(0 -4px 14px rgba(22,176,159,0.35)) drop-shadow(4px 0 8px rgba(0,0,0,0.6)) drop-shadow(-4px 0 8px rgba(0,0,0,0.6))"
+                      : "drop-shadow(2px 0 4px rgba(0,0,0,0.4))",
+                  }}
+                  title={c.title || `Showreel 0${idx + 1}`}
                 >
-                  {/* Folder Tab Shape Background */}
-                  <div
-                    className={`absolute inset-0 transition-all duration-200 ${
+                  {/* SVG Folder Tab Shape with Slanted Sides & Rounded Top Corners */}
+                  <svg
+                    className={`absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 ${
                       isActive
-                        ? "bg-[#16b09f] shadow-[0_-6px_22px_rgba(22,176,159,0.4)]"
+                        ? "text-[#16b09f]"
                         : isLight
-                        ? "bg-slate-200 hover:bg-slate-300 border-t border-x border-slate-300"
-                        : "bg-[#181a20] hover:bg-[#22252c] border-t border-x border-white/10"
+                        ? "text-slate-200 hover:text-slate-300"
+                        : "text-[#15181e] hover:text-[#1f232b]"
                     }`}
-                    style={{
-                      clipPath: "polygon(10px 0%, calc(100% - 10px) 0%, 100% 100%, 0% 100%)",
-                      borderTopLeftRadius: "8px",
-                      borderTopRightRadius: "8px",
-                    }}
-                  />
-                  <span className="relative z-10 truncate max-w-[150px] sm:max-w-[240px]">
+                    viewBox="0 0 100 40"
+                    preserveAspectRatio="none"
+                  >
+                    <path
+                      d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40 Z"
+                      fill="currentColor"
+                    />
+                    {!isActive && (
+                      <path
+                        d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40"
+                        fill="none"
+                        stroke={isLight ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.14)"}
+                        strokeWidth="1.2"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    )}
+                  </svg>
+                  <span className="relative z-10 truncate max-w-[140px] sm:max-w-[220px] px-1 font-semibold">
                     {c.title || `Showreel 0${idx + 1}`}
                   </span>
                 </button>
@@ -140,18 +157,15 @@ export default function CreativeJourney() {
             })}
           </div>
 
-          {/* Teal Folder Border Accent Line Extending to Right */}
-          <div className="hidden sm:block flex-1 h-[2px] bg-gradient-to-r from-[#16b09f] via-[#16b09f]/60 to-[#16b09f]/10 self-end mb-0 ml-2 rounded-full" />
+          {/* Solid Teal Baseline extending across the card top */}
+          <div className="h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 shadow-[0_0_12px_rgba(22,176,159,0.4)]" />
         </div>
       )}
 
       {/* Large Showcase Card (Unified with Folder Tabs) */}
       <div
         onClick={() => setIsModalOpen(true)}
-        className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl sm:rounded-3xl overflow-hidden border border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-neutral-900 group cursor-pointer"
-        style={{
-          borderTopColor: "#16b09f",
-        }}
+        className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-b-2xl sm:rounded-b-3xl rounded-t-none overflow-hidden border-x border-b border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-neutral-900 group cursor-pointer"
       >
         {/* Background Media: YouTube, Google Drive, or Static Image */}
         <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
@@ -343,42 +357,61 @@ export default function CreativeJourney() {
             }`}>
               {/* Showreel Switcher Folder Tabs in Modal */}
               {cards.length > 1 && (
-                <div className="flex items-end gap-1 overflow-x-auto pb-0 scrollbar-none mb-3 border-b border-white/10">
-                  {cards.map((c, idx) => {
-                    const isActive = idx === safeIdx;
-                    return (
-                      <button
-                        key={c.id || idx}
-                        type="button"
-                        onClick={() => setActiveCardIndex(idx)}
-                        className={`group relative px-4 sm:px-6 py-2 text-xs font-mono transition-all duration-200 cursor-pointer flex items-center justify-center shrink-0 select-none ${
-                          isActive
-                            ? "text-black font-bold z-20"
-                            : isLight
-                            ? "text-slate-600 hover:text-slate-900 z-10 font-medium"
-                            : "text-neutral-400 hover:text-white z-10 font-medium"
-                        }`}
-                      >
-                        <div
-                          className={`absolute inset-0 transition-all duration-200 ${
+                <div className="relative mb-3">
+                  <div className="relative flex items-end max-w-full overflow-x-auto scrollbar-none pt-2 z-10">
+                    {cards.map((c, idx) => {
+                      const isActive = idx === safeIdx;
+                      return (
+                        <button
+                          key={c.id || idx}
+                          type="button"
+                          onClick={() => setActiveCardIndex(idx)}
+                          className={`group relative h-8 sm:h-9 px-5 sm:px-7 text-xs font-sans transition-all duration-300 cursor-pointer flex items-center justify-center shrink-0 select-none ${
+                            idx > 0 ? "-ml-3 sm:-ml-4" : ""
+                          } ${
                             isActive
-                              ? "bg-[#16b09f] shadow-[0_-4px_16px_rgba(22,176,159,0.3)]"
-                              : isLight
-                              ? "bg-slate-100 hover:bg-slate-200 border-t border-x border-slate-300"
-                              : "bg-[#191c23] hover:bg-[#232732] border-t border-x border-white/10"
+                              ? "z-30 text-black font-extrabold"
+                              : "z-10 text-neutral-400 hover:text-white font-medium"
                           }`}
                           style={{
-                            clipPath: "polygon(8px 0%, calc(100% - 8px) 0%, 100% 100%, 0% 100%)",
-                            borderTopLeftRadius: "6px",
-                            borderTopRightRadius: "6px",
+                            filter: isActive
+                              ? "drop-shadow(0 -3px 10px rgba(22,176,159,0.35)) drop-shadow(3px 0 6px rgba(0,0,0,0.5))"
+                              : "none",
                           }}
-                        />
-                        <span className="relative z-10 truncate max-w-[140px] sm:max-w-[200px]">
-                          {c.title || `Showreel 0${idx + 1}`}
-                        </span>
-                      </button>
-                    );
-                  })}
+                        >
+                          <svg
+                            className={`absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 ${
+                              isActive
+                                ? "text-[#16b09f]"
+                                : isLight
+                                ? "text-slate-200 hover:text-slate-300"
+                                : "text-[#161920] hover:text-[#21252d]"
+                            }`}
+                            viewBox="0 0 100 40"
+                            preserveAspectRatio="none"
+                          >
+                            <path
+                              d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40 Z"
+                              fill="currentColor"
+                            />
+                            {!isActive && (
+                              <path
+                                d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40"
+                                fill="none"
+                                stroke={isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.12)"}
+                                strokeWidth="1.2"
+                                vectorEffect="non-scaling-stroke"
+                              />
+                            )}
+                          </svg>
+                          <span className="relative z-10 truncate max-w-[130px] sm:max-w-[180px] font-semibold">
+                            {c.title || `Showreel 0${idx + 1}`}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 shadow-[0_0_8px_rgba(22,176,159,0.4)]" />
                 </div>
               )}
 
