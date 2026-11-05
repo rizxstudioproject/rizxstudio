@@ -51,6 +51,7 @@ import {
   AdminUserItem,
 } from "@/lib/adminAuth";
 import AdminUsersManager from "@/components/admin/AdminUsersManager";
+import CanvasLinksManagerModal, { FigmaIcon } from "@/components/admin/CanvasLinksManagerModal";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import {
   usePortfolioData,
@@ -149,6 +150,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
   const [clientsWorkspaceView, setClientsWorkspaceView] = useState<"folders" | "logos">("folders");
   const [storageSubTab, setStorageSubTab] = useState<"analytics" | "resources">("analytics");
   const [trackingInitialTab, setTrackingInitialTab] = useState<"tracking" | "orders" | "payments">("tracking");
+  const [isCanvasLinksModalOpen, setIsCanvasLinksModalOpen] = useState(false);
 
   // Redirect legacy / external resources links into storage workspace
   useEffect(() => {
@@ -7959,6 +7961,39 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             <div className="w-full">
               <AdminUsersManager showToast={showToast} />
             </div>
+
+            {/* Rizx Canvas External Links Management (Figma / Web Links) */}
+            <div className={`w-full border rounded-2xl p-5 sm:p-7 backdrop-blur-sm ${
+              isLight ? "bg-white border-slate-200/90 shadow-sm" : "bg-neutral-900/60 border-white/10"
+            }`}>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-teal-500/15 text-teal-400 flex items-center justify-center shrink-0">
+                    <FigmaIcon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className={`text-base font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
+                      {tx("Link Figma / External Canvas", "Figma / External Canvas Links")}
+                    </h3>
+                    <p className={`text-xs ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                      {tx(
+                        "Kelola tautan Figma pada floating bottom bar Rizx Canvas (Tambah, Edit, Hapus).",
+                        "Manage Figma links on the Rizx Canvas floating bottom bar (Add, Edit, Delete)."
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsCanvasLinksModalOpen(true)}
+                  className="px-4 py-2 rounded-xl bg-[#16b09f] hover:bg-[#119889] text-black font-bold text-xs inline-flex items-center gap-2 transition-all active:scale-95 cursor-pointer shadow-md shadow-[#16b09f]/20 self-start sm:self-auto"
+                >
+                  <HiPencilSquare className="w-4 h-4" />
+                  <span>{tx("Kelola Link Figma", "Manage Figma Links")}</span>
+                </button>
+              </div>
+            </div>
           </motion.div>
         )}
       </div>
@@ -9720,6 +9755,12 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Canvas External Links Manager Modal (Figma / Web Links) */}
+      <CanvasLinksManagerModal
+        isOpen={isCanvasLinksModalOpen}
+        onClose={() => setIsCanvasLinksModalOpen(false)}
+      />
 
       {/* Floating Toast Notification */}
       <AnimatePresence>

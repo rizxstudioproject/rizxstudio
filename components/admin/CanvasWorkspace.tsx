@@ -43,7 +43,16 @@ import {
   HiQuestionMarkCircle,
   HiAdjustmentsHorizontal,
   HiQueueList,
+  HiArrowTopRightOnSquare,
 } from "react-icons/hi2";
+import CanvasLinksManagerModal, { FigmaIcon } from "./CanvasLinksManagerModal";
+import {
+  getCanvasExternalLinks,
+  fetchCanvasExternalLinksFromCloud,
+  CanvasExternalLink,
+  isFigmaUrl,
+  normalizeCanvasUrl,
+} from "@/lib/canvasLinksService";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { RiGridFill, RiArrowGoBackLine, RiArrowGoForwardLine } from "react-icons/ri";
 import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
@@ -1041,6 +1050,24 @@ export default function CanvasWorkspace({
   const [isEffectPopoverOpen, setIsEffectPopoverOpen] = useState<boolean>(false);
   const [isFontSizeDropdownOpen, setIsFontSizeDropdownOpen] = useState<boolean>(false);
   const fontSizeDropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // External Canvas Links & Manager Modal State
+  const [isLinksManagerOpen, setIsLinksManagerOpen] = useState<boolean>(false);
+  const [canvasExternalLinks, setCanvasExternalLinks] = useState<CanvasExternalLink[]>(() => getCanvasExternalLinks());
+
+  useEffect(() => {
+    fetchCanvasExternalLinksFromCloud().then((cl) => {
+      if (cl && cl.length > 0) setCanvasExternalLinks(cl);
+    });
+
+    const handleLinksUpdated = (e: any) => {
+      if (e.detail) setCanvasExternalLinks(e.detail);
+      else setCanvasExternalLinks(getCanvasExternalLinks());
+    };
+
+    window.addEventListener("rizx:canvas-links-updated", handleLinksUpdated);
+    return () => window.removeEventListener("rizx:canvas-links-updated", handleLinksUpdated);
+  }, []);
 
   // Pending Image & SVG Placement Queue (Matches Figma "Click or drag to place" + SVG cursor badge / Image preview)
   const [pendingPlacementQueue, setPendingPlacementQueue] = useState<Array<{
@@ -8191,6 +8218,21 @@ export default function CanvasWorkspace({
             <span className="text-[10px] text-neutral-500">{"</>"}</span>
           </button>
 
+          <button
+            type="button"
+            onClick={() => {
+              setIsLinksManagerOpen(true);
+              setIsPillMenuOpen(false);
+            }}
+            className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-neutral-200 hover:text-white transition-colors cursor-pointer text-left"
+          >
+            <span className="flex items-center gap-2">
+              <FigmaIcon className="w-3.5 h-3.5" />
+              Kelola Link Figma / Canvas
+            </span>
+            <span className="text-[10px] text-teal-400 font-mono">Edit</span>
+          </button>
+
           <div className="w-full h-[1px] bg-white/10 my-1" />
 
           <button
@@ -8788,27 +8830,46 @@ export default function CanvasWorkspace({
 
           {/* Quick Floating Actions (Fullscreen, Inspector toggle, Mobile Layers) */}
           <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 font-mono">
-            {/* Open in Figma Button */}
-            <a
-              href="https://www.figma.com/design/stiNMbWG9UP6MBMfYr4fma/Rizx-Project-Porfolio?node-id=1-2&t=7nXMV1klfGcwOZos-1"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`p-1.5 sm:px-3 sm:py-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors flex items-center gap-1.5 ${
+            {/* Dynamically Loaded External Links (Figma / Web Links) */}
+            {canvasExternalLinks.map((link) => {
+              const isFigma = isFigmaUrl(link.url);
+              return (
+                <a
+                  key={link.id}
+                  href={normalizeCanvasUrl(link.url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`p-1.5 sm:px-3 sm:py-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors flex items-center gap-1.5 ${
+                    isLight
+                      ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-slate-100 shadow-slate-300/40"
+                      : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
+                  }`}
+                  title={link.title || "Open in Figma"}
+                >
+                  {isFigma ? (
+                    <FigmaIcon className="w-3.5 h-3.5 shrink-0" />
+                  ) : (
+                    <HiArrowTopRightOnSquare className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+                  )}
+                  <span className="hidden sm:inline font-sans text-xs">{link.title || "Open in Figma"}</span>
+                </a>
+              );
+            })}
+
+            {/* Manage Links Button (Tambah, Edit, Hapus) */}
+            <button
+              type="button"
+              onClick={() => setIsLinksManagerOpen(true)}
+              className={`p-1.5 sm:px-2.5 sm:py-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-all flex items-center gap-1.5 ${
                 isLight
-                  ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-slate-100 shadow-slate-300/40"
-                  : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
+                  ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-teal-50 hover:text-teal-700 shadow-slate-300/40"
+                  : "bg-[#1e1e1e]/90 border-white/10 text-neutral-300 hover:text-teal-400 hover:bg-white/20"
               }`}
-              title="Open in Figma"
+              title="Kelola Link Figma / Canvas (Tambah, Edit, Hapus)"
             >
-              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE"/>
-                <path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83"/>
-                <path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262"/>
-                <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"/>
-                <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"/>
-              </svg>
-              <span className="hidden sm:inline font-sans text-xs">Open in Figma</span>
-            </a>
+              <HiPencilSquare className="w-4 h-4 text-teal-400" />
+              <span className="hidden lg:inline font-sans text-xs">Atur Link</span>
+            </button>
 
             {/* Mobile Layers Drawer Toggle */}
             <button
@@ -12147,6 +12208,12 @@ export default function CanvasWorkspace({
           </div>
         </div>
       )}
+
+      {/* External Canvas Links Manager Modal (Add, Edit, Delete) */}
+      <CanvasLinksManagerModal
+        isOpen={isLinksManagerOpen}
+        onClose={() => setIsLinksManagerOpen(false)}
+      />
     </div>
   );
 }

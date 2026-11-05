@@ -10,6 +10,7 @@ import {
   HiShieldCheck,
   HiQuestionMarkCircle,
   HiPlay,
+  HiArrowTopRightOnSquare,
 } from "react-icons/hi2";
 import { SiYoutube } from "react-icons/si";
 import { RiFullscreenFill, RiFullscreenExitFill, RiGridFill } from "react-icons/ri";
@@ -18,6 +19,13 @@ import { normalizeMediaUrl } from "@/lib/mediaService";
 import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import {
+  getCanvasExternalLinks,
+  fetchCanvasExternalLinksFromCloud,
+  CanvasExternalLink,
+  isFigmaUrl,
+  normalizeCanvasUrl,
+} from "@/lib/canvasLinksService";
 
 interface CanvasSheetItem {
   id: string;
@@ -88,6 +96,23 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   } | null>(null);
 
   const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
+
+  // External Links on Bottom Floating Dock (Figma / Web Links)
+  const [externalLinks, setExternalLinks] = useState<CanvasExternalLink[]>(() => getCanvasExternalLinks());
+
+  useEffect(() => {
+    fetchCanvasExternalLinksFromCloud().then((cl) => {
+      if (cl && cl.length > 0) setExternalLinks(cl);
+    });
+
+    const handleLinksUpdated = (e: any) => {
+      if (e.detail) setExternalLinks(e.detail);
+      else setExternalLinks(getCanvasExternalLinks());
+    };
+
+    window.addEventListener("rizx:canvas-links-updated", handleLinksUpdated);
+    return () => window.removeEventListener("rizx:canvas-links-updated", handleLinksUpdated);
+  }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const boardContentRef = useRef<HTMLDivElement>(null);
@@ -2106,30 +2131,44 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
           <HiArrowPath className="w-3.5 h-3.5" />
         </button>
 
-        <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-200" : "bg-white/15"}`} />
+        {/* Dynamically Loaded External Links (Figma / Web Links) */}
+        {externalLinks.length > 0 && (
+          <>
+            <div className={`w-[1px] h-4 mx-1 ${isLight ? "bg-slate-200" : "bg-white/15"}`} />
 
-        {/* Open in Figma Link */}
-        <a
-          href="https://www.figma.com/design/stiNMbWG9UP6MBMfYr4fma/Rizx-Project-Porfolio?node-id=1-2&t=7nXMV1klfGcwOZos-1"
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Buka Desain di Figma (Open in Figma)"
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all active:scale-90 cursor-pointer text-xs font-medium ${
-            isLight
-              ? "bg-slate-100 hover:bg-slate-200/80 text-slate-800"
-              : "bg-white/5 hover:bg-white/15 text-neutral-200 hover:text-white"
-          }`}
-        >
-          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE"/>
-            <path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83"/>
-            <path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262"/>
-            <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"/>
-            <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"/>
-          </svg>
-          <span className="hidden sm:inline">Open in Figma</span>
-          <span className="sm:hidden">Open</span>
-        </a>
+            {externalLinks.map((link) => {
+              const isFigma = isFigmaUrl(link.url);
+              return (
+                <a
+                  key={link.id}
+                  href={normalizeCanvasUrl(link.url)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title={link.title || (isFigma ? "Open in Figma" : "Open Link")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all active:scale-90 cursor-pointer text-xs font-medium ${
+                    isLight
+                      ? "bg-slate-100 hover:bg-slate-200/80 text-slate-800"
+                      : "bg-white/5 hover:bg-white/15 text-neutral-200 hover:text-white"
+                  }`}
+                >
+                  {isFigma ? (
+                    <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z" fill="#1ABCFE"/>
+                      <path d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z" fill="#0ACF83"/>
+                      <path d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z" fill="#FF7262"/>
+                      <path d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z" fill="#F24E1E"/>
+                      <path d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z" fill="#A259FF"/>
+                    </svg>
+                  ) : (
+                    <HiArrowTopRightOnSquare className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+                  )}
+                  <span className="hidden sm:inline">{link.title || (isFigma ? "Open in Figma" : "Open Link")}</span>
+                  <span className="sm:hidden">{link.title ? link.title.split(" ")[0] : "Open"}</span>
+                </a>
+              );
+            })}
+          </>
+        )}
       </footer>
     </div>
   );
