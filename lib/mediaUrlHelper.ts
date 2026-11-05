@@ -42,9 +42,38 @@ export function extractGoogleDriveId(url: string): string | null {
  */
 export function extractYouTubeId(url: string): string | null {
   if (!url || typeof url !== "string") return null;
-  const regExp = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=|shorts\/)|youtu\.be\/)([^"&?/\s]{11})/;
-  const match = url.match(regExp);
-  return match && match[1] ? match[1] : null;
+  const trimmed = url.trim();
+
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  const thumbMatch = trimmed.match(/(?:img\.youtube\.com|i\.ytimg\.com)\/vi\/([a-zA-Z0-9_-]{11})/i);
+  if (thumbMatch && thumbMatch[1]) {
+    return thumbMatch[1];
+  }
+
+  const shortsMatch = trimmed.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/i);
+  if (shortsMatch && shortsMatch[1]) {
+    return shortsMatch[1];
+  }
+
+  const youtuBeMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+  if (youtuBeMatch && youtuBeMatch[1]) {
+    return youtuBeMatch[1];
+  }
+
+  const vParamMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+  if (vParamMatch && vParamMatch[1]) {
+    return vParamMatch[1];
+  }
+
+  const pathMatch = trimmed.match(/\/(?:embed|v|live)\/([a-zA-Z0-9_-]{11})/i);
+  if (pathMatch && pathMatch[1]) {
+    return pathMatch[1];
+  }
+
+  return null;
 }
 
 /**

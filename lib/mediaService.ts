@@ -50,8 +50,54 @@ export function isGoogleDriveUrl(url: string): boolean {
 }
 
 /**
- * Converts any Google Drive link or media URL into a high-speed direct image URL.
+ * Robust YouTube video ID parser for various URL structures
+ */
+export function extractYouTubeId(urlOrId: string): string {
+  if (!urlOrId || typeof urlOrId !== "string") return "";
+  const trimmed = urlOrId.trim();
+
+  // If already an 11-char ID with valid characters
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+    return trimmed;
+  }
+
+  // Check img.youtube.com or i.ytimg.com/vi/{ID}
+  const thumbMatch = trimmed.match(/(?:img\.youtube\.com|i\.ytimg\.com)\/vi\/([a-zA-Z0-9_-]{11})/i);
+  if (thumbMatch && thumbMatch[1]) {
+    return thumbMatch[1];
+  }
+
+  // Matches youtube.com/shorts/{ID}
+  const shortsMatch = trimmed.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/i);
+  if (shortsMatch && shortsMatch[1]) {
+    return shortsMatch[1];
+  }
+
+  // Matches youtu.be/{ID}
+  const youtuBeMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+  if (youtuBeMatch && youtuBeMatch[1]) {
+    return youtuBeMatch[1];
+  }
+
+  // Matches ?v={ID} or &v={ID}
+  const vParamMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+  if (vParamMatch && vParamMatch[1]) {
+    return vParamMatch[1];
+  }
+
+  // Matches /embed/{ID} or /v/{ID} or /live/{ID}
+  const pathMatch = trimmed.match(/\/(?:embed|v|live)\/([a-zA-Z0-9_-]{11})/i);
+  if (pathMatch && pathMatch[1]) {
+    return pathMatch[1];
+  }
+
+  return "";
+}
+
+/**
+ * Converts any Google Drive link, YouTube video URL, or media URL into a high-speed direct image URL.
  * Defaults to Google's global CDN endpoint: https://lh3.googleusercontent.com/d/{ID}
+ * Defaults to YouTube's global CDN endpoint: https://i.ytimg.com/vi/{ID}/hqdefault.jpg
  */
 export function normalizeMediaUrl(url: string): string {
   if (!url || typeof url !== "string") return "";
@@ -59,6 +105,10 @@ export function normalizeMediaUrl(url: string): string {
   const fileId = extractGoogleDriveFileId(trimmed);
   if (fileId) {
     return `https://lh3.googleusercontent.com/d/${fileId}`;
+  }
+  const ytId = extractYouTubeId(trimmed);
+  if (ytId) {
+    return `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
   }
   return trimmed;
 }
@@ -78,14 +128,13 @@ export function getMediaFallbackUrls(url: string): string[] {
       `https://drive.google.com/uc?id=${fileId}`,
     ];
   }
-  const ytMatch = trimmed.match(/img\.youtube\.com\/vi\/([^/]+)/);
-  if (ytMatch && ytMatch[1]) {
-    const yId = ytMatch[1];
+  const ytId = extractYouTubeId(trimmed);
+  if (ytId) {
     return [
-      `https://img.youtube.com/vi/${yId}/maxresdefault.jpg`,
-      `https://img.youtube.com/vi/${yId}/hqdefault.jpg`,
-      `https://img.youtube.com/vi/${yId}/mqdefault.jpg`,
-      `https://img.youtube.com/vi/${yId}/default.jpg`,
+      `https://i.ytimg.com/vi/${ytId}/maxresdefault.jpg`,
+      `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`,
+      `https://i.ytimg.com/vi/${ytId}/mqdefault.jpg`,
+      `https://i.ytimg.com/vi/${ytId}/0.jpg`,
     ];
   }
   return [trimmed];

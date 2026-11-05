@@ -5916,7 +5916,7 @@ export default function CanvasWorkspace({
     let isVideo = modalMediaType === "video" || Boolean(ytId);
 
     if (ytId) {
-      imgPreview = `https://img.youtube.com/vi/${ytId}/maxresdefault.jpg`;
+      imgPreview = `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
       isVideo = true;
     } else if (driveId) {
       imgPreview = `https://lh3.googleusercontent.com/d/${driveId}`;
@@ -10347,7 +10347,9 @@ export default function CanvasWorkspace({
                               );
                             }
 
-                            const ytThumb = item.image || `https://img.youtube.com/vi/${ytVideoId}/maxresdefault.jpg`;
+                            const ytThumb = (item.image && !item.image.includes("youtube.com/watch") && !item.image.includes("youtu.be/"))
+                              ? item.image
+                              : `https://i.ytimg.com/vi/${ytVideoId}/hqdefault.jpg`;
                             return (
                               <div className="relative w-full h-full bg-black flex items-center justify-center group/yt select-none">
                                 <img
@@ -10356,11 +10358,19 @@ export default function CanvasWorkspace({
                                   draggable={false}
                                   decoding="sync"
                                   loading="eager"
+                                  referrerPolicy="no-referrer"
+                                  crossOrigin="anonymous"
                                   onError={(e) => {
                                     const target = e.currentTarget;
                                     if (!target.dataset.hasFallback) {
-                                      target.dataset.hasFallback = "true";
-                                      target.src = `https://img.youtube.com/vi/${ytVideoId}/hqdefault.jpg`;
+                                      target.dataset.hasFallback = "1";
+                                      target.src = `https://i.ytimg.com/vi/${ytVideoId}/hqdefault.jpg`;
+                                    } else if (target.dataset.hasFallback === "1") {
+                                      target.dataset.hasFallback = "2";
+                                      target.src = `https://i.ytimg.com/vi/${ytVideoId}/mqdefault.jpg`;
+                                    } else if (target.dataset.hasFallback === "2") {
+                                      target.dataset.hasFallback = "3";
+                                      target.src = `https://i.ytimg.com/vi/${ytVideoId}/0.jpg`;
                                     }
                                   }}
                                   className="w-full h-full object-cover pointer-events-none select-none"
@@ -10517,7 +10527,9 @@ export default function CanvasWorkspace({
                             );
                           }
 
-                          const ytThumb = item.image || `https://img.youtube.com/vi/${ytVideoId}/maxresdefault.jpg`;
+                          const ytThumb = (item.image && !item.image.includes("youtube.com/watch") && !item.image.includes("youtu.be/"))
+                            ? item.image
+                            : `https://i.ytimg.com/vi/${ytVideoId}/hqdefault.jpg`;
                           return (
                             <div className="relative w-full h-full bg-black flex items-center justify-center group/yt select-none">
                               <img
@@ -10526,11 +10538,19 @@ export default function CanvasWorkspace({
                                 draggable={false}
                                 decoding="sync"
                                 loading="eager"
+                                referrerPolicy="no-referrer"
+                                crossOrigin="anonymous"
                                 onError={(e) => {
                                   const target = e.currentTarget;
                                   if (!target.dataset.hasFallback) {
-                                    target.dataset.hasFallback = "true";
-                                    target.src = `https://img.youtube.com/vi/${ytVideoId}/hqdefault.jpg`;
+                                    target.dataset.hasFallback = "1";
+                                    target.src = `https://i.ytimg.com/vi/${ytVideoId}/hqdefault.jpg`;
+                                  } else if (target.dataset.hasFallback === "1") {
+                                    target.dataset.hasFallback = "2";
+                                    target.src = `https://i.ytimg.com/vi/${ytVideoId}/mqdefault.jpg`;
+                                  } else if (target.dataset.hasFallback === "2") {
+                                    target.dataset.hasFallback = "3";
+                                    target.src = `https://i.ytimg.com/vi/${ytVideoId}/0.jpg`;
                                   }
                                 }}
                                 className="w-full h-full object-cover pointer-events-none select-none"

@@ -558,7 +558,7 @@ interface PortfolioDataContextType {
  * Robust YouTube video ID parser for various URL structures
  */
 export function extractYouTubeId(urlOrId: string): string {
-  if (!urlOrId) return "";
+  if (!urlOrId || typeof urlOrId !== "string") return "";
   const trimmed = urlOrId.trim();
 
   // If already an 11-char ID with valid characters
@@ -566,10 +566,37 @@ export function extractYouTubeId(urlOrId: string): string {
     return trimmed;
   }
 
-  // Matches youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID, youtube.com/shorts/ID, youtube.com/live/ID, img.youtube.com/vi/ID, i.ytimg.com/vi/ID
-  const regExp = /(?:youtube(?:-nocookie)?\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|vi|live)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/|ytimg\.com\/vi\/)([^"&?\/\s]{11})/i;
-  const match = trimmed.match(regExp);
-  return match && match[1] ? match[1] : "";
+  // Check img.youtube.com or i.ytimg.com/vi/{ID}
+  const thumbMatch = trimmed.match(/(?:img\.youtube\.com|i\.ytimg\.com)\/vi\/([a-zA-Z0-9_-]{11})/i);
+  if (thumbMatch && thumbMatch[1]) {
+    return thumbMatch[1];
+  }
+
+  // Matches youtube.com/shorts/{ID}
+  const shortsMatch = trimmed.match(/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/i);
+  if (shortsMatch && shortsMatch[1]) {
+    return shortsMatch[1];
+  }
+
+  // Matches youtu.be/{ID}
+  const youtuBeMatch = trimmed.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/i);
+  if (youtuBeMatch && youtuBeMatch[1]) {
+    return youtuBeMatch[1];
+  }
+
+  // Matches ?v={ID} or &v={ID}
+  const vParamMatch = trimmed.match(/[?&]v=([a-zA-Z0-9_-]{11})/i);
+  if (vParamMatch && vParamMatch[1]) {
+    return vParamMatch[1];
+  }
+
+  // Matches /embed/{ID} or /v/{ID} or /live/{ID}
+  const pathMatch = trimmed.match(/\/(?:embed|v|live)\/([a-zA-Z0-9_-]{11})/i);
+  if (pathMatch && pathMatch[1]) {
+    return pathMatch[1];
+  }
+
+  return "";
 }
 
 /**
