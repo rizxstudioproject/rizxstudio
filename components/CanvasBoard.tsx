@@ -145,6 +145,38 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
     });
   }, [canvasItems]);
 
+  const handleOnImageLoad = useCallback((itemId: string, nw: number, nh: number) => {
+    if (!nw || !nh) return;
+    setBoardCanvasItems((prev) => {
+      const item = prev.find((it) => it.id === itemId);
+      if (!item) return prev;
+      if (item.hasAutoFitted && item.naturalWidth && item.naturalHeight) return prev;
+      if (item.manualResized && item.hasAutoFitted) return prev;
+
+      const currentW = item.width || 440;
+      const currentH = item.height || 550;
+      const currentRatio = currentW / currentH;
+      const naturalRatio = nw / nh;
+
+      if (Math.abs(currentRatio - naturalRatio) > 0.03) {
+        const newH = Math.round(currentW / naturalRatio);
+        return prev.map((it) =>
+          it.id === itemId
+            ? {
+                ...it,
+                height: newH,
+                naturalWidth: nw,
+                naturalHeight: nh,
+                aspect: `${nw}:${nh}`,
+                hasAutoFitted: true,
+              }
+            : it
+        );
+      }
+      return prev;
+    });
+  }, []);
+
   const activeCanvasItems = boardCanvasItems.length > 0 ? boardCanvasItems : (canvasItems || []);
 
   const isCanvasCustomized = useMemo(() => {
@@ -1667,6 +1699,12 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                                   draggable={false}
                                   decoding="sync"
                                   loading="eager"
+                                  onLoad={(e) => {
+                                    const target = e.currentTarget;
+                                    if (target.naturalWidth && target.naturalHeight) {
+                                      handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
+                                    }
+                                  }}
                                   className="w-full h-full object-cover pointer-events-none select-none"
                                   style={{
                                     imageRendering: "-webkit-optimize-contrast",
@@ -1818,6 +1856,12 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
                                 draggable={false}
                                 decoding="sync"
                                 loading="eager"
+                                onLoad={(e) => {
+                                  const target = e.currentTarget;
+                                  if (target.naturalWidth && target.naturalHeight) {
+                                    handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
+                                  }
+                                }}
                                 className="w-full h-full object-cover pointer-events-none select-none"
                                 style={{
                                   imageRendering: "-webkit-optimize-contrast",

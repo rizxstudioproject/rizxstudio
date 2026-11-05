@@ -1782,6 +1782,7 @@ export default function CanvasWorkspace({
   const [modalTitle, setModalTitle] = useState("");
   const [modalAspect, setModalAspect] = useState("original");
   const [modalMediaType, setModalMediaType] = useState<"image" | "video">("image");
+  const [isAddingMedia, setIsAddingMedia] = useState(false);
 
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -4553,6 +4554,9 @@ export default function CanvasWorkspace({
       dragRafRef.current = null;
     }
     if (resizingItemId) {
+      setItems((prev) =>
+        prev.map((it) => (it.id === resizingItemId ? { ...it, manualResized: true, hasAutoFitted: true } : it))
+      );
       setResizingItemId(null);
       setResizeHandle(null);
       resizeStartRef.current = null;
@@ -5792,9 +5796,118 @@ export default function CanvasWorkspace({
     return () => window.removeEventListener("paste", handleWindowPaste);
   }, []);
 
-  // Add Media from Modal Link
-  const handleAddMediaFromLink = () => {
-    if (!modalLinkUrl.trim()) return;
+  // Auto-fit frame dimensions to the image natural aspect ratio (prevents cropping / cutting off)
+  const autoFitItemToImage = useCallback(async (targetItem: CanvasItem) => {
+    if (!targetItem || !targetItem.image) return;
+
+    let nw = targetItem.naturalWidth || 0;
+    let nh = targetItem.naturalHeight || 0;
+
+    if (!nw || !nh) {
+      setCanvasToast("🔄 Membaca proporsi asli gambar...");
+      const dims = await new Promise<{ w: number; h: number }>((resolve) => {
+        const img = new Image();
+        let finished = false;
+        const done = (w: number, h: number) => {
+          if (!finished) {
+            finished = true;
+            resolve({ w, h });
+          }
+        };
+        const timer = setTimeout(() => done(0, 0), 4000);
+        img.onload = () => {
+          clearTimeout(timer);
+          done(img.naturalWidth || 0, img.naturalHeight || 0);
+        };
+        img.onerror = () => {
+          clearTimeout(timer);
+          done(0, 0);
+        };
+        img.src = targetItem.image!;
+      });
+      nw = dims.w;
+      nh = dims.h;
+    }
+
+    if (nw > 0 && nh > 0) {
+      const currentW = targetItem.width || 440;
+      const newH = Math.round(currentW * (nh / nw));
+
+      const updated: CanvasItem = {
+        ...targetItem,
+        width: currentW,
+        height: newH,
+        naturalWidth: nw,
+        naturalHeight: nh,
+        aspect: `${nw}:${nh}`,
+        hasAutoFitted: true,
+        autoFrame: true,
+      };
+
+      updateItemsWithTracking(
+        itemsRef.current.map((it) => (it.id === targetItem.id ? updated : it))
+      );
+      setCanvasToast("✨ Frame berhasil disesuaikan dengan proporsi gambar!");
+    } else {
+      setCanvasToast("⚠️ Gagal membaca ukuran gambar");
+    }
+  }, [updateItemsWithTracking]);
+
+  // Automatic proportional frame adjustment when image loads on canvas
+  const handleOnImageLoad = useCallback((itemId: string, nw: number, nh: number) => {
+    if (!nw || !nh) return;
+    setItems((prev) => {
+      const item = prev.find((it) => it.id === itemId);
+      if (!item) return prev;
+      if (item.hasAutoFitted && item.naturalWidth && item.naturalHeight) return prev;
+      if (item.manualResized && item.hasAutoFitted) return prev;
+
+      const currentW = item.width || 440;
+      const currentH = item.height || 550;
+      const currentRatio = currentW / currentH;
+      const naturalRatio = nw / nh;
+
+      // If the current frame deviates noticeably (> 3%) from natural ratio
+      if (Math.abs(currentRatio - naturalRatio) > 0.03) {
+        const newH = Math.round(currentW / naturalRatio);
+        const next = prev.map((it) =>
+          it.id === itemId
+            ? {
+                ...it,
+                height: newH,
+                naturalWidth: nw,
+                naturalHeight: nh,
+                aspect: `${nw}:${nh}`,
+                hasAutoFitted: true,
+                autoFrame: true,
+              }
+            : it
+        );
+        itemsRef.current = next;
+        triggerAutoSave(next);
+        return next;
+      } else if (!item.naturalWidth || !item.naturalHeight || !item.hasAutoFitted) {
+        const next = prev.map((it) =>
+          it.id === itemId
+            ? {
+                ...it,
+                naturalWidth: nw,
+                naturalHeight: nh,
+                hasAutoFitted: true,
+              }
+            : it
+        );
+        itemsRef.current = next;
+        return next;
+      }
+
+      return prev;
+    });
+  }, [triggerAutoSave]);
+
+  // Add Media from Modal Link (Auto-detects image aspect ratio so it never cuts off)
+  const handleAddMediaFromLink = async () => {
+    if (!modalLinkUrl.trim() || isAddingMedia) return;
 
     const ytId = extractYouTubeId(modalLinkUrl);
     const driveId = extractGoogleDriveFileId(modalLinkUrl);
@@ -5809,12 +5922,55 @@ export default function CanvasWorkspace({
       imgPreview = `https://lh3.googleusercontent.com/d/${driveId}`;
     }
 
-    const effectiveAspect = ytId || modalMediaType === "video" ? "16:9" : "4:5";
+    setIsAddingMedia(true);
+
+    const normalizedImage = normalizeMediaUrl(imgPreview);
     let cardW = 440;
     let cardH = 550;
-    if (effectiveAspect === "16:9") {
+    let effectiveAspect = "auto";
+    let nw = 0;
+    let nh = 0;
+
+    if (isVideo) {
+      effectiveAspect = "16:9";
       cardW = 560;
       cardH = 315;
+    } else {
+      // Auto-detect image aspect ratio from Google Drive or URL
+      const dims = await new Promise<{ w: number; h: number }>((resolve) => {
+        const img = new Image();
+        let done = false;
+        const finish = (w: number, h: number) => {
+          if (!done) {
+            done = true;
+            resolve({ w, h });
+          }
+        };
+        const timer = setTimeout(() => finish(0, 0), 2800);
+        img.onload = () => {
+          clearTimeout(timer);
+          finish(img.naturalWidth || 0, img.naturalHeight || 0);
+        };
+        img.onerror = () => {
+          clearTimeout(timer);
+          finish(0, 0);
+        };
+        img.src = normalizedImage;
+      });
+
+      nw = dims.w;
+      nh = dims.h;
+
+      if (nw > 0 && nh > 0) {
+        // Compute frame size matching the exact natural aspect ratio
+        cardW = Math.min(Math.max(nw, 360), 520);
+        cardH = Math.round(cardW * (nh / nw));
+        effectiveAspect = `${nw}:${nh}`;
+      } else {
+        cardW = 440;
+        cardH = 550;
+        effectiveAspect = "auto";
+      }
     }
 
     const center = getViewportCenter(cardW, cardH);
@@ -5824,7 +5980,7 @@ export default function CanvasWorkspace({
       title: modalTitle.trim() || (ytId ? "YouTube Video" : driveId ? "Google Drive Asset" : "Digital Asset"),
       type: "media",
       mediaType: ytId ? "youtube" : driveId ? "gdrive" : isVideo ? "upload" : "image",
-      image: normalizeMediaUrl(imgPreview),
+      image: normalizedImage,
       aspect: effectiveAspect,
       clientName: "Selected Work",
       x: center.x,
@@ -5836,11 +5992,16 @@ export default function CanvasWorkspace({
       videoId: ytId || undefined,
       gdriveUrl: driveId ? modalLinkUrl : undefined,
       gdriveId: driveId || undefined,
+      naturalWidth: nw > 0 ? nw : undefined,
+      naturalHeight: nh > 0 ? nh : undefined,
+      autoFrame: true,
+      hasAutoFitted: nw > 0 && nh > 0,
     };
 
     updateItemsWithTracking([newItem, ...items]);
     setSelectedId(newItem.id);
     setSelectedIds(new Set([newItem.id]));
+    setIsAddingMedia(false);
     setIsLinkModalOpen(false);
     setModalLinkUrl("");
     setModalTitle("");
@@ -6921,6 +7082,23 @@ export default function CanvasWorkspace({
                 )}
               </div>
             </div>
+
+            {/* Auto Frame Button for Images / Media (Preserves natural aspect ratio) */}
+            {selectedItem?.image && (
+              <button
+                type="button"
+                onClick={() => autoFitItemToImage(selectedItem)}
+                className={`w-full py-2 px-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm ${
+                  isLight
+                    ? "bg-teal-50 border-teal-200 text-teal-800 hover:bg-teal-100 active:scale-[0.98]"
+                    : "bg-teal-500/15 border-teal-400/30 text-teal-300 hover:bg-teal-500/25 active:scale-[0.98]"
+                }`}
+                title="Sesuaikan tinggi frame mengikuti proporsi asli gambar agar tidak terpotong"
+              >
+                <HiArrowsPointingOut className="w-4 h-4 text-teal-400" />
+                <span>Auto Frame (Sesuaikan Gambar)</span>
+              </button>
+            )}
 
             {/* Spacing (Horizontal Spacing ||| and Vertical Spacing 吕) - Matches Screenshot 4 */}
             <div className="grid grid-cols-2 gap-2 text-xs">
@@ -10232,6 +10410,12 @@ export default function CanvasWorkspace({
                                 draggable={false}
                                 decoding="sync"
                                 loading="eager"
+                                onLoad={(e) => {
+                                  const target = e.currentTarget;
+                                  if (target.naturalWidth && target.naturalHeight) {
+                                    handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
+                                  }
+                                }}
                                 className="w-full h-full object-cover pointer-events-none select-none"
                                 style={{
                                   imageRendering: "-webkit-optimize-contrast",
@@ -10396,6 +10580,12 @@ export default function CanvasWorkspace({
                               draggable={false}
                               decoding="sync"
                               loading="eager"
+                              onLoad={(e) => {
+                                const target = e.currentTarget;
+                                if (target.naturalWidth && target.naturalHeight) {
+                                  handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
+                                }
+                              }}
                               className="w-full h-full object-cover pointer-events-none select-none"
                               style={{
                                 imageRendering: "-webkit-optimize-contrast",
@@ -10467,8 +10657,24 @@ export default function CanvasWorkspace({
                     )}
 
                     {/* Dimension Badge centered at bottom */}
-                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none z-40">
-                      {Math.round(currentWidth)} × {Math.round(currentHeight)}
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-40">
+                      <div className="px-2.5 py-0.5 rounded bg-[#0c8ce9] text-white text-[11px] font-mono font-medium shadow-lg whitespace-nowrap pointer-events-none">
+                        {Math.round(currentWidth)} × {Math.round(currentHeight)}
+                      </div>
+                      {item.image && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            autoFitItemToImage(item);
+                          }}
+                          title="Sesuaikan ukuran frame dengan proporsi asli gambar (Auto Frame)"
+                          className="px-2 py-0.5 rounded bg-teal-500 hover:bg-teal-400 text-black text-[10px] font-bold shadow-lg flex items-center gap-1 cursor-pointer pointer-events-auto transition-transform hover:scale-105 active:scale-95"
+                        >
+                          <HiArrowsPointingOut className="w-3 h-3" />
+                          <span>Auto Frame</span>
+                        </button>
+                      )}
                     </div>
 
                     {/* Rotate Controls */}
@@ -11779,6 +11985,27 @@ export default function CanvasWorkspace({
             );
           })()}
 
+          {/* Auto Frame Option for Image Elements */}
+          {contextMenu.item?.image && (
+            <button
+              type="button"
+              onClick={() => {
+                if (contextMenu.item) autoFitItemToImage(contextMenu.item);
+                setContextMenu(null);
+              }}
+              className={`w-full flex items-center justify-between px-3 py-1.5 text-[12.5px] rounded-md transition-colors cursor-pointer group text-left ${
+                isLight
+                  ? "text-teal-700 hover:bg-teal-600 hover:text-white"
+                  : "text-teal-300 hover:bg-teal-600 hover:text-white"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <HiArrowsPointingOut className="w-3.5 h-3.5 text-teal-400 group-hover:text-white" />
+                <span>Auto Frame (Sesuaikan Gambar)</span>
+              </div>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => {
@@ -12132,10 +12359,17 @@ export default function CanvasWorkspace({
               <button
                 type="button"
                 onClick={handleAddMediaFromLink}
-                disabled={!modalLinkUrl.trim()}
-                className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-black text-xs font-bold transition-colors shadow-lg shadow-teal-500/20 cursor-pointer"
+                disabled={!modalLinkUrl.trim() || isAddingMedia}
+                className="flex-1 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 disabled:opacity-50 text-black text-xs font-bold transition-colors shadow-lg shadow-teal-500/20 cursor-pointer flex items-center justify-center gap-1.5"
               >
-                Add to Canvas
+                {isAddingMedia ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+                    <span>Menyesuaikan frame...</span>
+                  </>
+                ) : (
+                  <span>Add to Canvas</span>
+                )}
               </button>
             </div>
           </div>

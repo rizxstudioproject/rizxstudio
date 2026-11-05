@@ -104,6 +104,11 @@ export interface CanvasItem {
   isThumbnail?: boolean;
   frameId?: string;
   textAutoResize?: "auto_width" | "auto_height" | "fixed";
+  naturalWidth?: number;
+  naturalHeight?: number;
+  autoFrame?: boolean;
+  hasAutoFitted?: boolean;
+  manualResized?: boolean;
 }
 
 export interface HeroBannerData {
