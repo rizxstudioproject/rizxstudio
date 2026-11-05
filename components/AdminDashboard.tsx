@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RiPlayFill as HiPlay,
@@ -69,6 +69,7 @@ import {
   defaultPortfolioRunnerData,
   HeroBannerData,
   defaultHeroBannerData,
+  Stage3HeroCard,
 } from "@/context/PortfolioDataContext";
 import { getCaseStudy, getAspectClass } from "@/components/Projects";
 import {
@@ -122,6 +123,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     updateAboutData,
     updateStage3Video,
     removeStage3Video,
+    addStage3Card,
+    deleteStage3Card,
+    reorderStage3Cards,
     updateClientDescription,
     addClientWork,
     updateClientWork,
@@ -1563,31 +1567,44 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   };
 
-  // Tab 1: Flagship Showcase Video & Media State
+  // Tab 1: Multi-showreel cards in Flagship Showcase
+  const stage3Cards = useMemo(() => {
+    if (stage3?.cards && stage3.cards.length > 0) return stage3.cards;
+    return [stage3.heroCard];
+  }, [stage3]);
+
+  const [activeStage3CardId, setActiveStage3CardId] = useState<string>(() => {
+    return stage3Cards[0]?.id || "showcase-primary";
+  });
+
+  const activeStage3Card = useMemo(() => {
+    return stage3Cards.find((c: Stage3HeroCard) => (c.id || "showcase-primary") === activeStage3CardId) || stage3Cards[0] || stage3.heroCard;
+  }, [stage3Cards, activeStage3CardId]);
+
   const [videoUrlInput, setVideoUrlInput] = useState(
-    stage3.heroCard.youtubeUrl || (stage3.heroCard.videoId ? `https://www.youtube.com/watch?v=${stage3.heroCard.videoId}` : "")
+    activeStage3Card.youtubeUrl || (activeStage3Card.videoId ? `https://www.youtube.com/watch?v=${activeStage3Card.videoId}` : "")
   );
   const [flagshipMediaType, setFlagshipMediaType] = useState<"youtube" | "gdrive" | "image">(
-    stage3.heroCard.mediaType || (
-      stage3.heroCard.gdriveId || stage3.heroCard.gdriveUrl ? "gdrive" :
-      (stage3.heroCard.videoId || stage3.heroCard.youtubeUrl ? "youtube" : "image")
+    activeStage3Card.mediaType || (
+      activeStage3Card.gdriveId || activeStage3Card.gdriveUrl ? "gdrive" :
+      (activeStage3Card.videoId || activeStage3Card.youtubeUrl ? "youtube" : "image")
     )
   );
   const [flagshipGDriveUrl, setFlagshipGDriveUrl] = useState<string>(
-    stage3.heroCard.gdriveUrl || (stage3.heroCard.gdriveId ? `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view` : "")
+    activeStage3Card.gdriveUrl || (activeStage3Card.gdriveId ? `https://drive.google.com/file/d/${activeStage3Card.gdriveId}/view` : "")
   );
   const [flagshipImageUrl, setFlagshipImageUrl] = useState<string>(
-    stage3.heroCard.image || ""
+    activeStage3Card.image || ""
   );
-  const [videoTitle, setVideoTitle] = useState(stage3.heroCard.title || "From Visual Craft to Technology");
-  const [videoCategory, setVideoCategory] = useState(stage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI");
+  const [videoTitle, setVideoTitle] = useState(activeStage3Card.title || "From Visual Craft to Technology");
+  const [videoCategory, setVideoCategory] = useState(activeStage3Card.category || "VISUAL CRAFT | DIGITAL | AI");
   const [videoHeadline, setVideoHeadline] = useState(stage3.headline || "A journey shaped by creativity and change.");
   const [videoClassTag, setVideoClassTag] = useState(stage3.classTag || "CREATIVE JOURNEY | 2012 TO PRESENT");
   const [videoDescription, setVideoDescription] = useState(
-    stage3.heroCard.description ||
+    activeStage3Card.description ||
       "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences."
   );
-  const [videoEnabled, setVideoEnabled] = useState(stage3.heroCard.isVideoEnabled !== false);
+  const [videoEnabled, setVideoEnabled] = useState(activeStage3Card.isVideoEnabled !== false);
 
   // Tab 1: Client Brand Description & Works State
   const [selectedClientId, setSelectedClientId] = useState<string>(
@@ -1996,36 +2013,43 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
   }, [selectedClientId, clients, selectedClient, autoMigrateBase64Works]);
 
-  // Sync Flagship Media state whenever stage3 updates (e.g. from Supabase Cloud or localStorage)
+  // Ensure activeStage3CardId stays valid when stage3Cards changes
+  useEffect(() => {
+    if (stage3Cards.length > 0 && !stage3Cards.some((c: Stage3HeroCard) => (c.id || "showcase-primary") === activeStage3CardId)) {
+      setActiveStage3CardId(stage3Cards[0].id || "showcase-primary");
+    }
+  }, [stage3Cards, activeStage3CardId]);
+
+  // Sync Flagship Media state whenever stage3 or activeStage3Card updates (e.g. from Supabase Cloud or localStorage)
   useEffect(() => {
     if (stage3) {
       if (stage3.headline) setVideoHeadline(stage3.headline);
       if (stage3.classTag) setVideoClassTag(stage3.classTag);
-      if (stage3.heroCard) {
-        setVideoUrlInput(
-          stage3.heroCard.youtubeUrl ||
-            (stage3.heroCard.videoId ? `https://www.youtube.com/watch?v=${stage3.heroCard.videoId}` : "")
-        );
-        const resolvedMediaType = stage3.heroCard.mediaType || (
-          stage3.heroCard.gdriveId || stage3.heroCard.gdriveUrl ? "gdrive" :
-          stage3.heroCard.videoId || stage3.heroCard.youtubeUrl ? "youtube" : "image"
-        );
-        setFlagshipMediaType(resolvedMediaType);
-        setFlagshipGDriveUrl(
-          stage3.heroCard.gdriveUrl ||
-            (stage3.heroCard.gdriveId ? `https://drive.google.com/file/d/${stage3.heroCard.gdriveId}/view` : "")
-        );
-        setFlagshipImageUrl(stage3.heroCard.image || "");
-        if (stage3.heroCard.title) setVideoTitle(stage3.heroCard.title);
-        if (stage3.heroCard.category) setVideoCategory(stage3.heroCard.category);
-        if (stage3.heroCard.description) setVideoDescription(stage3.heroCard.description);
-        const resolvedEnabled = stage3.heroCard.isVideoEnabled !== undefined
-          ? stage3.heroCard.isVideoEnabled
-          : (resolvedMediaType !== "image");
-        setVideoEnabled(resolvedEnabled);
-      }
     }
-  }, [stage3]);
+    if (activeStage3Card) {
+      setVideoUrlInput(
+        activeStage3Card.youtubeUrl ||
+          (activeStage3Card.videoId ? `https://www.youtube.com/watch?v=${activeStage3Card.videoId}` : "")
+      );
+      const resolvedMediaType = activeStage3Card.mediaType || (
+        activeStage3Card.gdriveId || activeStage3Card.gdriveUrl ? "gdrive" :
+        activeStage3Card.videoId || activeStage3Card.youtubeUrl ? "youtube" : "image"
+      );
+      setFlagshipMediaType(resolvedMediaType);
+      setFlagshipGDriveUrl(
+        activeStage3Card.gdriveUrl ||
+          (activeStage3Card.gdriveId ? `https://drive.google.com/file/d/${activeStage3Card.gdriveId}/view` : "")
+      );
+      setFlagshipImageUrl(activeStage3Card.image || "");
+      if (activeStage3Card.title) setVideoTitle(activeStage3Card.title);
+      if (activeStage3Card.category) setVideoCategory(activeStage3Card.category);
+      if (activeStage3Card.description) setVideoDescription(activeStage3Card.description);
+      const resolvedEnabled = activeStage3Card.isVideoEnabled !== undefined
+        ? activeStage3Card.isVideoEnabled
+        : (resolvedMediaType !== "image");
+      setVideoEnabled(resolvedEnabled);
+    }
+  }, [stage3?.headline, stage3?.classTag, activeStage3Card]);
 
   // Jump straight to Stage 3 on Public Web
   const handleJumpToFlagshipWeb = () => {
@@ -2080,6 +2104,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     }
 
     await updateStage3Video({
+      cardId: activeStage3CardId,
       mediaType: flagshipMediaType,
       youtubeUrl: flagshipMediaType === "youtube" ? videoUrlInput.trim() : "",
       videoId: flagshipMediaType === "youtube" ? computedYtId : "",
@@ -2103,6 +2128,51 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
     );
   };
 
+  const handleAddShowreelCard = () => {
+    const newIdx = stage3Cards.length + 1;
+    const newId = addStage3Card({
+      title: `Showreel 0${newIdx} — Visual & Motion`,
+      category: "SHOWREEL | MOTION | AI",
+      description: "A flagship cinematic exploration bridging visual craft, 3D motion design, and cutting-edge creative digital experiences.",
+      mediaType: "youtube",
+      youtubeUrl: "",
+      videoId: "",
+      isVideoEnabled: true,
+    });
+    setActiveStage3CardId(newId);
+    showToast(tx("Media showreel baru berhasil ditambahkan! Silakan masukkan URL video.", "New showreel added! Enter video link.", "Media showreel baru barasil ditambahkan!"));
+  };
+
+  const handleDeleteShowreelCard = async (targetId: string) => {
+    if (stage3Cards.length <= 1) {
+      await handleRemoveVideo();
+      return;
+    }
+    const cardToDelete = stage3Cards.find((c: Stage3HeroCard) => (c.id || "showcase-primary") === targetId);
+    const confirmMsg = tx(
+      `Apakah Anda yakin ingin menghapus media showreel "${cardToDelete?.title || "Item"}"?`,
+      `Are you sure you want to delete showreel "${cardToDelete?.title || "Item"}"?`,
+      `Apakao Sanak yakin nio mahapuih media showreel "${cardToDelete?.title || "Item"}"?`
+    );
+    if (window.confirm(confirmMsg)) {
+      moveToTrash({
+        originalId: `stage3-card-${targetId}`,
+        type: "flagship-video",
+        title: cardToDelete?.title || "Showreel Media",
+        subtitle: cardToDelete?.category || "VISUAL CRAFT | DIGITAL | AI",
+        previewImage: cardToDelete?.image || "",
+        mediaType: cardToDelete?.mediaType || "youtube",
+        payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
+      });
+      deleteStage3Card(targetId);
+      const remaining = stage3Cards.filter((c: Stage3HeroCard) => (c.id || "showcase-primary") !== targetId);
+      if (remaining.length > 0) {
+        setActiveStage3CardId(remaining[0].id || "showcase-primary");
+      }
+      showToast(tx("Media showreel berhasil dihapus.", "Showreel deleted.", "Media showreel barasil dihapuih."));
+    }
+  };
+
   const handleRemoveVideo = async () => {
     const confirmMsg = tx(
       "Apakah Anda yakin ingin menghapus media (video & gambar) dari Flagship Showcase?",
@@ -2113,10 +2183,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       moveToTrash({
         originalId: "stage3-flagship-video",
         type: "flagship-video",
-        title: stage3.heroCard.title || "Flagship Showcase Media",
-        subtitle: stage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI",
-        previewImage: flagshipImageUrl || stage3.heroCard.image || "",
-        mediaType: stage3.heroCard.mediaType || "image",
+        title: activeStage3Card?.title || stage3.heroCard.title || "Flagship Showcase Media",
+        subtitle: activeStage3Card?.category || stage3.heroCard.category || "VISUAL CRAFT | DIGITAL | AI",
+        previewImage: flagshipImageUrl || activeStage3Card?.image || stage3.heroCard.image || "",
+        mediaType: activeStage3Card?.mediaType || stage3.heroCard.mediaType || "image",
         payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
       });
       await removeStage3Video();
@@ -7282,11 +7352,85 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     </div>
                   </div>
 
+                  {/* MULTI-SHOWREEL MANAGER TABS */}
+                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold">
+                            Daftar Media & Showreel ({stage3Cards.length})
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#16b09f]/10 text-[#16b09f] border border-[#16b09f]/30">
+                            Multi-Showreel Active
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                          {tx(
+                            "Pilih tab video untuk mengedit atau tambahkan video showreel baru.",
+                            "Select a showreel tab to edit or add a new showreel video."
+                          )}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleAddShowreelCard}
+                        className="px-3.5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139a8b] text-black font-semibold text-xs font-mono flex items-center gap-1.5 transition-all shadow-md shadow-[#16b09f]/20 active:scale-95 cursor-pointer"
+                      >
+                        <HiPlus className="w-3.5 h-3.5" />
+                        <span>{tx("Tambah Showreel", "Add Showreel")}</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-thin scrollbar-thumb-white/10">
+                      {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
+                        const cardId = card.id || `card-${idx}`;
+                        const isActive = cardId === activeStage3CardId || (idx === 0 && !card.id && activeStage3CardId === "showcase-primary");
+                        const iconType = card.mediaType === "gdrive" ? "GDrive" : card.mediaType === "image" ? "Image" : "YouTube";
+                        return (
+                          <div
+                            key={cardId}
+                            onClick={() => setActiveStage3CardId(cardId)}
+                            className={`group flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-mono transition-all cursor-pointer shrink-0 ${
+                              isActive
+                                ? "bg-[#16b09f]/20 border-[#16b09f] text-white shadow-[0_0_20px_rgba(22,176,159,0.25)] font-semibold"
+                                : "bg-neutral-900/80 border-white/10 text-neutral-400 hover:text-white hover:border-white/25"
+                            }`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${isActive ? "bg-[#16b09f] animate-pulse" : "bg-neutral-600"}`} />
+                            <span className="text-[10px] text-cyan-400 font-mono">#{idx + 1}</span>
+                            <span className="max-w-[130px] truncate">{card.title || `Showreel 0${idx + 1}`}</span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/40 text-neutral-400 uppercase">
+                              {iconType}
+                            </span>
+                            {stage3Cards.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteShowreelCard(cardId);
+                                }}
+                                className="opacity-40 group-hover:opacity-100 hover:text-rose-400 transition-all p-1 hover:bg-rose-500/10 rounded"
+                                title="Hapus video ini"
+                              >
+                                <HiTrash className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* SECTION 2: VIDEO MEDIA & KONTEN DALAM CARD */}
                   <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-4">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold block">
-                      B. Media Player & Konten di Dalam Card Showcase
-                    </span>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold block">
+                        B. Media Player & Konten Showcase (#{stage3Cards.findIndex((c: Stage3HeroCard) => (c.id || "showcase-primary") === activeStage3CardId) + 1})
+                      </span>
+                      <span className="text-[10px] font-mono text-neutral-400 truncate max-w-[200px]">
+                        {videoTitle || "Showreel Active"}
+                      </span>
+                    </div>
 
                     {/* MEDIA TYPE SELECTOR: YouTube, Google Drive, or Image */}
                     <div>
@@ -7440,7 +7584,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               onChange={(e) =>
                                 handleGenericImageFile(e, (dataUrl) => {
                                   setFlagshipImageUrl(dataUrl);
-                                  updateStage3Video({ image: dataUrl });
+                                  updateStage3Video({ image: dataUrl, cardId: activeStage3CardId });
                                 })
                               }
                               className="hidden"
@@ -7451,16 +7595,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               type="button"
                               onClick={async () => {
                                 moveToTrash({
-                                  originalId: "stage3-flagship-image",
+                                  originalId: `stage3-flagship-image-${activeStage3CardId}`,
                                   type: "flagship-video",
-                                  title: stage3.heroCard.title || "Showcase Image",
+                                  title: activeStage3Card?.title || stage3.heroCard.title || "Showcase Image",
                                   subtitle: tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis"),
                                   previewImage: flagshipImageUrl,
                                   mediaType: "image",
                                   payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
                                 });
                                 setFlagshipImageUrl("");
-                                await updateStage3Video({ image: "" });
+                                await updateStage3Video({ image: "", cardId: activeStage3CardId });
                                 await clearStage3ImageFromDB();
                                 showToast(tx("Gambar showcase berhasil dihapus & dikosongkan.", "Showcase image deleted & cleared.", "Gambar showcase barasil dihapuih jo dikosongan."));
                               }}
@@ -7497,16 +7641,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               type="button"
                               onClick={async () => {
                                 moveToTrash({
-                                  originalId: "stage3-flagship-image",
+                                  originalId: `stage3-flagship-image-${activeStage3CardId}`,
                                   type: "flagship-video",
-                                  title: stage3.heroCard.title || "Showcase Image",
+                                  title: activeStage3Card?.title || stage3.heroCard.title || "Showcase Image",
                                   subtitle: tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis"),
                                   previewImage: flagshipImageUrl,
                                   mediaType: "image",
                                   payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
                                 });
                                 setFlagshipImageUrl("");
-                                await updateStage3Video({ image: "" });
+                                await updateStage3Video({ image: "", cardId: activeStage3CardId });
                                 await clearStage3ImageFromDB();
                                 showToast(tx("Gambar showcase berhasil dihapus & dikosongkan.", "Showcase image deleted & cleared.", "Gambar showcase barasil dihapuih jo dikosongan."));
                               }}
@@ -7591,14 +7735,29 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   </div>
 
                   {/* Action Button: Remove / Delete Showcase */}
-                  <div className="flex justify-end pt-1">
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[11px] font-mono text-neutral-400">
+                      {stage3Cards.length > 1
+                        ? `Mengedit Showreel ${stage3Cards.findIndex((c: Stage3HeroCard) => (c.id || "showcase-primary") === activeStage3CardId) + 1} dari ${stage3Cards.length}`
+                        : ""}
+                    </span>
                     <button
                       type="button"
-                      onClick={handleRemoveVideo}
+                      onClick={() => {
+                        if (stage3Cards.length > 1) {
+                          handleDeleteShowreelCard(activeStage3CardId);
+                        } else {
+                          handleRemoveVideo();
+                        }
+                      }}
                       className="flex items-center justify-center gap-1.5 py-2.5 px-5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer"
                     >
                       <HiTrash className="w-4 h-4" />
-                      <span>{tx("Hapus Media Showcase", "Delete Media Showcase", "Hapuih Media Showcase")}</span>
+                      <span>
+                        {stage3Cards.length > 1
+                          ? tx("Hapus Showreel Ini", "Delete This Showreel", "Hapuih Showreel Ko")
+                          : tx("Hapus Media Showcase", "Delete Media Showcase", "Hapuih Media Showcase")}
+                      </span>
                     </button>
                   </div>
                 </form>
@@ -7626,6 +7785,31 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       {videoHeadline || "A journey shaped by creativity and change."}
                     </h3>
                   </div>
+
+                  {/* Multi-Showreel Tab Selector in Preview */}
+                  {stage3Cards.length > 1 && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-2 mb-2 scrollbar-none">
+                      {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
+                        const cardId = card.id || `card-${idx}`;
+                        const isActive = cardId === activeStage3CardId;
+                        return (
+                          <button
+                            key={cardId}
+                            type="button"
+                            onClick={() => setActiveStage3CardId(cardId)}
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-mono transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
+                              isActive
+                                ? "bg-[#16b09f] text-black font-semibold shadow"
+                                : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                            }`}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                            <span className="max-w-[100px] truncate">{card.title || `Showreel ${idx + 1}`}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
 
                   {/* Cinematic Media Card Preview */}
                   <div className="relative aspect-[16/10] sm:aspect-[21/9] w-full rounded-2xl overflow-hidden bg-black border border-white/15 shadow-2xl group">

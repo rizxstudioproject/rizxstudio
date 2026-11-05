@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { HiArrowUpRight, HiXMark } from "react-icons/hi2";
-import { usePortfolioData, extractYouTubeId, extractGoogleDriveId } from "@/context/PortfolioDataContext";
+import { HiArrowUpRight, HiXMark, HiChevronLeft, HiChevronRight } from "react-icons/hi2";
+import { usePortfolioData, extractYouTubeId, extractGoogleDriveId, Stage3HeroCard } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
 
@@ -17,10 +17,19 @@ export default function CreativeJourney() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Multi-card list for Stage 3 Showreels
+  const cards: Stage3HeroCard[] = (stage3?.cards && stage3.cards.length > 0)
+    ? stage3.cards
+    : (stage3?.heroCard ? [stage3.heroCard] : []);
+
+  const safeIdx = Math.min(Math.max(0, activeCardIndex), Math.max(0, cards.length - 1));
+  const currentCard = cards[safeIdx] || stage3?.heroCard;
 
   const displayTag = isLocalized
     ? t("projects.stage3.tag")
@@ -30,47 +39,89 @@ export default function CreativeJourney() {
     ? t("projects.stage3.headline")
     : stage3?.headline || t("projects.stage3.headline");
 
-  const displayTitle = isLocalized
-    ? t("projects.stage3.card.title")
-    : stage3?.heroCard?.title || t("projects.stage3.card.title");
-
-  const displayCategory = isLocalized
-    ? t("projects.stage3.card.category")
-    : stage3?.heroCard?.category || t("projects.stage3.card.category");
-
-  const displayDescription = isLocalized
-    ? (isMin
-      ? "Eksplorasi sinematik nan mangubuangakan labiah dari sapuluah taun karya visual, animasi motion 3D, sarato teknologi AI modern."
-      : "Eksplorasi sinematik yang menghubungkan lebih dari satu dekade karya visual, desain animasi 3D, dan teknologi kecerdasan AI mutakhir.")
-    : (stage3?.heroCard?.description ||
-      "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences.");
-
-  const mediaType = stage3?.heroCard?.mediaType || (
-    stage3?.heroCard?.gdriveId || stage3?.heroCard?.gdriveUrl ? "gdrive" :
-    (stage3?.heroCard?.videoId || stage3?.heroCard?.youtubeUrl ? "youtube" : "image")
+  const displayTitle = currentCard?.title || (
+    isLocalized ? t("projects.stage3.card.title") : stage3?.heroCard?.title || t("projects.stage3.card.title")
   );
 
-  const rawGdriveId = stage3?.heroCard?.gdriveId || extractGoogleDriveId(stage3?.heroCard?.gdriveUrl || "");
-  const rawYoutubeId = stage3?.heroCard?.videoId || extractYouTubeId(stage3?.heroCard?.youtubeUrl || "");
-  const isVideoOn = stage3?.heroCard?.isVideoEnabled !== false;
-  const youtubeId = (isVideoOn || (mediaType === "youtube" && !stage3?.heroCard?.image)) ? rawYoutubeId : "";
-  const gdriveId = (isVideoOn || (mediaType === "gdrive" && !stage3?.heroCard?.image)) ? rawGdriveId : "";
+  const displayCategory = currentCard?.category || (
+    isLocalized ? t("projects.stage3.card.category") : stage3?.heroCard?.category || t("projects.stage3.card.category")
+  );
+
+  const displayDescription = currentCard?.description || (
+    isLocalized
+      ? (isMin
+        ? "Eksplorasi sinematik nan mangubuangakan labiah dari sapuluah taun karya visual, animasi motion 3D, sarato teknologi AI modern."
+        : "Eksplorasi sinematik yang menghubungkan lebih dari satu dekade karya visual, desain animasi 3D, dan teknologi kecerdasan AI mutakhir.")
+      : (stage3?.heroCard?.description ||
+        "A flagship cinematic exploration bridging over a decade of visual craft, 3D motion design, and cutting-edge AI technology — pushing the boundaries of creative digital experiences.")
+  );
+
+  const mediaType = currentCard?.mediaType || (
+    currentCard?.gdriveId || currentCard?.gdriveUrl ? "gdrive" :
+    (currentCard?.videoId || currentCard?.youtubeUrl ? "youtube" : "image")
+  );
+
+  const rawGdriveId = currentCard?.gdriveId || extractGoogleDriveId(currentCard?.gdriveUrl || "");
+  const rawYoutubeId = currentCard?.videoId || extractYouTubeId(currentCard?.youtubeUrl || "");
+  const isVideoOn = currentCard?.isVideoEnabled !== false;
+  const youtubeId = (isVideoOn || (mediaType === "youtube" && !currentCard?.image)) ? rawYoutubeId : "";
+  const gdriveId = (isVideoOn || (mediaType === "gdrive" && !currentCard?.image)) ? rawGdriveId : "";
 
   const isShowingYouTube = mediaType === "youtube" && Boolean(youtubeId);
   const isShowingGDrive = mediaType === "gdrive" && Boolean(gdriveId);
-  const rawImage = stage3?.heroCard?.image;
+  const rawImage = currentCard?.image;
   const imageSrc = (rawImage && rawImage !== "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg") ? rawImage : "";
+
+  const handlePrev = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setActiveCardIndex((prev) => (prev > 0 ? prev - 1 : cards.length - 1));
+  };
+
+  const handleNext = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setActiveCardIndex((prev) => (prev < cards.length - 1 ? prev + 1 : 0));
+  };
 
   return (
     <section id="creative-journey" className="relative py-12 sm:py-16 lg:py-20 px-6 sm:px-10 lg:px-16 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6 sm:mb-8 text-center sm:text-left">
-        <span className={`text-xs font-mono uppercase tracking-[0.25em] block mb-2 font-semibold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
-          {displayTag}
-        </span>
-        <h2 className={`text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-          {displayHeadline}
-        </h2>
+      <div className="mb-6 sm:mb-8 text-center sm:text-left flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+        <div>
+          <span className={`text-xs font-mono uppercase tracking-[0.25em] block mb-2 font-semibold ${isLight ? "text-teal-700" : "text-[#16b09f]"}`}>
+            {displayTag}
+          </span>
+          <h2 className={`text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight leading-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+            {displayHeadline}
+          </h2>
+        </div>
+
+        {/* Multi-Showreel Switcher Pills (Top Header) */}
+        {cards.length > 1 && (
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none shrink-0">
+            {cards.map((c, idx) => {
+              const isActive = idx === safeIdx;
+              return (
+                <button
+                  key={c.id || idx}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveCardIndex(idx);
+                  }}
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-mono transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+                    isActive
+                      ? "bg-[#16b09f] text-black font-semibold shadow-lg shadow-[#16b09f]/30 scale-[1.03]"
+                      : isLight
+                      ? "bg-slate-200 text-slate-700 hover:bg-slate-300"
+                      : "bg-white/10 text-neutral-300 hover:bg-white/20 hover:text-white"
+                  }`}
+                >
+                  <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-black" : "bg-neutral-400"}`} />
+                  <span className="max-w-[160px] truncate">{c.title || `Showreel ${idx + 1}`}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Large Showcase Card */}
@@ -82,6 +133,7 @@ export default function CreativeJourney() {
         <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
           {isShowingYouTube ? (
             <iframe
+              key={`yt-${youtubeId}`}
               src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&mute=1&loop=1&playlist=${youtubeId}&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1`}
               title={displayTitle}
               className="w-full h-full object-cover scale-[1.18] border-0 pointer-events-none"
@@ -89,6 +141,7 @@ export default function CreativeJourney() {
             />
           ) : isShowingGDrive ? (
             <iframe
+              key={`gd-${gdriveId}`}
               src={`https://drive.google.com/file/d/${gdriveId}/preview`}
               title={displayTitle}
               className="w-full h-full object-cover scale-[1.05] border-0 pointer-events-none"
@@ -96,6 +149,7 @@ export default function CreativeJourney() {
             />
           ) : mounted && imageSrc ? (
             <img
+              key={`img-${imageSrc}`}
               src={imageSrc}
               alt={displayTitle}
               className="w-full h-full object-cover scale-[1.02] transition-transform duration-700 ease-out group-hover:scale-[1.08]"
@@ -121,8 +175,40 @@ export default function CreativeJourney() {
         {/* Dark Vignette Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent pointer-events-none" />
 
+        {/* Prev / Next Navigation Arrows for Multi-Showreel */}
+        {cards.length > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/70 hover:bg-[#16b09f] text-white hover:text-black backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 hover:scale-110 shadow-2xl cursor-pointer"
+              aria-label="Previous Showreel"
+              title="Previous Showreel"
+            >
+              <HiChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/70 hover:bg-[#16b09f] text-white hover:text-black backdrop-blur-md border border-white/20 flex items-center justify-center transition-all opacity-80 group-hover:opacity-100 hover:scale-110 shadow-2xl cursor-pointer"
+              aria-label="Next Showreel"
+              title="Next Showreel"
+            >
+              <HiChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+            </button>
+
+            {/* Top-Right Showreel Index Pill */}
+            <div className="absolute top-4 sm:top-6 right-4 sm:right-8 z-20 pointer-events-none">
+              <span className="px-3 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/20 text-white font-mono text-[11px] font-medium flex items-center gap-1.5 shadow-lg">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse" />
+                <span>Showreel {safeIdx + 1} / {cards.length}</span>
+              </span>
+            </div>
+          </>
+        )}
+
         {/* Bottom Left: Title & Category */}
-        <div className="absolute bottom-4 sm:bottom-7 left-4 sm:left-8 right-32 flex flex-col pointer-events-none z-10">
+        <div className="absolute bottom-4 sm:bottom-7 left-4 sm:left-8 right-36 flex flex-col pointer-events-none z-10">
           <span className="text-xs font-mono uppercase tracking-widest text-cyan-400 mb-1 font-semibold">
             {displayCategory}
           </span>
@@ -159,7 +245,7 @@ export default function CreativeJourney() {
             {/* Modal Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
-              className={`absolute top-4 right-4 z-30 w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-105 border ${
+              className={`absolute top-4 right-4 z-40 w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer hover:scale-105 border ${
                 isLight
                   ? "bg-white/90 hover:bg-white text-slate-800 border-slate-200 shadow-md"
                   : "bg-black/70 hover:bg-black text-white border-white/20"
@@ -175,6 +261,7 @@ export default function CreativeJourney() {
             }`}>
               {isShowingYouTube ? (
                 <iframe
+                  key={`modal-yt-${youtubeId}`}
                   src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&rel=0&modestbranding=1`}
                   title={displayTitle}
                   className="w-full h-full border-0"
@@ -183,6 +270,7 @@ export default function CreativeJourney() {
                 />
               ) : isShowingGDrive ? (
                 <iframe
+                  key={`modal-gd-${gdriveId}`}
                   src={`https://drive.google.com/file/d/${gdriveId}/preview`}
                   title={displayTitle}
                   className="w-full h-full border-0"
@@ -191,19 +279,70 @@ export default function CreativeJourney() {
                 />
               ) : (
                 <img
+                  key={`modal-img-${imageSrc}`}
                   src={imageSrc}
                   alt={displayTitle}
                   className="w-full h-full object-contain"
                 />
               )}
+
+              {/* Prev / Next inside Modal */}
+              {cards.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrev}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/75 hover:bg-[#16b09f] text-white hover:text-black backdrop-blur-md border border-white/30 flex items-center justify-center transition-all hover:scale-110 cursor-pointer shadow-2xl"
+                    aria-label="Previous Video"
+                    title="Previous Video"
+                  >
+                    <HiChevronLeft className="w-6 h-6" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 z-30 w-11 h-11 rounded-full bg-black/75 hover:bg-[#16b09f] text-white hover:text-black backdrop-blur-md border border-white/30 flex items-center justify-center transition-all hover:scale-110 cursor-pointer shadow-2xl"
+                    aria-label="Next Video"
+                    title="Next Video"
+                  >
+                    <HiChevronRight className="w-6 h-6" />
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Details Footer */}
-            <div className={`p-5 sm:p-7 border-t flex flex-col gap-2 ${
+            <div className={`p-5 sm:p-7 border-t flex flex-col gap-2 overflow-y-auto ${
               isLight
                 ? "bg-white border-slate-200"
                 : "bg-neutral-950 border-white/10"
             }`}>
+              {/* Showreel Switcher Tabs in Modal */}
+              {cards.length > 1 && (
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none mb-2">
+                  {cards.map((c, idx) => {
+                    const isActive = idx === safeIdx;
+                    return (
+                      <button
+                        key={c.id || idx}
+                        type="button"
+                        onClick={() => setActiveCardIndex(idx)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-mono transition-all flex items-center gap-2 cursor-pointer shrink-0 ${
+                          isActive
+                            ? "bg-[#16b09f] text-black font-semibold shadow"
+                            : isLight
+                            ? "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                            : "bg-white/10 text-neutral-300 hover:bg-white/20"
+                        }`}
+                      >
+                        <span className={`w-1.5 h-1.5 rounded-full ${isActive ? "bg-black" : "bg-neutral-500"}`} />
+                        <span className="max-w-[150px] truncate">{c.title || `Showreel ${idx + 1}`}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
               <span className="text-xs font-mono uppercase tracking-widest text-[#16b09f] font-semibold">
                 {displayCategory}
               </span>
@@ -224,4 +363,3 @@ export default function CreativeJourney() {
     </section>
   );
 }
-

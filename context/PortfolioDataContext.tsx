@@ -185,6 +185,7 @@ export const defaultHeroBannerData: HeroBannerData = {
 };
 
 export interface Stage3HeroCard {
+  id?: string;
   image: string;
   title: string;
   category: string;
@@ -492,6 +493,7 @@ interface PortfolioDataContextType {
     classTag: string;
     headline: string;
     heroCard: Stage3HeroCard;
+    cards?: Stage3HeroCard[];
   };
   clients: ClientItem[];
   about: AboutData;
@@ -507,6 +509,7 @@ interface PortfolioDataContextType {
   permanentDeleteFromTrash: (trashId: string) => void;
   emptyTrash: () => void;
   updateStage3Video: (params: {
+    cardId?: string;
     youtubeUrl?: string;
     videoId?: string;
     mediaType?: "youtube" | "gdrive" | "image";
@@ -519,7 +522,11 @@ interface PortfolioDataContextType {
     headline?: string;
     classTag?: string;
     isVideoEnabled?: boolean;
+    allCards?: Stage3HeroCard[];
   }) => void;
+  addStage3Card: (newCard?: Partial<Stage3HeroCard>) => string;
+  deleteStage3Card: (cardId: string) => void;
+  reorderStage3Cards: (cards: Stage3HeroCard[]) => void;
   removeStage3Video: () => void;
   updateClientDescription: (clientId: string, description: string, tools?: string[], projectDescription?: string) => void;
   addClientWork: (clientId: string, newWork: any) => void;
@@ -651,6 +658,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
     classTag: string;
     headline: string;
     heroCard: Stage3HeroCard;
+    cards?: Stage3HeroCard[];
   }>(() => {
     if (typeof window !== "undefined") {
       try {
@@ -665,33 +673,46 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
               parsedHero.gdriveId || parsedHero.gdriveUrl ? "gdrive" :
               parsedHero.videoId || parsedHero.youtubeUrl ? "youtube" : "image"
             );
+            const initialHero: Stage3HeroCard = {
+              id: parsedHero.id || "showcase-primary",
+              ...antigravityData.stage3.heroCard,
+              ...parsedHero,
+              mediaType: resolvedMediaType,
+              image: validImage,
+              isVideoEnabled: parsedHero.isVideoEnabled !== undefined
+                ? parsedHero.isVideoEnabled
+                : (resolvedMediaType !== "image"),
+            };
+            const parsedCards: Stage3HeroCard[] = Array.isArray(parsed.stage3.cards) && parsed.stage3.cards.length > 0
+              ? parsed.stage3.cards.map((c: any, idx: number) => ({
+                  ...c,
+                  id: c.id || `showreel-${idx}`,
+                  image: normalizeMediaUrl(c.image || ""),
+                }))
+              : [initialHero];
             return {
               ...antigravityData.stage3,
               ...parsed.stage3,
-              heroCard: {
-                ...antigravityData.stage3.heroCard,
-                ...parsedHero,
-                mediaType: resolvedMediaType,
-                image: validImage,
-                isVideoEnabled: parsedHero.isVideoEnabled !== undefined
-                  ? parsedHero.isVideoEnabled
-                  : (resolvedMediaType !== "image"),
-              },
+              cards: parsedCards,
+              heroCard: parsedCards[0] || initialHero,
             };
           }
         }
       } catch (_) {}
     }
+    const defaultHeroCard: Stage3HeroCard = {
+      id: "showcase-primary",
+      ...antigravityData.stage3.heroCard,
+      image: "",
+      mediaType: "youtube",
+      gdriveUrl: "",
+      gdriveId: "",
+      isVideoEnabled: true,
+    };
     return {
       ...antigravityData.stage3,
-      heroCard: {
-        ...antigravityData.stage3.heroCard,
-        image: "",
-        mediaType: "youtube",
-        gdriveUrl: "",
-        gdriveId: "",
-        isVideoEnabled: true,
-      },
+      cards: [defaultHeroCard],
+      heroCard: defaultHeroCard,
     };
   });
   const [clients, setClients] = useState<ClientItem[]>(antigravityData.stage4.clients as ClientItem[]);
@@ -926,20 +947,31 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           const rawImg = parsedHero.image;
           const validImg = (rawImg && rawImg !== "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg") ? rawImg : "";
 
+          const loadedHero: Stage3HeroCard = {
+            id: parsedHero.id || "showcase-primary",
+            ...defaultHero,
+            ...parsedHero,
+            mediaType: resolvedMediaType,
+            image: validImg,
+            youtubeUrl: ytUrl,
+            videoId: vId,
+            gdriveUrl: gdUrl,
+            gdriveId: gdId,
+            isVideoEnabled: vEnabled,
+          };
+          const loadedCards: Stage3HeroCard[] = Array.isArray(parsed.stage3.cards) && parsed.stage3.cards.length > 0
+            ? parsed.stage3.cards.map((c: any, idx: number) => ({
+                ...c,
+                id: c.id || `showreel-${idx}`,
+                image: normalizeMediaUrl(c.image || ""),
+              }))
+            : [loadedHero];
+
           const loadedStage3 = {
             ...antigravityData.stage3,
             ...parsed.stage3,
-            heroCard: {
-              ...defaultHero,
-              ...parsedHero,
-              mediaType: resolvedMediaType,
-              image: validImg,
-              youtubeUrl: ytUrl,
-              videoId: vId,
-              gdriveUrl: gdUrl,
-              gdriveId: gdId,
-              isVideoEnabled: vEnabled,
-            },
+            cards: loadedCards,
+            heroCard: loadedCards[0] || loadedHero,
           };
           stage3Ref.current = loadedStage3;
           setStage3(loadedStage3);
@@ -1227,10 +1259,25 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
                   !rawParsedImg || rawParsedImg === "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg"
                     ? ""
                     : rawParsedImg;
+                const cloudCards: Stage3HeroCard[] = Array.isArray(parsedStage3.cards) && parsedStage3.cards.length > 0
+                  ? parsedStage3.cards.map((c: any, idx: number) => ({
+                      ...c,
+                      id: c.id || `showreel-${idx}`,
+                      image: normalizeMediaUrl(c.image || ""),
+                    }))
+                  : [
+                      {
+                        id: parsedStage3.heroCard?.id || "showcase-primary",
+                        ...prev.heroCard,
+                        ...(parsedStage3.heroCard || {}),
+                        image: cloudImg,
+                      },
+                    ];
                 const updated = {
                   ...prev,
                   ...parsedStage3,
-                  heroCard: {
+                  cards: cloudCards,
+                  heroCard: cloudCards[0] || {
                     ...prev.heroCard,
                     ...(parsedStage3.heroCard || {}),
                     image: cloudImg,
@@ -1655,6 +1702,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
   // Update Media Settings for Flagship Showcase (YouTube, Google Drive, or Custom Image)
   const updateStage3Video = useCallback(
     async (params: {
+      cardId?: string;
       youtubeUrl?: string;
       videoId?: string;
       mediaType?: "youtube" | "gdrive" | "image";
@@ -1667,6 +1715,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       headline?: string;
       classTag?: string;
       isVideoEnabled?: boolean;
+      allCards?: Stage3HeroCard[];
     }) => {
       const currentStage3 = stage3Ref.current;
       const computedYtId = params.videoId !== undefined ? params.videoId : extractYouTubeId(params.youtubeUrl || "");
@@ -1688,11 +1737,63 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
       const newImage = params.image !== undefined ? params.image : currentStage3.heroCard.image;
       const newEnabled = params.isVideoEnabled !== undefined ? params.isVideoEnabled : (mediaType !== "image");
 
+      const existingCards: Stage3HeroCard[] = currentStage3.cards && currentStage3.cards.length > 0
+        ? currentStage3.cards
+        : [{ id: "showcase-primary", ...currentStage3.heroCard }];
+
+      let updatedCards: Stage3HeroCard[];
+      if (params.allCards && params.allCards.length > 0) {
+        updatedCards = params.allCards;
+      } else {
+        const targetId = params.cardId || existingCards[0]?.id || "showcase-primary";
+        const found = existingCards.some((c) => (c.id || "showcase-primary") === targetId);
+        if (found) {
+          updatedCards = existingCards.map((c) => {
+            if ((c.id || "showcase-primary") === targetId) {
+              return {
+                ...c,
+                mediaType,
+                youtubeUrl: finalYtUrl,
+                videoId: finalYtId,
+                gdriveUrl: finalGdUrl,
+                gdriveId: finalGdId,
+                image: newImage,
+                title: newTitle,
+                category: newCat,
+                description: newDesc,
+                isVideoEnabled: newEnabled,
+              };
+            }
+            return c;
+          });
+        } else {
+          updatedCards = [
+            ...existingCards,
+            {
+              id: targetId,
+              mediaType,
+              youtubeUrl: finalYtUrl,
+              videoId: finalYtId,
+              gdriveUrl: finalGdUrl,
+              gdriveId: finalGdId,
+              image: newImage,
+              title: newTitle,
+              category: newCat,
+              description: newDesc,
+              aspectRatio: "16:9",
+              isVideoEnabled: newEnabled,
+            },
+          ];
+        }
+      }
+
+      const activeCard = updatedCards.find((c) => (c.id || "showcase-primary") === (params.cardId || existingCards[0]?.id || "showcase-primary")) || updatedCards[0];
+
       const updatedStage3 = {
         ...currentStage3,
         classTag: newClassTag,
         headline: newHeadline,
-        heroCard: {
+        heroCard: activeCard || {
           ...currentStage3.heroCard,
           mediaType,
           youtubeUrl: finalYtUrl,
@@ -1705,6 +1806,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           description: newDesc,
           isVideoEnabled: newEnabled,
         },
+        cards: updatedCards,
       };
 
       stage3Ref.current = updatedStage3;
@@ -1752,6 +1854,130 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         } catch (err) {
           console.error("Supabase flagship_showcase sync error:", err);
         }
+      }
+    },
+    [persistState]
+  );
+
+  // Add a new showreel / media card to Stage 3
+  const addStage3Card = useCallback(
+    (newCard?: Partial<Stage3HeroCard>): string => {
+      const currentStage3 = stage3Ref.current;
+      const existingCards = currentStage3.cards && currentStage3.cards.length > 0
+        ? currentStage3.cards
+        : [{ id: "showcase-primary", ...currentStage3.heroCard }];
+
+      const newId = `showreel-${Date.now()}`;
+      const cardToAdd: Stage3HeroCard = {
+        id: newId,
+        title: newCard?.title || "New Showreel Video",
+        category: newCard?.category || "MOTION DESIGN | SHOWREEL",
+        aspectRatio: newCard?.aspectRatio || "16:9",
+        mediaType: newCard?.mediaType || "youtube",
+        youtubeUrl: newCard?.youtubeUrl || "",
+        videoId: newCard?.videoId || "",
+        gdriveUrl: newCard?.gdriveUrl || "",
+        gdriveId: newCard?.gdriveId || "",
+        image: newCard?.image || "",
+        description: newCard?.description || "Cuplikan video showreel karya terbaik.",
+        isVideoEnabled: newCard?.isVideoEnabled !== false,
+      };
+
+      const updatedCards = [...existingCards, cardToAdd];
+      const updatedStage3 = {
+        ...currentStage3,
+        cards: updatedCards,
+      };
+
+      stage3Ref.current = updatedStage3;
+      setStage3(updatedStage3);
+      persistState(updatedStage3);
+
+      if (isSupabaseConfigured && supabase) {
+        (async () => {
+          try {
+            await supabase.from("client_descriptions").upsert({
+              client_id: "site-stage3-showcase",
+              client_name: "Flagship Showcase Stage 3",
+              category: "Site Section Config",
+              description: JSON.stringify(updatedStage3),
+              updated_at: new Date().toISOString(),
+            });
+          } catch (_) {}
+        })();
+      }
+
+      return newId;
+    },
+    [persistState]
+  );
+
+  // Delete a showreel / media card from Stage 3
+  const deleteStage3Card = useCallback(
+    (cardId: string) => {
+      const currentStage3 = stage3Ref.current;
+      const existingCards = currentStage3.cards && currentStage3.cards.length > 0
+        ? currentStage3.cards
+        : [{ id: "showcase-primary", ...currentStage3.heroCard }];
+
+      if (existingCards.length <= 1) return;
+
+      const updatedCards = existingCards.filter((c) => (c.id || "showcase-primary") !== cardId);
+      const updatedHero = updatedCards[0];
+
+      const updatedStage3 = {
+        ...currentStage3,
+        heroCard: updatedHero,
+        cards: updatedCards,
+      };
+
+      stage3Ref.current = updatedStage3;
+      setStage3(updatedStage3);
+      persistState(updatedStage3);
+
+      if (isSupabaseConfigured && supabase) {
+        (async () => {
+          try {
+            await supabase.from("client_descriptions").upsert({
+              client_id: "site-stage3-showcase",
+              client_name: "Flagship Showcase Stage 3",
+              category: "Site Section Config",
+              description: JSON.stringify(updatedStage3),
+              updated_at: new Date().toISOString(),
+            });
+          } catch (_) {}
+        })();
+      }
+    },
+    [persistState]
+  );
+
+  // Reorder showreel cards
+  const reorderStage3Cards = useCallback(
+    (newCards: Stage3HeroCard[]) => {
+      const currentStage3 = stage3Ref.current;
+      const updatedStage3 = {
+        ...currentStage3,
+        heroCard: newCards[0] || currentStage3.heroCard,
+        cards: newCards,
+      };
+
+      stage3Ref.current = updatedStage3;
+      setStage3(updatedStage3);
+      persistState(updatedStage3);
+
+      if (isSupabaseConfigured && supabase) {
+        (async () => {
+          try {
+            await supabase.from("client_descriptions").upsert({
+              client_id: "site-stage3-showcase",
+              client_name: "Flagship Showcase Stage 3",
+              category: "Site Section Config",
+              description: JSON.stringify(updatedStage3),
+              updated_at: new Date().toISOString(),
+            });
+          } catch (_) {}
+        })();
       }
     },
     [persistState]
@@ -2738,6 +2964,9 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         emptyTrash,
         updateStage3Video,
         removeStage3Video,
+        addStage3Card,
+        deleteStage3Card,
+        reorderStage3Cards,
         updateClientDescription,
         addClientWork,
         autoMigrateBase64Works,
