@@ -58,6 +58,7 @@ import SecuritySettingsWorkspace from "./SecuritySettingsWorkspace";
 import HeroBannerWorkspace from "./HeroBannerWorkspace";
 import ProductsWorkspace from "./ProductsWorkspace";
 import ProjectTrackerWorkspace from "./ProjectTrackerWorkspace";
+import { FigmaIcon } from "./CanvasLinksManagerModal";
 import { getRealLeads, CrmLead } from "@/lib/crmService";
 
 import {
@@ -103,6 +104,8 @@ interface MobileAdminAppProps {
   setNewLogoRow?: any;
   newLogoFile?: any;
   setNewLogoFile?: any;
+  stage3CardsCount?: number;
+  onOpenCanvasLinksModal?: () => void;
   currentScreen?: "home" | "workspace";
   onScreenChange?: (screen: "home" | "workspace") => void;
 }
@@ -144,6 +147,8 @@ export default function MobileAdminApp({
   setNewLogoRow,
   newLogoFile,
   setNewLogoFile,
+  stage3CardsCount,
+  onOpenCanvasLinksModal,
   currentScreen: propCurrentScreen,
   onScreenChange,
 }: MobileAdminAppProps) {
@@ -347,9 +352,11 @@ export default function MobileAdminApp({
       case "storage":
         return tr("Kapasitas & Penyimpanan", "Storage & Analytics", "Panyimpanan & Data");
       case "hero-banner":
+        return tr("Hero Banner & 3D Hub", "Hero Banner & 3D Hub", "Hero Banner & 3D Hub");
       case "flagship":
+        return tr("Showcase Showreels", "Showcase Showreels", "Showcase Showreel");
       case "runner":
-        return tr("Hero Banner & Media Reels", "Hero Banner & Media Reels", "Hero Banner & Media Reels");
+        return tr("Media Reels Hub", "Media Reels Hub", "Media Reels Hub");
       case "products":
         return tr("Katalog Produk & Layanan", "Products & Services", "Katalog Produk & Jaso");
       case "tracking":
@@ -467,11 +474,20 @@ export default function MobileAdminApp({
     },
     {
       id: "hero-banner",
-      label: tr("Banner & Reels", "Banner & Reels", "Banner & Reels"),
+      label: tr("Banner & 3D", "Banner & 3D", "Banner & 3D"),
       icon: RiSparklingFill,
       accentColor: "#f59e0b",
       gradient: "from-amber-500 to-orange-400",
       glow: "rgba(245, 158, 11, 0.45)",
+    },
+    {
+      id: "flagship",
+      label: tr("Showreels", "Showreels", "Showreel"),
+      icon: RiMovieFill,
+      accentColor: "#14b8a6",
+      gradient: "from-teal-400 to-emerald-500",
+      glow: "rgba(20, 184, 166, 0.45)",
+      badge: stage3CardsCount && stage3CardsCount > 0 ? stage3CardsCount : undefined,
     },
     {
       id: "hero-works",
@@ -1211,6 +1227,113 @@ export default function MobileAdminApp({
                   </div>
                 </div>
               </div>
+
+              {/* Row 3: Modern Stage 3 Showreels & Rizx Canvas Figma Links */}
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                {/* Pod 6: Flagship Multi-Showreel */}
+                <div
+                  onClick={() => navigateToWorkspace("flagship")}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center gap-3 ${
+                    isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#111622] border-white/10"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-[#16b09f]/15 border border-[#16b09f]/30 text-[#16b09f] flex items-center justify-center shrink-0">
+                    <RiMovieFill className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
+                      {tr("Showreels", "Showreels", "Showreel")}
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">
+                      {stage3CardsCount || 2} {tr("Video Aktif", "Active Videos", "Video Aktif")}
+                    </div>
+                    <span className="text-[10px] text-[#16b09f] font-semibold block truncate">
+                      {tr("Stage 3 Folder Tabs", "Stage 3 Folder Tabs", "Tab Folder Stage 3")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Pod 7: Canvas & Figma Links */}
+                <div
+                  onClick={() => {
+                    if (onOpenCanvasLinksModal) {
+                      onOpenCanvasLinksModal();
+                    } else {
+                      navigateToWorkspace("canvas");
+                    }
+                  }}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center gap-3 ${
+                    isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#111622] border-white/10"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                    <FigmaIcon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
+                      {tr("Canvas & Figma", "Canvas & Figma", "Canvas & Figma")}
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">
+                      {tr("Kelola Link", "Manage Links", "Atua Link")}
+                    </div>
+                    <span className="text-[10px] text-indigo-400 font-semibold block truncate">
+                      {tr("Floating Bar Figma", "Floating Bar Figma", "Floating Bar Figma")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Row 4: Partner Logos Marquee & 3D Hero Hub */}
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                {/* Pod 8: Partner Logos Running Marquee */}
+                <div
+                  onClick={() => {
+                    onWorkspaceViewChange("logos");
+                    navigateToWorkspace("clients");
+                  }}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center gap-3 ${
+                    isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#111622] border-white/10"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center shrink-0">
+                    <RiImageFill className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
+                      {tr("Logo Klien", "Client Logos", "Logo Klien")}
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">
+                      {clLogos?.length || 0} {tr("Logo", "Logos", "Logo")}
+                    </div>
+                    <span className="text-[10px] text-amber-400 font-semibold block truncate">
+                      {tr("Running Marquee", "Running Marquee", "Running Marquee")}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Pod 9: Hero Banner & 3D Spline Hub */}
+                <div
+                  onClick={() => navigateToWorkspace("hero-banner")}
+                  className={`p-3.5 rounded-2xl border transition-all cursor-pointer active:scale-95 flex items-center gap-3 ${
+                    isLight ? "bg-white border-slate-200 shadow-xs" : "bg-[#111622] border-white/10"
+                  }`}
+                >
+                  <div className="w-9 h-9 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center shrink-0">
+                    <RiSparklingFill className="w-5 h-5" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
+                      {tr("Banner & 3D Hub", "Banner & 3D Hub", "Banner & 3D Hub")}
+                    </span>
+                    <div className="text-xs sm:text-sm font-bold text-white truncate">
+                      {tr("3D Model & Reels", "3D Model & Reels", "Model 3D & Reels")}
+                    </div>
+                    <span className="text-[10px] text-orange-400 font-semibold block truncate">
+                      {tr("Spline & Orbit", "Spline & Orbit", "Spline & Orbit")}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
 
@@ -1248,16 +1371,29 @@ export default function MobileAdminApp({
 
             {/* Right Action / Spacer */}
             {activeTab === "canvas" ? (
-              <button
-                type="button"
-                onClick={handleSaveWorkspace}
-                disabled={savingAction}
-                className="px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm cursor-pointer"
-                title="Simpan Perubahan Canvas"
-              >
-                <RiSave3Fill className={`w-3.5 h-3.5 ${savingAction ? "animate-spin" : ""}`} />
-                <span>Simpan</span>
-              </button>
+              <div className="flex items-center gap-1.5">
+                {onOpenCanvasLinksModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenCanvasLinksModal}
+                    className="px-2.5 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm cursor-pointer"
+                    title="Kelola Link Figma & Canvas"
+                  >
+                    <FigmaIcon className="w-3.5 h-3.5" />
+                    <span>Figma</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSaveWorkspace}
+                  disabled={savingAction}
+                  className="px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm cursor-pointer"
+                  title="Simpan Perubahan Canvas"
+                >
+                  <RiSave3Fill className={`w-3.5 h-3.5 ${savingAction ? "animate-spin" : ""}`} />
+                  <span>Simpan</span>
+                </button>
+              </div>
             ) : (
               /* Spacer for balanced title centering */
               <div className="w-9 h-9" />
@@ -1338,7 +1474,11 @@ export default function MobileAdminApp({
             )}
 
             {activeTab === "flagship" && (
-              <HeroBannerWorkspace initialTab="showcase" showToast={showToast || (() => {})} />
+              renderWorkspaceContent ? (
+                renderWorkspaceContent("flagship")
+              ) : (
+                <HeroBannerWorkspace initialTab="showcase" showToast={showToast || (() => {})} />
+              )
             )}
 
             {activeTab === "products" && <ProductsWorkspace />}

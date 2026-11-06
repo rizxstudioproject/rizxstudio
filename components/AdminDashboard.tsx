@@ -3671,6 +3671,742 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           </motion.div>
   );
 
+  const renderFlagshipWorkspace = () => (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6"
+          >
+            {/* Segmented Sub-tab Navigation for Hero Banner, Media Showcase & Media Reels Hub */}
+            <div
+              className={`p-1.5 rounded-2xl border backdrop-blur-xl flex items-center gap-1.5 overflow-x-auto shadow-sm select-none ${
+                isLight ? "bg-white/90 border-slate-200" : "bg-neutral-900/80 border-white/10"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => setSidebarTab("hero-banner")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "hero-banner"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiSparkles className="w-4 h-4" />
+                <span>{tx("Hero Banner", "Hero Banner")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSidebarTab("flagship")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "flagship"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiVideoCamera className="w-4 h-4" />
+                <span>{tx("Media Showcase", "Media Showcase")}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSidebarTab("runner")}
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  (sidebarTab as string) === "runner"
+                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
+                    : isLight
+                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
+                }`}
+              >
+                <HiSquares2X2 className="w-4 h-4" />
+                <span>{tx("Media Reels", "Media Reels")}</span>
+              </button>
+            </div>
+            {/* Section Explainer Banner */}
+            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
+              isLight
+                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
+                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
+            }`}>
+              <div className="flex items-start justify-between flex-wrap gap-4">
+                <div>
+                  <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
+                    isLight ? "text-teal-700" : "text-[#16b09f]"
+                  }`}>
+                    SECTION CONTROL: STAGE 3
+                  </span>
+                  <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                    Flagship Showcase: From Visual Craft to Technology (VISUAL CRAFT | DIGITAL | AI)
+                  </h2>
+                  <p className={`text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
+                    Kelola integrasi pemutar video YouTube sinematik khusus untuk section karya unggulan ini. Video langsung tayang di section Flagship Showcase pada web publik.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`px-3 py-1 rounded-full text-xs font-mono font-semibold flex items-center gap-1.5 ${
+                      flagshipMediaType === "youtube" && previewYouTubeId
+                        ? "bg-red-500/10 text-red-400 border border-red-500/30"
+                        : flagshipMediaType === "gdrive" && previewGDriveId
+                        ? "bg-blue-500/10 text-blue-400 border border-blue-500/30"
+                        : "bg-emerald-500/10 text-[#16b09f] border border-[#16b09f]/30"
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
+                    {flagshipMediaType === "youtube"
+                      ? previewYouTubeId
+                        ? (videoEnabled ? "YouTube Video Aktif" : "YouTube Siap (Nonaktif)")
+                        : "Menunggu Link YouTube"
+                      : flagshipMediaType === "gdrive"
+                      ? previewGDriveId
+                        ? (videoEnabled ? "Google Drive Embed Aktif" : "Google Drive Siap (Nonaktif)")
+                        : "Menunggu Link Google Drive"
+                      : "Mode Gambar Statis"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Informational Position Note */}
+              <div className="mt-4 pt-4 border-t border-white/10 flex items-start gap-3 text-xs text-neutral-300">
+                <span className="p-1 rounded-md bg-[#16b09f]/20 text-[#16b09f] shrink-0 mt-0.5">
+                  <HiInformationCircle className="w-4 h-4" />
+                </span>
+                <p className="text-neutral-400 leading-relaxed text-[11px] sm:text-xs">
+                  <strong className="text-white">Lokasi di Web Publik:</strong> Section ini berada di dalam sekuens interaktif <em>Projects (Stage 3: ~60% scroll)</em>. Saat Anda klik tombol <strong>"Simpan & Buka Langsung di Web ↗"</strong> di bawah, sistem akan otomatis melakukan scroll halus langsung tepat ke depan video YouTube Anda.
+                </p>
+              </div>
+            </div>
+
+            {/* Form Controls & Live Preview */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="lg:col-span-7">
+                <form
+                  onSubmit={handleSaveVideo}
+                  className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 space-y-5 backdrop-blur-sm"
+                >
+                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
+                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+                      <HiPencilSquare className="w-4 h-4 text-[#16b09f]" />
+                      Pengaturan Lengkap Section Flagship Showcase
+                    </h3>
+                    <span className="text-[10px] font-mono text-cyan-400">
+                      Semua Elemen Teks Dapat Diedit
+                    </span>
+                  </div>
+
+                  {/* SECTION 1: HEADER SECTION (TEKS DI ATAS CARD) */}
+                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold block">
+                      A. Header Section (Teks di Atas Card Showcase)
+                    </span>
+
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
+                        Judul Utama / Headline Section <span className="text-cyan-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={videoHeadline}
+                        onChange={(e) => setVideoHeadline(e.target.value)}
+                        placeholder="Contoh: A journey shaped by creativity and change."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
+                        Tagline / Badge Section (Di atas Headline) <span className="text-cyan-400">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={videoClassTag}
+                        onChange={(e) => setVideoClassTag(e.target.value)}
+                        placeholder="Contoh: CREATIVE JOURNEY | 2012 TO PRESENT"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  {/* MULTI-SHOWREEL MANAGER TABS */}
+                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold">
+                            Daftar Media & Showreel ({stage3Cards.length})
+                          </span>
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#16b09f]/10 text-[#16b09f] border border-[#16b09f]/30">
+                            Multi-Showreel Active
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
+                          {tx(
+                            "Pilih tab video untuk mengedit atau tambahkan video showreel baru.",
+                            "Select a showreel tab to edit or add a new showreel video."
+                          )}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleOpenAddShowreelModal}
+                        className="px-3.5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139a8b] text-black font-bold text-xs font-mono flex items-center gap-1.5 transition-all shadow-md shadow-[#16b09f]/20 active:scale-95 cursor-pointer"
+                      >
+                        <HiPlus className="w-3.5 h-3.5" />
+                        <span>{tx("Add Video Showreel", "Add Video Showreel")}</span>
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-thin scrollbar-thumb-white/10">
+                      {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
+                        const cardId = card.id || `card-${idx}`;
+                        const isActive = cardId === activeStage3CardId || (idx === 0 && !card.id && activeStage3CardId === "showcase-primary");
+                        const iconType = card.mediaType === "gdrive" ? "GDrive" : card.mediaType === "image" ? "Image" : "YouTube";
+                        return (
+                          <div
+                            key={cardId}
+                            onClick={() => setActiveStage3CardId(cardId)}
+                            className={`group flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-mono transition-all cursor-pointer shrink-0 ${
+                              isActive
+                                ? "bg-[#16b09f]/20 border-[#16b09f] text-white shadow-[0_0_20px_rgba(22,176,159,0.25)] font-semibold"
+                                : "bg-neutral-900/80 border-white/10 text-neutral-400 hover:text-white hover:border-white/25"
+                            }`}
+                          >
+                            <span className={`w-2 h-2 rounded-full ${isActive ? "bg-[#16b09f] animate-pulse" : "bg-neutral-600"}`} />
+                            <span className="text-[10px] text-cyan-400 font-mono">#{idx + 1}</span>
+                            <span className="max-w-[130px] truncate">{card.title || `Showreel 0${idx + 1}`}</span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/40 text-neutral-400 uppercase">
+                              {iconType}
+                            </span>
+                            {stage3Cards.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteShowreelCard(cardId);
+                                }}
+                                className="opacity-40 group-hover:opacity-100 hover:text-rose-400 transition-all p-1 hover:bg-rose-500/10 rounded"
+                                title="Hapus video ini"
+                              >
+                                <HiTrash className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* SECTION 2: VIDEO MEDIA & KONTEN DALAM CARD */}
+                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold block">
+                        B. Media Player & Konten Showcase (#{stage3Cards.findIndex((c: Stage3HeroCard) => (c.id || "showcase-primary") === activeStage3CardId) + 1})
+                      </span>
+                      <span className="text-[10px] font-mono text-neutral-400 truncate max-w-[200px]">
+                        {videoTitle || "Showreel Active"}
+                      </span>
+                    </div>
+
+                    {/* MEDIA TYPE SELECTOR: YouTube, Google Drive, or Image */}
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
+                        {tx("Tipe Media Showcase", "Showcase Media Type")}
+                      </label>
+                      <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs font-mono">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFlagshipMediaType("youtube");
+                            setVideoEnabled(true);
+                          }}
+                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            flagshipMediaType === "youtube"
+                              ? "bg-red-600 text-white shadow-md shadow-red-600/30"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <RiYoutubeFill className="w-4 h-4 shrink-0" />
+                          <span>YouTube</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFlagshipMediaType("gdrive");
+                            setVideoEnabled(true);
+                          }}
+                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            flagshipMediaType === "gdrive"
+                              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <RiDriveFill className="w-4 h-4 shrink-0" />
+                          <span>Google Drive</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFlagshipMediaType("image");
+                            setVideoEnabled(false);
+                          }}
+                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                            flagshipMediaType === "image"
+                              ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
+                              : "text-neutral-400 hover:text-white"
+                          }`}
+                        >
+                          <HiPhoto className="w-4 h-4 shrink-0" />
+                          <span>Gambar Kustom</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* MODE 1: YOUTUBE */}
+                    {flagshipMediaType === "youtube" && (
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-mono text-neutral-300 font-medium">
+                          URL Video atau Video ID YouTube <span className="text-cyan-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={videoUrlInput}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setVideoUrlInput(val);
+                            if (extractYouTubeId(val)) {
+                              setVideoEnabled(true);
+                            }
+                          }}
+                          placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ atau dQw4w9WgXcQ"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
+                        />
+                        <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500 font-mono">
+                          <span>Mendukung: youtube.com/watch?v=..., youtu.be/..., shorts, atau raw ID</span>
+                          {previewYouTubeId && (
+                            <span className="text-cyan-400 font-semibold">ID: {previewYouTubeId}</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MODE 2: GOOGLE DRIVE */}
+                    {flagshipMediaType === "gdrive" && (
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-mono text-neutral-300 font-medium">
+                          {tx("Link File / Video Google Drive", "Google Drive File / Video Link", "Tautan File / Video Google Drive")} <span className="text-blue-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={flagshipGDriveUrl}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFlagshipGDriveUrl(val);
+                            if (extractGoogleDriveId(val)) {
+                              setVideoEnabled(true);
+                            }
+                          }}
+                          placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                        />
+                        <div className="flex flex-wrap items-center justify-between gap-1 mt-1 text-[11px] text-neutral-400 font-mono">
+                          <span>{tx("Akses file: 'Siapa saja yang memiliki link'", "Access: 'Anyone with the link'", "Akses file: 'Sia se nan punyo tautan'")}</span>
+                          {previewGDriveId && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-400 font-semibold">Drive ID: {previewGDriveId}</span>
+                              <a
+                                href={`https://drive.google.com/file/d/${previewGDriveId}/view`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-cyan-400 underline hover:text-cyan-300 transition-colors"
+                              >
+                                {tx("↗ Tes Buka Link", "↗ Test Link", "↗ Uji Bukak Tautan")}
+                              </a>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* MODE 3: CUSTOM IMAGE */}
+                    {flagshipMediaType === "image" && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-mono text-neutral-300 font-medium">
+                            {tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis")} <span className="text-[#16b09f]">*</span>
+                          </label>
+                          {flagshipImageUrl && (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                              ● {tx("Gambar Aktif", "Image Active", "Gambar Aktif")}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={flagshipImageUrl.startsWith("data:") ? `[${tx("Gambar Terupload", "Uploaded Image", "Gambar Taupload")} - ${(flagshipImageUrl.length / 1024).toFixed(0)} KB]` : flagshipImageUrl}
+                            onChange={(e) => setFlagshipImageUrl(e.target.value)}
+                            placeholder="https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg atau URL gambar"
+                            readOnly={flagshipImageUrl.startsWith("data:")}
+                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f]"
+                          />
+                          <label className="px-3.5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-mono font-medium border border-white/15 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all">
+                            <HiArrowUpTray className="w-3.5 h-3.5 text-[#16b09f]" />
+                            <span>{flagshipImageUrl ? tx("Ganti", "Replace", "Ganti") : "Upload"}</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={(e) =>
+                                handleGenericImageFile(e, (dataUrl) => {
+                                  setFlagshipImageUrl(dataUrl);
+                                  updateStage3Video({ image: dataUrl, cardId: activeStage3CardId });
+                                })
+                              }
+                              className="hidden"
+                            />
+                          </label>
+                          {flagshipImageUrl && (
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                moveToTrash({
+                                  originalId: `stage3-flagship-image-${activeStage3CardId}`,
+                                  type: "flagship-video",
+                                  title: activeStage3Card?.title || stage3.heroCard.title || "Showcase Image",
+                                  subtitle: tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis"),
+                                  previewImage: flagshipImageUrl,
+                                  mediaType: "image",
+                                  payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
+                                });
+                                setFlagshipImageUrl("");
+                                await updateStage3Video({ image: "", cardId: activeStage3CardId });
+                                await clearStage3ImageFromDB();
+                                showToast(tx("Gambar showcase berhasil dihapus & dikosongkan.", "Showcase image deleted & cleared.", "Gambar showcase barasil dihapuih jo dikosongan."));
+                              }}
+                              className="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 text-xs font-mono font-bold border border-rose-500/30 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-rose-500/10"
+                              title={tx("Hapus gambar ini", "Delete this image", "Hapuih gambar ko")}
+                            >
+                              <HiTrash className="w-3.5 h-3.5 text-rose-400" />
+                              <span>{tx("Hapus", "Delete", "Hapuih")}</span>
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Visual Thumbnail Card for Uploaded Image */}
+                        {flagshipImageUrl && (
+                          <div className="p-3 rounded-xl bg-neutral-950/80 border border-white/10 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <div className="w-16 h-10 rounded-lg overflow-hidden border border-white/20 shrink-0 bg-black">
+                                <img
+                                  src={flagshipImageUrl}
+                                  alt="Showcase thumbnail"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <div className="truncate">
+                                <p className="text-xs font-semibold text-white truncate">
+                                  {tx("Thumbnail Showcase Terpasang", "Showcase Thumbnail Loaded", "Thumbnail Showcase Tapasang")}
+                                </p>
+                                <p className="text-[10px] text-neutral-400 font-mono">
+                                  {flagshipImageUrl.startsWith("data:") ? `${(flagshipImageUrl.length / 1024).toFixed(0)} KB WebP/JPG` : flagshipImageUrl}
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                moveToTrash({
+                                  originalId: `stage3-flagship-image-${activeStage3CardId}`,
+                                  type: "flagship-video",
+                                  title: activeStage3Card?.title || stage3.heroCard.title || "Showcase Image",
+                                  subtitle: tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis"),
+                                  previewImage: flagshipImageUrl,
+                                  mediaType: "image",
+                                  payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
+                                });
+                                setFlagshipImageUrl("");
+                                await updateStage3Video({ image: "", cardId: activeStage3CardId });
+                                await clearStage3ImageFromDB();
+                                showToast(tx("Gambar showcase berhasil dihapus & dikosongkan.", "Showcase image deleted & cleared.", "Gambar showcase barasil dihapuih jo dikosongan."));
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] font-mono border border-rose-500/20 flex items-center gap-1 cursor-pointer shrink-0 transition-all"
+                            >
+                              <HiTrash className="w-3 h-3" />
+                              <span>{tx("Hapus Gambar", "Remove Image", "Hapuih Gambar")}</span>
+                            </button>
+                          </div>
+                        )}
+
+                        <p className="text-[11px] text-neutral-500 font-mono">
+                          {tx("Format disarankan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).", "Recommended: 16:9 or 21:9 high-res landscape (JPG, PNG, WebP).", "Format nan dianjuaan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).")}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Title & Category inside Card */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
+                          Judul Dalam Card
+                        </label>
+                        <input
+                          type="text"
+                          value={videoTitle}
+                          onChange={(e) => setVideoTitle(e.target.value)}
+                          placeholder="From Visual Craft to Technology"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
+                          Kategori / Tag Dalam Card
+                        </label>
+                        <input
+                          type="text"
+                          value={videoCategory}
+                          onChange={(e) => setVideoCategory(e.target.value)}
+                          placeholder="VISUAL CRAFT | DIGITAL | AI"
+                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Video Description */}
+                    <div>
+                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
+                        Deskripsi / Narasi Modal Lightbox
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={videoDescription}
+                        onChange={(e) => setVideoDescription(e.target.value)}
+                        placeholder="Tuliskan deskripsi karya unggulan, teknologi yang digunakan, atau konsep kreatif..."
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all resize-y"
+                      />
+                    </div>
+
+                    {/* Toggle Active Switch */}
+                    <div className="flex items-center justify-between p-3 rounded-xl bg-neutral-900 border border-white/10">
+                      <div>
+                        <p className="text-xs font-medium text-white">Tampilkan Pemutar Video Embed di Public Web</p>
+                        <p className="text-[11px] text-neutral-400">
+                          Jika dinonaktifkan, web akan kembali menampilkan gambar visual original
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setVideoEnabled(!videoEnabled)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
+                          videoEnabled ? "bg-[#16b09f]" : "bg-neutral-800"
+                        }`}
+                      >
+                        <span
+                          className={`inline-block h-4 w-4 transform rounded-full bg-black transition-transform ${
+                            videoEnabled ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Action Button: Remove / Delete Showcase */}
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[11px] font-mono text-neutral-400">
+                      {stage3Cards.length > 1
+                        ? `Mengedit Showreel ${stage3Cards.findIndex((c: Stage3HeroCard) => (c.id || "showcase-primary") === activeStage3CardId) + 1} dari ${stage3Cards.length}`
+                        : ""}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (stage3Cards.length > 1) {
+                          handleDeleteShowreelCard(activeStage3CardId);
+                        } else {
+                          handleRemoveVideo();
+                        }
+                      }}
+                      className="flex items-center justify-center gap-1.5 py-2.5 px-5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer"
+                    >
+                      <HiTrash className="w-4 h-4" />
+                      <span>
+                        {stage3Cards.length > 1
+                          ? tx("Hapus Showreel Ini", "Delete This Showreel", "Hapuih Showreel Ko")
+                          : tx("Hapus Media Showcase", "Delete Media Showcase", "Hapuih Media Showcase")}
+                      </span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Right Side: Live Video Player Preview in Admin */}
+              <div className="lg:col-span-5 space-y-4">
+                <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-mono font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                      <HiSparkles className="w-3.5 h-3.5" />
+                      Live Web Stage 3 Preview
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded">
+                      Rasio 21:9
+                    </span>
+                  </div>
+
+                  {/* Section Top Header Preview */}
+                  <div className="mb-3 px-1">
+                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#16b09f] block mb-0.5 font-semibold">
+                      {videoClassTag || "CREATIVE JOURNEY | 2012 TO PRESENT"}
+                    </span>
+                    <h3 className="text-sm sm:text-base font-bold text-white leading-tight">
+                      {videoHeadline || "A journey shaped by creativity and change."}
+                    </h3>
+                  </div>
+
+                  {/* Folder Tab Selector in Preview (Attached to Card Top, Overlapping) */}
+                  {stage3Cards.length > 0 && (
+                    <div className="relative px-1 z-20">
+                      <div className="relative flex items-end max-w-full overflow-x-auto scrollbar-none pt-1 z-10">
+                        {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
+                          const cardId = card.id || `card-${idx}`;
+                          const isActive = cardId === activeStage3CardId;
+                          return (
+                            <button
+                              key={cardId}
+                              type="button"
+                              onClick={() => setActiveStage3CardId(cardId)}
+                              className={`group relative h-7 sm:h-8 px-4 sm:px-5 text-[10px] font-sans transition-all duration-300 cursor-pointer flex items-center justify-center shrink-0 select-none ${
+                                idx > 0 ? "-ml-2.5 sm:-ml-3" : ""
+                              } ${
+                                isActive
+                                  ? "z-30"
+                                  : "z-10"
+                              }`}
+                              style={{
+                                filter: isActive
+                                  ? isLight
+                                    ? "drop-shadow(0 -2px 5px rgba(20,175,158,0.25)) drop-shadow(1px 0 3px rgba(15,23,42,0.08))"
+                                    : "drop-shadow(0 -3px 8px rgba(22,176,159,0.35)) drop-shadow(2px 0 4px rgba(0,0,0,0.6))"
+                                  : isLight
+                                  ? "drop-shadow(1px 0 2px rgba(15,23,42,0.05))"
+                                  : "none",
+                              }}
+                            >
+                              <svg
+                                className="absolute inset-0 w-full h-full pointer-events-none transition-all duration-300"
+                                viewBox="0 0 100 40"
+                                preserveAspectRatio="none"
+                              >
+                                <path
+                                  d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40 Z"
+                                  fill={isActive ? "#16b09f" : "#15181e"}
+                                />
+                                {!isActive && (
+                                  <path
+                                    d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40"
+                                    fill="none"
+                                    stroke={isLight ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.14)"}
+                                    strokeWidth="1.2"
+                                    vectorEffect="non-scaling-stroke"
+                                  />
+                                )}
+                              </svg>
+                              <span
+                                className={`relative z-10 truncate max-w-[100px] transition-colors duration-200 ${
+                                  isActive
+                                    ? "font-extrabold text-black"
+                                    : "font-medium text-white/50 group-hover:text-white/85"
+                                }`}
+                                style={{
+                                  color: isActive ? "#000000" : "rgba(255, 255, 255, 0.55)",
+                                }}
+                              >
+                                {card.title || `Showreel ${idx + 1}`}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <div className={`h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 ${
+                        isLight ? "" : "shadow-[0_0_8px_rgba(22,176,159,0.4)]"
+                      }`} />
+                    </div>
+                  )}
+
+                  {/* Cinematic Media Card Preview */}
+                  <div className="relative aspect-[16/10] sm:aspect-[21/9] w-full rounded-2xl overflow-hidden bg-black border border-white/15 shadow-2xl group">
+                    {flagshipMediaType === "youtube" && previewYouTubeId ? (
+                      <iframe
+                        src={`https://www.youtube.com/embed/${previewYouTubeId}?rel=0&modestbranding=1`}
+                        title="YouTube Showcase Preview"
+                        className="w-full h-full border-0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : flagshipMediaType === "gdrive" && previewGDriveId ? (
+                      <iframe
+                        src={`https://drive.google.com/file/d/${previewGDriveId}/preview`}
+                        title="Google Drive Showcase Preview"
+                        className="w-full h-full border-0"
+                        allow="autoplay; encrypted-media"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
+                        {(flagshipImageUrl || stage3.heroCard.image) ? (
+                          <img
+                            src={flagshipImageUrl || stage3.heroCard.image}
+                            alt="Showcase Preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-neutral-500 font-mono text-xs">Pilih atau upload gambar showcase</div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Gradient Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
+
+                    {/* Bottom Left: Title & Category */}
+                    <div className="absolute bottom-3 left-3 z-20 max-w-[65%] pointer-events-none">
+                      <span className="text-[9px] font-mono uppercase tracking-widest text-[#16b09f] block mb-0.5 font-semibold truncate">
+                        {videoCategory || "VISUAL CRAFT | DIGITAL | AI"}
+                      </span>
+                      <h4 className="text-xs sm:text-sm font-bold text-white truncate">
+                        {videoTitle || "From Visual Craft to Technology"}
+                      </h4>
+                    </div>
+
+                    {/* Bottom Right: View Full Pill */}
+                    <div className="absolute bottom-3 right-3 z-20 pointer-events-none">
+                      <span className="px-2.5 py-1 rounded-full bg-white text-black font-semibold text-[10px] flex items-center gap-1 shadow-lg">
+                        <span>View Full</span>
+                        <span>↗</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Modal Lightbox Description Preview */}
+                  <div className="mt-3 p-3 rounded-xl bg-neutral-950/70 border border-white/5 space-y-1">
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 block font-semibold">
+                      Narasi Modal Lightbox:
+                    </span>
+                    <p className="text-xs text-neutral-300 line-clamp-3 leading-relaxed">
+                      {videoDescription || "Belum ada narasi."}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+  );
+
   return (
     <div
       id="admin-dashboard"
@@ -3775,6 +4511,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           onTopBarReset={handleTopBarReset}
           isCloudSyncActive={isCloudSyncActive}
           adminUser={activeAdminUser?.name?.trim() || activeAdminUser?.username || "Admin"}
+          stage3CardsCount={stage3Cards.length}
+          onOpenCanvasLinksModal={() => setIsCanvasLinksModalOpen(true)}
           onOpenAddFolder={() => setIsAddFolderOpen(true)}
           onOpenEditFolder={handleOpenEditFolder}
           onDeleteFolder={handleDeleteFolder}
@@ -3823,6 +4561,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
           renderWorkspaceContent={(tab) => {
             if (tab === "canvas") {
               return <CanvasWorkspace hideTopHeader={true} isMobile={true} />;
+            }
+            if (tab === "flagship") {
+              return (
+                <div className="p-3 sm:p-6 space-y-6">
+                  {renderFlagshipWorkspace()}
+                </div>
+              );
             }
             if (tab === "hero-works" || tab === "about") {
               return (
@@ -7250,741 +7995,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
            ======================================================== */}
         {sidebarTab === "about" && renderAboutWorkspace()}
         {/* TAB 6: FLAGSHIP SHOWCASE YOUTUBE / DRIVE / IMAGE EMBED */}
-        {sidebarTab === "flagship" && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="space-y-6"
-          >
-            {/* Segmented Sub-tab Navigation for Hero Banner, Media Showcase & Media Reels Hub */}
-            <div
-              className={`p-1.5 rounded-2xl border backdrop-blur-xl flex items-center gap-1.5 overflow-x-auto shadow-sm select-none ${
-                isLight ? "bg-white/90 border-slate-200" : "bg-neutral-900/80 border-white/10"
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => setSidebarTab("hero-banner")}
-                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  (sidebarTab as string) === "hero-banner"
-                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
-                    : isLight
-                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
-                }`}
-              >
-                <HiSparkles className="w-4 h-4" />
-                <span>{tx("Hero Banner", "Hero Banner")}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSidebarTab("flagship")}
-                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  (sidebarTab as string) === "flagship"
-                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
-                    : isLight
-                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
-                }`}
-              >
-                <HiVideoCamera className="w-4 h-4" />
-                <span>{tx("Media Showcase", "Media Showcase")}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setSidebarTab("runner")}
-                className={`flex-1 py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  (sidebarTab as string) === "runner"
-                    ? "bg-[#16b09f] text-black font-bold shadow-md shadow-[#16b09f]/25"
-                    : isLight
-                    ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                    : "text-neutral-400 hover:text-white hover:bg-neutral-800/60"
-                }`}
-              >
-                <HiSquares2X2 className="w-4 h-4" />
-                <span>{tx("Media Reels", "Media Reels")}</span>
-              </button>
-            </div>
-            {/* Section Explainer Banner */}
-            <div className={`p-4 sm:p-6 rounded-2xl border backdrop-blur-md ${
-              isLight
-                ? "bg-gradient-to-r from-teal-50/90 via-white to-slate-50 border-teal-200/80 shadow-sm"
-                : "bg-gradient-to-r from-neutral-900/90 via-neutral-900/60 to-neutral-950 border-white/10"
-            }`}>
-              <div className="flex items-start justify-between flex-wrap gap-4">
-                <div>
-                  <span className={`text-[11px] font-mono tracking-widest uppercase font-semibold block mb-1 ${
-                    isLight ? "text-teal-700" : "text-[#16b09f]"
-                  }`}>
-                    SECTION CONTROL: STAGE 3
-                  </span>
-                  <h2 className={`text-xl sm:text-2xl font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
-                    Flagship Showcase: From Visual Craft to Technology (VISUAL CRAFT | DIGITAL | AI)
-                  </h2>
-                  <p className={`text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
-                    Kelola integrasi pemutar video YouTube sinematik khusus untuk section karya unggulan ini. Video langsung tayang di section Flagship Showcase pada web publik.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-mono font-semibold flex items-center gap-1.5 ${
-                      flagshipMediaType === "youtube" && previewYouTubeId
-                        ? "bg-red-500/10 text-red-400 border border-red-500/30"
-                        : flagshipMediaType === "gdrive" && previewGDriveId
-                        ? "bg-blue-500/10 text-blue-400 border border-blue-500/30"
-                        : "bg-emerald-500/10 text-[#16b09f] border border-[#16b09f]/30"
-                    }`}
-                  >
-                    <span className="w-2 h-2 rounded-full bg-current animate-pulse" />
-                    {flagshipMediaType === "youtube"
-                      ? previewYouTubeId
-                        ? (videoEnabled ? "YouTube Video Aktif" : "YouTube Siap (Nonaktif)")
-                        : "Menunggu Link YouTube"
-                      : flagshipMediaType === "gdrive"
-                      ? previewGDriveId
-                        ? (videoEnabled ? "Google Drive Embed Aktif" : "Google Drive Siap (Nonaktif)")
-                        : "Menunggu Link Google Drive"
-                      : "Mode Gambar Statis"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Informational Position Note */}
-              <div className="mt-4 pt-4 border-t border-white/10 flex items-start gap-3 text-xs text-neutral-300">
-                <span className="p-1 rounded-md bg-[#16b09f]/20 text-[#16b09f] shrink-0 mt-0.5">
-                  <HiInformationCircle className="w-4 h-4" />
-                </span>
-                <p className="text-neutral-400 leading-relaxed text-[11px] sm:text-xs">
-                  <strong className="text-white">Lokasi di Web Publik:</strong> Section ini berada di dalam sekuens interaktif <em>Projects (Stage 3: ~60% scroll)</em>. Saat Anda klik tombol <strong>"Simpan & Buka Langsung di Web ↗"</strong> di bawah, sistem akan otomatis melakukan scroll halus langsung tepat ke depan video YouTube Anda.
-                </p>
-              </div>
-            </div>
-
-            {/* Form Controls & Live Preview */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-              <div className="lg:col-span-7">
-                <form
-                  onSubmit={handleSaveVideo}
-                  className="p-5 sm:p-6 rounded-2xl bg-neutral-900/60 border border-white/10 space-y-5 backdrop-blur-sm"
-                >
-                  <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                    <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-                      <HiPencilSquare className="w-4 h-4 text-[#16b09f]" />
-                      Pengaturan Lengkap Section Flagship Showcase
-                    </h3>
-                    <span className="text-[10px] font-mono text-cyan-400">
-                      Semua Elemen Teks Dapat Diedit
-                    </span>
-                  </div>
-
-                  {/* SECTION 1: HEADER SECTION (TEKS DI ATAS CARD) */}
-                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold block">
-                      A. Header Section (Teks di Atas Card Showcase)
-                    </span>
-
-                    <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                        Judul Utama / Headline Section <span className="text-cyan-400">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={videoHeadline}
-                        onChange={(e) => setVideoHeadline(e.target.value)}
-                        placeholder="Contoh: A journey shaped by creativity and change."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                        Tagline / Badge Section (Di atas Headline) <span className="text-cyan-400">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={videoClassTag}
-                        onChange={(e) => setVideoClassTag(e.target.value)}
-                        placeholder="Contoh: CREATIVE JOURNEY | 2012 TO PRESENT"
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  {/* MULTI-SHOWREEL MANAGER TABS */}
-                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold">
-                            Daftar Media & Showreel ({stage3Cards.length})
-                          </span>
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#16b09f]/10 text-[#16b09f] border border-[#16b09f]/30">
-                            Multi-Showreel Active
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-neutral-400 font-mono mt-0.5">
-                          {tx(
-                            "Pilih tab video untuk mengedit atau tambahkan video showreel baru.",
-                            "Select a showreel tab to edit or add a new showreel video."
-                          )}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleOpenAddShowreelModal}
-                        className="px-3.5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139a8b] text-black font-bold text-xs font-mono flex items-center gap-1.5 transition-all shadow-md shadow-[#16b09f]/20 active:scale-95 cursor-pointer"
-                      >
-                        <HiPlus className="w-3.5 h-3.5" />
-                        <span>{tx("Add Video Showreel", "Add Video Showreel")}</span>
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-thin scrollbar-thumb-white/10">
-                      {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
-                        const cardId = card.id || `card-${idx}`;
-                        const isActive = cardId === activeStage3CardId || (idx === 0 && !card.id && activeStage3CardId === "showcase-primary");
-                        const iconType = card.mediaType === "gdrive" ? "GDrive" : card.mediaType === "image" ? "Image" : "YouTube";
-                        return (
-                          <div
-                            key={cardId}
-                            onClick={() => setActiveStage3CardId(cardId)}
-                            className={`group flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-mono transition-all cursor-pointer shrink-0 ${
-                              isActive
-                                ? "bg-[#16b09f]/20 border-[#16b09f] text-white shadow-[0_0_20px_rgba(22,176,159,0.25)] font-semibold"
-                                : "bg-neutral-900/80 border-white/10 text-neutral-400 hover:text-white hover:border-white/25"
-                            }`}
-                          >
-                            <span className={`w-2 h-2 rounded-full ${isActive ? "bg-[#16b09f] animate-pulse" : "bg-neutral-600"}`} />
-                            <span className="text-[10px] text-cyan-400 font-mono">#{idx + 1}</span>
-                            <span className="max-w-[130px] truncate">{card.title || `Showreel 0${idx + 1}`}</span>
-                            <span className="text-[9px] px-1.5 py-0.5 rounded bg-black/40 text-neutral-400 uppercase">
-                              {iconType}
-                            </span>
-                            {stage3Cards.length > 1 && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteShowreelCard(cardId);
-                                }}
-                                className="opacity-40 group-hover:opacity-100 hover:text-rose-400 transition-all p-1 hover:bg-rose-500/10 rounded"
-                                title="Hapus video ini"
-                              >
-                                <HiTrash className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* SECTION 2: VIDEO MEDIA & KONTEN DALAM CARD */}
-                  <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold block">
-                        B. Media Player & Konten Showcase (#{stage3Cards.findIndex((c: Stage3HeroCard) => (c.id || "showcase-primary") === activeStage3CardId) + 1})
-                      </span>
-                      <span className="text-[10px] font-mono text-neutral-400 truncate max-w-[200px]">
-                        {videoTitle || "Showreel Active"}
-                      </span>
-                    </div>
-
-                    {/* MEDIA TYPE SELECTOR: YouTube, Google Drive, or Image */}
-                    <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1.5">
-                        {tx("Tipe Media Showcase", "Showcase Media Type")}
-                      </label>
-                      <div className="grid grid-cols-3 gap-2 p-1 rounded-xl bg-neutral-900 border border-white/10 text-xs font-mono">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFlagshipMediaType("youtube");
-                            setVideoEnabled(true);
-                          }}
-                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            flagshipMediaType === "youtube"
-                              ? "bg-red-600 text-white shadow-md shadow-red-600/30"
-                              : "text-neutral-400 hover:text-white"
-                          }`}
-                        >
-                          <RiYoutubeFill className="w-4 h-4 shrink-0" />
-                          <span>YouTube</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFlagshipMediaType("gdrive");
-                            setVideoEnabled(true);
-                          }}
-                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            flagshipMediaType === "gdrive"
-                              ? "bg-blue-600 text-white shadow-md shadow-blue-600/30"
-                              : "text-neutral-400 hover:text-white"
-                          }`}
-                        >
-                          <RiDriveFill className="w-4 h-4 shrink-0" />
-                          <span>Google Drive</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setFlagshipMediaType("image");
-                            setVideoEnabled(false);
-                          }}
-                          className={`py-2 px-2 rounded-lg font-semibold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                            flagshipMediaType === "image"
-                              ? "bg-[#16b09f] text-black shadow-md shadow-[#16b09f]/30"
-                              : "text-neutral-400 hover:text-white"
-                          }`}
-                        >
-                          <HiPhoto className="w-4 h-4 shrink-0" />
-                          <span>Gambar Kustom</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* MODE 1: YOUTUBE */}
-                    {flagshipMediaType === "youtube" && (
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          URL Video atau Video ID YouTube <span className="text-cyan-400">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={videoUrlInput}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setVideoUrlInput(val);
-                            if (extractYouTubeId(val)) {
-                              setVideoEnabled(true);
-                            }
-                          }}
-                          placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ atau dQw4w9WgXcQ"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
-                        />
-                        <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500 font-mono">
-                          <span>Mendukung: youtube.com/watch?v=..., youtu.be/..., shorts, atau raw ID</span>
-                          {previewYouTubeId && (
-                            <span className="text-cyan-400 font-semibold">ID: {previewYouTubeId}</span>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* MODE 2: GOOGLE DRIVE */}
-                    {flagshipMediaType === "gdrive" && (
-                      <div className="space-y-1.5">
-                        <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          {tx("Link File / Video Google Drive", "Google Drive File / Video Link", "Tautan File / Video Google Drive")} <span className="text-blue-400">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          value={flagshipGDriveUrl}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setFlagshipGDriveUrl(val);
-                            if (extractGoogleDriveId(val)) {
-                              setVideoEnabled(true);
-                            }
-                          }}
-                          placeholder="https://drive.google.com/file/d/.../view?usp=sharing"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
-                        />
-                        <div className="flex flex-wrap items-center justify-between gap-1 mt-1 text-[11px] text-neutral-400 font-mono">
-                          <span>{tx("Akses file: 'Siapa saja yang memiliki link'", "Access: 'Anyone with the link'", "Akses file: 'Sia se nan punyo tautan'")}</span>
-                          {previewGDriveId && (
-                            <div className="flex items-center gap-2">
-                              <span className="text-blue-400 font-semibold">Drive ID: {previewGDriveId}</span>
-                              <a
-                                href={`https://drive.google.com/file/d/${previewGDriveId}/view`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-cyan-400 underline hover:text-cyan-300 transition-colors"
-                              >
-                                {tx("↗ Tes Buka Link", "↗ Test Link", "↗ Uji Bukak Tautan")}
-                              </a>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* MODE 3: CUSTOM IMAGE */}
-                    {flagshipMediaType === "image" && (
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <label className="block text-xs font-mono text-neutral-300 font-medium">
-                            {tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis")} <span className="text-[#16b09f]">*</span>
-                          </label>
-                          {flagshipImageUrl && (
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                              ● {tx("Gambar Aktif", "Image Active", "Gambar Aktif")}
-                            </span>
-                          )}
-                        </div>
-
-                        <div className="flex gap-2">
-                          <input
-                            type="text"
-                            value={flagshipImageUrl.startsWith("data:") ? `[${tx("Gambar Terupload", "Uploaded Image", "Gambar Taupload")} - ${(flagshipImageUrl.length / 1024).toFixed(0)} KB]` : flagshipImageUrl}
-                            onChange={(e) => setFlagshipImageUrl(e.target.value)}
-                            placeholder="https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/hero-large.jpg atau URL gambar"
-                            readOnly={flagshipImageUrl.startsWith("data:")}
-                            className="flex-1 px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f]"
-                          />
-                          <label className="px-3.5 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-mono font-medium border border-white/15 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all">
-                            <HiArrowUpTray className="w-3.5 h-3.5 text-[#16b09f]" />
-                            <span>{flagshipImageUrl ? tx("Ganti", "Replace", "Ganti") : "Upload"}</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) =>
-                                handleGenericImageFile(e, (dataUrl) => {
-                                  setFlagshipImageUrl(dataUrl);
-                                  updateStage3Video({ image: dataUrl, cardId: activeStage3CardId });
-                                })
-                              }
-                              className="hidden"
-                            />
-                          </label>
-                          {flagshipImageUrl && (
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                moveToTrash({
-                                  originalId: `stage3-flagship-image-${activeStage3CardId}`,
-                                  type: "flagship-video",
-                                  title: activeStage3Card?.title || stage3.heroCard.title || "Showcase Image",
-                                  subtitle: tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis"),
-                                  previewImage: flagshipImageUrl,
-                                  mediaType: "image",
-                                  payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
-                                });
-                                setFlagshipImageUrl("");
-                                await updateStage3Video({ image: "", cardId: activeStage3CardId });
-                                await clearStage3ImageFromDB();
-                                showToast(tx("Gambar showcase berhasil dihapus & dikosongkan.", "Showcase image deleted & cleared.", "Gambar showcase barasil dihapuih jo dikosongan."));
-                              }}
-                              className="px-3.5 py-2.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 text-xs font-mono font-bold border border-rose-500/30 cursor-pointer shrink-0 flex items-center gap-1.5 transition-all active:scale-95 shadow-md shadow-rose-500/10"
-                              title={tx("Hapus gambar ini", "Delete this image", "Hapuih gambar ko")}
-                            >
-                              <HiTrash className="w-3.5 h-3.5 text-rose-400" />
-                              <span>{tx("Hapus", "Delete", "Hapuih")}</span>
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Visual Thumbnail Card for Uploaded Image */}
-                        {flagshipImageUrl && (
-                          <div className="p-3 rounded-xl bg-neutral-950/80 border border-white/10 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-3 overflow-hidden">
-                              <div className="w-16 h-10 rounded-lg overflow-hidden border border-white/20 shrink-0 bg-black">
-                                <img
-                                  src={flagshipImageUrl}
-                                  alt="Showcase thumbnail"
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                              <div className="truncate">
-                                <p className="text-xs font-semibold text-white truncate">
-                                  {tx("Thumbnail Showcase Terpasang", "Showcase Thumbnail Loaded", "Thumbnail Showcase Tapasang")}
-                                </p>
-                                <p className="text-[10px] text-neutral-400 font-mono">
-                                  {flagshipImageUrl.startsWith("data:") ? `${(flagshipImageUrl.length / 1024).toFixed(0)} KB WebP/JPG` : flagshipImageUrl}
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                moveToTrash({
-                                  originalId: `stage3-flagship-image-${activeStage3CardId}`,
-                                  type: "flagship-video",
-                                  title: activeStage3Card?.title || stage3.heroCard.title || "Showcase Image",
-                                  subtitle: tx("Gambar Showcase Statis", "Static Showcase Image", "Gambar Showcase Statis"),
-                                  previewImage: flagshipImageUrl,
-                                  mediaType: "image",
-                                  payload: { stage3: JSON.parse(JSON.stringify(stage3)) },
-                                });
-                                setFlagshipImageUrl("");
-                                await updateStage3Video({ image: "", cardId: activeStage3CardId });
-                                await clearStage3ImageFromDB();
-                                showToast(tx("Gambar showcase berhasil dihapus & dikosongkan.", "Showcase image deleted & cleared.", "Gambar showcase barasil dihapuih jo dikosongan."));
-                              }}
-                              className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 text-[11px] font-mono border border-rose-500/20 flex items-center gap-1 cursor-pointer shrink-0 transition-all"
-                            >
-                              <HiTrash className="w-3 h-3" />
-                              <span>{tx("Hapus Gambar", "Remove Image", "Hapuih Gambar")}</span>
-                            </button>
-                          </div>
-                        )}
-
-                        <p className="text-[11px] text-neutral-500 font-mono">
-                          {tx("Format disarankan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).", "Recommended: 16:9 or 21:9 high-res landscape (JPG, PNG, WebP).", "Format nan dianjuaan: 16:9 atau 21:9 lanskap resolusi tinggi (JPG, PNG, WebP).")}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Title & Category inside Card */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                          Judul Dalam Card
-                        </label>
-                        <input
-                          type="text"
-                          value={videoTitle}
-                          onChange={(e) => setVideoTitle(e.target.value)}
-                          placeholder="From Visual Craft to Technology"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                          Kategori / Tag Dalam Card
-                        </label>
-                        <input
-                          type="text"
-                          value={videoCategory}
-                          onChange={(e) => setVideoCategory(e.target.value)}
-                          placeholder="VISUAL CRAFT | DIGITAL | AI"
-                          className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Video Description */}
-                    <div>
-                      <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                        Deskripsi / Narasi Modal Lightbox
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={videoDescription}
-                        onChange={(e) => setVideoDescription(e.target.value)}
-                        placeholder="Tuliskan deskripsi karya unggulan, teknologi yang digunakan, atau konsep kreatif..."
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all resize-y"
-                      />
-                    </div>
-
-                    {/* Toggle Active Switch */}
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-neutral-900 border border-white/10">
-                      <div>
-                        <p className="text-xs font-medium text-white">Tampilkan Pemutar Video Embed di Public Web</p>
-                        <p className="text-[11px] text-neutral-400">
-                          Jika dinonaktifkan, web akan kembali menampilkan gambar visual original
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setVideoEnabled(!videoEnabled)}
-                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none cursor-pointer ${
-                          videoEnabled ? "bg-[#16b09f]" : "bg-neutral-800"
-                        }`}
-                      >
-                        <span
-                          className={`inline-block h-4 w-4 transform rounded-full bg-black transition-transform ${
-                            videoEnabled ? "translate-x-6" : "translate-x-1"
-                          }`}
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Action Button: Remove / Delete Showcase */}
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[11px] font-mono text-neutral-400">
-                      {stage3Cards.length > 1
-                        ? `Mengedit Showreel ${stage3Cards.findIndex((c: Stage3HeroCard) => (c.id || "showcase-primary") === activeStage3CardId) + 1} dari ${stage3Cards.length}`
-                        : ""}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (stage3Cards.length > 1) {
-                          handleDeleteShowreelCard(activeStage3CardId);
-                        } else {
-                          handleRemoveVideo();
-                        }
-                      }}
-                      className="flex items-center justify-center gap-1.5 py-2.5 px-5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs sm:text-sm font-medium transition-all active:scale-95 cursor-pointer"
-                    >
-                      <HiTrash className="w-4 h-4" />
-                      <span>
-                        {stage3Cards.length > 1
-                          ? tx("Hapus Showreel Ini", "Delete This Showreel", "Hapuih Showreel Ko")
-                          : tx("Hapus Media Showcase", "Delete Media Showcase", "Hapuih Media Showcase")}
-                      </span>
-                    </button>
-                  </div>
-                </form>
-              </div>
-
-              {/* Right Side: Live Video Player Preview in Admin */}
-              <div className="lg:col-span-5 space-y-4">
-                <div className="p-4 sm:p-5 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-mono font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-                      <HiSparkles className="w-3.5 h-3.5" />
-                      Live Web Stage 3 Preview
-                    </span>
-                    <span className="text-[10px] font-mono text-neutral-400 bg-white/5 px-2 py-0.5 rounded">
-                      Rasio 21:9
-                    </span>
-                  </div>
-
-                  {/* Section Top Header Preview */}
-                  <div className="mb-3 px-1">
-                    <span className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#16b09f] block mb-0.5 font-semibold">
-                      {videoClassTag || "CREATIVE JOURNEY | 2012 TO PRESENT"}
-                    </span>
-                    <h3 className="text-sm sm:text-base font-bold text-white leading-tight">
-                      {videoHeadline || "A journey shaped by creativity and change."}
-                    </h3>
-                  </div>
-
-                  {/* Folder Tab Selector in Preview (Attached to Card Top, Overlapping) */}
-                  {stage3Cards.length > 0 && (
-                    <div className="relative px-1 z-20">
-                      <div className="relative flex items-end max-w-full overflow-x-auto scrollbar-none pt-1 z-10">
-                        {stage3Cards.map((card: Stage3HeroCard, idx: number) => {
-                          const cardId = card.id || `card-${idx}`;
-                          const isActive = cardId === activeStage3CardId;
-                          return (
-                            <button
-                              key={cardId}
-                              type="button"
-                              onClick={() => setActiveStage3CardId(cardId)}
-                              className={`group relative h-7 sm:h-8 px-4 sm:px-5 text-[10px] font-sans transition-all duration-300 cursor-pointer flex items-center justify-center shrink-0 select-none ${
-                                idx > 0 ? "-ml-2.5 sm:-ml-3" : ""
-                              } ${
-                                isActive
-                                  ? "z-30"
-                                  : "z-10"
-                              }`}
-                              style={{
-                                filter: isActive
-                                  ? isLight
-                                    ? "drop-shadow(0 -2px 5px rgba(20,175,158,0.25)) drop-shadow(1px 0 3px rgba(15,23,42,0.08))"
-                                    : "drop-shadow(0 -3px 8px rgba(22,176,159,0.35)) drop-shadow(2px 0 4px rgba(0,0,0,0.6))"
-                                  : isLight
-                                  ? "drop-shadow(1px 0 2px rgba(15,23,42,0.05))"
-                                  : "none",
-                              }}
-                            >
-                              <svg
-                                className="absolute inset-0 w-full h-full pointer-events-none transition-all duration-300"
-                                viewBox="0 0 100 40"
-                                preserveAspectRatio="none"
-                              >
-                                <path
-                                  d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40 Z"
-                                  fill={isActive ? "#16b09f" : "#15181e"}
-                                />
-                                {!isActive && (
-                                  <path
-                                    d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40"
-                                    fill="none"
-                                    stroke={isLight ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.14)"}
-                                    strokeWidth="1.2"
-                                    vectorEffect="non-scaling-stroke"
-                                  />
-                                )}
-                              </svg>
-                              <span
-                                className={`relative z-10 truncate max-w-[100px] transition-colors duration-200 ${
-                                  isActive
-                                    ? "font-extrabold text-black"
-                                    : "font-medium text-white/50 group-hover:text-white/85"
-                                }`}
-                                style={{
-                                  color: isActive ? "#000000" : "rgba(255, 255, 255, 0.55)",
-                                }}
-                              >
-                                {card.title || `Showreel ${idx + 1}`}
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      <div className={`h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 ${
-                        isLight ? "" : "shadow-[0_0_8px_rgba(22,176,159,0.4)]"
-                      }`} />
-                    </div>
-                  )}
-
-                  {/* Cinematic Media Card Preview */}
-                  <div className="relative aspect-[16/10] sm:aspect-[21/9] w-full rounded-2xl overflow-hidden bg-black border border-white/15 shadow-2xl group">
-                    {flagshipMediaType === "youtube" && previewYouTubeId ? (
-                      <iframe
-                        src={`https://www.youtube.com/embed/${previewYouTubeId}?rel=0&modestbranding=1`}
-                        title="YouTube Showcase Preview"
-                        className="w-full h-full border-0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    ) : flagshipMediaType === "gdrive" && previewGDriveId ? (
-                      <iframe
-                        src={`https://drive.google.com/file/d/${previewGDriveId}/preview`}
-                        title="Google Drive Showcase Preview"
-                        className="w-full h-full border-0"
-                        allow="autoplay; encrypted-media"
-                        allowFullScreen
-                      />
-                    ) : (
-                      <div className="relative w-full h-full flex items-center justify-center bg-neutral-950">
-                        {(flagshipImageUrl || stage3.heroCard.image) ? (
-                          <img
-                            src={flagshipImageUrl || stage3.heroCard.image}
-                            alt="Showcase Preview"
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="text-neutral-500 font-mono text-xs">Pilih atau upload gambar showcase</div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
-
-                    {/* Bottom Left: Title & Category */}
-                    <div className="absolute bottom-3 left-3 z-20 max-w-[65%] pointer-events-none">
-                      <span className="text-[9px] font-mono uppercase tracking-widest text-[#16b09f] block mb-0.5 font-semibold truncate">
-                        {videoCategory || "VISUAL CRAFT | DIGITAL | AI"}
-                      </span>
-                      <h4 className="text-xs sm:text-sm font-bold text-white truncate">
-                        {videoTitle || "From Visual Craft to Technology"}
-                      </h4>
-                    </div>
-
-                    {/* Bottom Right: View Full Pill */}
-                    <div className="absolute bottom-3 right-3 z-20 pointer-events-none">
-                      <span className="px-2.5 py-1 rounded-full bg-white text-black font-semibold text-[10px] flex items-center gap-1 shadow-lg">
-                        <span>View Full</span>
-                        <span>↗</span>
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Modal Lightbox Description Preview */}
-                  <div className="mt-3 p-3 rounded-xl bg-neutral-950/70 border border-white/5 space-y-1">
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-neutral-400 block font-semibold">
-                      Narasi Modal Lightbox:
-                    </span>
-                    <p className="text-xs text-neutral-300 line-clamp-3 leading-relaxed">
-                      {videoDescription || "Belum ada narasi."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
+        {sidebarTab === "flagship" && renderFlagshipWorkspace()}
 
         {/* ========================================================
             TAB 7: SETTINGS & ADMIN ACCOUNT WORKSPACE
