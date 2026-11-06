@@ -9,6 +9,8 @@ export interface AdminUserItem {
   name?: string;
   createdAt?: string;
   updatedAt?: string;
+  biometricCredId?: string;
+  biometricRegisteredAt?: string;
 }
 
 export interface AdminCredentials {
@@ -438,6 +440,75 @@ export function clearActiveAdminUser(): void {
     localStorage.removeItem(ACTIVE_USER_KEY);
     window.dispatchEvent(
       new CustomEvent("rizx_active_admin_user_changed", { detail: null })
+    );
+  } catch (_) {}
+}
+
+/**
+ * Multi-User Biometric (WebAuthn) Management
+ * Maps: 1 Admin User = 1 Biometric Credential
+ */
+export interface UserBiometricRecord {
+  userId: string;
+  username: string;
+  credId: string;
+  registeredAt: string;
+}
+
+const BIOMETRIC_MAP_KEY = "rizx_user_biometrics_map";
+
+export function getUserBiometricsMap(): Record<string, UserBiometricRecord> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(BIOMETRIC_MAP_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return {};
+}
+
+export function saveUserBiometricRecord(
+  userId: string,
+  username: string,
+  credId: string,
+  registeredAt: string
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getUserBiometricsMap();
+    current[userId] = { userId, username, credId, registeredAt };
+    localStorage.setItem(BIOMETRIC_MAP_KEY, JSON.stringify(current));
+
+    // Fallback sync for global backward compatibility
+    localStorage.setItem("rizx_biometric_credId", credId);
+    localStorage.setItem("rizx_biometric_user", username);
+    localStorage.setItem("rizx_biometric_registered_at", registeredAt);
+
+    window.dispatchEvent(
+      new CustomEvent("rizx_user_biometrics_updated", { detail: current })
+    );
+  } catch (_) {}
+}
+
+export function removeUserBiometricRecord(userId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getUserBiometricsMap();
+    delete current[userId];
+    localStorage.setItem(BIOMETRIC_MAP_KEY, JSON.stringify(current));
+
+    const remaining = Object.values(current);
+    if (remaining.length > 0) {
+      localStorage.setItem("rizx_biometric_credId", remaining[0].credId);
+      localStorage.setItem("rizx_biometric_user", remaining[0].username);
+      localStorage.setItem("rizx_biometric_registered_at", remaining[0].registeredAt);
+    } else {
+      localStorage.removeItem("rizx_biometric_credId");
+      localStorage.removeItem("rizx_biometric_user");
+      localStorage.removeItem("rizx_biometric_registered_at");
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("rizx_user_biometrics_updated", { detail: current })
     );
   } catch (_) {}
 }

@@ -23,6 +23,7 @@ import {
   authenticateAdminUser,
   updateAdminUser,
   setActiveAdminUser,
+  getUserBiometricsMap,
 } from "@/lib/adminAuth";
 import MetaSEO from "./MetaSEO";
 
@@ -105,7 +106,9 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
           await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
         setIsBiometricAvailable(available);
         const credId = localStorage.getItem("rizx_biometric_credId");
-        setIsBiometricRegistered(!!credId);
+        const map = getUserBiometricsMap();
+        const hasEnrolled = !!credId || Object.keys(map).length > 0;
+        setIsBiometricRegistered(hasEnrolled);
       } catch (_) {}
     };
     checkBiometric();
@@ -198,38 +201,91 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
     }
   };
 
-  // Biometric: Authenticate
+  // Biometric: Authenticate (supports 1 user 1 biometric / multi-user)
   const handleBiometricLogin = async () => {
     setIsBiometricLoading(true);
     setBiometricError("");
     setError("");
     try {
-      const credId = localStorage.getItem("rizx_biometric_credId");
-      if (!credId) {
-        setBiometricError(tr("Biometric not set up yet.", "Biometrik belum diaktifkan.", "Biometrik alun diaktifkan."));
+      const biometricsMap = getUserBiometricsMap();
+      const records = Object.values(biometricsMap);
+      const fallbackCredId = localStorage.getItem("rizx_biometric_credId");
+
+      if (records.length === 0 && !fallbackCredId) {
+        setBiometricError(
+          tr(
+            "Biometric not set up yet.",
+            "Biometrik belum diaktifkan.",
+            "Biometrik alun diaktifkan."
+          )
+        );
         return;
       }
-      const rawId = Uint8Array.from(atob(credId), (c) => c.charCodeAt(0));
+
+      const allowCredentials: PublicKeyCredentialDescriptor[] = [];
+      const credIdToUserId: Record<string, string> = {};
+
+      records.forEach((r) => {
+        try {
+          const rawId = Uint8Array.from(atob(r.credId), (c) => c.charCodeAt(0));
+          allowCredentials.push({ id: rawId, type: "public-key" });
+          credIdToUserId[r.credId] = r.userId;
+        } catch (_) {}
+      });
+
+      if (fallbackCredId && allowCredentials.length === 0) {
+        try {
+          const rawId = Uint8Array.from(atob(fallbackCredId), (c) => c.charCodeAt(0));
+          allowCredentials.push({ id: rawId, type: "public-key" });
+        } catch (_) {}
+      }
+
       const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const assertion = await navigator.credentials.get({
+      const assertion = (await navigator.credentials.get({
         publicKey: {
           challenge,
           rpId: window.location.hostname,
           userVerification: "required",
-          allowCredentials: [{ id: rawId, type: "public-key" }],
+          allowCredentials,
           timeout: 60000,
         },
-      });
+      })) as PublicKeyCredential | null;
+
       if (assertion) {
+        const rawIdBytes = new Uint8Array(assertion.rawId);
+        let binary = "";
+        rawIdBytes.forEach((b) => {
+          binary += String.fromCharCode(b);
+        });
+        const matchedCredId = btoa(binary);
+
         const currentCreds = await getAdminCredentials();
-        const adminUser =
-          currentCreds.adminUsers?.[0] ?? {
-            id: "admin-root",
-            username: currentCreds.username,
-            email: currentCreds.email,
-            password: currentCreds.password,
-            role: "admin" as const,
-          };
+        const allUsers =
+          currentCreds.adminUsers && currentCreds.adminUsers.length > 0
+            ? currentCreds.adminUsers
+            : [
+                {
+                  id: "admin-root",
+                  username: currentCreds.username,
+                  email: currentCreds.email,
+                  password: currentCreds.password,
+                  role: "admin" as const,
+                },
+              ];
+
+        // Find which exact user's biometric matched
+        const matchedUserId = credIdToUserId[matchedCredId];
+        let adminUser = allUsers.find(
+          (u) =>
+            (matchedUserId && u.id === matchedUserId) ||
+            u.biometricCredId === matchedCredId ||
+            biometricsMap[u.id]?.credId === matchedCredId
+        );
+
+        if (!adminUser) {
+          adminUser = allUsers[0];
+        }
+
         sessionStorage.setItem("rizx_admin_session", "authenticated");
         setActiveAdminUser(adminUser);
         onSuccess();

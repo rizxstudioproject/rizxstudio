@@ -20,10 +20,22 @@ import {
   RiTeamLine,
   RiFingerprint2Line,
   RiDeleteBin7Line,
+  RiShieldUserLine,
+  RiEditLine,
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
-import { getAdminCredentials, saveAdminCredentials, AdminCredentials } from "@/lib/adminAuth";
+import {
+  getAdminCredentials,
+  saveAdminCredentials,
+  AdminCredentials,
+  AdminUserItem,
+  updateAdminUser,
+  getUserBiometricsMap,
+  saveUserBiometricRecord,
+  removeUserBiometricRecord,
+  UserBiometricRecord,
+} from "@/lib/adminAuth";
 import AdminUsersManager from "./AdminUsersManager";
 
 interface SecuritySettingsWorkspaceProps {
@@ -59,9 +71,44 @@ export default function SecuritySettingsWorkspace({
 
   // Biometric WebAuthn state
   const [isBiometricSupported, setIsBiometricSupported] = useState(false);
-  const [isBiometricRegistered, setIsBiometricRegistered] = useState(false);
-  const [biometricRegisteredDate, setBiometricRegisteredDate] = useState("");
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  const [activeBiometricUserId, setActiveBiometricUserId] = useState<string | null>(null);
+
+  // Multi-user state for 1 User = 1 Biometric
+  const [adminUsers, setAdminUsers] = useState<AdminUserItem[]>([]);
+  const [biometricsMap, setBiometricsMap] = useState<Record<string, UserBiometricRecord>>({});
+
+  const refreshUsersAndBiometrics = async () => {
+    try {
+      const creds = await getAdminCredentials();
+      const users =
+        creds.adminUsers && creds.adminUsers.length > 0
+          ? creds.adminUsers
+          : [
+              {
+                id: "admin-root",
+                username: creds.username || "admin",
+                password: creds.password,
+                email: creds.email,
+                role: "superadmin",
+              },
+            ];
+      setAdminUsers(users);
+
+      const map = getUserBiometricsMap();
+      users.forEach((u) => {
+        if (u.biometricCredId && !map[u.id]) {
+          map[u.id] = {
+            userId: u.id,
+            username: u.username,
+            credId: u.biometricCredId,
+            registeredAt: u.biometricRegisteredAt || "",
+          };
+        }
+      });
+      setBiometricsMap(map);
+    } catch (_) {}
+  };
 
   // Load existing credentials & biometric status on mount
   useEffect(() => {
@@ -77,13 +124,20 @@ export default function SecuritySettingsWorkspace({
         const available =
           await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
         setIsBiometricSupported(available);
-        const credId = localStorage.getItem("rizx_biometric_credId");
-        setIsBiometricRegistered(!!credId);
-        const date = localStorage.getItem("rizx_biometric_registered_at") || "";
-        setBiometricRegisteredDate(date);
       } catch (_) {}
     };
     checkBiometric();
+    refreshUsersAndBiometrics();
+
+    const handleUpdate = () => {
+      refreshUsersAndBiometrics();
+    };
+    window.addEventListener("rizx_user_biometrics_updated", handleUpdate);
+    window.addEventListener("rizx_admin_credentials_updated", handleUpdate);
+    return () => {
+      window.removeEventListener("rizx_user_biometrics_updated", handleUpdate);
+      window.removeEventListener("rizx_admin_credentials_updated", handleUpdate);
+    };
   }, []);
 
   const triggerToast = (msg: string) => {
@@ -157,20 +211,21 @@ export default function SecuritySettingsWorkspace({
     return () => window.removeEventListener("app:trigger-settings-save", onTriggerSave);
   }, [adminUser, adminEmail, adminSecretKey, newPassword, confirmPassword]);
 
-  // Biometric Handlers
-  const handleRegisterBiometric = async () => {
+  // Biometric Handlers (1 User = 1 Biometric)
+  const handleRegisterUserBiometric = async (u: AdminUserItem) => {
+    setActiveBiometricUserId(u.id);
     setIsBiometricLoading(true);
     try {
       const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const userId = crypto.getRandomValues(new Uint8Array(16));
+      const userIdBytes = new TextEncoder().encode(u.id.slice(0, 16).padEnd(16, "0"));
       const credential = (await navigator.credentials.create({
         publicKey: {
           challenge,
           rp: { name: "Rizx Studio Admin", id: window.location.hostname },
           user: {
-            id: userId,
-            name: adminUser || "admin",
-            displayName: `Admin (${adminUser || "admin"})`,
+            id: userIdBytes,
+            name: u.username,
+            displayName: u.name || `@${u.username}`,
           },
           pubKeyCredParams: [
             { alg: -7, type: "public-key" },
@@ -198,17 +253,19 @@ export default function SecuritySettingsWorkspace({
           hour: "2-digit",
           minute: "2-digit",
         });
-        localStorage.setItem("rizx_biometric_credId", credId);
-        localStorage.setItem("rizx_biometric_registered_at", nowStr);
-        localStorage.setItem("rizx_biometric_user", adminUser || "admin");
 
-        setIsBiometricRegistered(true);
-        setBiometricRegisteredDate(nowStr);
+        saveUserBiometricRecord(u.id, u.username, credId, nowStr);
+        await updateAdminUser(u.id, {
+          biometricCredId: credId,
+          biometricRegisteredAt: nowStr,
+        });
+
+        await refreshUsersAndBiometrics();
         triggerToast(
           tr(
-            "Berhasil! Sidik Jari / Face ID berhasil didaftarkan di perangkat ini.",
-            "Success! Fingerprint / Face ID enrolled on this device.",
-            "Barasil! Sidik Jari / Face ID tadaftar di parangkek ko."
+            `Berhasil! Biometrik aktif untuk akun @${u.username}.`,
+            `Success! Biometric enrolled for @${u.username}.`,
+            `Barasil! Biometrik tadaftar untuak @${u.username}.`
           )
         );
       }
@@ -234,23 +291,26 @@ export default function SecuritySettingsWorkspace({
       }
     } finally {
       setIsBiometricLoading(false);
+      setActiveBiometricUserId(null);
     }
   };
 
-  const handleTestBiometric = async () => {
+  const handleTestUserBiometric = async (u: AdminUserItem) => {
+    const record = biometricsMap[u.id];
+    const credId = record?.credId || u.biometricCredId;
+    if (!credId) {
+      triggerToast(
+        tr(
+          `Akun @${u.username} belum mendaftarkan biometrik.`,
+          `No biometric enrolled for @${u.username}.`,
+          `Alun ado biometrik tadaftar untuak @${u.username}.`
+        )
+      );
+      return;
+    }
+    setActiveBiometricUserId(u.id);
     setIsBiometricLoading(true);
     try {
-      const credId = localStorage.getItem("rizx_biometric_credId");
-      if (!credId) {
-        triggerToast(
-          tr(
-            "Belum ada biometrik yang didaftarkan di perangkat ini.",
-            "No biometric enrolled on this device yet.",
-            "Alun ado biometrik tadaftar di parangkek ko."
-          )
-        );
-        return;
-      }
       const rawId = Uint8Array.from(atob(credId), (c) => c.charCodeAt(0));
       const challenge = crypto.getRandomValues(new Uint8Array(32));
       const assertion = await navigator.credentials.get({
@@ -266,9 +326,9 @@ export default function SecuritySettingsWorkspace({
       if (assertion) {
         triggerToast(
           tr(
-            "Verifikasi Berhasil! Sensor biometrik berfungsi sempurna.",
-            "Verification Success! Biometric sensor works perfectly.",
-            "Verifikasi Barasil! Sensor biometrik bajalan elok."
+            `Verifikasi Berhasil! Sidik Jari / Face ID cocok untuk @${u.username}.`,
+            `Verification Success! Biometric verified for @${u.username}.`,
+            `Verifikasi Barasil! Biometrik cocok untuak @${u.username}.`
           )
         );
       }
@@ -294,24 +354,50 @@ export default function SecuritySettingsWorkspace({
       }
     } finally {
       setIsBiometricLoading(false);
+      setActiveBiometricUserId(null);
     }
   };
 
-  const handleRemoveBiometric = () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("rizx_biometric_credId");
-      localStorage.removeItem("rizx_biometric_registered_at");
-      localStorage.removeItem("rizx_biometric_user");
-      setIsBiometricRegistered(false);
-      setBiometricRegisteredDate("");
-      triggerToast(
-        tr(
-          "Data biometrik di perangkat ini telah dihapus.",
-          "Biometric data on this device removed.",
-          "Data biometrik di parangkek ko lah dihapuih."
-        )
+  const handleRemoveUserBiometric = async (u: AdminUserItem) => {
+    removeUserBiometricRecord(u.id);
+    await updateAdminUser(u.id, {
+      biometricCredId: undefined,
+      biometricRegisteredAt: undefined,
+    });
+    await refreshUsersAndBiometrics();
+    triggerToast(
+      tr(
+        `Biometrik untuk @${u.username} telah dihapus dari perangkat ini.`,
+        `Biometric for @${u.username} removed from this device.`,
+        `Biometrik untuak @${u.username} lah dihapuih dari parangkek ko.`
+      )
+    );
+  };
+
+  const getRoleBadge = (r?: string) => {
+    const roleKey = (r || "admin").toLowerCase();
+    if (roleKey === "superadmin") {
+      return (
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/40 flex items-center gap-1">
+          <RiShieldCheckFill className="w-3 h-3 text-amber-400" />
+          Super Admin
+        </span>
       );
     }
+    if (roleKey === "editor") {
+      return (
+        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/40 flex items-center gap-1">
+          <RiEditLine className="w-3 h-3 text-purple-400" />
+          Editor
+        </span>
+      );
+    }
+    return (
+      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-500/40 flex items-center gap-1">
+        <RiShieldUserLine className="w-3 h-3 text-teal-400" />
+        Admin
+      </span>
+    );
   };
 
   return (
@@ -412,15 +498,16 @@ export default function SecuritySettingsWorkspace({
         </button>
       </div>
 
-      {/* Biometric (Fingerprint / Face ID) Management Card */}
+      {/* Biometric (Fingerprint / Face ID) Management Card - 1 User = 1 Biometrik */}
       {(activeSection === "biometric" || activeSection === "all") && (
         <div
-          className={`border rounded-2xl p-5 backdrop-blur-sm relative overflow-hidden transition-all ${
+          className={`border rounded-2xl p-5 sm:p-7 backdrop-blur-sm relative overflow-hidden transition-all space-y-5 ${
             isLight
-              ? "bg-white border-slate-200 shadow-xs"
+              ? "bg-white border-slate-200 shadow-sm"
               : "bg-neutral-900/60 border-white/10"
           }`}
         >
+          {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
             <div className="flex items-start gap-3">
               <div className="w-10 h-10 rounded-2xl bg-teal-500/15 border border-teal-500/30 text-[#16b09f] flex items-center justify-center shrink-0 shadow-xs">
@@ -428,129 +515,163 @@ export default function SecuritySettingsWorkspace({
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className={`text-sm sm:text-base font-bold ${isLight ? "text-slate-900" : "text-white"}`}>
-                    {tr("Login Biometrik (Sidik Jari / Face ID)", "Biometric Login (Fingerprint / Face ID)", "Login Biometrik (Sidik Jari / Face ID)")}
+                  <h3 className={`text-base font-bold tracking-tight ${isLight ? "text-slate-900" : "text-white"}`}>
+                    {tr("Login Biometrik (1 User = 1 Biometrik)", "Biometric Login (1 User = 1 Biometric)", "Login Biometrik (1 User = 1 Biometrik)")}
                   </h3>
-                  {isBiometricRegistered ? (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400">
-                      {tr("Aktif", "Active", "Aktif")}
-                    </span>
-                  ) : (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/15 border border-amber-500/30 text-amber-400">
-                      {tr("Belum Didaftarkan", "Not Enrolled", "Alun Didaftarkan")}
-                    </span>
-                  )}
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-teal-500/15 border border-teal-500/30 text-teal-300">
+                    {adminUsers.filter((u) => !!biometricsMap[u.id] || !!u.biometricCredId).length} / {adminUsers.length} {tr("Terdaftar", "Enrolled", "Tadaftar")}
+                  </span>
                 </div>
                 <p className={`text-xs mt-1 leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                   {tr(
-                    "Aktifkan sensor sidik jari atau Face ID di perangkat Anda ini agar dapat masuk ke Admin Panel dengan sekali sentuh.",
-                    "Enable fingerprint or Face ID on this device to log into the Admin Panel with a single touch.",
-                    "Aktifkan sensor sidik jari atau Face ID di parangkek ko supayo dapek masuak ka Admin Panel sakali sentuah."
+                    "Setiap akun admin memiliki 1 sensor biometrik (sidik jari / Face ID) tersendiri di perangkat ini. Saat Anda memindai sensor, sistem otomatis mendeteksi dan login langsung ke akun tersebut.",
+                    "Each admin user has 1 dedicated biometric credential (fingerprint / Face ID) on this device. Scanning automatically identifies and logs into that specific account.",
+                    "Satiap akun admin punyo 1 biometrik surang-surang di parangkek ko."
                   )}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Biometric Status / Hardware Support */}
-          <div className="pt-4 space-y-4">
-            {!isBiometricSupported ? (
-              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
-                {tr(
-                  "Perangkat atau browser ini tidak mendukung sensor biometrik WebAuthn bawaan. Pastikan menggunakan browser modern (Chrome/Safari) dan perangkat memiliki sensor sidik jari/Face ID.",
-                  "This device or browser does not support WebAuthn platform biometrics. Ensure you are using a modern browser (Chrome/Safari) with biometric hardware.",
-                  "Parangkek atau browser ko indak mandukuang sensor biometrik WebAuthn bawaan."
-                )}
-              </div>
-            ) : (
-              <>
-                {isBiometricRegistered ? (
-                  <div className="space-y-3">
-                    <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      isLight ? "bg-teal-50/60 border-teal-200" : "bg-teal-950/20 border-teal-500/25"
-                    }`}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                          <RiCheckFill className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <span className={`text-xs font-bold block ${isLight ? "text-slate-900" : "text-white"}`}>
-                            {tr("Biometrik Siap Digunakan", "Biometrics Ready for Login", "Biometrik Siap Digunoan")}
+          {/* Hardware Support Alert */}
+          {!isBiometricSupported ? (
+            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
+              {tr(
+                "Perangkat atau browser ini tidak mendukung sensor biometrik WebAuthn bawaan. Pastikan menggunakan browser modern (Chrome/Safari) dengan sensor sidik jari atau Face ID aktif.",
+                "This device or browser does not support WebAuthn platform biometrics. Ensure you are using a modern browser (Chrome/Safari) with biometric hardware.",
+                "Parangkek atau browser ko indak mandukuang sensor biometrik WebAuthn bawaan."
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {adminUsers.map((u, idx) => {
+                const record = biometricsMap[u.id];
+                const isEnrolled = !!record?.credId || !!u.biometricCredId;
+                const regDate = record?.registeredAt || u.biometricRegisteredAt || "";
+                const isUserLoading = isBiometricLoading && activeBiometricUserId === u.id;
+
+                return (
+                  <div
+                    key={u.id || idx}
+                    className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-all ${
+                      isEnrolled
+                        ? isLight
+                          ? "bg-teal-50/50 border-teal-200/90 shadow-2xs"
+                          : "bg-teal-950/20 border-teal-500/30 shadow-2xs"
+                        : isLight
+                        ? "bg-slate-50/70 border-slate-200"
+                        : "bg-black/30 border-white/5"
+                    }`}
+                  >
+                    {/* User Identity & Biometric Status */}
+                    <div className="flex items-start gap-3.5 min-w-0">
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm shrink-0 border uppercase font-mono shadow-xs"
+                        style={{
+                          backgroundColor: `${primaryColor}20`,
+                          borderColor: `${primaryColor}50`,
+                          color: primaryColor,
+                        }}
+                      >
+                        {u.username.substring(0, 2)}
+                      </div>
+
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className={`font-bold text-sm font-mono ${isLight ? "text-slate-900" : "text-white"}`}>
+                            @{u.username}
                           </span>
-                          <span className={`text-[11px] font-mono block ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                            {biometricRegisteredDate
-                              ? `${tr("Terdaftar sejak", "Enrolled on", "Tadaftar sajak")} ${biometricRegisteredDate}`
-                              : tr("Kredensial tersimpan aman di browser perangkat ini", "Credentials securely stored in this browser", "Kredensial tasimpan aman di browser parangkek ko")}
+                          {getRoleBadge(u.role)}
+                          {isEnrolled ? (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold bg-emerald-500/15 border border-emerald-500/35 text-emerald-400 flex items-center gap-1">
+                              <RiCheckFill className="w-3 h-3 text-emerald-400" />
+                              <span>{tr("Biometrik Aktif", "Biometric Active", "Biometrik Aktif")}</span>
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-medium bg-neutral-800 text-neutral-400 border border-white/10">
+                              {tr("Belum Terdaftar", "Not Enrolled", "Alun Tadaftar")}
+                            </span>
+                          )}
+                        </div>
+
+                        <div className={`text-xs truncate ${isLight ? "text-slate-600" : "text-neutral-300"}`}>
+                          {u.name || u.username} · <span className="font-mono text-[11px] text-teal-400">{u.email}</span>
+                        </div>
+
+                        <div className={`text-[11px] font-mono flex items-center gap-1.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
+                          <RiFingerprint2Line className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                          <span>
+                            {isEnrolled
+                              ? regDate
+                                ? `${tr("Terdaftar", "Enrolled", "Tadaftar")}: ${regDate}`
+                                : tr("Kredensial biometrik aktif di browser ini", "Biometric active in this browser", "Biometrik aktif di browser ko")
+                              : tr("1 Akun 1 Biometrik — Siap didaftarkan", "1 User 1 Biometric — Ready to enroll", "1 Akun 1 Biometrik — Siap didaftarkan")}
                           </span>
                         </div>
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={handleTestBiometric}
-                          disabled={isBiometricLoading}
-                          className="px-3 py-2 rounded-xl text-xs font-mono font-bold bg-[#16b09f] text-black hover:bg-[#119a8b] transition-all cursor-pointer shadow-sm active:scale-95 flex items-center gap-1.5"
-                        >
-                          <RiFingerprint2Line className="w-4 h-4" />
-                          <span>{tr("Uji Coba Verifikasi", "Test Biometric", "Uji Coba Verifikasi")}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleRemoveBiometric}
-                          disabled={isBiometricLoading}
-                          className="px-3 py-2 rounded-xl text-xs font-mono font-bold bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 transition-all cursor-pointer active:scale-95 flex items-center gap-1.5"
-                          title="Hapus Biometrik"
-                        >
-                          <RiDeleteBin7Line className="w-4 h-4" />
-                          <span>{tr("Hapus", "Remove", "Hapuih")}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
-                    isLight ? "bg-slate-50 border-slate-200" : "bg-neutral-950/60 border-white/10"
-                  }`}>
-                    <div>
-                      <span className={`text-xs font-bold block ${isLight ? "text-slate-900" : "text-white"}`}>
-                        {tr("Daftarkan Sidik Jari / Face ID Sekarang", "Enroll Fingerprint / Face ID Now", "Daftarkan Sidik Jari / Face ID Kini")}
-                      </span>
-                      <span className={`text-[11px] font-mono block mt-0.5 ${isLight ? "text-slate-500" : "text-neutral-400"}`}>
-                        {tr(
-                          "Sentuh tombol di samping untuk mengaktifkan sensor keamanan HP/Laptop Anda.",
-                          "Tap the button to link your device biometric sensor.",
-                          "Santuah tombol untuak maaktifkan sensor kaamanan HP/Laptop Sanak."
-                        )}
-                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={handleRegisterBiometric}
-                      disabled={isBiometricLoading}
-                      className="px-4 py-2.5 rounded-xl text-xs font-bold font-mono tracking-wide bg-[#16b09f] hover:bg-[#119a8b] text-black transition-all cursor-pointer shadow-md shadow-[#16b09f]/20 active:scale-95 flex items-center justify-center gap-2 shrink-0"
-                    >
-                      {isBiometricLoading ? (
+                    {/* Action Buttons for this specific user */}
+                    <div className="flex items-center gap-2 self-stretch sm:self-center justify-end shrink-0 pt-2 sm:pt-0 border-t border-white/5 sm:border-t-0">
+                      {isEnrolled ? (
                         <>
-                          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                          </svg>
-                          <span>{tr("Memproses Sensor…", "Scanning…", "Mamproses Sensor…")}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleTestUserBiometric(u)}
+                            disabled={isBiometricLoading}
+                            className="px-3 py-2 rounded-xl text-xs font-mono font-bold bg-[#16b09f] text-black hover:bg-[#119a8b] transition-all cursor-pointer shadow-xs active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
+                          >
+                            {isUserLoading ? (
+                              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                            ) : (
+                              <RiFingerprint2Line className="w-3.5 h-3.5" />
+                            )}
+                            <span>{tr("Uji Coba", "Test", "Uji Coba")}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveUserBiometric(u)}
+                            disabled={isBiometricLoading}
+                            className="px-3 py-2 rounded-xl text-xs font-mono font-bold bg-rose-500/10 border border-rose-500/30 text-rose-400 hover:bg-rose-500/20 transition-all cursor-pointer active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
+                            title="Hapus Biometrik User Ini"
+                          >
+                            <RiDeleteBin7Line className="w-3.5 h-3.5" />
+                            <span>{tr("Hapus", "Remove", "Hapuih")}</span>
+                          </button>
                         </>
                       ) : (
-                        <>
-                          <RiFingerprint2Line className="w-4 h-4" />
-                          <span>{tr("+ Tambah Biometrik", "+ Add Biometric", "+ Tambah Biometrik")}</span>
-                        </>
+                        <button
+                          type="button"
+                          onClick={() => handleRegisterUserBiometric(u)}
+                          disabled={isBiometricLoading}
+                          className="px-3.5 py-2 rounded-xl text-xs font-bold font-mono bg-[#16b09f] hover:bg-[#119a8b] text-black transition-all cursor-pointer shadow-md shadow-[#16b09f]/20 active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
+                        >
+                          {isUserLoading ? (
+                            <>
+                              <svg className="w-3.5 h-3.5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                              </svg>
+                              <span>{tr("Memproses…", "Scanning…", "Mamproses…")}</span>
+                            </>
+                          ) : (
+                            <>
+                              <RiFingerprint2Line className="w-3.5 h-3.5" />
+                              <span>{tr("+ Tambah Biometrik", "+ Add Biometric", "+ Tambah Biometrik")}</span>
+                            </>
+                          )}
+                        </button>
                       )}
-                    </button>
+                    </div>
                   </div>
-                )}
-              </>
-            )}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
