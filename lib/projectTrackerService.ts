@@ -477,43 +477,78 @@ export async function deleteTrackedProject(refCode: string): Promise<boolean> {
 /**
  * Stage display metadata helper
  */
-export function getStageMetadata(stage: ProjectProgressStage) {
+export function getStageMetadata(stage: ProjectProgressStage, lang: string = "en") {
+  const isId = lang === "id";
+  const isMin = lang === "min";
+
   switch (stage) {
     case "queued":
       return {
-        label: "Belum Dikerjakan (Antrean)",
+        label: isMin
+          ? "Alun Dikarajoan (Antrean)"
+          : isId
+          ? "Belum Dikerjakan (Antrean)"
+          : "Queued (Pending)",
         step: 1,
         color: "#f59e0b",
         badgeBg: "rgba(245, 158, 11, 0.15)",
         badgeBorder: "rgba(245, 158, 11, 0.35)",
-        description: "Pesanan telah dikonfirmasi dan masuk antrean persiapan produksi kreatif.",
+        description: isMin
+          ? "Pasanan lah dikonfirmasi jo masuak antrean parsiapan produksi kreatif."
+          : isId
+          ? "Pesanan telah dikonfirmasi dan masuk antrean persiapan produksi kreatif."
+          : "Order confirmed and placed in creative production preparation queue.",
       };
     case "in_progress":
       return {
-        label: "Sedang Dikerjakan (Dalam Proses)",
+        label: isMin
+          ? "Sadang Dikarajoan (Dalam Proses)"
+          : isId
+          ? "Sedang Dikerjakan (Dalam Proses)"
+          : "In Progress (Active)",
         step: 2,
         color: "#16b09f",
         badgeBg: "rgba(22, 176, 159, 0.15)",
         badgeBorder: "rgba(22, 176, 159, 0.4)",
-        description: "Karya sedang dalam proses produksi intensif sesuai brief yang disepakati.",
+        description: isMin
+          ? "Karya sadang dalam proses produksi intensif sasuai brief nan disapakati."
+          : isId
+          ? "Karya sedang dalam proses produksi intensif sesuai brief yang disepakati."
+          : "Project is currently under intensive production according to the agreed brief.",
       };
     case "review":
       return {
-        label: "Tahap Review & Revisi",
+        label: isMin
+          ? "Tahap Review & Revisi"
+          : isId
+          ? "Tahap Review & Revisi"
+          : "Review & Revision",
         step: 3,
         color: "#818cf8",
         badgeBg: "rgba(129, 140, 248, 0.15)",
         badgeBorder: "rgba(129, 140, 248, 0.35)",
-        description: "Draft karya awal telah selesai dan sedang dalam peninjauan / revisi bersama klien.",
+        description: isMin
+          ? "Draft karya awal lah salasai jo sadang dalam paninjauan / revisi basamo klien."
+          : isId
+          ? "Draft karya awal telah selesai dan sedang dalam peninjauan / revisi bersama klien."
+          : "Initial project draft is completed and currently in collaborative client review / revision.",
       };
     case "completed":
       return {
-        label: "Finish / Selesai (Diserahkan)",
+        label: isMin
+          ? "Salasai / Finish (Disarahkan)"
+          : isId
+          ? "Finish / Selesai (Diserahkan)"
+          : "Completed & Delivered",
         step: 4,
         color: "#10b981",
         badgeBg: "rgba(16, 185, 129, 0.15)",
         badgeBorder: "rgba(16, 185, 129, 0.4)",
-        description: "Karya telah selesai 100% dan seluruh master files telah diserahkan penuh.",
+        description: isMin
+          ? "Karya lah salasai 100% jo saluruah master files lah disarahkan panuah."
+          : isId
+          ? "Karya telah selesai 100% dan seluruh master files telah diserahkan penuh."
+          : "Project is 100% completed and all master deliverables have been fully handed over.",
       };
   }
 }

@@ -32,7 +32,7 @@ import { useLang } from "@/context/LanguageContext";
 export default function TrackingPage() {
   const { primaryColor, themeMode, socialContacts } = useMotionTheme();
   const isLight = themeMode === "light";
-  const { tr } = useLang();
+  const { tr, lang } = useLang();
 
   const [inputCode, setInputCode] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -63,7 +63,13 @@ export default function TrackingPage() {
           handleSearch(clean);
         }
       } else {
-        alert(tr("Fitur paste tidak didukung otomatis di browser ini. Silakan tempel secara manual.", "Fitur paste tidak didukung otomatis di browser ini. Silakan tempel secara manual.", "Paste manual se sanak."));
+        alert(
+          tr(
+            "Paste feature is not automatically supported in this browser. Please paste manually.",
+            "Fitur paste tidak didukung otomatis di browser ini. Silakan tempel secara manual.",
+            "Fitur paste indak didukuang otomatis di browser ko. Silakan tempel sacaro manual."
+          )
+        );
       }
     } catch (err) {
       console.warn("Clipboard paste permission error:", err);
@@ -114,13 +120,33 @@ export default function TrackingPage() {
     }
   };
 
-  const stageMeta = project ? getStageMetadata(project.currentStage) : null;
+  const stageMeta = project ? getStageMetadata(project.currentStage, lang) : null;
 
   const steps = [
-    { id: "queued", num: 1, title: "Pesanan Diterima", desc: "Masuk Antrean & Verifikasi Brief" },
-    { id: "in_progress", num: 2, title: "Proses Produksi", desc: "Pengerjaan Desain / Animasi / Tech" },
-    { id: "review", num: 3, title: "Review & Revisi", desc: "Evaluasi Draft Bersama Klien" },
-    { id: "completed", num: 4, title: "Finish / Selesai", desc: "Serah Terima Master Deliverables" },
+    {
+      id: "queued",
+      num: 1,
+      title: tr("Order Received", "Pesanan Diterima", "Pasanan Ditarimo"),
+      desc: tr("Queue & Brief Verification", "Masuk Antrean & Verifikasi Brief", "Masuak Antrean & Verifikasi Brief"),
+    },
+    {
+      id: "in_progress",
+      num: 2,
+      title: tr("Production Process", "Proses Produksi", "Proses Produksi"),
+      desc: tr("Design / Animation / Tech Craft", "Pengerjaan Desain / Animasi / Tech", "Panggarapan Desain / Animasi / Tech"),
+    },
+    {
+      id: "review",
+      num: 3,
+      title: tr("Review & Revision", "Review & Revisi", "Review & Revisi"),
+      desc: tr("Draft Evaluation with Client", "Evaluasi Draft Bersama Klien", "Evaluasi Draft Basamo Klien"),
+    },
+    {
+      id: "completed",
+      num: 4,
+      title: tr("Finished / Completed", "Finish / Selesai", "Salasai / Finish"),
+      desc: tr("Master Deliverables Handover", "Serah Terima Master Deliverables", "Serah Tarimo Master Deliverables"),
+    },
   ];
 
   const currentStepNum = stageMeta ? stageMeta.step : 1;

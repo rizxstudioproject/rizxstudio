@@ -137,11 +137,11 @@ ${directUrl}`;
             </div>
             <div>
               <h3 className="text-sm sm:text-base font-bold">
-                {tr("Bagikan Paket Layanan", "Bagikan Paket Layanan", "Bagi-an Paket Ko")}
+                {tr("Share Service Package", "Bagikan Paket Layanan", "Bagi-an Paket Ko")}
               </h3>
               <p className="text-[11px] text-neutral-400">
                 {tr(
-                  "Kirim rincian paket ini ke klien atau rekan Anda",
+                  "Send this package details to your client or colleague",
                   "Kirim rincian paket ini ke klien atau rekan Anda",
                   "Kirim rincian paket ko ka klien atau kawan sanak"
                 )}
@@ -209,7 +209,7 @@ ${directUrl}`;
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <span className={`text-[10px] font-mono uppercase tracking-wider ${isLight ? "text-slate-500" : "text-neutral-400"} block`}>
-                    {tr("Nama Paket:", "Nama Paket:", "Namo Paket:")}
+                    {tr("Package Name:", "Nama Paket:", "Namo Paket:")}
                   </span>
                   <p className={`font-bold text-sm sm:text-base ${isLight ? "text-slate-900" : "text-white"}`}>
                     {pkg.name}
@@ -253,7 +253,7 @@ ${directUrl}`;
               {Array.isArray(pkg.deliverables) && pkg.deliverables.length > 0 && (
                 <div className={`space-y-1.5 pt-1 border-t ${isLight ? "border-slate-200" : "border-white/10"}`}>
                   <span className={`text-[10px] font-mono uppercase tracking-wider ${isLight ? "text-slate-500" : "text-neutral-400"} block`}>
-                    {tr("Yang Didapatkan (Deliverables):", "Yang Didapatkan (Deliverables):", "Deliverables nan Didapek:")}
+                    {tr("What's Included (Deliverables):", "Yang Didapatkan (Deliverables):", "Deliverables nan Didapek:")}
                   </span>
                   <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
                     {pkg.deliverables.map((item: string, idx: number) => (
@@ -306,7 +306,7 @@ ${directUrl}`;
             className="w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-[#25D366] hover:bg-[#20ba59] text-white flex items-center justify-center gap-2 shadow-lg hover:shadow-emerald-500/20 active:scale-[0.99] transition-all cursor-pointer"
           >
             <RiWhatsappLine className="w-4 h-4" />
-            <span>{tr("Bagikan ke WhatsApp 💬", "Bagikan ke WhatsApp 💬", "Bagi ka WhatsApp 💬")}</span>
+            <span>{tr("Share to WhatsApp 💬", "Bagikan ke WhatsApp 💬", "Bagi ka WhatsApp 💬")}</span>
           </button>
 
           {/* Secondary Actions Grid */}
@@ -319,12 +319,12 @@ ${directUrl}`;
               {copiedAll ? (
                 <>
                   <RiCheckLine className="w-3.5 h-3.5 text-emerald-400" />
-                  <span className="text-emerald-300">Tersalin Rapi!</span>
+                  <span className="text-emerald-300">{tr("Copied!", "Tersalin Rapi!", "Tasalin Barasiah!")}</span>
                 </>
               ) : (
                 <>
                   <RiFileCopyLine className="w-3.5 h-3.5 text-[#16b09f]" />
-                  <span>Salin Lengkap</span>
+                  <span>{tr("Copy All", "Salin Lengkap", "Salin Langkok")}</span>
                 </>
               )}
             </button>
@@ -335,7 +335,7 @@ ${directUrl}`;
               className="py-2.5 px-3 rounded-xl border border-white/15 bg-white/[0.04] hover:bg-white/10 text-neutral-200 text-xs font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer active:scale-95"
             >
               <RiShareForwardLine className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Aplikasi Lain</span>
+              <span>{tr("Other Apps", "Aplikasi Lain", "Aplikasi Lain")}</span>
             </button>
           </div>
 
@@ -357,7 +357,7 @@ ${directUrl}`;
               <RiSendPlaneFill className="w-3.5 h-3.5" />
               <span>
                 {tr(
-                  `Langsung Pesan Paket ${pkg.name} Ini 🚀`,
+                  `Order Package ${pkg.name} Directly 🚀`,
                   `Langsung Pesan Paket ${pkg.name} Ini 🚀`,
                   `Langsuang Pasan Paket ${pkg.name} Ko 🚀`
                 )}

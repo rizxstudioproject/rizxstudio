@@ -402,13 +402,13 @@ export default function ProductsPage() {
   const handleSubmitForm = (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName.trim()) {
-      alert(tr("Mohon masukkan nama Anda.", "Mohon masukkan nama Anda.", "Mohon masuak-an namo sanak."));
+      alert(tr("Please enter your name.", "Mohon masukkan nama Anda.", "Mohon masuak-an namo sanak."));
       return;
     }
     if (!clientPhone.trim()) {
       alert(
         tr(
-          "Mohon masukkan nomor WhatsApp untuk konfirmasi.",
+          "Please enter your WhatsApp number for confirmation.",
           "Mohon masukkan nomor WhatsApp untuk konfirmasi.",
           "Mohon masuak-an nomor WhatsApp untuak konfirmasi."
         )
@@ -714,7 +714,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={(e) => e.stopPropagation()}
-                          title={tr("Tonton video demo di YouTube", "Tonton video demo di YouTube", "Tonton video demo")}
+                          title={tr("Watch demo video on YouTube", "Tonton video demo di YouTube", "Tonton video demo")}
                           className="px-2 py-0.5 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white text-[10px] font-mono flex items-center gap-1 shadow-md backdrop-blur-md transition-all cursor-pointer"
                         >
                           <RiYoutubeFill className="w-3.5 h-3.5 text-white" />
@@ -725,7 +725,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                       {/* Google Drive Badge */}
                       {parsedMedia.type === "gdrive" && (
                         <span
-                          title={tr("Media Google Drive", "Media Google Drive", "Media Google Drive")}
+                          title={tr("Google Drive Media", "Media Google Drive", "Media Google Drive")}
                           className="px-2 py-0.5 rounded-full bg-emerald-900/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-mono flex items-center gap-1 shadow-md backdrop-blur-md"
                         >
                           <RiDriveLine className="w-3 h-3 text-emerald-400" />
@@ -1147,7 +1147,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
 
                 <div>
                   <label className="block text-xs font-mono uppercase tracking-wider text-neutral-300 mb-2">
-                    6. {tr("Target Timeline", "Target Timeline", "Target Timeline")}
+                    6. {tr("Target Timeline", "Target Jadwal", "Target Jadwal")}
                   </label>
                   <select
                     value={clientTimeline}
@@ -1676,7 +1676,7 @@ Mohon verifikasi resi pembayaran & konfirmasi jadwal kickoff untuk diproses. Ter
                                   </span>
                                   {p.isClosed && (
                                     <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                                      {tr("Slot Penuh", "Slot Penuh", "Slot Panuah")}
+                                      {tr("Slots Full", "Slot Penuh", "Slot Panuah")}
                                     </span>
                                   )}
                                 </div>

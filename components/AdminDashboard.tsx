@@ -3794,41 +3794,41 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   <div className="flex items-center justify-between pb-2 border-b border-white/10">
                     <h3 className="text-sm font-semibold text-white flex items-center gap-2">
                       <HiPencilSquare className="w-4 h-4 text-[#16b09f]" />
-                      Pengaturan Lengkap Section Flagship Showcase
+                      {tx("Flagship Showcase Section Settings", "Pengaturan Lengkap Section Flagship Showcase", "Pangaturan Lengkok Section Flagship Showcase")}
                     </h3>
                     <span className="text-[10px] font-mono text-cyan-400">
-                      Semua Elemen Teks Dapat Diedit
+                      {tx("All text elements are editable", "Semua Elemen Teks Dapat Diedit", "Kasadoan Elemen Teks Dapek Diedit")}
                     </span>
                   </div>
 
                   {/* SECTION 1: HEADER SECTION (TEKS DI ATAS CARD) */}
                   <div className="p-4 rounded-xl bg-neutral-950/70 border border-white/10 space-y-3">
                     <span className="text-[10px] font-mono uppercase tracking-widest text-cyan-400 font-semibold block">
-                      A. Header Section (Teks di Atas Card Showcase)
+                      {tx("A. Header Section (Text Above Showcase Card)", "A. Header Section (Teks di Atas Card Showcase)", "A. Header Section (Teks di Ateh Card Showcase)")}
                     </span>
 
                     <div>
                       <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                        Judul Utama / Headline Section <span className="text-cyan-400">*</span>
+                        {tx("Showcase Headline", "Judul Utama / Headline Section", "Judul Utamo / Headline Section")} <span className="text-cyan-400">*</span>
                       </label>
                       <input
                         type="text"
                         value={videoHeadline}
                         onChange={(e) => setVideoHeadline(e.target.value)}
-                        placeholder="Contoh: A journey shaped by creativity and change."
+                        placeholder={tx("Example: A journey shaped by creativity and change.", "Contoh: A journey shaped by creativity and change.")}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-sans focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                        Tagline / Badge Section (Di atas Headline) <span className="text-cyan-400">*</span>
+                        {tx("Tagline / Badge Section (Above Headline)", "Tagline / Badge Section (Di atas Headline)", "Tagline / Badge Section (Di ateh Headline)")} <span className="text-cyan-400">*</span>
                       </label>
                       <input
                         type="text"
                         value={videoClassTag}
                         onChange={(e) => setVideoClassTag(e.target.value)}
-                        placeholder="Contoh: CREATIVE JOURNEY | 2012 TO PRESENT"
+                        placeholder={tx("Example: CREATIVE JOURNEY | 2012 TO PRESENT", "Contoh: CREATIVE JOURNEY | 2012 TO PRESENT")}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                       />
                     </div>
@@ -3840,7 +3840,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-semibold">
-                            Daftar Media & Showreel ({stage3Cards.length})
+                            {tx("Media & Showreel List", "Daftar Media & Showreel", "Daftar Media & Showreel")} ({stage3Cards.length})
                           </span>
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-[#16b09f]/10 text-[#16b09f] border border-[#16b09f]/30">
                             Multi-Showreel Active
@@ -3859,7 +3859,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         className="px-3.5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139a8b] text-black font-bold text-xs font-mono flex items-center gap-1.5 transition-all shadow-md shadow-[#16b09f]/20 active:scale-95 cursor-pointer"
                       >
                         <HiPlus className="w-3.5 h-3.5" />
-                        <span>{tx("Add Video Showreel", "Add Video Showreel")}</span>
+                        <span>{tx("Add Video Showreel", "Tambah Video Showreel", "Tambah Video Showreel")}</span>
                       </button>
                     </div>
 
@@ -3963,7 +3963,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           }`}
                         >
                           <HiPhoto className="w-4 h-4 shrink-0" />
-                          <span>Gambar Kustom</span>
+                          <span>{tx("Custom Image", "Gambar Kustom", "Gambar Kustom")}</span>
                         </button>
                       </div>
                     </div>
@@ -3972,7 +3972,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     {flagshipMediaType === "youtube" && (
                       <div className="space-y-1.5">
                         <label className="block text-xs font-mono text-neutral-300 font-medium">
-                          URL Video atau Video ID YouTube <span className="text-cyan-400">*</span>
+                          {tx("YouTube Video URL or Video ID", "URL Video atau Video ID YouTube", "URL Video atau Video ID YouTube")} <span className="text-cyan-400">*</span>
                         </label>
                         <input
                           type="text"
@@ -3984,11 +3984,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               setVideoEnabled(true);
                             }
                           }}
-                          placeholder="Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ atau dQw4w9WgXcQ"
+                          placeholder={tx("Example: https://www.youtube.com/watch?v=dQw4w9WgXcQ or dQw4w9WgXcQ", "Contoh: https://www.youtube.com/watch?v=dQw4w9WgXcQ atau dQw4w9WgXcQ")}
                           className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm font-mono placeholder:text-neutral-600 focus:outline-none focus:border-[#16b09f] focus:ring-1 focus:ring-[#16b09f] transition-all"
                         />
                         <div className="flex items-center justify-between mt-1 text-[11px] text-neutral-500 font-mono">
-                          <span>Mendukung: youtube.com/watch?v=..., youtu.be/..., shorts, atau raw ID</span>
+                          <span>{tx("Supports: youtube.com/watch?v=..., youtu.be/..., shorts, or raw ID", "Mendukung: youtube.com/watch?v=..., youtu.be/..., shorts, atau raw ID", "Mandukuang: youtube.com/watch?v=..., youtu.be/..., shorts, atau raw ID")}</span>
                           {previewYouTubeId && (
                             <span className="text-cyan-400 font-semibold">ID: {previewYouTubeId}</span>
                           )}
@@ -4181,13 +4181,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     {/* Video Description */}
                     <div>
                       <label className="block text-xs font-mono text-neutral-300 font-medium mb-1">
-                        Deskripsi / Narasi Modal Lightbox
+                        {tx("Lightbox Modal Description", "Deskripsi / Narasi Modal Lightbox", "Katarangan Modal Lightbox")}
                       </label>
                       <textarea
                         rows={3}
                         value={videoDescription}
                         onChange={(e) => setVideoDescription(e.target.value)}
-                        placeholder="Tuliskan deskripsi karya unggulan, teknologi yang digunakan, atau konsep kreatif..."
+                        placeholder={tx("Write showcase description, technology used, or creative concept...", "Tuliskan deskripsi karya unggulan, teknologi yang digunakan, atau konsep kreatif...", "Tulih katarangan karya unggulan, teknologi nan digunokan, atau konsep kreatif...")}
                         className="w-full px-3.5 py-2.5 rounded-xl bg-neutral-900 border border-white/15 text-white text-xs sm:text-sm focus:outline-none focus:border-[#16b09f] transition-all resize-y"
                       />
                     </div>
@@ -4195,9 +4195,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                     {/* Toggle Active Switch */}
                     <div className="flex items-center justify-between p-3 rounded-xl bg-neutral-900 border border-white/10">
                       <div>
-                        <p className="text-xs font-medium text-white">Tampilkan Pemutar Video Embed di Public Web</p>
+                        <p className="text-xs font-medium text-white">{tx("Enable Embedded Video Player on Public Web", "Tampilkan Pemutar Video Embed di Public Web", "Tampilkan Pamuta Video Embed di Public Web")}</p>
                         <p className="text-[11px] text-neutral-400">
-                          Jika dinonaktifkan, web akan kembali menampilkan gambar visual original
+                          {tx("When disabled, public web will display the original static cover image", "Jika dinonaktifkan, web akan kembali menampilkan gambar visual original", "Jikok dinonaktifkan, web babaliak manampilkan gambar visual original")}
                         </p>
                       </div>
                       <button
@@ -5834,7 +5834,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         }`}
                       >
                         <HiCheck className="w-4 h-4 text-[#16b09f]" />
-                        <span>{tx("Apply Brush", "Apply Brush")}</span>
+                        <span>{tx("Apply Brush", "Terapkan Brush", "Terapkan Brush")}</span>
                       </button>
                     </div>
                   )}
@@ -6018,7 +6018,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={hbNameColor}
                           onChange={(e) => setHbNameColor(e.target.value)}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          aria-label={tx("Color Wheel", "Color Wheel")}
+                          aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                         />
                       </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6066,7 +6066,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={hbRoleColor}
                           onChange={(e) => setHbRoleColor(e.target.value)}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          aria-label={tx("Color Wheel", "Color Wheel")}
+                          aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                         />
                       </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6114,7 +6114,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={hbScrollTextColor}
                           onChange={(e) => setHbScrollTextColor(e.target.value)}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          aria-label={tx("Color Wheel", "Color Wheel")}
+                          aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                         />
                       </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6183,7 +6183,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={hbSec2H1Color}
                           onChange={(e) => setHbSec2H1Color(e.target.value)}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          aria-label={tx("Color Wheel", "Color Wheel")}
+                          aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                         />
                       </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6228,7 +6228,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={hbSec2H2Color}
                           onChange={(e) => setHbSec2H2Color(e.target.value)}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          aria-label={tx("Color Wheel", "Color Wheel")}
+                          aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                         />
                       </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6274,7 +6274,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={hbSec2BodyColor}
                         onChange={(e) => setHbSec2BodyColor(e.target.value)}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        aria-label={tx("Color Wheel", "Color Wheel")}
+                        aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                       />
                     </label>
                     <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6339,7 +6339,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={hbSec3H1Color}
                           onChange={(e) => setHbSec3H1Color(e.target.value)}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          aria-label={tx("Color Wheel", "Color Wheel")}
+                          aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                         />
                       </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6384,7 +6384,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           value={hbSec3H2Color}
                           onChange={(e) => setHbSec3H2Color(e.target.value)}
                           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          aria-label={tx("Color Wheel", "Color Wheel")}
+                          aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                         />
                       </label>
                       <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6430,7 +6430,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         value={hbSec3BodyColor}
                         onChange={(e) => setHbSec3BodyColor(e.target.value)}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                        aria-label={tx("Color Wheel", "Color Wheel")}
+                        aria-label={tx("Color Wheel", "Roda Warna", "Roda Warono")}
                       />
                     </label>
                     <span className={`text-[10px] font-mono uppercase font-semibold select-all ${
@@ -6819,7 +6819,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         onClick={handleResetClientDescription}
                         className="px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-300 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
                       >
-                        {tx("Reset Form", "Reset Form")}
+                        {tx("Reset Form", "Reset Formulir", "Reset Formulir")}
                       </button>
                     </div>
                   </form>
@@ -7329,7 +7329,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                         }`}
                       >
                         <HiPhoto className="w-4 h-4 shrink-0" />
-                        <span className="truncate">{tx("Device", "Device")}</span>
+                        <span className="truncate">{tx("Device", "Perangkat", "Parangkek")}</span>
                       </button>
 
                       <button
@@ -7372,7 +7372,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           />
                           <label className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-mono flex items-center justify-center gap-2 cursor-pointer transition-all shrink-0">
                             <HiArrowUpTray className="w-4 h-4 text-[#16b09f]" />
-                            <span>{tx("Upload File", "Upload File")}</span>
+                            <span>{tx("Upload File", "Unggah Berkas", "Unggah Berkas")}</span>
                             <input
                               type="file"
                               accept="image/*"
@@ -7794,7 +7794,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           }`}
                         >
                           <HiPhoto className="w-4 h-4 shrink-0" />
-                          <span className="truncate">{tx("Device", "Device")}</span>
+                          <span className="truncate">{tx("Device", "Perangkat", "Parangkek")}</span>
                         </button>
 
                         <button
@@ -10165,7 +10165,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                   {
                     id: "flagship" as AdminSidebarTab,
                     label: tx("Media Showcase", "Pameran Media", "Pameran Media"),
-                    sub: tx("Video & reels showcase", "Video & reels showcase"),
+                    sub: tx("Video & reels showcase", "Showcase video & reels", "Showcase video & reels"),
                     icon: HiVideoCamera,
                   },
                   {

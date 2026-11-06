@@ -299,7 +299,7 @@ export default function ProductPackageCompareModal({
           <div className="text-center max-w-2xl mx-auto mb-2">
             <p className="text-xs sm:text-sm text-neutral-400">
               {tr(
-                "Tinjau detail harga, estimasi durasi, checklist keunggulan, serta batasan setiap paket sebelum melanjutkan ke formulir pemesanan.",
+                "Review pricing details, estimated turnaround, feature highlights, and scope limits before proceeding to the order form.",
                 "Tinjau detail harga, estimasi durasi, checklist keunggulan, serta batasan setiap paket sebelum melanjutkan ke formulir pemesanan.",
                 "Tinjau detail harago, durasi karajo, kaunggulan sarato batasan tiok paket sabalun mangisi formulir."
               )}

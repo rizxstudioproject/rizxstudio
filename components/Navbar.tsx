@@ -24,7 +24,7 @@ export default function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const hideTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const { lang, setLang, t } = useLang();
+  const { lang, setLang, t, tr } = useLang();
   const { themeMode, toggleThemeMode, socialContacts, primaryColor } = useMotionTheme();
   const { clients } = usePortfolioData();
   const isLight = themeMode === "light";
@@ -382,7 +382,7 @@ export default function Navbar() {
                       }`}
                     >
                       <HiFolder className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900" : "text-white"}`} />
-                      <span>Folder Client</span>
+                      <span>{tr("Client Folders", "Folder Klien", "Folder Klien")}</span>
                     </button>
                   </div>
                 </div>
@@ -431,7 +431,11 @@ export default function Navbar() {
               type="button"
               onClick={handleThemeToggle}
               aria-label="Toggle Dark and Light Mode"
-              title={themeMode === "dark" ? "Klik 1x untuk ganti ke Mode Terang" : "Klik 1x untuk ganti ke Mode Gelap"}
+              title={
+                themeMode === "dark"
+                  ? tr("Switch to Light Mode", "Beralih ke Mode Terang", "Ganti ka Mode Tarang")
+                  : tr("Switch to Dark Mode", "Beralih ke Mode Gelap", "Ganti ka Mode Galok")
+              }
               className={`w-8 h-8 rounded-full border flex items-center justify-center transition-all active:scale-90 cursor-pointer select-none shrink-0 ${
                 isLight
                   ? "border-slate-300 bg-white hover:bg-slate-100 text-slate-800 shadow-xs"
@@ -631,7 +635,7 @@ export default function Navbar() {
                   }`}
                 >
                   <HiFolder className={`w-4 h-4 shrink-0 transition-colors ${isLight ? "text-slate-900" : "text-white"}`} />
-                  <span>Folder Client</span>
+                  <span>{tr("Client Folders", "Folder Klien", "Folder Klien")}</span>
                 </button>
               </div>
             )}

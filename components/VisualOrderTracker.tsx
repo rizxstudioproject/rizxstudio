@@ -41,7 +41,7 @@ export default function VisualOrderTracker({
   const { primaryColor, themeMode, socialContacts } = useMotionTheme();
   const isLight = themeMode === "light";
 
-  const stageMeta = getStageMetadata(project.currentStage);
+  const stageMeta = getStageMetadata(project.currentStage, lang);
   const currentStepNum = stageMeta.step; // 1 | 2 | 3 | 4
 
   // Visual Stepper Steps definition (identical in structure to reference image)
@@ -137,7 +137,7 @@ export default function VisualOrderTracker({
           <button
             type="button"
             onClick={onClose}
-            title={tr("Tutup Hasil", "Tutup Hasil", "Tutuik Hasil")}
+            title={tr("Close Results", "Tutup Hasil", "Tutuik Hasil")}
             className={`absolute top-3.5 right-3.5 sm:top-5 sm:right-5 w-8 h-8 rounded-full border flex items-center justify-center transition-all cursor-pointer z-10 ${
               isLight
                 ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 shadow-xs"
@@ -170,7 +170,7 @@ export default function VisualOrderTracker({
               <div className="flex items-center gap-1.5 font-mono text-sm sm:text-base">
                 <RiShoppingCart2Fill className="w-4 h-4 sm:w-5 sm:h-5 text-teal-400 shrink-0" />
                 <span className={`text-xs sm:text-sm font-sans font-medium ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
-                  {tr("Order ID :", "Order ID :", "Order ID :")}
+                  {tr("Order ID :", "ID Pesanan :", "ID Pasanan :")}
                 </span>
                 <span className="font-bold text-emerald-400 font-mono tracking-wider text-sm sm:text-base md:text-lg">
                   #{project.refCode}

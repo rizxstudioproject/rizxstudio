@@ -8,7 +8,7 @@ import { useMotionTheme } from "@/context/MotionThemeContext";
 
 export default function CreativeJourney() {
   const { stage3 } = usePortfolioData();
-  const { t, lang } = useLang();
+  const { t, tr, lang } = useLang();
   const { themeMode } = useMotionTheme();
   const isLight = themeMode === "light";
   const isId = lang === "id";
@@ -39,13 +39,25 @@ export default function CreativeJourney() {
     ? t("projects.stage3.headline")
     : stage3?.headline || t("projects.stage3.headline");
 
-  const displayTitle = currentCard?.title || (
-    isLocalized ? t("projects.stage3.card.title") : stage3?.heroCard?.title || t("projects.stage3.card.title")
-  );
+  const getCardTitle = (card: Stage3HeroCard | undefined, index: number) => {
+    if (
+      index === 0 &&
+      (!card?.title ||
+        card.title === "Craft to Technology" ||
+        card.title === "From Visual Craft to Technology" ||
+        card.title.toLowerCase().includes("karya visual"))
+    ) {
+      return t("projects.stage3.card.title");
+    }
+    if (!card?.title) return `Showreel 0\${index + 1}`;
+    return tr(card.title, card.title);
+  };
 
-  const displayCategory = currentCard?.category || (
-    isLocalized ? t("projects.stage3.card.category") : stage3?.heroCard?.category || t("projects.stage3.card.category")
-  );
+  const displayTitle = getCardTitle(currentCard, safeIdx);
+
+  const displayCategory = isLocalized
+    ? t("projects.stage3.card.category")
+    : (currentCard?.category || stage3?.heroCard?.category || t("projects.stage3.card.category"));
 
   const displayDescription = currentCard?.description || (
     isLocalized
@@ -125,7 +137,7 @@ export default function CreativeJourney() {
                       ? "drop-shadow(1px 0 3px rgba(15,23,42,0.12))"
                       : "drop-shadow(2px 0 4px rgba(0,0,0,0.4))",
                   }}
-                  title={c.title || `Showreel 0${idx + 1}`}
+                  title={getCardTitle(c, idx)}
                 >
                   {/* SVG Folder Tab Shape with Slanted Sides & Rounded Top Corners */}
                   <svg
@@ -135,7 +147,7 @@ export default function CreativeJourney() {
                   >
                     <path
                       d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40 Z"
-                      fill={isActive ? "#16b09f" : "#15181e"}
+                      fill={isActive ? "#16b09f" : isLight ? "#1e293b" : "#15181e"}
                     />
                     {!isActive && (
                       <path
@@ -151,13 +163,13 @@ export default function CreativeJourney() {
                     className={`relative z-10 truncate max-w-[140px] sm:max-w-[220px] px-1 transition-colors duration-200 ${
                       isActive
                         ? "font-extrabold text-black"
-                        : "font-medium text-white/50 group-hover:text-white/85"
+                        : "font-medium text-white/70 group-hover:text-white"
                     }`}
                     style={{
-                      color: isActive ? "#000000" : "rgba(255, 255, 255, 0.55)",
+                      color: isActive ? "#000000" : isLight ? "rgba(255, 255, 255, 0.75)" : "rgba(255, 255, 255, 0.55)",
                     }}
                   >
-                    {c.title || `Showreel 0${idx + 1}`}
+                    {getCardTitle(c, idx)}
                   </span>
                 </button>
               );
@@ -403,7 +415,7 @@ export default function CreativeJourney() {
                           >
                             <path
                               d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40 Z"
-                              fill={isActive ? "#16b09f" : "#161920"}
+                              fill={isActive ? "#16b09f" : isLight ? "#1e293b" : "#161920"}
                             />
                             {!isActive && (
                               <path
@@ -419,13 +431,13 @@ export default function CreativeJourney() {
                             className={`relative z-10 truncate max-w-[130px] sm:max-w-[180px] transition-colors duration-200 ${
                               isActive
                                 ? "font-extrabold text-black"
-                                : "font-medium text-white/50 group-hover:text-white/85"
+                                : "font-medium text-white/70 group-hover:text-white"
                             }`}
                             style={{
-                              color: isActive ? "#000000" : "rgba(255, 255, 255, 0.55)",
+                              color: isActive ? "#000000" : isLight ? "rgba(255, 255, 255, 0.75)" : "rgba(255, 255, 255, 0.55)",
                             }}
                           >
-                            {c.title || `Showreel 0${idx + 1}`}
+                            {getCardTitle(c, idx)}
                           </span>
                         </button>
                       );
