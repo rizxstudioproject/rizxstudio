@@ -9,6 +9,14 @@ export interface AdminUserItem {
   name?: string;
   createdAt?: string;
   updatedAt?: string;
+  // Biometric - Fingerprint (Sidik Jari)
+  fingerprintCredId?: string;
+  fingerprintRegisteredAt?: string;
+  // Biometric - Face Recognition (Pengenalan Wajah)
+  faceCredId?: string;
+  faceRegisteredAt?: string;
+  facePhotoData?: string;
+  // Legacy backward-compatibility
   biometricCredId?: string;
   biometricRegisteredAt?: string;
 }
@@ -445,9 +453,136 @@ export function clearActiveAdminUser(): void {
 }
 
 /**
- * Multi-User Biometric (WebAuthn) Management
- * Maps: 1 Admin User = 1 Biometric Credential
+ * Multi-User Biometric & Face Recognition Management
+ * Separates Fingerprint (Sidik Jari) and Face Recognition (Wajah) per person
  */
+export interface UserFingerprintRecord {
+  userId: string;
+  username: string;
+  credId: string;
+  registeredAt: string;
+}
+
+export interface UserFaceRecord {
+  userId: string;
+  username: string;
+  credId?: string;
+  photoData?: string;
+  registeredAt: string;
+}
+
+const FINGERPRINT_MAP_KEY = "rizx_user_fingerprints_map";
+const FACE_MAP_KEY = "rizx_user_faces_map";
+
+// --- FINGERPRINT METHODS ---
+export function getUserFingerprintsMap(): Record<string, UserFingerprintRecord> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(FINGERPRINT_MAP_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return {};
+}
+
+export function saveUserFingerprintRecord(
+  userId: string,
+  username: string,
+  credId: string,
+  registeredAt: string
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getUserFingerprintsMap();
+    current[userId] = { userId, username, credId, registeredAt };
+    localStorage.setItem(FINGERPRINT_MAP_KEY, JSON.stringify(current));
+
+    window.dispatchEvent(
+      new CustomEvent("rizx_user_biometrics_updated", { detail: current })
+    );
+  } catch (_) {}
+}
+
+export function removeUserFingerprintRecord(userId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getUserFingerprintsMap();
+    delete current[userId];
+    localStorage.setItem(FINGERPRINT_MAP_KEY, JSON.stringify(current));
+
+    window.dispatchEvent(
+      new CustomEvent("rizx_user_biometrics_updated", { detail: current })
+    );
+  } catch (_) {}
+}
+
+export function hasAnyFingerprintEnrolled(): boolean {
+  const map = getUserFingerprintsMap();
+  return Object.keys(map).length > 0;
+}
+
+// --- FACE RECOGNITION METHODS ---
+export function getUserFacesMap(): Record<string, UserFaceRecord> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(FACE_MAP_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return {};
+}
+
+export function saveUserFaceRecord(
+  userId: string,
+  username: string,
+  photoData?: string,
+  credId?: string,
+  registeredAt?: string
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getUserFacesMap();
+    const date =
+      registeredAt ||
+      new Date().toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    current[userId] = {
+      userId,
+      username,
+      photoData,
+      credId,
+      registeredAt: date,
+    };
+    localStorage.setItem(FACE_MAP_KEY, JSON.stringify(current));
+
+    window.dispatchEvent(
+      new CustomEvent("rizx_user_biometrics_updated", { detail: current })
+    );
+  } catch (_) {}
+}
+
+export function removeUserFaceRecord(userId: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getUserFacesMap();
+    delete current[userId];
+    localStorage.setItem(FACE_MAP_KEY, JSON.stringify(current));
+
+    window.dispatchEvent(
+      new CustomEvent("rizx_user_biometrics_updated", { detail: current })
+    );
+  } catch (_) {}
+}
+
+export function hasAnyFaceEnrolled(): boolean {
+  const map = getUserFacesMap();
+  return Object.keys(map).length > 0;
+}
+
+// Legacy backward-compatibility exports
 export interface UserBiometricRecord {
   userId: string;
   username: string;
@@ -455,15 +590,8 @@ export interface UserBiometricRecord {
   registeredAt: string;
 }
 
-const BIOMETRIC_MAP_KEY = "rizx_user_biometrics_map";
-
 export function getUserBiometricsMap(): Record<string, UserBiometricRecord> {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = localStorage.getItem(BIOMETRIC_MAP_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch (_) {}
-  return {};
+  return getUserFingerprintsMap();
 }
 
 export function saveUserBiometricRecord(
@@ -472,43 +600,9 @@ export function saveUserBiometricRecord(
   credId: string,
   registeredAt: string
 ): void {
-  if (typeof window === "undefined") return;
-  try {
-    const current = getUserBiometricsMap();
-    current[userId] = { userId, username, credId, registeredAt };
-    localStorage.setItem(BIOMETRIC_MAP_KEY, JSON.stringify(current));
-
-    // Fallback sync for global backward compatibility
-    localStorage.setItem("rizx_biometric_credId", credId);
-    localStorage.setItem("rizx_biometric_user", username);
-    localStorage.setItem("rizx_biometric_registered_at", registeredAt);
-
-    window.dispatchEvent(
-      new CustomEvent("rizx_user_biometrics_updated", { detail: current })
-    );
-  } catch (_) {}
+  saveUserFingerprintRecord(userId, username, credId, registeredAt);
 }
 
 export function removeUserBiometricRecord(userId: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    const current = getUserBiometricsMap();
-    delete current[userId];
-    localStorage.setItem(BIOMETRIC_MAP_KEY, JSON.stringify(current));
-
-    const remaining = Object.values(current);
-    if (remaining.length > 0) {
-      localStorage.setItem("rizx_biometric_credId", remaining[0].credId);
-      localStorage.setItem("rizx_biometric_user", remaining[0].username);
-      localStorage.setItem("rizx_biometric_registered_at", remaining[0].registeredAt);
-    } else {
-      localStorage.removeItem("rizx_biometric_credId");
-      localStorage.removeItem("rizx_biometric_user");
-      localStorage.removeItem("rizx_biometric_registered_at");
-    }
-
-    window.dispatchEvent(
-      new CustomEvent("rizx_user_biometrics_updated", { detail: current })
-    );
-  } catch (_) {}
+  removeUserFingerprintRecord(userId);
 }

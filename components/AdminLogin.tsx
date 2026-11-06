@@ -23,7 +23,8 @@ import {
   authenticateAdminUser,
   updateAdminUser,
   setActiveAdminUser,
-  getUserBiometricsMap,
+  getUserFingerprintsMap,
+  getUserFacesMap,
 } from "@/lib/adminAuth";
 import MetaSEO from "./MetaSEO";
 
@@ -84,20 +85,41 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
   const [forgotError, setForgotError] = useState<string>("");
   const [isSendingOtp, setIsSendingOtp] = useState(false);
 
-  // Biometric (WebAuthn) state
+  // Biometric (WebAuthn) state — separate Fingerprint & Face Recognition
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
-  const [isBiometricRegistered, setIsBiometricRegistered] = useState(false);
+  const [hasFingerprintEnrolled, setHasFingerprintEnrolled] = useState(false);
+  const [hasFaceEnrolled, setHasFaceEnrolled] = useState(false);
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
   const [biometricError, setBiometricError] = useState("");
 
-  useEffect(() => {
-    getAdminCredentials().then((c) => {
+  const syncBiometricEnrollmentStatus = async () => {
+    try {
+      const c = await getAdminCredentials();
       setCreds(c);
       if (c.email) setRecoveryEmail(c.email);
-    });
+
+      const fpMap = getUserFingerprintsMap();
+      const faceMap = getUserFacesMap();
+      const users = c.adminUsers || [];
+
+      const fpActive =
+        Object.values(fpMap).some((r) => !!r?.credId) ||
+        users.some((u) => !!u.fingerprintCredId);
+
+      const faceActive =
+        Object.values(faceMap).some((r) => !!r?.credId) ||
+        users.some((u) => !!u.faceCredId);
+
+      setHasFingerprintEnrolled(fpActive);
+      setHasFaceEnrolled(faceActive);
+    } catch (_) {}
+  };
+
+  useEffect(() => {
+    syncBiometricEnrollmentStatus();
   }, []);
 
-  // Check biometric availability on mount
+  // Check biometric hardware availability on mount
   useEffect(() => {
     const checkBiometric = async () => {
       try {
@@ -105,13 +127,13 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
         const available =
           await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
         setIsBiometricAvailable(available);
-        const credId = localStorage.getItem("rizx_biometric_credId");
-        const map = getUserBiometricsMap();
-        const hasEnrolled = !!credId || Object.keys(map).length > 0;
-        setIsBiometricRegistered(hasEnrolled);
       } catch (_) {}
     };
     checkBiometric();
+    window.addEventListener("rizx_user_biometrics_updated", syncBiometricEnrollmentStatus);
+    return () => {
+      window.removeEventListener("rizx_user_biometrics_updated", syncBiometricEnrollmentStatus);
+    };
   }, []);
 
   // Check mobile device size on mount & resize
@@ -158,74 +180,32 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
     }
   };
 
-  // Biometric: Register (first time setup)
-  const handleRegisterBiometric = async () => {
-    setIsBiometricLoading(true);
-    setBiometricError("");
-    try {
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const userId = crypto.getRandomValues(new Uint8Array(16));
-      const credential = (await navigator.credentials.create({
-        publicKey: {
-          challenge,
-          rp: { name: "Rizx Studio Admin", id: window.location.hostname },
-          user: { id: userId, name: "admin", displayName: "Rizx Admin" },
-          pubKeyCredParams: [
-            { alg: -7, type: "public-key" },
-            { alg: -257, type: "public-key" },
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required",
-          },
-          timeout: 60000,
-        },
-      })) as PublicKeyCredential | null;
-      if (credential) {
-        const rawIdBytes = new Uint8Array(credential.rawId);
-        let binary = "";
-        rawIdBytes.forEach((b) => { binary += String.fromCharCode(b); });
-        const credId = btoa(binary);
-        localStorage.setItem("rizx_biometric_credId", credId);
-        setIsBiometricRegistered(true);
-      }
-    } catch (err: unknown) {
-      const e = err as { name?: string; message?: string };
-      if (e?.name !== "NotAllowedError") {
-        setBiometricError(
-          e?.message || tr("Biometric setup failed.", "Gagal mengaktifkan biometrik.", "Gagal maaktifkan biometrik.")
-        );
-      }
-    } finally {
-      setIsBiometricLoading(false);
-    }
-  };
-
-  // Biometric: Authenticate (supports 1 user 1 biometric / multi-user)
-  const handleBiometricLogin = async () => {
+  // Authenticate strictly with enrolled Fingerprint (Sidik Jari) credentials
+  const handleFingerprintLogin = async () => {
     setIsBiometricLoading(true);
     setBiometricError("");
     setError("");
     try {
-      const biometricsMap = getUserBiometricsMap();
-      const records = Object.values(biometricsMap);
-      const fallbackCredId = localStorage.getItem("rizx_biometric_credId");
+      const currentCreds = await getAdminCredentials();
+      const allUsers =
+        currentCreds.adminUsers && currentCreds.adminUsers.length > 0
+          ? currentCreds.adminUsers
+          : [
+              {
+                id: "admin-root",
+                username: currentCreds.username,
+                email: currentCreds.email,
+                password: currentCreds.password,
+                role: "admin" as const,
+              },
+            ];
 
-      if (records.length === 0 && !fallbackCredId) {
-        setBiometricError(
-          tr(
-            "Biometric not set up yet.",
-            "Biometrik belum diaktifkan.",
-            "Biometrik alun diaktifkan."
-          )
-        );
-        return;
-      }
-
+      const fpMap = getUserFingerprintsMap();
       const allowCredentials: PublicKeyCredentialDescriptor[] = [];
       const credIdToUserId: Record<string, string> = {};
 
-      records.forEach((r) => {
+      Object.values(fpMap).forEach((r) => {
+        if (!r?.credId) return;
         try {
           const rawId = Uint8Array.from(atob(r.credId), (c) => c.charCodeAt(0));
           allowCredentials.push({ id: rawId, type: "public-key" });
@@ -233,11 +213,25 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
         } catch (_) {}
       });
 
-      if (fallbackCredId && allowCredentials.length === 0) {
-        try {
-          const rawId = Uint8Array.from(atob(fallbackCredId), (c) => c.charCodeAt(0));
-          allowCredentials.push({ id: rawId, type: "public-key" });
-        } catch (_) {}
+      allUsers.forEach((u) => {
+        if (u.fingerprintCredId && !credIdToUserId[u.fingerprintCredId]) {
+          try {
+            const rawId = Uint8Array.from(atob(u.fingerprintCredId), (c) => c.charCodeAt(0));
+            allowCredentials.push({ id: rawId, type: "public-key" });
+            credIdToUserId[u.fingerprintCredId] = u.id;
+          } catch (_) {}
+        }
+      });
+
+      if (allowCredentials.length === 0) {
+        setBiometricError(
+          tr(
+            "Fingerprint is not enrolled yet. Please sign in with Username & Password and enroll manually in Admin Dashboard.",
+            "Sidik jari belum terdaftar. Silakan login dengan Username & Password lalu daftarkan manual di Admin Dashboard.",
+            "Sidik jari alun tadaftar. Silakan login jo Username & Password lalu daftarkan manual di Admin Dashboard."
+          )
+        );
+        return;
       }
 
       const challenge = crypto.getRandomValues(new Uint8Array(32));
@@ -259,31 +253,23 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
         });
         const matchedCredId = btoa(binary);
 
-        const currentCreds = await getAdminCredentials();
-        const allUsers =
-          currentCreds.adminUsers && currentCreds.adminUsers.length > 0
-            ? currentCreds.adminUsers
-            : [
-                {
-                  id: "admin-root",
-                  username: currentCreds.username,
-                  email: currentCreds.email,
-                  password: currentCreds.password,
-                  role: "admin" as const,
-                },
-              ];
-
-        // Find which exact user's biometric matched
         const matchedUserId = credIdToUserId[matchedCredId];
-        let adminUser = allUsers.find(
+        const adminUser = allUsers.find(
           (u) =>
             (matchedUserId && u.id === matchedUserId) ||
-            u.biometricCredId === matchedCredId ||
-            biometricsMap[u.id]?.credId === matchedCredId
+            u.fingerprintCredId === matchedCredId ||
+            fpMap[u.id]?.credId === matchedCredId
         );
 
         if (!adminUser) {
-          adminUser = allUsers[0];
+          setBiometricError(
+            tr(
+              "Fingerprint does not match any registered admin user.",
+              "Sidik jari tidak cocok dengan akun admin mana pun yang terdaftar.",
+              "Sidik jari indak cocok jo akun admin mano pun nan tadaftar."
+            )
+          );
+          return;
         }
 
         sessionStorage.setItem("rizx_admin_session", "authenticated");
@@ -296,9 +282,122 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
         setBiometricError(
           e?.message ||
             tr(
-              "Biometric auth failed. Try password.",
-              "Autentikasi biometrik gagal. Coba password.",
-              "Autentikasi biometrik gagal. Coba password."
+              "Fingerprint authentication failed. Please use Username & Password.",
+              "Autentikasi sidik jari gagal. Gunakan Username & Password.",
+              "Autentikasi sidik jari gagal. Gunoan Username & Password."
+            )
+        );
+      }
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  };
+
+  // Authenticate strictly with enrolled Face Recognition (Pengenalan Wajah / Face ID) credentials
+  const handleFaceLogin = async () => {
+    setIsBiometricLoading(true);
+    setBiometricError("");
+    setError("");
+    try {
+      const currentCreds = await getAdminCredentials();
+      const allUsers =
+        currentCreds.adminUsers && currentCreds.adminUsers.length > 0
+          ? currentCreds.adminUsers
+          : [
+              {
+                id: "admin-root",
+                username: currentCreds.username,
+                email: currentCreds.email,
+                password: currentCreds.password,
+                role: "admin" as const,
+              },
+            ];
+
+      const faceMap = getUserFacesMap();
+      const allowCredentials: PublicKeyCredentialDescriptor[] = [];
+      const credIdToUserId: Record<string, string> = {};
+
+      Object.values(faceMap).forEach((r) => {
+        if (!r?.credId) return;
+        try {
+          const rawId = Uint8Array.from(atob(r.credId), (c) => c.charCodeAt(0));
+          allowCredentials.push({ id: rawId, type: "public-key" });
+          credIdToUserId[r.credId] = r.userId;
+        } catch (_) {}
+      });
+
+      allUsers.forEach((u) => {
+        if (u.faceCredId && !credIdToUserId[u.faceCredId]) {
+          try {
+            const rawId = Uint8Array.from(atob(u.faceCredId), (c) => c.charCodeAt(0));
+            allowCredentials.push({ id: rawId, type: "public-key" });
+            credIdToUserId[u.faceCredId] = u.id;
+          } catch (_) {}
+        }
+      });
+
+      if (allowCredentials.length === 0) {
+        setBiometricError(
+          tr(
+            "Face Recognition is not enrolled yet. Please sign in with Username & Password and enroll manually in Admin Dashboard.",
+            "Pengenalan Wajah belum terdaftar. Silakan login dengan Username & Password lalu daftarkan manual di Admin Dashboard.",
+            "Pangenalan Wajah alun tadaftar. Silakan login jo Username & Password lalu daftarkan manual di Admin Dashboard."
+          )
+        );
+        return;
+      }
+
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      const assertion = (await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          rpId: window.location.hostname,
+          userVerification: "required",
+          allowCredentials,
+          timeout: 60000,
+        },
+      })) as PublicKeyCredential | null;
+
+      if (assertion) {
+        const rawIdBytes = new Uint8Array(assertion.rawId);
+        let binary = "";
+        rawIdBytes.forEach((b) => {
+          binary += String.fromCharCode(b);
+        });
+        const matchedCredId = btoa(binary);
+
+        const matchedUserId = credIdToUserId[matchedCredId];
+        const adminUser = allUsers.find(
+          (u) =>
+            (matchedUserId && u.id === matchedUserId) ||
+            u.faceCredId === matchedCredId ||
+            faceMap[u.id]?.credId === matchedCredId
+        );
+
+        if (!adminUser) {
+          setBiometricError(
+            tr(
+              "Face Recognition does not match any registered admin user.",
+              "Pengenalan Wajah tidak cocok dengan akun admin mana pun yang terdaftar.",
+              "Pangenalan Wajah indak cocok jo akun admin mano pun nan tadaftar."
+            )
+          );
+          return;
+        }
+
+        sessionStorage.setItem("rizx_admin_session", "authenticated");
+        setActiveAdminUser(adminUser);
+        onSuccess();
+      }
+    } catch (err: unknown) {
+      const e = err as { name?: string; message?: string };
+      if (e?.name !== "NotAllowedError") {
+        setBiometricError(
+          e?.message ||
+            tr(
+              "Face Recognition authentication failed. Please use Username & Password.",
+              "Autentikasi Pengenalan Wajah gagal. Gunakan Username & Password.",
+              "Autentikasi Pangenalan Wajah gagal. Gunoan Username & Password."
             )
         );
       }
@@ -506,38 +605,121 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                 </p>
               </div>
 
-              {/* Center Biometric Actions */}
-              <div className="flex-1 flex flex-col items-center justify-center py-8 px-6 gap-6">
-                {/* Face ID Icon Button */}
-                <button
-                  type="button"
-                  onClick={isBiometricRegistered ? handleBiometricLogin : handleRegisterBiometric}
-                  disabled={isBiometricLoading}
-                  className={`p-5 rounded-3xl bg-slate-50 border border-slate-200/90 text-[#16b09f] shadow-[0_6px_25px_rgba(20,175,158,0.12)] hover:bg-teal-50 hover:border-teal-200 active:scale-95 transition-all group cursor-pointer relative ${
-                    isBiometricLoading ? "opacity-75 animate-pulse ring-4 ring-[#16b09f]/30" : ""
-                  }`}
-                  aria-label="Login with Face ID"
-                >
-                  <FaceIdIcon className="w-16 h-16 group-hover:scale-105 transition-transform" />
-                </button>
+              {/* Center Biometric Actions (Strictly Per-User Enrolled Fingerprint & Face Recognition) */}
+              <div className="flex-1 flex flex-col items-center justify-center py-6 px-6 gap-5">
+                {!hasFaceEnrolled && !hasFingerprintEnrolled ? (
+                  <div className="w-full max-w-xs p-5 rounded-3xl bg-amber-50/90 border border-amber-200 text-center space-y-3 shadow-xs">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 text-amber-600 flex items-center justify-center mx-auto">
+                      <HiLockClosed className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900">
+                      {tr(
+                        "Biometrics Not Registered",
+                        "Sidik Jari & Wajah Belum Terdaftar",
+                        "Sidik Jari & Wajah Alun Tadaftar"
+                      )}
+                    </h3>
+                    <p className="text-xs text-slate-600 leading-relaxed font-mono">
+                      {tr(
+                        "Fingerprint and Face Recognition must be enrolled manually per user inside the Admin Dashboard. No one can log in with biometrics until registered.",
+                        "Sidik Jari dan Pengenalan Wajah harus didaftarkan manual per orang di dalam Admin Dashboard. Tidak ada yang bisa login biometrik sebelum terdaftar.",
+                        "Sidik Jari jo Pangenalan Wajah harus didaftarkan manual per urang di dalam Admin Dashboard. Indak ado nan biso login biometrik sabalun tadaftar."
+                      )}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setMobileScreen("form")}
+                      className="w-full py-3 px-4 rounded-2xl font-bold text-xs font-mono uppercase tracking-wider text-white bg-gradient-to-r from-[#0d9488] to-[#16b09f] shadow-md shadow-[#16b09f]/25 active:scale-95 transition-all cursor-pointer"
+                    >
+                      {tr(
+                        "Sign In with Username & Password",
+                        "Login dengan Username & Password",
+                        "Login jo Username & Password"
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    {/* Face Recognition Button */}
+                    <div className="flex flex-col items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={
+                          hasFaceEnrolled
+                            ? handleFaceLogin
+                            : () =>
+                                setBiometricError(
+                                  tr(
+                                    "Face Recognition is not enrolled yet. Please enroll manually in Admin Dashboard.",
+                                    "Pengenalan Wajah belum terdaftar. Silakan daftarkan manual di Admin Dashboard.",
+                                    "Pangenalan Wajah alun tadaftar. Daftarkan manual di Admin Dashboard."
+                                  )
+                                )
+                        }
+                        disabled={isBiometricLoading || !hasFaceEnrolled}
+                        className={`p-5 rounded-3xl border transition-all relative ${
+                          hasFaceEnrolled
+                            ? "bg-slate-50 border-slate-200/90 text-[#16b09f] shadow-[0_6px_25px_rgba(20,175,158,0.12)] hover:bg-teal-50 hover:border-teal-200 active:scale-95 cursor-pointer group"
+                            : "bg-slate-100/80 border-slate-200 text-slate-300 cursor-not-allowed opacity-60"
+                        } ${isBiometricLoading ? "opacity-75 animate-pulse ring-4 ring-[#16b09f]/30" : ""}`}
+                        aria-label="Login with Face Recognition"
+                      >
+                        <FaceIdIcon className="w-16 h-16 group-hover:scale-105 transition-transform" />
+                      </button>
+                      <span
+                        className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
+                          hasFaceEnrolled ? "text-[#0d9488]" : "text-slate-400"
+                        }`}
+                      >
+                        {hasFaceEnrolled
+                          ? tr("Face Recognition Active", "Pengenalan Wajah Aktif", "Pangenalan Wajah Aktif")
+                          : tr("Face ID Not Enrolled", "Wajah Belum Terdaftar", "Wajah Alun Tadaftar")}
+                      </span>
+                    </div>
 
-                {/* OR divider */}
-                <span className="text-xs font-bold font-mono tracking-widest text-slate-400 uppercase">
-                  {tr("OR", "ATAU", "ATAU")}
-                </span>
+                    {/* OR divider */}
+                    <span className="text-xs font-bold font-mono tracking-widest text-slate-400 uppercase">
+                      {tr("OR", "ATAU", "ATAU")}
+                    </span>
 
-                {/* Fingerprint Icon Button */}
-                <button
-                  type="button"
-                  onClick={isBiometricRegistered ? handleBiometricLogin : handleRegisterBiometric}
-                  disabled={isBiometricLoading}
-                  className={`p-5 rounded-3xl bg-slate-50 border border-slate-200/90 text-[#16b09f] shadow-[0_6px_25px_rgba(20,175,158,0.12)] hover:bg-teal-50 hover:border-teal-200 active:scale-95 transition-all group cursor-pointer relative ${
-                    isBiometricLoading ? "opacity-75 animate-pulse ring-4 ring-[#16b09f]/30" : ""
-                  }`}
-                  aria-label="Login with Fingerprint"
-                >
-                  <RiFingerprint2Line className="w-16 h-16 group-hover:scale-105 transition-transform" />
-                </button>
+                    {/* Fingerprint Icon Button */}
+                    <div className="flex flex-col items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={
+                          hasFingerprintEnrolled
+                            ? handleFingerprintLogin
+                            : () =>
+                                setBiometricError(
+                                  tr(
+                                    "Fingerprint is not enrolled yet. Please enroll manually in Admin Dashboard.",
+                                    "Sidik Jari belum terdaftar. Silakan daftarkan manual di Admin Dashboard.",
+                                    "Sidik Jari alun tadaftar. Daftarkan manual di Admin Dashboard."
+                                  )
+                                )
+                        }
+                        disabled={isBiometricLoading || !hasFingerprintEnrolled}
+                        className={`p-5 rounded-3xl border transition-all relative ${
+                          hasFingerprintEnrolled
+                            ? "bg-slate-50 border-slate-200/90 text-[#16b09f] shadow-[0_6px_25px_rgba(20,175,158,0.12)] hover:bg-teal-50 hover:border-teal-200 active:scale-95 cursor-pointer group"
+                            : "bg-slate-100/80 border-slate-200 text-slate-300 cursor-not-allowed opacity-60"
+                        } ${isBiometricLoading ? "opacity-75 animate-pulse ring-4 ring-[#16b09f]/30" : ""}`}
+                        aria-label="Login with Fingerprint"
+                      >
+                        <RiFingerprint2Line className="w-16 h-16 group-hover:scale-105 transition-transform" />
+                      </button>
+                      <span
+                        className={`text-[10px] font-mono font-bold uppercase tracking-wider ${
+                          hasFingerprintEnrolled ? "text-[#0d9488]" : "text-slate-400"
+                        }`}
+                      >
+                        {hasFingerprintEnrolled
+                          ? tr("Fingerprint Active", "Sidik Jari Aktif", "Sidik Jari Aktif")
+                          : tr("Fingerprint Not Enrolled", "Sidik Jari Belum Terdaftar", "Sidik Jari Alun Tadaftar")}
+                      </span>
+                    </div>
+                  </>
+                )}
 
                 {/* Biometric Status / Loading */}
                 {isBiometricLoading && (
@@ -546,7 +728,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                     </svg>
-                    <span>{tr("Waiting for biometric…", "Menunggu biometrik…", "Manunggu biometrik…")}</span>
+                    <span>{tr("Verifying biometric…", "Memverifikasi biometrik…", "Mamverifikasi biometrik…")}</span>
                   </div>
                 )}
 
@@ -1065,39 +1247,38 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                 )}
               </button>
 
-              {/* Biometric Login */}
-              {isBiometricAvailable && (
+              {/* Biometric Login (Only shown if at least 1 Fingerprint or Face Recognition is enrolled) */}
+              {isBiometricAvailable && (hasFingerprintEnrolled || hasFaceEnrolled) && (
                 <>
                   <div className="relative flex items-center my-1">
                     <div className="flex-1 border-t border-white/[0.08]" />
                     <span className="mx-3 text-[11px] text-neutral-600 font-mono">or</span>
                     <div className="flex-1 border-t border-white/[0.08]" />
                   </div>
-                  <button
-                    type="button"
-                    onClick={isBiometricRegistered ? handleBiometricLogin : handleRegisterBiometric}
-                    disabled={isBiometricLoading}
-                    className="w-full flex items-center justify-center gap-2.5 py-3 px-6 rounded-xl font-bold text-sm transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 border border-[#16b09f]/30 bg-[#16b09f]/[0.07] hover:bg-[#16b09f]/15 text-[#16b09f]"
-                  >
-                    {isBiometricLoading ? (
-                      <>
-                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                        </svg>
-                        <span>{tr("Waiting for biometric…", "Menunggu biometrik…", "Manunggu biometrik…")}</span>
-                      </>
-                    ) : (
-                      <>
-                        <RiFingerprint2Line className="w-5 h-5" />
-                        <span>
-                          {isBiometricRegistered
-                            ? tr("Login with Fingerprint / Face ID", "Login dengan Sidik Jari / Face ID", "Login jo Sidik Jari / Face ID")
-                            : tr("Set Up Biometric Login", "Aktifkan Login Biometrik", "Aktifkan Login Biometrik")}
-                        </span>
-                      </>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {hasFingerprintEnrolled && (
+                      <button
+                        type="button"
+                        onClick={handleFingerprintLogin}
+                        disabled={isBiometricLoading}
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs font-mono transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 border border-[#16b09f]/30 bg-[#16b09f]/[0.07] hover:bg-[#16b09f]/15 text-[#16b09f]"
+                      >
+                        <RiFingerprint2Line className="w-4 h-4 shrink-0" />
+                        <span>{tr("Login Sidik Jari", "Fingerprint Login", "Login Sidik Jari")}</span>
+                      </button>
                     )}
-                  </button>
+                    {hasFaceEnrolled && (
+                      <button
+                        type="button"
+                        onClick={handleFaceLogin}
+                        disabled={isBiometricLoading}
+                        className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs font-mono transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 border border-cyan-500/30 bg-cyan-500/[0.07] hover:bg-cyan-500/15 text-cyan-400"
+                      >
+                        <FaceIdIcon className="w-4 h-4 shrink-0" />
+                        <span>{tr("Login Wajah", "Face ID Login", "Login Wajah")}</span>
+                      </button>
+                    )}
+                  </div>
                   <AnimatePresence>
                     {biometricError && (
                       <motion.div
