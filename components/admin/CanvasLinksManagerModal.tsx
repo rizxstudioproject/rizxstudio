@@ -218,16 +218,24 @@ export default function CanvasLinksManagerModal({
                   >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-teal-500/15 text-teal-400">
+                        <span className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+                          isLight ? "bg-teal-500/20 text-teal-700" : "bg-teal-500/15 text-teal-400"
+                        }`}>
                           #{idx + 1}
                         </span>
                         {isFigma ? (
-                          <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-400">
+                          <div className={`flex items-center gap-1.5 text-xs font-semibold ${
+                            isLight ? "text-rose-600" : "text-rose-400"
+                          }`}>
                             <FigmaIcon className="w-3.5 h-3.5" />
                             <span>Figma Design</span>
                           </div>
                         ) : (
-                          <span className="text-xs font-semibold text-cyan-400">Web / External Link</span>
+                          <span className={`text-xs font-semibold ${
+                            isLight ? "text-cyan-700" : "text-cyan-400"
+                          }`}>
+                            Web / External Link
+                          </span>
                         )}
                       </div>
 
@@ -269,10 +277,10 @@ export default function CanvasLinksManagerModal({
                           value={link.title}
                           onChange={(e) => handleUpdateLink(link.id, { title: e.target.value })}
                           placeholder="Open in Figma"
-                          className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-mono border focus:outline-none focus:border-[#16b09f] ${
+                          className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-mono border focus:outline-none focus:border-[#16b09f] selection:bg-[#16b09f] selection:text-black ${
                             isLight
-                              ? "bg-white border-slate-200 text-slate-800"
-                              : "bg-[#090b0e] border-white/10 text-white"
+                              ? "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400"
+                              : "bg-[#090b0e] border-white/10 text-white placeholder:text-neutral-500"
                           }`}
                         />
                       </div>
@@ -287,10 +295,10 @@ export default function CanvasLinksManagerModal({
                           value={link.url}
                           onChange={(e) => handleUpdateLink(link.id, { url: e.target.value })}
                           placeholder="https://www.figma.com/design/..."
-                          className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-mono border focus:outline-none focus:border-[#16b09f] ${
+                          className={`w-full px-2.5 py-1.5 rounded-lg text-xs font-mono border focus:outline-none focus:border-[#16b09f] selection:bg-[#16b09f] selection:text-black ${
                             isLight
-                              ? "bg-white border-slate-200 text-slate-800"
-                              : "bg-[#090b0e] border-white/10 text-white"
+                              ? "bg-white border-slate-200 text-slate-800 placeholder:text-slate-400"
+                              : "bg-[#090b0e] border-white/10 text-white placeholder:text-neutral-500"
                           }`}
                         />
                       </div>

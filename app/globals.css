@@ -1203,10 +1203,63 @@ body.modal-open .scroll-to-top-btn {
   }
 }
 
-/* Selection */
+/* Selection - Universal Studio High-Contrast Teal */
 ::selection {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: #16b09f !important;
+  color: #000000 !important;
+}
+
+::-moz-selection {
+  background: #16b09f !important;
+  color: #000000 !important;
+}
+
+/* Light mode text selection / marked text: Crisp teal with dark high-contrast text */
+html[data-theme='light'] ::selection,
+html.light ::selection,
+body.light ::selection,
+.light ::selection {
+  background: #14b8a6 !important;
+  color: #000000 !important;
+}
+
+html[data-theme='light'] ::-moz-selection,
+html.light ::-moz-selection,
+body.light ::-moz-selection,
+.light ::-moz-selection {
+  background: #14b8a6 !important;
+  color: #000000 !important;
+}
+
+/* Form inputs & textareas: Ensure marked/highlighted text is always 100% visible */
+input::selection,
+textarea::selection {
+  background: #14b8a6 !important;
+  color: #000000 !important;
+}
+
+input::-moz-selection,
+textarea::-moz-selection {
+  background: #14b8a6 !important;
+  color: #000000 !important;
+}
+
+html[data-theme='light'] input::selection,
+html[data-theme='light'] textarea::selection,
+html.light input::selection,
+html.light textarea::selection,
+.light input::selection,
+.light textarea::selection {
+  background: #14b8a6 !important;
+  color: #000000 !important;
+}
+
+/* Mark Tag */
+mark {
+  background-color: #ccfbf1;
+  color: #0f172a;
+  padding: 0.1em 0.25em;
+  border-radius: 0.25rem;
 }
 
 /* Noise overlay for cinematic film grain */

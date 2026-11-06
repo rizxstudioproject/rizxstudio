@@ -94,7 +94,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="bg-[#0a0a0a] text-neutral-300 selection:bg-white/20 selection:text-white antialiased min-h-screen relative">
+      <body className="bg-[#0a0a0a] text-neutral-300 selection:bg-[#16b09f] selection:text-black antialiased min-h-screen relative">
         {/* Subtle cinematic ambient glow / film grain */}
         <div className="fixed inset-0 pointer-events-none z-[999] bg-noise opacity-40" />
         {/* Multi-layer content protection: anti-rightclick, anti-drag, anti-snip */}
