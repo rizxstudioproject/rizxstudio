@@ -114,11 +114,17 @@ export default function CreativeJourney() {
                   } ${
                     isActive
                       ? "z-30 text-black font-extrabold"
+                      : isLight
+                      ? "z-10 text-slate-600 hover:text-slate-900 font-medium"
                       : "z-10 text-neutral-400 hover:text-white font-medium"
                   }`}
                   style={{
                     filter: isActive
-                      ? "drop-shadow(0 -4px 14px rgba(22,176,159,0.35)) drop-shadow(4px 0 8px rgba(0,0,0,0.6)) drop-shadow(-4px 0 8px rgba(0,0,0,0.6))"
+                      ? isLight
+                        ? "drop-shadow(0 -2px 6px rgba(20,175,158,0.25)) drop-shadow(2px 0 4px rgba(15,23,42,0.08)) drop-shadow(-2px 0 4px rgba(15,23,42,0.08))"
+                        : "drop-shadow(0 -4px 14px rgba(22,176,159,0.35)) drop-shadow(4px 0 8px rgba(0,0,0,0.6)) drop-shadow(-4px 0 8px rgba(0,0,0,0.6))"
+                      : isLight
+                      ? "drop-shadow(1px 0 2px rgba(15,23,42,0.06))"
                       : "drop-shadow(2px 0 4px rgba(0,0,0,0.4))",
                   }}
                   title={c.title || `Showreel 0${idx + 1}`}
@@ -143,7 +149,7 @@ export default function CreativeJourney() {
                       <path
                         d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40"
                         fill="none"
-                        stroke={isLight ? "rgba(0,0,0,0.15)" : "rgba(255,255,255,0.14)"}
+                        stroke={isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.14)"}
                         strokeWidth="1.2"
                         vectorEffect="non-scaling-stroke"
                       />
@@ -158,14 +164,20 @@ export default function CreativeJourney() {
           </div>
 
           {/* Solid Teal Baseline extending across the card top */}
-          <div className="h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 shadow-[0_0_12px_rgba(22,176,159,0.4)]" />
+          <div className={`h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 ${
+            isLight ? "" : "shadow-[0_0_12px_rgba(22,176,159,0.4)]"
+          }`} />
         </div>
       )}
 
       {/* Large Showcase Card (Unified with Folder Tabs) */}
       <div
         onClick={() => setIsModalOpen(true)}
-        className="relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-b-2xl sm:rounded-b-3xl rounded-t-none overflow-hidden border-x border-b border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.85)] bg-neutral-900 group cursor-pointer"
+        className={`relative w-full aspect-[16/10] sm:aspect-[21/9] rounded-b-2xl sm:rounded-b-3xl rounded-t-none overflow-hidden border-x border-b bg-neutral-900 group cursor-pointer ${
+          isLight
+            ? "border-slate-300/80 shadow-[0_12px_36px_rgba(15,23,42,0.08)]"
+            : "border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.85)]"
+        }`}
       >
         {/* Background Media: YouTube, Google Drive, or Static Image */}
         <div className="absolute inset-0 w-full h-full overflow-hidden bg-black">
@@ -371,11 +383,17 @@ export default function CreativeJourney() {
                           } ${
                             isActive
                               ? "z-30 text-black font-extrabold"
+                              : isLight
+                              ? "z-10 text-slate-600 hover:text-slate-900 font-medium"
                               : "z-10 text-neutral-400 hover:text-white font-medium"
                           }`}
                           style={{
                             filter: isActive
-                              ? "drop-shadow(0 -3px 10px rgba(22,176,159,0.35)) drop-shadow(3px 0 6px rgba(0,0,0,0.5))"
+                              ? isLight
+                                ? "drop-shadow(0 -2px 6px rgba(20,175,158,0.25)) drop-shadow(1px 0 3px rgba(15,23,42,0.08))"
+                                : "drop-shadow(0 -3px 10px rgba(22,176,159,0.35)) drop-shadow(3px 0 6px rgba(0,0,0,0.5))"
+                              : isLight
+                              ? "drop-shadow(1px 0 2px rgba(15,23,42,0.05))"
                               : "none",
                           }}
                         >
@@ -411,7 +429,9 @@ export default function CreativeJourney() {
                       );
                     })}
                   </div>
-                  <div className="h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 shadow-[0_0_8px_rgba(22,176,159,0.4)]" />
+                  <div className={`h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 ${
+                    isLight ? "" : "shadow-[0_0_8px_rgba(22,176,159,0.4)]"
+                  }`} />
                 </div>
               )}
 

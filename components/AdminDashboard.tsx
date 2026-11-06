@@ -7864,17 +7864,27 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               } ${
                                 isActive
                                   ? "z-30 text-black font-extrabold"
+                                  : isLight
+                                  ? "z-10 text-slate-600 hover:text-slate-900 font-medium"
                                   : "z-10 text-neutral-400 hover:text-white font-medium"
                               }`}
                               style={{
                                 filter: isActive
-                                  ? "drop-shadow(0 -3px 8px rgba(22,176,159,0.35)) drop-shadow(2px 0 4px rgba(0,0,0,0.6))"
+                                  ? isLight
+                                    ? "drop-shadow(0 -2px 5px rgba(20,175,158,0.25)) drop-shadow(1px 0 3px rgba(15,23,42,0.08))"
+                                    : "drop-shadow(0 -3px 8px rgba(22,176,159,0.35)) drop-shadow(2px 0 4px rgba(0,0,0,0.6))"
+                                  : isLight
+                                  ? "drop-shadow(1px 0 2px rgba(15,23,42,0.05))"
                                   : "none",
                               }}
                             >
                               <svg
                                 className={`absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 ${
-                                  isActive ? "text-[#16b09f]" : "text-[#15181e] hover:text-[#1f232b]"
+                                  isActive
+                                    ? "text-[#16b09f]"
+                                    : isLight
+                                    ? "text-slate-200 hover:text-slate-300"
+                                    : "text-[#15181e] hover:text-[#1f232b]"
                                 }`}
                                 viewBox="0 0 100 40"
                                 preserveAspectRatio="none"
@@ -7887,7 +7897,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                   <path
                                     d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40"
                                     fill="none"
-                                    stroke="rgba(255,255,255,0.14)"
+                                    stroke={isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.14)"}
                                     strokeWidth="1.2"
                                     vectorEffect="non-scaling-stroke"
                                   />
@@ -7900,7 +7910,9 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                           );
                         })}
                       </div>
-                      <div className="h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 shadow-[0_0_8px_rgba(22,176,159,0.4)]" />
+                      <div className={`h-[2px] w-full bg-[#16b09f] -mt-[2px] relative z-20 ${
+                        isLight ? "" : "shadow-[0_0_8px_rgba(22,176,159,0.4)]"
+                      }`} />
                     </div>
                   )}
 
