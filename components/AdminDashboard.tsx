@@ -7863,12 +7863,11 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 idx > 0 ? "-ml-2.5 sm:-ml-3" : ""
                               } ${
                                 isActive
-                                  ? "z-30 text-black font-extrabold"
-                                  : isLight
-                                  ? "z-10 text-slate-600 hover:text-slate-900 font-medium"
-                                  : "z-10 text-neutral-400 hover:text-white font-medium"
+                                  ? "z-30 text-black font-extrabold stage3-tab-active"
+                                  : "z-10 text-white font-semibold stage3-tab-inactive keep-white"
                               }`}
                               style={{
+                                color: isActive ? "#000000" : "#ffffff",
                                 filter: isActive
                                   ? isLight
                                     ? "drop-shadow(0 -2px 5px rgba(20,175,158,0.25)) drop-shadow(1px 0 3px rgba(15,23,42,0.08))"
@@ -7882,8 +7881,6 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 className={`absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 ${
                                   isActive
                                     ? "text-[#16b09f]"
-                                    : isLight
-                                    ? "text-slate-200 hover:text-slate-300"
                                     : "text-[#15181e] hover:text-[#1f232b]"
                                 }`}
                                 viewBox="0 0 100 40"
@@ -7897,13 +7894,16 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                   <path
                                     d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40"
                                     fill="none"
-                                    stroke={isLight ? "rgba(0,0,0,0.12)" : "rgba(255,255,255,0.14)"}
+                                    stroke={isLight ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.14)"}
                                     strokeWidth="1.2"
                                     vectorEffect="non-scaling-stroke"
                                   />
                                 )}
                               </svg>
-                              <span className="relative z-10 truncate max-w-[100px] font-semibold">
+                              <span
+                                className="relative z-10 truncate max-w-[100px] font-semibold"
+                                style={{ color: isActive ? "#000000" : "#ffffff" }}
+                              >
                                 {card.title || `Showreel ${idx + 1}`}
                               </span>
                             </button>
