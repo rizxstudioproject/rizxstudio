@@ -41,6 +41,8 @@ import {
   UserFaceRecord,
 } from "@/lib/adminAuth";
 import AdminUsersManager from "./AdminUsersManager";
+import FaceCameraModal, { EnrolledFaceCandidate } from "./FaceCameraModal";
+import { parseFaceDescriptor } from "@/lib/faceRecognition";
 
 interface SecuritySettingsWorkspaceProps {
   showToast?: (msg: string) => void;
@@ -79,6 +81,11 @@ export default function SecuritySettingsWorkspace({
   const [facesMap, setFacesMap] = useState<Record<string, UserFaceRecord>>({});
   // Track which user+type is being processed: `${userId}_fp` or `${userId}_face`
   const [activeBiometricKey, setActiveBiometricKey] = useState<string | null>(null);
+  const [faceModalConfig, setFaceModalConfig] = useState<{
+    isOpen: boolean;
+    mode: "enroll" | "verify";
+    targetUser: AdminUserItem | null;
+  }>({ isOpen: false, mode: "enroll", targetUser: null });
 
   const refreshUsersAndBiometrics = async () => {
     try {
@@ -371,150 +378,96 @@ export default function SecuritySettingsWorkspace({
     );
   };
 
-  const handleRegisterUserFace = async (u: AdminUserItem) => {
-    setActiveBiometricKey(`${u.id}_face`);
-    setIsBiometricLoading(true);
-    try {
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const userIdBytes = new TextEncoder().encode((`${u.id}_face`).slice(0, 16).padEnd(16, "0"));
-      const credential = (await navigator.credentials.create({
-        publicKey: {
-          challenge,
-          rp: { name: "Rizx Studio Admin (Face ID)", id: window.location.hostname },
-          user: {
-            id: userIdBytes,
-            name: `${u.username}_face`,
-            displayName: `${u.name || `@${u.username}`} (Face ID)`,
-          },
-          pubKeyCredParams: [
-            { alg: -7, type: "public-key" },
-            { alg: -257, type: "public-key" },
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required",
-          },
-          timeout: 60000,
-        },
-      })) as PublicKeyCredential | null;
-
-      if (credential) {
-        const rawIdBytes = new Uint8Array(credential.rawId);
-        let binary = "";
-        rawIdBytes.forEach((b) => {
-          binary += String.fromCharCode(b);
+  const getEnrolledFaceCandidates = (filterUserId?: string): EnrolledFaceCandidate[] => {
+    const list: EnrolledFaceCandidate[] = [];
+    for (const u of adminUsers) {
+      if (filterUserId && u.id !== filterUserId) continue;
+      const rec = facesMap[u.id];
+      const rawDesc = rec?.credId || u.faceCredId;
+      const parsed = parseFaceDescriptor(rawDesc);
+      if (parsed) {
+        list.push({
+          user: u,
+          descriptor: parsed,
+          photoData: rec?.photoData || u.facePhotoData,
         });
-        const credId = btoa(binary);
-        const nowStr = new Date().toLocaleDateString("id-ID", {
-          day: "numeric",
-          month: "short",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-
-        saveUserFaceRecord(u.id, u.username, undefined, credId, nowStr);
-        await updateAdminUser(u.id, {
-          faceCredId: credId,
-          faceRegisteredAt: nowStr,
-        });
-
-        await refreshUsersAndBiometrics();
-        triggerToast(
-          tr(
-            `Berhasil! Pengenalan Wajah (Face ID) terdaftar untuk @${u.username}.`,
-            `Success! Face Recognition enrolled for @${u.username}.`,
-            `Barasil! Pangenalan Wajah tadaftar untuak @${u.username}.`
-          )
-        );
       }
-    } catch (err: unknown) {
-      const e = err as { name?: string; message?: string };
-      if (e?.name !== "NotAllowedError") {
-        triggerToast(
-          e?.message ||
-            tr(
-              "Gagal mendaftarkan pengenalan wajah.",
-              "Face recognition registration failed.",
-              "Gagal mendaftarkan pangenalan wajah."
-            )
-        );
-      } else {
-        triggerToast(
-          tr(
-            "Pendaftaran pengenalan wajah dibatalkan.",
-            "Face recognition registration cancelled.",
-            "Pendaftaran pangenalan wajah dibatalkan."
-          )
-        );
-      }
-    } finally {
-      setIsBiometricLoading(false);
-      setActiveBiometricKey(null);
     }
+    return list;
   };
 
-  const handleTestUserFace = async (u: AdminUserItem) => {
-    const record = facesMap[u.id];
-    const credId = record?.credId || u.faceCredId;
-    if (!credId) {
+  const handleRegisterUserFace = (u: AdminUserItem) => {
+    setFaceModalConfig({
+      isOpen: true,
+      mode: "enroll",
+      targetUser: u,
+    });
+  };
+
+  const handleFaceEnrollSuccess = async (result: {
+    descriptorJson: string;
+    photoDataUrl: string;
+  }) => {
+    const u = faceModalConfig.targetUser;
+    setFaceModalConfig({ isOpen: false, mode: "enroll", targetUser: null });
+    if (!u) return;
+
+    const nowStr = new Date().toLocaleDateString("id-ID", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+    saveUserFaceRecord(u.id, u.username, result.photoDataUrl, result.descriptorJson, nowStr);
+    await updateAdminUser(u.id, {
+      faceCredId: result.descriptorJson,
+      facePhotoData: result.photoDataUrl,
+      faceRegisteredAt: nowStr,
+    });
+
+    await refreshUsersAndBiometrics();
+    triggerToast(
+      tr(
+        `Berhasil! Wajah @${u.username} telah dipindai & didaftarkan via kamera.`,
+        `Success! Face for @${u.username} scanned & enrolled via camera.`,
+        `Barasil! Wajah @${u.username} lah dipindai & tadaftar via kamera.`
+      )
+    );
+  };
+
+  const handleTestUserFace = (u: AdminUserItem) => {
+    const candidates = getEnrolledFaceCandidates(u.id);
+    if (candidates.length === 0) {
       triggerToast(
         tr(
-          `Akun @${u.username} belum mendaftarkan pengenalan wajah.`,
-          `No face recognition enrolled for @${u.username}.`,
-          `Alun ado pangenalan wajah tadaftar untuak @${u.username}.`
+          `Akun @${u.username} belum mendaftarkan wajah melalui kamera.`,
+          `No camera face enrolled for @${u.username}.`,
+          `Alun ado wajah tadaftar untuak @${u.username}.`
         )
       );
       return;
     }
-    setActiveBiometricKey(`${u.id}_face`);
-    setIsBiometricLoading(true);
-    try {
-      const rawId = Uint8Array.from(atob(credId), (c) => c.charCodeAt(0));
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const assertion = await navigator.credentials.get({
-        publicKey: {
-          challenge,
-          rpId: window.location.hostname,
-          userVerification: "required",
-          allowCredentials: [{ id: rawId, type: "public-key" }],
-          timeout: 60000,
-        },
-      });
+    setFaceModalConfig({
+      isOpen: true,
+      mode: "verify",
+      targetUser: u,
+    });
+  };
 
-      if (assertion) {
-        triggerToast(
-          tr(
-            `Verifikasi Berhasil! Pengenalan Wajah cocok untuk @${u.username}.`,
-            `Verification Success! Face Recognition verified for @${u.username}.`,
-            `Verifikasi Barasil! Pangenalan Wajah cocok untuak @${u.username}.`
-          )
-        );
-      }
-    } catch (err: unknown) {
-      const e = err as { name?: string; message?: string };
-      if (e?.name !== "NotAllowedError") {
-        triggerToast(
-          e?.message ||
-            tr(
-              "Verifikasi pengenalan wajah gagal.",
-              "Face recognition verification failed.",
-              "Verifikasi pangenalan wajah gagal."
-            )
-        );
-      } else {
-        triggerToast(
-          tr(
-            "Verifikasi pengenalan wajah dibatalkan.",
-            "Face recognition verification cancelled.",
-            "Verifikasi pangenalan wajah dibatalkan."
-          )
-        );
-      }
-    } finally {
-      setIsBiometricLoading(false);
-      setActiveBiometricKey(null);
-    }
+  const handleFaceVerifySuccess = (result: {
+    matchedUser: AdminUserItem;
+    similarity: number;
+  }) => {
+    setFaceModalConfig({ isOpen: false, mode: "verify", targetUser: null });
+    triggerToast(
+      tr(
+        `Verifikasi Kamera Berhasil! Wajah cocok untuk @${result.matchedUser.username} (${result.similarity}%).`,
+        `Camera Verification Success! Face matched @${result.matchedUser.username} (${result.similarity}%).`,
+        `Verifikasi Kamera Barasil! Wajah cocok untuak @${result.matchedUser.username} (${result.similarity}%).`
+      )
+    );
   };
 
   const handleRemoveUserFace = async (u: AdminUserItem) => {
@@ -527,9 +480,9 @@ export default function SecuritySettingsWorkspace({
     await refreshUsersAndBiometrics();
     triggerToast(
       tr(
-        `Pengenalan wajah untuk @${u.username} telah dihapus dari perangkat ini.`,
-        `Face recognition for @${u.username} removed from this device.`,
-        `Pangenalan wajah untuak @${u.username} lah dihapuih dari parangkek ko.`
+        `Data pengenalan wajah untuk @${u.username} telah dihapus.`,
+        `Face recognition data for @${u.username} removed.`,
+        `Data pangenalan wajah untuak @${u.username} lah dihapuih.`
       )
     );
   };
@@ -688,8 +641,7 @@ export default function SecuritySettingsWorkspace({
                         (u) =>
                           !!fingerprintsMap[u.id]?.credId ||
                           !!u.fingerprintCredId ||
-                          !!facesMap[u.id]?.credId ||
-                          !!u.faceCredId
+                          !!parseFaceDescriptor(facesMap[u.id]?.credId || u.faceCredId)
                       ).length
                     }{" "}
                     / {adminUsers.length} {tr("Akun Aktif", "Users Enrolled", "Akun Aktif")}
@@ -697,26 +649,16 @@ export default function SecuritySettingsWorkspace({
                 </div>
                 <p className={`text-xs mt-1 leading-relaxed ${isLight ? "text-slate-600" : "text-neutral-400"}`}>
                   {tr(
-                    "Sidik Jari (Fingerprint) dan Pengenalan Wajah (Face Recognition) dipisahkan secara mandiri untuk setiap orang. Daftarkan masing-masing secara manual di bawah ini. Jika belum terdaftar, login biometrik tidak akan bisa digunakan.",
-                    "Fingerprint and Face Recognition are enrolled separately for each person. Manually register each below. If neither is enrolled, biometric login is disabled on the login screen.",
-                    "Sidik Jari jo Pangenalan Wajah dipisahkan surang-surang untuak satiap urang. Daftarkan manual di bawah ko. Kok alun tadaftar, indak ado nan biso login biometrik."
+                    "Sidik Jari (Fingerprint) dan Pengenalan Wajah (Kamera Depan) dipisahkan secara mandiri untuk setiap orang. Daftarkan masing-masing secara manual di bawah ini. Setiap user wajib menggunakan wajah berbeda.",
+                    "Fingerprint and Camera Face Recognition are enrolled separately for each person. Manually register each below. Each user must register their own distinct face.",
+                    "Sidik Jari jo Pangenalan Wajah (Kamera Muko) dipisahkan surang-surang untuak satiap urang. Daftarkan manual di bawah ko."
                   )}
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Hardware Support Alert */}
-          {!isBiometricSupported ? (
-            <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono">
-              {tr(
-                "Perangkat atau browser ini tidak mendukung sensor biometrik WebAuthn bawaan. Pastikan menggunakan browser modern (Chrome/Safari) dengan sensor sidik jari atau Face ID aktif.",
-                "This device or browser does not support WebAuthn platform biometrics. Ensure you are using a modern browser (Chrome/Safari) with biometric hardware.",
-                "Parangkek atau browser ko indak mandukuang sensor biometrik WebAuthn bawaan."
-              )}
-            </div>
-          ) : (
-            <div className="space-y-4">
+          <div className="space-y-4">
               {adminUsers.map((u, idx) => {
                 const fpRecord = fingerprintsMap[u.id];
                 const isFpEnrolled = !!fpRecord?.credId || !!u.fingerprintCredId;
@@ -724,9 +666,9 @@ export default function SecuritySettingsWorkspace({
                 const isFpLoading = isBiometricLoading && activeBiometricKey === `${u.id}_fp`;
 
                 const faceRecord = facesMap[u.id];
-                const isFaceEnrolled = !!faceRecord?.credId || !!u.faceCredId;
+                const isFaceEnrolled = !!parseFaceDescriptor(faceRecord?.credId || u.faceCredId);
                 const faceDate = faceRecord?.registeredAt || u.faceRegisteredAt || "";
-                const isFaceLoading = isBiometricLoading && activeBiometricKey === `${u.id}_face`;
+                const facePhoto = faceRecord?.photoData || u.facePhotoData || "";
 
                 const anyEnrolled = isFpEnrolled || isFaceEnrolled;
 
@@ -878,7 +820,7 @@ export default function SecuritySettingsWorkspace({
                         </div>
                       </div>
 
-                      {/* BOX 2: FACE RECOGNITION (PENGENALAN WAJAH) */}
+                      {/* BOX 2: FACE RECOGNITION (PENGENALAN WAJAH VIA KAMERA) */}
                       <div
                         className={`p-3.5 rounded-xl border flex flex-col justify-between gap-3 ${
                           isFaceEnrolled
@@ -891,30 +833,38 @@ export default function SecuritySettingsWorkspace({
                         }`}
                       >
                         <div className="flex items-start gap-2.5">
-                          <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
-                            <svg
-                              className="w-4 h-4"
-                              viewBox="0 0 48 48"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="M8 17V12a4 4 0 0 1 4-4h5" />
-                              <path d="M40 17V12a4 4 0 0 0-4-4h-5" />
-                              <path d="M8 31v5a4 4 0 0 0 4 4h5" />
-                              <path d="M40 31v5a4 4 0 0 1-4 4h-5" />
-                              <circle cx="18" cy="19" r="1.5" fill="currentColor" stroke="none" />
-                              <circle cx="30" cy="19" r="1.5" fill="currentColor" stroke="none" />
-                              <path d="M24 19v6a1.5 1.5 0 0 0 1.5 1.5" />
-                              <path d="M18 31a8 8 0 0 0 12 0" />
-                            </svg>
-                          </div>
+                          {isFaceEnrolled && facePhoto ? (
+                            <img
+                              src={facePhoto}
+                              alt={u.username}
+                              className="w-9 h-9 rounded-lg object-cover border border-cyan-400/60 shrink-0 shadow-xs"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 rounded-lg bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center shrink-0">
+                              <svg
+                                className="w-4 h-4"
+                                viewBox="0 0 48 48"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="3"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M8 17V12a4 4 0 0 1 4-4h5" />
+                                <path d="M40 17V12a4 4 0 0 0-4-4h-5" />
+                                <path d="M8 31v5a4 4 0 0 0 4 4h5" />
+                                <path d="M40 31v5a4 4 0 0 1-4 4h-5" />
+                                <circle cx="18" cy="19" r="1.5" fill="currentColor" stroke="none" />
+                                <circle cx="30" cy="19" r="1.5" fill="currentColor" stroke="none" />
+                                <path d="M24 19v6a1.5 1.5 0 0 0 1.5 1.5" />
+                                <path d="M18 31a8 8 0 0 0 12 0" />
+                              </svg>
+                            </div>
+                          )}
                           <div className="min-w-0 flex-1">
                             <div className="flex items-center justify-between gap-1">
                               <span className={`text-xs font-bold font-mono ${isLight ? "text-slate-900" : "text-white"}`}>
-                                {tr("2. Pengenalan Wajah (Face ID)", "2. Face Recognition", "2. Pangenalan Wajah")}
+                                {tr("2. Pengenalan Wajah (Kamera)", "2. Face Recognition", "2. Pangenalan Wajah")}
                               </span>
                               <span
                                 className={`text-[10px] font-mono px-1.5 py-0.5 rounded font-bold ${
@@ -932,8 +882,8 @@ export default function SecuritySettingsWorkspace({
                               {isFaceEnrolled
                                 ? faceDate
                                   ? `${tr("Aktif sejak", "Enrolled", "Aktif sajak")}: ${faceDate}`
-                                  : tr("Kredensial wajah siap digunakan", "Face credential ready", "Wajah siap dipakai")
-                                : tr("Terpisah dari sidik jari — daftarkan manual", "Separate from fingerprint — enroll manually", "Tapisah dari sidik jari — daftarkan manual")}
+                                  : tr("Wajah terdaftar di kamera", "Face enrolled via camera", "Wajah tadaftar di kamera")
+                                : tr("Buka kamera HP & daftarkan wajah unik Anda", "Open smartphone camera & register your unique face", "Bukak kamera HP & daftarkan wajah Sanak")}
                             </p>
                           </div>
                         </div>
@@ -947,7 +897,7 @@ export default function SecuritySettingsWorkspace({
                                 disabled={isBiometricLoading}
                                 className="px-3 py-1.5 rounded-lg text-[11px] font-mono font-bold bg-cyan-400 text-black hover:bg-cyan-300 transition-all cursor-pointer active:scale-95 flex items-center gap-1 disabled:opacity-50"
                               >
-                                <span>{tr("Uji Wajah", "Test Face", "Uji Wajah")}</span>
+                                <span>{tr("Uji Kamera Wajah", "Test Camera Face", "Uji Kamera Wajah")}</span>
                               </button>
                               <button
                                 type="button"
@@ -966,13 +916,7 @@ export default function SecuritySettingsWorkspace({
                               disabled={isBiometricLoading}
                               className="w-full py-2 px-3 rounded-lg text-xs font-bold font-mono bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 transition-all cursor-pointer shadow-xs active:scale-95 flex items-center justify-center gap-1.5 disabled:opacity-50"
                             >
-                              {isFaceLoading ? (
-                                <span>{tr("Memindai Wajah…", "Scanning Face…", "Mamindai Wajah…")}</span>
-                              ) : (
-                                <>
-                                  <span>{tr("+ Daftarkan Wajah (Face ID)", "+ Enroll Face Recognition", "+ Daftarkan Wajah")}</span>
-                                </>
-                              )}
+                              <span>{tr("+ Buka Kamera & Daftarkan Wajah", "+ Open Camera & Enroll Face", "+ Bukak Kamera & Daftarkan Wajah")}</span>
                             </button>
                           )}
                         </div>
@@ -981,8 +925,7 @@ export default function SecuritySettingsWorkspace({
                   </div>
                 );
               })}
-            </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -1315,6 +1258,21 @@ export default function SecuritySettingsWorkspace({
           <AdminUsersManager showToast={showToast} />
         </div>
       )}
+
+      {/* Camera Face Recognition Modal (Enrollment & Verification) */}
+      <FaceCameraModal
+        isOpen={faceModalConfig.isOpen}
+        mode={faceModalConfig.mode}
+        targetUser={faceModalConfig.targetUser}
+        enrolledCandidates={
+          faceModalConfig.mode === "verify" && faceModalConfig.targetUser
+            ? getEnrolledFaceCandidates(faceModalConfig.targetUser.id)
+            : getEnrolledFaceCandidates()
+        }
+        onClose={() => setFaceModalConfig({ isOpen: false, mode: "enroll", targetUser: null })}
+        onEnrollSuccess={handleFaceEnrollSuccess}
+        onVerifySuccess={handleFaceVerifySuccess}
+      />
     </motion.div>
   );
 }

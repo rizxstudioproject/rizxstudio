@@ -27,6 +27,8 @@ import {
   getUserFacesMap,
 } from "@/lib/adminAuth";
 import MetaSEO from "./MetaSEO";
+import FaceCameraModal, { EnrolledFaceCandidate } from "./admin/FaceCameraModal";
+import { parseFaceDescriptor } from "@/lib/faceRecognition";
 
 function FaceIdIcon({ className = "w-14 h-14" }: { className?: string }) {
   return (
@@ -85,10 +87,12 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
   const [forgotError, setForgotError] = useState<string>("");
   const [isSendingOtp, setIsSendingOtp] = useState(false);
 
-  // Biometric (WebAuthn) state — separate Fingerprint & Face Recognition
+  // Biometric (WebAuthn Fingerprint & Camera Face Recognition) state
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
   const [hasFingerprintEnrolled, setHasFingerprintEnrolled] = useState(false);
   const [hasFaceEnrolled, setHasFaceEnrolled] = useState(false);
+  const [faceCandidates, setFaceCandidates] = useState<EnrolledFaceCandidate[]>([]);
+  const [isFaceCameraOpen, setIsFaceCameraOpen] = useState(false);
   const [isBiometricLoading, setIsBiometricLoading] = useState(false);
   const [biometricError, setBiometricError] = useState("");
 
@@ -100,18 +104,40 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
 
       const fpMap = getUserFingerprintsMap();
       const faceMap = getUserFacesMap();
-      const users = c.adminUsers || [];
+      const users =
+        c.adminUsers && c.adminUsers.length > 0
+          ? c.adminUsers
+          : [
+              {
+                id: "admin-root",
+                username: c.username,
+                email: c.email,
+                password: c.password,
+                role: "admin" as const,
+              },
+            ];
 
       const fpActive =
         Object.values(fpMap).some((r) => !!r?.credId) ||
         users.some((u) => !!u.fingerprintCredId);
 
-      const faceActive =
-        Object.values(faceMap).some((r) => !!r?.credId) ||
-        users.some((u) => !!u.faceCredId);
+      const candidates: EnrolledFaceCandidate[] = [];
+      for (const u of users) {
+        const rec = faceMap[u.id];
+        const rawDesc = rec?.credId || u.faceCredId;
+        const parsed = parseFaceDescriptor(rawDesc);
+        if (parsed) {
+          candidates.push({
+            user: u,
+            descriptor: parsed,
+            photoData: rec?.photoData || u.facePhotoData,
+          });
+        }
+      }
 
       setHasFingerprintEnrolled(fpActive);
-      setHasFaceEnrolled(faceActive);
+      setFaceCandidates(candidates);
+      setHasFaceEnrolled(candidates.length > 0);
     } catch (_) {}
   };
 
@@ -293,117 +319,64 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
     }
   };
 
-  // Authenticate strictly with enrolled Face Recognition (Pengenalan Wajah / Face ID) credentials
+  // Authenticate strictly with enrolled Camera Face Recognition descriptors
   const handleFaceLogin = async () => {
-    setIsBiometricLoading(true);
     setBiometricError("");
     setError("");
-    try {
-      const currentCreds = await getAdminCredentials();
-      const allUsers =
-        currentCreds.adminUsers && currentCreds.adminUsers.length > 0
-          ? currentCreds.adminUsers
-          : [
-              {
-                id: "admin-root",
-                username: currentCreds.username,
-                email: currentCreds.email,
-                password: currentCreds.password,
-                role: "admin" as const,
-              },
-            ];
+    await syncBiometricEnrollmentStatus();
 
-      const faceMap = getUserFacesMap();
-      const allowCredentials: PublicKeyCredentialDescriptor[] = [];
-      const credIdToUserId: Record<string, string> = {};
+    const c = await getAdminCredentials();
+    const faceMap = getUserFacesMap();
+    const users =
+      c.adminUsers && c.adminUsers.length > 0
+        ? c.adminUsers
+        : [
+            {
+              id: "admin-root",
+              username: c.username,
+              email: c.email,
+              password: c.password,
+              role: "admin" as const,
+            },
+          ];
 
-      Object.values(faceMap).forEach((r) => {
-        if (!r?.credId) return;
-        try {
-          const rawId = Uint8Array.from(atob(r.credId), (c) => c.charCodeAt(0));
-          allowCredentials.push({ id: rawId, type: "public-key" });
-          credIdToUserId[r.credId] = r.userId;
-        } catch (_) {}
-      });
-
-      allUsers.forEach((u) => {
-        if (u.faceCredId && !credIdToUserId[u.faceCredId]) {
-          try {
-            const rawId = Uint8Array.from(atob(u.faceCredId), (c) => c.charCodeAt(0));
-            allowCredentials.push({ id: rawId, type: "public-key" });
-            credIdToUserId[u.faceCredId] = u.id;
-          } catch (_) {}
-        }
-      });
-
-      if (allowCredentials.length === 0) {
-        setBiometricError(
-          tr(
-            "Face Recognition is not enrolled yet. Please sign in with Username & Password and enroll manually in Admin Dashboard.",
-            "Pengenalan Wajah belum terdaftar. Silakan login dengan Username & Password lalu daftarkan manual di Admin Dashboard.",
-            "Pangenalan Wajah alun tadaftar. Silakan login jo Username & Password lalu daftarkan manual di Admin Dashboard."
-          )
-        );
-        return;
-      }
-
-      const challenge = crypto.getRandomValues(new Uint8Array(32));
-      const assertion = (await navigator.credentials.get({
-        publicKey: {
-          challenge,
-          rpId: window.location.hostname,
-          userVerification: "required",
-          allowCredentials,
-          timeout: 60000,
-        },
-      })) as PublicKeyCredential | null;
-
-      if (assertion) {
-        const rawIdBytes = new Uint8Array(assertion.rawId);
-        let binary = "";
-        rawIdBytes.forEach((b) => {
-          binary += String.fromCharCode(b);
+    const candidates: EnrolledFaceCandidate[] = [];
+    for (const u of users) {
+      const rec = faceMap[u.id];
+      const rawDesc = rec?.credId || u.faceCredId;
+      const parsed = parseFaceDescriptor(rawDesc);
+      if (parsed) {
+        candidates.push({
+          user: u,
+          descriptor: parsed,
+          photoData: rec?.photoData || u.facePhotoData,
         });
-        const matchedCredId = btoa(binary);
-
-        const matchedUserId = credIdToUserId[matchedCredId];
-        const adminUser = allUsers.find(
-          (u) =>
-            (matchedUserId && u.id === matchedUserId) ||
-            u.faceCredId === matchedCredId ||
-            faceMap[u.id]?.credId === matchedCredId
-        );
-
-        if (!adminUser) {
-          setBiometricError(
-            tr(
-              "Face Recognition does not match any registered admin user.",
-              "Pengenalan Wajah tidak cocok dengan akun admin mana pun yang terdaftar.",
-              "Pangenalan Wajah indak cocok jo akun admin mano pun nan tadaftar."
-            )
-          );
-          return;
-        }
-
-        sessionStorage.setItem("rizx_admin_session", "authenticated");
-        setActiveAdminUser(adminUser);
-        onSuccess();
       }
-    } catch (err: unknown) {
-      const e = err as { name?: string; message?: string };
-      if (e?.name !== "NotAllowedError") {
-        setBiometricError(
-          e?.message ||
-            tr(
-              "Face Recognition authentication failed. Please use Username & Password.",
-              "Autentikasi Pengenalan Wajah gagal. Gunakan Username & Password.",
-              "Autentikasi Pangenalan Wajah gagal. Gunoan Username & Password."
-            )
-        );
-      }
-    } finally {
-      setIsBiometricLoading(false);
     }
+
+    if (candidates.length === 0) {
+      setBiometricError(
+        tr(
+          "Face Recognition is not enrolled yet. Please sign in with Username & Password and enroll your face via camera in Admin Dashboard.",
+          "Pengenalan Wajah belum terdaftar. Silakan login dengan Username & Password lalu daftarkan wajah melalui kamera di Admin Dashboard.",
+          "Pangenalan Wajah alun tadaftar. Silakan login jo Username & Password lalu daftarkan wajah via kamera di Admin Dashboard."
+        )
+      );
+      return;
+    }
+
+    setFaceCandidates(candidates);
+    setIsFaceCameraOpen(true);
+  };
+
+  const handleFaceLoginSuccess = (result: {
+    matchedUser: import("@/lib/adminAuth").AdminUserItem;
+    similarity: number;
+  }) => {
+    setIsFaceCameraOpen(false);
+    sessionStorage.setItem("rizx_admin_session", "authenticated");
+    setActiveAdminUser(result.matchedUser);
+    onSuccess();
   };
 
   // Step 1: Request OTP
@@ -1247,8 +1220,8 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                 )}
               </button>
 
-              {/* Biometric Login (Only shown if at least 1 Fingerprint or Face Recognition is enrolled) */}
-              {isBiometricAvailable && (hasFingerprintEnrolled || hasFaceEnrolled) && (
+              {/* Biometric Login (Only shown if at least 1 Fingerprint or Camera Face Recognition is enrolled) */}
+              {((isBiometricAvailable && hasFingerprintEnrolled) || hasFaceEnrolled) && (
                 <>
                   <div className="relative flex items-center my-1">
                     <div className="flex-1 border-t border-white/[0.08]" />
@@ -1256,7 +1229,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                     <div className="flex-1 border-t border-white/[0.08]" />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    {hasFingerprintEnrolled && (
+                    {isBiometricAvailable && hasFingerprintEnrolled && (
                       <button
                         type="button"
                         onClick={handleFingerprintLogin}
@@ -1275,7 +1248,7 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                         className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-xs font-mono transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 border border-cyan-500/30 bg-cyan-500/[0.07] hover:bg-cyan-500/15 text-cyan-400"
                       >
                         <FaceIdIcon className="w-4 h-4 shrink-0" />
-                        <span>{tr("Login Wajah", "Face ID Login", "Login Wajah")}</span>
+                        <span>{tr("Login Kamera Wajah", "Camera Face Login", "Login Kamera Wajah")}</span>
                       </button>
                     )}
                   </div>
@@ -1523,6 +1496,15 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
           </div>
         </div>
       </motion.div>
+
+      {/* Live Front Camera Face Recognition Login Modal */}
+      <FaceCameraModal
+        isOpen={isFaceCameraOpen}
+        mode="verify"
+        enrolledCandidates={faceCandidates}
+        onClose={() => setIsFaceCameraOpen(false)}
+        onVerifySuccess={handleFaceLoginSuccess}
+      />
     </div>
   );
 }
