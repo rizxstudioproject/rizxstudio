@@ -13,6 +13,7 @@ import {
   RiMailFill as HiEnvelope,
   RiCheckboxCircleFill as HiCheckCircle,
   RiKeyFill as HiKey,
+  RiFingerprint2Line,
 } from "react-icons/ri";
 import {
   getAdminCredentials,
@@ -54,11 +55,32 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
   const [forgotError, setForgotError] = useState<string>("");
   const [isSendingOtp, setIsSendingOtp] = useState(false);
 
+  // Biometric (WebAuthn) state
+  const [isBiometricAvailable, setIsBiometricAvailable] = useState(false);
+  const [isBiometricRegistered, setIsBiometricRegistered] = useState(false);
+  const [isBiometricLoading, setIsBiometricLoading] = useState(false);
+  const [biometricError, setBiometricError] = useState("");
+
   useEffect(() => {
     getAdminCredentials().then((c) => {
       setCreds(c);
       if (c.email) setRecoveryEmail(c.email);
     });
+  }, []);
+
+  // Check biometric availability on mount
+  useEffect(() => {
+    const checkBiometric = async () => {
+      try {
+        if (typeof window === "undefined" || !window.PublicKeyCredential) return;
+        const available =
+          await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+        setIsBiometricAvailable(available);
+        const credId = localStorage.getItem("rizx_biometric_credId");
+        setIsBiometricRegistered(!!credId);
+      } catch (_) {}
+    };
+    checkBiometric();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +104,102 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
     } else {
       setError(authResult.error || "Username atau password salah. Silakan periksa kembali.");
       setIsLoading(false);
+    }
+  };
+
+  // Biometric: Register (first time setup)
+  const handleRegisterBiometric = async () => {
+    setIsBiometricLoading(true);
+    setBiometricError("");
+    try {
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      const userId = crypto.getRandomValues(new Uint8Array(16));
+      const credential = (await navigator.credentials.create({
+        publicKey: {
+          challenge,
+          rp: { name: "Rizx Studio Admin", id: window.location.hostname },
+          user: { id: userId, name: "admin", displayName: "Rizx Admin" },
+          pubKeyCredParams: [
+            { alg: -7, type: "public-key" },
+            { alg: -257, type: "public-key" },
+          ],
+          authenticatorSelection: {
+            authenticatorAttachment: "platform",
+            userVerification: "required",
+          },
+          timeout: 60000,
+        },
+      })) as PublicKeyCredential | null;
+      if (credential) {
+        const rawIdBytes = new Uint8Array(credential.rawId);
+        let binary = "";
+        rawIdBytes.forEach((b) => { binary += String.fromCharCode(b); });
+        const credId = btoa(binary);
+        localStorage.setItem("rizx_biometric_credId", credId);
+        setIsBiometricRegistered(true);
+      }
+    } catch (err: unknown) {
+      const e = err as { name?: string; message?: string };
+      if (e?.name !== "NotAllowedError") {
+        setBiometricError(
+          e?.message || tr("Biometric setup failed.", "Gagal mengaktifkan biometrik.", "Gagal maaktifkan biometrik.")
+        );
+      }
+    } finally {
+      setIsBiometricLoading(false);
+    }
+  };
+
+  // Biometric: Authenticate
+  const handleBiometricLogin = async () => {
+    setIsBiometricLoading(true);
+    setBiometricError("");
+    setError("");
+    try {
+      const credId = localStorage.getItem("rizx_biometric_credId");
+      if (!credId) {
+        setBiometricError(tr("Biometric not set up yet.", "Biometrik belum diaktifkan.", "Biometrik alun diaktifkan."));
+        return;
+      }
+      const rawId = Uint8Array.from(atob(credId), (c) => c.charCodeAt(0));
+      const challenge = crypto.getRandomValues(new Uint8Array(32));
+      const assertion = await navigator.credentials.get({
+        publicKey: {
+          challenge,
+          rpId: window.location.hostname,
+          userVerification: "required",
+          allowCredentials: [{ id: rawId, type: "public-key" }],
+          timeout: 60000,
+        },
+      });
+      if (assertion) {
+        const currentCreds = await getAdminCredentials();
+        const adminUser =
+          currentCreds.adminUsers?.[0] ?? {
+            id: "admin-root",
+            username: currentCreds.username,
+            email: currentCreds.email,
+            password: currentCreds.password,
+            role: "admin" as const,
+          };
+        sessionStorage.setItem("rizx_admin_session", "authenticated");
+        setActiveAdminUser(adminUser);
+        onSuccess();
+      }
+    } catch (err: unknown) {
+      const e = err as { name?: string; message?: string };
+      if (e?.name !== "NotAllowedError") {
+        setBiometricError(
+          e?.message ||
+            tr(
+              "Biometric auth failed. Try password.",
+              "Autentikasi biometrik gagal. Coba password.",
+              "Autentikasi biometrik gagal. Coba password."
+            )
+        );
+      }
+    } finally {
+      setIsBiometricLoading(false);
     }
   };
 
@@ -371,6 +489,55 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
                   </>
                 )}
               </button>
+
+              {/* Biometric Login */}
+              {isBiometricAvailable && (
+                <>
+                  <div className="relative flex items-center my-1">
+                    <div className="flex-1 border-t border-white/[0.08]" />
+                    <span className="mx-3 text-[11px] text-neutral-600 font-mono">or</span>
+                    <div className="flex-1 border-t border-white/[0.08]" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={isBiometricRegistered ? handleBiometricLogin : handleRegisterBiometric}
+                    disabled={isBiometricLoading}
+                    className="w-full flex items-center justify-center gap-2.5 py-3 px-6 rounded-xl font-bold text-sm transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 border border-[#16b09f]/30 bg-[#16b09f]/[0.07] hover:bg-[#16b09f]/15 text-[#16b09f]"
+                  >
+                    {isBiometricLoading ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                        <span>{tr("Waiting for biometric…", "Menunggu biometrik…", "Manunggu biometrik…")}</span>
+                      </>
+                    ) : (
+                      <>
+                        <RiFingerprint2Line className="w-5 h-5" />
+                        <span>
+                          {isBiometricRegistered
+                            ? tr("Login with Fingerprint / Face ID", "Login dengan Sidik Jari / Face ID", "Login jo Sidik Jari / Face ID")
+                            : tr("Set Up Biometric Login", "Aktifkan Login Biometrik", "Aktifkan Login Biometrik")}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                  <AnimatePresence>
+                    {biometricError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-rose-400 text-xs font-mono"
+                      >
+                        <HiExclamationTriangle className="w-4 h-4 shrink-0" />
+                        <span>{biometricError}</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
+              )}
             </form>
           )}
 
