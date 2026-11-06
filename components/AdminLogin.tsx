@@ -26,6 +26,29 @@ import {
 } from "@/lib/adminAuth";
 import MetaSEO from "./MetaSEO";
 
+function FaceIdIcon({ className = "w-14 h-14" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 48 48"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 17V12a4 4 0 0 1 4-4h5" />
+      <path d="M40 17V12a4 4 0 0 0-4-4h-5" />
+      <path d="M8 31v5a4 4 0 0 0 4 4h5" />
+      <path d="M40 31v5a4 4 0 0 1-4 4h-5" />
+      <circle cx="18" cy="19" r="1.5" fill="currentColor" stroke="none" />
+      <circle cx="30" cy="19" r="1.5" fill="currentColor" stroke="none" />
+      <path d="M24 19v6a1.5 1.5 0 0 0 1.5 1.5" />
+      <path d="M18 31a8 8 0 0 0 12 0" />
+    </svg>
+  );
+}
+
 interface AdminLoginProps {
   onSuccess: () => void;
   onBack: () => void;
@@ -33,6 +56,11 @@ interface AdminLoginProps {
 
 export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
   const { tr } = useLang();
+
+  // Mobile splash/welcome screen state: 'splash' | 'welcome' | 'form'
+  const [mobileScreen, setMobileScreen] = useState<"splash" | "welcome" | "form">("splash");
+  const [isMobile, setIsMobile] = useState(false);
+
   // Credentials state
   const [creds, setCreds] = useState<AdminCredentials>(DEFAULT_ADMIN_CREDENTIALS);
 
@@ -82,6 +110,26 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
     };
     checkBiometric();
   }, []);
+
+  // Check mobile device size on mount & resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  // Mobile splash screen auto-transition to welcome screen
+  useEffect(() => {
+    if (mobileScreen === "splash") {
+      const timer = setTimeout(() => {
+        setMobileScreen("welcome");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [mobileScreen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -329,12 +377,483 @@ export default function AdminLogin({ onSuccess, onBack }: AdminLoginProps) {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-neutral-800/[0.15] blur-[80px]" />
       </div>
 
-      {/* Centered Card: Split Layout */}
+      {/* ================= MOBILE VIEW (Matching Banking App Mockup with Tosca Brand) ================= */}
+      <div className="md:hidden fixed inset-0 z-30 w-full h-full bg-[#f8fafc] text-slate-800 flex flex-col overflow-hidden font-sans">
+        <AnimatePresence mode="wait">
+          {/* SCREEN 1: SPLASH SCREEN (Tosca Rizx Studio Logo) */}
+          {mobileScreen === "splash" && (
+            <motion.div
+              key="mobile-splash"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.35 }}
+              onClick={() => setMobileScreen("welcome")}
+              className="w-full h-full flex-1 flex flex-col items-center justify-center p-6 cursor-pointer select-none bg-white relative overflow-hidden"
+            >
+              {/* Subtle background glow */}
+              <div className="absolute w-72 h-72 rounded-full bg-[#16b09f]/10 blur-3xl pointer-events-none" />
+
+              <motion.div
+                initial={{ scale: 0.85, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-col items-center relative z-10"
+              >
+                {/* Logo with Tosca glowing accent */}
+                <div className="w-24 h-24 rounded-3xl p-3 bg-gradient-to-br from-teal-50 to-teal-100/70 border border-[#16b09f]/30 shadow-[0_12px_40px_rgba(20,175,158,0.25)] flex items-center justify-center">
+                  <img
+                    src="/logo-admin.png"
+                    alt="Rizx Studio"
+                    className="w-full h-full object-contain rounded-2xl"
+                  />
+                </div>
+
+                <h1 className="mt-5 text-2xl font-black tracking-tight text-[#16b09f] font-sans">
+                  RIZX STUDIO
+                </h1>
+                <span className="text-[11px] font-mono tracking-widest text-slate-400 uppercase mt-0.5">
+                  ADMIN PORTAL
+                </span>
+
+                {/* Pulse dot */}
+                <div className="mt-8 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#16b09f] animate-ping" />
+                  <span className="text-xs font-mono text-teal-600 font-medium">
+                    {tr("Starting...", "Memuat...", "Mamuat...")}
+                  </span>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+
+          {/* SCREEN 2: WELCOME SCREEN (Biometric Login with Tosca Header) */}
+          {mobileScreen === "welcome" && (
+            <motion.div
+              key="mobile-welcome"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+              className="w-full h-full flex-1 flex flex-col justify-between overflow-y-auto bg-white"
+            >
+              {/* Curved Tosca Header */}
+              <div className="relative w-full bg-gradient-to-br from-[#0d9488] via-[#14b8a6] to-[#16b09f] pt-14 pb-12 px-6 rounded-b-[40px] shadow-[0_14px_35px_rgba(20,175,158,0.28)] text-center text-white overflow-hidden shrink-0">
+                <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-white/10 blur-xl pointer-events-none" />
+                <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full bg-black/10 blur-lg pointer-events-none" />
+
+                <h1 className="text-2xl font-black tracking-tight relative z-10">
+                  {tr("Welcome Back!", "Selamat Datang!", "Salamaik Tibo!")}
+                </h1>
+                <p className="text-xs text-teal-50 font-medium tracking-wide mt-1.5 opacity-90 relative z-10 font-mono">
+                  {tr("Fast and Secure Login", "Login Cepat dan Aman", "Login Capek jo Aman")}
+                </p>
+              </div>
+
+              {/* Center Biometric Actions */}
+              <div className="flex-1 flex flex-col items-center justify-center py-8 px-6 gap-6">
+                {/* Face ID Icon Button */}
+                <button
+                  type="button"
+                  onClick={isBiometricRegistered ? handleBiometricLogin : handleRegisterBiometric}
+                  disabled={isBiometricLoading}
+                  className={`p-5 rounded-3xl bg-slate-50 border border-slate-200/90 text-[#16b09f] shadow-[0_6px_25px_rgba(20,175,158,0.12)] hover:bg-teal-50 hover:border-teal-200 active:scale-95 transition-all group cursor-pointer relative ${
+                    isBiometricLoading ? "opacity-75 animate-pulse ring-4 ring-[#16b09f]/30" : ""
+                  }`}
+                  aria-label="Login with Face ID"
+                >
+                  <FaceIdIcon className="w-16 h-16 group-hover:scale-105 transition-transform" />
+                </button>
+
+                {/* OR divider */}
+                <span className="text-xs font-bold font-mono tracking-widest text-slate-400 uppercase">
+                  {tr("OR", "ATAU", "ATAU")}
+                </span>
+
+                {/* Fingerprint Icon Button */}
+                <button
+                  type="button"
+                  onClick={isBiometricRegistered ? handleBiometricLogin : handleRegisterBiometric}
+                  disabled={isBiometricLoading}
+                  className={`p-5 rounded-3xl bg-slate-50 border border-slate-200/90 text-[#16b09f] shadow-[0_6px_25px_rgba(20,175,158,0.12)] hover:bg-teal-50 hover:border-teal-200 active:scale-95 transition-all group cursor-pointer relative ${
+                    isBiometricLoading ? "opacity-75 animate-pulse ring-4 ring-[#16b09f]/30" : ""
+                  }`}
+                  aria-label="Login with Fingerprint"
+                >
+                  <RiFingerprint2Line className="w-16 h-16 group-hover:scale-105 transition-transform" />
+                </button>
+
+                {/* Biometric Status / Loading */}
+                {isBiometricLoading && (
+                  <div className="flex items-center gap-2 text-xs font-mono text-[#0d9488] font-semibold mt-1">
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>{tr("Waiting for biometric…", "Menunggu biometrik…", "Manunggu biometrik…")}</span>
+                  </div>
+                )}
+
+                {/* Biometric Error */}
+                {biometricError && (
+                  <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-mono text-center max-w-xs shadow-xs">
+                    {biometricError}
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Actions */}
+              <div className="pb-8 px-6 text-center shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setMobileScreen("form")}
+                  className="text-xs font-bold font-mono tracking-wider text-slate-700 hover:text-[#16b09f] active:text-[#0d9488] transition-colors uppercase py-3 px-6 cursor-pointer"
+                >
+                  {tr("LOGIN WITH USERNAME & PASSWORD", "LOGIN DENGAN USERNAME & PASSWORD", "LOGIN JO USERNAME & PASSWORD")}
+                </button>
+
+                <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100 text-slate-400">
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    className="p-2.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition-colors"
+                    title="Back to Website"
+                  >
+                    <HiArrowLeft className="w-5 h-5" />
+                  </button>
+                  <div className="flex items-center gap-1.5 text-[11px] font-mono text-teal-800 bg-teal-50 px-3 py-1 rounded-full border border-teal-200/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-pulse" />
+                    <span>Protected by WebAuthn</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* SCREEN 3: FORM LOGIN SCREEN */}
+          {mobileScreen === "form" && (
+            <motion.div
+              key="mobile-form"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.35 }}
+              className="w-full h-full flex-1 flex flex-col justify-between overflow-y-auto bg-white p-6"
+            >
+              <div>
+                {/* Top Nav */}
+                <div className="flex items-center justify-between mb-6 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (forgotMode !== "idle") {
+                        setForgotMode("idle");
+                      } else {
+                        setMobileScreen("welcome");
+                      }
+                    }}
+                    className="p-2.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-slate-600 hover:text-slate-900 active:scale-95 transition-all shadow-xs cursor-pointer"
+                    title="Back"
+                  >
+                    <HiArrowLeft className="w-5 h-5" />
+                  </button>
+
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-xl overflow-hidden shadow-xs border border-teal-100 p-0.5 bg-teal-50">
+                      <img src="/logo-admin.png" alt="Rizx Studio" className="w-full h-full object-contain rounded-lg" />
+                    </div>
+                    <span className="text-sm font-bold text-slate-900 tracking-tight">Rizx Studio</span>
+                  </div>
+
+                  <div className="w-10" />
+                </div>
+
+                {/* Header Title */}
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                    {forgotMode === "idle"
+                      ? tr("Admin Sign In", "Masuk Admin", "Masuak Admin")
+                      : forgotMode === "reset-success"
+                      ? tr("Password Changed!", "Sandi Berhasil Diubah!", "Kunci Barasil Diubah!")
+                      : tr("Password Recovery", "Pemulihan Sandi", "Pamulihan Kunci")}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                    {forgotMode === "idle"
+                      ? tr("Enter credentials to access Admin Dashboard", "Masukkan kredensial untuk membuka Dashboard Admin", "Masuakkan kredensial untuak mambukak Dashboard Admin")
+                      : tr("Verification via personal email to reset password", "Verifikasi melalui email pribadi untuk mengatur ulang password", "Verifikasi malalui email pribadi untuak maatur ulang kunci")}
+                  </p>
+                </div>
+
+                {/* Normal Login Form */}
+                {forgotMode === "idle" && (
+                  <form onSubmit={handleSubmit} className="space-y-4" autoComplete="off">
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-500 font-semibold mb-1.5 uppercase tracking-wider">
+                        {tr("Bank ID / Username", "Bank ID / Username", "Bank ID / Username")}
+                      </label>
+                      <input
+                        type="text"
+                        value={username}
+                        onChange={(e) => {
+                          setUsername(e.target.value);
+                          setError("");
+                        }}
+                        placeholder={creds.username || "admin"}
+                        autoCapitalize="none"
+                        autoCorrect="off"
+                        spellCheck={false}
+                        className="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-mono placeholder:text-slate-400 focus:outline-none focus:border-[#16b09f] focus:bg-white focus:ring-2 focus:ring-[#16b09f]/20 transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="block text-[11px] font-mono text-slate-500 font-semibold uppercase tracking-wider">
+                          {tr("Password", "Password", "Kunci")}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setForgotMode("request-otp");
+                            setForgotError("");
+                            setForgotStatus("");
+                          }}
+                          className="text-[11px] text-[#0d9488] font-bold font-mono hover:underline cursor-pointer"
+                        >
+                          {tr("Forgot Password?", "Lupa Password?", "Lupo Kunci?")}
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showPass ? "text" : "password"}
+                          value={password}
+                          onChange={(e) => {
+                            setPassword(e.target.value);
+                            setError("");
+                          }}
+                          placeholder="••••••••••••••"
+                          className="w-full px-4 py-3.5 pr-12 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-mono placeholder:text-slate-400 focus:outline-none focus:border-[#16b09f] focus:bg-white focus:ring-2 focus:ring-[#16b09f]/20 transition-all"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPass(!showPass)}
+                          className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+                          aria-label="Toggle password visibility"
+                        >
+                          {showPass ? <HiEyeSlash className="w-4 h-4" /> : <HiEye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {error && (
+                      <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-mono flex items-center gap-2">
+                        <HiExclamationTriangle className="w-4 h-4 shrink-0" />
+                        <span>{error}</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={isLoading || !username.trim() || !password}
+                      className="w-full py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all active:scale-[0.98] cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-3 text-white shadow-[0_8px_25px_rgba(20,175,158,0.35)]"
+                      style={{
+                        background: "linear-gradient(135deg, #0d9488 0%, #14b8a6 50%, #16b09f 100%)",
+                      }}
+                    >
+                      {isLoading ? tr("Signing In…", "Masuk…", "Masuak…") : tr("LOGIN", "LOGIN", "MASUAK")}
+                    </button>
+                  </form>
+                )}
+
+                {/* Forgot Password - Step 1 (Request OTP) */}
+                {forgotMode === "request-otp" && (
+                  <form onSubmit={handleRequestOtp} className="space-y-4" autoComplete="off">
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-500 font-semibold mb-1.5 uppercase tracking-wider">
+                        EMAIL RECOVERY PRIBADI
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="email"
+                          value={recoveryEmail}
+                          onChange={(e) => {
+                            setRecoveryEmail(e.target.value);
+                            setForgotError("");
+                          }}
+                          placeholder="rizxstudioproject@gmail.com"
+                          className="w-full px-4 py-3.5 pl-10 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-mono placeholder:text-slate-400 focus:outline-none focus:border-[#16b09f] focus:bg-white transition-all"
+                        />
+                        <HiEnvelope className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      </div>
+                      <span className="text-[11px] text-slate-400 font-mono mt-1 block">
+                        Kode 6 digit akan dikirim ke rizxstudioproject@gmail.com
+                      </span>
+                    </div>
+
+                    {forgotError && (
+                      <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-mono flex items-center gap-2">
+                        <HiExclamationTriangle className="w-4 h-4 shrink-0" />
+                        <span>{forgotError}</span>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setForgotMode("idle")}
+                        className="w-1/3 py-3.5 rounded-2xl bg-slate-100 text-slate-600 font-mono text-xs font-bold cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSendingOtp || !recoveryEmail.trim()}
+                        className="flex-1 py-3.5 rounded-2xl bg-[#16b09f] hover:bg-[#0d9488] text-white font-black text-xs font-mono uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#16b09f]/20"
+                      >
+                        {isSendingOtp ? "Mengirim Kode…" : "Kirim Kode Verifikasi"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Forgot Password - Step 2 (Verify OTP & Reset) */}
+                {forgotMode === "verify-otp" && (
+                  <form onSubmit={handleResetPassword} className="space-y-3.5" autoComplete="off">
+                    {forgotStatus && (
+                      <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-mono">
+                        {forgotStatus}
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-500 font-semibold mb-1 uppercase tracking-wider">
+                        KODE VERIFIKASI (6 DIGIT)
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={enteredOtp}
+                        onChange={(e) => {
+                          setEnteredOtp(e.target.value.replace(/\D/g, ""));
+                          setForgotError("");
+                        }}
+                        placeholder="123456"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-center tracking-[0.5em] text-lg font-mono font-bold focus:outline-none focus:border-[#16b09f] focus:bg-white transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-500 font-semibold mb-1 uppercase tracking-wider">
+                        PASSWORD BARU
+                      </label>
+                      <input
+                        type={showNewPass ? "text" : "password"}
+                        value={newPassword}
+                        onChange={(e) => {
+                          setNewPassword(e.target.value);
+                          setForgotError("");
+                        }}
+                        placeholder="Minimal 6 karakter"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:bg-white transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-mono text-slate-500 font-semibold mb-1 uppercase tracking-wider">
+                        KONFIRMASI PASSWORD BARU
+                      </label>
+                      <input
+                        type={showNewPass ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => {
+                          setConfirmPassword(e.target.value);
+                          setForgotError("");
+                        }}
+                        placeholder="Ulangi password baru"
+                        className="w-full px-4 py-3 rounded-2xl bg-slate-50 border border-slate-200 text-slate-900 text-sm font-mono focus:outline-none focus:border-[#16b09f] focus:bg-white transition-all"
+                      />
+                    </div>
+
+                    {forgotError && (
+                      <div className="p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-600 text-xs font-mono flex items-center gap-2">
+                        <HiExclamationTriangle className="w-4 h-4 shrink-0" />
+                        <span>{forgotError}</span>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => setForgotMode("idle")}
+                        className="w-1/3 py-3.5 rounded-2xl bg-slate-100 text-slate-600 font-mono text-xs font-bold cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSendingOtp || enteredOtp.length < 6 || !newPassword}
+                        className="flex-1 py-3.5 rounded-2xl bg-[#16b09f] hover:bg-[#0d9488] text-white font-black text-xs font-mono uppercase tracking-wider transition-all cursor-pointer shadow-md shadow-[#16b09f]/20"
+                      >
+                        {isSendingOtp ? "Menyimpan…" : "Simpan Sandi Baru"}
+                      </button>
+                    </div>
+                  </form>
+                )}
+
+                {/* Forgot Password - Step 3 (Reset Success) */}
+                {forgotMode === "reset-success" && (
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-3">
+                      <HiCheckCircle className="w-6 h-6 text-emerald-600 shrink-0" />
+                      <span className="text-xs font-mono leading-relaxed">
+                        {tr(
+                          "Your Admin Password has been successfully updated and saved securely.",
+                          "Password Admin Anda telah berhasil diperbarui dan tersimpan aman.",
+                          "Kunci Admin Sanak lah barasil dipabarui sarato tasimpan aman."
+                        )}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setForgotMode("idle")}
+                      className="w-full py-3.5 rounded-2xl bg-[#16b09f] hover:bg-[#0d9488] text-white font-bold text-sm font-mono transition-all cursor-pointer shadow-lg shadow-[#16b09f]/20"
+                    >
+                      {tr("Back to Login", "Kembali ke Login", "Baliak ka Login")}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom Switch back to Biometric / Website */}
+              <div className="pt-6 border-t border-slate-100 text-center shrink-0 space-y-3">
+                <button
+                  type="button"
+                  onClick={() => setMobileScreen("welcome")}
+                  className="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-2xl border border-teal-200 bg-teal-50/70 text-[#0d9488] font-bold text-xs font-mono hover:bg-teal-100 transition-colors cursor-pointer"
+                >
+                  <RiFingerprint2Line className="w-4 h-4" />
+                  <span>{tr("Use Face ID / Fingerprint", "Gunakan Face ID / Sidik Jari", "Gunoan Face ID / Sidik Jari")}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="text-xs font-mono text-slate-400 hover:text-slate-700 transition-colors block mx-auto pt-1 cursor-pointer"
+                >
+                  {tr("← Back to Website", "← Kembali ke Website", "← Baliak ka Website")}
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Centered Card: Split Layout (Desktop) */}
       <motion.div
         initial={{ opacity: 0, y: 30, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-4xl mx-4 bg-[#0d0e12]/95 border border-white/[0.08] rounded-3xl shadow-[0_40px_120px_rgba(0,0,0,0.95)] backdrop-blur-2xl overflow-hidden flex flex-col md:flex-row"
+        className="hidden md:flex relative z-10 w-full max-w-4xl mx-4 bg-[#0d0e12]/95 border border-white/[0.08] rounded-3xl shadow-[0_40px_120px_rgba(0,0,0,0.95)] backdrop-blur-2xl overflow-hidden flex-col md:flex-row"
         style={{ minHeight: "540px" }}
       >
         {/* LEFT SIDE: Login or Forgot Password Form */}
