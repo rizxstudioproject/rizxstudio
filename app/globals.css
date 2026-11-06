@@ -101,23 +101,8 @@ html.light .btn-primary *,
 html.light .keep-white,
 html.light .keep-white *,
 html.light button.bg-black,
-html.light button.bg-black *,
-.stage3-tab-inactive,
-.stage3-tab-inactive *,
-html[data-theme='light'] .stage3-tab-inactive,
-html[data-theme='light'] .stage3-tab-inactive *,
-html.light .stage3-tab-inactive,
-html.light .stage3-tab-inactive * {
+html.light button.bg-black * {
   color: #ffffff !important;
-}
-
-.stage3-tab-active,
-.stage3-tab-active *,
-html[data-theme='light'] .stage3-tab-active,
-html[data-theme='light'] .stage3-tab-active *,
-html.light .stage3-tab-active,
-html.light .stage3-tab-active * {
-  color: #000000 !important;
 }
 
 /* Explicit high-contrast text colors on buttons must never be overridden to white in Light Mode */

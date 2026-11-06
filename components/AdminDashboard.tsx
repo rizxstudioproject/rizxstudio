@@ -7863,11 +7863,10 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 idx > 0 ? "-ml-2.5 sm:-ml-3" : ""
                               } ${
                                 isActive
-                                  ? "z-30 text-black font-extrabold stage3-tab-active"
-                                  : "z-10 text-white font-semibold stage3-tab-inactive keep-white"
+                                  ? "z-30"
+                                  : "z-10"
                               }`}
                               style={{
-                                color: isActive ? "#000000" : "#ffffff",
                                 filter: isActive
                                   ? isLight
                                     ? "drop-shadow(0 -2px 5px rgba(20,175,158,0.25)) drop-shadow(1px 0 3px rgba(15,23,42,0.08))"
@@ -7878,17 +7877,13 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                               }}
                             >
                               <svg
-                                className={`absolute inset-0 w-full h-full pointer-events-none transition-colors duration-300 ${
-                                  isActive
-                                    ? "text-[#16b09f]"
-                                    : "text-[#15181e] hover:text-[#1f232b]"
-                                }`}
+                                className="absolute inset-0 w-full h-full pointer-events-none transition-all duration-300"
                                 viewBox="0 0 100 40"
                                 preserveAspectRatio="none"
                               >
                                 <path
                                   d="M 0,40 L 9,6 Q 12,0 18,0 L 82,0 Q 88,0 91,6 L 100,40 Z"
-                                  fill="currentColor"
+                                  fill={isActive ? "#16b09f" : "#15181e"}
                                 />
                                 {!isActive && (
                                   <path
@@ -7901,8 +7896,14 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                                 )}
                               </svg>
                               <span
-                                className="relative z-10 truncate max-w-[100px] font-semibold"
-                                style={{ color: isActive ? "#000000" : "#ffffff" }}
+                                className={`relative z-10 truncate max-w-[100px] transition-colors duration-200 ${
+                                  isActive
+                                    ? "font-extrabold text-black"
+                                    : "font-medium text-white/50 group-hover:text-white/85"
+                                }`}
+                                style={{
+                                  color: isActive ? "#000000" : "rgba(255, 255, 255, 0.55)",
+                                }}
                               >
                                 {card.title || `Showreel ${idx + 1}`}
                               </span>
