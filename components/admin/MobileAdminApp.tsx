@@ -172,9 +172,9 @@ export default function MobileAdminApp({
   const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
   const mobileLangRef = useRef<HTMLDivElement>(null);
   const languagesList = [
-    { code: "en" as const, label: "EN" },
-    { code: "id" as const, label: "ID" },
-    { code: "min" as const, label: "MIN" },
+    { code: "en" as const, label: "EN", name: "English" },
+    { code: "id" as const, label: "ID", name: "Bahasa Indonesia" },
+    { code: "min" as const, label: "MIN", name: "Bahaso Minang" },
   ];
   const activeLangIndex = Math.max(0, languagesList.findIndex((l) => l.code === lang));
 
@@ -251,12 +251,15 @@ export default function MobileAdminApp({
   const wonLeadsCount = leads.filter((l) => l.status === "Won").length;
   const pipelineValue = leads.reduce((acc, curr) => acc + (curr.value || 0), 0);
 
-  // Format currency in millions (e.g., Rp 183 Jt)
+  // Format currency in millions (e.g., Rp 183 M / Rp 183 Jt)
   const formatPipeline = (val: number) => {
+    const isEn = lang === "en";
+    const unit = isEn ? "M" : "Jt";
+    const locale = isEn ? "en-US" : "id-ID";
     if (val >= 1000000) {
-      return `Rp ${(val / 1000000).toLocaleString("id-ID", { maximumFractionDigits: 1 })} Jt`;
+      return `Rp ${(val / 1000000).toLocaleString(locale, { maximumFractionDigits: 1 })} ${unit}`;
     }
-    return `Rp ${val.toLocaleString("id-ID")}`;
+    return `Rp ${val.toLocaleString(locale)}`;
   };
 
   // CRM & SEO Infographic Chart State (Image 2 mockup design)
@@ -266,19 +269,109 @@ export default function MobileAdminApp({
   const [isPeriodMenuOpen, setIsPeriodMenuOpen] = useState<boolean>(false);
 
   const crmChartData = [
-    { key: "mon", label: "mon", idLabel: "Sen", x: 10, y: 52, val: "Rp 42 Jt", desc: "Senin: 1 Deal Baru" },
-    { key: "tue", label: "tue", idLabel: "Sel", x: 70, y: 20, val: "Rp 88 Jt", desc: "Selasa: 3 Prospek Masuk" },
-    { key: "wed", label: "wed", idLabel: "Rab", x: 135, y: 64, val: "Rp 32 Jt", desc: "Rabu: Follow-up Negosiasi" },
-    { key: "thu", label: "thu", idLabel: "Kam", x: 200, y: 25, val: "Rp 76 Jt", desc: "Kamis: 2 Kontrak Deal Won" },
-    { key: "fri", label: "fri", idLabel: "Jum", x: 260, y: 38, val: "Rp 64 Jt", desc: "Jumat: Invoice Terbit" },
+    {
+      key: "mon",
+      enLabel: "Mon",
+      idLabel: "Sen",
+      minLabel: "Sin",
+      x: 10,
+      y: 52,
+      val: lang === "en" ? "Rp 42 M" : "Rp 42 Jt",
+      desc: tr("Monday: 1 New Deal", "Senin: 1 Deal Baru", "Sinayan: 1 Deal Baru"),
+    },
+    {
+      key: "tue",
+      enLabel: "Tue",
+      idLabel: "Sel",
+      minLabel: "Sal",
+      x: 70,
+      y: 20,
+      val: lang === "en" ? "Rp 88 M" : "Rp 88 Jt",
+      desc: tr("Tuesday: 3 Inbound Leads", "Selasa: 3 Prospek Masuk", "Salasa: 3 Prospek Masuak"),
+    },
+    {
+      key: "wed",
+      enLabel: "Wed",
+      idLabel: "Rab",
+      minLabel: "Rab",
+      x: 135,
+      y: 64,
+      val: lang === "en" ? "Rp 32 M" : "Rp 32 Jt",
+      desc: tr("Wednesday: Negotiation Follow-up", "Rabu: Follow-up Negosiasi", "Rabu: Negosiasi Bajalan"),
+    },
+    {
+      key: "thu",
+      enLabel: "Thu",
+      idLabel: "Kam",
+      minLabel: "Kam",
+      x: 200,
+      y: 25,
+      val: lang === "en" ? "Rp 76 M" : "Rp 76 Jt",
+      desc: tr("Thursday: 2 Contracts Won", "Kamis: 2 Kontrak Deal Won", "Kamih: 2 Kontrak Mandapek"),
+    },
+    {
+      key: "fri",
+      enLabel: "Fri",
+      idLabel: "Jum",
+      minLabel: "Jum",
+      x: 260,
+      y: 38,
+      val: lang === "en" ? "Rp 64 M" : "Rp 64 Jt",
+      desc: tr("Friday: Invoice Issued", "Jumat: Invoice Terbit", "Jumaik: Invoice Tabik"),
+    },
   ];
 
   const seoChartData = [
-    { key: "mon", label: "mon", idLabel: "Sen", x: 10, y: 48, val: "1.4k Clicks", desc: "Senin: 5.2k Impresi Google" },
-    { key: "tue", label: "tue", idLabel: "Sel", x: 70, y: 22, val: "3.9k Clicks", desc: "Selasa: Peringkat #1 Keywords" },
-    { key: "wed", label: "wed", idLabel: "Rab", x: 135, y: 62, val: "1.8k Clicks", desc: "Rabu: Traffic Organik" },
-    { key: "thu", label: "thu", idLabel: "Kam", x: 200, y: 26, val: "4.8k Clicks", desc: "Kamis: Viral Social Traffic" },
-    { key: "fri", label: "fri", idLabel: "Jum", x: 260, y: 36, val: "3.6k Clicks", desc: "Jumat: Google SERP Snippet" },
+    {
+      key: "mon",
+      enLabel: "Mon",
+      idLabel: "Sen",
+      minLabel: "Sin",
+      x: 10,
+      y: 48,
+      val: "1.4k Clicks",
+      desc: tr("Monday: 5.2k Google Impressions", "Senin: 5.2k Impresi Google", "Sinayan: 5.2k Impresi Google"),
+    },
+    {
+      key: "tue",
+      enLabel: "Tue",
+      idLabel: "Sel",
+      minLabel: "Sal",
+      x: 70,
+      y: 22,
+      val: "3.9k Clicks",
+      desc: tr("Tuesday: Rank #1 Keywords", "Selasa: Peringkat #1 Keywords", "Salasa: Peringkek #1 Kata Kunci"),
+    },
+    {
+      key: "wed",
+      enLabel: "Wed",
+      idLabel: "Rab",
+      minLabel: "Rab",
+      x: 135,
+      y: 62,
+      val: "1.8k Clicks",
+      desc: tr("Wednesday: Organic Traffic", "Rabu: Traffic Organik", "Rabu: Pangunjuang Organik"),
+    },
+    {
+      key: "thu",
+      enLabel: "Thu",
+      idLabel: "Kam",
+      minLabel: "Kam",
+      x: 200,
+      y: 26,
+      val: "4.8k Clicks",
+      desc: tr("Thursday: Viral Social Traffic", "Kamis: Viral Social Traffic", "Kamih: Pangunjuang Sosmed"),
+    },
+    {
+      key: "fri",
+      enLabel: "Fri",
+      idLabel: "Jum",
+      minLabel: "Jum",
+      x: 260,
+      y: 36,
+      val: "3.6k Clicks",
+      desc: tr("Friday: Google SERP Snippet", "Jumat: Google SERP Snippet", "Jumaik: Google SERP Snippet"),
+    },
   ];
 
   const currentDataset = chartMode === "crm" ? crmChartData : seoChartData;
@@ -333,41 +426,41 @@ export default function MobileAdminApp({
   const getTabTitle = (tab: AdminSidebarTab) => {
     switch (tab) {
       case "clients":
-        return tr("Our Client", "Our Client", "Our Client");
+        return tr("Our Client", "Klien Kami (Our Client)", "Klien Ambo (Our Client)");
       case "canvas":
-        return tr("Rizx Canvas", "Rizx Canvas", "Rizx Canvas");
+        return "Rizx Canvas";
       case "crm":
-        return tr("CRM & Prospek Leads", "CRM & Leads", "CRM & Prospek");
+        return tr("CRM & Leads", "CRM & Prospek Leads", "CRM & Prospek");
       case "seo":
-        return tr("SEO & Mesin Pencari", "SEO & Search Engine", "SEO & Masin Pancari");
+        return tr("SEO & Search Engine", "SEO & Mesin Pencari", "SEO & Masin Pancari");
       case "settings":
-        return tr("Setting Admin & Keamanan", "Admin Security & Settings", "Setting Admin & Kaamanan");
+        return tr("Admin Security & Settings", "Keamanan & Pengaturan Admin", "Kaamanan & Pangaturan Admin");
       case "social":
-        return tr("Kontak & Media Sosial", "Socials & Contacts", "Kontak & Sosmed");
+        return tr("Socials & Contacts", "Kontak & Media Sosial", "Kontak & Sosmed");
       case "theme":
-        return tr("Warna, Tema & Kursor", "Theme, Colors & Cursor", "Warna, Tema & Kursor");
+        return tr("Theme, Colors & Cursor", "Warna, Tema & Kursor", "Warna, Tema & Kursor");
       case "motion":
-        return tr("Motion & Efek Gerak", "Motion & Cursor", "Motion & Garakan");
+        return tr("Motion & Cursor", "Motion & Efek Gerak", "Motion & Garakan");
       case "trash":
-        return tr("Tong Sampah (Restore)", "Recycle Bin", "Tong Sarok");
+        return tr("Recycle Bin (Restore)", "Tong Sampah (Restore)", "Tong Sarok (Puliahkan)");
       case "storage":
-        return tr("Kapasitas & Penyimpanan", "Storage & Analytics", "Panyimpanan & Data");
+        return tr("Storage & Analytics", "Kapasitas & Penyimpanan", "Panyimpanan & Data");
       case "hero-banner":
-        return tr("Hero Banner & 3D Hub", "Hero Banner & 3D Hub", "Hero Banner & 3D Hub");
+        return "Hero Banner & 3D Hub";
       case "opener":
-        return tr("Intro Animation", "Intro Animation", "Intro Animation");
+        return "Intro Animation";
       case "flagship":
         return tr("Showcase Showreels", "Showcase Showreels", "Showcase Showreel");
       case "runner":
-        return tr("Media Reels Hub", "Media Reels Hub", "Media Reels Hub");
+        return "Media Reels Hub";
       case "products":
-        return tr("Katalog Produk & Layanan", "Products & Services", "Katalog Produk & Jaso");
+        return tr("Products & Services", "Katalog Produk & Layanan", "Katalog Produk & Jaso");
       case "tracking":
-        return tr("Tracking Proyek (Live)", "Project Tracking (Live)", "Tracking Proyek (Live)");
+        return tr("Project Tracking (Live)", "Tracking Proyek (Live)", "Tracking Proyek (Live)");
       case "hero-works":
-        return tr("Top Works & About", "Top Works & About", "Top Works & About");
+        return tr("Top Works & About", "Top Works & Tentang Saya", "Top Works & Tantang Ambo");
       case "about":
-        return tr("Tentang Saya (About)", "About Me", "Tantang Ambo");
+        return tr("About Me", "Tentang Saya", "Tantang Ambo");
       default:
         return tab;
     }
@@ -416,7 +509,7 @@ export default function MobileAdminApp({
   const bottomDockItems: BottomDockItem[] = [
     {
       id: "home",
-      label: tr("Home", "Home", "Home"),
+      label: tr("Home", "Beranda", "Rumah"),
       icon: RiHome5Fill,
       accentColor: "#10b981",
       gradient: "from-emerald-500 to-teal-400",
@@ -424,7 +517,7 @@ export default function MobileAdminApp({
     },
     {
       id: "clients",
-      label: tr("Portofolio", "Portfolio", "Portofolio"),
+      label: tr("Portfolio", "Portofolio", "Portofolio"),
       icon: RiFolderFill,
       accentColor: "#3b82f6",
       gradient: "from-blue-500 to-indigo-500",
@@ -432,7 +525,7 @@ export default function MobileAdminApp({
     },
     {
       id: "canvas",
-      label: tr("Rizx Canvas", "Rizx Canvas", "Rizx Canvas"),
+      label: "Rizx Canvas",
       icon: RiGridFill,
       accentColor: "#14b8a6",
       gradient: "from-teal-500 to-emerald-400",
@@ -440,7 +533,7 @@ export default function MobileAdminApp({
     },
     {
       id: "products",
-      label: tr("Produk", "Products", "Produk"),
+      label: tr("Products", "Produk", "Produk"),
       icon: RiBox3Fill,
       accentColor: "#06b6d4",
       gradient: "from-cyan-500 to-teal-500",
@@ -448,7 +541,7 @@ export default function MobileAdminApp({
     },
     {
       id: "tracking",
-      label: tr("Tracking", "Tracking", "Tracking"),
+      label: tr("Tracking", "Tracking", "Lacak"),
       icon: RiCompass3Fill,
       accentColor: "#10b981",
       gradient: "from-emerald-500 to-teal-500",
@@ -456,7 +549,7 @@ export default function MobileAdminApp({
     },
     {
       id: "trash",
-      label: tr("Sampah", "Trash Bin", "Tong Sarok"),
+      label: tr("Trash Bin", "Sampah", "Tong Sarok"),
       icon: RiDeleteBinFill,
       accentColor: "#ef4444",
       gradient: "from-rose-500 to-red-600",
@@ -465,7 +558,7 @@ export default function MobileAdminApp({
     },
     {
       id: "crm",
-      label: tr("CRM Leads", "CRM Leads", "CRM Prospek"),
+      label: tr("CRM Leads", "Prospek CRM", "Prospek CRM"),
       icon: RiLineChartFill,
       accentColor: "#10b981",
       gradient: "from-emerald-500 to-teal-500",
@@ -473,7 +566,7 @@ export default function MobileAdminApp({
     },
     {
       id: "seo",
-      label: tr("SEO Google", "Google SEO", "SEO Google"),
+      label: tr("Google SEO", "SEO Google", "SEO Google"),
       icon: RiSearchEyeFill,
       accentColor: "#a855f7",
       gradient: "from-purple-500 to-violet-600",
@@ -489,7 +582,7 @@ export default function MobileAdminApp({
     },
     {
       id: "opener",
-      label: tr("Intro Animation", "Intro Animation", "Intro Animation"),
+      label: "Intro Animation",
       icon: RiMovieFill,
       accentColor: "#16b09f",
       gradient: "from-teal-500 to-emerald-400",
@@ -506,7 +599,7 @@ export default function MobileAdminApp({
     },
     {
       id: "hero-works",
-      label: tr("Top Works", "Top Works", "Top Works"),
+      label: tr("Top Works", "Karya Utama", "Karya Utamo"),
       icon: RiImageFill,
       accentColor: "#f43f5e",
       gradient: "from-rose-500 to-pink-500",
@@ -514,7 +607,7 @@ export default function MobileAdminApp({
     },
     {
       id: "theme",
-      label: tr("Thema", "Theme", "Thema"),
+      label: tr("Theme", "Tema", "Tema"),
       icon: RiPaletteFill,
       accentColor: "#6366f1",
       gradient: "from-indigo-500 to-blue-600",
@@ -522,7 +615,7 @@ export default function MobileAdminApp({
     },
     {
       id: "social",
-      label: tr("Sosmed WA", "Socials", "Sosmed WA"),
+      label: tr("Socials", "Sosmed WA", "Sosmed WA"),
       icon: RiChat3Fill,
       accentColor: "#14b8a6",
       gradient: "from-teal-500 to-emerald-500",
@@ -530,7 +623,7 @@ export default function MobileAdminApp({
     },
     {
       id: "settings",
-      label: tr("Setting", "Settings", "Setting"),
+      label: tr("Settings", "Pengaturan", "Pangaturan"),
       icon: RiSettings4Fill,
       accentColor: "#64748b",
       gradient: "from-slate-600 to-slate-800",
@@ -637,7 +730,7 @@ export default function MobileAdminApp({
               <span className="text-xl animate-bounce">🔔</span>
               <div>
                 <span className="text-[10px] font-mono tracking-wider uppercase text-emerald-400 font-bold block">
-                  Proyek Baru Masuk!
+                  {tr("New Project Inbound!", "Proyek Baru Masuk!", "Proyek Baru Masuak!")}
                 </span>
                 <h4 className="text-xs font-bold text-white truncate max-w-[200px]">
                   {incomingOrderAlert.clientName}
@@ -665,7 +758,7 @@ export default function MobileAdminApp({
               }}
               className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-500 text-black font-bold text-xs shadow-md active:scale-95 text-center cursor-pointer"
             >
-              Buka & Konfirmasi Pesanan →
+              {tr("Open & Confirm Order →", "Buka & Konfirmasi Pesanan →", "Bukak & Konfirmasi Pasanan →")}
             </button>
           </div>
         </div>
@@ -686,7 +779,7 @@ export default function MobileAdminApp({
                   navigateToWorkspace("settings");
                 }}
                 className="flex items-center gap-3 cursor-pointer group active:scale-95 transition-all select-none"
-                title={tr("Kelola Akun Admin & Tim", "Manage Admin & Team Accounts", "Kelola Akun Admin")}
+                title={tr("Manage Admin & Team Accounts", "Kelola Akun Admin & Tim", "Atua Akun Admin & Tim")}
               >
                 {/* User Avatar / Brand Logo */}
                 <div className="relative">
@@ -707,7 +800,7 @@ export default function MobileAdminApp({
                 </div>
                 <div>
                   <span className="text-xs text-neutral-400 font-medium block flex items-center gap-1">
-                    {tr("Selamat Datang,", "Good Morning,", "Salamaik Datang,")}
+                    {tr("Welcome,", "Selamat Datang,", "Salamaik Datang,")}
                     <span className="text-[10px] text-teal-400 font-mono font-semibold underline ml-1 capitalize">
                       {activeAdmin?.role || "Admin"} ⚙
                     </span>
@@ -732,7 +825,7 @@ export default function MobileAdminApp({
                       ? "bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100"
                       : "bg-teal-500/10 text-teal-300 border border-teal-500/30 hover:bg-teal-500/20"
                   }`}
-                  title={tr("Kelola Akun Admin (Multi-User)", "Admin Team Accounts", "Kelola Akun Admin")}
+                  title={tr("Admin Team Accounts (Multi-User)", "Kelola Akun Admin (Multi-User)", "Atua Akun Admin (Multi-User)")}
                 >
                   <RiShieldCheckFill className="w-4 h-4 text-teal-400" />
                 </button>
@@ -748,8 +841,8 @@ export default function MobileAdminApp({
                   }`}
                   title={
                     isLight
-                      ? tr("Beralih ke Mode Gelap", "Switch to Dark Mode", "Pindah ka Mode Galok")
-                      : tr("Beralih ke Mode Terang", "Switch to Light Mode", "Pindah ka Mode Tarang")
+                      ? tr("Switch to Dark Mode", "Beralih ke Mode Gelap", "Pindah ka Mode Galok")
+                      : tr("Switch to Light Mode", "Beralih ke Mode Terang", "Pindah ka Mode Tarang")
                   }
                 >
                   {isLight ? (
@@ -759,7 +852,7 @@ export default function MobileAdminApp({
                   )}
                 </button>
 
-                {/* 2. Language Switcher Sliding Pill (Mirip pada Website Navbar: 1 compact circular pill -> slides open horizontally on tap) */}
+                {/* 2. Language Switcher Sliding Pill */}
                 <div
                   ref={mobileLangRef}
                   className={`relative flex items-center rounded-full border transition-all duration-300 ease-out overflow-hidden text-xs font-mono h-9 ${
@@ -806,8 +899,8 @@ export default function MobileAdminApp({
                               ? "text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full"
                               : "text-neutral-400 hover:text-white hover:bg-white/10 rounded-full"
                           }`}
-                          aria-label={`Ganti ke ${l.label}`}
-                          title={!isLangMenuOpen ? tr("Pilih Bahasa", "Change Language", "Pilih Bahaso") : l.label}
+                          aria-label={tr(`Switch to ${l.name}`, `Ganti ke ${l.name}`, `Pindah ka ${l.name}`)}
+                          title={!isLangMenuOpen ? tr("Select Language", "Pilih Bahasa", "Pilih Bahaso") : l.name}
                         >
                           {l.label}
                         </button>
@@ -908,23 +1001,28 @@ export default function MobileAdminApp({
                             : "bg-[#141b2a] border-white/15 text-white"
                         }`}
                       >
-                        {["Sep", "Okt", "Nov", "Minggu Ini"].map((p) => (
+                        {[
+                          { key: "Sep", label: "Sep" },
+                          { key: "Oct", label: tr("Oct", "Okt", "Okt") },
+                          { key: "Nov", label: "Nov" },
+                          { key: "Week", label: tr("This Week", "Minggu Ini", "Pakan Ko") },
+                        ].map((p) => (
                           <button
-                            key={p}
+                            key={p.key}
                             type="button"
                             onClick={() => {
-                              setSelectedPeriod(p);
+                              setSelectedPeriod(p.label);
                               setIsPeriodMenuOpen(false);
                             }}
                             className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors cursor-pointer ${
-                              selectedPeriod === p
+                              selectedPeriod === p.label
                                 ? "bg-emerald-500/10 text-emerald-500 font-bold"
                                 : isLight
                                 ? "hover:bg-slate-100"
                                 : "hover:bg-white/10"
                             }`}
                           >
-                            {p}
+                            {p.label}
                           </button>
                         ))}
                       </motion.div>
@@ -950,9 +1048,21 @@ export default function MobileAdminApp({
                 <p className="text-xs text-neutral-400 mt-0.5">
                   {chartMode === "crm"
                     ? totalLeadsCount > 0
-                      ? `${totalLeadsCount} Prospek Klien Terdaftar`
-                      : "7 Prospek Klien Terdaftar"
-                    : "Google Search Console Aktif & Terindeks"}
+                      ? tr(
+                          `${totalLeadsCount} Registered Client Leads`,
+                          `${totalLeadsCount} Prospek Klien Terdaftar`,
+                          `${totalLeadsCount} Prospek Klien Tadaftar`
+                        )
+                      : tr(
+                          "7 Registered Client Leads",
+                          "7 Prospek Klien Terdaftar",
+                          "7 Prospek Klien Tadaftar"
+                        )
+                    : tr(
+                        "Google Search Console Active & Indexed",
+                        "Google Search Console Aktif & Terindeks",
+                        "Google Search Console Aktip & Taindeks"
+                      )}
                 </p>
               </div>
 
@@ -1091,7 +1201,7 @@ export default function MobileAdminApp({
                             : "text-neutral-500 hover:text-neutral-300"
                         }`}
                       >
-                        {item.label}
+                        {lang === "en" ? item.enLabel : lang === "min" ? item.minLabel : item.idLabel}
                       </button>
                     ))}
                   </div>
@@ -1107,7 +1217,7 @@ export default function MobileAdminApp({
                 <div className="flex items-center gap-1.5 text-neutral-400 font-mono text-[11px]">
                   <RiCalendarLine className="w-3.5 h-3.5" />
                   <span>
-                    {new Date().toLocaleDateString("id-ID", {
+                    {new Date().toLocaleDateString(lang === "en" ? "en-US" : "id-ID", {
                       day: "numeric",
                       month: "short",
                       year: "numeric",
@@ -1121,7 +1231,7 @@ export default function MobileAdminApp({
                     onClick={() => navigateToWorkspace("crm")}
                     className="text-xs font-bold text-emerald-500 flex items-center gap-1 hover:underline cursor-pointer"
                   >
-                    <span>{tr("Kelola CRM", "Manage CRM", "Atua CRM")}</span>
+                    <span>{tr("Manage CRM", "Kelola CRM", "Atua CRM")}</span>
                     <RiArrowRightLine className="w-3.5 h-3.5" />
                   </button>
                 ) : (
@@ -1130,7 +1240,7 @@ export default function MobileAdminApp({
                     onClick={() => navigateToWorkspace("seo")}
                     className="text-xs font-bold text-cyan-500 flex items-center gap-1 hover:underline cursor-pointer"
                   >
-                    <span>{tr("Buka SEO & SERP", "Open SEO", "Bukak SEO")}</span>
+                    <span>{tr("Open SEO", "Buka SEO & SERP", "Bukak SEO")}</span>
                     <RiArrowRightLine className="w-3.5 h-3.5" />
                   </button>
                 )}
@@ -1141,10 +1251,10 @@ export default function MobileAdminApp({
             <div>
               <div className="flex items-center justify-between mb-3 px-1">
                 <h2 className="text-sm font-bold tracking-tight">
-                  {tr("Ringkasan Studio", "Studio Overview", "Ringkasan Studio")}
+                  {tr("Studio Overview", "Ringkasan Studio", "Ringkasan Studio")}
                 </h2>
                 <span className="text-[11px] font-medium text-neutral-400 flex items-center gap-1">
-                  <span>{tr("Real-time Cloud", "Real-time Cloud", "Real-time Cloud")}</span>
+                  <span>{tr("Real-time Cloud", "Cloud Real-time", "Cloud Real-time")}</span>
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 </span>
               </div>
@@ -1158,11 +1268,11 @@ export default function MobileAdminApp({
                   }`}
                 >
                   <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider">
-                    {tr("Karya", "Works", "Karya")}
+                    {tr("Works", "Karya", "Karya")}
                   </span>
                   <div className="text-xl font-black mt-1">{totalWorks}</div>
                   <span className="text-[10px] text-blue-500 font-semibold block mt-0.5">
-                    {clients.length} {tr("Folder", "Folders", "Folder")}
+                    {clients.length} {tr("Folders", "Folder", "Folder")}
                   </span>
                 </div>
 
@@ -1174,11 +1284,11 @@ export default function MobileAdminApp({
                   }`}
                 >
                   <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider">
-                    {tr("Prospek", "Leads", "Prospek")}
+                    {tr("Leads", "Prospek", "Prospek")}
                   </span>
                   <div className="text-xl font-black mt-1 text-emerald-400">{totalLeadsCount}</div>
                   <span className="text-[10px] text-emerald-500 font-semibold block mt-0.5">
-                    {wonLeadsCount} Won
+                    {wonLeadsCount} {tr("Won", "Berhasil", "Mandapek")}
                   </span>
                 </div>
 
@@ -1190,7 +1300,7 @@ export default function MobileAdminApp({
                   }`}
                 >
                   <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider">
-                    {tr("Memori", "Storage", "Memori")}
+                    {tr("Storage", "Penyimpanan", "Panyimpanan")}
                   </span>
                   <div className="text-xl font-black mt-1 text-purple-400">18.4</div>
                   <span className="text-[10px] text-purple-500 font-semibold block mt-0.5">
@@ -1265,10 +1375,10 @@ export default function MobileAdminApp({
                       {tr("Showreels", "Showreels", "Showreel")}
                     </span>
                     <div className="text-xs sm:text-sm font-bold text-white truncate">
-                      {stage3CardsCount || 2} {tr("Video Aktif", "Active Videos", "Video Aktif")}
+                      {stage3CardsCount || 2} {tr("Active Videos", "Video Aktif", "Video Aktip")}
                     </div>
                     <span className="text-[10px] text-[#16b09f] font-semibold block truncate">
-                      {tr("Stage 3 Folder Tabs", "Stage 3 Folder Tabs", "Tab Folder Stage 3")}
+                      {tr("Stage 3 Folder Tabs", "Tab Folder Stage 3", "Tab Folder Stage 3")}
                     </span>
                   </div>
                 </div>
@@ -1294,7 +1404,7 @@ export default function MobileAdminApp({
                       {tr("Canvas & Figma", "Canvas & Figma", "Canvas & Figma")}
                     </span>
                     <div className="text-xs sm:text-sm font-bold text-white truncate">
-                      {tr("Kelola Link", "Manage Links", "Atua Link")}
+                      {tr("Manage Links", "Kelola Link", "Atua Link")}
                     </div>
                     <span className="text-[10px] text-indigo-400 font-semibold block truncate">
                       {tr("Floating Bar Figma", "Floating Bar Figma", "Floating Bar Figma")}
@@ -1320,10 +1430,10 @@ export default function MobileAdminApp({
                   </div>
                   <div className="min-w-0">
                     <span className="text-[10px] font-semibold text-neutral-400 block uppercase tracking-wider truncate">
-                      {tr("Logo Klien", "Client Logos", "Logo Klien")}
+                      {tr("Client Logos", "Logo Klien", "Logo Klien")}
                     </span>
                     <div className="text-xs sm:text-sm font-bold text-white truncate">
-                      {clLogos?.length || 0} {tr("Logo", "Logos", "Logo")}
+                      {clLogos?.length || 0} {tr("Logos", "Logo", "Logo")}
                     </div>
                     <span className="text-[10px] text-amber-400 font-semibold block truncate">
                       {tr("Running Marquee", "Running Marquee", "Running Marquee")}
@@ -1397,7 +1507,7 @@ export default function MobileAdminApp({
                     type="button"
                     onClick={onOpenCanvasLinksModal}
                     className="px-2.5 py-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 text-indigo-400 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm cursor-pointer"
-                    title="Kelola Link Figma & Canvas"
+                    title={tr("Manage Figma & Canvas Links", "Kelola Link Figma & Canvas", "Atua Link Figma & Canvas")}
                   >
                     <FigmaIcon className="w-3.5 h-3.5" />
                     <span>Figma</span>
@@ -1408,10 +1518,10 @@ export default function MobileAdminApp({
                   onClick={handleSaveWorkspace}
                   disabled={savingAction}
                   className="px-3 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-semibold flex items-center gap-1.5 active:scale-95 transition-all shadow-sm cursor-pointer"
-                  title="Simpan Perubahan Canvas"
+                  title={tr("Save Canvas Changes", "Simpan Perubahan Canvas", "Simpan Parubahan Canvas")}
                 >
                   <RiSave3Fill className={`w-3.5 h-3.5 ${savingAction ? "animate-spin" : ""}`} />
-                  <span>Simpan</span>
+                  <span>{tr("Save", "Simpan", "Simpan")}</span>
                 </button>
               </div>
             ) : (
@@ -1603,7 +1713,7 @@ export default function MobileAdminApp({
                     backgroundColor: primaryColor,
                     willChange: "transform, opacity",
                   }}
-                  title="Save Workspace"
+                  title={tr("Save Workspace", "Simpan Workspace", "Simpan Workspace")}
                 >
                   <RiSave3Fill className="w-5 h-5 text-black drop-shadow" />
                 </motion.button>
@@ -1630,7 +1740,7 @@ export default function MobileAdminApp({
                   }}
                   className="absolute left-1 top-1 w-11 h-11 rounded-full bg-sky-500 shadow-[0_6px_20px_rgba(14,165,233,0.45)] border-2 border-white/30 flex items-center justify-center cursor-pointer text-white active:scale-95 z-20"
                   style={{ willChange: "transform, opacity" }}
-                  title="View Page"
+                  title={tr("View Page", "Lihat Halaman", "Caliak Laman")}
                 >
                   <RiEyeLine className="w-5 h-5 drop-shadow" />
                 </motion.button>
@@ -1656,9 +1766,9 @@ export default function MobileAdminApp({
                     if (
                       confirm(
                         tr(
-                          "Yakin ingin keluar dari sesi admin?",
-                          "Are you sure you want to logout from admin session?",
-                          "Yakin nio kalua dari sesi admin?"
+                          "Are you sure you want to log out from admin session?",
+                          "Apakah Anda yakin ingin keluar dari sesi admin?",
+                          "Apokah sanak yakin nio kalua dari sesi admin?"
                         )
                       )
                     ) {
@@ -1667,7 +1777,7 @@ export default function MobileAdminApp({
                   }}
                   className="absolute left-1 top-1 w-11 h-11 rounded-full bg-rose-500 shadow-[0_6px_20px_rgba(244,63,94,0.45)] border-2 border-white/30 flex items-center justify-center cursor-pointer text-white active:scale-95 z-20"
                   style={{ willChange: "transform, opacity" }}
-                  title="Logout"
+                  title={tr("Logout", "Keluar", "Kalua")}
                 >
                   <RiLogoutBoxRFill className="w-5 h-5 drop-shadow" />
                 </motion.button>
@@ -1690,7 +1800,15 @@ export default function MobileAdminApp({
               backgroundColor: isSaveFabExpanded ? "#1e293b" : primaryColor,
               boxShadow: `0 8px 24px ${isSaveFabExpanded ? "rgba(0,0,0,0.6)" : `${primaryColor}66`}`,
             }}
-            title={isSaveFabExpanded ? "Tutup Menu Aksi" : "Tahan / Tekan untuk Menu Aksi (Save, View Page, Logout)"}
+            title={
+              isSaveFabExpanded
+                ? tr("Close Action Menu", "Tutup Menu Aksi", "Tutuik Menu Aksi")
+                : tr(
+                    "Hold / Tap for Action Menu (Save, View Page, Logout)",
+                    "Tahan / Tekan untuk Menu Aksi (Simpan, Lihat Halaman, Keluar)",
+                    "Tahan / Piciak untuak Menu Aksi (Simpan, Caliak Laman, Kalua)"
+                  )
+            }
           >
             <motion.div
               animate={{ rotate: isSaveFabExpanded ? 90 : 0, scale: isSaveFabExpanded ? 1.06 : 1 }}
