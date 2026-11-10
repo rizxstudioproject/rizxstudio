@@ -1658,6 +1658,11 @@ html.is-loading body {
   overflow: hidden;
 }
 
+#opener.portal-open {
+  background: transparent !important;
+  pointer-events: none;
+}
+
 .op-mark {
   --fs: clamp(16px, 5.2vw, 76px);
   width: min(1400px, 96vw);
@@ -1775,12 +1780,12 @@ html.is-loading body {
   opacity: 1;
 }
 
-/* Gambar yang membesar jadi layar penuh */
+/* Jendela portal tengah yang membesar jadi layar penuh membuka tampilan web asli */
 .op-grow {
   position: fixed;
-  z-index: 10000;
-  background-size: cover;
-  background-position: center;
+  z-index: 9998;
+  background: transparent !important;
+  box-shadow: 0 0 0 150vmax var(--op-bg);
   pointer-events: none;
   transition:
     top 0.95s cubic-bezier(0.76, 0, 0.24, 1),

@@ -34,8 +34,8 @@ export const OPENER_DEFAULTS: OpenerRuntimeConfig = {
     "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-uiux-design.jpg",
     "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Burger%20King/Burger_ads04.jpg",
     "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20EV2_B.jpg",
-    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-campaign-visuals.jpg",
     "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg",
+    "/sequence/frame_000000.webp",
   ],
 };
 
@@ -248,6 +248,7 @@ export default function SiteOpener() {
 
       // Bersihkan state jika replay
       opener.style.display = "";
+      opener.classList.remove("portal-open");
       mark.className = "op-mark";
       box.style.visibility = "";
       box.innerHTML = "";
@@ -264,11 +265,11 @@ export default function SiteOpener() {
           : OPENER_DEFAULTS.images;
 
       // Jika gambar kurang dari jumlah tahap, ulangi dari awal;
-      // gambar terakhir dalam daftar selalu dipakai untuk tahap terakhir ("Rizx Studio")
+      // gambar terakhir untuk tahap "Rizx Studio" adalah tampilan hero web (/sequence/frame_000000.webp)
       const imgs = phases.map(
         (_, i) => sourceImages[i % sourceImages.length]
       );
-      imgs[imgs.length - 1] = sourceImages[sourceImages.length - 1];
+      imgs[imgs.length - 1] = "/sequence/frame_000000.webp";
 
       await Promise.all([
         document.fonts
@@ -309,35 +310,30 @@ export default function SiteOpener() {
       await waitForSite();
       if (cancelled || finishedRef.current) return;
 
-      // 4. Gambar di tengah membesar jadi layar penuh (FLIP ~0.95s, cubic-bezier(.76,0,.24,1))
-      //    sementara teks kiri dan kanan bergeser keluar dan memudar
+      // 4 & 5. Kotak di tengah (yang menampilkan preview web) langsung membesar jadi layar penuh
+      //        membuka website asli (tanpa bayangan gambar portofolio menumpuk) sementara
+      //        teks kiri/kanan bergeser keluar dan web melakukan zoom-out (scale 1.12 → 1, ~1.4s)
       const r = box.getBoundingClientRect();
       const g = document.createElement("div");
       g.className = "op-grow";
       const boxRadius = getComputedStyle(box).borderRadius || "4px";
-      g.style.cssText = `top:${r.top}px;left:${r.left}px;width:${r.width}px;height:${r.height}px;border-radius:${boxRadius};background:${bgCss(
-        imgs[imgs.length - 1]
-      )}`;
+      g.style.cssText = `top:${r.top}px;left:${r.left}px;width:${r.width}px;height:${r.height}px;border-radius:${boxRadius}`;
       document.body.appendChild(g);
 
+      // Paksa reflow pada ukuran kotak awal sebelum membuka portal ke web
+      g.getBoundingClientRect();
+
+      opener.classList.add("portal-open");
       mark.classList.add("split");
       box.style.visibility = "hidden";
-      g.getBoundingClientRect(); // paksa reflow
+      root.classList.add("is-ready");
+      root.classList.remove("is-loading");
       g.classList.add("full");
 
       await wait(1000);
       if (cancelled || finishedRef.current) return;
 
-      // 5. Layar penuh memudar, web masuk dengan efek zoom-out (scale 1.12 → 1, ~1.4s),
-      //    elemen hero & nav masuk dengan fade-up bertahap
       opener.style.display = "none";
-      root.classList.add("is-ready");
-      root.classList.remove("is-loading");
-      g.classList.add("fade");
-
-      await wait(900);
-      if (cancelled || finishedRef.current) return;
-
       finishedRef.current = true;
       cleanup();
       setRemoved(true);
@@ -352,7 +348,7 @@ export default function SiteOpener() {
       // Setelah efek zoom-out 1.4s selesai, bersihkan transform wrapper supaya sticky canvas optimal
       setTimeout(() => {
         root.classList.add("is-settled");
-      }, 600);
+      }, 500);
     }
 
     run();

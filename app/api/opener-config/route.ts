@@ -56,12 +56,12 @@ const DEFAULT_IMAGE_ITEMS: OpenerImageItem[] = [
   },
   {
     id: "img-6",
-    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-campaign-visuals.jpg",
+    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg",
     active: true,
   },
   {
     id: "img-7",
-    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg",
+    url: "/sequence/frame_000000.webp",
     active: true,
   },
 ];
