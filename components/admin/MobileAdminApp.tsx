@@ -380,6 +380,10 @@ export default function MobileAdminApp({
 
   const handleBackToHome = () => {
     setCurrentScreen("home");
+    setTimeout(() => {
+      updateGliderPosition("home");
+      scrollActiveItemIntoView("home", true);
+    }, 30);
   };
 
   const handleSaveWorkspace = async () => {
@@ -594,13 +598,18 @@ export default function MobileAdminApp({
       updateGliderPosition(activeDockId);
       scrollActiveItemIntoView(activeDockId, true);
     }, 50);
+    const timer2 = setTimeout(() => {
+      updateGliderPosition(activeDockId);
+      scrollActiveItemIntoView(activeDockId, false);
+    }, 250);
     const handleResize = () => updateGliderPosition(activeDockId);
     window.addEventListener("resize", handleResize);
     return () => {
       clearTimeout(timer);
+      clearTimeout(timer2);
       window.removeEventListener("resize", handleResize);
     };
-  }, [activeDockId, updateGliderPosition]);
+  }, [activeDockId, updateGliderPosition, currentScreen]);
 
   const handleDockClick = (id: string) => {
     updateGliderPosition(id);
@@ -1536,7 +1545,7 @@ export default function MobileAdminApp({
       )}
 
       {/* RADIAL SATELLITE ACTION MENU (Tahan / Tekan untuk memunculkan Save, View Page, Logout di sekitarnya) */}
-      {activeTab !== "canvas" && (
+      {(currentScreen === "home" || activeTab !== "canvas") && (
         <>
           <AnimatePresence>
             {isSaveFabExpanded && (
@@ -1718,7 +1727,7 @@ export default function MobileAdminApp({
           Full-width frame to bottom (bottom-0) and left/right (left-0 right-0).
           Pin Bar (Notch & Bubble) glides across the dock.
          ============================================================== */}
-      {activeTab !== "canvas" && (
+      {(currentScreen === "home" || activeTab !== "canvas") && (
         <div className="fixed bottom-0 left-0 right-0 z-40 w-full pointer-events-auto select-none">
         <motion.div
           initial={{ y: 25, opacity: 0 }}
@@ -1849,7 +1858,7 @@ export default function MobileAdminApp({
                     >
                       <span
                         className={`transition-all duration-200 flex items-center justify-center ${
-                          isActive
+                          isActive && gliderX !== null
                             ? "opacity-0 scale-75"
                             : isLight
                             ? "opacity-100 text-slate-400 hover:text-slate-800 scale-100"
