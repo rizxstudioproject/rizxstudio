@@ -8965,8 +8965,14 @@ export default function CanvasWorkspace({
               : "cursor-default"
           }`}
         >
-          {/* Floating Studio Pill Menu (Matches User Screenshot media_1793558036658_5e46c976.png) */}
-          <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-40">
+          {/* Floating Studio Pill Menu (Hidden on mobile when layers drawer or inspector is open to prevent blocking text) */}
+          <div
+            className={`absolute top-3 left-3 sm:top-4 sm:left-4 z-40 transition-all duration-200 ${
+              isUiExpanded || isMobileInspectorOpen
+                ? "hidden md:block"
+                : "block"
+            }`}
+          >
             {renderPillMenu()}
           </div>
 
