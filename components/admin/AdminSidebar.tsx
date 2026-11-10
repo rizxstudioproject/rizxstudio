@@ -90,7 +90,7 @@ export default function AdminSidebar({
     },
     {
       id: "opener",
-      label: tr("Opener (Intro Animation)", "Opener (Intro Animation)", "Opener (Intro Animation)"),
+      label: tr("Intro Animation", "Intro Animation", "Intro Animation"),
       icon: RiMovieFill,
       badge: "NEW",
     },

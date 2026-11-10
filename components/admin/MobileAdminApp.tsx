@@ -355,7 +355,7 @@ export default function MobileAdminApp({
       case "hero-banner":
         return tr("Hero Banner & 3D Hub", "Hero Banner & 3D Hub", "Hero Banner & 3D Hub");
       case "opener":
-        return tr("Opener (Intro Animation)", "Opener (Intro Animation)", "Opener (Intro Animation)");
+        return tr("Intro Animation", "Intro Animation", "Intro Animation");
       case "flagship":
         return tr("Showcase Showreels", "Showcase Showreels", "Showcase Showreel");
       case "runner":
@@ -485,7 +485,7 @@ export default function MobileAdminApp({
     },
     {
       id: "opener",
-      label: tr("Opener", "Opener", "Opener"),
+      label: tr("Intro Animation", "Intro Animation", "Intro Animation"),
       icon: RiMovieFill,
       accentColor: "#16b09f",
       gradient: "from-teal-500 to-emerald-400",

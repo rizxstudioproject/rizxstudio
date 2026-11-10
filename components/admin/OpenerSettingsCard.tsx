@@ -856,8 +856,8 @@ export default function OpenerSettingsCard({
               }`}
             >
               {tx(
-                "OPENER (INTRO ANIMATION) — SUPABASE CONFIG",
-                "OPENER (INTRO ANIMATION) — SUPABASE CONFIG"
+                "INTRO ANIMATION — SUPABASE CONFIG",
+                "INTRO ANIMATION — SUPABASE CONFIG"
               )}
             </span>
           </div>
@@ -867,8 +867,8 @@ export default function OpenerSettingsCard({
             }`}
           >
             {tx(
-              "Pengaturan Opener Website ([Teks Kiri] [Kotak Gambar] [Teks Kanan])",
-              "Website Opener Configuration ([Left Word] [Image Box] [Right Word])"
+              "Pengaturan Intro Animation Website ([Teks Kiri] [Kotak Gambar] [Teks Kanan])",
+              "Website Intro Animation Configuration ([Left Word] [Image Box] [Right Word])"
             )}
           </h3>
           <p

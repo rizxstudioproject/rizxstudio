@@ -2878,6 +2878,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
         return tx("Tentang Saya (About Me)", "About Me", "Tantang Ambo");
       case "settings":
         return tx("Setting Admin & Keamanan", "Admin Security & Settings", "Setting Admin & Kaamanan");
+      case "opener":
+        return tx("Intro Animation", "Intro Animation", "Intro Animation");
       default:
         return tab;
     }
