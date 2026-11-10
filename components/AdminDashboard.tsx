@@ -2855,7 +2855,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       case "flagship":
         return tx("Pameran Media Reels", "Media Reels Showcase", "Pameran Media Reels");
       case "clients":
-        return tx("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien");
+        return tx("Our Client", "Our Client", "Our Client");
       case "canvas":
         return tx("Rizx Canvas", "Rizx Canvas", "Rizx Canvas");
       case "crm":
@@ -10141,7 +10141,7 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 {[
                   {
                     id: "clients" as AdminSidebarTab,
-                    label: tx("Portfolio & Clients", "Portofolio & Klien", "Portofolio & Klien"),
+                    label: tx("Our Client", "Our Client", "Our Client"),
                     sub: tx("Folder klien & logo partner marquee", "Client folders & partner logos", "Folder klien & logo partner marquee"),
                     icon: HiFolder,
                     badge: clients.length > 0 ? clients.length : undefined,

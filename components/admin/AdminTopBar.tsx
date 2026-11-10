@@ -190,7 +190,7 @@ export default function AdminTopBar({
     }[] = [
       {
         id: "clients",
-        label: tr("Portfolio & Clients", "Portofolio & Klien", "Portofolio & Klien"),
+        label: tr("Our Client", "Our Client", "Our Client"),
         sub: tr("Client folders & works", "Folder klien & karya visual", "Folder klien & karya visual"),
         icon: HiFolder,
       },

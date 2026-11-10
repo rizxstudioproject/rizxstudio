@@ -333,7 +333,7 @@ export default function MobileAdminApp({
   const getTabTitle = (tab: AdminSidebarTab) => {
     switch (tab) {
       case "clients":
-        return tr("Portofolio & Klien", "Portfolio & Clients", "Portofolio & Klien");
+        return tr("Our Client", "Our Client", "Our Client");
       case "canvas":
         return tr("Rizx Canvas", "Rizx Canvas", "Rizx Canvas");
       case "crm":

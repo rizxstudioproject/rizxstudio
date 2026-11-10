@@ -78,7 +78,7 @@ export default function AdminSidebar({
   }[] = [
     {
       id: "clients",
-      label: tr("Portfolio & Clients", "Portofolio & Klien", "Portofolio & Klien"),
+      label: tr("Our Client", "Our Client", "Our Client"),
       badge: totalClients > 0 ? totalClients : undefined,
       icon: RiFolderFill,
     },
