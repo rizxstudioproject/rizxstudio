@@ -191,7 +191,8 @@ export default function SiteOpener() {
       await waitForSite();
       if (cancelled || finishedRef.current) return;
 
-      // 3. Kotak membesar (FLIP: dari posisi kotak ke fullscreen, ~0.9s, cubic-bezier(.76,0,.24,1))
+      // 3. Kotak "O" langsung membuka portal ke website asli (tanpa gambar portofolio lagi)
+      //    dan website melakukan zoom-out halus ke ukuran penuh (~0.9s, cubic-bezier(.76,0,.24,1))
       const boxEl = imgsBoxRef.current;
       const rect = boxEl
         ? boxEl.getBoundingClientRect()
@@ -202,33 +203,36 @@ export default function SiteOpener() {
             height: 48,
           };
 
-      const lastImg = PORTFOLIO_IMAGES[PORTFOLIO_IMAGES.length - 1];
       const growEl = document.createElement("div");
       growEl.className = "op-grow";
       growEl.style.top = `${rect.top}px`;
       growEl.style.left = `${rect.left}px`;
       growEl.style.width = `${rect.width}px`;
       growEl.style.height = `${rect.height}px`;
-      growEl.style.backgroundImage = `url('${lastImg.url}'), ${lastImg.fallback}`;
       document.body.appendChild(growEl);
 
-      setMarkState("out");
-      // Paksa reflow sebelum transisi FLIP ke fullscreen
+      // Paksa reflow pada kondisi awal kotak "O"
       growEl.getBoundingClientRect();
+
+      // Transparankan background #opener & sembunyikan gambar slot supaya di dalam kotak
+      // langsung terlihat website asli, sementara area luar ditutup oleh box-shadow .op-grow
+      if (openerRef.current) {
+        openerRef.current.classList.add("portal-open");
+      }
+      if (boxEl) {
+        boxEl.style.opacity = "0";
+      }
+
+      setMarkState("out");
+      root.classList.add("is-ready");
+      root.classList.remove("is-loading");
       growEl.classList.add("full");
 
       await wait(950);
       if (cancelled || finishedRef.current) return;
 
-      // 4. Layar penuh memudar → halaman utama terlihat, hero & nav masuk bertahap
+      // 4. Setelah portal penuh, bersihkan seluruh elemen opener dari DOM
       setOpenerHidden(true);
-      root.classList.add("is-ready");
-      root.classList.remove("is-loading");
-      growEl.classList.add("fade");
-
-      await wait(750);
-      if (cancelled || finishedRef.current) return;
-
       finishedRef.current = true;
       cleanupDOM();
       setRemoved(true);

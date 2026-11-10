@@ -1657,6 +1657,11 @@ html.is-loading body {
   place-items: center;
 }
 
+#opener.portal-open {
+  background: transparent !important;
+  pointer-events: none;
+}
+
 .op-mark {
   display: flex;
   align-items: center;
@@ -1734,12 +1739,14 @@ html.is-loading body {
   opacity: 1;
 }
 
-/* Kotak yang membesar jadi layar penuh */
+/* Kotak portal yang membesar dari huruf "O" menjadi layar penuh menampilkan website langsung */
 .op-grow {
   position: fixed;
-  z-index: 10000;
-  background-size: cover;
-  background-position: center;
+  z-index: 9998;
+  background: transparent !important;
+  box-shadow: 0 0 0 150vmax var(--op-bg);
+  border-radius: 2px;
+  pointer-events: none;
   transition:
     top 0.9s cubic-bezier(0.76, 0, 0.24, 1),
     left 0.9s cubic-bezier(0.76, 0, 0.24, 1),
@@ -1759,6 +1766,16 @@ html.is-loading body {
 
 .op-grow.fade {
   opacity: 0;
+}
+
+/* Efek zoom-out halus pada hero website saat portal opener membuka layar penuh */
+html.has-opener #hero-scrolly canvas {
+  transform: scale(1.12);
+  transition: transform 0.95s cubic-bezier(0.76, 0, 0.24, 1) !important;
+}
+
+html.has-opener.is-ready #hero-scrolly canvas {
+  transform: scale(1);
 }
 
 .op-skip {
