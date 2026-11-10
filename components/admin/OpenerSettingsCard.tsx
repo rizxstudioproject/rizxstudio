@@ -572,11 +572,11 @@ export default function OpenerSettingsCard({
   };
 
   const handleToggleImageActive = (idx: number) => {
-    setImageItems((prev) =>
-      prev.map((item, i) =>
-        i === idx ? { ...item, active: !item.active } : item
-      )
+    const next = imageItems.map((item, i) =>
+      i === idx ? { ...item, active: !item.active } : item
     );
+    setImageItems(next);
+    saveConfigToServer(words, finalPair, next, true);
   };
 
   const handleDeleteImage = (idx: number) => {
@@ -589,19 +589,20 @@ export default function OpenerSettingsCard({
       );
       return;
     }
-    setImageItems((prev) => prev.filter((_, i) => i !== idx));
+    const next = imageItems.filter((_, i) => i !== idx);
+    setImageItems(next);
+    saveConfigToServer(words, finalPair, next);
   };
 
   const handleMoveImage = (idx: number, dir: -1 | 1) => {
     const target = idx + dir;
     if (target < 0 || target >= imageItems.length) return;
-    setImageItems((prev) => {
-      const copy = [...prev];
-      const temp = copy[idx];
-      copy[idx] = copy[target];
-      copy[target] = temp;
-      return copy;
-    });
+    const copy = [...imageItems];
+    const temp = copy[idx];
+    copy[idx] = copy[target];
+    copy[target] = temp;
+    setImageItems(copy);
+    saveConfigToServer(words, finalPair, copy, true);
   };
 
   const handleDropImage = (targetIdx: number) => {
@@ -610,14 +611,13 @@ export default function OpenerSettingsCard({
       setDragOverImgIdx(null);
       return;
     }
-    setImageItems((prev) => {
-      const copy = [...prev];
-      const [moved] = copy.splice(dragImgIdx, 1);
-      copy.splice(targetIdx, 0, moved);
-      return copy;
-    });
+    const copy = [...imageItems];
+    const [moved] = copy.splice(dragImgIdx, 1);
+    copy.splice(targetIdx, 0, moved);
+    setImageItems(copy);
     setDragImgIdx(null);
     setDragOverImgIdx(null);
+    saveConfigToServer(words, finalPair, copy, true);
   };
 
   // Word pairs handlers
@@ -640,19 +640,20 @@ export default function OpenerSettingsCard({
       );
       return;
     }
-    setWords((prev) => prev.filter((_, i) => i !== idx));
+    const nextWords = words.filter((_, i) => i !== idx);
+    setWords(nextWords);
+    saveConfigToServer(nextWords, finalPair, imageItems);
   };
 
   const handleMoveWordPair = (idx: number, dir: -1 | 1) => {
     const target = idx + dir;
     if (target < 0 || target >= words.length) return;
-    setWords((prev) => {
-      const copy = [...prev];
-      const temp = copy[idx];
-      copy[idx] = copy[target];
-      copy[target] = temp;
-      return copy;
-    });
+    const copy = [...words];
+    const temp = copy[idx];
+    copy[idx] = copy[target];
+    copy[target] = temp;
+    setWords(copy);
+    saveConfigToServer(copy, finalPair, imageItems, true);
   };
 
   const handleDropWordPair = (targetIdx: number) => {
@@ -661,14 +662,13 @@ export default function OpenerSettingsCard({
       setDragOverWordIdx(null);
       return;
     }
-    setWords((prev) => {
-      const copy = [...prev];
-      const [moved] = copy.splice(dragWordIdx, 1);
-      copy.splice(targetIdx, 0, moved);
-      return copy;
-    });
+    const copy = [...words];
+    const [moved] = copy.splice(dragWordIdx, 1);
+    copy.splice(targetIdx, 0, moved);
+    setWords(copy);
     setDragWordIdx(null);
     setDragOverWordIdx(null);
+    saveConfigToServer(copy, finalPair, imageItems, true);
   };
 
   const handleCancelChanges = () => {
@@ -871,32 +871,12 @@ export default function OpenerSettingsCard({
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
-            onClick={openAddStageModal}
-            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#16b09f] hover:bg-[#139b8c] text-black transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-[#16b09f]/20"
-          >
-            <RiAddFill className="w-4 h-4" />
-            <span>{tx("Tambah", "Add")}</span>
-          </button>
-
-          <button
-            type="button"
             onClick={playInlinePreview}
             className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/40 transition-all cursor-pointer flex items-center gap-1.5"
           >
             <RiPlayFill className="w-4 h-4" />
             <span>{tx("Preview di Panel", "Preview in Panel")}</span>
           </button>
-
-          {onPreviewOpener && (
-            <button
-              type="button"
-              onClick={handleTriggerLivePreview}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-neutral-800 hover:bg-neutral-700 text-white border border-white/10 transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <RiPlayFill className="w-3.5 h-3.5 text-[#16b09f]" />
-              <span>{tx("Preview Full di Web", "Preview Full on Site")}</span>
-            </button>
-          )}
 
           {onClosePanel && (
             <button
@@ -1032,6 +1012,9 @@ export default function OpenerSettingsCard({
                   type="text"
                   value={pair[0]}
                   onChange={(e) => handleWordChange(idx, 0, e.target.value)}
+                  onBlur={() =>
+                    saveConfigToServer(words, finalPair, imageItems, true)
+                  }
                   placeholder="Kiri (mis. Motion)"
                   className={`w-full min-w-0 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-right focus:outline-none focus:border-[#16b09f] ${
                     isLight
@@ -1065,6 +1048,9 @@ export default function OpenerSettingsCard({
                   type="text"
                   value={pair[1]}
                   onChange={(e) => handleWordChange(idx, 1, e.target.value)}
+                  onBlur={() =>
+                    saveConfigToServer(words, finalPair, imageItems, true)
+                  }
                   placeholder="Kanan (mis. Graphics)"
                   className={`w-full min-w-0 px-2.5 py-1.5 rounded-lg border text-xs font-semibold text-left focus:outline-none focus:border-[#16b09f] ${
                     isLight
@@ -1159,6 +1145,9 @@ export default function OpenerSettingsCard({
               type="text"
               value={finalPair[0]}
               onChange={(e) => setFinalPair([e.target.value, finalPair[1]])}
+              onBlur={() =>
+                saveConfigToServer(words, finalPair, imageItems, true)
+              }
               placeholder="Rizx"
               className={`w-24 sm:w-32 px-3 py-1.5 rounded-lg border text-xs font-bold text-right focus:outline-none focus:border-[#16b09f] ${
                 isLight
@@ -1183,6 +1172,9 @@ export default function OpenerSettingsCard({
               type="text"
               value={finalPair[1]}
               onChange={(e) => setFinalPair([finalPair[0], e.target.value])}
+              onBlur={() =>
+                saveConfigToServer(words, finalPair, imageItems, true)
+              }
               placeholder="Studio"
               className={`w-24 sm:w-32 px-3 py-1.5 rounded-lg border text-xs font-bold text-left focus:outline-none focus:border-[#16b09f] ${
                 isLight
@@ -1228,42 +1220,6 @@ export default function OpenerSettingsCard({
                 "Manage all images: click Edit on any card to replace via Device / Google Drive, drag & drop to reorder, enable/disable, or delete."
               )}
             </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={openAddStageModal}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/40 transition-all cursor-pointer flex items-center gap-1.5"
-            >
-              <RiAddFill className="w-4 h-4" />
-              <span>
-                {tx(
-                  "Tambah via Device / Google Drive",
-                  "Add via Device / Google Drive"
-                )}
-              </span>
-            </button>
-
-            <label className="px-3.5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139b8c] text-black font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#16b09f]/20 transition-all">
-              <RiUpload2Fill className="w-4 h-4" />
-              <span>
-                {isUploading
-                  ? tx("Mengupload...", "Uploading...")
-                  : tx("Upload Cepat (Device)", "Quick Upload (Device)")}
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                disabled={isUploading}
-                className="hidden"
-                onChange={(e) => {
-                  handleUploadFiles(e.target.files);
-                  e.currentTarget.value = "";
-                }}
-              />
-            </label>
           </div>
         </div>
 
@@ -1385,84 +1341,6 @@ export default function OpenerSettingsCard({
             })}
           </div>
         )}
-      </div>
-
-      {/* ==============================================================
-          BOTTOM BAR: TAMBAH, RESET, CANCEL, CLOSE, SIMPAN
-         ============================================================== */}
-      <div
-        className={`flex flex-wrap items-center justify-between gap-3 pt-4 border-t ${
-          isLight ? "border-slate-100" : "border-white/10"
-        }`}
-      >
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={openAddStageModal}
-            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/30 transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <RiAddFill className="w-4 h-4" />
-            <span>{tx("Tambah", "Add")}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleResetDefaults}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-              isLight
-                ? "bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200"
-                : "bg-neutral-900 hover:bg-neutral-800 text-neutral-400 border-white/10"
-            }`}
-          >
-            <RiRestartFill className="w-3.5 h-3.5" />
-            <span>{tx("Reset Default", "Reset Default")}</span>
-          </button>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleCancelChanges}
-            className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-              isLight
-                ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-                : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
-            }`}
-          >
-            {tx("Cancel", "Cancel")}
-          </button>
-
-          {onClosePanel && (
-            <button
-              type="button"
-              onClick={onClosePanel}
-              className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-                isLight
-                  ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-                  : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
-              }`}
-            >
-              <RiCloseLine className="w-4 h-4" />
-              <span>{tx("Close", "Close")}</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => saveConfigToServer()}
-            disabled={isSaving}
-            className="px-5 py-2.5 rounded-xl bg-[#16b09f] hover:bg-[#139b8c] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#16b09f]/25 transition-all cursor-pointer flex items-center gap-2"
-          >
-            {isSaving ? (
-              <RiCheckFill className="w-4 h-4 animate-spin" />
-            ) : (
-              <RiSave3Fill className="w-4 h-4" />
-            )}
-            <span>
-              {tx("Simpan Konfigurasi Opener", "Save Opener Configuration")}
-            </span>
-          </button>
-        </div>
       </div>
 
       {/* ==============================================================
@@ -1730,19 +1608,6 @@ export default function OpenerSettingsCard({
                   }`}
                 >
                   {tx("Cancel", "Cancel")}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold border cursor-pointer flex items-center gap-1 transition-all ${
-                    isLight
-                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
-                      : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
-                  }`}
-                >
-                  <RiCloseLine className="w-4 h-4" />
-                  <span>{tx("Close", "Close")}</span>
                 </button>
 
                 <button
