@@ -3,6 +3,7 @@
 import React from "react";
 import Navbar from "@/components/Navbar";
 import ScrollyCanvas from "@/components/ScrollyCanvas";
+import SiteOpener from "@/components/SiteOpener";
 import ClientLogos from "@/components/ClientLogos";
 import About from "@/components/About";
 import CreativeJourney from "@/components/CreativeJourney";
@@ -99,6 +100,9 @@ export default function Home() {
   // Default: Public Portfolio View
   return (
     <div className="relative min-h-screen max-w-full overflow-x-clip bg-[var(--background,#0a0a0a)] text-[var(--foreground,#d4d4d4)] selection:bg-[#16b09f] selection:text-black transition-colors duration-300">
+      {/* Intro Animation Opener (Home "/" only) */}
+      <SiteOpener />
+
       {/* Floating Header Navigation */}
       <Navbar />
 

@@ -16,6 +16,13 @@ export default function ScrollyCanvas() {
   const [scrollProgress, setScrollProgress] = useState<number>(0);
   const [idbFrames, setIdbFrames] = useState<string[] | null>(null);
 
+  // Initialize window.__siteReady promise synchronously on client so SiteOpener can await it
+  if (typeof window !== "undefined" && !window.__siteReady) {
+    window.__siteReady = new Promise<void>((resolve) => {
+      window.__resolveSiteReady = resolve;
+    });
+  }
+
   // Mouse tracking parameters from context
   const mouseTracking = heroBanner?.sequenceMouseTracking ?? true;
   const mouseIntensity = heroBanner?.sequenceMouseIntensity ?? 26;
@@ -343,6 +350,9 @@ export default function ScrollyCanvas() {
 
         if (loadedCount === totalFrames) {
           setIsLoaded(true);
+          if (typeof window !== "undefined" && window.__resolveSiteReady) {
+            window.__resolveSiteReady();
+          }
           renderFrame(currentFrameIndexRef.current, 0, 0, false, 0, 0.5, 0.5);
         }
       };
@@ -353,6 +363,9 @@ export default function ScrollyCanvas() {
         setLoadProgress(Math.round((loadedCount / totalFrames) * 100));
         if (loadedCount === totalFrames) {
           setIsLoaded(true);
+          if (typeof window !== "undefined" && window.__resolveSiteReady) {
+            window.__resolveSiteReady();
+          }
         }
       };
 
@@ -389,6 +402,7 @@ export default function ScrollyCanvas() {
     if (!mouseTracking) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (document.documentElement.classList.contains("is-loading")) return;
       lastInteractionTimeRef.current = Date.now();
       const nx = Math.max(0, Math.min(1, e.clientX / window.innerWidth));
       const ny = Math.max(0, Math.min(1, e.clientY / window.innerHeight));
@@ -403,6 +417,7 @@ export default function ScrollyCanvas() {
     };
 
     const handleTouchStart = (e: TouchEvent) => {
+      if (document.documentElement.classList.contains("is-loading")) return;
       if (e.touches.length > 0) {
         lastInteractionTimeRef.current = Date.now();
         const touch = e.touches[0];
@@ -420,6 +435,7 @@ export default function ScrollyCanvas() {
     };
 
     const handleTouchMove = (e: TouchEvent) => {
+      if (document.documentElement.classList.contains("is-loading")) return;
       if (e.touches.length > 0) {
         lastInteractionTimeRef.current = Date.now();
         const touch = e.touches[0];

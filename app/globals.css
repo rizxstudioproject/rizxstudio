@@ -1634,3 +1634,185 @@ html.dark .tool-badge-label {
   color: #f8fafc !important;
 }
 
+/* ========================================================
+   SITE OPENER (INTRO ANIMATION)
+   ======================================================== */
+:root {
+  --op-bg: #0a0a0c;
+  --op-ink: #ffffff;
+}
+
+html.is-loading,
+html.is-loading body {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+#opener {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--op-bg) !important;
+  display: grid;
+  place-items: center;
+}
+
+.op-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: clamp(34px, 6.2vw, 96px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--op-ink) !important;
+  text-transform: uppercase;
+  user-select: none;
+  opacity: 0;
+  transform: translateY(18px);
+  filter: blur(6px);
+  transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.7s ease;
+}
+
+.op-mark.in {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.op-mark.out {
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+
+.op-letter {
+  display: inline-block;
+  color: var(--op-ink) !important;
+}
+
+/* Slot = huruf yang berubah jadi kotak gambar */
+.op-slot {
+  position: relative;
+  display: inline-block;
+  color: var(--op-ink) !important;
+}
+
+.op-slot .op-glyph {
+  color: var(--op-ink) !important;
+  transition: opacity 0.12s;
+}
+
+.op-slot.swap .op-glyph {
+  opacity: 0;
+}
+
+.op-imgs {
+  position: absolute;
+  left: 0.02em;
+  right: 0.02em;
+  top: 0.14em;
+  bottom: 0.13em;
+  opacity: 0;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.op-slot.swap .op-imgs {
+  opacity: 1;
+}
+
+.op-imgs i {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+}
+
+.op-imgs i.on {
+  opacity: 1;
+}
+
+/* Kotak yang membesar jadi layar penuh */
+.op-grow {
+  position: fixed;
+  z-index: 10000;
+  background-size: cover;
+  background-position: center;
+  transition:
+    top 0.9s cubic-bezier(0.76, 0, 0.24, 1),
+    left 0.9s cubic-bezier(0.76, 0, 0.24, 1),
+    width 0.9s cubic-bezier(0.76, 0, 0.24, 1),
+    height 0.9s cubic-bezier(0.76, 0, 0.24, 1),
+    border-radius 0.9s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.7s ease;
+}
+
+.op-grow.full {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  border-radius: 0;
+}
+
+.op-grow.fade {
+  opacity: 0;
+}
+
+.op-skip {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 10001;
+  font-family: var(--font-inter), "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #777777 !important;
+  background: none !important;
+  border: 0 !important;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.op-skip:hover {
+  color: #ffffff !important;
+}
+
+/* Fade-up bertahap untuk elemen hero & nav setelah opener selesai */
+html.has-opener .op-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+html.has-opener.is-ready .op-reveal {
+  opacity: 1;
+  transform: none;
+}
+
+html.has-opener.is-ready .op-reveal-delay-1 {
+  transition-delay: 0.08s;
+}
+
+html.has-opener.is-ready .op-reveal-delay-2 {
+  transition-delay: 0.18s;
+}
+
+html.has-opener.is-ready .op-reveal-delay-3 {
+  transition-delay: 0.28s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .op-mark,
+  .op-grow,
+  html.has-opener .op-reveal {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+

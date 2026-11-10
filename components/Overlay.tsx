@@ -158,19 +158,19 @@ export default function Overlay({ progress }: OverlayProps) {
       >
         <h1
           style={{ "--hero-text-color": nameColor } as React.CSSProperties}
-          className="hero-custom-color keep-white text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight mb-2 leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]"
+          className="op-reveal op-reveal-delay-1 hero-custom-color keep-white text-4xl xs:text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-bold tracking-tight mb-2 leading-tight drop-shadow-[0_4px_16px_rgba(0,0,0,0.85)]"
         >
           {displayName}<span className="text-neutral-500 font-normal">.</span>
         </h1>
         <p
           style={{ "--hero-text-color": roleColor } as React.CSSProperties}
-          className="hero-custom-color text-sm sm:text-base font-mono tracking-wider sm:tracking-widest mt-2 sm:mt-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
+          className="op-reveal op-reveal-delay-2 hero-custom-color text-sm sm:text-base font-mono tracking-wider sm:tracking-widest mt-2 sm:mt-3 drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]"
         >
           {displayRole}
         </p>
 
         {/* Minimalist mouse scroll indicator matching reference */}
-        <div className="flex flex-col items-center gap-2 mt-6 sm:mt-12">
+        <div className="op-reveal op-reveal-delay-3 flex flex-col items-center gap-2 mt-6 sm:mt-12">
           <div className="w-5 h-8 sm:w-5 sm:h-9 rounded-full border-2 border-neutral-400/60 flex justify-center pt-1.5 transition-colors">
             <span className="w-1 h-2 rounded-full bg-neutral-300 animate-bounce" />
           </div>

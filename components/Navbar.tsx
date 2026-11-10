@@ -259,7 +259,7 @@ export default function Navbar() {
         }`}
       >
         <nav
-          className="w-full max-w-7xl mx-auto flex items-center justify-between"
+          className="op-reveal w-full max-w-7xl mx-auto flex items-center justify-between"
           aria-label="Main Navigation"
         >
           {/* Left: Brand Logo */}
