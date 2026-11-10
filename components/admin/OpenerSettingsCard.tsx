@@ -15,7 +15,11 @@ import {
   RiDraggable,
   RiEyeFill,
   RiEyeOffFill,
-  RiImageAddLine,
+  RiEditFill,
+  RiCloseLine,
+  RiDriveFill,
+  RiComputerLine,
+  RiImageEditFill,
 } from "react-icons/ri";
 import { OPENER_DEFAULTS, OpenerRuntimeConfig } from "@/components/SiteOpener";
 import { normalizeMediaUrl } from "@/lib/mediaService";
@@ -31,6 +35,7 @@ interface OpenerSettingsCardProps {
   tx: (id: string, en: string) => string;
   showToast: (msg: string) => void;
   onPreviewOpener?: () => void;
+  onClosePanel?: () => void;
 }
 
 const DEFAULT_IMAGE_ITEMS: AdminOpenerImageItem[] = OPENER_DEFAULTS.images.map(
@@ -41,11 +46,22 @@ const DEFAULT_IMAGE_ITEMS: AdminOpenerImageItem[] = OPENER_DEFAULTS.images.map(
   })
 );
 
+interface EditingModalState {
+  mode: "edit-stage" | "add-stage" | "edit-final" | "edit-gallery";
+  index: number;
+  leftWord: string;
+  rightWord: string;
+  imageUrl: string;
+  sourceTab: "device" | "gdrive";
+  gdriveInput: string;
+}
+
 export default function OpenerSettingsCard({
   isLight,
   tx,
   showToast,
   onPreviewOpener,
+  onClosePanel,
 }: OpenerSettingsCardProps) {
   const [words, setWords] = useState<[string, string][]>(OPENER_DEFAULTS.words);
   const [finalPair, setFinalPair] = useState<[string, string]>(
@@ -53,11 +69,25 @@ export default function OpenerSettingsCard({
   );
   const [imageItems, setImageItems] =
     useState<AdminOpenerImageItem[]>(DEFAULT_IMAGE_ITEMS);
-  const [newImageUrl, setNewImageUrl] = useState("");
+
+  // Snapshot data tersimpan untuk tombol Cancel
+  const [savedSnapshot, setSavedSnapshot] = useState<{
+    words: [string, string][];
+    finalPair: [string, string];
+    imageItems: AdminOpenerImageItem[];
+  }>({
+    words: OPENER_DEFAULTS.words,
+    finalPair: OPENER_DEFAULTS.final,
+    imageItems: DEFAULT_IMAGE_ITEMS,
+  });
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+
+  // Modal Edit / Tambah (Upload via Device / Google Drive, Hapus, Tambah, Cancel, Close)
+  const [modalState, setModalState] = useState<EditingModalState | null>(null);
+  const [modalUploading, setModalUploading] = useState(false);
 
   // Drag & Drop state for images & words
   const [dragImgIdx, setDragImgIdx] = useState<number | null>(null);
@@ -86,34 +116,42 @@ export default function OpenerSettingsCard({
         if (res.ok) {
           const data = await res.json();
           if (!mounted) return;
-          if (Array.isArray(data.words) && data.words.length > 0) {
-            setWords(
-              data.words.map((p: any) => [
-                String(p?.[0] ?? ""),
-                String(p?.[1] ?? ""),
-              ])
-            );
-          }
-          if (Array.isArray(data.final) && data.final.length >= 2) {
-            setFinalPair([String(data.final[0]), String(data.final[1])]);
-          }
+          const loadedWords: [string, string][] =
+            Array.isArray(data.words) && data.words.length > 0
+              ? data.words.map((p: any) => [
+                  String(p?.[0] ?? ""),
+                  String(p?.[1] ?? ""),
+                ])
+              : OPENER_DEFAULTS.words;
+
+          const loadedFinal: [string, string] =
+            Array.isArray(data.final) && data.final.length >= 2
+              ? [String(data.final[0]), String(data.final[1])]
+              : OPENER_DEFAULTS.final;
+
+          let loadedImages: AdminOpenerImageItem[] = DEFAULT_IMAGE_ITEMS;
           if (Array.isArray(data.imageItems) && data.imageItems.length > 0) {
-            setImageItems(
-              data.imageItems.map((it: any, idx: number) => ({
-                id: String(it.id || `img-${idx + 1}`),
-                url: String(it.url || ""),
-                active: it.active !== false,
-              }))
-            );
+            loadedImages = data.imageItems.map((it: any, idx: number) => ({
+              id: String(it.id || `img-${idx + 1}`),
+              url: String(it.url || ""),
+              active: it.active !== false,
+            }));
           } else if (Array.isArray(data.images) && data.images.length > 0) {
-            setImageItems(
-              data.images.map((u: string, idx: number) => ({
-                id: `img-${idx + 1}`,
-                url: u,
-                active: true,
-              }))
-            );
+            loadedImages = data.images.map((u: string, idx: number) => ({
+              id: `img-${idx + 1}`,
+              url: u,
+              active: true,
+            }));
           }
+
+          setWords(loadedWords);
+          setFinalPair(loadedFinal);
+          setImageItems(loadedImages);
+          setSavedSnapshot({
+            words: loadedWords,
+            finalPair: loadedFinal,
+            imageItems: loadedImages,
+          });
         }
       } catch {
         // use defaults
@@ -128,6 +166,30 @@ export default function OpenerSettingsCard({
   }, []);
 
   const activeImages = imageItems.filter((i) => i.active && i.url.trim());
+
+  // Pastikan setiap tahap memiliki slot gambar di imageItems
+  const ensureImageSlotAt = (
+    items: AdminOpenerImageItem[],
+    stageIdx: number,
+    newUrl: string
+  ): AdminOpenerImageItem[] => {
+    const copy = [...items];
+    while (copy.length <= stageIdx) {
+      const fallbackUrl =
+        OPENER_DEFAULTS.images[copy.length % OPENER_DEFAULTS.images.length];
+      copy.push({
+        id: `img-${Date.now()}-${copy.length}`,
+        url: fallbackUrl,
+        active: true,
+      });
+    }
+    copy[stageIdx] = {
+      ...copy[stageIdx],
+      url: normalizeMediaUrl(newUrl.trim()),
+      active: true,
+    };
+    return copy;
+  };
 
   const saveConfigToServer = async (
     nextWords = words,
@@ -186,6 +248,11 @@ export default function OpenerSettingsCard({
       setWords(cleanedWords);
       setFinalPair(cleanedFinal);
       setImageItems(cleanedImages);
+      setSavedSnapshot({
+        words: cleanedWords,
+        finalPair: cleanedFinal,
+        imageItems: cleanedImages,
+      });
 
       if (!silent) {
         showToast(
@@ -207,7 +274,252 @@ export default function OpenerSettingsCard({
     }
   };
 
-  // Upload Gambar Baru ke Supabase Storage
+  // ==============================================================
+  // MODAL HANDLERS: EDIT, UPLOAD (DEVICE / GOOGLE DRIVE), TAMBAH, HAPUS, CANCEL, CLOSE
+  // ==============================================================
+  const openEditStageModal = (idx: number) => {
+    const pair = words[idx] || ["Motion", "Graphics"];
+    const currentImg =
+      imageItems[idx]?.url ||
+      activeImages[idx % Math.max(1, activeImages.length)]?.url ||
+      OPENER_DEFAULTS.images[idx % OPENER_DEFAULTS.images.length];
+    const isGdrive =
+      currentImg.includes("drive.google.com") ||
+      currentImg.includes("googleusercontent.com");
+    setModalState({
+      mode: "edit-stage",
+      index: idx,
+      leftWord: pair[0],
+      rightWord: pair[1],
+      imageUrl: currentImg,
+      sourceTab: isGdrive ? "gdrive" : "device",
+      gdriveInput: currentImg,
+    });
+  };
+
+  const openAddStageModal = () => {
+    const defaultImg =
+      OPENER_DEFAULTS.images[words.length % OPENER_DEFAULTS.images.length];
+    setModalState({
+      mode: "add-stage",
+      index: words.length,
+      leftWord: "",
+      rightWord: "",
+      imageUrl: defaultImg,
+      sourceTab: "device",
+      gdriveInput: "",
+    });
+  };
+
+  const openEditFinalModal = () => {
+    const lastImg =
+      imageItems[imageItems.length - 1]?.url || "/sequence/frame_000000.webp";
+    setModalState({
+      mode: "edit-final",
+      index: imageItems.length - 1,
+      leftWord: finalPair[0],
+      rightWord: finalPair[1],
+      imageUrl: lastImg,
+      sourceTab: "device",
+      gdriveInput: lastImg,
+    });
+  };
+
+  const openEditGalleryImageModal = (idx: number) => {
+    const item = imageItems[idx];
+    if (!item) return;
+    const pairedWord = words[idx] || finalPair;
+    setModalState({
+      mode: "edit-gallery",
+      index: idx,
+      leftWord: pairedWord[0],
+      rightWord: pairedWord[1],
+      imageUrl: item.url,
+      sourceTab:
+        item.url.includes("drive.google") ||
+        item.url.includes("googleusercontent")
+          ? "gdrive"
+          : "device",
+      gdriveInput: item.url,
+    });
+  };
+
+  const handleCloseModal = () => {
+    setModalState(null);
+  };
+
+  const handleModalDeviceUpload = async (file?: File | null) => {
+    if (!file || !modalState) return;
+    setModalUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("folder", "opener");
+      const res = await fetch("/api/admin/media-upload", {
+        method: "POST",
+        body: formData,
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Upload gagal");
+      }
+      const data = await res.json();
+      if (data.url) {
+        setModalState((prev) =>
+          prev
+            ? {
+                ...prev,
+                imageUrl: data.url,
+                gdriveInput: data.url,
+              }
+            : null
+        );
+        showToast(
+          tx(
+            "Gambar berhasil diupload dari perangkat! Klik Simpan untuk menerapkan.",
+            "Image uploaded from device! Click Save to apply."
+          )
+        );
+      }
+    } catch (err: any) {
+      showToast(
+        tx(
+          `Gagal upload gambar: ${err.message}`,
+          `Failed to upload image: ${err.message}`
+        )
+      );
+    } finally {
+      setModalUploading(false);
+    }
+  };
+
+  const handleApplyModalSave = async () => {
+    if (!modalState) return;
+    const finalImgUrl = normalizeMediaUrl(
+      (modalState.sourceTab === "gdrive"
+        ? modalState.gdriveInput
+        : modalState.imageUrl
+      ).trim()
+    );
+
+    if (modalState.mode === "add-stage") {
+      const left = modalState.leftWord.trim() || "Creative";
+      const right = modalState.rightWord.trim() || "Design";
+      const img =
+        finalImgUrl ||
+        OPENER_DEFAULTS.images[words.length % OPENER_DEFAULTS.images.length];
+
+      const nextWords: [string, string][] = [...words, [left, right]];
+      const nextImages: AdminOpenerImageItem[] = [
+        ...imageItems.slice(0, words.length),
+        { id: `img-${Date.now()}`, url: img, active: true },
+        ...imageItems.slice(words.length),
+      ];
+
+      setWords(nextWords);
+      setImageItems(nextImages);
+      setModalState(null);
+      await saveConfigToServer(nextWords, finalPair, nextImages);
+      return;
+    }
+
+    if (modalState.mode === "edit-stage") {
+      const idx = modalState.index;
+      const left = modalState.leftWord.trim() || words[idx]?.[0] || "Motion";
+      const right =
+        modalState.rightWord.trim() || words[idx]?.[1] || "Graphics";
+      const nextWords = words.map((pair, i) =>
+        i === idx ? ([left, right] as [string, string]) : pair
+      );
+      const nextImages = finalImgUrl
+        ? ensureImageSlotAt(imageItems, idx, finalImgUrl)
+        : imageItems;
+
+      setWords(nextWords);
+      setImageItems(nextImages);
+      setModalState(null);
+      await saveConfigToServer(nextWords, finalPair, nextImages);
+      return;
+    }
+
+    if (modalState.mode === "edit-final") {
+      const left = modalState.leftWord.trim() || "Rizx";
+      const right = modalState.rightWord.trim() || "Studio";
+      const nextFinal: [string, string] = [left, right];
+      let nextImages = [...imageItems];
+      if (finalImgUrl) {
+        if (nextImages.length === 0) {
+          nextImages = [{ id: `img-final`, url: finalImgUrl, active: true }];
+        } else {
+          nextImages[nextImages.length - 1] = {
+            ...nextImages[nextImages.length - 1],
+            url: finalImgUrl,
+            active: true,
+          };
+        }
+      }
+      setFinalPair(nextFinal);
+      setImageItems(nextImages);
+      setModalState(null);
+      await saveConfigToServer(words, nextFinal, nextImages);
+      return;
+    }
+
+    if (modalState.mode === "edit-gallery") {
+      const idx = modalState.index;
+      const nextImages = imageItems.map((it, i) =>
+        i === idx && finalImgUrl ? { ...it, url: finalImgUrl } : it
+      );
+      setImageItems(nextImages);
+      setModalState(null);
+      await saveConfigToServer(words, finalPair, nextImages);
+    }
+  };
+
+  const handleModalDelete = async () => {
+    if (!modalState) return;
+    if (modalState.mode === "edit-stage") {
+      if (words.length <= 1) {
+        showToast(
+          tx(
+            "Minimal harus ada 1 pasang kata pembuka.",
+            "At least 1 opening word pair is required."
+          )
+        );
+        return;
+      }
+      const idx = modalState.index;
+      const nextWords = words.filter((_, i) => i !== idx);
+      const nextImages =
+        imageItems.length > 1
+          ? imageItems.filter((_, i) => i !== idx)
+          : imageItems;
+      setWords(nextWords);
+      setImageItems(nextImages);
+      setModalState(null);
+      await saveConfigToServer(nextWords, finalPair, nextImages);
+      return;
+    }
+
+    if (modalState.mode === "edit-gallery") {
+      if (imageItems.length <= 1) {
+        showToast(
+          tx(
+            "Minimal harus ada 1 gambar dalam daftar Opener.",
+            "At least 1 image is required in the Opener list."
+          )
+        );
+        return;
+      }
+      const idx = modalState.index;
+      const nextImages = imageItems.filter((_, i) => i !== idx);
+      setImageItems(nextImages);
+      setModalState(null);
+      await saveConfigToServer(words, finalPair, nextImages);
+    }
+  };
+
+  // Upload beberapa gambar ke galeri sekaligus
   const handleUploadFiles = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
     setIsUploading(true);
@@ -257,17 +569,6 @@ export default function OpenerSettingsCard({
     } finally {
       setIsUploading(false);
     }
-  };
-
-  const handleAddImageByUrl = () => {
-    const trimmed = normalizeMediaUrl(newImageUrl.trim());
-    if (!trimmed) return;
-    const nextItems = [
-      ...imageItems,
-      { id: `img-${Date.now()}`, url: trimmed, active: true },
-    ];
-    setImageItems(nextItems);
-    setNewImageUrl("");
   };
 
   const handleToggleImageActive = (idx: number) => {
@@ -320,21 +621,13 @@ export default function OpenerSettingsCard({
   };
 
   // Word pairs handlers
-  const handleWordChange = (
-    idx: number,
-    side: 0 | 1,
-    val: string
-  ) => {
+  const handleWordChange = (idx: number, side: 0 | 1, val: string) => {
     setWords((prev) =>
       prev.map((pair, i) => {
         if (i !== idx) return pair;
         return side === 0 ? [val, pair[1]] : [pair[0], val];
       })
     );
-  };
-
-  const handleAddWordPair = () => {
-    setWords((prev) => [...prev, ["Creative", "Studio"]]);
   };
 
   const handleRemoveWordPair = (idx: number) => {
@@ -376,6 +669,19 @@ export default function OpenerSettingsCard({
     });
     setDragWordIdx(null);
     setDragOverWordIdx(null);
+  };
+
+  const handleCancelChanges = () => {
+    setWords(savedSnapshot.words);
+    setFinalPair(savedSnapshot.finalPair);
+    setImageItems(savedSnapshot.imageItems);
+    setModalState(null);
+    showToast(
+      tx(
+        "Perubahan dibatalkan — dikembalikan ke data tersimpan terakhir.",
+        "Changes cancelled — restored to last saved state."
+      )
+    );
   };
 
   const handleResetDefaults = async () => {
@@ -428,7 +734,7 @@ export default function OpenerSettingsCard({
 
     const phases: [string, string][] = [...words, finalPair];
     const imgs = phases.map((_, i) => activeUrls[i % activeUrls.length]);
-    imgs[imgs.length - 1] = activeUrls[activeUrls.length - 1];
+    imgs[imgs.length - 1] = "/sequence/frame_000000.webp";
 
     const tiles = imgs.map((u) => {
       const tile = document.createElement("i");
@@ -503,10 +809,18 @@ export default function OpenerSettingsCard({
   };
 
   const phasesCount = words.length + 1;
+  const resolvedModalPreviewUrl = modalState
+    ? normalizeMediaUrl(
+        (modalState.sourceTab === "gdrive"
+          ? modalState.gdriveInput
+          : modalState.imageUrl
+        ).trim()
+      )
+    : "";
 
   return (
     <div
-      className={`p-5 sm:p-7 rounded-2xl border space-y-6 ${
+      className={`p-5 sm:p-7 rounded-2xl border space-y-6 relative ${
         isLight
           ? "bg-white border-slate-200/90 shadow-sm"
           : "bg-[#0e0f14] border border-white/10"
@@ -548,13 +862,22 @@ export default function OpenerSettingsCard({
             }`}
           >
             {tx(
-              "Kelola pasangan kata kiri/kanan, teks akhir (Rizx | Studio), serta daftar gambar di tengah (drag-and-drop urutan, aktif/nonaktif, upload ke Supabase Storage).",
-              "Manage left/right word pairs, final words (Rizx | Studio), and center images (drag-and-drop reorder, enable/disable, upload to Supabase Storage)."
+              "Klik tombol Edit atau thumbnail gambar pada setiap baris untuk mengganti/upload gambar melalui Device atau Google Drive, menambah, menghapus, atau membatalkan perubahan.",
+              "Click Edit or the image thumbnail on any row to upload/replace images via Device or Google Drive, add, delete, or cancel changes."
             )}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={openAddStageModal}
+            className="px-3.5 py-2 rounded-xl text-xs font-bold bg-[#16b09f] hover:bg-[#139b8c] text-black transition-all cursor-pointer flex items-center gap-1.5 shadow-md shadow-[#16b09f]/20"
+          >
+            <RiAddFill className="w-4 h-4" />
+            <span>{tx("Tambah", "Add")}</span>
+          </button>
+
           <button
             type="button"
             onClick={playInlinePreview}
@@ -574,6 +897,21 @@ export default function OpenerSettingsCard({
               <span>{tx("Preview Full di Web", "Preview Full on Site")}</span>
             </button>
           )}
+
+          {onClosePanel && (
+            <button
+              type="button"
+              onClick={onClosePanel}
+              className={`px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1 ${
+                isLight
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                  : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
+              }`}
+            >
+              <RiCloseLine className="w-4 h-4" />
+              <span>{tx("Close", "Close")}</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -589,9 +927,10 @@ export default function OpenerSettingsCard({
           <button
             type="button"
             onClick={stopInlinePreview}
-            className="absolute top-3 right-4 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-mono uppercase tracking-wider text-white cursor-pointer z-20"
+            className="absolute top-3 right-4 px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-[10px] font-mono uppercase tracking-wider text-white cursor-pointer z-20 flex items-center gap-1"
           >
-            {tx("Tutup Preview", "Close Preview")}
+            <RiCloseLine className="w-3.5 h-3.5" />
+            <span>{tx("Close Preview", "Close Preview")}</span>
           </button>
 
           <div
@@ -612,7 +951,7 @@ export default function OpenerSettingsCard({
       )}
 
       {/* ==============================================================
-          BAGIAN 1: PASANGAN KATA KIRI | KANAN & TEKS AKHIR (RIZX | STUDIO)
+          BAGIAN 1: PASANGAN KATA KIRI | GAMBAR | KANAN (KLIK EDIT / UPLOAD / HAPUS / TAMBAH)
          ============================================================== */}
       <div className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -623,8 +962,8 @@ export default function OpenerSettingsCard({
               }`}
             >
               {tx(
-                "1. Urutan Pasangan Kata (Kiri | Kanan) & Teks Akhir",
-                "1. Word Pairs Sequence (Left | Right) & Final Text"
+                "1. Daftar Tahap Kata & Gambar ([Kiri] [Gambar] [Kanan])",
+                "1. Word & Image Stages ([Left] [Image] [Right])"
               )}
             </h4>
             <p
@@ -633,28 +972,31 @@ export default function OpenerSettingsCard({
               }`}
             >
               {tx(
-                "Kata kiri muncul lebih dulu, lalu ~110ms kemudian kata kanan. Tarik (drag) atau gunakan panah untuk mengubah urutan.",
-                "Left word enters first, followed ~110ms later by right word. Drag or use arrows to reorder."
+                "Klik tombol Edit atau klik gambar kecil di tengah untuk mengupload gambar via Device / Google Drive.",
+                "Click Edit or click the center thumbnail to upload an image via Device / Google Drive."
               )}
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={handleAddWordPair}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/30 transition-all cursor-pointer flex items-center gap-1.5"
-          >
-            <RiAddFill className="w-4 h-4" />
-            <span>{tx("Tambah Pasang Kata", "Add Word Pair")}</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={openAddStageModal}
+              className="px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/30 transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <RiAddFill className="w-4 h-4" />
+              <span>{tx("Tambah Tahap", "Add Stage")}</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {words.map((pair, idx) => {
             const assignedImg =
-              activeImages.length > 0
+              imageItems[idx]?.url ||
+              (activeImages.length > 0
                 ? activeImages[idx % activeImages.length]?.url
-                : "";
+                : "");
             return (
               <div
                 key={idx}
@@ -666,7 +1008,7 @@ export default function OpenerSettingsCard({
                 }}
                 onDragLeave={() => setDragOverWordIdx(null)}
                 onDrop={() => handleDropWordPair(idx)}
-                className={`p-3.5 rounded-xl border flex items-center gap-2.5 transition-all ${
+                className={`p-3.5 rounded-xl border flex items-center gap-2 transition-all ${
                   dragOverWordIdx === idx
                     ? "border-[#16b09f] ring-2 ring-[#16b09f]/30"
                     : isLight
@@ -698,19 +1040,25 @@ export default function OpenerSettingsCard({
                   }`}
                 />
 
-                {/* Mini Center Image Preview */}
-                <div
-                  className="w-9 h-7 rounded bg-neutral-800 border border-white/15 shrink-0 bg-cover bg-center"
+                {/* Clickable Center Image Thumbnail (Opens Edit/Upload Modal) */}
+                <button
+                  type="button"
+                  onClick={() => openEditStageModal(idx)}
+                  title={tx(
+                    "Klik untuk Edit / Upload Gambar (Device / Google Drive)",
+                    "Click to Edit / Upload Image (Device / Google Drive)"
+                  )}
+                  className="group relative w-11 h-8 rounded-md bg-neutral-800 border border-white/20 hover:border-[#16b09f] shrink-0 bg-cover bg-center overflow-hidden cursor-pointer transition-all"
                   style={{
                     backgroundImage: assignedImg
                       ? `url("${assignedImg}")`
                       : undefined,
                   }}
-                  title={tx(
-                    `Gambar tahap #${idx + 1}`,
-                    `Stage #${idx + 1} image`
-                  )}
-                />
+                >
+                  <span className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <RiImageEditFill className="w-3.5 h-3.5 text-[#16b09f]" />
+                  </span>
+                </button>
 
                 {/* Right Word */}
                 <input
@@ -725,11 +1073,25 @@ export default function OpenerSettingsCard({
                   }`}
                 />
 
+                {/* Action Buttons: Edit (Upload Device/GDrive), Up, Down, Delete */}
                 <div className="flex items-center gap-1 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => openEditStageModal(idx)}
+                    title={tx(
+                      "Edit & Upload Gambar (Device / Google Drive)",
+                      "Edit & Upload Image (Device / Google Drive)"
+                    )}
+                    className="px-2 py-1 rounded-lg border border-[#16b09f]/40 bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] text-[10px] font-semibold flex items-center gap-1 cursor-pointer transition-all"
+                  >
+                    <RiEditFill className="w-3 h-3" />
+                    <span className="hidden sm:inline">Edit</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleMoveWordPair(idx, -1)}
                     disabled={idx === 0}
+                    title={tx("Geser naik", "Move up")}
                     className={`p-1 rounded border text-xs cursor-pointer disabled:opacity-30 ${
                       isLight
                         ? "bg-white border-slate-200 text-slate-700"
@@ -742,6 +1104,7 @@ export default function OpenerSettingsCard({
                     type="button"
                     onClick={() => handleMoveWordPair(idx, 1)}
                     disabled={idx === words.length - 1}
+                    title={tx("Geser turun", "Move down")}
                     className={`p-1 rounded border text-xs cursor-pointer disabled:opacity-30 ${
                       isLight
                         ? "bg-white border-slate-200 text-slate-700"
@@ -753,6 +1116,7 @@ export default function OpenerSettingsCard({
                   <button
                     type="button"
                     onClick={() => handleRemoveWordPair(idx)}
+                    title={tx("Hapus tahap", "Delete stage")}
                     className="p-1 rounded border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 cursor-pointer"
                   >
                     <RiDeleteBinFill className="w-3.5 h-3.5" />
@@ -774,8 +1138,8 @@ export default function OpenerSettingsCard({
           <div>
             <span className="text-[10px] font-mono uppercase tracking-widest font-bold text-[#16b09f] block">
               {tx(
-                `TAHAP TERAKHIR (#${phasesCount}) — BERTAHAN ~950MS & MEMBESAR FULLSCREEN`,
-                `FINAL STAGE (#${phasesCount}) — HOLDS ~950MS & EXPANDS FULLSCREEN`
+                `TAHAP TERAKHIR (#${phasesCount}) — RIZX | STUDIO (PREVIEW WEB & ZOOM-OUT)`,
+                `FINAL STAGE (#${phasesCount}) — RIZX | STUDIO (WEB PREVIEW & ZOOM-OUT)`
               )}
             </span>
             <p
@@ -784,8 +1148,8 @@ export default function OpenerSettingsCard({
               }`}
             >
               {tx(
-                "Teks penutup utama (default: Rizx | Studio). Selalu memakai gambar aktif paling akhir.",
-                "Final closing word pair (default: Rizx | Studio). Always uses the last active image."
+                "Teks penutup utama (default: Rizx | Studio) sebelum kotak tengah membesar membuka website.",
+                "Final closing word pair (default: Rizx | Studio) before the center box expands into the website."
               )}
             </p>
           </div>
@@ -796,38 +1160,50 @@ export default function OpenerSettingsCard({
               value={finalPair[0]}
               onChange={(e) => setFinalPair([e.target.value, finalPair[1]])}
               placeholder="Rizx"
-              className={`w-28 sm:w-36 px-3 py-1.5 rounded-lg border text-xs font-bold text-right focus:outline-none focus:border-[#16b09f] ${
+              className={`w-24 sm:w-32 px-3 py-1.5 rounded-lg border text-xs font-bold text-right focus:outline-none focus:border-[#16b09f] ${
                 isLight
                   ? "bg-white border-slate-200 text-slate-900"
                   : "bg-neutral-950 border-white/15 text-white"
               }`}
             />
-            <div
-              className="w-10 h-7 rounded bg-neutral-900 border border-[#16b09f] shrink-0 bg-cover bg-center"
+            <button
+              type="button"
+              onClick={openEditFinalModal}
+              title={tx("Edit tahap akhir", "Edit final stage")}
+              className="group relative w-11 h-8 rounded bg-neutral-900 border border-[#16b09f] shrink-0 bg-cover bg-center overflow-hidden cursor-pointer"
               style={{
-                backgroundImage:
-                  activeImages.length > 0
-                    ? `url("${activeImages[activeImages.length - 1].url}")`
-                    : undefined,
+                backgroundImage: `url("/sequence/frame_000000.webp")`,
               }}
-            />
+            >
+              <span className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <RiEditFill className="w-3.5 h-3.5 text-[#16b09f]" />
+              </span>
+            </button>
             <input
               type="text"
               value={finalPair[1]}
               onChange={(e) => setFinalPair([finalPair[0], e.target.value])}
               placeholder="Studio"
-              className={`w-28 sm:w-36 px-3 py-1.5 rounded-lg border text-xs font-bold text-left focus:outline-none focus:border-[#16b09f] ${
+              className={`w-24 sm:w-32 px-3 py-1.5 rounded-lg border text-xs font-bold text-left focus:outline-none focus:border-[#16b09f] ${
                 isLight
                   ? "bg-white border-slate-200 text-slate-900"
                   : "bg-neutral-950 border-white/15 text-white"
               }`}
             />
+            <button
+              type="button"
+              onClick={openEditFinalModal}
+              className="px-2.5 py-1.5 rounded-lg border border-[#16b09f]/40 bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all"
+            >
+              <RiEditFill className="w-3.5 h-3.5" />
+              <span>Edit</span>
+            </button>
           </div>
         </div>
       </div>
 
       {/* ==============================================================
-          BAGIAN 2: DAFTAR GAMBAR OPENER (UPLOAD, DRAG & DROP, AKTIF/NONAKTIF, HAPUS)
+          BAGIAN 2: GALERI GAMBAR OPENER (EDIT, UPLOAD DEVICE/GDRIVE, HAPUS, TAMBAH)
          ============================================================== */}
       <div className="space-y-4 pt-2 border-t border-white/10">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -848,19 +1224,33 @@ export default function OpenerSettingsCard({
               }`}
             >
               {tx(
-                "Tarik (drag & drop) kartu gambar untuk mengubah urutan. Jika gambar aktif lebih sedikit dari tahap kata, gambar diulang dari awal; gambar aktif terakhir selalu dipakai untuk tahap 'Rizx Studio'.",
-                "Drag & drop cards to reorder. If fewer active images than word stages, images repeat from start; the last active image is always used for 'Rizx Studio'."
+                "Kelola semua gambar: klik Edit pada kartu gambar untuk mengganti via Device / Google Drive, ubah urutan (drag & drop), aktif/nonaktifkan, atau hapus.",
+                "Manage all images: click Edit on any card to replace via Device / Google Drive, drag & drop to reorder, enable/disable, or delete."
               )}
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={openAddStageModal}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/40 transition-all cursor-pointer flex items-center gap-1.5"
+            >
+              <RiAddFill className="w-4 h-4" />
+              <span>
+                {tx(
+                  "Tambah via Device / Google Drive",
+                  "Add via Device / Google Drive"
+                )}
+              </span>
+            </button>
+
             <label className="px-3.5 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139b8c] text-black font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-md shadow-[#16b09f]/20 transition-all">
               <RiUpload2Fill className="w-4 h-4" />
               <span>
                 {isUploading
                   ? tx("Mengupload...", "Uploading...")
-                  : tx("Upload Gambar ke Supabase", "Upload Image to Supabase")}
+                  : tx("Upload Cepat (Device)", "Quick Upload (Device)")}
               </span>
               <input
                 type="file"
@@ -877,36 +1267,6 @@ export default function OpenerSettingsCard({
           </div>
         </div>
 
-        {/* Add by URL input */}
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newImageUrl}
-            onChange={(e) => setNewImageUrl(e.target.value)}
-            placeholder={tx(
-              "Atau tempel URL gambar / link Google Drive di sini...",
-              "Or paste image URL / Google Drive link here..."
-            )}
-            className={`flex-1 min-w-0 px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-[#16b09f] ${
-              isLight
-                ? "bg-slate-50 border-slate-200 text-slate-800"
-                : "bg-neutral-950 border-white/10 text-neutral-200"
-            }`}
-          />
-          <button
-            type="button"
-            onClick={handleAddImageByUrl}
-            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
-              isLight
-                ? "bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200"
-                : "bg-neutral-800 hover:bg-neutral-700 text-white border-white/10"
-            }`}
-          >
-            <RiImageAddLine className="w-4 h-4 text-[#16b09f]" />
-            <span>{tx("Tambah URL", "Add URL")}</span>
-          </button>
-        </div>
-
         {/* Grid Gambar Drag & Drop */}
         {isLoading ? (
           <div className="py-8 text-center text-xs font-mono text-neutral-400">
@@ -918,10 +1278,6 @@ export default function OpenerSettingsCard({
               const activeOrder = activeImages.findIndex(
                 (a) => a.id === item.id
               );
-              const isLastActive =
-                item.active &&
-                activeOrder !== -1 &&
-                activeOrder === activeImages.length - 1;
 
               return (
                 <div
@@ -957,11 +1313,7 @@ export default function OpenerSettingsCard({
                       <span className="px-2 py-0.5 rounded bg-[#16b09f]/15 text-[#16b09f] font-mono text-[10px] font-bold">
                         #{idx + 1}
                       </span>
-                      {isLastActive ? (
-                        <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 border border-amber-500/30 font-mono text-[9px] font-bold truncate">
-                          FINAL ({finalPair[0]} {finalPair[1]})
-                        </span>
-                      ) : item.active && words[activeOrder] ? (
+                      {item.active && words[activeOrder] ? (
                         <span className="text-[10px] font-mono text-neutral-400 truncate">
                           {words[activeOrder][0]} {words[activeOrder][1]}
                         </span>
@@ -971,12 +1323,16 @@ export default function OpenerSettingsCard({
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         type="button"
+                        onClick={() => openEditGalleryImageModal(idx)}
+                        className="px-2 py-1 rounded-lg border border-[#16b09f]/40 bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] text-[10px] font-semibold flex items-center gap-1 cursor-pointer"
+                      >
+                        <RiEditFill className="w-3 h-3" />
+                        <span>Edit</span>
+                      </button>
+
+                      <button
+                        type="button"
                         onClick={() => handleToggleImageActive(idx)}
-                        title={
-                          item.active
-                            ? tx("Nonaktifkan gambar", "Disable image")
-                            : tx("Aktifkan gambar", "Enable image")
-                        }
                         className={`px-2 py-1 rounded-lg border text-[10px] font-mono font-semibold flex items-center gap-1 cursor-pointer transition-all ${
                           item.active
                             ? "bg-emerald-500/15 text-emerald-400 border-emerald-500/30"
@@ -998,31 +1354,8 @@ export default function OpenerSettingsCard({
 
                       <button
                         type="button"
-                        onClick={() => handleMoveImage(idx, -1)}
-                        disabled={idx === 0}
-                        className={`p-1 rounded border text-xs cursor-pointer disabled:opacity-30 ${
-                          isLight
-                            ? "bg-white border-slate-200 text-slate-700"
-                            : "bg-neutral-800 border-white/10 text-neutral-300"
-                        }`}
-                      >
-                        <RiArrowUpLine className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleMoveImage(idx, 1)}
-                        disabled={idx === imageItems.length - 1}
-                        className={`p-1 rounded border text-xs cursor-pointer disabled:opacity-30 ${
-                          isLight
-                            ? "bg-white border-slate-200 text-slate-700"
-                            : "bg-neutral-800 border-white/10 text-neutral-300"
-                        }`}
-                      >
-                        <RiArrowDownLine className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
                         onClick={() => handleDeleteImage(idx)}
+                        title={tx("Hapus gambar", "Delete image")}
                         className="p-1 rounded border border-rose-500/30 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 cursor-pointer"
                       >
                         <RiDeleteBinFill className="w-3.5 h-3.5" />
@@ -1030,34 +1363,23 @@ export default function OpenerSettingsCard({
                     </div>
                   </div>
 
-                  {/* Image Preview */}
+                  {/* Image Preview (Clickable to open Edit Modal) */}
                   <div
-                    className="w-full h-32 rounded-lg bg-neutral-950 border border-white/10 bg-cover bg-center relative overflow-hidden"
+                    onClick={() => openEditGalleryImageModal(idx)}
+                    className="group w-full h-32 rounded-lg bg-neutral-950 border border-white/10 bg-cover bg-center relative overflow-hidden cursor-pointer"
                     style={{
                       backgroundImage: item.url
                         ? `url("${item.url}")`
                         : undefined,
                     }}
-                  />
-
-                  {/* Editable URL */}
-                  <input
-                    type="text"
-                    value={item.url}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setImageItems((prev) =>
-                        prev.map((it, i) =>
-                          i === idx ? { ...it, url: val } : it
-                        )
-                      );
-                    }}
-                    className={`w-full px-2.5 py-1 rounded-lg border text-[10px] font-mono focus:outline-none focus:border-[#16b09f] ${
-                      isLight
-                        ? "bg-white border-slate-200 text-slate-700"
-                        : "bg-neutral-950 border-white/10 text-neutral-400"
-                    }`}
-                  />
+                  >
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition-opacity">
+                      <span className="px-3 py-1.5 rounded-lg bg-[#16b09f] text-black font-bold text-xs flex items-center gap-1">
+                        <RiEditFill className="w-3.5 h-3.5" />
+                        {tx("Ganti Gambar", "Replace Image")}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -1065,44 +1387,387 @@ export default function OpenerSettingsCard({
         )}
       </div>
 
-      {/* Bottom Save & Reset Actions */}
+      {/* ==============================================================
+          BOTTOM BAR: TAMBAH, RESET, CANCEL, CLOSE, SIMPAN
+         ============================================================== */}
       <div
         className={`flex flex-wrap items-center justify-between gap-3 pt-4 border-t ${
           isLight ? "border-slate-100" : "border-white/10"
         }`}
       >
-        <button
-          type="button"
-          onClick={handleResetDefaults}
-          className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
-            isLight
-              ? "bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200"
-              : "bg-neutral-900 hover:bg-neutral-800 text-neutral-400 border-white/10"
-          }`}
-        >
-          <RiRestartFill className="w-3.5 h-3.5" />
-          <span>{tx("Reset ke Default", "Reset to Default")}</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={openAddStageModal}
+            className="px-3.5 py-2 rounded-xl text-xs font-semibold bg-[#16b09f]/15 hover:bg-[#16b09f]/25 text-[#16b09f] border border-[#16b09f]/30 transition-all cursor-pointer flex items-center gap-1.5"
+          >
+            <RiAddFill className="w-4 h-4" />
+            <span>{tx("Tambah", "Add")}</span>
+          </button>
 
-        <button
-          type="button"
-          onClick={() => saveConfigToServer()}
-          disabled={isSaving}
-          className="px-5 py-2.5 rounded-xl bg-[#16b09f] hover:bg-[#139b8c] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#16b09f]/25 transition-all cursor-pointer flex items-center gap-2"
-        >
-          {isSaving ? (
-            <RiCheckFill className="w-4 h-4 animate-spin" />
-          ) : (
-            <RiSave3Fill className="w-4 h-4" />
+          <button
+            type="button"
+            onClick={handleResetDefaults}
+            className={`px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+              isLight
+                ? "bg-slate-100 hover:bg-slate-200 text-slate-600 border-slate-200"
+                : "bg-neutral-900 hover:bg-neutral-800 text-neutral-400 border-white/10"
+            }`}
+          >
+            <RiRestartFill className="w-3.5 h-3.5" />
+            <span>{tx("Reset Default", "Reset Default")}</span>
+          </button>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleCancelChanges}
+            className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              isLight
+                ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
+            }`}
+          >
+            {tx("Cancel", "Cancel")}
+          </button>
+
+          {onClosePanel && (
+            <button
+              type="button"
+              onClick={onClosePanel}
+              className={`px-4 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer flex items-center gap-1.5 ${
+                isLight
+                  ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                  : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
+              }`}
+            >
+              <RiCloseLine className="w-4 h-4" />
+              <span>{tx("Close", "Close")}</span>
+            </button>
           )}
-          <span>
-            {tx(
-              "Simpan Konfigurasi Opener",
-              "Save Opener Configuration"
+
+          <button
+            type="button"
+            onClick={() => saveConfigToServer()}
+            disabled={isSaving}
+            className="px-5 py-2.5 rounded-xl bg-[#16b09f] hover:bg-[#139b8c] text-black font-bold text-xs sm:text-sm shadow-lg shadow-[#16b09f]/25 transition-all cursor-pointer flex items-center gap-2"
+          >
+            {isSaving ? (
+              <RiCheckFill className="w-4 h-4 animate-spin" />
+            ) : (
+              <RiSave3Fill className="w-4 h-4" />
             )}
-          </span>
-        </button>
+            <span>
+              {tx("Simpan Konfigurasi Opener", "Save Opener Configuration")}
+            </span>
+          </button>
+        </div>
       </div>
+
+      {/* ==============================================================
+          MODAL POPUP: EDIT / TAMBAH ITEM & UPLOAD GAMBAR (DEVICE / GOOGLE DRIVE)
+          DILENGKAPI TOMBOL HAPUS, TAMBAH/SIMPAN, CANCEL, DAN CLOSE
+         ============================================================== */}
+      {modalState && (
+        <div
+          className="fixed inset-0 z-[10050] bg-black/75 backdrop-blur-md flex items-center justify-center p-4"
+          onClick={handleCloseModal}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className={`w-full max-w-lg rounded-2xl border p-5 sm:p-6 shadow-2xl space-y-5 ${
+              isLight
+                ? "bg-white border-slate-200 text-slate-900"
+                : "bg-[#11131a] border-white/15 text-white"
+            }`}
+          >
+            {/* Modal Top Bar with Close Button */}
+            <div className="flex items-center justify-between gap-3 border-b pb-3.5 border-white/10">
+              <div>
+                <span className="text-[10px] font-mono uppercase tracking-widest text-[#16b09f] font-bold block">
+                  {modalState.mode === "add-stage"
+                    ? tx("TAMBAH TAHAP OPENER BARU", "ADD NEW OPENER STAGE")
+                    : modalState.mode === "edit-final"
+                    ? tx("EDIT TAHAP AKHIR (RIZX STUDIO)", "EDIT FINAL STAGE")
+                    : tx(
+                        `EDIT TAHAP #${modalState.index + 1}`,
+                        `EDIT STAGE #${modalState.index + 1}`
+                      )}
+                </span>
+                <h4 className="text-base font-bold mt-0.5">
+                  {modalState.mode === "add-stage"
+                    ? tx(
+                        "Tambah Kata & Upload Gambar",
+                        "Add Words & Upload Image"
+                      )
+                    : tx(
+                        "Edit Kata & Upload Gambar (Device / Google Drive)",
+                        "Edit Words & Upload Image (Device / Google Drive)"
+                      )}
+                </h4>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCloseModal}
+                title="Close"
+                className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 cursor-pointer transition-all ${
+                  isLight
+                    ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                    : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
+                }`}
+              >
+                <RiCloseLine className="w-4 h-4" />
+                <span>{tx("Close", "Close")}</span>
+              </button>
+            </div>
+
+            {/* Word Inputs (Left | Right) */}
+            {modalState.mode !== "edit-gallery" && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    className={`block text-[10px] font-mono uppercase tracking-wider mb-1 ${
+                      isLight ? "text-slate-600" : "text-neutral-400"
+                    }`}
+                  >
+                    {tx("Kata Kiri", "Left Word")}
+                  </label>
+                  <input
+                    type="text"
+                    value={modalState.leftWord}
+                    onChange={(e) =>
+                      setModalState({
+                        ...modalState,
+                        leftWord: e.target.value,
+                      })
+                    }
+                    placeholder="Mis. Motion"
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-bold focus:outline-none focus:border-[#16b09f] ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900"
+                        : "bg-neutral-950 border-white/10 text-white"
+                    }`}
+                  />
+                </div>
+                <div>
+                  <label
+                    className={`block text-[10px] font-mono uppercase tracking-wider mb-1 ${
+                      isLight ? "text-slate-600" : "text-neutral-400"
+                    }`}
+                  >
+                    {tx("Kata Kanan", "Right Word")}
+                  </label>
+                  <input
+                    type="text"
+                    value={modalState.rightWord}
+                    onChange={(e) =>
+                      setModalState({
+                        ...modalState,
+                        rightWord: e.target.value,
+                      })
+                    }
+                    placeholder="Mis. Graphics"
+                    className={`w-full px-3 py-2 rounded-xl border text-xs font-bold focus:outline-none focus:border-[#16b09f] ${
+                      isLight
+                        ? "bg-slate-50 border-slate-200 text-slate-900"
+                        : "bg-neutral-950 border-white/10 text-white"
+                    }`}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Source Selector Tabs: Upload Device vs Google Drive */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 p-1 rounded-xl bg-black/30 border border-white/10">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModalState({ ...modalState, sourceTab: "device" })
+                  }
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                    modalState.sourceTab === "device"
+                      ? "bg-[#16b09f] text-black font-bold shadow"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  <RiComputerLine className="w-4 h-4" />
+                  <span>{tx("Upload dari Device", "Upload from Device")}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setModalState({ ...modalState, sourceTab: "gdrive" })
+                  }
+                  className={`flex-1 py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all ${
+                    modalState.sourceTab === "gdrive"
+                      ? "bg-[#16b09f] text-black font-bold shadow"
+                      : "text-neutral-400 hover:text-white"
+                  }`}
+                >
+                  <RiDriveFill className="w-4 h-4" />
+                  <span>{tx("Google Drive / URL", "Google Drive / URL")}</span>
+                </button>
+              </div>
+
+              {/* Tab 1: Upload Device */}
+              {modalState.sourceTab === "device" && (
+                <div className="space-y-2.5">
+                  <label className="w-full py-4 px-4 rounded-xl border-2 border-dashed border-[#16b09f]/40 hover:border-[#16b09f] bg-[#16b09f]/5 hover:bg-[#16b09f]/10 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all">
+                    <RiUpload2Fill className="w-6 h-6 text-[#16b09f]" />
+                    <span className="text-xs font-bold text-[#16b09f]">
+                      {modalUploading
+                        ? tx(
+                            "Sedang Mengupload ke Supabase Storage...",
+                            "Uploading to Supabase Storage..."
+                          )
+                        : tx(
+                            "Klik untuk Pilih Gambar dari Perangkat (HP / PC)",
+                            "Click to Choose Image from Device (Phone / PC)"
+                          )}
+                    </span>
+                    <span className="text-[10px] font-mono text-neutral-400">
+                      JPG, PNG, WEBP — Tersimpan otomatis di Supabase Storage
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      disabled={modalUploading}
+                      className="hidden"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f) handleModalDeviceUpload(f);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+
+              {/* Tab 2: Google Drive / Direct URL */}
+              {modalState.sourceTab === "gdrive" && (
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-mono uppercase tracking-wider text-neutral-400">
+                    {tx(
+                      "Tempel Link Google Drive atau URL Gambar",
+                      "Paste Google Drive Link or Image URL"
+                    )}
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={modalState.gdriveInput}
+                      onChange={(e) =>
+                        setModalState({
+                          ...modalState,
+                          gdriveInput: e.target.value,
+                          imageUrl: normalizeMediaUrl(e.target.value),
+                        })
+                      }
+                      placeholder="https://drive.google.com/file/d/.../view"
+                      className={`flex-1 min-w-0 px-3 py-2 rounded-xl border text-xs font-mono focus:outline-none focus:border-[#16b09f] ${
+                        isLight
+                          ? "bg-slate-50 border-slate-200 text-slate-900"
+                          : "bg-neutral-950 border-white/10 text-white"
+                      }`}
+                    />
+                  </div>
+                  <p className="text-[10px] font-mono text-neutral-400">
+                    {tx(
+                      "Mendukung link share Google Drive (otomatis dikonversi ke direct CDN gambar resolusi penuh).",
+                      "Supports Google Drive share links (automatically converted to direct full-res image CDN)."
+                    )}
+                  </p>
+                </div>
+              )}
+
+              {/* Live Preview inside Modal */}
+              <div className="p-3 rounded-xl bg-[#0a0a0c] border border-white/10 flex items-center justify-center gap-3">
+                <span className="keep-white text-sm sm:text-base font-bold text-white">
+                  {modalState.leftWord || "Motion"}
+                </span>
+                <div
+                  className="w-20 h-14 rounded-lg bg-neutral-900 border border-white/20 bg-cover bg-center shrink-0"
+                  style={{
+                    backgroundImage: resolvedModalPreviewUrl
+                      ? `url("${resolvedModalPreviewUrl}")`
+                      : undefined,
+                  }}
+                />
+                <span className="keep-white text-sm sm:text-base font-bold text-white">
+                  {modalState.rightWord || "Graphics"}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Bottom Action Bar: Hapus, Cancel, Close, Tambah/Simpan */}
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-white/10">
+              <div>
+                {(modalState.mode === "edit-stage" ||
+                  modalState.mode === "edit-gallery") && (
+                  <button
+                    type="button"
+                    onClick={handleModalDelete}
+                    className="px-3.5 py-2 rounded-xl text-xs font-bold border border-rose-500/40 bg-rose-500/15 hover:bg-rose-500/25 text-rose-400 flex items-center gap-1.5 cursor-pointer transition-all"
+                  >
+                    <RiDeleteBinFill className="w-4 h-4" />
+                    <span>{tx("Hapus", "Delete")}</span>
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold border cursor-pointer transition-all ${
+                    isLight
+                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                      : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
+                  }`}
+                >
+                  {tx("Cancel", "Cancel")}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-semibold border cursor-pointer flex items-center gap-1 transition-all ${
+                    isLight
+                      ? "bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200"
+                      : "bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-white/10"
+                  }`}
+                >
+                  <RiCloseLine className="w-4 h-4" />
+                  <span>{tx("Close", "Close")}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleApplyModalSave}
+                  disabled={modalUploading || isSaving}
+                  className="px-4 py-2 rounded-xl bg-[#16b09f] hover:bg-[#139b8c] text-black font-bold text-xs shadow-lg shadow-[#16b09f]/25 flex items-center gap-1.5 cursor-pointer transition-all"
+                >
+                  {modalState.mode === "add-stage" ? (
+                    <>
+                      <RiAddFill className="w-4 h-4" />
+                      <span>{tx("Tambah & Simpan", "Add & Save")}</span>
+                    </>
+                  ) : (
+                    <>
+                      <RiSave3Fill className="w-4 h-4" />
+                      <span>{tx("Simpan Perubahan", "Save Changes")}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
