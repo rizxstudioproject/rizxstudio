@@ -702,6 +702,26 @@ export const isSystemConfigId = (id: string): boolean => {
   );
 };
 
+export const isAccidentalSingleCommentCanvas = (items?: any[] | null): boolean => {
+  if (!Array.isArray(items) || items.length === 0) return false;
+  const hasRealMedia = items.some(
+    (it) =>
+      Boolean(it?.image) ||
+      Boolean(it?.videoId) ||
+      Boolean(it?.gdriveUrl) ||
+      it?.mediaType === "frame" ||
+      it?.type === "frame" ||
+      it?.type === "section"
+  );
+  if (hasRealMedia) return false;
+  return items.every(
+    (it) =>
+      it?.id === "comment-1794285789667" ||
+      (it?.mediaType === "comment" &&
+        it?.content === "Tuliskan catatan arahan visual atau feedback desain...")
+  );
+};
+
 export function PortfolioDataProvider({ children }: { children: React.ReactNode }) {
   // Synchronous initial state from LocalStorage on client to eliminate SSR flash/glitch
   const [stage3, setStage3] = useState<{
@@ -778,7 +798,7 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         const sheetStored = localStorage.getItem("rizx_canvas_sheets");
         if (sheetStored) {
           const parsed = safeJsonParseMedia(sheetStored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          if (Array.isArray(parsed) && parsed.length > 0 && !isAccidentalSingleCommentCanvas(parsed)) {
             return parsed.map((item: any) => ({
               ...item,
               image: normalizeMediaUrl(item.image),
@@ -788,7 +808,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = safeJsonParseMedia(stored);
-          if (parsed && Array.isArray(parsed.canvasItems) && parsed.canvasItems.length > 0) {
+          if (
+            parsed &&
+            Array.isArray(parsed.canvasItems) &&
+            parsed.canvasItems.length > 0 &&
+            !isAccidentalSingleCommentCanvas(parsed.canvasItems)
+          ) {
             return parsed.canvasItems.map((item: any) => ({
               ...item,
               image: normalizeMediaUrl(item.image),
@@ -1157,7 +1182,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           heroBannerRef.current = rawBanner;
         }
 
-        if (parsed.canvasItems && Array.isArray(parsed.canvasItems)) {
+        if (
+          parsed.canvasItems &&
+          Array.isArray(parsed.canvasItems) &&
+          parsed.canvasItems.length > 0 &&
+          !isAccidentalSingleCommentCanvas(parsed.canvasItems)
+        ) {
           const loadedCanvas = parsed.canvasItems.map((item: any) => ({
             ...item,
             image: normalizeMediaUrl(item.image),
@@ -1177,13 +1207,17 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           if (sheetStored) {
             const parsedSheets = safeJsonParseMedia(sheetStored);
             if (Array.isArray(parsedSheets) && parsedSheets.length > 0) {
-              const loadedSheets = parsedSheets.map((item: any) => ({
-                ...item,
-                image: normalizeMediaUrl(item.image),
-              }));
-              setCanvasItems(loadedSheets);
-              canvasItemsRef.current = loadedSheets;
-              localStorage.setItem("rizx_canvas_seeded", "true");
+              if (isAccidentalSingleCommentCanvas(parsedSheets)) {
+                localStorage.removeItem("rizx_canvas_sheets");
+              } else {
+                const loadedSheets = parsedSheets.map((item: any) => ({
+                  ...item,
+                  image: normalizeMediaUrl(item.image),
+                }));
+                setCanvasItems(loadedSheets);
+                canvasItemsRef.current = loadedSheets;
+                localStorage.setItem("rizx_canvas_seeded", "true");
+              }
             }
           }
         } catch (_) {}
@@ -1191,11 +1225,12 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
 
       // Check IndexedDB backup for Canvas items (bypasses 5MB localStorage limits for full-resolution media)
       getCanvasItemsFromDB().then((dbItems) => {
-        if (Array.isArray(dbItems) && dbItems.length > 0) {
+        if (Array.isArray(dbItems) && dbItems.length > 0 && !isAccidentalSingleCommentCanvas(dbItems)) {
           setCanvasItems((prev) => {
             if (
               !prev ||
               prev.length === 0 ||
+              isAccidentalSingleCommentCanvas(prev) ||
               dbItems.some((di) => Boolean(di.image) && !prev.find((pi) => pi.id === di.id)?.image)
             ) {
               canvasItemsRef.current = dbItems;
@@ -1438,15 +1473,23 @@ export function PortfolioDataProvider({ children }: { children: React.ReactNode 
           if (canvasRow && canvasRow.description) {
             try {
               const parsedCanvas = safeJsonParseMedia(canvasRow.description);
-              if (Array.isArray(parsedCanvas)) {
+              if (Array.isArray(parsedCanvas) && !isAccidentalSingleCommentCanvas(parsedCanvas)) {
                 const loadedCanvas = parsedCanvas.map((item: any) => ({
                   ...item,
                   image: normalizeMediaUrl(item.image),
                 }));
                 setCanvasItems(loadedCanvas);
                 canvasItemsRef.current = loadedCanvas;
+                saveCanvasItemsToDB(loadedCanvas).catch(() => {});
                 if (typeof window !== "undefined") {
                   localStorage.setItem("rizx_canvas_seeded", "true");
+                  try {
+                    const storageSafe = loadedCanvas.map((item: any) => ({
+                      ...item,
+                      image: item.image?.startsWith("data:") ? "" : item.image,
+                    }));
+                    localStorage.setItem("rizx_canvas_sheets", JSON.stringify(storageSafe));
+                  } catch (_) {}
                 }
               }
             } catch (_) {}

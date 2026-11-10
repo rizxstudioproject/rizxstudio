@@ -55,7 +55,7 @@ import {
 } from "@/lib/canvasLinksService";
 import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { RiGridFill, RiArrowGoBackLine, RiArrowGoForwardLine } from "react-icons/ri";
-import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
+import { usePortfolioData, extractYouTubeId, CanvasItem, isAccidentalSingleCommentCanvas } from "@/context/PortfolioDataContext";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
@@ -1822,15 +1822,22 @@ export default function CanvasWorkspace({
         const storedSheets = localStorage.getItem("rizx_canvas_sheets");
         if (storedSheets) {
           const parsed = JSON.parse(storedSheets);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          if (Array.isArray(parsed) && parsed.length > 0 && !isAccidentalSingleCommentCanvas(parsed)) {
             localItems = parsed;
+          } else if (isAccidentalSingleCommentCanvas(parsed)) {
+            localStorage.removeItem("rizx_canvas_sheets");
           }
         }
         if (!localItems) {
           const storedGlobal = localStorage.getItem("rizx_portfolio_custom_data_v1");
           if (storedGlobal) {
             const parsed = JSON.parse(storedGlobal);
-            if (parsed && Array.isArray(parsed.canvasItems) && parsed.canvasItems.length > 0) {
+            if (
+              parsed &&
+              Array.isArray(parsed.canvasItems) &&
+              parsed.canvasItems.length > 0 &&
+              !isAccidentalSingleCommentCanvas(parsed.canvasItems)
+            ) {
               localItems = parsed.canvasItems;
             }
           }
@@ -1838,7 +1845,9 @@ export default function CanvasWorkspace({
       } catch (_) {}
     }
 
-    const availableItems = (canvasItems && canvasItems.length > 0) ? canvasItems : localItems;
+    const availableItems = (canvasItems && canvasItems.length > 0 && !isAccidentalSingleCommentCanvas(canvasItems))
+      ? canvasItems
+      : localItems;
 
     if (availableItems && availableItems.length > 0) {
       const cleanedItems = availableItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
@@ -1848,9 +1857,9 @@ export default function CanvasWorkspace({
       return;
     }
 
-    // Check IndexedDB asynchronously in case localStorage quota was exceeded previously
+    // Check IndexedDB asynchronously
     getCanvasItemsFromDB().then((dbItems) => {
-      if (Array.isArray(dbItems) && dbItems.length > 0) {
+      if (Array.isArray(dbItems) && dbItems.length > 0 && !isAccidentalSingleCommentCanvas(dbItems)) {
         const cleaned = dbItems.filter((i) => !i.id.startsWith("folder-") && i.type !== "folder");
         setItems(cleaned);
         initialItemsRef.current = JSON.parse(JSON.stringify(cleaned));
@@ -1858,90 +1867,25 @@ export default function CanvasWorkspace({
       }
     });
 
-    // If canvas has been seeded/saved previously, strictly respect state (even if empty)
-    if (isSeeded) {
-      setItems([]);
-      initialItemsRef.current = [];
-      setHasChanges(false);
-      return;
-    }
-
-    // Default: Seed initial layout with presentation frame and all client deliverables ONLY ONCE on brand new empty environment
-    const initialList: CanvasItem[] = [];
-
-    // 1. Initial Presentation Frame
-    initialList.push({
-      id: "frame-presentation-1",
-      title: "Digital Campaign Showcase",
-      type: "media",
-      mediaType: "frame",
-      x: 40,
-      y: 40,
-      width: 1920,
-      height: 1080,
-      aspect: "16:9",
-      color: "#18181b",
-    });
-
-    // 2. Client Deliverables - populate initial works so canvas is never empty
-    let cardX = 80;
-    let cardY = 120;
-    let countInRow = 0;
-
-    (clients || []).forEach((c) => {
-      (c.works || []).forEach((w: any) => {
-        if (w.image || w.gdriveUrl || w.videoId) {
-          initialList.push({
-            id: w.id || `canvas-${c.id}-${Math.random().toString(36).substr(2, 6)}`,
-            title: w.title || "Deliverable",
-            type: "media",
-            mediaType: w.videoId ? "youtube" : w.gdriveUrl ? "gdrive" : "image",
-            image: normalizeMediaUrl(
-              w.image || (w.videoId ? `https://img.youtube.com/vi/${w.videoId}/maxresdefault.jpg` : "")
-            ),
-            aspect: w.aspect || "4:5",
-            clientName: c.clientName,
-            clientId: c.id,
-            x: cardX,
-            y: cardY,
-            width: 440,
-            height: 550,
-            isVideo: Boolean(w.isVideo || w.videoId),
-            youtubeUrl: w.youtubeUrl,
-            videoId: w.videoId,
-            gdriveUrl: w.gdriveUrl,
-          });
-
-          cardX += 500;
-          countInRow++;
-          if (countInRow >= 3) {
-            countInRow = 0;
-            cardX = 80;
-            cardY += 640;
-          }
-        }
-      });
-    });
-
-    setItems(initialList);
-    initialItemsRef.current = JSON.parse(JSON.stringify(initialList));
+    // Clean initial state: no auto-seeding client portfolio works
+    setItems([]);
+    initialItemsRef.current = [];
     setHasChanges(false);
     if (typeof window !== "undefined") {
       localStorage.setItem("rizx_canvas_seeded", "true");
     }
-  }, [canvasItems, clients]);
+  }, [canvasItems]);
 
   // Keep live items in sync if canvasItems loads or restores from IndexedDB or Supabase Cloud
   useEffect(() => {
-    if (!canvasItems || canvasItems.length === 0) return;
+    if (!canvasItems) return;
     setItems((prev) => {
       // If user hasn't made unsaved manual changes:
-      // hydrate if current items is empty or missing media that canvasItems has
-      const isEmpty = prev.length === 0;
-      const hasMissingImages = canvasItems.some(
-        (ci) => Boolean(ci.image) && !prev.find((pi) => pi.id === ci.id)?.image
-      );
-      if (!hasChanges && (isEmpty || hasMissingImages)) {
+      // hydrate from canvasItems cleanly
+      if (!hasChanges) {
+        if (isAccidentalSingleCommentCanvas(canvasItems)) {
+          return [];
+        }
         const cleaned = canvasItems
           .filter((i) => !i.id.startsWith("folder-") && i.type !== "folder")
           .map((i) => {
@@ -2352,7 +2296,7 @@ export default function CanvasWorkspace({
       if (autoSaveTimerRef.current) {
         clearTimeout(autoSaveTimerRef.current);
       }
-      if (itemsRef.current) {
+      if (hasChangesRef.current && itemsRef.current && !isAccidentalSingleCommentCanvas(itemsRef.current)) {
         updateCanvasItems(itemsRef.current).catch(() => {});
       }
     };
@@ -3025,6 +2969,8 @@ export default function CanvasWorkspace({
   // Keyboard Shortcuts (Space for Pan, Delete to Remove)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Do not run canvas shortcuts if Canvas is hidden or user is typing in an input
+      if (!canvasContainerRef.current || canvasContainerRef.current.offsetParent === null) return;
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       // Figma Undo & Redo (Ctrl+Z, Ctrl+Y, Ctrl+Shift+Z)
@@ -3071,9 +3017,6 @@ export default function CanvasWorkspace({
           setEditingTextId(selectedId);
         }
       }
-      if (e.key === "v" || e.key === "V") {
-        setActiveTool("select");
-      }
       // Cancel image placement on Escape
       if (e.key === "Escape") {
         if (pendingPlacementQueue.length > 0) {
@@ -3091,40 +3034,47 @@ export default function CanvasWorkspace({
         return;
       }
 
-      if (e.key === "h" || e.key === "H") {
-        setActiveTool("hand");
-      }
-      if (e.key === "k" || e.key === "K") {
-        setActiveTool("scale");
-      }
-      if (e.key === "f" || e.key === "F") {
-        setActiveTool("frame");
-        setIsRightSidebarOpen(true);
-        setIsUiExpanded(true);
-        if (isScreenMobile) setIsMobileInspectorOpen(true);
-      }
-      if (e.key === "s" || e.key === "S") {
-        if (e.shiftKey) {
-          setActiveTool("section");
+      // Single-letter tools (require no Ctrl/Cmd/Alt modifiers so Ctrl+C or Ctrl+V never trigger them)
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        if (e.key === "v" || e.key === "V") {
+          setActiveTool("select");
+        }
+        if (e.key === "h" || e.key === "H") {
+          setActiveTool("hand");
+        }
+        if (e.key === "k" || e.key === "K") {
+          setActiveTool("scale");
+        }
+        if (e.key === "f" || e.key === "F") {
+          setActiveTool("frame");
+          setIsRightSidebarOpen(true);
+          setIsUiExpanded(true);
+          if (isScreenMobile) setIsMobileInspectorOpen(true);
+        }
+        if (e.key === "s" || e.key === "S") {
+          if (e.shiftKey) {
+            setActiveTool("section");
+            setActiveSubmenu(null);
+          } else {
+            handleAddSlice();
+          }
+        }
+        if (e.key === "t" || e.key === "T") {
+          handleAddText();
+        }
+        if (e.key === "r" || e.key === "R") {
+          setActiveTool("shape");
           setActiveSubmenu(null);
-        } else {
-          handleAddSlice();
+        }
+        if (e.key === "o" || e.key === "O") {
+          setActiveTool("shape");
+          setActiveSubmenu(null);
+        }
+        if (e.key === "c" || e.key === "C") {
+          handleAddComment();
         }
       }
-      if (e.key === "t" || e.key === "T") {
-        handleAddText();
-      }
-      if (e.key === "r" || e.key === "R") {
-        setActiveTool("shape");
-        setActiveSubmenu(null);
-      }
-      if (e.key === "o" || e.key === "O") {
-        setActiveTool("shape");
-        setActiveSubmenu(null);
-      }
-      if (e.key === "c" || e.key === "C") {
-        handleAddComment();
-      }
+
       if ((e.key === "Delete" || e.key === "Backspace") && (selectedId || selectedIds.size > 0)) {
         e.preventDefault();
         const idsToDelete = new Set(selectedIds);
@@ -3226,6 +3176,7 @@ export default function CanvasWorkspace({
     };
 
     const handleKeyUp = (e: KeyboardEvent) => {
+      if (!canvasContainerRef.current || canvasContainerRef.current.offsetParent === null) return;
       if (e.code === "Space") {
         setIsSpacePressed(false);
       }
@@ -5773,6 +5724,11 @@ export default function CanvasWorkspace({
   // Global paste handler: automatically detect pasted Google Drive or YouTube links
   useEffect(() => {
     const handleWindowPaste = (e: ClipboardEvent) => {
+      // Do not handle paste if Canvas workspace is hidden or inactive
+      if (!canvasContainerRef.current || canvasContainerRef.current.offsetParent === null) {
+        return;
+      }
+
       const activeEl = document.activeElement as HTMLElement | null;
       if (
         activeEl?.tagName === "INPUT" ||

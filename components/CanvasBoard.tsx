@@ -14,7 +14,7 @@ import {
 } from "react-icons/hi2";
 import { SiYoutube } from "react-icons/si";
 import { RiFullscreenFill, RiFullscreenExitFill, RiGridFill } from "react-icons/ri";
-import { usePortfolioData, extractYouTubeId, CanvasItem } from "@/context/PortfolioDataContext";
+import { usePortfolioData, extractYouTubeId, CanvasItem, isAccidentalSingleCommentCanvas } from "@/context/PortfolioDataContext";
 import { normalizeMediaUrl } from "@/lib/mediaService";
 import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
@@ -119,13 +119,13 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
   // Synchronized canvas state matching CanvasWorkspace
   const [boardCanvasItems, setBoardCanvasItems] = useState<CanvasItem[]>(() => {
-    if (canvasItems && canvasItems.length > 0) return canvasItems;
+    if (canvasItems && canvasItems.length > 0 && !isAccidentalSingleCommentCanvas(canvasItems)) return canvasItems;
     if (typeof window !== "undefined") {
       try {
         const storedSheets = localStorage.getItem("rizx_canvas_sheets");
         if (storedSheets) {
           const parsed = JSON.parse(storedSheets);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0 && !isAccidentalSingleCommentCanvas(parsed)) return parsed;
         }
       } catch (_) {}
     }
@@ -133,13 +133,17 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
   });
 
   useEffect(() => {
-    if (canvasItems && canvasItems.length > 0) {
-      setBoardCanvasItems(canvasItems);
+    if (canvasItems) {
+      if (isAccidentalSingleCommentCanvas(canvasItems)) {
+        setBoardCanvasItems([]);
+      } else {
+        setBoardCanvasItems(canvasItems);
+      }
       return;
     }
     // High-capacity IndexedDB fallback
     getCanvasItemsFromDB().then((dbItems) => {
-      if (Array.isArray(dbItems) && dbItems.length > 0) {
+      if (Array.isArray(dbItems) && dbItems.length > 0 && !isAccidentalSingleCommentCanvas(dbItems)) {
         setBoardCanvasItems(dbItems);
       }
     });
