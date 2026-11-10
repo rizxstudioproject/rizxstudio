@@ -14,7 +14,10 @@ export interface OpenerRuntimeConfig {
   words: [string, string][];
   final: [string, string];
   images: string[];
+  imageItems?: { id: string; url: string; active?: boolean }[];
 }
+
+const LOCAL_STORAGE_KEY = "rizx_opener_config";
 
 /* ✏️ KONFIGURASI CADANGAN (dipakai jika fetch /api/opener-config gagal/timeout) */
 const CONFIG_URL = "/api/opener-config";
@@ -163,10 +166,39 @@ export default function SiteOpener() {
         previewConfigRef.current = null;
         return override;
       }
+
+      // Cek cache lokal terlebih dahulu agar pembukaan instan tanpa delay
+      let cachedConfig: OpenerRuntimeConfig | null = null;
+      try {
+        const rawCache = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (rawCache) {
+          const parsed = JSON.parse(rawCache);
+          if (
+            parsed &&
+            Array.isArray(parsed.words) &&
+            parsed.words.length > 0 &&
+            Array.isArray(parsed.images) &&
+            parsed.images.length > 0
+          ) {
+            cachedConfig = {
+              words: parsed.words,
+              final:
+                Array.isArray(parsed.final) && parsed.final.length >= 2
+                  ? [parsed.final[0], parsed.final[1]]
+                  : OPENER_DEFAULTS.final,
+              images: parsed.images,
+              imageItems: parsed.imageItems,
+            };
+          }
+        }
+      } catch {
+        // ignore localStorage error
+      }
+
       try {
         const ctl = new AbortController();
-        const t = setTimeout(() => ctl.abort(), 900);
-        const r = await fetch(CONFIG_URL, {
+        const t = setTimeout(() => ctl.abort(), 3500);
+        const r = await fetch(`${CONFIG_URL}?t=${Date.now()}`, {
           signal: ctl.signal,
           cache: "no-store",
         });
@@ -180,19 +212,27 @@ export default function SiteOpener() {
           Array.isArray(c.images) &&
           c.images.length > 0
         ) {
-          return {
+          const freshConfig: OpenerRuntimeConfig = {
             words: c.words,
             final:
               Array.isArray(c.final) && c.final.length >= 2
                 ? [c.final[0], c.final[1]]
                 : OPENER_DEFAULTS.final,
             images: c.images,
+            imageItems: c.imageItems,
           };
+          try {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(freshConfig));
+          } catch {
+            // ignore
+          }
+          return freshConfig;
         }
-      } catch {
-        // fallback ke OPENER_DEFAULTS
+      } catch (err) {
+        // jika fetch gagal atau timeout, gunakan cache lokal jika ada
       }
-      return OPENER_DEFAULTS;
+
+      return cachedConfig || OPENER_DEFAULTS;
     }
 
     function preload(urls: string[]) {
@@ -271,12 +311,18 @@ export default function SiteOpener() {
           ? cfg.images
           : OPENER_DEFAULTS.images;
 
-      // Jika gambar kurang dari jumlah tahap, ulangi dari awal;
-      // gambar terakhir untuk tahap "Rizx Studio" adalah tampilan hero web (/sequence/frame_000000.webp)
-      const imgs = phases.map(
-        (_, i) => sourceImages[i % sourceImages.length]
-      );
-      const finalHeroImg = "/sequence/frame_000000.webp";
+      // Ambil gambar untuk setiap tahap: prioritaskan slot imageItems dari admin dashboard
+      const imgs = phases.map((_, i) => {
+        if (cfg.imageItems && cfg.imageItems[i]?.url) {
+          return cfg.imageItems[i].url;
+        }
+        return sourceImages[i % sourceImages.length] || OPENER_DEFAULTS.images[i % OPENER_DEFAULTS.images.length];
+      });
+
+      // Untuk tahap akhir ("Rizx Studio"), gunakan gambar yang ditentukan admin di tahap terakhir,
+      // atau fallback ke /sequence/frame_000000.webp
+      const finalHeroImg =
+        imgs[imgs.length - 1] || "/sequence/frame_000000.webp";
       imgs[imgs.length - 1] = finalHeroImg;
 
       await Promise.all([

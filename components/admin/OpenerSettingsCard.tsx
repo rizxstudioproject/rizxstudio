@@ -254,6 +254,21 @@ export default function OpenerSettingsCard({
         imageItems: cleanedImages,
       });
 
+      // Simpan langsung ke localStorage agar langsung sinkron dengan Opener di website tanpa menunggu fetch
+      try {
+        localStorage.setItem(
+          "rizx_opener_config",
+          JSON.stringify({
+            words: cleanedWords,
+            final: cleanedFinal,
+            images: activeUrls.length > 0 ? activeUrls : OPENER_DEFAULTS.images,
+            imageItems: cleanedImages,
+          })
+        );
+      } catch {
+        // ignore
+      }
+
       if (!silent) {
         showToast(
           tx(
@@ -1161,7 +1176,7 @@ export default function OpenerSettingsCard({
               title={tx("Edit tahap akhir", "Edit final stage")}
               className="group relative w-11 h-8 rounded bg-neutral-900 border border-[#16b09f] shrink-0 bg-cover bg-center overflow-hidden cursor-pointer"
               style={{
-                backgroundImage: `url("/sequence/frame_000000.webp")`,
+                backgroundImage: `url("${imageItems[imageItems.length - 1]?.url || "/sequence/frame_000000.webp"}")`,
               }}
             >
               <span className="absolute inset-0 bg-black/55 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">

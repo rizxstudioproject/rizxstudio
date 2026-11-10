@@ -153,26 +153,7 @@ function normalizeConfig(raw: any): OpenerConfigPayload {
 async function fetchConfigFromDB(): Promise<OpenerConfigPayload> {
   const supabase = getSupabase();
 
-  // 1. Coba baca dari tabel opener_config jika tersedia
-  try {
-    const { data: tableData, error: tableErr } = await supabase
-      .from("opener_config")
-      .select("config")
-      .eq("id", "default")
-      .maybeSingle();
-
-    if (!tableErr && tableData?.config) {
-      const parsed =
-        typeof tableData.config === "string"
-          ? JSON.parse(tableData.config)
-          : tableData.config;
-      return normalizeConfig(parsed);
-    }
-  } catch {
-    // fallback ke client_descriptions
-  }
-
-  // 2. Baca dari tabel utama project: client_descriptions (client_id = "site-opener-config")
+  // Baca langsung dari tabel utama project: client_descriptions (client_id = "site-opener-config")
   try {
     const { data, error } = await supabase
       .from("client_descriptions")
@@ -181,11 +162,14 @@ async function fetchConfigFromDB(): Promise<OpenerConfigPayload> {
       .maybeSingle();
 
     if (!error && data?.description) {
-      const parsed = JSON.parse(data.description);
+      const parsed =
+        typeof data.description === "string"
+          ? JSON.parse(data.description)
+          : data.description;
       return normalizeConfig(parsed);
     }
-  } catch {
-    // fallback ke default
+  } catch (err) {
+    console.warn("fetchConfigFromDB error:", err);
   }
 
   return DEFAULT_OPENER_CONFIG;
@@ -254,17 +238,6 @@ export async function POST(req: Request) {
       description: JSON.stringify(normalized),
       updated_at: new Date().toISOString(),
     });
-
-    // Opsional: simpan juga ke tabel opener_config jika ada di Supabase
-    try {
-      await supabase.from("opener_config").upsert({
-        id: "default",
-        config: normalized,
-        updated_at: new Date().toISOString(),
-      });
-    } catch {
-      // ignore if opener_config table does not exist
-    }
 
     if (descErr) {
       console.error("Supabase opener save error:", descErr);
