@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   RiCloseLine,
-  RiCameraLensLine,
   RiCheckFill,
   RiAlertFill,
   RiRefreshLine,
@@ -14,12 +13,15 @@ import {
 } from "react-icons/ri";
 import { useLang } from "@/context/LanguageContext";
 import {
-  extractFaceFromVideo,
+  ensureFaceRecognitionModelsLoaded,
+  extractFaceFromVideoAsync,
   averageFaceDescriptors,
   compareFaceDescriptors,
+  computeFaceEuclideanDistance,
   FaceDescriptorPayload,
   FaceTracking3DState,
   FACE_MATCH_THRESHOLD,
+  FACENET_MAX_DISTANCE,
 } from "@/lib/faceRecognition";
 import { AdminUserItem } from "@/lib/adminAuth";
 
@@ -39,86 +41,31 @@ interface FaceCameraModalProps {
   onVerifySuccess?: (result: { matchedUser: AdminUserItem; similarity: number }) => void;
 }
 
-// 3D Canonical Facial Landmarks [x, y, z] in normalized face space [-1..1]
-const FACE_3D_NODES: [number, number, number][] = [
-  // Forehead & Temple Arc (0..4)
-  [-0.58, -0.68, -0.2],
-  [-0.3, -0.82, -0.05],
-  [0.0, -0.86, 0.05],
-  [0.3, -0.82, -0.05],
-  [0.58, -0.68, -0.2],
-  // Eyebrows (5..10)
-  [-0.52, -0.42, 0.08],
-  [-0.32, -0.48, 0.18],
-  [-0.14, -0.42, 0.22],
-  [0.14, -0.42, 0.22],
-  [0.32, -0.48, 0.18],
-  [0.52, -0.42, 0.08],
-  // Left Eye Orbit (11..14)
-  [-0.46, -0.24, 0.12],
-  [-0.31, -0.3, 0.2],
-  [-0.17, -0.24, 0.18],
-  [-0.31, -0.18, 0.2],
-  // Right Eye Orbit (15..18)
-  [0.17, -0.24, 0.18],
-  [0.31, -0.3, 0.2],
-  [0.46, -0.24, 0.12],
-  [0.31, -0.18, 0.2],
-  // 3D Nose Bridge & Tip (19..23)
-  [0.0, -0.34, 0.28],
-  [0.0, -0.12, 0.38],
-  [0.0, 0.08, 0.48],
-  [-0.16, 0.14, 0.26],
-  [0.16, 0.14, 0.26],
-  // Cheekbones (24..27)
-  [-0.66, -0.08, -0.12],
-  [-0.42, 0.08, 0.16],
-  [0.42, 0.08, 0.16],
-  [0.66, -0.08, -0.12],
-  // Mouth Contour (28..33)
-  [-0.28, 0.36, 0.18],
-  [0.0, 0.31, 0.3],
-  [0.28, 0.36, 0.18],
-  [0.0, 0.42, 0.28],
-  [-0.18, 0.48, 0.2],
-  [0.18, 0.48, 0.2],
-  // Jawline & Chin (34..40)
-  [-0.64, 0.24, -0.18],
-  [-0.48, 0.54, -0.05],
-  [-0.24, 0.76, 0.1],
-  [0.0, 0.84, 0.18],
-  [0.24, 0.76, 0.1],
-  [0.48, 0.54, -0.05],
-  [0.64, 0.24, -0.18],
-];
-
-// Edges connecting 3D facial nodes into a biometric wireframe mesh
-const FACE_3D_EDGES: [number, number][] = [
-  // Forehead contour
-  [0, 1], [1, 2], [2, 3], [3, 4],
-  // Brow ridge
-  [5, 6], [6, 7], [7, 19], [19, 8], [8, 9], [9, 10],
-  // Forehead to brows
-  [0, 5], [1, 6], [2, 19], [3, 9], [4, 10],
-  // Left eye loop
-  [11, 12], [12, 13], [13, 14], [14, 11],
-  [5, 11], [6, 12], [7, 13],
-  // Right eye loop
-  [15, 16], [16, 17], [17, 18], [18, 15],
-  [8, 15], [9, 16], [10, 17],
-  // 3D Nose pyramid
-  [19, 20], [20, 21], [21, 22], [21, 23], [22, 23],
-  [13, 19], [15, 19], [13, 20], [15, 20], [14, 22], [18, 23],
-  // Cheekbone triangulation
-  [0, 24], [11, 24], [11, 25], [14, 25], [22, 25], [24, 25],
-  [4, 27], [17, 27], [17, 26], [18, 26], [23, 26], [27, 26],
-  // Mouth loop & connections
-  [22, 29], [23, 29], [22, 28], [23, 30], [25, 28], [26, 30],
-  [28, 29], [29, 30], [30, 33], [33, 31], [31, 32], [32, 28], [29, 31],
-  // Jawline & chin triangulation
-  [24, 34], [25, 34], [25, 35], [28, 35], [32, 36], [31, 37],
-  [33, 38], [30, 39], [26, 39], [26, 40], [27, 40],
-  [34, 35], [35, 36], [36, 37], [37, 38], [38, 39], [39, 40],
+// 68-Landmark Triangulation & Contour Connections for Real-Time 3D Biometric Mesh
+const LANDMARK_68_EDGES: [number, number][] = [
+  // Jawline contour (0..16)
+  [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8],
+  [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [13, 14], [14, 15], [15, 16],
+  // Left eyebrow (17..21)
+  [17, 18], [18, 19], [19, 20], [20, 21],
+  // Right eyebrow (22..26)
+  [22, 23], [23, 24], [24, 25], [25, 26],
+  // Nose bridge & tip (27..35)
+  [27, 28], [28, 29], [29, 30], [30, 31], [30, 33], [30, 35],
+  [31, 32], [32, 33], [33, 34], [34, 35], [27, 31], [27, 35],
+  // Left eye orbit (36..41)
+  [36, 37], [37, 38], [38, 39], [39, 40], [40, 41], [41, 36],
+  // Right eye orbit (42..47)
+  [42, 43], [43, 44], [44, 45], [45, 46], [46, 47], [47, 42],
+  // Outer mouth contour (48..59)
+  [48, 49], [49, 50], [50, 51], [51, 52], [52, 53], [53, 54],
+  [54, 55], [55, 56], [56, 57], [57, 58], [58, 59], [59, 48],
+  // 3D Structural Cross-Triangulation (Brows -> Eyes -> Nose -> Cheeks -> Mouth -> Jaw)
+  [21, 27], [22, 27], [17, 36], [19, 37], [21, 39],
+  [22, 42], [24, 44], [26, 45], [39, 27], [42, 27],
+  [39, 31], [42, 35], [36, 0], [45, 16], [41, 31], [46, 35],
+  [31, 48], [33, 51], [35, 54], [36, 2], [45, 14],
+  [48, 4], [54, 12], [57, 8], [48, 6], [54, 10],
 ];
 
 export default function FaceCameraModal({
@@ -135,11 +82,11 @@ export default function FaceCameraModal({
   const meshCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const trackingRef = useRef<FaceTracking3DState>({
-    detected: true,
+    detected: false,
     cx: 0.5,
-    cy: 0.52,
-    radius: 0.31,
-    depthZ: 382,
+    cy: 0.5,
+    radius: 0.28,
+    depthZ: 380,
     yaw: 0,
     pitch: 0,
     brightness: 110,
@@ -147,6 +94,7 @@ export default function FaceCameraModal({
   });
 
   const [cameraReady, setCameraReady] = useState(false);
+  const [modelsReady, setModelsReady] = useState(false);
   const [cameraError, setCameraError] = useState<string>("");
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [scanProgress, setScanProgress] = useState<number>(0);
@@ -157,12 +105,16 @@ export default function FaceCameraModal({
     pitch: number;
     lowLightBoost: boolean;
     liveMatchPct: number;
+    euclidDist: number | null;
+    isStrangerWarning: boolean;
   }>({
-    depthZ: 382,
+    depthZ: 380,
     yaw: 0,
     pitch: 0,
     lowLightBoost: false,
     liveMatchPct: 0,
+    euclidDist: null,
+    isStrangerWarning: false,
   });
   const [matchedPreview, setMatchedPreview] = useState<{
     username: string;
@@ -180,7 +132,7 @@ export default function FaceCameraModal({
     setCameraReady(false);
   };
 
-  // Start smartphone front camera
+  // Start smartphone front camera & load Neural FaceNet 128-D models
   useEffect(() => {
     if (!isOpen) {
       stopCamera();
@@ -192,15 +144,24 @@ export default function FaceCameraModal({
     setScanProgress(0);
     setScanState("scanning");
     setMatchedPreview(null);
+    setLiveTelemetry({
+      depthZ: 380,
+      yaw: 0,
+      pitch: 0,
+      lowLightBoost: false,
+      liveMatchPct: 0,
+      euclidDist: null,
+      isStrangerWarning: false,
+    });
     setStatusMessage(
       tr(
-        "Initializing 3D Face Mesh Scanner…",
-        "Mengaktifkan 3D Face Mesh Scanner…",
-        "Maaktifkan 3D Face Mesh Scanner…"
+        "Loading Neural 3D FaceNet AI & opening camera…",
+        "Memuat AI Neural 3D FaceNet & membuka kamera…",
+        "Mamuat AI Neural 3D FaceNet & mambukak kamera…"
       )
     );
 
-    const startCamera = async () => {
+    const initScanner = async () => {
       try {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
           setCameraError(
@@ -214,20 +175,37 @@ export default function FaceCameraModal({
           return;
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: "user",
-            width: { ideal: 640 },
-            height: { ideal: 640 },
-          },
-          audio: false,
-        });
+        const [stream, aiLoaded] = await Promise.all([
+          navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: "user",
+              width: { ideal: 640 },
+              height: { ideal: 640 },
+            },
+            audio: false,
+          }),
+          ensureFaceRecognitionModelsLoaded(),
+        ]);
 
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
           return;
         }
 
+        if (!aiLoaded) {
+          stream.getTracks().forEach((t) => t.stop());
+          setCameraError(
+            tr(
+              "Failed to load Neural 3D FaceNet models. Please check your internet connection and try again.",
+              "Gagal memuat model AI Neural 3D FaceNet. Periksa koneksi internet Anda lalu coba lagi.",
+              "Gagal mamuat model AI Neural 3D FaceNet. Parikso koneksi internet Sanak."
+            )
+          );
+          setScanState("failed");
+          return;
+        }
+
+        setModelsReady(true);
         streamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -235,9 +213,9 @@ export default function FaceCameraModal({
           setCameraReady(true);
           setStatusMessage(
             tr(
-              "3D Scanner Active — Keep your face in view",
-              "3D Scanner Aktif — Arahkan wajah ke kamera",
-              "3D Scanner Aktif — Arahkan wajah ka kamera"
+              "Look straight at the camera for 3D Neural Scan",
+              "Tatap lurus ke kamera untuk pemindaian 3D Neural",
+              "Tatap luruih ka kamera untuak pindaian 3D Neural"
             )
           );
         }
@@ -261,7 +239,7 @@ export default function FaceCameraModal({
       }
     };
 
-    startCamera();
+    initScanner();
 
     return () => {
       cancelled = true;
@@ -269,14 +247,10 @@ export default function FaceCameraModal({
     };
   }, [isOpen, retryCount]);
 
-  // 60FPS 3D Biometric Wireframe Mesh Renderer on <canvas>
+  // 60FPS Real 68-Landmark 3D Wireframe Mesh Renderer on <canvas>
   useEffect(() => {
     if (!isOpen || !cameraReady) return;
     let animId = 0;
-    let smoothCx = 0.5;
-    let smoothCy = 0.52;
-    let smoothYaw = 0;
-    let smoothPitch = 0;
     let phase = 0;
 
     const renderMesh = () => {
@@ -287,100 +261,92 @@ export default function FaceCameraModal({
           const w = canvas.width;
           const h = canvas.height;
           ctx.clearRect(0, 0, w, h);
+          phase += 0.08;
 
           const t = trackingRef.current;
-          smoothCx += (t.cx - smoothCx) * 0.18;
-          smoothCy += (t.cy - smoothCy) * 0.18;
-          smoothYaw += (t.yaw - smoothYaw) * 0.18;
-          smoothPitch += (t.pitch - smoothPitch) * 0.18;
-          phase += 0.06;
+          const pts = t.landmarks68;
 
-          const centerX = smoothCx * w;
-          const centerY = smoothCy * h;
-          const scaleX = w * 0.34;
-          const scaleY = h * 0.38;
+          if (t.detected && pts && pts.length === 68) {
+            const isWarning = liveTelemetry.isStrangerWarning && mode === "verify";
+            const strokeBase =
+              scanState === "success"
+                ? "rgba(52, 211, 153, 0.72)"
+                : isWarning
+                ? "rgba(244, 63, 94, 0.72)"
+                : "rgba(22, 176, 159, 0.68)";
 
-          const yawRad = (smoothYaw * Math.PI) / 180;
-          const pitchRad = (smoothPitch * Math.PI) / 180;
-          const cosY = Math.cos(yawRad);
-          const sinY = Math.sin(yawRad);
-          const cosP = Math.cos(pitchRad);
-          const sinP = Math.sin(pitchRad);
+            // Draw triangulated 68-point anatomical wireframe edges
+            ctx.lineWidth = 1.15;
+            ctx.strokeStyle = strokeBase;
+            for (const [i, j] of LANDMARK_68_EDGES) {
+              const p1 = pts[i];
+              const p2 = pts[j];
+              if (!p1 || !p2) continue;
+              ctx.beginPath();
+              ctx.moveTo(p1.x * w, p1.y * h);
+              ctx.lineTo(p2.x * w, p2.y * h);
+              ctx.stroke();
+            }
 
-          // Project 3D nodes [x, y, z] -> 2D screen coordinates with 3D perspective & head pose rotation
-          const projected: [number, number, number][] = FACE_3D_NODES.map(([nx, ny, nz]) => {
-            // Rotate around Y (yaw)
-            const rx = nx * cosY + nz * sinY;
-            const rz1 = -nx * sinY + nz * cosY;
-            // Rotate around X (pitch)
-            const ry = ny * cosP - rz1 * sinP;
-            const rz2 = ny * sinP + rz1 * cosP;
+            // Draw 68 anatomical landmark nodes
+            for (let idx = 0; idx < pts.length; idx++) {
+              const p = pts[idx];
+              const isKeyFeature =
+                idx === 30 || idx === 36 || idx === 39 || idx === 42 || idx === 45 || idx === 48 || idx === 54 || idx === 8;
+              const pulse = isKeyFeature ? 1 + 0.25 * Math.sin(phase + idx) : 1;
+              const r = (isKeyFeature ? 2.6 : 1.7) * pulse;
+              ctx.fillStyle =
+                scanState === "success"
+                  ? "#34d399"
+                  : isWarning
+                  ? "#fb7185"
+                  : isKeyFeature
+                  ? "#5eead4"
+                  : "#16b09f";
+              ctx.beginPath();
+              ctx.arc(p.x * w, p.y * h, r, 0, Math.PI * 2);
+              ctx.fill();
+            }
 
-            const perspective = 1 + rz2 * 0.28;
-            const sx = centerX + rx * scaleX * perspective;
-            const sy = centerY + ry * scaleY * perspective;
-            return [sx, sy, rz2];
-          });
-
-          // Draw 3D wireframe edges
-          ctx.lineWidth = 1.15;
-          for (const [i, j] of FACE_3D_EDGES) {
-            const p1 = projected[i];
-            const p2 = projected[j];
-            const avgZ = (p1[2] + p2[2]) * 0.5;
-            const alpha = Math.max(0.22, Math.min(0.85, 0.45 + avgZ * 0.9));
+            // Draw 3D target reticle brackets around detected face
+            const centerX = t.cx * w;
+            const centerY = t.cy * h;
+            const boxW = Math.max(95, t.radius * w * 2.1);
+            const boxH = Math.max(115, t.radius * h * 2.4);
+            const bx = centerX - boxW / 2;
+            const by = centerY - boxH / 2;
+            const corner = 18;
             ctx.strokeStyle =
               scanState === "success"
-                ? `rgba(52, 211, 153, ${alpha})`
-                : `rgba(22, 176, 159, ${alpha})`;
-            ctx.beginPath();
-            ctx.moveTo(p1[0], p1[1]);
-            ctx.lineTo(p2[0], p2[1]);
-            ctx.stroke();
-          }
-
-          // Draw 3D landmark vertices (glowing biometric dots)
-          for (let idx = 0; idx < projected.length; idx++) {
-            const [px, py, pz] = projected[idx];
-            const pulse = 1 + 0.25 * Math.sin(phase + idx * 0.4);
-            const r = (pz > 0.2 ? 2.8 : 2.0) * pulse;
-            ctx.fillStyle =
-              scanState === "success"
                 ? "#34d399"
-                : pz > 0.22
-                ? "#5eead4"
-                : "#16b09f";
+                : isWarning
+                ? "#f43f5e"
+                : "#2dd4bf";
+            ctx.lineWidth = 2.2;
             ctx.beginPath();
-            ctx.arc(px, py, r, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.moveTo(bx, by + corner);
+            ctx.lineTo(bx, by);
+            ctx.lineTo(bx + corner, by);
+            ctx.moveTo(bx + boxW - corner, by);
+            ctx.lineTo(bx + boxW, by);
+            ctx.lineTo(bx + boxW, by + corner);
+            ctx.moveTo(bx, by + boxH - corner);
+            ctx.lineTo(bx, by + boxH);
+            ctx.lineTo(bx + corner, by + boxH);
+            ctx.moveTo(bx + boxW - corner, by + boxH);
+            ctx.lineTo(bx + boxW, by + boxH);
+            ctx.lineTo(bx + boxW, by + boxH - corner);
+            ctx.stroke();
+          } else {
+            // Guide oval when waiting for a face to enter the camera frame
+            ctx.strokeStyle = "rgba(148, 163, 184, 0.45)";
+            ctx.lineWidth = 1.8;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.ellipse(w / 2, h / 2, w * 0.28, h * 0.36, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
           }
-
-          // Draw 3D target reticle brackets around tracked face
-          const boxW = scaleX * 2.15;
-          const boxH = scaleY * 2.25;
-          const bx = centerX - boxW / 2;
-          const by = centerY - boxH / 2;
-          const corner = 18;
-          ctx.strokeStyle = scanState === "success" ? "#34d399" : "#2dd4bf";
-          ctx.lineWidth = 2.2;
-          ctx.beginPath();
-          // Top-left
-          ctx.moveTo(bx, by + corner);
-          ctx.lineTo(bx, by);
-          ctx.lineTo(bx + corner, by);
-          // Top-right
-          ctx.moveTo(bx + boxW - corner, by);
-          ctx.lineTo(bx + boxW, by);
-          ctx.lineTo(bx + boxW, by + corner);
-          // Bottom-left
-          ctx.moveTo(bx, by + boxH - corner);
-          ctx.lineTo(bx, by + boxH);
-          ctx.lineTo(bx + corner, by + boxH);
-          // Bottom-right
-          ctx.moveTo(bx + boxW - corner, by + boxH);
-          ctx.lineTo(bx + boxW, by + boxH);
-          ctx.lineTo(bx + boxW, by + boxH - corner);
-          ctx.stroke();
         }
       }
       animId = requestAnimationFrame(renderMesh);
@@ -388,199 +354,266 @@ export default function FaceCameraModal({
 
     animId = requestAnimationFrame(renderMesh);
     return () => cancelAnimationFrame(animId);
-  }, [isOpen, cameraReady, scanState]);
+  }, [isOpen, cameraReady, scanState, liveTelemetry.isStrangerWarning, mode]);
 
-  // Continuous 3D frame scanning & matching loop
+  // Continuous Neural 128-D FaceNet scanning & strict identity matching loop
   useEffect(() => {
-    if (!isOpen || !cameraReady || scanState !== "scanning") return;
+    if (!isOpen || !cameraReady || !modelsReady || scanState !== "scanning") return;
 
+    let isBusy = false;
+    let cancelled = false;
     const collectedDescriptors: FaceDescriptorPayload[] = [];
     let latestPhoto = "";
-    let attempts = 0;
-    const requiredFrames = 5;
-    const maxVerifyAttempts = 28;
+    let verifyFaceFrames = 0;
+    let consecutiveMatchFrames = 0;
+    let lastMatchedUserId: string | null = null;
+    const requiredEnrollFrames = 5;
+    const requiredVerifyMatchFrames = 3;
+    const maxVerifyFaceFrames = 10;
 
-    const interval = setInterval(() => {
+    const interval = setInterval(async () => {
+      if (isBusy || cancelled) return;
       const video = videoRef.current;
       if (!video || video.readyState < 2) return;
 
-      const result = extractFaceFromVideo(video);
-      if (result.tracking) {
-        trackingRef.current = result.tracking;
-      }
+      isBusy = true;
+      try {
+        const result = await extractFaceFromVideoAsync(video);
+        if (cancelled) return;
 
-      if (!result.valid || !result.descriptor) {
-        setStatusMessage(
-          tr(
-            "3D Scanner locking onto facial landmarks…",
-            "3D Scanner mengunci titik struktur wajah…",
-            "3D Scanner mangunci titiak wajah…"
-          )
-        );
-        return;
-      }
+        if (result.tracking) {
+          trackingRef.current = result.tracking;
+        }
 
-      collectedDescriptors.push(result.descriptor);
-      if (result.photoDataUrl) {
-        latestPhoto = result.photoDataUrl;
-      }
-
-      if (mode === "enroll") {
-        const pct = Math.min(100, Math.round((collectedDescriptors.length / requiredFrames) * 100));
-        setScanProgress(pct);
-        setLiveTelemetry({
-          depthZ: result.tracking?.depthZ || 380,
-          yaw: result.tracking?.yaw || 0,
-          pitch: result.tracking?.pitch || 0,
-          lowLightBoost: !!result.tracking?.lowLightBoost,
-          liveMatchPct: pct,
-        });
-        setStatusMessage(
-          tr(
-            `Mapping 3D facial mesh… ${pct}%`,
-            `Memetakan struktur 3D wajah… ${pct}%`,
-            `Mametakan 3D wajah… ${pct}%`
-          )
-        );
-
-        if (collectedDescriptors.length >= requiredFrames) {
-          clearInterval(interval);
-          const finalDescriptor = averageFaceDescriptors(collectedDescriptors);
-
-          // Check duplicate face ONLY if there are other enrolled users with a high match (>0.88)
-          const otherUsers = enrolledCandidates.filter(
-            (c) => !targetUser || c.user.id !== targetUser.id
-          );
-          const duplicateCandidate = otherUsers.find(
-            (c) => compareFaceDescriptors(finalDescriptor, c.descriptor) >= 0.88
-          );
-
-          if (duplicateCandidate) {
-            setScanState("failed");
-            setCameraError(
+        if (!result.valid || !result.descriptor) {
+          if (result.reason === "low_symmetry") {
+            setStatusMessage(
               tr(
-                `This 3D face mesh is already registered to @${duplicateCandidate.user.username}. Each user must register their own distinct face!`,
-                `Struktur 3D wajah ini sudah terdaftar pada akun @${duplicateCandidate.user.username}. Setiap user wajib mendaftarkan wajah masing-masing yang berbeda!`,
-                `Wajah ko lah tadaftar di akun @${duplicateCandidate.user.username}. Satiap user wajib pakai wajah surang-surang!`
+                "Please look straight at the camera (do not turn sideways)",
+                "Arahkan wajah lurus ke depan kamera (jangan miring)",
+                "Arahkan wajah luruih ka muko kamera"
               )
             );
-            return;
+          } else if (result.reason === "too_dark") {
+            setStatusMessage(
+              tr(
+                "Room is too dark. Please add more light.",
+                "Ruangan terlalu gelap. Tambah pencahayaan.",
+                "Ruangan talalu kalam."
+              )
+            );
+          } else {
+            setStatusMessage(
+              tr(
+                "Position your face clearly inside the camera frame…",
+                "Posisikan wajah Anda dengan jelas di depan kamera…",
+                "Posisikan wajah Sanak di muko kamera…"
+              )
+            );
           }
-
-          setScanState("success");
-          setMatchedPreview({
-            username: targetUser?.username || "admin",
-            name: targetUser?.name,
-            similarity: 100,
-            photo: latestPhoto,
-          });
-          setStatusMessage(
-            tr(
-              "3D Face Mesh enrolled successfully!",
-              "Struktur 3D Wajah berhasil didaftarkan!",
-              "3D Wajah barasil didaftarkan!"
-            )
-          );
-
-          setTimeout(() => {
-            stopCamera();
-            if (onEnrollSuccess) {
-              onEnrollSuccess({
-                descriptorJson: JSON.stringify(finalDescriptor),
-                photoDataUrl: latestPhoto,
-              });
-            }
-          }, 850);
-        }
-      } else {
-        // mode === "verify"
-        attempts++;
-        const liveAvg = averageFaceDescriptors(collectedDescriptors.slice(-3));
-
-        let bestCandidate: EnrolledFaceCandidate | null = null;
-        let bestScore = 0;
-
-        for (const cand of enrolledCandidates) {
-          const score = compareFaceDescriptors(liveAvg, cand.descriptor);
-          if (score > bestScore) {
-            bestScore = score;
-            bestCandidate = cand;
-          }
-        }
-
-        // If only 1 candidate is enrolled and has a valid 3D face mesh with reasonable structural similarity (>= 0.54),
-        // or if multiple candidates are enrolled and bestScore >= FACE_MATCH_THRESHOLD (0.62)
-        const effectiveThreshold =
-          enrolledCandidates.length === 1 ? 0.52 : FACE_MATCH_THRESHOLD;
-
-        const displayMatchPct = Math.min(
-          99,
-          Math.round(Math.min(1, bestScore / Math.max(0.01, effectiveThreshold)) * 92)
-        );
-        const progressPct = Math.min(95, Math.round((collectedDescriptors.length / 3) * 85));
-        setScanProgress(progressPct);
-
-        setLiveTelemetry({
-          depthZ: result.tracking?.depthZ || 380,
-          yaw: result.tracking?.yaw || 0,
-          pitch: result.tracking?.pitch || 0,
-          lowLightBoost: !!result.tracking?.lowLightBoost,
-          liveMatchPct: displayMatchPct,
-        });
-
-        setStatusMessage(
-          tr(
-            `3D Mesh Matching… (${displayMatchPct}%)`,
-            `Mencocokkan 3D Mesh Wajah… (${displayMatchPct}%)`,
-            `Mancocokkan 3D Wajah… (${displayMatchPct}%)`
-          )
-        );
-
-        if (collectedDescriptors.length >= 2 && bestCandidate && bestScore >= effectiveThreshold) {
-          clearInterval(interval);
-          setScanProgress(100);
-          setScanState("success");
-          const simPercent = Math.max(88, Math.min(99, Math.round((bestScore + 0.25) * 100)));
-          setMatchedPreview({
-            username: bestCandidate.user.username,
-            name: bestCandidate.user.name,
-            similarity: simPercent,
-            photo: latestPhoto || bestCandidate.photoData,
-          });
-          setStatusMessage(
-            tr(
-              `3D Face Verified: @${bestCandidate.user.username} (${simPercent}% match)`,
-              `3D Wajah Cocok: @${bestCandidate.user.username} (${simPercent}% cocok)`,
-              `3D Wajah Cocok: @${bestCandidate.user.username} (${simPercent}%)`
-            )
-          );
-
-          const winner = bestCandidate.user;
-          setTimeout(() => {
-            stopCamera();
-            if (onVerifySuccess) {
-              onVerifySuccess({ matchedUser: winner, similarity: simPercent });
-            }
-          }, 800);
           return;
         }
 
-        if (attempts >= maxVerifyAttempts) {
-          clearInterval(interval);
-          setScanState("failed");
-          setCameraError(
+        collectedDescriptors.push(result.descriptor);
+        if (result.photoDataUrl) {
+          latestPhoto = result.photoDataUrl;
+        }
+
+        if (mode === "enroll") {
+          const pct = Math.min(
+            100,
+            Math.round((collectedDescriptors.length / requiredEnrollFrames) * 100)
+          );
+          setScanProgress(pct);
+          setLiveTelemetry({
+            depthZ: result.tracking?.depthZ || 380,
+            yaw: result.tracking?.yaw || 0,
+            pitch: result.tracking?.pitch || 0,
+            lowLightBoost: !!result.tracking?.lowLightBoost,
+            liveMatchPct: pct,
+            euclidDist: 0,
+            isStrangerWarning: false,
+          });
+          setStatusMessage(
             tr(
-              "3D Face not recognized! Please face the camera directly or re-enroll your 3D Face Mesh in Admin Dashboard.",
-              "Wajah belum cocok! Arahkan wajah menghadap kamera atau perbarui pendaftaran 3D Wajah di Admin Dashboard.",
-              "Wajah alun cocok! Arahkan wajah ka kamera atau daftarkan ulang 3D Wajah di Admin Dashboard."
+              `Scanning 128-D Neural FaceNet signature… ${pct}%`,
+              `Memindai tanda tangan wajah 128-D Neural… ${pct}%`,
+              `Mamindai wajah 128-D Neural… ${pct}%`
             )
           );
-        }
-      }
-    }, 260);
 
-    return () => clearInterval(interval);
-  }, [isOpen, cameraReady, scanState, mode, targetUser, enrolledCandidates]);
+          if (collectedDescriptors.length >= requiredEnrollFrames) {
+            clearInterval(interval);
+            const finalDescriptor = averageFaceDescriptors(collectedDescriptors);
+
+            // Prevent two different admin accounts from enrolling the same person's face!
+            const otherUsers = enrolledCandidates.filter(
+              (c) => !targetUser || c.user.id !== targetUser.id
+            );
+            const duplicateCandidate = otherUsers.find(
+              (c) => computeFaceEuclideanDistance(finalDescriptor, c.descriptor) <= 0.46
+            );
+
+            if (duplicateCandidate) {
+              setScanState("failed");
+              setCameraError(
+                tr(
+                  `This face is already registered to @${duplicateCandidate.user.username}. Each admin user must register their own distinct face!`,
+                  `Wajah ini sudah terdaftar pada akun @${duplicateCandidate.user.username}. Setiap user wajib mendaftarkan wajah masing-masing yang berbeda!`,
+                  `Wajah ko lah tadaftar di akun @${duplicateCandidate.user.username}. Satiap user wajib pakai wajah surang-surang!`
+                )
+              );
+              return;
+            }
+
+            setScanState("success");
+            setMatchedPreview({
+              username: targetUser?.username || "admin",
+              name: targetUser?.name,
+              similarity: 100,
+              photo: latestPhoto,
+            });
+            setStatusMessage(
+              tr(
+                "128-D Neural Face ID enrolled!",
+                "Wajah 128-D Neural berhasil didaftarkan!",
+                "Wajah 128-D Neural barasil didaftarkan!"
+              )
+            );
+
+            setTimeout(() => {
+              stopCamera();
+              if (onEnrollSuccess) {
+                onEnrollSuccess({
+                  descriptorJson: JSON.stringify(finalDescriptor),
+                  photoDataUrl: latestPhoto,
+                });
+              }
+            }, 850);
+          }
+        } else {
+          // mode === "verify": Strict 128-D Neural FaceNet Identity Verification
+          verifyFaceFrames++;
+          const liveAvg = averageFaceDescriptors(collectedDescriptors.slice(-3));
+
+          let bestCandidate: EnrolledFaceCandidate | null = null;
+          let bestScore = 0;
+          let bestDist = Infinity;
+
+          for (const cand of enrolledCandidates) {
+            const dist = computeFaceEuclideanDistance(liveAvg, cand.descriptor);
+            const score = compareFaceDescriptors(liveAvg, cand.descriptor);
+            if (dist < bestDist) {
+              bestDist = dist;
+              bestScore = score;
+              bestCandidate = cand;
+            }
+          }
+
+          // Strict identity check: Euclidean distance MUST be <= FACENET_MAX_DISTANCE (0.43)
+          // and score >= FACE_MATCH_THRESHOLD (0.76) — NEVER relaxed for single user!
+          const isMatchFrame =
+            !!bestCandidate &&
+            bestDist <= FACENET_MAX_DISTANCE &&
+            bestScore >= FACE_MATCH_THRESHOLD;
+
+          if (isMatchFrame && bestCandidate) {
+            if (lastMatchedUserId === bestCandidate.user.id) {
+              consecutiveMatchFrames++;
+            } else {
+              lastMatchedUserId = bestCandidate.user.id;
+              consecutiveMatchFrames = 1;
+            }
+          } else {
+            consecutiveMatchFrames = 0;
+            lastMatchedUserId = null;
+          }
+
+          const simPercent = Math.round(bestScore * 100);
+          const progressPct = isMatchFrame
+            ? Math.min(98, Math.round((consecutiveMatchFrames / requiredVerifyMatchFrames) * 100))
+            : Math.min(95, Math.round((verifyFaceFrames / maxVerifyFaceFrames) * 100));
+
+          setScanProgress(progressPct);
+          setLiveTelemetry({
+            depthZ: result.tracking?.depthZ || 380,
+            yaw: result.tracking?.yaw || 0,
+            pitch: result.tracking?.pitch || 0,
+            lowLightBoost: !!result.tracking?.lowLightBoost,
+            liveMatchPct: simPercent,
+            euclidDist: Number.isFinite(bestDist) ? Number(bestDist.toFixed(2)) : null,
+            isStrangerWarning: !isMatchFrame,
+          });
+
+          if (isMatchFrame && bestCandidate) {
+            setStatusMessage(
+              tr(
+                `Verifying @${bestCandidate.user.username}… (${consecutiveMatchFrames}/${requiredVerifyMatchFrames})`,
+                `Memverifikasi @${bestCandidate.user.username}… (${consecutiveMatchFrames}/${requiredVerifyMatchFrames})`,
+                `Mamverifikasi @${bestCandidate.user.username}… (${consecutiveMatchFrames}/${requiredVerifyMatchFrames})`
+              )
+            );
+          } else {
+            setStatusMessage(
+              tr(
+                `Unregistered face detected (${simPercent}% match — min 76% required)`,
+                `Wajah tidak cocok (${simPercent}% — minimal 76% untuk login)`,
+                `Wajah indak cocok (${simPercent}% — minimal 76%)`
+              )
+            );
+          }
+
+          // Require 3 consecutive frames matching the exact same enrolled user within Euclidean distance <= 0.43
+          if (consecutiveMatchFrames >= requiredVerifyMatchFrames && bestCandidate) {
+            clearInterval(interval);
+            setScanProgress(100);
+            setScanState("success");
+            setMatchedPreview({
+              username: bestCandidate.user.username,
+              name: bestCandidate.user.name,
+              similarity: simPercent,
+              photo: latestPhoto || bestCandidate.photoData,
+            });
+            setStatusMessage(
+              tr(
+                `Identity Verified: @${bestCandidate.user.username} (${simPercent}% match)`,
+                `Identitas Wajah Cocok: @${bestCandidate.user.username} (${simPercent}%)`,
+                `Identitas Wajah Cocok: @${bestCandidate.user.username} (${simPercent}%)`
+              )
+            );
+
+            const winner = bestCandidate.user;
+            setTimeout(() => {
+              stopCamera();
+              if (onVerifySuccess) {
+                onVerifySuccess({ matchedUser: winner, similarity: simPercent });
+              }
+            }, 800);
+            return;
+          }
+
+          if (verifyFaceFrames >= maxVerifyFaceFrames) {
+            clearInterval(interval);
+            setScanState("failed");
+            setCameraError(
+              tr(
+                `Access Denied! Unregistered Face (${simPercent}% similarity, distance d=${Number.isFinite(bestDist) ? bestDist.toFixed(2) : "N/A"} > ${FACENET_MAX_DISTANCE}). Only registered admin faces can log in!`,
+                `Akses Ditolak! Wajah Tidak Terdaftar (Kemiripan hanya ${simPercent}%, jarak biometrik d=${Number.isFinite(bestDist) ? bestDist.toFixed(2) : "N/A"} > ${FACENET_MAX_DISTANCE}). Wajah orang lain tidak diizinkan login ke Admin Dashboard!`,
+                `Akses Ditolak! Wajah Indak Tadaftar (Kamiripan hanyo ${simPercent}%). Wajah urang lain indak buliah login!`
+              )
+            );
+          }
+        }
+      } finally {
+        isBusy = false;
+      }
+    }, 280);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [isOpen, cameraReady, modelsReady, scanState, mode, targetUser, enrolledCandidates]);
 
   if (!isOpen) return null;
 
@@ -625,9 +658,9 @@ export default function FaceCameraModal({
                 </h3>
                 <p className="text-[11px] font-mono text-teal-400">
                   {tr(
-                    "41-Point 3D Biometric Wireframe Mesh",
-                    "Pemindai Jaring 3D Biometrik 41-Titik",
-                    "Pemindai 3D Biometrik 41-Titiak"
+                    "68-Landmark 3D Mesh · 128-D Neural FaceNet",
+                    "Jaring 3D 68-Titik · AI Neural 128-D FaceNet",
+                    "Jaring 3D 68-Titiak · AI Neural 128-D"
                   )}
                 </p>
               </div>
@@ -646,7 +679,7 @@ export default function FaceCameraModal({
             </button>
           </div>
 
-          {/* Camera Viewport with Live 3D Face Mesh Canvas Overlay */}
+          {/* Camera Viewport with Live 68-Landmark 3D Face Mesh Canvas Overlay */}
           <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black border border-teal-500/30 flex items-center justify-center">
             <video
               ref={videoRef}
@@ -658,7 +691,7 @@ export default function FaceCameraModal({
               }`}
             />
 
-            {/* Live 3D Wireframe Face Mesh Overlay Canvas */}
+            {/* Live 68-Point 3D Wireframe Face Mesh Overlay Canvas */}
             <canvas
               ref={meshCanvasRef}
               width={320}
@@ -669,9 +702,25 @@ export default function FaceCameraModal({
             {/* Top-left & Top-right 3D Telemetry HUD Badges */}
             {cameraReady && scanState === "scanning" && (
               <div className="absolute top-2.5 left-2.5 right-2.5 flex items-center justify-between pointer-events-none z-20">
-                <div className="px-2 py-1 rounded-lg bg-black/65 border border-teal-500/40 backdrop-blur-xs text-[10px] font-mono text-teal-300 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#16b09f] animate-ping" />
-                  <span>3D MESH LOCK · Z:{liveTelemetry.depthZ}mm</span>
+                <div
+                  className={`px-2 py-1 rounded-lg bg-black/70 border backdrop-blur-xs text-[10px] font-mono flex items-center gap-1.5 ${
+                    liveTelemetry.isStrangerWarning && mode === "verify"
+                      ? "border-rose-500/60 text-rose-300"
+                      : "border-teal-500/40 text-teal-300"
+                  }`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full animate-ping ${
+                      liveTelemetry.isStrangerWarning && mode === "verify"
+                        ? "bg-rose-500"
+                        : "bg-[#16b09f]"
+                    }`}
+                  />
+                  <span>
+                    {liveTelemetry.euclidDist !== null && mode === "verify"
+                      ? `d=${liveTelemetry.euclidDist} (max ${FACENET_MAX_DISTANCE})`
+                      : `3D MESH · Z:${liveTelemetry.depthZ}mm`}
+                  </span>
                 </div>
 
                 {liveTelemetry.lowLightBoost && (
@@ -685,15 +734,23 @@ export default function FaceCameraModal({
 
             {/* Bottom 3D Pose Telemetry Bar */}
             {cameraReady && scanState === "scanning" && (
-              <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between px-2.5 py-1 rounded-lg bg-black/65 border border-white/10 backdrop-blur-xs text-[10px] font-mono text-neutral-300 pointer-events-none z-20">
+              <div className="absolute bottom-2.5 left-2.5 right-2.5 flex items-center justify-between px-2.5 py-1 rounded-lg bg-black/70 border border-white/10 backdrop-blur-xs text-[10px] font-mono text-neutral-300 pointer-events-none z-20">
                 <span>
                   YAW: {liveTelemetry.yaw > 0 ? `+${liveTelemetry.yaw}°` : `${liveTelemetry.yaw}°`}
                 </span>
                 <span>
                   PITCH: {liveTelemetry.pitch > 0 ? `+${liveTelemetry.pitch}°` : `${liveTelemetry.pitch}°`}
                 </span>
-                <span className="text-[#16b09f] font-bold">
-                  {mode === "enroll" ? `SCAN ${scanProgress}%` : `MATCH ${liveTelemetry.liveMatchPct}%`}
+                <span
+                  className={`font-bold ${
+                    liveTelemetry.isStrangerWarning && mode === "verify"
+                      ? "text-rose-400"
+                      : "text-[#16b09f]"
+                  }`}
+                >
+                  {mode === "enroll"
+                    ? `SCAN ${scanProgress}%`
+                    : `MATCH ${liveTelemetry.liveMatchPct}%`}
                 </span>
               </div>
             )}
@@ -709,7 +766,7 @@ export default function FaceCameraModal({
 
             {/* Success Overlay */}
             {scanState === "success" && (
-              <div className="absolute inset-0 z-30 bg-emerald-950/80 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center">
+              <div className="absolute inset-0 z-30 bg-emerald-950/85 backdrop-blur-xs flex flex-col items-center justify-center p-4 text-center">
                 {matchedPreview?.photo && (
                   <img
                     src={matchedPreview.photo}
@@ -731,7 +788,7 @@ export default function FaceCameraModal({
 
             {/* Error Overlay */}
             {scanState === "failed" && (
-              <div className="absolute inset-0 z-30 bg-neutral-950/90 backdrop-blur-xs flex flex-col items-center justify-center p-5 text-center">
+              <div className="absolute inset-0 z-30 bg-neutral-950/92 backdrop-blur-xs flex flex-col items-center justify-center p-5 text-center">
                 <div className="w-12 h-12 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-400 flex items-center justify-center mb-3">
                   <RiAlertFill className="w-6 h-6" />
                 </div>
@@ -755,7 +812,7 @@ export default function FaceCameraModal({
             <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
               <div
                 className={`h-full transition-all duration-300 ${
-                  scanState === "failed"
+                  scanState === "failed" || (liveTelemetry.isStrangerWarning && mode === "verify")
                     ? "bg-rose-500"
                     : scanState === "success"
                     ? "bg-emerald-400"
@@ -766,14 +823,22 @@ export default function FaceCameraModal({
             </div>
 
             <div className="flex items-center justify-between text-xs font-mono">
-              <span className="text-neutral-300 truncate pr-2">{statusMessage}</span>
+              <span
+                className={`truncate pr-2 ${
+                  liveTelemetry.isStrangerWarning && mode === "verify"
+                    ? "text-rose-300"
+                    : "text-neutral-300"
+                }`}
+              >
+                {statusMessage}
+              </span>
               <span className="text-[#16b09f] font-bold shrink-0">{scanProgress}%</span>
             </div>
 
             <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] font-mono text-neutral-400">
               <span className="flex items-center gap-1 text-teal-400">
                 <RiShieldCheckFill className="w-3.5 h-3.5" />
-                <span>3D Biometric Face Mesh</span>
+                <span>Strict 128-D FaceNet Security</span>
               </span>
               <button
                 type="button"
