@@ -145,6 +145,13 @@ export default function SiteOpener() {
         setTimeout(r, ms);
       });
 
+    const nextFrame = () =>
+      new Promise<void>((r) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => r());
+        });
+      });
+
     const waitForSite = () => {
       const p = window.__siteReady || Promise.resolve();
       return Promise.race([p, wait(10000)]);
@@ -248,7 +255,7 @@ export default function SiteOpener() {
 
       // Bersihkan state jika replay
       opener.style.display = "";
-      opener.classList.remove("portal-open");
+      opener.classList.remove("portal-open", "fade");
       mark.className = "op-mark";
       box.style.visibility = "";
       box.innerHTML = "";
@@ -269,7 +276,8 @@ export default function SiteOpener() {
       const imgs = phases.map(
         (_, i) => sourceImages[i % sourceImages.length]
       );
-      imgs[imgs.length - 1] = "/sequence/frame_000000.webp";
+      const finalHeroImg = "/sequence/frame_000000.webp";
+      imgs[imgs.length - 1] = finalHeroImg;
 
       await Promise.all([
         document.fonts
@@ -310,27 +318,46 @@ export default function SiteOpener() {
       await waitForSite();
       if (cancelled || finishedRef.current) return;
 
-      // 4 & 5. Kotak di tengah (yang menampilkan preview web) langsung membesar jadi layar penuh
-      //        membuka website asli (tanpa bayangan gambar portofolio menumpuk) sementara
-      //        teks kiri/kanan bergeser keluar dan web melakukan zoom-out (scale 1.12 → 1, ~1.4s)
+      // 4. Pure GPU-accelerated FLIP: dari ukuran kotak tengah ke layar penuh (scale 1.08)
+      //    tanpa layout reflow (hanya transform & opacity) sehingga 100% mulus 60/120fps
       const r = box.getBoundingClientRect();
+      const vw = Math.max(1, window.innerWidth);
+      const vh = Math.max(1, window.innerHeight);
+      const dx = r.left + r.width / 2 - vw / 2;
+      const dy = r.top + r.height / 2 - vh / 2;
+      const sx = Math.max(0.01, r.width / vw);
+      const sy = Math.max(0.01, r.height / vh);
+      const boxRadiusPx =
+        parseFloat(getComputedStyle(box).borderRadius || "6") || 6;
+      const scaledRx = Math.round(boxRadiusPx / sx);
+      const scaledRy = Math.round(boxRadiusPx / sy);
+
       const g = document.createElement("div");
       g.className = "op-grow";
-      const boxRadius = getComputedStyle(box).borderRadius || "4px";
-      g.style.cssText = `top:${r.top}px;left:${r.left}px;width:${r.width}px;height:${r.height}px;border-radius:${boxRadius}`;
+      g.style.background = bgCss(finalHeroImg);
+      g.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale3d(${sx}, ${sy}, 1)`;
+      g.style.borderRadius = `${scaledRx}px / ${scaledRy}px`;
       document.body.appendChild(g);
 
-      // Paksa reflow pada ukuran kotak awal sebelum membuka portal ke web
-      g.getBoundingClientRect();
+      // Pastikan layer awal sudah di-commit ke GPU sebelum memulai animasi ekspansi
+      await nextFrame();
+      if (cancelled || finishedRef.current) return;
 
-      opener.classList.add("portal-open");
-      mark.classList.add("split");
       box.style.visibility = "hidden";
-      root.classList.add("is-ready");
-      root.classList.remove("is-loading");
+      mark.classList.add("split");
       g.classList.add("full");
 
-      await wait(1000);
+      // Tunggu ekspansi FLIP mencapai layar penuh (~920ms), lalu jalankan zoom-out sinkron
+      await wait(920);
+      if (cancelled || finishedRef.current) return;
+
+      // 5. Layar penuh memudar & baik layer opener maupun hero web melakukan zoom-out sinkron (1.08 → 1.0)
+      opener.classList.add("fade");
+      g.classList.add("settle");
+      root.classList.add("is-ready");
+      root.classList.remove("is-loading");
+
+      await wait(900);
       if (cancelled || finishedRef.current) return;
 
       opener.style.display = "none";
@@ -345,10 +372,10 @@ export default function SiteOpener() {
         // ignore
       }
 
-      // Setelah efek zoom-out 1.4s selesai, bersihkan transform wrapper supaya sticky canvas optimal
+      // Setelah efek zoom-out selesai, bersihkan transform wrapper supaya sticky canvas optimal
       setTimeout(() => {
         root.classList.add("is-settled");
-      }, 500);
+      }, 650);
     }
 
     run();

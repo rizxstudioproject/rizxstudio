@@ -338,7 +338,10 @@ export default function ScrollyCanvas() {
       img.onload = () => {
         if (isCancelled) return;
         loadedCount++;
-        setLoadProgress(Math.round((loadedCount / totalFrames) * 100));
+        const nextPct = Math.round((loadedCount / totalFrames) * 100);
+        if (loadedCount === 1 || loadedCount % 6 === 0 || loadedCount === totalFrames) {
+          setLoadProgress(nextPct);
+        }
 
         // When active frame loads or first frame loads, render immediately
         if (
@@ -476,9 +479,19 @@ export default function ScrollyCanvas() {
   useEffect(() => {
     let animId: number;
     let isRunning = true;
+    let lastDrawnFrame = -1;
+    let lastDrawnPx = -999;
+    let lastDrawnPy = -999;
+    let lastDrawnRadius = -1;
+    let lastDrawnReveal = false;
 
     const tick = () => {
       if (!isRunning) return;
+
+      const isOpenerActive =
+        typeof document !== "undefined" &&
+        document.documentElement.classList.contains("has-opener") &&
+        !document.documentElement.classList.contains("is-settled");
 
       const ms = mouseStateRef.current;
       const dx = ms.targetX - ms.x;
@@ -487,8 +500,8 @@ export default function ScrollyCanvas() {
       const p = scrollProgressRef.current;
       const isReveal = p >= 0.78;
 
-      // Fast, snappy mouse tracking (zero lag, instant response)
-      if (Math.abs(dx) > 0.0001 || Math.abs(dy) > 0.0001) {
+      // Fast, snappy mouse tracking (paused while opener is settling for locked 120fps transition)
+      if (!isOpenerActive && (Math.abs(dx) > 0.0001 || Math.abs(dy) > 0.0001)) {
         ms.x += dx * 0.22;
         ms.y += dy * 0.20;
       }
@@ -508,7 +521,8 @@ export default function ScrollyCanvas() {
         const baseScrollFrame = seqP * (totalFrames - 1);
 
         // Mouse effect active immediately from the start (frame 0) combined with scroll
-        const mouseFrameOffset = mouseTracking ? (ms.x - 0.5) * mouseIntensity : 0;
+        const mouseFrameOffset =
+          !isOpenerActive && mouseTracking ? (ms.x - 0.5) * mouseIntensity : 0;
 
         const targetFrame = Math.min(
           totalFrames - 1,
@@ -523,18 +537,35 @@ export default function ScrollyCanvas() {
         );
 
         // Immediate 3D camera pan / stereoscopic parallax active from the start
-        const parallaxX = mouseTracking ? (ms.x - 0.5) * 16 : 0;
-        const parallaxY = mouseTracking ? (ms.y - 0.5) * 12 : 0;
+        const parallaxX = !isOpenerActive && mouseTracking ? (ms.x - 0.5) * 16 : 0;
+        const parallaxY = !isOpenerActive && mouseTracking ? (ms.y - 0.5) * 12 : 0;
 
-        renderFrame(
-          finalFrame,
-          parallaxX,
-          parallaxY,
-          isReveal,
-          revealRadiusRef.current,
-          ms.x,
-          ms.y
-        );
+        const frameChanged = finalFrame !== lastDrawnFrame;
+        const parallaxChanged =
+          Math.abs(parallaxX - lastDrawnPx) > 0.05 ||
+          Math.abs(parallaxY - lastDrawnPy) > 0.05;
+        const revealChanged =
+          isReveal !== lastDrawnReveal ||
+          Math.abs(revealRadiusRef.current - lastDrawnRadius) > 0.2 ||
+          (isReveal && revealRadiusRef.current > 1 && (Math.abs(dx) > 0.0005 || Math.abs(dy) > 0.0005));
+
+        if (frameChanged || parallaxChanged || revealChanged) {
+          lastDrawnFrame = finalFrame;
+          lastDrawnPx = parallaxX;
+          lastDrawnPy = parallaxY;
+          lastDrawnRadius = revealRadiusRef.current;
+          lastDrawnReveal = isReveal;
+
+          renderFrame(
+            finalFrame,
+            parallaxX,
+            parallaxY,
+            isReveal,
+            revealRadiusRef.current,
+            ms.x,
+            ms.y
+          );
+        }
       }
 
       animId = requestAnimationFrame(tick);

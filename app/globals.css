@@ -1651,20 +1651,24 @@ html.is-loading body {
 #opener {
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 9998;
   background: var(--op-bg) !important;
   display: grid;
   place-items: center;
   overflow: hidden;
+  will-change: opacity;
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-#opener.portal-open {
-  background: transparent !important;
+#opener.fade {
+  opacity: 0;
   pointer-events: none;
 }
 
 .op-mark {
   --fs: clamp(16px, 5.2vw, 76px);
+  position: relative;
+  z-index: 10000;
   width: min(1400px, 96vw);
   display: flex;
   align-items: center;
@@ -1677,7 +1681,8 @@ html.is-loading body {
   color: var(--op-ink) !important;
   user-select: none;
   opacity: 0;
-  transition: opacity 0.5s ease;
+  will-change: opacity;
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .op-mark.in {
@@ -1691,7 +1696,11 @@ html.is-loading body {
   height: 1.2em;
   overflow-x: visible;
   overflow-y: clip;
-  transition: transform 0.9s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease;
+  will-change: transform, opacity;
+  transition:
+    transform 0.95s cubic-bezier(0.65, 0, 0.15, 1),
+    opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .op-side.l {
@@ -1708,12 +1717,13 @@ html.is-loading body {
   white-space: nowrap;
   color: var(--op-ink) !important;
   opacity: 0;
-  filter: blur(6px);
-  transform: translateY(100%);
+  filter: blur(5px);
+  transform: translate3d(0, 100%, 0);
+  will-change: transform, opacity, filter;
   transition:
-    transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.3s ease,
-    filter 0.3s ease;
+    transform 0.42s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.32s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .op-side.l .op-w {
@@ -1726,24 +1736,26 @@ html.is-loading body {
 
 .op-w.in {
   opacity: 1;
-  filter: none;
-  transform: none;
+  filter: blur(0px);
+  transform: translate3d(0, 0, 0);
 }
 
 .op-w.leave {
   opacity: 0;
-  filter: blur(6px);
-  transform: translateY(-100%);
+  filter: blur(5px);
+  transform: translate3d(0, -100%, 0);
 }
 
 .op-mark.split .op-side.l {
-  transform: translateX(-8vw);
+  transform: translate3d(-10vw, 0, 0);
   opacity: 0;
+  filter: blur(4px);
 }
 
 .op-mark.split .op-side.r {
-  transform: translateX(8vw);
+  transform: translate3d(10vw, 0, 0);
   opacity: 0;
+  filter: blur(4px);
 }
 
 /* Kotak gambar di tengah */
@@ -1756,15 +1768,16 @@ html.is-loading body {
   overflow: hidden;
   border-radius: 0.07em;
   background: #18181c;
-  transform: scale(0.6);
+  transform: scale3d(0.6, 0.6, 1);
   opacity: 0;
+  will-change: transform, opacity;
   transition:
-    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
-    opacity 0.3s ease;
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .op-mark.in .op-box {
-  transform: none;
+  transform: scale3d(1, 1, 1);
   opacity: 1;
 }
 
@@ -1774,38 +1787,49 @@ html.is-loading body {
   background-size: cover;
   background-position: center;
   opacity: 0;
+  transform: scale3d(1.06, 1.06, 1);
+  will-change: opacity, transform;
+  transition:
+    opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .op-box i.on {
   opacity: 1;
+  transform: scale3d(1, 1, 1);
 }
 
-/* Jendela portal tengah yang membesar jadi layar penuh membuka tampilan web asli */
+/* Layer GPU-composited FLIP yang membesar dari kotak tengah ke layar penuh tanpa layout reflow */
 .op-grow {
   position: fixed;
-  z-index: 9998;
-  background: transparent !important;
-  box-shadow: 0 0 0 150vmax var(--op-bg);
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background-size: cover !important;
+  background-position: center !important;
+  transform-origin: 50% 50%;
   pointer-events: none;
+  will-change: transform, opacity, border-radius;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   transition:
-    top 0.95s cubic-bezier(0.76, 0, 0.24, 1),
-    left 0.95s cubic-bezier(0.76, 0, 0.24, 1),
-    width 0.95s cubic-bezier(0.76, 0, 0.24, 1),
-    height 0.95s cubic-bezier(0.76, 0, 0.24, 1),
-    border-radius 0.95s cubic-bezier(0.76, 0, 0.24, 1),
-    opacity 0.8s ease;
+    transform 0.95s cubic-bezier(0.65, 0, 0.15, 1),
+    border-radius 0.95s cubic-bezier(0.65, 0, 0.15, 1),
+    opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .op-grow.full {
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  border-radius: 0 !important;
+  transform: translate3d(0, 0, 0) scale3d(1.08, 1.08, 1) !important;
+  border-radius: 0px !important;
 }
 
-.op-grow.fade {
-  opacity: 0;
+.op-grow.settle {
+  transition:
+    transform 1.45s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.78s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
+  opacity: 0 !important;
 }
 
 .op-skip {
@@ -1830,33 +1854,43 @@ html.is-loading body {
   color: #ffffff !important;
 }
 
-/* Efek "zoom out": wrapper halaman mulai dari scale 1.12 lalu mengecil ke 1 (~1.4s) */
-.op-page {
-  transition: transform 1.4s cubic-bezier(0.2, 0.7, 0.2, 1);
-  transform-origin: 50% 0%;
+/* Efek "zoom out" mulus 120fps khusus pada viewport hero 100vh (bukan seluruh dokumen 10.000px) */
+#hero-scrolly > div.sticky {
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: transform 1.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-html.has-opener:not(.is-ready) .op-page {
-  transform: scale(1.12);
+html.has-opener:not(.is-ready) #hero-scrolly > div.sticky {
+  transform: scale3d(1.08, 1.08, 1);
 }
 
-html.has-opener.is-ready:not(.is-settled) .op-page {
-  transform: scale(1);
+html.has-opener.is-ready:not(.is-settled) #hero-scrolly > div.sticky {
+  transform: scale3d(1, 1, 1);
 }
 
-html.has-opener.is-settled .op-page {
+html.has-opener.is-settled #hero-scrolly > div.sticky {
   transform: none;
 }
 
-/* Fade-up bertahap untuk elemen hero & nav setelah opener selesai */
+/* Fade-up bertahap yang sangat halus untuk elemen hero & nav */
 html.has-opener .op-reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.9s ease, transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform: translate3d(0, 22px, 0);
+  will-change: transform, opacity;
+  transition:
+    opacity 1.05s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 1.05s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html.has-opener.is-ready .op-reveal {
   opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+html.has-opener.is-settled .op-reveal {
+  will-change: auto;
   transform: none;
 }
 
@@ -1865,11 +1899,11 @@ html.has-opener.is-ready .op-reveal-delay-1 {
 }
 
 html.has-opener.is-ready .op-reveal-delay-2 {
-  transition-delay: 0.18s;
+  transition-delay: 0.16s;
 }
 
 html.has-opener.is-ready .op-reveal-delay-3 {
-  transition-delay: 0.28s;
+  transition-delay: 0.24s;
 }
 
 @media (prefers-reduced-motion: reduce) {
