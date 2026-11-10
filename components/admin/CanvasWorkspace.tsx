@@ -7990,7 +7990,7 @@ export default function CanvasWorkspace({
   const renderPillMenu = () => (
     <div className="relative figma-pill-menu inline-flex items-center">
       <div
-        className={`flex items-center gap-2 px-3 py-1.5 rounded-2xl border backdrop-blur-2xl transition-all shadow-xl ${
+        className={`flex items-center gap-1.5 sm:gap-2 px-2 py-1 sm:px-3 sm:py-1.5 rounded-xl sm:rounded-2xl border backdrop-blur-2xl transition-all shadow-xl ${
           isLight
             ? "bg-white/95 border-slate-300 text-slate-800 shadow-slate-300/40"
             : "bg-[#222222]/95 border-white/10 text-white shadow-[0_12px_32px_rgba(0,0,0,0.7)]"
@@ -8001,7 +8001,7 @@ export default function CanvasWorkspace({
           type="button"
           onClick={() => setIsPillMenuOpen((prev) => !prev)}
           title="Rizx Studio Canvas Menu"
-          className={`w-7 h-7 rounded-lg border flex items-center justify-center p-1.5 transition-all cursor-pointer overflow-hidden ${
+          className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg border flex items-center justify-center p-1 sm:p-1.5 transition-all cursor-pointer overflow-hidden shrink-0 ${
             isLight
               ? "bg-slate-100 border-slate-200 hover:bg-slate-200 shadow-xs"
               : "bg-neutral-900 border-white/10 hover:bg-neutral-800 shadow-md shadow-black/40"
@@ -8020,7 +8020,7 @@ export default function CanvasWorkspace({
         <button
           type="button"
           onClick={() => setIsPillMenuOpen((prev) => !prev)}
-          className={`flex items-center gap-1 font-bold text-xs sm:text-sm transition-colors cursor-pointer ${
+          className={`flex items-center gap-1 font-bold text-xs sm:text-sm transition-colors cursor-pointer shrink-0 ${
             isLight ? "text-slate-800 hover:text-cyan-600" : "text-white hover:text-cyan-300"
           }`}
         >
@@ -8028,9 +8028,9 @@ export default function CanvasWorkspace({
           <HiChevronDown className={`w-3 h-3 ${isLight ? "text-slate-400" : "text-neutral-400"}`} />
         </button>
 
-        {/* Plan Badge: Free */}
+        {/* Plan Badge: Free (hidden on small mobile to avoid crowding) */}
         <span
-          className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold tracking-wide border ${
+          className={`hidden sm:inline-flex px-2 py-0.5 rounded-full font-mono text-[10px] font-bold tracking-wide border shrink-0 ${
             isLight
               ? "bg-cyan-50 text-cyan-700 border-cyan-200"
               : "bg-[#182635] text-[#38bdf8] border-[#38bdf8]/25"
@@ -8040,7 +8040,7 @@ export default function CanvasWorkspace({
         </span>
 
         {/* Undo & Redo Quick Buttons (Figma-style) */}
-        <div className={`flex items-center gap-0.5 px-1 py-0.5 rounded-lg border ${
+        <div className={`flex items-center gap-0.5 px-0.5 sm:px-1 py-0.5 rounded-lg border shrink-0 ${
           isLight ? "bg-slate-100 border-slate-200" : "bg-black/25 border-white/5"
         }`}>
           <button
@@ -8049,7 +8049,7 @@ export default function CanvasWorkspace({
             disabled={!canUndo}
             title="Undo (Ctrl+Z)"
             aria-label="Undo"
-            className={`p-1 rounded-md transition-colors flex items-center justify-center ${
+            className={`p-0.5 sm:p-1 rounded-md transition-colors flex items-center justify-center ${
               !canUndo
                 ? "opacity-25 cursor-not-allowed text-neutral-500"
                 : isLight
@@ -8065,7 +8065,7 @@ export default function CanvasWorkspace({
             disabled={!canRedo}
             title="Redo (Ctrl+Y / Ctrl+Shift+Z)"
             aria-label="Redo"
-            className={`p-1 rounded-md transition-colors flex items-center justify-center ${
+            className={`p-0.5 sm:p-1 rounded-md transition-colors flex items-center justify-center ${
               !canRedo
                 ? "opacity-25 cursor-not-allowed text-neutral-500"
                 : isLight
@@ -8080,7 +8080,7 @@ export default function CanvasWorkspace({
         {/* Auto-Save Status Badge */}
         <div
           title={saveStatus === "saving" ? "Menyimpan otomatis ke Cloud..." : "Auto-save aktif: Semua perubahan tersimpan otomatis"}
-          className={`flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono select-none border transition-colors ${
+          className={`flex items-center gap-1 sm:gap-1.5 px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] font-mono select-none border transition-colors shrink-0 ${
             saveStatus === "saving"
               ? isLight
                 ? "bg-amber-50 text-amber-700 border-amber-200"
@@ -8093,7 +8093,7 @@ export default function CanvasWorkspace({
           {saveStatus === "saving" ? (
             <>
               <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping" />
-              <span>Saving...</span>
+              <span className="hidden sm:inline">Saving...</span>
             </>
           ) : (
             <>
@@ -8103,10 +8103,10 @@ export default function CanvasWorkspace({
           )}
         </div>
 
-        <div className={`w-[1px] h-3.5 mx-0.5 ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
+        <div className={`hidden md:block w-[1px] h-3.5 mx-0.5 ${isLight ? "bg-slate-200" : "bg-white/10"}`} />
 
-        {/* Sidebar / UI Toggle Icon [◫] (Matches User Screenshot media_1793558036658_5e46c976.png) */}
-        <div className="relative">
+        {/* Sidebar / UI Toggle Icon [◫] (Hidden on mobile to avoid duplication with dedicated Layers button) */}
+        <div className="relative hidden md:block">
           <button
             type="button"
             onClick={() => {
@@ -8971,38 +8971,40 @@ export default function CanvasWorkspace({
           </div>
 
           {/* Quick Floating Actions (Fullscreen, Inspector toggle, Mobile Layers) */}
-          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 font-mono">
-            {/* Dynamically Loaded External Links (Figma / Web Links) */}
-            {canvasExternalLinks.map((link) => {
-              const isFigma = isFigmaUrl(link.url);
-              return (
-                <a
-                  key={link.id}
-                  href={normalizeCanvasUrl(link.url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-1.5 sm:px-3 sm:py-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors flex items-center gap-1.5 ${
-                    isLight
-                      ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-slate-100 shadow-slate-300/40"
-                      : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
-                  }`}
-                  title={link.title || "Open in Figma"}
-                >
-                  {isFigma ? (
-                    <FigmaIcon className="w-3.5 h-3.5 shrink-0" />
-                  ) : (
-                    <HiArrowTopRightOnSquare className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
-                  )}
-                  <span className="hidden sm:inline font-sans text-xs">{link.title || "Open in Figma"}</span>
-                </a>
-              );
-            })}
+          <div className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-40 flex items-center gap-1.5 sm:gap-2 font-mono">
+            {/* Dynamically Loaded External Links (Figma / Web Links) - hidden on mobile to avoid overcrowding */}
+            <div className="hidden sm:flex items-center gap-1.5">
+              {canvasExternalLinks.map((link) => {
+                const isFigma = isFigmaUrl(link.url);
+                return (
+                  <a
+                    key={link.id}
+                    href={normalizeCanvasUrl(link.url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`p-1.5 sm:px-3 sm:py-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors flex items-center gap-1.5 ${
+                      isLight
+                        ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-slate-100 shadow-slate-300/40"
+                        : "bg-[#1e1e1e]/90 border-white/10 text-white hover:bg-white/20"
+                    }`}
+                    title={link.title || "Open in Figma"}
+                  >
+                    {isFigma ? (
+                      <FigmaIcon className="w-3.5 h-3.5 shrink-0" />
+                    ) : (
+                      <HiArrowTopRightOnSquare className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+                    )}
+                    <span className="hidden sm:inline font-sans text-xs">{link.title || "Open in Figma"}</span>
+                  </a>
+                );
+              })}
+            </div>
 
-            {/* Manage Links Button (Tambah, Edit, Hapus) */}
+            {/* Manage Links Button (Tambah, Edit, Hapus) - hidden on mobile, accessible via top bar & pill dropdown */}
             <button
               type="button"
               onClick={() => setIsLinksManagerOpen(true)}
-              className={`p-1.5 sm:px-2.5 sm:py-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-all flex items-center gap-1.5 ${
+              className={`p-1.5 sm:px-2.5 sm:py-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-all hidden sm:flex items-center gap-1.5 ${
                 isLight
                   ? "bg-white/95 border-slate-300 text-slate-700 hover:bg-teal-50 hover:text-teal-700 shadow-slate-300/40"
                   : "bg-[#1e1e1e]/90 border-white/10 text-neutral-300 hover:text-teal-400 hover:bg-white/20"
@@ -9017,7 +9019,7 @@ export default function CanvasWorkspace({
             <button
               type="button"
               onClick={() => setIsUiExpanded((prev) => !prev)}
-              className={`p-1.5 sm:p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors md:hidden ${
+              className={`p-2 rounded-xl backdrop-blur-md border text-xs shadow-lg cursor-pointer transition-colors md:hidden ${
                 isUiExpanded
                   ? "bg-[#0c8ce9] border-[#0c8ce9] text-white"
                   : isLight
