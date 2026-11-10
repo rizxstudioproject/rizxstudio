@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const SUPABASE_URL =
@@ -13,13 +14,13 @@ const SUPABASE_KEY =
 
 const OPENER_ROW_ID = "site-opener-config";
 
-export interface OpenerImageItem {
+interface OpenerImageItem {
   id: string;
   url: string;
   active: boolean;
 }
 
-export interface OpenerConfigPayload {
+interface OpenerConfigPayload {
   words: [string, string][];
   final: [string, string];
   images: string[];
@@ -65,7 +66,7 @@ const DEFAULT_IMAGE_ITEMS: OpenerImageItem[] = [
   },
 ];
 
-export const DEFAULT_OPENER_CONFIG: OpenerConfigPayload = {
+const DEFAULT_OPENER_CONFIG: OpenerConfigPayload = {
   words: [
     ["Motion", "Graphics"],
     ["Branding", "Identity"],
