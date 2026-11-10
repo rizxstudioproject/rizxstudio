@@ -40,6 +40,7 @@ import {
   saveCustomFramesToDB,
   clearCustomFramesFromDB,
 } from "@/lib/sequenceStorage";
+import OpenerSettingsCard from "./OpenerSettingsCard";
 
 interface HeroBannerWorkspaceProps {
   initialTab?: "hero" | "showcase" | "reels";
@@ -735,6 +736,13 @@ export default function HeroBannerWorkspace({
               </span>
             </div>
           </div>
+
+          {/* Opening Intro Animation (Rizx [Image] Studio) */}
+          <OpenerSettingsCard
+            isLight={isLight}
+            tx={(id, en) => tr(id, en, id)}
+            showToast={(msg) => notify("success", "Opening Intro", msg)}
+          />
 
           {/* Identitas Teks & Warna */}
           <div

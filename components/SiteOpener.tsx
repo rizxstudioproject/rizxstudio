@@ -10,78 +10,63 @@ declare global {
   }
 }
 
-/* ✏️ KONFIGURASI OPENER */
-const WORDMARK = "RIZXSTUDIO";
-const SLOT_INDEX = 9; // huruf ke-berapa (mulai 0) yang jadi kotak gambar → "O" terakhir
-const CYCLE_MS = 130; // kecepatan ganti gambar (~130ms per gambar)
+export interface OpenerRuntimeConfig {
+  words: [string, string][];
+  final: [string, string];
+  images: string[];
+}
+
+/* ✏️ KONFIGURASI CADANGAN (dipakai jika fetch /api/opener-config gagal/timeout) */
+const CONFIG_URL = "/api/opener-config";
+export const OPENER_DEFAULTS: OpenerRuntimeConfig = {
+  words: [
+    ["Motion", "Graphics"],
+    ["Branding", "Identity"],
+    ["UI/UX", "Design"],
+    ["Digital", "Advertising"],
+    ["Video", "Production"],
+    ["Vibe", "Coding"],
+  ],
+  final: ["Rizx", "Studio"],
+  images: [
+    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-motion-graphics.jpg",
+    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-brand-identity.jpg",
+    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-uiux-design.jpg",
+    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Burger%20King/Burger_ads04.jpg",
+    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20EV2_B.jpg",
+    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-campaign-visuals.jpg",
+    "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg",
+  ],
+};
+
+const PHASE_MS = 460; // durasi tiap pasang kata + gambar (~460ms per tahap)
+const SIDE_DELAY = 110; // jeda kiri → kanan (~110ms)
+const FINAL_HOLD = 950; // lama "Rizx Studio" bertahan (~950ms)
 export const ONCE_PER_SESSION = false; // default: tampil setiap kunjungan baru ke "/"
 
-// 6 gambar terbaik dari aset portofolio project ini
-const PORTFOLIO_IMAGES = [
-  {
-    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-brand-identity.jpg",
-    fallback: "linear-gradient(135deg,#ff7a18,#af002d)",
-  },
-  {
-    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20EV2_B.jpg",
-    fallback: "linear-gradient(135deg,#2193b0,#6dd5ed)",
-  },
-  {
-    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-campaign-visuals.jpg",
-    fallback: "linear-gradient(135deg,#f5af19,#f12711)",
-  },
-  {
-    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Burger%20King/Burger_ads04.jpg",
-    fallback: "linear-gradient(135deg,#7f00ff,#e100ff)",
-  },
-  {
-    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-motion-graphics.jpg",
-    fallback: "linear-gradient(135deg,#11998e,#38ef7d)",
-  },
-  {
-    url: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg",
-    fallback: "linear-gradient(135deg,#fc466b,#3f5efb)",
-  },
-];
-
-function preloadOpenerImages(): Promise<void> {
-  if (typeof window === "undefined") return Promise.resolve();
-  const promises = PORTFOLIO_IMAGES.map(
-    (item) =>
-      new Promise<void>((resolve) => {
-        const img = new Image();
-        img.decoding = "async";
-        img.onload = () => {
-          if (typeof img.decode === "function") {
-            img.decode().catch(() => {}).finally(() => resolve());
-          } else {
-            resolve();
-          }
-        };
-        img.onerror = () => resolve();
-        img.src = item.url;
-      })
-  );
-  return Promise.all(promises).then(() => {});
-}
+const bgCss = (x: string) =>
+  /^(https?:|\/|\.\/|\.\.\/|data:)/.test(x)
+    ? `url("${x}") center/cover no-repeat`
+    : x;
 
 export default function SiteOpener() {
   const pathname = usePathname();
   const [removed, setRemoved] = useState(false);
-  const [markState, setMarkState] = useState<"" | "in" | "out">("");
-  const [slotSwapped, setSlotSwapped] = useState(false);
-  const [activeTile, setActiveTile] = useState<number>(-1);
-  const [openerHidden, setOpenerHidden] = useState(false);
+  const [replayTrigger, setReplayTrigger] = useState(0);
 
   const openerRef = useRef<HTMLDivElement>(null);
-  const imgsBoxRef = useRef<HTMLSpanElement>(null);
+  const markRef = useRef<HTMLDivElement>(null);
+  const leftSideRef = useRef<HTMLDivElement>(null);
+  const rightSideRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
   const finishedRef = useRef(false);
+  const previewConfigRef = useRef<OpenerRuntimeConfig | null>(null);
 
-  const cleanupDOM = useCallback(() => {
+  const cleanup = useCallback(() => {
     if (typeof document === "undefined") return;
     const root = document.documentElement;
     root.classList.remove("is-loading");
-    document.querySelectorAll(".op-grow").forEach((node) => node.remove());
+    document.querySelectorAll(".op-grow").forEach((n) => n.remove());
   }, []);
 
   const finishNow = useCallback(() => {
@@ -89,10 +74,10 @@ export default function SiteOpener() {
     finishedRef.current = true;
     if (typeof document !== "undefined") {
       const root = document.documentElement;
-      root.classList.add("has-opener", "is-ready");
+      root.classList.add("is-ready");
       root.classList.remove("is-loading");
     }
-    cleanupDOM();
+    cleanup();
     setRemoved(true);
     try {
       if (ONCE_PER_SESSION) {
@@ -101,52 +86,150 @@ export default function SiteOpener() {
     } catch {
       // ignore storage errors
     }
-  }, [cleanupDOM]);
+  }, [cleanup]);
+
+  // Listener untuk Preview Opener langsung dari Admin Panel
+  useEffect(() => {
+    const handleReplay = (e: Event) => {
+      const customEvent = e as CustomEvent<OpenerRuntimeConfig | undefined>;
+      if (customEvent.detail) {
+        previewConfigRef.current = customEvent.detail;
+      } else {
+        previewConfigRef.current = null;
+      }
+      finishedRef.current = false;
+      setRemoved(false);
+      setReplayTrigger((c) => c + 1);
+    };
+    window.addEventListener("replay-site-opener", handleReplay);
+    return () => window.removeEventListener("replay-site-opener", handleReplay);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
-    // Hanya tampil di halaman utama "/"
+    // Opener hanya untuk halaman utama "/", bukan /products atau /tracking
     if (pathname && pathname !== "/") {
       finishNow();
       return;
     }
 
     const root = document.documentElement;
-    const reduceMotion =
+    const reduce =
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     let seen = false;
     try {
-      seen = Boolean(ONCE_PER_SESSION && sessionStorage.getItem("opener-seen"));
+      seen = Boolean(
+        replayTrigger === 0 &&
+          ONCE_PER_SESSION &&
+          sessionStorage.getItem("opener-seen")
+      );
     } catch {
       seen = false;
     }
 
-    if (reduceMotion || seen) {
+    if (reduce || seen) {
       finishNow();
       return;
     }
 
     let cancelled = false;
+    finishedRef.current = false;
     root.classList.add("has-opener", "is-loading");
-    root.classList.remove("is-ready");
-
-    // Preload semua gambar opener segera supaya tidak berkedip
-    const imagesReadyPromise = preloadOpenerImages();
+    root.classList.remove("is-ready", "is-settled");
 
     const wait = (ms: number) =>
-      new Promise<void>((resolve) => {
-        setTimeout(resolve, ms);
+      new Promise<void>((r) => {
+        setTimeout(r, ms);
       });
 
-    // Menunggu preloader frame website ("CACHING FRAMES") selesai sebelum langkah 3
     const waitForSite = () => {
-      const sitePromise = window.__siteReady || Promise.resolve();
-      // Safety fallback 10s supaya tidak hang jika koneksi terputus
-      return Promise.race([sitePromise, wait(10000)]);
+      const p = window.__siteReady || Promise.resolve();
+      return Promise.race([p, wait(10000)]);
     };
+
+    async function loadConfig(): Promise<OpenerRuntimeConfig> {
+      if (previewConfigRef.current) {
+        const override = previewConfigRef.current;
+        previewConfigRef.current = null;
+        return override;
+      }
+      try {
+        const ctl = new AbortController();
+        const t = setTimeout(() => ctl.abort(), 900);
+        const r = await fetch(CONFIG_URL, {
+          signal: ctl.signal,
+          cache: "no-store",
+        });
+        clearTimeout(t);
+        if (!r.ok) throw new Error("Fetch failed");
+        const c = await r.json();
+        if (
+          c &&
+          Array.isArray(c.words) &&
+          c.words.length > 0 &&
+          Array.isArray(c.images) &&
+          c.images.length > 0
+        ) {
+          return {
+            words: c.words,
+            final:
+              Array.isArray(c.final) && c.final.length >= 2
+                ? [c.final[0], c.final[1]]
+                : OPENER_DEFAULTS.final,
+            images: c.images,
+          };
+        }
+      } catch {
+        // fallback ke OPENER_DEFAULTS
+      }
+      return OPENER_DEFAULTS;
+    }
+
+    function preload(urls: string[]) {
+      const uniqueUrls = Array.from(
+        new Set(
+          urls.filter((u) => /^(https?:|\/|\.\/|\.\.\/|data:)/.test(u))
+        )
+      );
+      const jobs = uniqueUrls.map(
+        (u) =>
+          new Promise<void>((res) => {
+            const img = new Image();
+            img.decoding = "async";
+            img.onload = () => {
+              if (typeof img.decode === "function") {
+                img.decode().catch(() => {}).finally(() => res());
+              } else {
+                res();
+              }
+            };
+            img.onerror = () => res();
+            img.src = u;
+          })
+      );
+      return Promise.race([Promise.all(jobs), wait(2500)]);
+    }
+
+    function setWord(side: HTMLDivElement | null, text: string) {
+      if (!side) return;
+      const oldWords = side.querySelectorAll(".op-w.in");
+      const w = document.createElement("span");
+      w.className = "op-w";
+      w.textContent = text;
+      side.appendChild(w);
+      w.getBoundingClientRect();
+      w.classList.add("in");
+      oldWords.forEach((old) => {
+        old.classList.remove("in");
+        old.classList.add("leave");
+        setTimeout(() => {
+          old.remove();
+        }, 450);
+      });
+    }
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -156,85 +239,107 @@ export default function SiteOpener() {
     window.addEventListener("keydown", handleKeyDown);
 
     async function run() {
-      // Mulai setelah document.fonts.ready
-      try {
-        if (document.fonts && document.fonts.ready) {
-          await Promise.race([document.fonts.ready, wait(1500)]);
-        }
-      } catch {
-        // ignore font ready error
-      }
+      const opener = openerRef.current;
+      const mark = markRef.current;
+      const L = leftSideRef.current;
+      const R = rightSideRef.current;
+      const box = boxRef.current;
+      if (!opener || !mark || !L || !R || !box) return;
+
+      // Bersihkan state jika replay
+      opener.style.display = "";
+      mark.className = "op-mark";
+      box.style.visibility = "";
+      box.innerHTML = "";
+      L.innerHTML = "";
+      R.innerHTML = "";
+
+      const cfg = await loadConfig();
       if (cancelled || finishedRef.current) return;
 
-      // 1. Wordmark "RIZXSTUDIO" muncul (fade + naik + blur hilang)
+      const phases: [string, string][] = [...cfg.words, cfg.final];
+      const sourceImages =
+        cfg.images && cfg.images.length > 0
+          ? cfg.images
+          : OPENER_DEFAULTS.images;
+
+      // Jika gambar kurang dari jumlah tahap, ulangi dari awal;
+      // gambar terakhir dalam daftar selalu dipakai untuk tahap terakhir ("Rizx Studio")
+      const imgs = phases.map(
+        (_, i) => sourceImages[i % sourceImages.length]
+      );
+      imgs[imgs.length - 1] = sourceImages[sourceImages.length - 1];
+
+      await Promise.all([
+        document.fonts
+          ? Promise.race([document.fonts.ready, wait(1500)])
+          : Promise.resolve(),
+        preload(imgs),
+      ]);
+      if (cancelled || finishedRef.current) return;
+
+      const tiles = imgs.map((x) => {
+        const tile = document.createElement("i");
+        tile.style.background = bgCss(x);
+        box.appendChild(tile);
+        return tile;
+      });
+
       await wait(150);
       if (cancelled || finishedRef.current) return;
-      setMarkState("in");
+      mark.classList.add("in");
 
-      await wait(1100);
+      await wait(350);
       if (cancelled || finishedRef.current) return;
 
-      // Pastikan gambar opener sudah siap (maksimal tunggu tambahan 600ms jika belum selesai)
-      await Promise.race([imagesReadyPromise, wait(600)]);
-      if (cancelled || finishedRef.current) return;
-
-      // 2. Huruf "O" terakhir berubah jadi kotak kecil berganti-ganti gambar (~130ms per gambar)
-      setSlotSwapped(true);
-      for (let n = 0; n < PORTFOLIO_IMAGES.length; n++) {
+      // 2 & 3. Teks kiri & kanan bergantian (~110ms), kotak gambar di tengah berganti sesuai tahap (~460ms)
+      for (let n = 0; n < phases.length; n++) {
         if (cancelled || finishedRef.current) return;
-        setActiveTile(n);
-        await wait(CYCLE_MS);
+        tiles.forEach((t, k) => t.classList.toggle("on", k === n));
+        setWord(L, phases[n][0]); // kiri berganti dulu...
+        await wait(SIDE_DELAY);
         if (cancelled || finishedRef.current) return;
+        setWord(R, phases[n][1]); // ...~110ms kemudian kanan
+        await wait(
+          n === phases.length - 1 ? FINAL_HOLD : PHASE_MS - SIDE_DELAY
+        );
       }
 
-      // Tunggu preloader frame web selesai sebelum langkah 3
+      // Tunggu preloader frame website ("CACHING FRAMES") selesai sebelum langkah 4
       await waitForSite();
       if (cancelled || finishedRef.current) return;
 
-      // 3. Kotak "O" langsung membuka portal ke website asli (tanpa gambar portofolio lagi)
-      //    dan website melakukan zoom-out halus ke ukuran penuh (~0.9s, cubic-bezier(.76,0,.24,1))
-      const boxEl = imgsBoxRef.current;
-      const rect = boxEl
-        ? boxEl.getBoundingClientRect()
-        : {
-            top: window.innerHeight / 2 - 24,
-            left: window.innerWidth / 2 - 24,
-            width: 48,
-            height: 48,
-          };
+      // 4. Gambar di tengah membesar jadi layar penuh (FLIP ~0.95s, cubic-bezier(.76,0,.24,1))
+      //    sementara teks kiri dan kanan bergeser keluar dan memudar
+      const r = box.getBoundingClientRect();
+      const g = document.createElement("div");
+      g.className = "op-grow";
+      const boxRadius = getComputedStyle(box).borderRadius || "4px";
+      g.style.cssText = `top:${r.top}px;left:${r.left}px;width:${r.width}px;height:${r.height}px;border-radius:${boxRadius};background:${bgCss(
+        imgs[imgs.length - 1]
+      )}`;
+      document.body.appendChild(g);
 
-      const growEl = document.createElement("div");
-      growEl.className = "op-grow";
-      growEl.style.top = `${rect.top}px`;
-      growEl.style.left = `${rect.left}px`;
-      growEl.style.width = `${rect.width}px`;
-      growEl.style.height = `${rect.height}px`;
-      document.body.appendChild(growEl);
+      mark.classList.add("split");
+      box.style.visibility = "hidden";
+      g.getBoundingClientRect(); // paksa reflow
+      g.classList.add("full");
 
-      // Paksa reflow pada kondisi awal kotak "O"
-      growEl.getBoundingClientRect();
-
-      // Transparankan background #opener & sembunyikan gambar slot supaya di dalam kotak
-      // langsung terlihat website asli, sementara area luar ditutup oleh box-shadow .op-grow
-      if (openerRef.current) {
-        openerRef.current.classList.add("portal-open");
-      }
-      if (boxEl) {
-        boxEl.style.opacity = "0";
-      }
-
-      setMarkState("out");
-      root.classList.add("is-ready");
-      root.classList.remove("is-loading");
-      growEl.classList.add("full");
-
-      await wait(950);
+      await wait(1000);
       if (cancelled || finishedRef.current) return;
 
-      // 4. Setelah portal penuh, bersihkan seluruh elemen opener dari DOM
-      setOpenerHidden(true);
+      // 5. Layar penuh memudar, web masuk dengan efek zoom-out (scale 1.12 → 1, ~1.4s),
+      //    elemen hero & nav masuk dengan fade-up bertahap
+      opener.style.display = "none";
+      root.classList.add("is-ready");
+      root.classList.remove("is-loading");
+      g.classList.add("fade");
+
+      await wait(900);
+      if (cancelled || finishedRef.current) return;
+
       finishedRef.current = true;
-      cleanupDOM();
+      cleanup();
       setRemoved(true);
       try {
         if (ONCE_PER_SESSION) {
@@ -243,6 +348,11 @@ export default function SiteOpener() {
       } catch {
         // ignore
       }
+
+      // Setelah efek zoom-out 1.4s selesai, bersihkan transform wrapper supaya sticky canvas optimal
+      setTimeout(() => {
+        root.classList.add("is-settled");
+      }, 600);
     }
 
     run();
@@ -251,10 +361,10 @@ export default function SiteOpener() {
       cancelled = true;
       window.removeEventListener("keydown", handleKeyDown);
       if (!finishedRef.current) {
-        cleanupDOM();
+        cleanup();
       }
     };
-  }, [pathname, finishNow, cleanupDOM]);
+  }, [pathname, replayTrigger, finishNow, cleanup]);
 
   if (removed || (pathname && pathname !== "/")) {
     return null;
@@ -262,45 +372,11 @@ export default function SiteOpener() {
 
   return (
     <>
-      <div
-        id="opener"
-        ref={openerRef}
-        aria-hidden="true"
-        style={openerHidden ? { display: "none" } : undefined}
-      >
-        <div
-          className={`op-mark${markState === "in" ? " in" : ""}${
-            markState === "out" ? " out" : ""
-          }`}
-        >
-          {Array.from(WORDMARK).map((char, idx) => {
-            if (idx === SLOT_INDEX) {
-              return (
-                <span
-                  key={idx}
-                  className={`op-slot${slotSwapped ? " swap" : ""}`}
-                >
-                  <span className="op-glyph">{char}</span>
-                  <span className="op-imgs" ref={imgsBoxRef}>
-                    {PORTFOLIO_IMAGES.map((item, tileIdx) => (
-                      <i
-                        key={tileIdx}
-                        className={activeTile === tileIdx ? "on" : ""}
-                        style={{
-                          backgroundImage: `url('${item.url}'), ${item.fallback}`,
-                        }}
-                      />
-                    ))}
-                  </span>
-                </span>
-              );
-            }
-            return (
-              <span key={idx} className="op-letter">
-                {char}
-              </span>
-            );
-          })}
+      <div id="opener" ref={openerRef} aria-hidden="true">
+        <div className="op-mark" ref={markRef}>
+          <div className="op-side l" ref={leftSideRef} />
+          <div className="op-box" ref={boxRef} />
+          <div className="op-side r" ref={rightSideRef} />
         </div>
       </div>
       <button

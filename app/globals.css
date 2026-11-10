@@ -1655,79 +1655,115 @@ html.is-loading body {
   background: var(--op-bg) !important;
   display: grid;
   place-items: center;
-}
-
-#opener.portal-open {
-  background: transparent !important;
-  pointer-events: none;
+  overflow: hidden;
 }
 
 .op-mark {
+  --fs: clamp(16px, 5.2vw, 76px);
+  width: min(1400px, 96vw);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-inter), "Inter", system-ui, sans-serif;
   font-weight: 700;
-  font-size: clamp(34px, 6.2vw, 96px);
-  line-height: 1;
-  letter-spacing: -0.02em;
+  font-size: var(--fs);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
   color: var(--op-ink) !important;
-  text-transform: uppercase;
   user-select: none;
   opacity: 0;
-  transform: translateY(18px);
-  filter: blur(6px);
-  transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.7s ease;
+  transition: opacity 0.5s ease;
 }
 
 .op-mark.in {
   opacity: 1;
-  transform: none;
-  filter: none;
 }
 
-.op-mark.out {
-  opacity: 0;
-  transition: opacity 0.35s ease;
-}
-
-.op-letter {
-  display: inline-block;
-  color: var(--op-ink) !important;
-}
-
-/* Slot = huruf yang berubah jadi kotak gambar */
-.op-slot {
+/* Kolom kiri & kanan: kata berganti bergantian */
+.op-side {
+  flex: 1 1 0;
   position: relative;
-  display: inline-block;
-  color: var(--op-ink) !important;
+  height: 1.2em;
+  overflow-x: visible;
+  overflow-y: clip;
+  transition: transform 0.9s cubic-bezier(0.76, 0, 0.24, 1), opacity 0.5s ease;
 }
 
-.op-slot .op-glyph {
-  color: var(--op-ink) !important;
-  transition: opacity 0.12s;
+.op-side.l {
+  text-align: right;
 }
 
-.op-slot.swap .op-glyph {
-  opacity: 0;
+.op-side.r {
+  text-align: left;
 }
 
-.op-imgs {
+.op-w {
   position: absolute;
-  left: 0.02em;
-  right: 0.02em;
-  top: 0.14em;
-  bottom: 0.13em;
+  top: 0;
+  white-space: nowrap;
+  color: var(--op-ink) !important;
   opacity: 0;
-  overflow: hidden;
-  border-radius: 2px;
+  filter: blur(6px);
+  transform: translateY(100%);
+  transition:
+    transform 0.38s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.3s ease,
+    filter 0.3s ease;
 }
 
-.op-slot.swap .op-imgs {
+.op-side.l .op-w {
+  right: 0;
+}
+
+.op-side.r .op-w {
+  left: 0;
+}
+
+.op-w.in {
+  opacity: 1;
+  filter: none;
+  transform: none;
+}
+
+.op-w.leave {
+  opacity: 0;
+  filter: blur(6px);
+  transform: translateY(-100%);
+}
+
+.op-mark.split .op-side.l {
+  transform: translateX(-8vw);
+  opacity: 0;
+}
+
+.op-mark.split .op-side.r {
+  transform: translateX(8vw);
+  opacity: 0;
+}
+
+/* Kotak gambar di tengah */
+.op-box {
+  position: relative;
+  flex: none;
+  width: 1.45em;
+  height: 1em;
+  margin: 0 0.4em;
+  overflow: hidden;
+  border-radius: 0.07em;
+  background: #18181c;
+  transform: scale(0.6);
+  opacity: 0;
+  transition:
+    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 0.3s ease;
+}
+
+.op-mark.in .op-box {
+  transform: none;
   opacity: 1;
 }
 
-.op-imgs i {
+.op-box i {
   position: absolute;
   inset: 0;
   background-size: cover;
@@ -1735,25 +1771,24 @@ html.is-loading body {
   opacity: 0;
 }
 
-.op-imgs i.on {
+.op-box i.on {
   opacity: 1;
 }
 
-/* Kotak portal yang membesar dari huruf "O" menjadi layar penuh menampilkan website langsung */
+/* Gambar yang membesar jadi layar penuh */
 .op-grow {
   position: fixed;
-  z-index: 9998;
-  background: transparent !important;
-  box-shadow: 0 0 0 150vmax var(--op-bg);
-  border-radius: 2px;
+  z-index: 10000;
+  background-size: cover;
+  background-position: center;
   pointer-events: none;
   transition:
-    top 0.9s cubic-bezier(0.76, 0, 0.24, 1),
-    left 0.9s cubic-bezier(0.76, 0, 0.24, 1),
-    width 0.9s cubic-bezier(0.76, 0, 0.24, 1),
-    height 0.9s cubic-bezier(0.76, 0, 0.24, 1),
-    border-radius 0.9s cubic-bezier(0.76, 0, 0.24, 1),
-    opacity 0.7s ease;
+    top 0.95s cubic-bezier(0.76, 0, 0.24, 1),
+    left 0.95s cubic-bezier(0.76, 0, 0.24, 1),
+    width 0.95s cubic-bezier(0.76, 0, 0.24, 1),
+    height 0.95s cubic-bezier(0.76, 0, 0.24, 1),
+    border-radius 0.95s cubic-bezier(0.76, 0, 0.24, 1),
+    opacity 0.8s ease;
 }
 
 .op-grow.full {
@@ -1761,21 +1796,11 @@ html.is-loading body {
   left: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  border-radius: 0;
+  border-radius: 0 !important;
 }
 
 .op-grow.fade {
   opacity: 0;
-}
-
-/* Efek zoom-out halus pada hero website saat portal opener membuka layar penuh */
-html.has-opener #hero-scrolly canvas {
-  transform: scale(1.12);
-  transition: transform 0.95s cubic-bezier(0.76, 0, 0.24, 1) !important;
-}
-
-html.has-opener.is-ready #hero-scrolly canvas {
-  transform: scale(1);
 }
 
 .op-skip {
@@ -1798,6 +1823,24 @@ html.has-opener.is-ready #hero-scrolly canvas {
 
 .op-skip:hover {
   color: #ffffff !important;
+}
+
+/* Efek "zoom out": wrapper halaman mulai dari scale 1.12 lalu mengecil ke 1 (~1.4s) */
+.op-page {
+  transition: transform 1.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-origin: 50% 0%;
+}
+
+html.has-opener:not(.is-ready) .op-page {
+  transform: scale(1.12);
+}
+
+html.has-opener.is-ready:not(.is-settled) .op-page {
+  transform: scale(1);
+}
+
+html.has-opener.is-settled .op-page {
+  transform: none;
 }
 
 /* Fade-up bertahap untuk elemen hero & nav setelah opener selesai */
@@ -1826,7 +1869,11 @@ html.has-opener.is-ready .op-reveal-delay-3 {
 
 @media (prefers-reduced-motion: reduce) {
   .op-mark,
+  .op-w,
+  .op-box,
+  .op-side,
   .op-grow,
+  .op-page,
   html.has-opener .op-reveal {
     transition-duration: 0.01ms !important;
   }

@@ -94,6 +94,7 @@ import SeoWorkspace from "./admin/SeoWorkspace";
 import ProjectTrackerWorkspace from "./admin/ProjectTrackerWorkspace";
 import ProductsWorkspace from "./admin/ProductsWorkspace";
 import MobileAdminApp from "./admin/MobileAdminApp";
+import OpenerSettingsCard from "./admin/OpenerSettingsCard";
 import MetaSEO from "./MetaSEO";
 import {
   subscribeToNewOrderNotifications,
@@ -1438,6 +1439,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       sequenceRevealRadius: Number(hbSeqRevealRadius) || 270,
       sequenceRevealSpread: Number(hbSeqRevealSpread) ?? 30,
       sequenceRevealFade: Number(hbSeqRevealFade) ?? 60,
+      openerEnabled: heroBanner?.openerEnabled ?? true,
+      openerSlides: heroBanner?.openerSlides || defaultHeroBannerData.openerSlides,
     });
     showToast(
       tx("Pengaturan foto Front, Mask & Spotlight berhasil disimpan!", "Front, Mask & Spotlight photo settings saved successfully!")
@@ -1478,6 +1481,8 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
       sequenceRevealRadius: Number(hbSeqRevealRadius) || 270,
       sequenceRevealSpread: Number(hbSeqRevealSpread) ?? 30,
       sequenceRevealFade: Number(hbSeqRevealFade) ?? 60,
+      openerEnabled: heroBanner?.openerEnabled ?? true,
+      openerSlides: heroBanner?.openerSlides || defaultHeroBannerData.openerSlides,
     });
     showToast(
       tx("Berhasil: Pengaturan & Teks Hero Banner berhasil disimpan!", "Hero Banner text and sequence settings saved successfully!")
@@ -4898,6 +4903,27 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
             }`}>
               <div className="max-w-6xl mx-auto space-y-6">
                 {/* ========================================================
+                    TAB OPENER: DEDICATED OPENER (INTRO ANIMATION) WORKSPACE
+                   ======================================================== */}
+                {sidebarTab === "opener" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="space-y-6"
+                  >
+                    <OpenerSettingsCard
+                      isLight={isLight}
+                      tx={tx}
+                      showToast={showToast}
+                      onPreviewOpener={() => {
+                        onClose?.();
+                      }}
+                    />
+                  </motion.div>
+                )}
+
+                {/* ========================================================
                     TAB 1: HERO BANNER SCROLLYTELLING MANAGEMENT
                    ======================================================== */}
                 {sidebarTab === "hero-banner" && (
@@ -5007,6 +5033,21 @@ export default function AdminDashboard({ onClose }: { onClose?: () => void }) {
                 </span>
               </div>
             </div>
+
+            {/* ========================================================
+                KONTROL OPENING INTRO ANIMATION (RIZX [IMAGE] STUDIO)
+               ======================================================== */}
+            <OpenerSettingsCard
+              isLight={isLight}
+              tx={tx}
+              showToast={showToast}
+              onPreviewOpener={() => {
+                onClose?.();
+                setTimeout(() => {
+                  window.dispatchEvent(new CustomEvent("replay-site-opener"));
+                }, 120);
+              }}
+            />
 
             {/* ========================================================
                 KONTROL SEQUENCE FOTO HERO (CANVAS SCROLLYTELLING)

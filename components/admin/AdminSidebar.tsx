@@ -26,6 +26,7 @@ import { useMotionTheme } from "@/context/MotionThemeContext";
 export type AdminSidebarTab =
   | "clients"
   | "canvas"
+  | "opener"
   | "resources"
   | "hero-banner"
   | "hero-works"
@@ -85,6 +86,12 @@ export default function AdminSidebar({
       id: "canvas",
       label: tr("Rizx Canvas", "Rizx Canvas", "Rizx Canvas"),
       icon: RiGridFill,
+      badge: "NEW",
+    },
+    {
+      id: "opener",
+      label: tr("Opener (Intro Animation)", "Opener (Intro Animation)", "Opener (Intro Animation)"),
+      icon: RiMovieFill,
       badge: "NEW",
     },
     {

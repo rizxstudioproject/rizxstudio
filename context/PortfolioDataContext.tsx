@@ -111,6 +111,51 @@ export interface CanvasItem {
   manualResized?: boolean;
 }
 
+export interface OpenerSlideItem {
+  id: string;
+  label: string;
+  image: string;
+}
+
+export const defaultOpenerSlides: OpenerSlideItem[] = [
+  {
+    id: "op-1",
+    label: "Motion Graphics",
+    image:
+      "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-motion-graphics.jpg",
+  },
+  {
+    id: "op-2",
+    label: "Branding Identity",
+    image:
+      "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-brand-identity.jpg",
+  },
+  {
+    id: "op-3",
+    label: "UI/UX Design",
+    image:
+      "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-uiux-design.jpg",
+  },
+  {
+    id: "op-4",
+    label: "Digital Advertising",
+    image:
+      "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-Burger%20King/Burger_ads04.jpg",
+  },
+  {
+    id: "op-5",
+    label: "Video Production",
+    image:
+      "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/works/client-KIA/KIA%20EV2_B.jpg",
+  },
+  {
+    id: "op-6",
+    label: "Vibe Coding",
+    image:
+      "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/assets/antigravity/selected-3d-design.jpg",
+  },
+];
+
 export interface HeroBannerData {
   name: string;
   nameColor?: string;
@@ -145,6 +190,9 @@ export interface HeroBannerData {
   sequenceRevealRadius?: number; // Spotlight radius in pixels (100 - 600, default 270)
   sequenceRevealSpread?: number; // Inner solid core percentage (10 - 80, default 30)
   sequenceRevealFade?: number; // Fade softness / feathering percentage (10 - 90, default 60)
+  // Opening Intro Animation (Rizx [Image] Studio)
+  openerEnabled?: boolean;
+  openerSlides?: OpenerSlideItem[];
 }
 
 export const defaultHeroBannerData: HeroBannerData = {
@@ -182,6 +230,8 @@ export const defaultHeroBannerData: HeroBannerData = {
   sequenceRevealRadius: 270,
   sequenceRevealSpread: 30,
   sequenceRevealFade: 60,
+  openerEnabled: true,
+  openerSlides: defaultOpenerSlides,
 };
 
 export interface Stage3HeroCard {

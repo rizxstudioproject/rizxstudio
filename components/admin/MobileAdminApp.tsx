@@ -56,6 +56,7 @@ import RecycleBinWorkspace from "./RecycleBinWorkspace";
 import StorageAnalyticsView from "./StorageAnalyticsView";
 import SecuritySettingsWorkspace from "./SecuritySettingsWorkspace";
 import HeroBannerWorkspace from "./HeroBannerWorkspace";
+import OpenerSettingsCard from "./OpenerSettingsCard";
 import ProductsWorkspace from "./ProductsWorkspace";
 import ProjectTrackerWorkspace from "./ProjectTrackerWorkspace";
 import { FigmaIcon } from "./CanvasLinksManagerModal";
@@ -353,6 +354,8 @@ export default function MobileAdminApp({
         return tr("Kapasitas & Penyimpanan", "Storage & Analytics", "Panyimpanan & Data");
       case "hero-banner":
         return tr("Hero Banner & 3D Hub", "Hero Banner & 3D Hub", "Hero Banner & 3D Hub");
+      case "opener":
+        return tr("Opener (Intro Animation)", "Opener (Intro Animation)", "Opener (Intro Animation)");
       case "flagship":
         return tr("Showcase Showreels", "Showcase Showreels", "Showcase Showreel");
       case "runner":
@@ -479,6 +482,14 @@ export default function MobileAdminApp({
       accentColor: "#f59e0b",
       gradient: "from-amber-500 to-orange-400",
       glow: "rgba(245, 158, 11, 0.45)",
+    },
+    {
+      id: "opener",
+      label: tr("Opener", "Opener", "Opener"),
+      icon: RiMovieFill,
+      accentColor: "#16b09f",
+      gradient: "from-teal-500 to-emerald-400",
+      glow: "rgba(22, 176, 159, 0.45)",
     },
     {
       id: "flagship",
@@ -1481,6 +1492,16 @@ export default function MobileAdminApp({
               )
             )}
 
+            {activeTab === "opener" && (
+              <div className="px-4 py-5 pb-32 max-w-4xl mx-auto">
+                <OpenerSettingsCard
+                  isLight={isLight}
+                  tx={(id, en) => tr(id, en, id)}
+                  showToast={showToast || (() => {})}
+                />
+              </div>
+            )}
+
             {activeTab === "products" && <ProductsWorkspace />}
 
             {activeTab === "tracking" && <ProjectTrackerWorkspace />}
@@ -1502,6 +1523,7 @@ export default function MobileAdminApp({
               activeTab !== "motion" &&
               activeTab !== "trash" &&
               activeTab !== "storage" &&
+              activeTab !== "opener" &&
               activeTab !== "hero-banner" &&
               activeTab !== "runner" &&
               activeTab !== "flagship" &&

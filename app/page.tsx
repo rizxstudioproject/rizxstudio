@@ -99,12 +99,13 @@ export default function Home() {
 
   // Default: Public Portfolio View
   return (
-    <div className="relative min-h-screen max-w-full overflow-x-clip bg-[var(--background,#0a0a0a)] text-[var(--foreground,#d4d4d4)] selection:bg-[#16b09f] selection:text-black transition-colors duration-300">
+    <>
       {/* Intro Animation Opener (Home "/" only) */}
       <SiteOpener />
 
-      {/* Floating Header Navigation */}
-      <Navbar />
+      <div className="op-page relative min-h-screen max-w-full overflow-x-clip bg-[var(--background,#0a0a0a)] text-[var(--foreground,#d4d4d4)] selection:bg-[#16b09f] selection:text-black transition-colors duration-300">
+        {/* Floating Header Navigation */}
+        <Navbar />
 
       {/* 500vh Antigravity Scroller Engine with Sticky Canvas & Parallax Sweeps */}
       <ScrollyCanvas />
@@ -152,5 +153,6 @@ export default function Home() {
       {/* WhatsApp Popup — shows after 3.5s on first visit */}
       <WhatsAppPopup />
     </div>
+    </>
   );
 }
