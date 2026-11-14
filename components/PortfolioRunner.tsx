@@ -69,6 +69,7 @@ const RunnerCard = React.forwardRef<HTMLDivElement, RunnerCardProps>(({ item, on
           src={currentSrc}
           alt={item.title}
           loading="lazy"
+          referrerPolicy="no-referrer"
           onError={handleImageError}
           className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105 pointer-events-none"
         />

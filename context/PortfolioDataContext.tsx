@@ -423,7 +423,7 @@ export const defaultClientLogosData: ClientLogosData = {
     { id: "cl-3", name: "Samsung", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_03.svg", row: 1 },
     { id: "cl-4", name: "Nexon", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_04.svg", row: 1 },
     { id: "cl-5", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_05.svg", row: 1 },
-    { id: "cl-6", name: "TruCarbon", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_06.svg", row: 1 },
+    { id: "cl-6", name: "Qoo10", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_06.svg", row: 1 },
     { id: "cl-7", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_07.svg", row: 1 },
     { id: "cl-8", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_07-1.svg", row: 1 },
     { id: "cl-9", name: "Client", file: "https://tbbfetcuiplwlxcyjayw.supabase.co/storage/v1/object/public/portfolio-media/logos/logo_08.svg", row: 1 },

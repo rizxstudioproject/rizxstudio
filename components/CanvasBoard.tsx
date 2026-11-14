@@ -1112,10 +1112,10 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
       )}
 
       {/* ── Top Bar: Branding, Live Statistics, Fullscreen & Close (X) ─────────── */}
-      <header className="absolute top-0 left-0 right-0 z-50 p-3 sm:p-5 flex items-center justify-between pointer-events-none">
+      <header className="absolute top-0 left-0 right-0 z-50 p-3 sm:p-5 flex items-center justify-between gap-2 pointer-events-none">
         {/* Left: Rizx Canvas Header Pill */}
-        <div className="flex items-center gap-2 pointer-events-auto">
-          <div className={`flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border backdrop-blur-xl transition-colors ${
+        <div className="flex items-center gap-2 pointer-events-auto min-w-0">
+          <div className={`flex items-center gap-2 sm:gap-2.5 px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-2xl border backdrop-blur-xl transition-colors ${
             isLight
               ? "bg-white/95 border-slate-300 text-slate-900 shadow-xl shadow-slate-200/60"
               : "bg-[#13151b]/90 border-white/10 text-white shadow-2xl"
@@ -1127,14 +1127,14 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             }`}>
               <RiGridFill className="w-4 h-4 shrink-0" />
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className={`text-xs font-mono font-bold tracking-wider ${
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className={`text-[11px] sm:text-xs font-mono font-bold tracking-wider truncate ${
                   isLight ? "text-slate-900" : "text-white"
                 }`}>
                   RIZX CANVAS
                 </span>
-                <span className={`px-1.5 py-0.2 rounded font-mono text-[9px] font-semibold border ${
+                <span className={`hidden sm:inline-block px-1.5 py-0.2 rounded font-mono text-[9px] font-semibold border shrink-0 ${
                   isLight
                     ? "bg-teal-50 text-teal-700 border-teal-200"
                     : "bg-cyan-400/20 text-cyan-300 border-cyan-400/30"
@@ -1157,7 +1157,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
         </div>
 
         {/* Right: Actions (Help, Fullscreen, Close X) */}
-        <div className="flex items-center gap-2 pointer-events-auto">
+        <div className="flex items-center gap-1.5 sm:gap-2 pointer-events-auto shrink-0">
           {/* Shortcuts Help Toggle */}
           <button
             type="button"
@@ -1198,7 +1198,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             onClick={handleClose}
             aria-label="Close Canvas Board"
             title="Tutup Canvas (Esc)"
-            className={`flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2 rounded-2xl border backdrop-blur-xl transition-all shadow-2xl active:scale-95 cursor-pointer group ${
+            className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2 rounded-2xl border backdrop-blur-xl transition-all shadow-2xl active:scale-95 cursor-pointer group ${
               isLight
                 ? "bg-red-50 hover:bg-red-100 text-red-600 border-red-200 shadow-slate-200/50"
                 : "bg-red-500/20 hover:bg-red-500/30 text-red-200 hover:text-white border-red-500/40"
@@ -1222,7 +1222,7 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
             setFittedSheetId(null);
             zoomToFit();
           }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-black/85 hover:bg-black text-white border border-white/20 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] flex items-center gap-2.5 text-xs font-mono cursor-pointer transition-all animate-in fade-in slide-in-from-bottom-3 hover:scale-105 active:scale-95"
+          className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-full bg-black/85 hover:bg-black text-white border border-white/20 backdrop-blur-xl shadow-[0_15px_40px_rgba(0,0,0,0.6)] flex items-center gap-2.5 text-xs font-mono cursor-pointer transition-all animate-in fade-in slide-in-from-bottom-3 hover:scale-105 active:scale-95"
         >
           <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse" />
           <span className="font-semibold">Tap 1x untuk lihat keseluruhan portfolio</span>

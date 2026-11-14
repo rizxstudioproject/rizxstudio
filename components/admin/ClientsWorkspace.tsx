@@ -35,6 +35,7 @@ import { ClientItem, ClientLogoItem } from "@/context/PortfolioDataContext";
 import { useLang } from "@/context/LanguageContext";
 import { normalizeMediaUrl, getMediaFallbackUrls } from "@/lib/mediaService";
 import { useMotionTheme } from "@/context/MotionThemeContext";
+import CanvasMediaImage from "@/components/CanvasMediaImage";
 
 interface ClientsWorkspaceProps {
   clients: ClientItem[];
@@ -2890,10 +2891,13 @@ function ToolIcon({ name, isAi }: { name: string; isAi?: boolean }) {
 
                     {/* Thumbnail */}
                     <div className="relative aspect-[16/10] w-full bg-slate-900 overflow-hidden">
-                      <img
-                        src={work.image}
+                      <CanvasMediaImage
+                        src={normalizeMediaUrl(work.image || work.gdriveUrl)}
                         alt={work.title}
-                        draggable={false}
+                        title={work.title}
+                        gdriveUrl={work.gdriveUrl || work.image}
+                        isAdmin={true}
+                        isLight={isLight}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 pointer-events-none"
                       />
                       <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 z-10">

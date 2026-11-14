@@ -18,6 +18,7 @@ import { usePortfolioData, extractYouTubeId } from "@/context/PortfolioDataConte
 import { useMotionTheme } from "@/context/MotionThemeContext";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
 import { DISCIPLINE_TRANSLATIONS } from "./About";
+import CanvasMediaImage from "./CanvasMediaImage";
 
 interface WorkItem {
   id: string;
@@ -1803,12 +1804,15 @@ export default function Projects() {
                     }
                     className={`group relative rounded-xl overflow-hidden bg-neutral-950 border border-white/5 hover:border-cyan-400/50 transition-all cursor-pointer ${aspectClass} hover:scale-[1.02]`}
                   >
-                    <img
-                      src={work.image}
+                    <CanvasMediaImage
+                      src={normalizeMediaUrl(work.image || (work as any).gdriveUrl)}
                       alt={localizedWork.title}
+                      title={localizedWork.title}
+                      gdriveUrl={(work as any).gdriveUrl || work.image}
+                      isLight={isLight}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent pointer-events-none" />
                     
                     {/* Aspect Badge */}
                     <div className="stage4-work-badge absolute top-2 left-2 z-10 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-md text-[10px] sm:text-xs font-mono text-neutral-200 border border-white/10 flex items-center gap-1.5">
@@ -1997,6 +2001,7 @@ export default function Projects() {
                           <img
                             src={normalizeMediaUrl(currentWork.image)}
                             alt={currentWork.title}
+                            referrerPolicy="no-referrer"
                             className="absolute inset-0 w-full h-full object-cover pointer-events-none opacity-40 blur-xs scale-105"
                           />
                         )}
@@ -2025,17 +2030,19 @@ export default function Projects() {
                         }}
                         className="relative rounded-xl sm:rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black flex items-center justify-center select-none"
                       >
-                        <img
+                        <CanvasMediaImage
                           key={currentWork.id}
                           src={normalizeMediaUrl(currentWork.image || (currentWork as any).gdriveUrl)}
                           alt={currentWork.title}
+                          title={currentWork.title}
+                          gdriveUrl={(currentWork as any).gdriveUrl || currentWork.image}
+                          isLight={isLight}
                           className="w-full h-full object-cover rounded-xl sm:rounded-2xl transition-all duration-300 pointer-events-none shadow-2xl"
-                          draggable={false}
                           onContextMenu={(e) => e.preventDefault()}
                         />
                         {/* Transparent shield: stops right-click "Save Image As" and drag */}
                         <div
-                          className="absolute inset-0 rounded-xl sm:rounded-2xl z-10 cursor-default"
+                          className="absolute inset-0 rounded-xl sm:rounded-2xl z-10 cursor-default pointer-events-none"
                           onContextMenu={(e) => e.preventDefault()}
                           draggable={false}
                         />
