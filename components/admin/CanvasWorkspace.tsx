@@ -57,6 +57,7 @@ import { SiYoutube, SiGoogledrive } from "react-icons/si";
 import { RiGridFill, RiArrowGoBackLine, RiArrowGoForwardLine } from "react-icons/ri";
 import { usePortfolioData, extractYouTubeId, CanvasItem, isAccidentalSingleCommentCanvas } from "@/context/PortfolioDataContext";
 import { extractGoogleDriveFileId, normalizeMediaUrl } from "@/lib/mediaService";
+import CanvasMediaImage from "@/components/CanvasMediaImage";
 import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -3421,6 +3422,7 @@ export default function CanvasWorkspace({
         if (isImg) {
           await new Promise<void>((res) => {
             const img = new Image();
+        img.referrerPolicy = "no-referrer";
             img.onload = () => {
               nw = img.naturalWidth || 480;
               nh = img.naturalHeight || 360;
@@ -5324,6 +5326,7 @@ export default function CanvasWorkspace({
 
       if (isImg) {
         const img = new Image();
+        img.referrerPolicy = "no-referrer";
         img.onload = () => {
           const nw = img.naturalWidth;
           const nh = img.naturalHeight;
@@ -5770,6 +5773,7 @@ export default function CanvasWorkspace({
       setCanvasToast("🔄 Membaca proporsi asli gambar...");
       const dims = await new Promise<{ w: number; h: number }>((resolve) => {
         const img = new Image();
+        img.referrerPolicy = "no-referrer";
         let finished = false;
         const done = (w: number, h: number) => {
           if (!finished) {
@@ -5903,6 +5907,7 @@ export default function CanvasWorkspace({
       // Auto-detect image aspect ratio from Google Drive or URL
       const dims = await new Promise<{ w: number; h: number }>((resolve) => {
         const img = new Image();
+        img.referrerPolicy = "no-referrer";
         let done = false;
         const finish = (w: number, h: number) => {
           if (!done) {
@@ -5963,6 +5968,9 @@ export default function CanvasWorkspace({
     };
 
     updateItemsWithTracking([newItem, ...items]);
+    if (!isVideo && driveId && nw === 0) {
+      showToast("⚠️ Gambar Drive belum terbuka publik — set izin ke 'Anyone with the link'.");
+    }
     setSelectedId(newItem.id);
     setSelectedIds(new Set([newItem.id]));
     setIsAddingMedia(false);
@@ -10385,33 +10393,15 @@ export default function CanvasWorkspace({
                           }
 
                           if (item.image) {
-                            let highResSrc = item.image;
-                            if (highResSrc.includes("lh3.googleusercontent.com/d/") && !highResSrc.includes("=")) {
-                              highResSrc = `${highResSrc}=s0`;
-                            } else if (highResSrc.includes("drive.google.com/thumbnail") && !highResSrc.includes("sz=")) {
-                              highResSrc = `${highResSrc}&sz=w3840`;
-                            }
                             return (
-                              <img
-                                src={highResSrc}
+                              <CanvasMediaImage
+                                src={item.image}
                                 alt={item.title || "Image"}
-                                draggable={false}
-                                decoding="sync"
-                                loading="eager"
-                                onLoad={(e) => {
-                                  const target = e.currentTarget;
-                                  if (target.naturalWidth && target.naturalHeight) {
-                                    handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
-                                  }
-                                }}
-                                onError={(e) => {
-                                  const target = e.currentTarget;
-                                  const dId = extractGoogleDriveFileId(target.src);
-                                  if (dId && !target.dataset.triedFallback) {
-                                    target.dataset.triedFallback = "true";
-                                    target.src = `https://drive.google.com/thumbnail?id=${dId}&sz=w3840`;
-                                  }
-                                }}
+                                title={item.title}
+                                gdriveUrl={item.gdriveUrl}
+                                isAdmin
+                                isLight={isLight}
+                                onImageLoad={(nw, nh) => handleOnImageLoad(item.id, nw, nh)}
                                 className="w-full h-full object-cover pointer-events-none select-none"
                                 style={{
                                   WebkitBackfaceVisibility: "hidden",
@@ -10578,33 +10568,15 @@ export default function CanvasWorkspace({
                         }
 
                         if (item.image) {
-                          let highResSrc = item.image;
-                          if (highResSrc.includes("lh3.googleusercontent.com/d/") && !highResSrc.includes("=")) {
-                            highResSrc = `${highResSrc}=s0`;
-                          } else if (highResSrc.includes("drive.google.com/thumbnail") && !highResSrc.includes("sz=")) {
-                            highResSrc = `${highResSrc}&sz=w3840`;
-                          }
                           return (
-                            <img
-                              src={highResSrc}
+                            <CanvasMediaImage
+                              src={item.image}
                               alt={item.title || "Image"}
-                              draggable={false}
-                              decoding="sync"
-                              loading="eager"
-                              onLoad={(e) => {
-                                const target = e.currentTarget;
-                                if (target.naturalWidth && target.naturalHeight) {
-                                  handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
-                                }
-                              }}
-                              onError={(e) => {
-                                const target = e.currentTarget;
-                                const dId = extractGoogleDriveFileId(target.src);
-                                if (dId && !target.dataset.triedFallback) {
-                                  target.dataset.triedFallback = "true";
-                                  target.src = `https://drive.google.com/thumbnail?id=${dId}&sz=w3840`;
-                                }
-                              }}
+                              title={item.title}
+                              gdriveUrl={item.gdriveUrl}
+                              isAdmin
+                              isLight={isLight}
+                              onImageLoad={(nw, nh) => handleOnImageLoad(item.id, nw, nh)}
                               className="w-full h-full object-cover pointer-events-none select-none"
                               style={{
                                 WebkitBackfaceVisibility: "hidden",
@@ -12314,7 +12286,7 @@ export default function CanvasWorkspace({
                 className="w-full px-3.5 py-2.5 rounded-xl bg-white/5 border border-white/10 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-teal-400 font-mono"
               />
               <p className="text-[11px] text-neutral-400 mt-1">
-                Mendukung link share Google Drive (gambar/video) dan YouTube link secara langsung.
+                Mendukung link share Google Drive (pastikan akses diset ke <span className="text-amber-300 font-semibold">&quot;Anyone with the link / Siapa saja yang memiliki link&quot;</span>) dan link YouTube.
               </p>
             </div>
 

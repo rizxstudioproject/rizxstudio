@@ -16,6 +16,7 @@ import { SiYoutube } from "react-icons/si";
 import { RiFullscreenFill, RiFullscreenExitFill, RiGridFill } from "react-icons/ri";
 import { usePortfolioData, extractYouTubeId, CanvasItem, isAccidentalSingleCommentCanvas } from "@/context/PortfolioDataContext";
 import { normalizeMediaUrl } from "@/lib/mediaService";
+import CanvasMediaImage from "@/components/CanvasMediaImage";
 import { getCanvasItemsFromDB } from "@/lib/sequenceStorage";
 import { useLang } from "@/context/LanguageContext";
 import { useMotionTheme } from "@/context/MotionThemeContext";
@@ -1707,18 +1708,13 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
                             if (imgSrc) {
                               return (
-                                <img
+                                <CanvasMediaImage
                                   src={imgSrc}
                                   alt={item.title || "Image"}
-                                  draggable={false}
-                                  decoding="sync"
-                                  loading="eager"
-                                  onLoad={(e) => {
-                                    const target = e.currentTarget;
-                                    if (target.naturalWidth && target.naturalHeight) {
-                                      handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
-                                    }
-                                  }}
+                                  title={item.title}
+                                  gdriveUrl={item.gdriveUrl}
+                                  isLight={isLight}
+                                  onImageLoad={(nw, nh) => handleOnImageLoad(item.id, nw, nh)}
                                   className="w-full h-full object-cover pointer-events-none select-none"
                                   style={{
                                     imageRendering: "-webkit-optimize-contrast",
@@ -1874,18 +1870,13 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
                           if (imgSrc) {
                             return (
-                              <img
+                              <CanvasMediaImage
                                 src={imgSrc}
                                 alt={item.title || "Image"}
-                                draggable={false}
-                                decoding="sync"
-                                loading="eager"
-                                onLoad={(e) => {
-                                  const target = e.currentTarget;
-                                  if (target.naturalWidth && target.naturalHeight) {
-                                    handleOnImageLoad(item.id, target.naturalWidth, target.naturalHeight);
-                                  }
-                                }}
+                                title={item.title}
+                                gdriveUrl={item.gdriveUrl}
+                                isLight={isLight}
+                                onImageLoad={(nw, nh) => handleOnImageLoad(item.id, nw, nh)}
                                 className="w-full h-full object-cover pointer-events-none select-none"
                                 style={{
                                   imageRendering: "-webkit-optimize-contrast",
@@ -2062,19 +2053,18 @@ export default function CanvasBoard({ isOpen, onClose }: CanvasBoardProps) {
 
                       return (
                         <>
-                          <img
+                          <CanvasMediaImage
                             src={sheet.image}
                             alt={sheet.title}
-                            draggable={false}
-                            decoding="sync"
-                            loading="eager"
+                            title={sheet.title}
+                            isLight={isLight}
+                            onContextMenu={(e) => e.preventDefault()}
                             className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300 group-hover:scale-102"
                             style={{
                               imageRendering: "-webkit-optimize-contrast",
                               WebkitBackfaceVisibility: "hidden",
                               transform: "translateZ(0)",
                             }}
-                            onContextMenu={(e) => e.preventDefault()}
                           />
                           <div
                             className="absolute inset-0 z-20 pointer-events-auto cursor-grab"
